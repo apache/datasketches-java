@@ -10,8 +10,15 @@ package com.yahoo.sketches.cpc;
  * <i>HiField</i> variables after the first 8 bytes of the preamble.
  * Do not change the order.
  */
-enum Format { EMPTY_MERGED, EMPTY_HIP, SPARSE_HYBRID_MERGED, SPARSE_HYBRID_HIP, PINNED_SLIDING_MERGED_NOCSV,
-  PINNED_SLIDING_HIP_NOCSV, PINNED_SLIDING_MERGED, PINNED_SLIDING_HIP;
+enum Format {
+  EMPTY_MERGED,
+  EMPTY_HIP,
+  SPARSE_HYBRID_MERGED,
+  SPARSE_HYBRID_HIP,
+  PINNED_SLIDING_MERGED_NOSV,
+  PINNED_SLIDING_HIP_NOSV,
+  PINNED_SLIDING_MERGED,
+  PINNED_SLIDING_HIP;
 
   private static Format[] fmtArr = Format.class.getEnumConstants();
 

@@ -522,10 +522,10 @@ final class CpcCompression {
   private static void compressSparseFlavor(final CompressedState target, final CpcSketch source) {
     assert (source.slidingWindow == null); //there is no window to compress
     final PairTable srcPairTable = source.pairTable;
-    final int numPairs = srcPairTable.getNumPairs();
-    final int[] pairs = PairTable.unwrappingGetItems(srcPairTable, numPairs);
-    introspectiveInsertionSort(pairs, 0, numPairs - 1);
-    compressTheSurprisingValues(target, source, pairs, numPairs);
+    final int srcNumPairs = srcPairTable.getNumPairs();
+    final int[] srcPairArr = PairTable.unwrappingGetItems(srcPairTable, srcNumPairs);
+    introspectiveInsertionSort(srcPairArr, 0, srcNumPairs - 1);
+    compressTheSurprisingValues(target, source, srcPairArr, srcNumPairs);
   }
 
   private static void uncompressSparseFlavor(final CpcSketch target, final CompressedState source) {
@@ -563,24 +563,24 @@ final class CpcCompression {
   private static void compressHybridFlavor(final CompressedState target, final CpcSketch source) {
     final int srcK = 1 << source.lgK;
     final PairTable srcPairTable = source.pairTable;
-    final int srcNumPairsFromTable = srcPairTable.getNumPairs();
-    final int[] pairsFromTable = PairTable.unwrappingGetItems(srcPairTable, srcNumPairsFromTable);
-    introspectiveInsertionSort(pairsFromTable, 0, srcNumPairsFromTable - 1);
+    final int srcNumPairs = srcPairTable.getNumPairs();
+    final int[] srcPairArr = PairTable.unwrappingGetItems(srcPairTable, srcNumPairs);
+    introspectiveInsertionSort(srcPairArr, 0, srcNumPairs - 1);
     final byte[] srcSlidingWindow = source.slidingWindow;
     final int srcWindowOffset = source.windowOffset;
     final long srcNumCoupons = source.numCoupons;
     assert (srcSlidingWindow != null);
     assert (srcWindowOffset == 0);
-    final long numPairs = srcNumCoupons - srcNumPairsFromTable; // because the window offset is zero
+    final long numPairs = srcNumCoupons - srcNumPairs; // because the window offset is zero
     assert numPairs < Integer.MAX_VALUE;
     final int numPairsFromArray = (int) numPairs;
 
-    assert (numPairsFromArray + srcNumPairsFromTable) == srcNumCoupons; //for test
+    assert (numPairsFromArray + srcNumPairs) == srcNumCoupons; //for test
     final int[] allPairs
-      = trickyGetPairsFromWindow(srcSlidingWindow, srcK, numPairsFromArray, srcNumPairsFromTable);
+      = trickyGetPairsFromWindow(srcSlidingWindow, srcK, numPairsFromArray, srcNumPairs);
 
-    PairTable.merge(pairsFromTable, 0, srcNumPairsFromTable,
-        allPairs, srcNumPairsFromTable, numPairsFromArray,
+    PairTable.merge(srcPairArr, 0, srcNumPairs,
+        allPairs, srcNumPairs, numPairsFromArray,
         allPairs, 0);  // note the overlapping subarray trick
 
     //FOR TESTING If needed

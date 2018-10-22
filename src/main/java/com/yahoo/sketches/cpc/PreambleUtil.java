@@ -22,7 +22,7 @@ import com.yahoo.sketches.SketchesStateException;
  * All formats are illustrated as Big-Endian, LSB on the right.
  *
  * <pre>
- * Format = EMPTY_MERGED/EMPTY_HIP: NoWindow, NoCsv, HIP or NoHIP = 00X.
+ * Format = EMPTY_MERGED/EMPTY_HIP: NoWindow, NoSV, HIP or NoHIP = 00X.
  * The first 8 bytes are common for all Formats.
  * PI = 2, FIcol = 0
  * Long adr ||
@@ -30,21 +30,21 @@ import com.yahoo.sketches.SketchesStateException;
  *      0   ||---SEED HASH-----|-Flags--|-FIcol--|---lgK--|-FamID--|-SerVer-|---PI---|
  *
  *
- * Format = SPARSE_HYBRID_MERGED: {NoWindow, Csv, NoHIP} = 2 = 010.
+ * Format = SPARSE_HYBRID_MERGED: {NoWindow, SV, NoHIP} = 2 = 010.
  * PI = 4, FIcol = 0
  * Long adr ||
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||-------------csvLength-------------|--------numCoupons = numCsv--------|
+ *      1   ||-------------SV Length Ints--------|--------numCoupons = numSV---------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
- *      2   ||                                   |----------Start of csv bit stream--|
+ *      2   ||                                   |----------Start SV bit stream------|
  *
  *
- * Format = SPARSE_HYBRID_HIP: {NoWindow, Csv, HIP} = 3 = 011
+ * Format = SPARSE_HYBRID_HIP: {NoWindow, SV, HIP} = 3 = 011
  * PI = 8, FIcol = 0
  * Long adr ||
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||-------------csvLength-------------|--------numCoupons = numCsv--------|
+ *      1   ||-------------SV Length Ints--------|--------numCoupons = numSV---------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
  *      2   ||----------------------------------KxP----------------------------------|
@@ -53,24 +53,24 @@ import com.yahoo.sketches.SketchesStateException;
  *      3   ||-------------------------------HIP Accum-------------------------------|
  *
  *          ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |   32   |
- *      4   ||                                   |----------Start of csv bit stream--|
+ *      4   ||                                   |----------Start of SV stream-------|
  *
  *
- * Format = PINNED_SLIDING_MERGED_NOCSV: {Window, NoCsv, NoHIP} = 4 = 100
+ * Format = PINNED_SLIDING_MERGED_NOSV: {Window, No SV, NoHIP} = 4 = 100
  * PI = 4, FIcol = valid
  * Long adr ||
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||-------------cwLength--------------|------------numCoupons-------------|
+ *      1   ||----------Window Length Ints-------|------------numCoupons-------------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
- *      2   ||                                   |--------Start of cw bit stream-----|
+ *      2   ||                                   |--------Start of Window stream-----|
  *
  *
- * Format = PINNED_SLIDING_HIP_NOCSV: {Window, NoCsv, HIP} = 5 = 101
+ * Format = PINNED_SLIDING_HIP_NOSV: {Window, No SV, HIP} = 5 = 101
  * PI = 8, FIcol = valid
  * Long adr ||
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||-------------cwLength--------------|------------numCoupons-------------|
+ *      1   ||----------Window Length Ints-------|------------numCoupons-------------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
  *      2   ||----------------------------------KxP----------------------------------|
@@ -79,27 +79,27 @@ import com.yahoo.sketches.SketchesStateException;
  *      3   ||-------------------------------HIP Accum-------------------------------|
  *
  *          ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |   32   |
- *      4   ||                                   |--------Start of cw bit stream-----|
+ *      4   ||                                   |--------Start of Window stream-----|
  *
  *
- * Format = PINNED_SLIDING_MERGED: {Window, Csv, NoHIP} = 6 = 110
+ * Format = PINNED_SLIDING_MERGED: {Window, SV, NoHIP} = 6 = 110
  * PI = 6, FIcol = valid
  * Long adr ||
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||---------------numCsv--------------|------------numCoupons-------------|
+ *      1   ||---------------numSV---------------|------------numCoupons-------------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
- *      2   ||-------------cwLength--------------|-------------csvLength-------------|
+ *      2   ||----------Window Length Ints-------|-------------SV Length Ints--------|
  *
  *          ||   XX   |   XX   |   XX   |   XX   |   27   |   26   |   25   |   24   |
- *      3   ||--------Start of cw bit stream-----|--------Start of csv bit stream----|
+ *      3   ||--------Start of Window stream-----|--------Start of SV stream---------|
  *
  *
- * Format = PINNED_SLIDING_HIP: {Window, Csv, HIP} = 7 = 111
+ * Format = PINNED_SLIDING_HIP: {Window, SV, HIP} = 7 = 111
  * PI = 10, FIcol = valid
  * Long adr ||
  *          ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
- *      1   ||---------------numCsv--------------|------------numCoupons-------------|
+ *      1   ||---------------numSV---------------|------------numCoupons-------------|
  *
  *          ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |   16   |
  *      2   ||----------------------------------KxP----------------------------------|
@@ -108,10 +108,10 @@ import com.yahoo.sketches.SketchesStateException;
  *      3   ||-------------------------------HIP Accum-------------------------------|
  *
  *          ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |   32   |
- *      4   ||-------------cwLength--------------|-------------csvLength-------------|
+ *      4   ||----------Window Length Ints-------|-------------SV Length Ints--------|
  *
  *          ||   XX   |   XX   |   XX   |   XX   |   43   |   42   |   41   |   40   |
- *      5   ||--------Start of cw bit stream-----|--------Start of csv bit stream----|
+ *      5   ||--------Start of Window stream-----|--------Start of SV stream---------|
  * </pre>
  *
  * @author Lee Rhodes
@@ -139,7 +139,7 @@ final class PreambleUtil {
   static final int BIG_ENDIAN_FLAG_MASK     = 1; //Reserved.
   static final int COMPRESSED_FLAG_MASK     = 2;
   static final int HIP_FLAG_MASK            = 4;
-  static final int SUP_VAL_FLAG_MASK        = 8;
+  static final int SUP_VAL_FLAG_MASK        = 8; //Suprising Value
   static final int WINDOW_FLAG_MASK         = 16;
 
   //PREAMBLE SIZE
@@ -221,7 +221,7 @@ final class PreambleUtil {
     return (getFlags(mem) & HIP_FLAG_MASK) > 0;
   }
 
-  static final boolean hasCsv(final Memory mem) {
+  static final boolean hasSv(final Memory mem) {
     return (getFlags(mem) & SUP_VAL_FLAG_MASK) > 0;
   }
 
@@ -241,10 +241,10 @@ final class PreambleUtil {
    *
    * <p>Note: NUM_SV has dual meanings: In sparse and hybrid flavors it is equivalent to
    * numCoupons so it isn't stored separately. In pinned and sliding flavors is is the
-   * numCsv of the PairTable, which stores only surprising values.</p>
+   * numSV of the PairTable, which stores only surprising values.</p>
    */
-  enum HiField { NUM_COUPONS, NUM_SV, KXP, HIP_ACCUM, CSV_LENGTH, CW_LENGTH, CSV_STREAM,
-    CW_STREAM }
+  enum HiField { NUM_COUPONS, NUM_SV, KXP, HIP_ACCUM, SV_LENGTH_INTS, W_LENGTH_INTS, SV_STREAM,
+    W_STREAM }
 
   //PREAMBLE HI_FIELD OFFSETS
 
@@ -259,8 +259,8 @@ final class PreambleUtil {
       {8,  0, 16, 24, 12,  0, 32,  0},
       {8,  0,  0,  0,  0, 12,  0, 16},
       {8,  0, 16, 24,  0, 12,  0, 32},
-      {8, 12,  0,  0, 16, 20, 24, 24},
-      {8, 12, 16, 24, 32, 36, 40, 40}
+      {8, 12,  0,  0, 16, 20, 24, 24}, //the 2nd 24 is not used.
+      {8, 12, 16, 24, 32, 36, 40, 40}  //the 2nd 40 is not used.
     };
 
   /**
@@ -292,23 +292,23 @@ final class PreambleUtil {
     return mem.getInt(offset);
   }
 
-  static int getNumCsv(final Memory mem) {
+  static int getNumSv(final Memory mem) {
     final Format format = getFormat(mem);
     final HiField hiField = HiField.NUM_SV;
     final long offset = getHiFieldOffset(format, hiField);
     return mem.getInt(offset);
   }
 
-  static int getCsvLength(final Memory mem) {
+  static int getSvLengthInts(final Memory mem) {
     final Format format = getFormat(mem);
-    final HiField hiField = HiField.CSV_LENGTH;
+    final HiField hiField = HiField.SV_LENGTH_INTS;
     final long offset = getHiFieldOffset(format, hiField);
     return mem.getInt(offset);
   }
 
-  static int getCwLength(final Memory mem) {
+  static int getWLengthInts(final Memory mem) {
     final Format format = getFormat(mem);
-    final HiField hiField = HiField.CW_LENGTH;
+    final HiField hiField = HiField.W_LENGTH_INTS;
     final long offset = getHiFieldOffset(format, hiField);
     return mem.getInt(offset);
   }
@@ -327,45 +327,45 @@ final class PreambleUtil {
     return mem.getDouble(offset);
   }
 
-  static long getCsvStreamOffset(final Memory mem) {
+  static long getSvStreamOffset(final Memory mem) {
     final Format format = getFormat(mem);
-    final HiField csvLenField = HiField.CSV_LENGTH;
-    if (!hasCsv(mem)) { fieldError(format, csvLenField); }
-    final long csvLength = mem.getInt(getHiFieldOffset(format, csvLenField)) & 0XFFFF_FFFFL;
-    if (csvLength == 0) {
-      throw new SketchesStateException("CsvLength cannot be zero");
+    final HiField svLenField = HiField.SV_LENGTH_INTS;
+    if (!hasSv(mem)) { fieldError(format, svLenField); }
+    final long svLengthInts = mem.getInt(getHiFieldOffset(format, svLenField)) & 0XFFFF_FFFFL;
+    if (svLengthInts == 0) {
+      throw new SketchesStateException("SvLength cannot be zero");
     }
     return 4L * getPreInts(mem);
   }
 
-  static int[] getCsvStream(final Memory mem) {
-    final long offset = getCsvStreamOffset(mem);
-    final int csvLength = getCsvLength(mem);
-    final int[] csvStream = new int[csvLength];
-    mem.getIntArray(offset, csvStream, 0, csvLength);
-    return csvStream;
+  static int[] getSvStream(final Memory mem) {
+    final long offset = getSvStreamOffset(mem);
+    final int svLengthInts = getSvLengthInts(mem);
+    final int[] svStream = new int[svLengthInts];
+    mem.getIntArray(offset, svStream, 0, svLengthInts);
+    return svStream;
   }
 
-  static long getCwStreamOffset(final Memory mem) {
+  static long getWStreamOffset(final Memory mem) {
     final Format format = getFormat(mem);
-    final HiField cwLenField = HiField.CW_LENGTH;
-    if (!hasWindow(mem))  { fieldError(format, cwLenField); }
-    long csvLength = 0;
-    if (hasCsv(mem)) {
-      csvLength = mem.getInt(getHiFieldOffset(format, HiField.CSV_LENGTH)) & 0XFFFF_FFFFL;
-      if (csvLength == 0) {
-        throw new SketchesStateException("CsvLength cannot be zero");
+    final HiField wLenField = HiField.W_LENGTH_INTS;
+    if (!hasWindow(mem))  { fieldError(format, wLenField); }
+    long svLengthInts = 0;
+    if (hasSv(mem)) {
+      svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0XFFFF_FFFFL;
+      if (svLengthInts == 0) {
+        throw new SketchesStateException("SvLength cannot be zero");
       }
     }
-    return 4L * (getPreInts(mem) + csvLength);
+    return 4L * (getPreInts(mem) + svLengthInts);
   }
 
-  static int[] getCwStream(final Memory mem) {
-    final long offset = getCwStreamOffset(mem);
-    final int cwLength = getCwLength(mem);
-    final int[] cwStream = new int[cwLength];
-    mem.getIntArray(offset, cwStream, 0, cwLength);
-    return cwStream;
+  static int[] getWStream(final Memory mem) {
+    final long offset = getWStreamOffset(mem);
+    final int wLength = getWLengthInts(mem);
+    final int[] wStream = new int[wLength];
+    mem.getIntArray(offset, wStream, 0, wLength);
+    return wStream;
   }
 
   // PUT INTO MEMORY
@@ -395,133 +395,133 @@ final class PreambleUtil {
   static void putSparseHybridMerged(final WritableMemory wmem,
       final int lgK,
       final int numCoupons, //unsigned
-      final int csvLength,
+      final int svLengthInts,
       final short seedHash,
-      final int[] csvStream) {
+      final int[] svStream) {
     final Format format = Format.SPARSE_HYBRID_MERGED;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength));
+    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts));
     putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
 
     wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
   }
 
   static void putSparseHybridHip(final WritableMemory wmem,
       final int lgK,
       final int numCoupons, //unsigned
-      final int csvLength,
+      final int svLengthInts,
       final double kxp,
       final double hipAccum,
       final short seedHash,
-      final int[] csvStream) {
+      final int[] svStream) {
     final Format format = Format.SPARSE_HYBRID_HIP;
     final byte preInts = getDefinedPreInts(format);
     final byte fiCol = (byte) 0;
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength));
+    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts));
     putFirst8(wmem, preInts, (byte) lgK, fiCol, flags, seedHash);
 
     wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
     wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
     wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
+    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
   }
 
   static void putPinnedSlidingMergedNoSv(final WritableMemory wmem,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
-      final int cwLength,
+      final int wLengthInts,
       final short seedHash,
-      final int[] cwStream) {
-    final Format format = Format.PINNED_SLIDING_MERGED_NOCSV;
+      final int[] wStream) {
+    final Format format = Format.PINNED_SLIDING_MERGED_NOSV;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + cwLength));
+    checkCapacity(wmem.getCapacity(), 4L * (preInts + wLengthInts));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
     wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
   }
 
   static void putPinnedSlidingHipNoSv(final WritableMemory wmem,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
-      final int cwLength,
+      final int wLengthInts,
       final double kxp,
       final double hipAccum,
       final short seedHash,
-      final int[] cwStream) {
-    final Format format = Format.PINNED_SLIDING_HIP_NOCSV;
+      final int[] wStream) {
+    final Format format = Format.PINNED_SLIDING_HIP_NOSV;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + cwLength));
+    checkCapacity(wmem.getCapacity(), 4L * (preInts + wLengthInts));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
     wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
     wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
     wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
+    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
   }
 
   static void putPinnedSlidingMerged(final WritableMemory wmem,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
-      final int numCsv,
-      final int csvLength,
-      final int cwLength,
+      final int numSv,
+      final int svLengthInts,
+      final int wLengthInts,
       final short seedHash,
-      final int[] csvStream,
-      final int[] cwStream) {
+      final int[] svStream,
+      final int[] wStream) {
     final Format format = Format.PINNED_SLIDING_MERGED;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength + cwLength));
+    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts + wLengthInts));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
     wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numCsv);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numSv);
+    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
+    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
   }
 
   static void putPinnedSlidingHip(final WritableMemory wmem,
       final int lgK,
       final int fiCol,
       final int numCoupons, //unsigned
-      final int numCsv,
+      final int numSv,
       final double kxp,
       final double hipAccum,
-      final int csvLength,
-      final int cwLength,
+      final int svLengthInts,
+      final int wLengthInts,
       final short seedHash,
-      final int[] csvStream,
-      final int[] cwStream) {
+      final int[] svStream,
+      final int[] wStream) {
     final Format format = Format.PINNED_SLIDING_HIP;
     final byte preInts = getDefinedPreInts(format);
     final byte flags = (byte) ((format.ordinal() << 2) | COMPRESSED_FLAG_MASK);
-    checkCapacity(wmem.getCapacity(), 4L * (preInts + csvLength + cwLength));
+    checkCapacity(wmem.getCapacity(), 4L * (preInts + svLengthInts + wLengthInts));
     putFirst8(wmem, preInts, (byte) lgK, (byte) fiCol, flags, seedHash);
 
     wmem.putInt(getHiFieldOffset(format, HiField.NUM_COUPONS), numCoupons);
-    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numCsv);
+    wmem.putInt(getHiFieldOffset(format, HiField.NUM_SV), numSv);
     wmem.putDouble(getHiFieldOffset(format, HiField.KXP), kxp);
     wmem.putDouble(getHiFieldOffset(format, HiField.HIP_ACCUM), hipAccum);
-    wmem.putInt(getHiFieldOffset(format, HiField.CSV_LENGTH), csvLength);
-    wmem.putInt(getHiFieldOffset(format, HiField.CW_LENGTH), cwLength);
-    wmem.putIntArray(getCsvStreamOffset(wmem), csvStream, 0, csvLength);
-    wmem.putIntArray(getCwStreamOffset(wmem), cwStream, 0, cwLength);
+    wmem.putInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS), svLengthInts);
+    wmem.putInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS), wLengthInts);
+    wmem.putIntArray(getSvStreamOffset(wmem), svStream, 0, svLengthInts);
+    wmem.putIntArray(getWStreamOffset(wmem), wStream, 0, wLengthInts);
   }
 
   private static void putFirst8(final WritableMemory wmem, final byte preInts, final byte lgK,
@@ -568,14 +568,14 @@ final class PreambleUtil {
     final String nativeOrderStr = ByteOrder.nativeOrder().toString();
 
     long numCoupons = 0;
-    long numCsv = 0;
+    long numSv = 0;
     long winOffset = 0;
-    long csvLength = 0;
-    long cwLength = 0;
+    long svLengthInts = 0;
+    long wLengthInts = 0;
     double kxp = 0;
     double hipAccum = 0;
-    long csvStreamStart = 0;
-    long cwStreamStart = 0;
+    long svStreamStart = 0;
+    long wStreamStart = 0;
 
     final StringBuilder sb = new StringBuilder();
     sb.append(LS);
@@ -606,29 +606,29 @@ final class PreambleUtil {
       case SPARSE_HYBRID_MERGED : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
-        numCsv = numCoupons;
-        csvLength = mem.getInt(getHiFieldOffset(format, HiField.CSV_LENGTH)) & 0xFFFF_FFFFL;
-        csvStreamStart = getCsvStreamOffset(mem);
+        numSv = numCoupons;
+        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        svStreamStart = getSvStreamOffset(mem);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
 
-        sb.append("Num Compressed SV               : ").append(numCsv).append(LS);
-        sb.append("Compressed SV Length Ints       : ").append(csvLength).append(LS);
-        sb.append("Compressed SV Stream Start      : ").append(csvStreamStart).append(LS);
+        sb.append("Num SV                          : ").append(numSv).append(LS);
+        sb.append("SV Length Ints                  : ").append(svLengthInts).append(LS);
+        sb.append("SV Stream Start                 : ").append(svStreamStart).append(LS);
         if (data) {
-          sb.append(LS).append("CSV Stream:").append(LS);
-          listData(mem, csvStreamStart, csvLength, sb);
+          sb.append(LS).append("SV Stream:").append(LS);
+          listData(mem, svStreamStart, svLengthInts, sb);
         }
         break;
       }
       case SPARSE_HYBRID_HIP : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
-        numCsv = numCoupons;
-        csvLength = mem.getInt(getHiFieldOffset(format, HiField.CSV_LENGTH)) & 0xFFFF_FFFFL;
-        csvStreamStart = getCsvStreamOffset(mem);
+        numSv = numCoupons;
+        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        svStreamStart = getSvStreamOffset(mem);
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
@@ -637,44 +637,44 @@ final class PreambleUtil {
         sb.append("Flavor                          : ").append(flavor).append(LS);
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
 
-        sb.append("Num Compressed SV               : ").append(numCsv).append(LS);
-        sb.append("Compressed SV Length Ints       : ").append(csvLength).append(LS);
-        sb.append("Compressed SV Stream Start      : ").append(csvStreamStart).append(LS);
+        sb.append("Num SV                          : ").append(numSv).append(LS);
+        sb.append("SV Length Ints                  : ").append(svLengthInts).append(LS);
+        sb.append("SV Stream Start                 : ").append(svStreamStart).append(LS);
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
         if (data) {
-          sb.append(LS).append("CSV Stream:").append(LS);
-          listData(mem, csvStreamStart, csvLength, sb);
+          sb.append(LS).append("SV Stream:").append(LS);
+          listData(mem, svStreamStart, svLengthInts, sb);
         }
         break;
       }
-      case PINNED_SLIDING_MERGED_NOCSV : {
+      case PINNED_SLIDING_MERGED_NOSV : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        cwLength = mem.getInt(getHiFieldOffset(format, HiField.CW_LENGTH)) & 0xFFFF_FFFFL;
-        cwStreamStart = getCwStreamOffset(mem);
+        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = getWStreamOffset(mem);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
 
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
-        sb.append("Compressed Window Length Ints   : ").append(cwLength).append(LS);
-        sb.append("Compressed Window Stream Start  : ").append(cwStreamStart).append(LS);
+        sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
+        sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
         if (data) {
-          sb.append(LS).append("CW Stream:").append(LS);
-          listData(mem, cwStreamStart, cwLength, sb);
+          sb.append(LS).append("Window Stream:").append(LS);
+          listData(mem, wStreamStart, wLengthInts, sb);
         }
         break;
       }
-      case PINNED_SLIDING_HIP_NOCSV : {
+      case PINNED_SLIDING_HIP_NOSV : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS)) & 0xFFFF_FFFFL;
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        cwLength = mem.getInt(getHiFieldOffset(format, HiField.CW_LENGTH)) & 0xFFFF_FFFFL;
-        cwStreamStart = getCwStreamOffset(mem);
+        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = getWStreamOffset(mem);
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
@@ -684,57 +684,57 @@ final class PreambleUtil {
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
 
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
-        sb.append("Compressed Window Length Ints   : ").append(cwLength).append(LS);
-        sb.append("Compressed Window Stream Start  : ").append(cwStreamStart).append(LS);
+        sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
+        sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
         if (data) {
-          sb.append(LS).append("CW Stream:").append(LS);
-          listData(mem, cwStreamStart, cwLength, sb);
+          sb.append(LS).append("Window Stream:").append(LS);
+          listData(mem, wStreamStart, wLengthInts, sb);
         }
         break;
       }
       case PINNED_SLIDING_MERGED : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
 
-        numCsv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
-        csvLength = mem.getInt(getHiFieldOffset(format, HiField.CSV_LENGTH)) & 0xFFFF_FFFFL;
-        csvStreamStart = getCsvStreamOffset(mem);
+        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
+        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        svStreamStart = getSvStreamOffset(mem);
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        cwLength = mem.getInt(getHiFieldOffset(format, HiField.CW_LENGTH)) & 0xFFFF_FFFFL;
-        cwStreamStart = (csvLength == 0) ? -1L : getCwStreamOffset(mem);
+        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = (svLengthInts == 0) ? -1L : getWStreamOffset(mem);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
 
-        sb.append("Num Compressed SV               : ").append(numCsv).append(LS);
-        sb.append("Compressed SV Length Ints       : ").append(csvLength).append(LS);
-        sb.append("Compressed SV Stream Start      : ").append(csvStreamStart).append(LS);
+        sb.append("Num SV                          : ").append(numSv).append(LS);
+        sb.append("SV Length Ints                  : ").append(svLengthInts).append(LS);
+        sb.append("SV Stream Start                 : ").append(svStreamStart).append(LS);
 
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
-        sb.append("Compressed Window Length Ints   : ").append(cwLength).append(LS);
-        sb.append("Compressed Window Stream Start  : ").append(cwStreamStart).append(LS);
+        sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
+        sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
         if (data) {
-          sb.append(LS).append("CSV Stream:").append(LS);
-          listData(mem, csvStreamStart, csvLength, sb);
-          sb.append(LS).append("CW Stream:").append(LS);
-          listData(mem, cwStreamStart, cwLength, sb);
+          sb.append(LS).append("SV Stream:").append(LS);
+          listData(mem, svStreamStart, svLengthInts, sb);
+          sb.append(LS).append("Window Stream:").append(LS);
+          listData(mem, wStreamStart, wLengthInts, sb);
         }
         break;
       }
       case PINNED_SLIDING_HIP : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
 
-        numCsv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
-        csvLength = mem.getInt(getHiFieldOffset(format, HiField.CSV_LENGTH)) & 0xFFFF_FFFFL;
-        csvStreamStart = getCsvStreamOffset(mem);
+        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
+        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        svStreamStart = getSvStreamOffset(mem);
 
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
-        cwLength = mem.getInt(getHiFieldOffset(format, HiField.CW_LENGTH)) & 0xFFFF_FFFFL;
-        cwStreamStart = (csvLength == 0) ? -1L : getCwStreamOffset(mem);
+        wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = (svLengthInts == 0) ? -1L : getWStreamOffset(mem);
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
@@ -743,21 +743,21 @@ final class PreambleUtil {
         sb.append("Flavor                          : ").append(flavor).append(LS);
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
 
-        sb.append("Num Compressed SV               : ").append(numCsv).append(LS);
-        sb.append("Compressed SV Length Ints       : ").append(csvLength).append(LS);
-        sb.append("Compressed SV Stream Start      : ").append(csvStreamStart).append(LS);
+        sb.append("Num SV                          : ").append(numSv).append(LS);
+        sb.append("SV Length Ints                  : ").append(svLengthInts).append(LS);
+        sb.append("SV Stream Start                 : ").append(svStreamStart).append(LS);
 
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
-        sb.append("Compressed Window Length Ints   : ").append(cwLength).append(LS);
-        sb.append("Compressed Window Stream Start  : ").append(cwStreamStart).append(LS);
+        sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
+        sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
         if (data) {
-          sb.append(LS).append("CSV Stream:").append(LS);
-          listData(mem, csvStreamStart, csvLength, sb);
-          sb.append(LS).append("CW Stream:").append(LS);
-          listData(mem, cwStreamStart, cwLength, sb);
+          sb.append(LS).append("SV Stream:").append(LS);
+          listData(mem, svStreamStart, svLengthInts, sb);
+          sb.append(LS).append("Window Stream:").append(LS);
+          listData(mem, wStreamStart, wLengthInts, sb);
         }
         break;
       }

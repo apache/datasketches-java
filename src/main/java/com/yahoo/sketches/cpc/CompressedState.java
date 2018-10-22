@@ -7,19 +7,19 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.checkLoPreamble;
-import static com.yahoo.sketches.cpc.PreambleUtil.getCsvLength;
-import static com.yahoo.sketches.cpc.PreambleUtil.getCsvStream;
-import static com.yahoo.sketches.cpc.PreambleUtil.getCwLength;
-import static com.yahoo.sketches.cpc.PreambleUtil.getCwStream;
 import static com.yahoo.sketches.cpc.PreambleUtil.getDefinedPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFiCol;
 import static com.yahoo.sketches.cpc.PreambleUtil.getHipAccum;
 import static com.yahoo.sketches.cpc.PreambleUtil.getKxP;
 import static com.yahoo.sketches.cpc.PreambleUtil.getLgK;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
-import static com.yahoo.sketches.cpc.PreambleUtil.getNumCsv;
+import static com.yahoo.sketches.cpc.PreambleUtil.getNumSv;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSeedHash;
-import static com.yahoo.sketches.cpc.PreambleUtil.hasCsv;
+import static com.yahoo.sketches.cpc.PreambleUtil.getSvLengthInts;
+import static com.yahoo.sketches.cpc.PreambleUtil.getSvStream;
+import static com.yahoo.sketches.cpc.PreambleUtil.getWLengthInts;
+import static com.yahoo.sketches.cpc.PreambleUtil.getWStream;
+import static com.yahoo.sketches.cpc.PreambleUtil.hasSv;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasWindow;
 import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyHip;
@@ -115,13 +115,13 @@ final class CompressedState {
       }
       case SPARSE_HYBRID_MERGED : {
         state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasCsv(mem);
+        state.csvIsValid = hasSv(mem);
         state.windowIsValid = hasWindow(mem);
         //state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
-        state.csvLength = getCsvLength(mem);
-        state.csvStream = getCsvStream(mem);
+        state.csvLength = getSvLengthInts(mem);
+        state.csvStream = getSvStream(mem);
         //state.cwLength = getCwLength(mem);
         //state.cwStream = getCwStream(mem);
         //state.kxp = getKxP(mem);
@@ -130,75 +130,75 @@ final class CompressedState {
       }
       case SPARSE_HYBRID_HIP : {
         state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasCsv(mem);
+        state.csvIsValid = hasSv(mem);
         state.windowIsValid = hasWindow(mem);
         //state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
-        state.csvLength = getCsvLength(mem);
-        state.csvStream = getCsvStream(mem);
+        state.csvLength = getSvLengthInts(mem);
+        state.csvStream = getSvStream(mem);
         //state.cwLength = getCwLength(mem);
         //state.cwStream = getCwStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
         break;
       }
-      case PINNED_SLIDING_MERGED_NOCSV : {
+      case PINNED_SLIDING_MERGED_NOSV : {
         state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasCsv(mem);
+        state.csvIsValid = hasSv(mem);
         state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
         //state.csvStream = getCsvStream(mem);
-        state.cwLength = getCwLength(mem);
-        state.cwStream = getCwStream(mem);
+        state.cwLength = getWLengthInts(mem);
+        state.cwStream = getWStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
         break;
       }
-      case PINNED_SLIDING_HIP_NOCSV : {
+      case PINNED_SLIDING_HIP_NOSV : {
         state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasCsv(mem);
+        state.csvIsValid = hasSv(mem);
         state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
         //state.csvStream = getCsvStream(mem);
-        state.cwLength = getCwLength(mem);
-        state.cwStream = getCwStream(mem);
+        state.cwLength = getWLengthInts(mem);
+        state.cwStream = getWStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
         break;
       }
       case PINNED_SLIDING_MERGED : {
         state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasCsv(mem);
+        state.csvIsValid = hasSv(mem);
         state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
-        state.numCsv = getNumCsv(mem);
-        state.csvLength = getCsvLength(mem);
-        state.csvStream = getCsvStream(mem);
-        state.cwLength = getCwLength(mem);
-        state.cwStream = getCwStream(mem);
+        state.numCsv = getNumSv(mem);
+        state.csvLength = getSvLengthInts(mem);
+        state.csvStream = getSvStream(mem);
+        state.cwLength = getWLengthInts(mem);
+        state.cwStream = getWStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
         break;
       }
       case PINNED_SLIDING_HIP : {
         state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasCsv(mem);
+        state.csvIsValid = hasSv(mem);
         state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
-        state.numCsv = getNumCsv(mem);
-        state.csvLength = getCsvLength(mem);
-        state.csvStream = getCsvStream(mem);
-        state.cwLength = getCwLength(mem);
-        state.cwStream = getCwStream(mem);
+        state.numCsv = getNumSv(mem);
+        state.csvLength = getSvLengthInts(mem);
+        state.csvStream = getSvStream(mem);
+        state.cwLength = getWLengthInts(mem);
+        state.cwStream = getWStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
         break;
@@ -238,7 +238,7 @@ final class CompressedState {
             csvStream);
         break;
       }
-      case PINNED_SLIDING_MERGED_NOCSV : {
+      case PINNED_SLIDING_MERGED_NOSV : {
         putPinnedSlidingMergedNoSv(wmem,
             lgK,
             fiCol,
@@ -248,7 +248,7 @@ final class CompressedState {
             cwStream);
         break;
       }
-      case PINNED_SLIDING_HIP_NOCSV : {
+      case PINNED_SLIDING_HIP_NOSV : {
         putPinnedSlidingHipNoSv(wmem,
             lgK,
             fiCol,
