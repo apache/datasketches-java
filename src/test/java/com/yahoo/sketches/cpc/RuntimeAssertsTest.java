@@ -12,9 +12,6 @@ import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.SketchesArgumentException;
-
-
 /**
  * @author Lee Rhodes
  */
@@ -48,25 +45,25 @@ public class RuntimeAssertsTest {
 
   @Test
   public void checkSimpleExceptions() {
-    try { rtAssert(false); fail(); } catch (SketchesArgumentException e) { }
-    try { rtAssertFalse(true); fail(); } catch (SketchesArgumentException e) { }
-    try { rtAssertEquals(1L, 2L); fail(); } catch (SketchesArgumentException e) { }
-    try { rtAssertEquals(1.0, 2.0, 0); fail(); } catch (SketchesArgumentException e) { }
-    try { rtAssertEquals(true, false); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssert(false); fail(); } catch (AssertionError e) { }
+    try { rtAssertFalse(true); fail(); } catch (AssertionError e) { }
+    try { rtAssertEquals(1L, 2L); fail(); } catch (AssertionError e) { }
+    try { rtAssertEquals(1.0, 2.0, 0); fail(); } catch (AssertionError e) { }
+    try { rtAssertEquals(true, false); fail(); } catch (AssertionError e) { }
   }
 
   @Test
   public void checkByteArr() {
     byte[] arr1 = {1, 2};
     byte[] arr2 = {1};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = new byte[] {1, 3};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = arr1;
     arr1 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
     rtAssertEquals(arr1, arr2);
   }
@@ -75,14 +72,14 @@ public class RuntimeAssertsTest {
   public void checkShortArr() {
     short[] arr1 = {1, 2};
     short[] arr2 = {1};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = new short[] {1, 3};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = arr1;
     arr1 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
     rtAssertEquals(arr1, arr2);
   }
@@ -91,14 +88,14 @@ public class RuntimeAssertsTest {
   public void checkIntArr() {
     int[] arr1 = {1, 2};
     int[] arr2 = {1};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = new int[] {1, 3};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = arr1;
     arr1 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
     rtAssertEquals(arr1, arr2);
   }
@@ -107,14 +104,14 @@ public class RuntimeAssertsTest {
   public void checkLongArr() {
     long[] arr1 = {1, 2};
     long[] arr2 = {1};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = new long[] {1, 3};
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = arr1;
     arr1 = null;
-    try { rtAssertEquals(arr1, arr2); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2); fail(); } catch (AssertionError e) { }
     arr2 = null;
     rtAssertEquals(arr1, arr2);
   }
@@ -123,14 +120,14 @@ public class RuntimeAssertsTest {
   public void checkFloatArr() {
     float[] arr1 = {1, 2};
     float[] arr2 = {1};
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = new float[] {1, 3};
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = null;
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = arr1;
     arr1 = null;
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = null;
     rtAssertEquals(arr1, arr2, 0);
   }
@@ -139,14 +136,14 @@ public class RuntimeAssertsTest {
   public void checkDoubleArr() {
     double[] arr1 = {1, 2};
     double[] arr2 = {1};
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = new double[] {1, 3};
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = null;
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = arr1;
     arr1 = null;
-    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (SketchesArgumentException e) { }
+    try { rtAssertEquals(arr1, arr2, 0); fail(); } catch (AssertionError e) { }
     arr2 = null;
     rtAssertEquals(arr1, arr2, 0);
   }

@@ -171,6 +171,7 @@ public class PreambleUtilTest {
     int[] wStream = { 2 };
     try {
       putPinnedSlidingMerged(wmem, 4, 0, 1, 1, 1, 0, (short) 0, svStream, wStream);
+      fail();
     } catch (SketchesStateException e) { }
     assertTrue(PreambleUtil.isCompressed(wmem));
   }

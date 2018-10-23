@@ -178,11 +178,7 @@ public class CompressionCharacterization {
       for (int trial = 0; trial < trialsPerWave; trial++) {
         CompressedState state = compressedStates2[trial];
         CpcSketch uncSk = null;
-        try {
-          uncSk = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
-        } catch (AssertionError e) {
-          System.out.println("n " + n);
-        }
+        uncSk = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
         unCompressedSketches[trial] = uncSk;
       }
 

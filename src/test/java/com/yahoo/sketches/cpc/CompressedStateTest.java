@@ -14,7 +14,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
-import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
@@ -101,7 +100,7 @@ public class CompressedStateTest {
     try {
       CompressedState.importFromMemory(Memory.wrap(byteArr));
       fail();
-    } catch (SketchesArgumentException e) {}
+    } catch (AssertionError e) {}
   }
 
   /**

@@ -14,7 +14,6 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
-import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
@@ -80,7 +79,7 @@ public class CpcWrapperTest {
     try {
       CompressedCpcWrapper wrapper = new CompressedCpcWrapper(Memory.wrap(byteArr));
       fail();
-    } catch (SketchesArgumentException e) {}
+    } catch (AssertionError e) {}
   }
 
   /**
