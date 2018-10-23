@@ -6,6 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import java.io.PrintStream;
 
@@ -13,11 +14,12 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
  */
-public class CpcWrapperTest {
+public class CompressedCpcWrapperTest {
   static PrintStream ps = System.out;
 
   @SuppressWarnings("unused")
@@ -38,7 +40,7 @@ public class CpcWrapperTest {
       skD.update(i);
       skD.update(i + n);
     }
-    byte[] concatArr = skD.toByteArray();
+    byte[] concatArr = skD.toCompressedByteArray();
 
     CpcUnion union = new CpcUnion(lgK);
     CpcSketch result = union.getResult();
@@ -48,7 +50,7 @@ public class CpcWrapperTest {
     union.update(sk1);
     union.update(sk2);
     CpcSketch merged = union.getResult();
-    byte[] mergedArr = merged.toByteArray();
+    byte[] mergedArr = merged.toCompressedByteArray();
 
     Memory concatMem = Memory.wrap(concatArr);
     CompressedCpcWrapper concatSk = new CompressedCpcWrapper(concatMem);
@@ -67,7 +69,18 @@ public class CpcWrapperTest {
     double mUb = mergedSk.getUpperBound(2);
     printf("Merged:       %12.0f %12.0f %12.0f\n", mLb, mEst, mUb);
     assertEquals(Family.CPC, CompressedCpcWrapper.getFamily());
+  }
 
+  @SuppressWarnings("unused")
+  @Test
+  public void checkIsCompressed() {
+    CpcSketch sk = new CpcSketch(10);
+    byte[] byteArr = sk.toCompressedByteArray();
+    byteArr[5] &= (byte) -3;
+    try {
+      CompressedCpcWrapper wrapper = new CompressedCpcWrapper(Memory.wrap(byteArr));
+      fail();
+    } catch (SketchesArgumentException e) {}
   }
 
   /**

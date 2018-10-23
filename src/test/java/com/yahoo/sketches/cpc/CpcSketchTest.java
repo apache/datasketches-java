@@ -172,7 +172,7 @@ public class CpcSketchTest {
     int lgK = 10;
     CpcSketch sk = new CpcSketch(lgK, DEFAULT_UPDATE_SEED);
     assertTrue(sk.isEmpty());
-    byte[] byteArray = sk.toByteArray();
+    byte[] byteArray = sk.toCompressedByteArray();
     CpcSketch sk2 = CpcSketch.heapify(byteArray, DEFAULT_UPDATE_SEED);
     assertTrue(specialEquals(sk2, sk, false, false));
   }
@@ -182,7 +182,7 @@ public class CpcSketchTest {
     int lgK = 10;
     CpcSketch sk = new CpcSketch(lgK);
     assertTrue(sk.isEmpty());
-    byte[] byteArray = sk.toByteArray();
+    byte[] byteArray = sk.toCompressedByteArray();
     Memory mem = Memory.wrap(byteArray);
     CpcSketch sk2 = CpcSketch.heapify(mem);
     assertTrue(specialEquals(sk2, sk, false, false));

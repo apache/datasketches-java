@@ -219,7 +219,7 @@ public final class CpcSketch {
    * Return this sketch as a compressed byte array.
    * @return this sketch as a compressed byte array.
    */
-  public byte[] toByteArray() {
+  public byte[] toCompressedByteArray() {
     final CompressedState state = CompressedState.compress(this);
     final long cap = state.getMemoryCapacity();
     final WritableMemory wmem = WritableMemory.allocate((int) cap);

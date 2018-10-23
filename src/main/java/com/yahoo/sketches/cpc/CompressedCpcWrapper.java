@@ -14,12 +14,14 @@ import static com.yahoo.sketches.cpc.PreambleUtil.checkLoPreamble;
 import static com.yahoo.sketches.cpc.PreambleUtil.getHipAccum;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
+import static com.yahoo.sketches.cpc.PreambleUtil.isCompressed;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 
 /**
- * This provides a read-only view of a compressed serialized image of a CpcSketch, which can be 
+ * This provides a read-only view of a compressed serialized image of a CpcSketch, which can be
  * on-heap or off-heap represented as a Memory object, or on-heap represented as a byte array.
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -34,6 +36,8 @@ public final class CompressedCpcWrapper {
   public CompressedCpcWrapper(final Memory mem) {
     this.mem = mem;
     checkLoPreamble(mem);
+    rtAssert(isCompressed(mem));
+
   }
 
   /**

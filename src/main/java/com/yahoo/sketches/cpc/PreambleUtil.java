@@ -327,17 +327,6 @@ final class PreambleUtil {
     return mem.getDouble(offset);
   }
 
-  //  static long getSvStreamOffset(final Memory mem) {
-  //    final Format format = getFormat(mem);
-  //    final HiField svLenField = HiField.SV_LENGTH_INTS;
-  //    if (!hasSv(mem)) { fieldError(format, svLenField); }
-  //    final long svLengthInts = mem.getInt(getHiFieldOffset(format, svLenField)) & 0XFFFF_FFFFL;
-  //    if (svLengthInts == 0) {
-  //      throw new SketchesStateException("SvLengthInts cannot be zero");
-  //    }
-  //    return 4L * getPreInts(mem);
-  //  }
-
   static long getSvStreamOffset(final Memory mem) {
     final Format format = getFormat(mem);
     final HiField svLenField = HiField.SV_LENGTH_INTS;
@@ -358,20 +347,6 @@ final class PreambleUtil {
     }
     return (getPreInts(mem) + wLengthInts) << 2;
   }
-
-  //  static long getWStreamOffset(final Memory mem) {
-  //    final Format format = getFormat(mem);
-  //    final HiField wLenField = HiField.W_LENGTH_INTS;
-  //    if (!hasWindow(mem))  { fieldError(format, wLenField); }
-  //    long svLengthInts = 0;
-  //    if (hasSv(mem)) {
-  //      svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0XFFFF_FFFFL;
-  //      if (svLengthInts == 0) {
-  //        throw new SketchesStateException("svLengthInts cannot be zero");
-  //      }
-  //    }
-  //    return 4L * (getPreInts(mem) + svLengthInts);
-  //  }
 
   static long getWStreamOffset(final Memory mem) {
     final Format format = getFormat(mem);

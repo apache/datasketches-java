@@ -22,6 +22,7 @@ import static com.yahoo.sketches.cpc.PreambleUtil.getWStream;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasSv;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasWindow;
+import static com.yahoo.sketches.cpc.PreambleUtil.isCompressed;
 import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyMerged;
 import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingHip;
@@ -30,6 +31,7 @@ import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingMerged;
 import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingMergedNoSv;
 import static com.yahoo.sketches.cpc.PreambleUtil.putSparseHybridHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.putSparseHybridMerged;
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -103,6 +105,7 @@ final class CompressedState {
 
   static CompressedState importFromMemory(final Memory mem) {
     checkLoPreamble(mem);
+    rtAssert(isCompressed(mem));
     final int lgK = getLgK(mem);
     final short seedHash = getSeedHash(mem);
     final CompressedState state = new CompressedState(lgK, seedHash);
