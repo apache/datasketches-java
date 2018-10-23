@@ -24,7 +24,7 @@ public class CpcCBinariesTest {
   static PrintStream ps = System.out;
   static final String LS = System.getProperty("line.separator");
 
-  //@Test
+  @Test
   public void checkEmptyBin() {
     String fileName = "cpc-empty.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -38,7 +38,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkSparseBin() {
     String fileName = "cpc-sparse.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -64,7 +64,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkHybridBin() {
     String fileName = "cpc-hybrid.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -90,7 +90,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkPinnedBin() {
     String fileName = "cpc-pinned.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -116,7 +116,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkSlidingBin() {
     String fileName = "cpc-sliding.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -144,7 +144,7 @@ public class CpcCBinariesTest {
 
   //Image checks
 
-  //@Test
+  @Test
   public void checkEmptyImages() {
     String fileName = "cpc-empty.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -164,7 +164,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkSparseImages() {
     String fileName = "cpc-sparse.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -185,7 +185,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkHybridImages() {
     String fileName = "cpc-hybrid.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -206,28 +206,28 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test
+  @Test
   public void checkPinnedImages() {
     String fileName = "cpc-pinned.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       int cap = (int) mem.getCapacity();
-      byte[] memByteArr = new byte[cap];
-      mem.getByteArray(0, memByteArr, 0, cap);
+      byte[] cppMemByteArr = new byte[cap];
+      mem.getByteArray(0, cppMemByteArr, 0, cap);
 
       CpcSketch sk = new CpcSketch(11);
       for (int i = 0; i < 2000; i++) { sk.update(i); }
-      byte[] mem2ByteArr = sk.toByteArray();
-      Memory mem2 = Memory.wrap(mem2ByteArr);
+      byte[] javaMemByteArr = sk.toByteArray();
+      Memory mem2 = Memory.wrap(javaMemByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
-      assertEquals(memByteArr, mem2ByteArr);
+      assertEquals(cppMemByteArr, javaMemByteArr);
     }catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  //@Test
+  @Test
   public void checkSlidingImages() {
     String fileName = "cpc-sliding.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -248,7 +248,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  //@Test //Internal consistency check
+  @Test //Internal consistency check
   public void genSparseSketch() {
     CpcSketch sk = new CpcSketch(11);
     for (int i = 0; i < 100; i++) { sk.update(i); }
