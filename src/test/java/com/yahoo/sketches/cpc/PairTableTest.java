@@ -6,6 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.cpc.PairTable.introspectiveInsertionSort;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import java.util.Random;
@@ -86,6 +87,7 @@ public class PairTableTest {
   public void checkException() {
     int lgK = 10;
     PairTable a = new PairTable(2, lgK + 6);
+    assertEquals(a.getValidBits(), lgK + 6);
     println(a.toString());
     PairTable b = null;
     try {

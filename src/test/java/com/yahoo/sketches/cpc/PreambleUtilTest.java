@@ -9,10 +9,6 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.COMPRESSED_FLAG_MASK;
 import static com.yahoo.sketches.cpc.PreambleUtil.SER_VER;
-import static com.yahoo.sketches.cpc.PreambleUtil.getSvLengthInts;
-import static com.yahoo.sketches.cpc.PreambleUtil.getSvStreamOffset;
-import static com.yahoo.sketches.cpc.PreambleUtil.getWLengthInts;
-import static com.yahoo.sketches.cpc.PreambleUtil.getWStreamOffset;
 import static com.yahoo.sketches.cpc.PreambleUtil.getDefinedPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFamily;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFiCol;
@@ -26,6 +22,10 @@ import static com.yahoo.sketches.cpc.PreambleUtil.getNumSv;
 import static com.yahoo.sketches.cpc.PreambleUtil.getPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSerVer;
+import static com.yahoo.sketches.cpc.PreambleUtil.getSvLengthInts;
+import static com.yahoo.sketches.cpc.PreambleUtil.getSvStreamOffset;
+import static com.yahoo.sketches.cpc.PreambleUtil.getWLengthInts;
+import static com.yahoo.sketches.cpc.PreambleUtil.getWStreamOffset;
 import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyMerged;
 import static com.yahoo.sketches.cpc.PreambleUtil.putPinnedSlidingHip;
@@ -162,6 +162,17 @@ public class PreambleUtilTest {
     try { getWStreamOffset(wmem); fail(); } catch (SketchesArgumentException e) { }
     wmem.putByte(5, (byte) (7 << 2));
     try { getWStreamOffset(wmem); fail(); } catch (SketchesStateException e) { }
+  }
+
+  @Test
+  public void checkStreamErrors2() {
+    WritableMemory wmem = WritableMemory.allocate(4 * 10);
+    int[] svStream = { 1 };
+    int[] wStream = { 2 };
+    try {
+      putPinnedSlidingMerged(wmem, 4, 0, 1, 1, 1, 0, (short) 0, svStream, wStream);
+    } catch (SketchesStateException e) { }
+    assertTrue(PreambleUtil.isCompressed(wmem));
   }
 
   @Test

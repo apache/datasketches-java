@@ -379,7 +379,7 @@ final class PreambleUtil {
     if (!hasWindow(mem))  { fieldError(format, wLenField); }
     final long wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0XFFFF_FFFFL;
       if (wLengthInts == 0) {
-        throw new SketchesStateException("wLength cannot be zero");
+        throw new SketchesStateException("wLengthInts cannot be zero");
       }
     return getPreInts(mem) << 2;
   }
@@ -730,13 +730,14 @@ final class PreambleUtil {
       case PINNED_SLIDING_MERGED : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
 
-        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
-        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        svStreamStart = getSvStreamOffset(mem);
-
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
         wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        wStreamStart = (svLengthInts == 0) ? -1L : getWStreamOffset(mem);
+
+        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
+        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+
+        wStreamStart = getWStreamOffset(mem);
+        svStreamStart = getSvStreamOffset(mem);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -760,13 +761,13 @@ final class PreambleUtil {
       case PINNED_SLIDING_HIP : {
         numCoupons = mem.getInt(getHiFieldOffset(format, HiField.NUM_COUPONS) & 0xFFFF_FFFFL);
 
-        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
-        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        svStreamStart = getSvStreamOffset(mem);
-
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
         wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
-        wStreamStart = (svLengthInts == 0) ? -1L : getWStreamOffset(mem);
+
+        numSv = mem.getInt(getHiFieldOffset(format, HiField.NUM_SV)) & 0xFFFF_FFFFL;
+        svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
+        wStreamStart = getWStreamOffset(mem);
+        svStreamStart = getSvStreamOffset(mem);
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));

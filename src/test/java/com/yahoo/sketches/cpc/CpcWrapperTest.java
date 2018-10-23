@@ -52,6 +52,7 @@ public class CpcWrapperTest {
 
     Memory concatMem = Memory.wrap(concatArr);
     CompressedCpcWrapper concatSk = new CompressedCpcWrapper(concatMem);
+    assertEquals(concatSk.getLgK(), lgK);
 
     printf("              %12s %12s %12s\n", "Lb", "Est", "Ub");
     double ccEst = concatSk.getEstimate();
