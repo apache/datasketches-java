@@ -24,7 +24,7 @@ public class CpcCBinariesTest {
   static PrintStream ps = System.out;
   static final String LS = System.getProperty("line.separator");
 
-  @Test
+  //@Test
   public void checkEmptyBin() {
     String fileName = "cpc-empty.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -38,7 +38,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkSparseBin() {
     String fileName = "cpc-sparse.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -64,7 +64,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkHybridBin() {
     String fileName = "cpc-hybrid.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -90,7 +90,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkPinnedBin() {
     String fileName = "cpc-pinned.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -116,7 +116,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkSlidingBin() {
     String fileName = "cpc-sliding.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -144,7 +144,7 @@ public class CpcCBinariesTest {
 
   //Image checks
 
-  @Test
+  //@Test
   public void checkEmptyImages() {
     String fileName = "cpc-empty.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -164,7 +164,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkSparseImages() {
     String fileName = "cpc-sparse.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -185,7 +185,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkHybridImages() {
     String fileName = "cpc-hybrid.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -206,7 +206,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkPinnedImages() {
     String fileName = "cpc-pinned.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
@@ -227,7 +227,7 @@ public class CpcCBinariesTest {
     }
   }
 
-  @Test
+  //@Test
   public void checkSlidingImages() {
     String fileName = "cpc-sliding.bin";
     File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
