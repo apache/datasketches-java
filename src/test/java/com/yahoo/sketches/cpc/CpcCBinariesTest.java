@@ -155,7 +155,7 @@ public class CpcCBinariesTest {
       mem.getByteArray(0, memByteArr, 0, cap);
 
       CpcSketch sk = new CpcSketch(11);
-      byte[] mem2ByteArr = sk.toCompressedByteArray();
+      byte[] mem2ByteArr = sk.toByteArray();
       Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
@@ -176,7 +176,7 @@ public class CpcCBinariesTest {
 
       CpcSketch sk = new CpcSketch(11);
       for (int i = 0; i < 100; i++) { sk.update(i); }
-      byte[] mem2ByteArr = sk.toCompressedByteArray();
+      byte[] mem2ByteArr = sk.toByteArray();
       Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
@@ -197,7 +197,7 @@ public class CpcCBinariesTest {
 
       CpcSketch sk = new CpcSketch(11);
       for (int i = 0; i < 200; i++) { sk.update(i); }
-      byte[] mem2ByteArr = sk.toCompressedByteArray();
+      byte[] mem2ByteArr = sk.toByteArray();
       Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
@@ -218,7 +218,7 @@ public class CpcCBinariesTest {
 
       CpcSketch sk = new CpcSketch(11);
       for (int i = 0; i < 2000; i++) { sk.update(i); }
-      byte[] mem2ByteArr = sk.toCompressedByteArray();
+      byte[] mem2ByteArr = sk.toByteArray();
       Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
@@ -239,7 +239,7 @@ public class CpcCBinariesTest {
 
       CpcSketch sk = new CpcSketch(11);
       for (int i = 0; i < 20000; i++) { sk.update(i); }
-      byte[] mem2ByteArr = sk.toCompressedByteArray();
+      byte[] mem2ByteArr = sk.toByteArray();
       Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
@@ -257,7 +257,7 @@ public class CpcCBinariesTest {
     println(sk.toString(true));
 
     println(LS + LS + "################");
-    byte[] byteArray = sk.toCompressedByteArray();
+    byte[] byteArray = sk.toByteArray();
     println("sketch.toByteArray();");
     println("PreambleUtil.toString(byteArray, true);" + LS);
     println(PreambleUtil.toString(byteArray, true));

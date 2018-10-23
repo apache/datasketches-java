@@ -96,7 +96,7 @@ public class CompressedStateTest {
   @Test
   public void checkIsCompressed() {
     CpcSketch sk = new CpcSketch(10);
-    byte[] byteArr = sk.toCompressedByteArray();
+    byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
     try {
       CompressedState.importFromMemory(Memory.wrap(byteArr));

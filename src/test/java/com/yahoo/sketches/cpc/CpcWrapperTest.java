@@ -19,7 +19,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-public class CompressedCpcWrapperTest {
+public class CpcWrapperTest {
   static PrintStream ps = System.out;
 
   @SuppressWarnings("unused")
@@ -40,7 +40,7 @@ public class CompressedCpcWrapperTest {
       skD.update(i);
       skD.update(i + n);
     }
-    byte[] concatArr = skD.toCompressedByteArray();
+    byte[] concatArr = skD.toByteArray();
 
     CpcUnion union = new CpcUnion(lgK);
     CpcSketch result = union.getResult();
@@ -50,7 +50,7 @@ public class CompressedCpcWrapperTest {
     union.update(sk1);
     union.update(sk2);
     CpcSketch merged = union.getResult();
-    byte[] mergedArr = merged.toCompressedByteArray();
+    byte[] mergedArr = merged.toByteArray();
 
     Memory concatMem = Memory.wrap(concatArr);
     CompressedCpcWrapper concatSk = new CompressedCpcWrapper(concatMem);
@@ -75,7 +75,7 @@ public class CompressedCpcWrapperTest {
   @Test
   public void checkIsCompressed() {
     CpcSketch sk = new CpcSketch(10);
-    byte[] byteArr = sk.toCompressedByteArray();
+    byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
     try {
       CompressedCpcWrapper wrapper = new CompressedCpcWrapper(Memory.wrap(byteArr));
