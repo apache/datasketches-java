@@ -93,10 +93,10 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Specia copy constructor used by copy().
+   * Copy constructor used by copy().
    * @param that another HllSketch
    */
-  private HllSketch(final HllSketch that) {
+  HllSketch(final HllSketch that) {
     hllSketchImpl = that.hllSketchImpl.copy();
   }
 
@@ -104,7 +104,7 @@ public class HllSketch extends BaseHllSketch {
    * Special constructor used by copyAs, heapify
    * @param that another HllSketchImpl, which must already be a copy
    */
-  private HllSketch(final HllSketchImpl that) {
+  HllSketch(final HllSketchImpl that) {
     hllSketchImpl = that;
   }
 
@@ -236,19 +236,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  void couponUpdate(final int coupon) {
-    if (coupon == EMPTY) { return; }
-    hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
-  }
-
-  @Override
   public double getCompositeEstimate() {
     return hllSketchImpl.getCompositeEstimate();
-  }
-
-  @Override
-  CurMode getCurMode() {
-    return hllSketchImpl.getCurMode();
   }
 
   @Override
@@ -426,6 +415,17 @@ public class HllSketch extends BaseHllSketch {
    */
   PairIterator iterator() {
     return hllSketchImpl.iterator();
+  }
+
+  @Override
+  CurMode getCurMode() {
+    return hllSketchImpl.getCurMode();
+  }
+
+  @Override
+  void couponUpdate(final int coupon) {
+    if (coupon == EMPTY) { return; }
+    hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 
 }
