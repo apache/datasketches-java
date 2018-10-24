@@ -138,6 +138,46 @@ public final class CpcSketch {
     return CpcConfidence.getHipConfidenceLB(lgK, numCoupons, hipEstAccum, kappa);
   }
 
+  /*
+   * These empirical values for the 99.9th percentile of size in bytes were measured using 100,000
+   * trials. The value for each trial is the maximum of 5*16=80 measurements that were equally
+   * spaced over values of the quantity C/K between 3.0 and 8.0.
+   */
+  private static final int[] empiricalMaxBytes  = {
+      24,     // lgK = 4
+      36,     // lgK = 5
+      56,     // lgK = 6
+      100,    // lgK = 7
+      180,    // lgK = 8
+      344,    // lgK = 9
+      660,    // lgK = 10
+      1292,   // lgK = 11
+      2540,   // lgK = 12
+      5020,   // lgK = 13
+      9968,   // lgK = 14
+      19836,  // lgK = 15
+      39532,  // lgK = 16
+      78880,  // lgK = 17
+      157516, // lgK = 18
+      314656  // lgK = 19
+  };
+
+  /**
+   * The actual size of a compressed CPC sketch has a small random variance, but the following
+   * empirically measured size should be large enough for at least 99.9 percent of sketches.
+   *
+   * <p>For small values of <i>n</i> the size can be much smaller.
+   *
+   * @param lgK the given value of lgK.
+   * @return the estimated maximum compressed serialized size of a sketch.
+   */
+  public static int getMaxSerializedBytes(final int lgK) {
+    checkLgK(lgK);
+    if (lgK <= 19) { return empiricalMaxBytes[lgK - 4] + 40; }
+    final int k = 1 << lgK;
+    return (int) (0.6 * k) + 40; // 0.6 = 4.8 / 8.0
+  }
+
   /**
    * Returns the best estimate of the upper bound of the confidence interval given <i>kappa</i>,
    * the number of standard deviations from the mean.

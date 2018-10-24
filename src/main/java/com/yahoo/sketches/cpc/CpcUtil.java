@@ -17,7 +17,6 @@ final class CpcUtil {
   static final int minLgK = 4;
   static final int maxLgK = 26;
 
-
   static void checkLgK(final int lgK) {
     if ((lgK < minLgK) || (lgK > maxLgK)) {
       throw new SketchesArgumentException("LgK must be >= 4 and <= 26: " + lgK);
