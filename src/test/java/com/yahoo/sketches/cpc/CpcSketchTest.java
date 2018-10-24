@@ -196,6 +196,14 @@ public class CpcSketchTest {
     assertEquals(sk.getFlavor(), Flavor.SPARSE);
   }
 
+  @Test
+  public void checkGetMaxSize() {
+    final int size4  = CpcSketch.getMaxSerializedBytes(4);
+    final int size26 = CpcSketch.getMaxSerializedBytes(26);
+    assertEquals(size4, 24 + 40);
+    assertEquals(size26, (int) ((0.6 * (1 << 26)) + 40));
+  }
+
   /**
    * @param s the string to print
    */
