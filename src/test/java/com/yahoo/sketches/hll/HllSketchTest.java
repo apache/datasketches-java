@@ -58,10 +58,10 @@ public class HllSketchTest {
     for (int i = 0; i < 7; i++) {
       sk.update(i);
     }
-    assertEquals(sk.getCurrentMode(), CurMode.LIST);
+    assertEquals(sk.getCurMode(), CurMode.LIST);
 
     HllSketch skCopy = sk.copy();
-    assertEquals(skCopy.getCurrentMode(), CurMode.LIST);
+    assertEquals(skCopy.getCurMode(), CurMode.LIST);
     HllSketchImpl impl1 = sk.hllSketchImpl;
 
     HllSketchImpl impl2 = skCopy.hllSketchImpl;
@@ -74,10 +74,10 @@ public class HllSketchTest {
     for (int i = 7; i < 24; i++) {
       sk.update(i);
     }
-    assertEquals(sk.getCurrentMode(), CurMode.SET);
+    assertEquals(sk.getCurMode(), CurMode.SET);
 
     skCopy = sk.copy();
-    assertEquals(skCopy.getCurrentMode(), CurMode.SET);
+    assertEquals(skCopy.getCurMode(), CurMode.SET);
     impl1 = sk.hllSketchImpl;
 
     impl2 = skCopy.hllSketchImpl;
@@ -91,10 +91,10 @@ public class HllSketchTest {
       sk.update(i);
     }
     sk.getCompactSerializationBytes();
-    assertEquals(sk.getCurrentMode(), CurMode.HLL);
+    assertEquals(sk.getCurMode(), CurMode.HLL);
 
     skCopy = sk.copy();
-    assertEquals(skCopy.getCurrentMode(), CurMode.HLL);
+    assertEquals(skCopy.getCurMode(), CurMode.HLL);
     impl1 = sk.hllSketchImpl;
 
     impl2 = skCopy.hllSketchImpl;

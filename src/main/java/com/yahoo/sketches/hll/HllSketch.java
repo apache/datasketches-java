@@ -93,10 +93,10 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Copy constructor used by copy().
+   * Specia copy constructor used by copy().
    * @param that another HllSketch
    */
-  HllSketch(final HllSketch that) {
+  private HllSketch(final HllSketch that) {
     hllSketchImpl = that.hllSketchImpl.copy();
   }
 
@@ -104,7 +104,7 @@ public class HllSketch extends BaseHllSketch {
    * Special constructor used by copyAs, heapify
    * @param that another HllSketchImpl, which must already be a copy
    */
-  HllSketch(final HllSketchImpl that) {
+  private HllSketch(final HllSketchImpl that) {
     hllSketchImpl = that;
   }
 
@@ -236,6 +236,12 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
+  void couponUpdate(final int coupon) {
+    if (coupon == EMPTY) { return; }
+    hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
+  }
+
+  @Override
   public double getCompositeEstimate() {
     return hllSketchImpl.getCompositeEstimate();
   }
@@ -359,12 +365,12 @@ public class HllSketch extends BaseHllSketch {
       sb.append("### HLL SKETCH SUMMARY: ").append(LS);
       sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
       sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
-      sb.append("  Current Mode   : ").append(getCurrentMode()).append(LS);
+      sb.append("  Current Mode   : ").append(getCurMode()).append(LS);
       sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
       sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
-      if (getCurrentMode() == CurMode.HLL) {
+      if (getCurMode() == CurMode.HLL) {
         final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
         sb.append("  CurMin         : ").append(absHll.getCurMin()).append(LS);
         sb.append("  NumAtCurMin    : ").append(absHll.getNumAtCurMin()).append(LS);
@@ -391,7 +397,7 @@ public class HllSketch extends BaseHllSketch {
       }
     }
     if (auxDetail) {
-      if ((getCurrentMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
+      if ((getCurMode() == CurMode.HLL) && (getTgtHllType() == TgtHllType.HLL_4)) {
         final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
         final PairIterator auxItr = absHll.getAuxIterator();
         if (auxItr != null) {
@@ -420,16 +426,6 @@ public class HllSketch extends BaseHllSketch {
    */
   PairIterator iterator() {
     return hllSketchImpl.iterator();
-  }
-
-  CurMode getCurrentMode() {
-    return hllSketchImpl.getCurMode();
-  }
-
-  @Override
-  void couponUpdate(final int coupon) {
-    if (coupon == EMPTY) { return; }
-    hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 
 }

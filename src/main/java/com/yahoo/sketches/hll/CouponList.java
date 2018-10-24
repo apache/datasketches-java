@@ -54,11 +54,7 @@ class CouponList extends AbstractCoupons {
    * @param that another CouponArray
    */
   CouponList(final CouponList that) {
-    super(that.lgConfigK, that.tgtHllType, that.curMode);
-    oooFlag = that.oooFlag;
-    lgCouponArrInts = that.lgCouponArrInts;
-    couponCount = that.couponCount;
-    couponIntArr = that.couponIntArr.clone();
+    this(that, that.tgtHllType);
   }
 
   /**
