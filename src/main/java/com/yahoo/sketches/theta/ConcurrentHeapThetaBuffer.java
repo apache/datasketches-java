@@ -18,26 +18,39 @@ import com.yahoo.sketches.HashOperations;
 import com.yahoo.sketches.ResizeFactor;
 
 /**
- * The theta filtering buffer that operates in a single writing thread.
+ * The theta filtering buffer that operates in the context of a single writing thread.
+ * This is a bounded size filter. When the buffer becomes full its content is propagated into the
+ * shared sketch.
+ * The limit on the buffer size is configurable. Bound of size 1 allows to maintain error bound
+ * that is close to the error bound of a sequential theta sketch.
+ * Propagation is done either synchronously by the updating thread, or asynchronously by a
+ * background propagation thread.
+ *
  * @author eshcar
  * @author Lee Rhodes
  */
 public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
+  /**
+   * The bound on the size of the buffer
+   */
   private final int cacheLimit;
+  /**
+   * Shared sketch consisting of the global sample set and theta value.
+   */
   private final SharedThetaSketch shared;
+  /**
+   * Propagation flag is set to true while propagation is in progress (or pending).
+   * It is the synchronization primitive to coordinate the work with the propagation thread.
+   */
   private final AtomicBoolean localPropagationInProgress;
+  /**
+   * A flag to indicate if we expect the propagated data to be ordered
+   */
   private final boolean propagateOrderedCompact;
 
-
-  ConcurrentHeapThetaBuffer(
-      final int lgNomLongs,
-      final long seed,
-      final int cacheLimit,
-      final SharedThetaSketch shared,
-      final boolean propagateOrderedCompact) {
-    super(lgNomLongs,
-        seed,
-        1.0F, //p
+  ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed, final int cacheLimit,
+      final SharedThetaSketch shared, final boolean propagateOrderedCompact) {
+    super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf
         false); //not a union gadget
 
@@ -50,6 +63,10 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   //Sketch
 
+  /**
+   * Gets the unique count estimate.
+   * @return the sketch's best estimate of the cardinality of the input stream.
+   */
   @Override //specifically overridden
   public double getEstimate() {
     return shared.getEstimationSnapshot();
@@ -57,13 +74,24 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   //restricted methods
 
-  @Override
-  boolean isOutOfSpace(final int numEntries) {
+  /**
+   * Returns true if numEntries (curCount) is greater than the buffer bound.
+   * @param numEntries the given number of entries (or current count).
+   * @return true if numEntries (curCount) is greater than the buffer bound.
+   */
+  @Override boolean isOutOfSpace(final int numEntries) {
     return numEntries > cacheLimit;
   }
 
-  @Override
-  UpdateReturnState hashUpdate(final long hash) { //Simplified
+  /**
+   * Updates buffer with given hash value.
+   * Triggers propagation to shared sketch if buffer is full.
+   *
+   * @param hash the given input hash value.  A hash of zero or Long.MAX_VALUE is ignored.
+   * A negative hash value will throw an exception.
+   * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
+   */
+  @Override UpdateReturnState hashUpdate(final long hash) { //Simplified
     if (cacheLimit == 0) {
       final long thetaLong = getThetaLong();
       //The over-theta and zero test
@@ -80,8 +108,10 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     return state;
   }
 
-  @Override
-  public void reset() {
+  /**
+   * Resets this sketch back to a virgin empty state.
+   */
+  @Override public void reset() {
     if (cacheLimit > 0) {
       java.util.Arrays.fill(getCache(), 0L);
     }
@@ -90,20 +120,26 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     thetaLong_ = shared.getVolatileTheta();
   }
 
-  AtomicBoolean getPropagationInProgress() {
-    return localPropagationInProgress;
-  }
-
+  /**
+   * Propagates a single hash value to the shared sketch
+   *
+   * @param hash to be propagated
+   */
   private void propagateToSharedSketch(final long hash) {
-    while (localPropagationInProgress.get()) {} //busy wait until previous propagation completed
+    while (localPropagationInProgress.get()) {
+    } //busy wait until previous propagation completed
     localPropagationInProgress.set(true);
-    shared.propagate(localPropagationInProgress,  null, hash);
+    shared.propagate(localPropagationInProgress, null, hash);
     //in this case the parent empty_ and curCount_ were not touched
     thetaLong_ = shared.getVolatileTheta();
   }
 
+  /**
+   * Propagates the content of the buffer as a sketch to the shared sketch
+   */
   private void propagateToSharedSketch() {
-    while (localPropagationInProgress.get()) {} //busy wait until previous propagation completed
+    while (localPropagationInProgress.get()) {
+    } //busy wait until previous propagation completed
 
     final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
