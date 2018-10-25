@@ -60,7 +60,7 @@ public class CouponListTest {
       sk.update(i);
       sk.update(i);
     }
-    assertEquals(sk.getCurrentMode(), CurMode.LIST);
+    assertEquals(sk.getCurMode(), CurMode.LIST);
     assertEquals(sk.getCompositeEstimate(), 7.0, 7 * .01);
     if (direct) {
       assertNotNull(sk.hllSketchImpl.getWritableMemory());
@@ -70,7 +70,7 @@ public class CouponListTest {
 
     sk.update(8);
     sk.update(8);
-    assertEquals(sk.getCurrentMode(), CurMode.SET);
+    assertEquals(sk.getCurMode(), CurMode.SET);
     assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
     if (direct) {
       assertNotNull(sk.hllSketchImpl.getWritableMemory());
@@ -82,7 +82,7 @@ public class CouponListTest {
       sk.update(i);
       sk.update(i);
     }
-    assertEquals(sk.getCurrentMode(), CurMode.HLL);
+    assertEquals(sk.getCurMode(), CurMode.HLL);
     assertEquals(sk.getCompositeEstimate(), 25.0, 25 * .1);
     if (direct) {
       assertNotNull(sk.hllSketchImpl.getWritableMemory());

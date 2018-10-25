@@ -196,9 +196,9 @@ public class DirectUnionTest {
     double uUb = result.getUpperBound(2);
     double uLb = result.getLowerBound(2);
     double rerr = ((uEst/tot) - 1.0) * 100;
-    String mode1 = h1.getCurrentMode().toString();
-    String mode2 = h2.getCurrentMode().toString();
-    String modeR = result.getCurrentMode().toString();
+    String mode1 = h1.getCurMode().toString();
+    String mode2 = h2.getCurMode().toString();
+    String modeR = result.getCurMode().toString();
 
     //Control
     String cSketchStr = ("CONTROL SKETCH: \n" + control.toString());
