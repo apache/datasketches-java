@@ -6,7 +6,9 @@
 package com.yahoo.sketches.cpc;
 
 /**
- * These assert will throw an AssertionError whether the JVM -ea is set or not.
+ * These asserts act like the <i>assert</i> in C/C++.  They will throw an AssertionError whether the
+ * JVM -ea is set or not.
+ *
  * @author Lee Rhodes
  */
 final class RuntimeAsserts {

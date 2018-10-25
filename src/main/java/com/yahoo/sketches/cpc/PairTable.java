@@ -131,7 +131,7 @@ final class PairTable {
       fetched = arr[probe];
     }
     //END SHARED CODE
-    if (fetched == item) { throw new SketchesStateException("u32TableMustInsert failed"); }
+    if (fetched == item) { throw new SketchesStateException("PairTable mustInsert() failed"); }
     else {
       assert (fetched == -1);
       arr[probe] = item;

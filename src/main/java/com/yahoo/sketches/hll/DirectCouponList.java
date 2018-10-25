@@ -5,9 +5,12 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.hll.HllUtil.EMPTY;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_LIST_SIZE;
 import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
+import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
+import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 import static com.yahoo.sketches.hll.HllUtil.noWriteAccess;
 import static com.yahoo.sketches.hll.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.hll.PreambleUtil.HASH_SET_PREINTS;
@@ -157,7 +160,14 @@ class DirectCouponList extends AbstractCoupons {
   @Override
   int getLgCouponArrInts() {
     final int lgArr = extractLgArr(mem);
-    return getLgCouponArrInts(this, lgArr);
+    if (lgArr >= LG_INIT_LIST_SIZE) { return lgArr; }
+    //assume it is missing (bug in early version)
+    if (curMode == CurMode.LIST) { return LG_INIT_LIST_SIZE; }
+    //SET, recompute
+    final int coupons = getCouponCount();
+    int ceilPwr2 = ceilingPowerOf2(coupons);
+    if ((RESIZE_DENOM * coupons) > (RESIZE_NUMER * ceilPwr2)) { ceilPwr2 <<= 1; }
+    return Math.max(LG_INIT_SET_SIZE, Integer.numberOfTrailingZeros(ceilPwr2));
   }
 
   @Override

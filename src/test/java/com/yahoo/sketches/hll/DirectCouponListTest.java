@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.hll.PreambleUtil.LG_ARR_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -157,6 +158,33 @@ public class DirectCouponListTest {
     HllSketch sk = new HllSketch(lgK, type, wmem);
     AbstractCoupons absCoup = (AbstractCoupons)sk.hllSketchImpl;
     assertNull(absCoup.getCouponIntArr());
+  }
+
+  @Test
+  public void checkGetLgCouponArrInts() {
+    int lgK = 8;
+    TgtHllType type = TgtHllType.HLL_8;
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(lgK, type, wmem);
+    for (int i = 0; i < 7; i++) { sk.update(i); }
+    assertEquals(sk.getCurMode(), CurMode.LIST);
+    assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 3);
+    sk.update(7);
+    assertEquals(sk.getCurMode(), CurMode.SET);
+    assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 5);
+
+    sk.reset();
+    for (int i = 0; i < 7; i++) { sk.update(i); }
+    byte lgArr = wmem.getByte(LG_ARR_BYTE);
+    wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0
+    assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 3);
+    wmem.putByte(LG_ARR_BYTE, lgArr); //put correct value back
+    sk.update(7);
+    assertEquals(sk.getCurMode(), CurMode.SET);
+    assertEquals(sk.hllSketchImpl.curMode, CurMode.SET);
+    wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0 again
+    assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 5);
   }
 
   @Test
