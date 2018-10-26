@@ -645,6 +645,9 @@ public final class CpcSketch {
     else { updateWindowed(this, rowCol); }
   }
 
+  /**
+   * Return a human-readable string summary of this sketch
+   */
   @Override
   public String toString() {
     return toString(false);
