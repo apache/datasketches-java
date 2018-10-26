@@ -141,7 +141,8 @@ public final class CpcSketch {
   /*
    * These empirical values for the 99.9th percentile of size in bytes were measured using 100,000
    * trials. The value for each trial is the maximum of 5*16=80 measurements that were equally
-   * spaced over values of the quantity C/K between 3.0 and 8.0.
+   * spaced over values of the quantity C/K between 3.0 and 8.0.  This table does not include the
+   * worst-case space for the preamble, which is added by the function.
    */
   private static final int[] empiricalMaxBytes  = {
       24,     // lgK = 4
