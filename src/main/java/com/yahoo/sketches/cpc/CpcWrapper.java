@@ -21,19 +21,19 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 
 /**
- * This provides a read-only view of a compressed serialized image of a CpcSketch, which can be
+ * This provides a read-only view of a serialized image of a CpcSketch, which can be
  * on-heap or off-heap represented as a Memory object, or on-heap represented as a byte array.
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-public final class CompressedCpcWrapper {
+public final class CpcWrapper {
   Memory mem;
 
   /**
    * Construct a read-only view of the given Memory that contains a CpcSketch
    * @param mem the given Memory
    */
-  public CompressedCpcWrapper(final Memory mem) {
+  public CpcWrapper(final Memory mem) {
     this.mem = mem;
     checkLoPreamble(mem);
     rtAssert(isCompressed(mem));
@@ -44,7 +44,7 @@ public final class CompressedCpcWrapper {
    * Construct a read-only view of the given byte array that contains a CpcSketch.
    * @param byteArray the given byte array
    */
-  public CompressedCpcWrapper(final byte[] byteArray) {
+  public CpcWrapper(final byte[] byteArray) {
     this(Memory.wrap(byteArray));
   }
 
