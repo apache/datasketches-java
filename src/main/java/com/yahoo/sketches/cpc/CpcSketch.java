@@ -671,6 +671,7 @@ public final class CpcSketch {
     sb.append("  mergeFlag    : ").append(mergeFlag).append(LS);
     sb.append("  fiCol        : ").append(fiCol).append(LS);
     sb.append("  Window?      : ").append(slidingWindow != null).append(LS);
+    sb.append("  PairTable?   : ").append(pairTable != null).append(LS);
     sb.append("  winOffset    : ").append(windowOffset).append(LS);
     sb.append("  kxp          : ").append(kxp).append(LS);
     sb.append("  hipAccum     : ").append(hipEstAccum).append(LS);

@@ -551,6 +551,7 @@ final class PreambleUtil {
   }
 
   public static String toString(final Memory mem, final boolean data) {
+    final long capBytes = mem.getCapacity();
     //Lo Fields Preamble, first 7 fields, first 8 bytes
     final int preInts = mem.getByte(getLoFieldOffset(LoField.PRE_INTS)) & 0xFF;
     final int serVer = mem.getByte(getLoFieldOffset(LoField.SER_VERSION)) & 0xFF;
@@ -583,6 +584,7 @@ final class PreambleUtil {
     double hipAccum = 0;
     long svStreamStart = 0;
     long wStreamStart = 0;
+    long reqBytes = 0;
 
     final StringBuilder sb = new StringBuilder();
     sb.append(LS);
@@ -599,7 +601,7 @@ final class PreambleUtil {
     sb.append("  Compressed                    : ").append(compressed).append(LS);
     sb.append("  Has HIP                       : ").append(hasHip).append(LS);
     sb.append("  Has Surprising Values         : ").append(hasSV).append(LS);
-    sb.append("  Has Window                    : ").append(hasWindow).append(LS);
+    sb.append("  Has Window Values             : ").append(hasWindow).append(LS);
     sb.append("Byte 6, 7: Seed Hash            : ").append(seedHashStr).append(LS);
 
     final Flavor flavor;
@@ -608,6 +610,9 @@ final class PreambleUtil {
       case EMPTY_MERGED :
       case EMPTY_HIP : {
         flavor = Flavor.EMPTY;
+        sb.append("Flavor                          : ").append(flavor).append(LS);
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(8).append(LS);
         break;
       }
       case SPARSE_HYBRID_MERGED : {
@@ -616,7 +621,7 @@ final class PreambleUtil {
         numSv = numCoupons;
         svLengthInts = mem.getInt(getHiFieldOffset(format, HiField.SV_LENGTH_INTS)) & 0xFFFF_FFFFL;
         svStreamStart = getSvStreamOffset(mem);
-
+        reqBytes = svStreamStart + (svLengthInts << 2);
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
         sb.append("Num Coupons                     : ").append(numCoupons).append(LS);
@@ -624,6 +629,9 @@ final class PreambleUtil {
         sb.append("Num SV                          : ").append(numSv).append(LS);
         sb.append("SV Length Ints                  : ").append(svLengthInts).append(LS);
         sb.append("SV Stream Start                 : ").append(svStreamStart).append(LS);
+
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
         if (data) {
           sb.append(LS).append("SV Stream:").append(LS);
           listData(mem, svStreamStart, svLengthInts, sb);
@@ -639,6 +647,7 @@ final class PreambleUtil {
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
+        reqBytes = svStreamStart + (svLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -650,6 +659,9 @@ final class PreambleUtil {
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
+
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
         if (data) {
           sb.append(LS).append("SV Stream:").append(LS);
           listData(mem, svStreamStart, svLengthInts, sb);
@@ -662,6 +674,7 @@ final class PreambleUtil {
         winOffset = CpcUtil.determineCorrectOffset(lgK, numCoupons);
         wLengthInts = mem.getInt(getHiFieldOffset(format, HiField.W_LENGTH_INTS)) & 0xFFFF_FFFFL;
         wStreamStart = getWStreamOffset(mem);
+        reqBytes = wStreamStart + (wLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -670,6 +683,9 @@ final class PreambleUtil {
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
         sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
         sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
+
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
         if (data) {
           sb.append(LS).append("Window Stream:").append(LS);
           listData(mem, wStreamStart, wLengthInts, sb);
@@ -685,6 +701,7 @@ final class PreambleUtil {
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
+        reqBytes = wStreamStart + (wLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -696,6 +713,9 @@ final class PreambleUtil {
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
+
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
         if (data) {
           sb.append(LS).append("Window Stream:").append(LS);
           listData(mem, wStreamStart, wLengthInts, sb);
@@ -713,6 +733,7 @@ final class PreambleUtil {
 
         wStreamStart = getWStreamOffset(mem);
         svStreamStart = getSvStreamOffset(mem);
+        reqBytes = svStreamStart + (svLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -725,6 +746,9 @@ final class PreambleUtil {
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
         sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
         sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
+
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
         if (data) {
           sb.append(LS).append("Window Stream:").append(LS);
           listData(mem, wStreamStart, wLengthInts, sb);
@@ -746,6 +770,7 @@ final class PreambleUtil {
 
         kxp = mem.getDouble(getHiFieldOffset(format, HiField.KXP));
         hipAccum = mem.getDouble(getHiFieldOffset(format, HiField.HIP_ACCUM));
+        reqBytes = svStreamStart + (svLengthInts << 2);
 
         flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
@@ -761,6 +786,9 @@ final class PreambleUtil {
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
+
+        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
         if (data) {
           sb.append(LS).append("Window Stream:").append(LS);
           listData(mem, wStreamStart, wLengthInts, sb);

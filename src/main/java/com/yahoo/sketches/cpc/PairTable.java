@@ -5,6 +5,7 @@
 
 package com.yahoo.sketches.cpc;
 
+import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.util.Arrays;
@@ -26,7 +27,7 @@ final class PairTable {
   private static final int downsizeDenom = 4;
 
   private int lgSizeInts;
-  private int validBits;
+  private final int validBits;
   private int numPairs;
   private int[] slotsArr;
 
@@ -99,7 +100,7 @@ final class PairTable {
     checkLgSizeInts(newLgSizeInts);
     final int newSize = 1 << newLgSizeInts;
     final int oldSize = 1 << lgSizeInts;
-    assert newSize > numPairs;
+    rtAssert(newSize > numPairs);
     final int[] oldSlotsArr = slotsArr;
     slotsArr = new int[newSize];
     Arrays.fill(slotsArr, -1);
@@ -122,8 +123,9 @@ final class PairTable {
     final int sizeInts = 1 << lgSizeInts;
     final int mask = sizeInts - 1;
     final int shift = table.validBits - lgSizeInts;
+    rtAssert(shift > 0);
     int probe = item >>> shift; //extract high tablesize bits
-    assert (probe >= 0) && (probe <= mask);
+    rtAssert((probe >= 0) && (probe <= mask));
     final int[] arr = table.slotsArr;
     int fetched = arr[probe];
     while ((fetched != item) && (fetched != -1)) {
@@ -145,8 +147,9 @@ final class PairTable {
     final int sizeInts = 1 << lgSizeInts;
     final int mask = sizeInts - 1;
     final int shift = table.validBits - lgSizeInts;
+    rtAssert(shift > 0);
     int probe = item >>> shift;
-    assert (probe >= 0) && (probe <= mask);
+    rtAssert((probe >= 0) && (probe <= mask));
     final int[] arr = table.slotsArr;
     int fetched = arr[probe];
     while ((fetched != item) && (fetched != -1)) {
@@ -172,8 +175,9 @@ final class PairTable {
     final int sizeInts = 1 << lgSizeInts;
     final int mask = sizeInts - 1;
     final int shift = table.validBits - lgSizeInts;
+    rtAssert(shift > 0);
     int probe = item >>> shift;
-    assert (probe >= 0) && (probe <= mask);
+    rtAssert((probe >= 0) && (probe <= mask));
     final int[] arr = table.slotsArr;
     int fetched = arr[probe];
     while ((fetched != item) && (fetched != -1)) {

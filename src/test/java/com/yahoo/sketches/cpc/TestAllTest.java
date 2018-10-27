@@ -52,7 +52,7 @@ public class TestAllTest {
     cc.start();
   }
 
-  //@Test //used for troubleshooting
+  //@Test //used for troubleshooting a specific rowCol problems
   public void singleRowColCheck() {
     PrintStream ps = System.out;
     int lgK = 20;
