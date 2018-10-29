@@ -262,7 +262,7 @@ public final class CpcSketch {
    */
   public byte[] toByteArray() {
     final CompressedState state = CompressedState.compress(this);
-    final long cap = state.getMemoryCapacity();
+    final long cap = state.getRequiredSerializedBytes();
     final WritableMemory wmem = WritableMemory.allocate((int) cap);
     state.exportToMemory(wmem);
     return (byte[]) wmem.getArray();

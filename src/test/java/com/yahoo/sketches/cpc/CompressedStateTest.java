@@ -32,7 +32,7 @@ public class CompressedStateTest {
     Format fmt = state.getFormat();
     assertEquals(fmt, skFmt);
     long c = state.numCoupons;
-    WritableMemory wmem = WritableMemory.allocate((int)state.getMemoryCapacity());
+    WritableMemory wmem = WritableMemory.allocate((int)state.getRequiredSerializedBytes());
     state.exportToMemory(wmem);
     printf("%8d %8d %10s %35s\n", vIn, c, f.toString(), fmt.toString());
     CompressedState state2 = CompressedState.importFromMemory(wmem);
@@ -46,7 +46,7 @@ public class CompressedStateTest {
     fmt = state.getFormat();
     assertEquals(fmt, skFmt);
     c = state.numCoupons;
-    wmem = WritableMemory.allocate((int)state.getMemoryCapacity());
+    wmem = WritableMemory.allocate((int)state.getRequiredSerializedBytes());
     state.exportToMemory(wmem);
     printf("%8d %8d %10s %35s\n", vIn, c, f.toString(), fmt.toString());
     state2 = CompressedState.importFromMemory(wmem);

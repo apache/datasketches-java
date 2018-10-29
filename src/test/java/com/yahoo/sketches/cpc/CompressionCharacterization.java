@@ -144,7 +144,7 @@ public class CompressionCharacterization {
         CompressedState state = CompressedState.compress(sketch);
         compressedStates1[trial] = state;
         totalC += sketch.numCoupons;
-        totalW += state.csvLength + state.cwLength;
+        totalW += state.csvLengthInts + state.cwLengthInts;
       }
       nanoEnd = System.nanoTime();
       sumCom_nS += nanoEnd - nanoStart;
@@ -153,7 +153,7 @@ public class CompressionCharacterization {
       //State to Memory loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
         CompressedState state = compressedStates1[trial];
-        long cap = state.getMemoryCapacity();
+        long cap = state.getRequiredSerializedBytes();
         WritableMemory wmem = WritableMemory.allocate((int) cap);
         state.exportToMemory(wmem);
         memoryArr[trial] = wmem;

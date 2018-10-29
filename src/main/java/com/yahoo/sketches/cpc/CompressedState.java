@@ -6,22 +6,22 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.computeSeedHash;
+import static com.yahoo.sketches.cpc.PreambleUtil.checkCapacity;
 import static com.yahoo.sketches.cpc.PreambleUtil.checkLoPreamble;
 import static com.yahoo.sketches.cpc.PreambleUtil.getDefinedPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getFiCol;
+import static com.yahoo.sketches.cpc.PreambleUtil.getFormatOrdinal;
 import static com.yahoo.sketches.cpc.PreambleUtil.getHipAccum;
 import static com.yahoo.sketches.cpc.PreambleUtil.getKxP;
 import static com.yahoo.sketches.cpc.PreambleUtil.getLgK;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumCoupons;
 import static com.yahoo.sketches.cpc.PreambleUtil.getNumSv;
+import static com.yahoo.sketches.cpc.PreambleUtil.getPreInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSeedHash;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSvLengthInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getSvStream;
 import static com.yahoo.sketches.cpc.PreambleUtil.getWLengthInts;
 import static com.yahoo.sketches.cpc.PreambleUtil.getWStream;
-import static com.yahoo.sketches.cpc.PreambleUtil.hasHip;
-import static com.yahoo.sketches.cpc.PreambleUtil.hasSv;
-import static com.yahoo.sketches.cpc.PreambleUtil.hasWindow;
 import static com.yahoo.sketches.cpc.PreambleUtil.isCompressed;
 import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyHip;
 import static com.yahoo.sketches.cpc.PreambleUtil.putEmptyMerged;
@@ -56,9 +56,11 @@ final class CompressedState {
 
   int numCsv = 0;
   int[] csvStream = null; //may be longer than required
-  int csvLength = 0;
+  int csvLengthInts = 0;
   int[] cwStream = null; //may be longer than required
-  int cwLength = 0;
+  int cwLengthInts = 0;
+
+  int cpcRequiredBytes = 0;
 
   private CompressedState(final int lgK, final short seedHash) {
     this.lgK = lgK;
@@ -87,7 +89,7 @@ final class CompressedState {
   }
 
   Format getFormat() {
-    final int ordinal = ((cwLength > 0) ? 4 : 0)
+    final int ordinal = ((cwLengthInts > 0) ? 4 : 0)
                       | ((numCsv > 0) ? 2 : 0)
                       | ( mergeFlag ? 0 : 1 ); //complement of HIP
     return Format.ordinalToFormat(ordinal);
@@ -97,10 +99,10 @@ final class CompressedState {
     return CpcUtil.determineCorrectOffset(lgK, numCoupons);
   }
 
-  long getMemoryCapacity() {
+  long getRequiredSerializedBytes() {
     final Format format = getFormat();
     final int preInts = getDefinedPreInts(format);
-    return 4L * (preInts + csvLength + cwLength);
+    return 4L * (preInts + csvLengthInts + cwLengthInts);
   }
 
   static CompressedState importFromMemory(final Memory mem) {
@@ -109,21 +111,24 @@ final class CompressedState {
     final int lgK = getLgK(mem);
     final short seedHash = getSeedHash(mem);
     final CompressedState state = new CompressedState(lgK, seedHash);
-    final Format format = PreambleUtil.getFormat(mem);
+
+    final int fmtOrd = getFormatOrdinal(mem);
+    final Format format = Format.ordinalToFormat(fmtOrd);
+    state.mergeFlag = !((fmtOrd & 1) > 0); //merge flag is complement of HIP
+    state.csvIsValid = (fmtOrd & 2) > 0;
+    state.windowIsValid = (fmtOrd & 4) > 0;
+
     switch (format) {
       case EMPTY_MERGED :
       case EMPTY_HIP : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
+        checkCapacity(mem.getCapacity(), 8L);
         break;
       }
       case SPARSE_HYBRID_MERGED : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasSv(mem);
-        state.windowIsValid = hasWindow(mem);
         //state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
-        state.csvLength = getSvLengthInts(mem);
+        state.csvLengthInts = getSvLengthInts(mem);
         state.csvStream = getSvStream(mem);
         //state.cwLength = getCwLength(mem);
         //state.cwStream = getCwStream(mem);
@@ -132,13 +137,10 @@ final class CompressedState {
         break;
       }
       case SPARSE_HYBRID_HIP : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasSv(mem);
-        state.windowIsValid = hasWindow(mem);
         //state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
-        state.csvLength = getSvLengthInts(mem);
+        state.csvLengthInts = getSvLengthInts(mem);
         state.csvStream = getSvStream(mem);
         //state.cwLength = getCwLength(mem);
         //state.cwStream = getCwStream(mem);
@@ -147,66 +149,56 @@ final class CompressedState {
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasSv(mem);
-        state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
         //state.csvStream = getCsvStream(mem);
-        state.cwLength = getWLengthInts(mem);
+        state.cwLengthInts = getWLengthInts(mem);
         state.cwStream = getWStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasSv(mem);
-        state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
         //state.csvStream = getCsvStream(mem);
-        state.cwLength = getWLengthInts(mem);
+        state.cwLengthInts = getWLengthInts(mem);
         state.cwStream = getWStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
         break;
       }
       case PINNED_SLIDING_MERGED : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasSv(mem);
-        state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = getNumSv(mem);
-        state.csvLength = getSvLengthInts(mem);
+        state.csvLengthInts = getSvLengthInts(mem);
         state.csvStream = getSvStream(mem);
-        state.cwLength = getWLengthInts(mem);
+        state.cwLengthInts = getWLengthInts(mem);
         state.cwStream = getWStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
         break;
       }
       case PINNED_SLIDING_HIP : {
-        state.mergeFlag = !hasHip(mem); //complement of HIP
-        state.csvIsValid = hasSv(mem);
-        state.windowIsValid = hasWindow(mem);
         state.fiCol = getFiCol(mem);
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = getNumSv(mem);
-        state.csvLength = getSvLengthInts(mem);
+        state.csvLengthInts = getSvLengthInts(mem);
         state.csvStream = getSvStream(mem);
-        state.cwLength = getWLengthInts(mem);
+        state.cwLengthInts = getWLengthInts(mem);
         state.cwStream = getWStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
         break;
       }
     }
+    checkCapacity(mem.getCapacity(),
+        4L * (getPreInts(mem) + state.csvLengthInts + state.cwLengthInts));
     return state;
   }
 
@@ -225,7 +217,7 @@ final class CompressedState {
         putSparseHybridMerged(wmem,
             lgK,
             (int) numCoupons, //unsigned
-            csvLength,
+            csvLengthInts,
             seedHash,
             csvStream);
         break;
@@ -234,7 +226,7 @@ final class CompressedState {
         putSparseHybridHip(wmem,
             lgK,
             (int) numCoupons, //unsigned
-            csvLength,
+            csvLengthInts,
             kxp,
             hipEstAccum,
             seedHash,
@@ -246,7 +238,7 @@ final class CompressedState {
             lgK,
             fiCol,
             (int) numCoupons, //unsigned
-            cwLength,
+            cwLengthInts,
             seedHash,
             cwStream);
         break;
@@ -256,7 +248,7 @@ final class CompressedState {
             lgK,
             fiCol,
             (int) numCoupons, //unsigned
-            cwLength,
+            cwLengthInts,
             kxp,
             hipEstAccum,
             seedHash,
@@ -269,8 +261,8 @@ final class CompressedState {
             fiCol,
             (int) numCoupons, //unsigned
             numCsv,
-            csvLength,
-            cwLength,
+            csvLengthInts,
+            cwLengthInts,
             seedHash,
             csvStream,
             cwStream);
@@ -284,8 +276,8 @@ final class CompressedState {
             numCsv,
             kxp,
             hipEstAccum,
-            csvLength,
-            cwLength,
+            csvLengthInts,
+            cwLengthInts,
             seedHash,
             csvStream,
             cwStream);
@@ -314,18 +306,18 @@ final class CompressedState {
     sb.append("  kxp        : ").append(state.kxp).append(LS);
     sb.append("  hipAccum   : ").append(state.hipEstAccum).append(LS);
     sb.append("  numCsv     : ").append(state.numCsv).append(LS);
-    sb.append("  csvLength  : ").append(state.csvLength).append(LS);
-    sb.append("  csLength   : ").append(state.cwLength).append(LS);
+    sb.append("  csvLengthInts  : ").append(state.csvLengthInts).append(LS);
+    sb.append("  csLength   : ").append(state.cwLengthInts).append(LS);
     if (detail) {
       if (state.csvStream != null) {
         sb.append("  CsvStream  : ").append(LS);
-        for (int i = 0; i < state.csvLength; i++) {
+        for (int i = 0; i < state.csvLengthInts; i++) {
           sb.append(String.format("%8d %12d" + LS, i, state.csvStream[i]));
         }
       }
       if (state.cwStream != null) {
         sb.append("  CwStream  : ").append(LS);
-        for (int i = 0; i < state.cwLength; i++) {
+        for (int i = 0; i < state.cwLengthInts; i++) {
           sb.append(String.format("%8d %12d" + LS, i, state.cwStream[i]));
         }
       }
