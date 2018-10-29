@@ -461,7 +461,7 @@ final class CpcCompression {
     final int[] windowBuf = new int[windowBufLen];
     assert (windowBuf != null);
     final int pseudoPhase = determinePseudoPhase(srcLgK, source.numCoupons);
-    target.cwLength = lowLevelCompressBytes(
+    target.cwLengthInts = lowLevelCompressBytes(
         source.slidingWindow,
         srcK,
         encodingTablesForHighEntropyByte[pseudoPhase],
@@ -486,7 +486,7 @@ final class CpcCompression {
     lowLevelUncompressBytes(target.slidingWindow, srcK,
            decodingTablesForHighEntropyByte[pseudoPhase],
            source.cwStream,
-           source.cwLength);
+           source.cwLengthInts);
   }
 
   private static void compressTheSurprisingValues(final CompressedState target, final CpcSketch source,
@@ -498,7 +498,7 @@ final class CpcCompression {
     final int pairBufLen = safeLengthForCompressedPairBuf(srcK, numPairs, numBaseBits);
     final int[] pairBuf = new int[pairBufLen];
 
-    target.csvLength = (int) lowLevelCompressPairs(pairs, numPairs, numBaseBits, pairBuf);
+    target.csvLengthInts = (int) lowLevelCompressPairs(pairs, numPairs, numBaseBits, pairBuf);
 
     // At this point we free the unused portion of the compression output buffer.
     //  final int[] shorterBuf = Arrays.copyOf(pairBuf, target.csvLength);
@@ -515,7 +515,7 @@ final class CpcCompression {
     assert numPairs > 0;
     final int[] pairs = new int[numPairs];
     final int numBaseBits = CpcCompression.golombChooseNumberOfBaseBits(srcK + numPairs, numPairs);
-    lowLevelUncompressPairs(pairs, numPairs, numBaseBits, source.csvStream, source.csvLength);
+    lowLevelUncompressPairs(pairs, numPairs, numBaseBits, source.csvStream, source.csvLengthInts);
     return pairs;
   }
 
@@ -747,7 +747,6 @@ final class CpcCompression {
   }
 
   static CompressedState compress(final CpcSketch source, final CompressedState target) {
-    //final CompressedState target = new CompressedState(source);
 
     final Flavor srcFlavor = source.getFlavor();
 

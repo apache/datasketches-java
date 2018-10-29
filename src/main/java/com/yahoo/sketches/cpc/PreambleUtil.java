@@ -139,8 +139,8 @@ final class PreambleUtil {
   static final int BIG_ENDIAN_FLAG_MASK     = 1; //Reserved.
   static final int COMPRESSED_FLAG_MASK     = 2;
   static final int HIP_FLAG_MASK            = 4;
-  static final int SUP_VAL_FLAG_MASK        = 8; //Suprising Value
-  static final int WINDOW_FLAG_MASK         = 16;
+  static final int SUP_VAL_FLAG_MASK        = 8; //num Suprising Values > 0
+  static final int WINDOW_FLAG_MASK         = 16;//window length > 0
 
   //PREAMBLE SIZE
 
@@ -818,7 +818,7 @@ final class PreambleUtil {
   static void checkCapacity(final long memCap, final long expectedCap) {
     if (memCap < expectedCap) {
       throw new SketchesArgumentException(
-          "Insufficient WritableMemory Capacity = " + memCap + ", Expected = " + expectedCap);
+          "Insufficient Memory Capacity = " + memCap + ", Expected = " + expectedCap);
     }
   }
 
