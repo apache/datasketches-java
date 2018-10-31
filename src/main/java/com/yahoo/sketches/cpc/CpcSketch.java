@@ -662,7 +662,7 @@ public final class CpcSketch {
   public String toString(final boolean detail) {
     final int numPairs = (pairTable == null) ? 0 : pairTable.getNumPairs();
     final StringBuilder sb = new StringBuilder();
-    sb.append("CpcSketch").append(LS);
+    sb.append("### CPD SKETCH - PREAMBLE:").append(LS);
     sb.append("  Flavor       : ").append(getFlavor()).append(LS);
     sb.append("  lgK          : ").append(lgK).append(LS);
     sb.append("  seed         : ").append(seed).append(LS);
@@ -687,6 +687,28 @@ public final class CpcSketch {
       }
     }
     return sb.toString();
+  }
+
+  /**
+   * Returns a human readable string given a byte array image of a CpcSketch.
+   * @param byteArr the given byte array
+   * @param detail if true, a dump of the compressed window and surprising value streams will be
+   * included.
+   * @return a human readable string given a byte array image of a CpcSketch.
+   */
+  public static String toString(final byte[] byteArr, final boolean detail) {
+    return PreambleUtil.toString(byteArr, detail);
+  }
+
+  /**
+   * Returns a human readable string given a Memory image of a CpcSketch.
+   * @param mem the given byte array
+   * @param detail if true, a dump of the compressed window and surprising value streams will be
+   * included.
+   * @return a human readable string given a Memory image of a CpcSketch.
+   */
+  public static String toString(final Memory mem, final boolean detail) {
+    return PreambleUtil.toString(mem, detail);
   }
 
   private static void fillKxpByteLookup() { //called from static initializer

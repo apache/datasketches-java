@@ -545,12 +545,12 @@ final class PreambleUtil {
 
   //TO STRING
 
-  public static String toString(final byte[] byteArr, final boolean data) {
+  static String toString(final byte[] byteArr, final boolean detail) {
     final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, data);
+    return toString(mem, detail);
   }
 
-  public static String toString(final Memory mem, final boolean data) {
+  static String toString(final Memory mem, final boolean detail) {
     final long capBytes = mem.getCapacity();
     //Lo Fields Preamble, first 7 fields, first 8 bytes
     final int preInts = mem.getByte(getLoFieldOffset(LoField.PRE_INTS)) & 0xFF;
@@ -754,7 +754,7 @@ final class PreambleUtil {
     sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
     sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
 
-    if (data) {
+    if (detail) {
       sb.append("### CPC SKETCH IMAGE - DATA").append(LS);
       if (wLengthInts > 0) {
         sb.append(LS).append("Window Stream:").append(LS);

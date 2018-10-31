@@ -84,22 +84,22 @@ public class PreambleUtilTest {
 
     format = Format.EMPTY_MERGED;
     putEmptyMerged(wmem, lgK, seedHash);
-    println(PreambleUtil.toString((byte[])wmem.getArray(), true));
+    println(CpcSketch.toString((byte[])wmem.getArray(), true));
     checkFirst8(wmem, format, lgK, (byte) 0);
     assertFalse(hasHip(wmem));
 
     format = Format.SPARSE_HYBRID_MERGED;
     putSparseHybridMerged(wmem, lgK, numCoupons, csvLength, seedHash, csvStream);
-    println(PreambleUtil.toString(wmem, true));
-    PreambleUtil.toString(wmem, false);
+    println(CpcSketch.toString(wmem, true));
+    println(CpcSketch.toString(wmem, false));
     checkFirst8(wmem, format, lgK, (byte) 0);
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getSvLengthInts(wmem), csvLength);
 
     format = Format.SPARSE_HYBRID_HIP;
     putSparseHybridHip(wmem, lgK, numCoupons, csvLength, kxp, hipAccum, seedHash, csvStream);
-    println(PreambleUtil.toString(wmem, true));
-    PreambleUtil.toString(wmem, false);
+    println(CpcSketch.toString(wmem, true));
+    println(CpcSketch.toString(wmem, false));
     checkFirst8(wmem, format, lgK, (byte) 0);
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getSvLengthInts(wmem), csvLength);
@@ -109,8 +109,8 @@ public class PreambleUtilTest {
 
     format = Format.PINNED_SLIDING_MERGED_NOSV;
     putPinnedSlidingMergedNoSv(wmem, lgK, fiCol, numCoupons, cwLength, seedHash, cwStream);
-    println(PreambleUtil.toString(wmem, true));
-    PreambleUtil.toString(wmem, false);
+    println(CpcSketch.toString(wmem, true));
+    println(CpcSketch.toString(wmem, false));
     checkFirst8(wmem, format, lgK, fiCol);
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getWLengthInts(wmem), cwLength);
@@ -118,8 +118,8 @@ public class PreambleUtilTest {
     format = Format.PINNED_SLIDING_HIP_NOSV;
     putPinnedSlidingHipNoSv(wmem, lgK, fiCol, numCoupons, cwLength, kxp, hipAccum, seedHash,
         cwStream);
-    println(PreambleUtil.toString(wmem, true));
-    PreambleUtil.toString(wmem, false);
+    println(CpcSketch.toString(wmem, true));
+    println(CpcSketch.toString(wmem, false));
     checkFirst8(wmem, format, lgK, fiCol);
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getWLengthInts(wmem), cwLength);
@@ -129,8 +129,8 @@ public class PreambleUtilTest {
     format = Format.PINNED_SLIDING_MERGED;
     putPinnedSlidingMerged(wmem, lgK, fiCol, numCoupons, numSv, csvLength, cwLength, seedHash,
         csvStream, cwStream);
-    println(PreambleUtil.toString(wmem, true));
-    PreambleUtil.toString(wmem, false);
+    println(CpcSketch.toString(wmem, true));
+    println(CpcSketch.toString(wmem, false));
     checkFirst8(wmem, format, lgK, fiCol);
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getNumSv(wmem), numSv);
@@ -140,8 +140,8 @@ public class PreambleUtilTest {
     format = Format.PINNED_SLIDING_HIP;
     putPinnedSlidingHip(wmem, lgK, fiCol, numCoupons, numSv, kxp, hipAccum, csvLength, cwLength,
         seedHash, csvStream, cwStream);
-    println(PreambleUtil.toString(wmem, true));
-    PreambleUtil.toString(wmem, false);
+    println(CpcSketch.toString(wmem, true));
+    println(CpcSketch.toString(wmem, false));
     checkFirst8(wmem, format, lgK, fiCol);
     assertEquals(getNumCoupons(wmem), numCoupons);
     assertEquals(getNumSv(wmem), numSv);
@@ -181,7 +181,7 @@ public class PreambleUtilTest {
     WritableMemory wmem = WritableMemory.allocate(4 * 10);
     wmem.putByte(2, (byte) 16); //legal Family
     wmem.putByte(5, (byte) (1 << 2)); //select NONE
-    println(PreambleUtil.toString(wmem, false));
+    println(CpcSketch.toString(wmem, false));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
