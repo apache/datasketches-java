@@ -588,7 +588,7 @@ final class PreambleUtil {
 
     final StringBuilder sb = new StringBuilder();
     sb.append(LS);
-    sb.append("### CPC SKETCH PREAMBLE:").append(LS);
+    sb.append("### CPC SKETCH IMAGE - PREAMBLE:").append(LS);
     sb.append("Format                          : ").append(format.name()).append(LS);
     sb.append("Byte 0: Preamble Ints           : ").append(preInts).append(LS);
     sb.append("Byte 1: SerVer                  : ").append(serVer).append(LS);
@@ -609,10 +609,8 @@ final class PreambleUtil {
     switch (format) {
       case EMPTY_MERGED :
       case EMPTY_HIP : {
-        flavor = Flavor.EMPTY;
+        flavor = CpcUtil.determineFlavor(lgK, numCoupons);
         sb.append("Flavor                          : ").append(flavor).append(LS);
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(8).append(LS);
         break;
       }
       case SPARSE_HYBRID_MERGED : {
@@ -629,13 +627,6 @@ final class PreambleUtil {
         sb.append("Num SV                          : ").append(numSv).append(LS);
         sb.append("SV Length Ints                  : ").append(svLengthInts).append(LS);
         sb.append("SV Stream Start                 : ").append(svStreamStart).append(LS);
-
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
-        if (data) {
-          sb.append(LS).append("SV Stream:").append(LS);
-          listData(mem, svStreamStart, svLengthInts, sb);
-        }
         break;
       }
       case SPARSE_HYBRID_HIP : {
@@ -659,13 +650,6 @@ final class PreambleUtil {
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
-
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
-        if (data) {
-          sb.append(LS).append("SV Stream:").append(LS);
-          listData(mem, svStreamStart, svLengthInts, sb);
-        }
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
@@ -683,13 +667,6 @@ final class PreambleUtil {
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
         sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
         sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
-
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
-        if (data) {
-          sb.append(LS).append("Window Stream:").append(LS);
-          listData(mem, wStreamStart, wLengthInts, sb);
-        }
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
@@ -713,13 +690,6 @@ final class PreambleUtil {
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
-
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
-        if (data) {
-          sb.append(LS).append("Window Stream:").append(LS);
-          listData(mem, wStreamStart, wLengthInts, sb);
-        }
         break;
       }
       case PINNED_SLIDING_MERGED : {
@@ -746,15 +716,6 @@ final class PreambleUtil {
         sb.append("Window Offset                   : ").append(winOffset).append(LS);
         sb.append("Window Length Ints              : ").append(wLengthInts).append(LS);
         sb.append("Window Stream Start             : ").append(wStreamStart).append(LS);
-
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
-        if (data) {
-          sb.append(LS).append("Window Stream:").append(LS);
-          listData(mem, wStreamStart, wLengthInts, sb);
-          sb.append(LS).append("SV Stream:").append(LS);
-          listData(mem, svStreamStart, svLengthInts, sb);
-        }
         break;
       }
       case PINNED_SLIDING_HIP : {
@@ -786,29 +747,37 @@ final class PreambleUtil {
 
         sb.append("KxP                             : ").append(kxp).append(LS);
         sb.append("HipAccum                        : ").append(hipAccum).append(LS);
-
-        sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
-        sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
-        if (data) {
-          sb.append(LS).append("Window Stream:").append(LS);
-          listData(mem, wStreamStart, wLengthInts, sb);
-          sb.append(LS).append("SV Stream:").append(LS);
-          listData(mem, svStreamStart, svLengthInts, sb);
-        }
         break;
       }
     }
-    sb.append("### END CPC SKETCH PREAMBLE").append(LS);
+
+    sb.append("Actual Bytes                    : ").append(capBytes).append(LS);
+    sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
+
+    if (data) {
+      sb.append("### CPC SKETCH IMAGE - DATA").append(LS);
+      if (wLengthInts > 0) {
+        sb.append(LS).append("Window Stream:").append(LS);
+        listData(mem, wStreamStart, wLengthInts, sb);
+      }
+      if (svLengthInts > 0) {
+        sb.append(LS).append("SV Stream:").append(LS);
+        listData(mem, svStreamStart, svLengthInts, sb);
+      }
+    }
+    sb.append("### END CPC SKETCH IMAGE").append(LS);
     return sb.toString();
   } //end toString(mem)
 
-  private static void listData(final Memory mem, final long offset, final long length,
+  private static void listData(final Memory mem, final long offsetBytes, final long lengthInts,
       final StringBuilder sb) {
-    for (int i = 0; i < length; i++) {
-      sb.append(String.format(fmt, i, mem.getInt(offset + (4 * i)))).append(LS);
+    final long memCap = mem.getCapacity();
+    final long expectedCap = offsetBytes + (4L * lengthInts);
+    checkCapacity(memCap, expectedCap);
+    for (int i = 0; i < lengthInts; i++) {
+      sb.append(String.format(fmt, i, mem.getInt(offsetBytes + (4 * i)))).append(LS);
     }
   }
-
 
   static void fieldError(final Format format, final HiField hiField) {
     throw new SketchesArgumentException(
@@ -818,7 +787,7 @@ final class PreambleUtil {
   static void checkCapacity(final long memCap, final long expectedCap) {
     if (memCap < expectedCap) {
       throw new SketchesArgumentException(
-          "Insufficient Memory Capacity = " + memCap + ", Expected = " + expectedCap);
+          "Insufficient Image Bytes = " + memCap + ", Expected = " + expectedCap);
     }
   }
 

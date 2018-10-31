@@ -111,7 +111,6 @@ final class CompressedState {
     final int lgK = getLgK(mem);
     final short seedHash = getSeedHash(mem);
     final CompressedState state = new CompressedState(lgK, seedHash);
-
     final int fmtOrd = getFormatOrdinal(mem);
     final Format format = Format.ordinalToFormat(fmtOrd);
     state.mergeFlag = !((fmtOrd & 1) > 0); //merge flag is complement of HIP
@@ -129,11 +128,12 @@ final class CompressedState {
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
         state.csvLengthInts = getSvLengthInts(mem);
-        state.csvStream = getSvStream(mem);
         //state.cwLength = getCwLength(mem);
-        //state.cwStream = getCwStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
+        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        //state.cwStream = getCwStream(mem);
+        state.csvStream = getSvStream(mem);
         break;
       }
       case SPARSE_HYBRID_HIP : {
@@ -141,11 +141,12 @@ final class CompressedState {
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = (int) state.numCoupons; //only true for sparse_hybrid
         state.csvLengthInts = getSvLengthInts(mem);
-        state.csvStream = getSvStream(mem);
         //state.cwLength = getCwLength(mem);
-        //state.cwStream = getCwStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
+        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        //state.cwStream = getCwStream(mem);
+        state.csvStream = getSvStream(mem);
         break;
       }
       case PINNED_SLIDING_MERGED_NOSV : {
@@ -153,11 +154,12 @@ final class CompressedState {
         state.numCoupons = getNumCoupons(mem);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
-        //state.csvStream = getCsvStream(mem);
         state.cwLengthInts = getWLengthInts(mem);
-        state.cwStream = getWStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
+        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(mem);
+        //state.csvStream = getCsvStream(mem);
         break;
       }
       case PINNED_SLIDING_HIP_NOSV : {
@@ -165,11 +167,12 @@ final class CompressedState {
         state.numCoupons = getNumCoupons(mem);
         //state.numCsv = getNumCsv(mem);
         //state.csvLength = getCsvLength(mem);
-        //state.csvStream = getCsvStream(mem);
         state.cwLengthInts = getWLengthInts(mem);
-        state.cwStream = getWStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
+        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(mem);
+        //state.csvStream = getCsvStream(mem);
         break;
       }
       case PINNED_SLIDING_MERGED : {
@@ -177,11 +180,12 @@ final class CompressedState {
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = getNumSv(mem);
         state.csvLengthInts = getSvLengthInts(mem);
-        state.csvStream = getSvStream(mem);
         state.cwLengthInts = getWLengthInts(mem);
-        state.cwStream = getWStream(mem);
         //state.kxp = getKxP(mem);
         //state.hipEstAccum = getHipAccum(mem);
+        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(mem);
+        state.csvStream = getSvStream(mem);
         break;
       }
       case PINNED_SLIDING_HIP : {
@@ -189,11 +193,12 @@ final class CompressedState {
         state.numCoupons = getNumCoupons(mem);
         state.numCsv = getNumSv(mem);
         state.csvLengthInts = getSvLengthInts(mem);
-        state.csvStream = getSvStream(mem);
         state.cwLengthInts = getWLengthInts(mem);
-        state.cwStream = getWStream(mem);
         state.kxp = getKxP(mem);
         state.hipEstAccum = getHipAccum(mem);
+        checkCapacity(mem.getCapacity(), state.getRequiredSerializedBytes());
+        state.cwStream = getWStream(mem);
+        state.csvStream = getSvStream(mem);
         break;
       }
     }
