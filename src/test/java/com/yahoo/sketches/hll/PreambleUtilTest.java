@@ -19,6 +19,7 @@ import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
@@ -38,7 +39,7 @@ public class PreambleUtilTest {
 
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertTrue(sk.isEmpty());
-    String s = PreambleUtil.toString(byteArr2); //empty sketch output
+    String s = HllSketch.toString(byteArr2); //empty sketch output
     println(s);
     println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
     println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
@@ -49,7 +50,7 @@ public class PreambleUtilTest {
     wmem2 = WritableMemory.wrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertFalse(sk.isEmpty());
-    s = PreambleUtil.toString(byteArr2);
+    s = HllSketch.toString(byteArr2);
     println(s);
     println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
     println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
@@ -59,7 +60,7 @@ public class PreambleUtilTest {
     byteArr2 = sk.toCompactByteArray();
     wmem2 = WritableMemory.wrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.SET);
-    s = PreambleUtil.toString(byteArr2);
+    s = HllSketch.toString(byteArr2);
     println(s);
     println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
     println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));
@@ -69,7 +70,7 @@ public class PreambleUtilTest {
     byteArr2 = sk.toCompactByteArray();
     wmem2 = WritableMemory.wrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.HLL);
-    s = PreambleUtil.toString(byteArr2);
+    s = HllSketch.toString(Memory.wrap(byteArr2));
     println(s);
     println("LgArr: " + PreambleUtil.extractLgArr(wmem2));
     println("Empty: " + PreambleUtil.extractEmptyFlag(wmem2));

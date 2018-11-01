@@ -70,7 +70,7 @@ final class PreambleUtil {
 
   private PreambleUtil() {}
 
-  public static final String LS = System.getProperty("line.separator");
+  private static final String LS = System.getProperty("line.separator");
 
   // ###### DO NOT MESS WITH THIS ...
   // Preamble byte start addresses
@@ -131,12 +131,12 @@ final class PreambleUtil {
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
-  public static String toString(final byte[] byteArr) {
+  static String toString(final byte[] byteArr) {
     final Memory mem = Memory.wrap(byteArr);
     return toString(mem);
   }
 
-  public static String toString(final Memory mem) {
+  static String toString(final Memory mem) {
     //First 8 bytes
     final int preInts = mem.getByte(PREAMBLE_INTS_BYTE);
     final int serVer = mem.getByte(SER_VER_BYTE);
