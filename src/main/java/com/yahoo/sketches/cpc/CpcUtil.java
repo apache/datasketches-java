@@ -100,6 +100,13 @@ final class CpcUtil {
     return matrix;
   }
 
+  static long countBitsSetInMatrix(final long[] matrix) {
+    long count = 0;
+    final int len = matrix.length;
+    for (int i = 0; i < len; i++) { count += Long.bitCount(matrix[i]); }
+    return count;
+  }
+
   static int determineCorrectOffset(final int lgK, final long numCoupons) {
     final long c = numCoupons;
     final long k = (1L << lgK);

@@ -755,7 +755,7 @@ final class PreambleUtil {
     sb.append("Required Bytes                  : ").append(reqBytes).append(LS);
 
     if (detail) {
-      sb.append("### CPC SKETCH IMAGE - DATA").append(LS);
+      sb.append(LS).append("### CPC SKETCH IMAGE - DATA").append(LS);
       if (wLengthInts > 0) {
         sb.append(LS).append("Window Stream:").append(LS);
         listData(mem, wStreamStart, wLengthInts, sb);

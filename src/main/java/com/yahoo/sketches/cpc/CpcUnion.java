@@ -7,6 +7,7 @@ package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.iGolden;
+import static com.yahoo.sketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static com.yahoo.sketches.cpc.Flavor.EMPTY;
 import static com.yahoo.sketches.cpc.Flavor.SPARSE;
 
@@ -154,13 +155,6 @@ public class CpcUnion {
     return (union.bitMatrix != null)
         ? union.bitMatrix
         : CpcUtil.bitMatrixOfSketch(union.accumulator);
-  }
-
-  private static long countBitsSetInMatrix(final long[] matrix) {
-    long count = 0;
-    final int len = matrix.length;
-    for (int i = 0; i < len; i++) { count += Long.bitCount(matrix[i]); }
-    return count;
   }
 
   private static void walkTableUpdatingSketch(final CpcSketch dest, final PairTable table) {

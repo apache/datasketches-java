@@ -69,6 +69,7 @@ public class CpcSketchTest {
     assertTrue(lb >= 0);
     assertTrue(lb <= est);
     assertTrue(est <= ub);
+    assertTrue(result.validate());
     println(result.toString(true));
   }
 
