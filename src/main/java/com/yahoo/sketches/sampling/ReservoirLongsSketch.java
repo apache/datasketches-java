@@ -353,6 +353,24 @@ public final class ReservoirLongsSketch {
   }
 
   /**
+   * Returns a human readable string of the preamble of a byte array image of a ReservoirLongsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a ReservoirLongsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return PreambleUtil.preambleToString(byteArr);
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a ReservoirLongsSketch.
+   * @param mem the given Memory
+   * @return a human readable string of the preamble of a Memory image of a ReservoirLongsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
+  }
+
+  /**
    * Returns a byte array representation of this sketch
    *
    * @return a byte array representation of this sketch

@@ -569,6 +569,24 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Returns a human readable string of the preamble of a byte array image of a DoublesSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a DoublesSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return PreambleUtil.toString(byteArr, true);
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a DoublesSketch.
+   * @param mem the given Memory
+   * @return a human readable string of the preamble of a Memory image of a DoublesSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.toString(mem, true);
+  }
+
+  /**
    * From an source sketch, create a new sketch that must have a smaller value of K.
    * The original sketch is not modified.
    *

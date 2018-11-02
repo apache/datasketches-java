@@ -714,22 +714,22 @@ public final class CpcSketch {
   }
 
   /**
-   * Returns a human readable string given a byte array image of a CpcSketch.
+   * Returns a human readable string of the preamble of a byte array image of a CpcSketch.
    * @param byteArr the given byte array
    * @param detail if true, a dump of the compressed window and surprising value streams will be
    * included.
-   * @return a human readable string given a byte array image of a CpcSketch.
+   * @return a human readable string of the preamble of a byte array image of a CpcSketch.
    */
   public static String toString(final byte[] byteArr, final boolean detail) {
     return PreambleUtil.toString(byteArr, detail);
   }
 
   /**
-   * Returns a human readable string given a Memory image of a CpcSketch.
-   * @param mem the given byte array
+   * Returns a human readable string of the preamble of a Memory image of a CpcSketch.
+   * @param mem the given Memory
    * @param detail if true, a dump of the compressed window and surprising value streams will be
    * included.
-   * @return a human readable string given a Memory image of a CpcSketch.
+   * @return a human readable string of the preamble of a Memory image of a CpcSketch.
    */
   public static String toString(final Memory mem, final boolean detail) {
     return PreambleUtil.toString(mem, detail);

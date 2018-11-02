@@ -264,7 +264,8 @@ public class ItemsSketchTest {
     Assert.assertTrue(part.length() < full.length());
     ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     byte[] bytes = sketch.toByteArray(serDe);
-    PreambleUtil.toString(bytes, false);
+    ItemsSketch.toString(bytes);
+    ItemsSketch.toString(Memory.wrap(bytes));
     //PreambleUtil.toString(bytes, true); // not a DoublesSketch so this will fail
     //ItemsSketch<String> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
   }

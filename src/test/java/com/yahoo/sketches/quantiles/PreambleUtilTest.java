@@ -25,6 +25,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
 
@@ -153,7 +154,8 @@ public class PreambleUtilTest {
       qs.update(i);
     }
     byte[] byteArr = qs.toByteArray();
-    println(PreambleUtil.toString(byteArr, true));
+    DoublesSketch.toString(byteArr);
+    println(DoublesSketch.toString(Memory.wrap(byteArr)));
   }
 
   @Test

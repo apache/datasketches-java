@@ -130,13 +130,13 @@ final class PreambleUtil {
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
     } else { //preLongs == maxPreLongs
-      sb.append("Bytes 8-11 : ActiveItems    : ").append(activeItems).append(LS);
-      sb.append("Bytes 16-23: StreamLength   : ").append(streamLength).append(LS)
-        .append("Bytes 24-31: Offset         : ").append(offset).append(LS);
+      sb.append("Bytes 8-11 : ActiveItems      : ").append(activeItems).append(LS);
+      sb.append("Bytes 16-23: StreamLength     : ").append(streamLength).append(LS)
+        .append("Bytes 24-31: Offset           : ").append(offset).append(LS);
     }
 
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
-    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + activeItems * 2) << 3)
+    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + (activeItems * 2)) << 3)
       .append(LS)
       .append("### END FREQUENCY SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();

@@ -188,7 +188,7 @@ public class LongsSketch {
     this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
     hashMap = new ReversePurgeLongHashMap(1 << lgCurMapSz);
-    this.curMapCap = hashMap.getCapacity();
+    curMapCap = hashMap.getCapacity();
     final int maxMapCap =
         (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
     offset = 0;
@@ -252,7 +252,7 @@ public class LongsSketch {
     final long[] countArray = new long[activeItems];
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
     //Get itemArray
-    final int itemsOffset = preBytes + 8 * activeItems;
+    final int itemsOffset = preBytes + (8 * activeItems);
     final long[] itemArray = new long[activeItems];
     srcMem.getLongArray(itemsOffset, itemArray, 0, activeItems);
     //update the sketch
@@ -272,7 +272,7 @@ public class LongsSketch {
    */
   public static LongsSketch getInstance(final String string) {
     final String[] tokens = string.split(",");
-    if (tokens.length < STR_PREAMBLE_TOKENS + 2) {
+    if (tokens.length < (STR_PREAMBLE_TOKENS + 2)) {
       throw new SketchesArgumentException(
           "String not long enough: " + tokens.length);
     }
@@ -299,7 +299,7 @@ public class LongsSketch {
             + ", strLen: " + streamLength);
     }
     final int numTokens = tokens.length;
-    if (2 * numActive != (numTokens - STR_PREAMBLE_TOKENS - 2)) {
+    if ((2 * numActive) != (numTokens - STR_PREAMBLE_TOKENS - 2)) {
       throw new SketchesArgumentException(
           "Possible Corruption: Incorrect # of tokens: " + numTokens
             + ", numActive: " + numActive);
@@ -349,7 +349,7 @@ public class LongsSketch {
       outBytes = 8;
     } else {
       preLongs = Family.FREQUENCY.getMaxPreLongs();
-      outBytes = (preLongs + 2 * activeItems) << 3; //2 because both keys and values are longs
+      outBytes = (preLongs + (2 * activeItems)) << 3; //2 because both keys and values are longs
     }
     final byte[] outArr = new byte[outBytes];
     final WritableMemory mem = WritableMemory.wrap(outArr);
@@ -370,8 +370,8 @@ public class LongsSketch {
       final long[] preArr = new long[preLongs];
       preArr[0] = pre0;
       preArr[1] = insertActiveItems(activeItems, pre);
-      preArr[2] = this.streamLength;
-      preArr[3] = this.offset;
+      preArr[2] = streamLength;
+      preArr[3] = offset;
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
       mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
@@ -402,7 +402,7 @@ public class LongsSketch {
     if (count < 0) {
       throw new SketchesArgumentException("Count may not be negative");
     }
-    this.streamLength += count;
+    streamLength += count;
     hashMap.adjustOrPutValue(item, count);
 
     if (getNumActiveItems() > curMapCap) { //over the threshold, we need to do something
@@ -430,14 +430,14 @@ public class LongsSketch {
     if (other == null) { return this; }
     if (other.isEmpty()) { return this; }
 
-    final long streamLen = this.streamLength + other.streamLength; //capture before merge
+    final long streamLen = streamLength + other.streamLength; //capture before merge
 
     final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
     while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
-    this.offset += other.offset;
-    this.streamLength = streamLen; //corrected streamLength
+    offset += other.offset;
+    streamLength = streamLen; //corrected streamLength
     return this;
   }
 
@@ -535,7 +535,7 @@ public class LongsSketch {
 
     Row(final long item, final long estimate, final long ub, final long lb) {
       this.item = item;
-      this.est = estimate;
+      est = estimate;
       this.ub = ub;
       this.lb = lb;
     }
@@ -582,7 +582,7 @@ public class LongsSketch {
      */
     @Override
     public int compareTo(final Row that) {
-      return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
+      return (est < that.est) ? -1 : (est > that.est) ? 1 : 0;
     }
 
     /**
@@ -596,7 +596,7 @@ public class LongsSketch {
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + (int) (est ^ (est >>> 32));
+      result = (prime * result) + (int) (est ^ (est >>> 32));
       return result;
     }
 
@@ -620,7 +620,7 @@ public class LongsSketch {
   } // End of class Row
 
   Row[] sortItems(final long threshold, final ErrorType errorType) {
-    final ArrayList<Row> rowList = new ArrayList<Row>();
+    final ArrayList<Row> rowList = new ArrayList<>();
     final ReversePurgeLongHashMap.Iterator iter = hashMap.iterator();
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
       while (iter.next()) {
@@ -662,7 +662,7 @@ public class LongsSketch {
    * @return the current number of counters the sketch is configured to support.
    */
   public int getCurrentMapCapacity() {
-    return this.curMapCap;
+    return curMapCap;
   }
 
   /**
@@ -689,7 +689,7 @@ public class LongsSketch {
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */
   public long getStreamLength() {
-    return this.streamLength;
+    return streamLength;
   }
 
   /**
@@ -715,7 +715,7 @@ public class LongsSketch {
    */
   public int getStorageBytes() {
     if (isEmpty()) { return 8; }
-    return 6 * 8 + 16 * getNumActiveItems();
+    return (6 * 8) + (16 * getNumActiveItems());
   }
 
   /**
@@ -723,9 +723,9 @@ public class LongsSketch {
    */
   public void reset() {
     hashMap = new ReversePurgeLongHashMap(1 << LG_MIN_MAP_SIZE);
-    this.curMapCap = hashMap.getCapacity();
-    this.offset = 0;
-    this.streamLength = 0;
+    curMapCap = hashMap.getCapacity();
+    offset = 0;
+    streamLength = 0;
   }
 
   /**
@@ -740,6 +740,24 @@ public class LongsSketch {
     sb.append("  Max Error Offset : " + offset).append(LS);
     sb.append(hashMap.toString());
     return sb.toString();
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a byte array image of a LongsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a LongsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return toString(Memory.wrap(byteArr));
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a LongsSketch.
+   * @param mem the given Memory object
+   * @return  a human readable string of the preamble of a Memory image of a LongsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
   }
 
   /**
