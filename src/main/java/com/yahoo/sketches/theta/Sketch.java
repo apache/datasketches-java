@@ -444,6 +444,28 @@ public abstract class Sketch {
     return sb.toString();
   }
 
+  /**
+   * Returns a human readable string that details the preamble data of a given sketch image
+   * represented as a byte array.
+   * @param byteArr the given byte array
+   * @return a human readable string that details the preamble data of a given sketch image
+   * represented as a byte array.
+   */
+  public static String toString(final byte[] byteArr) {
+    return PreambleUtil.preambleToString(byteArr);
+  }
+
+  /**
+   * Returns a human readable string that details the preamble data of a given sketch image
+   * represented as a Memory object.
+   * @param mem the given Memory object
+   * @return a human readable string that details the preamble data of a given sketch image
+   * represented as a Memory object.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
+  }
+
   //Restricted methods
 
   /**

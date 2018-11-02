@@ -126,8 +126,8 @@ final class PreambleUtil {
    * @param byteArr the given byte array.
    * @return the summary preamble string.
    */
-  public static String preambleToString(final byte[] byteArr) {
-    final WritableMemory mem = WritableMemory.wrap(byteArr);
+  static String preambleToString(final byte[] byteArr) {
+    final Memory mem = Memory.wrap(byteArr);
     return preambleToString(mem);
   }
 
@@ -140,7 +140,7 @@ final class PreambleUtil {
    * @param mem the given Memory.
    * @return the summary preamble string.
    */
-  public static String preambleToString(final WritableMemory mem) {
+  static String preambleToString(final Memory mem) {
     final int preLongs = getAndCheckPreLongs(mem);
     final ResizeFactor rf = ResizeFactor.getRF(extractLgResizeFactor(mem));
     final int serVer = extractSerVer(mem);

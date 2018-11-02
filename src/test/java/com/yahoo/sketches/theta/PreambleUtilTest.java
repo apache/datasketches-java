@@ -42,6 +42,7 @@ import static org.testng.Assert.fail;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -61,7 +62,7 @@ public class PreambleUtilTest {
     WritableMemory mem = WritableMemory.wrap(byteArray);
 
     UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(mem);
-    println(PreambleUtil.preambleToString(byteArray));
+    println(Sketch.toString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
 
@@ -90,14 +91,14 @@ public class PreambleUtilTest {
       quick1.update(i);
     }
     byte[] bytes = quick1.compact().toByteArray();
-    println(PreambleUtil.preambleToString(bytes));
+    println(Sketch.toString(bytes));
   }
 
   @Test
   public void checkPreambleToStringExceptions() {
     byte[] byteArr = new byte[7];
     try { //check preLongs < 8 fails
-      PreambleUtil.preambleToString(byteArr);
+      Sketch.toString(byteArr);
       fail("Did not throw SketchesArgumentException.");
     } catch (SketchesArgumentException e) {
       //expected
@@ -105,7 +106,7 @@ public class PreambleUtilTest {
     byteArr = new byte[8];
     byteArr[0] = (byte) 2; //needs min capacity of 16
     try { //check preLongs == 2 fails
-      PreambleUtil.preambleToString(byteArr);
+      Sketch.toString(Memory.wrap(byteArr));
       fail("Did not throw SketchesArgumentException.");
     } catch (SketchesArgumentException e) {
       //expected
@@ -123,19 +124,19 @@ public class PreambleUtilTest {
     UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
     CompactSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
-    println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 1
+    println(Sketch.toString(byteArr)); //PreLongs = 1
 
     sketch.update(1);
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 2
+    println(Sketch.toString(byteArr)); //PreLongs = 2
 
     for (int i=2; i<=32; i++) {
       sketch.update(i);
     }
     comp = sketch.compact(false, null);
     byteArr = comp.toByteArray();
-    println(PreambleUtil.preambleToString(byteArr)); //PreLongs = 3
+    println(Sketch.toString(Memory.wrap(byteArr))); //PreLongs = 3
   }
 
   @Test
