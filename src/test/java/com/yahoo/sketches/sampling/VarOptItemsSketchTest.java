@@ -207,7 +207,8 @@ public class VarOptItemsSketchTest {
 
     println("Empty sketch:");
     println("  Preamble:");
-    println(PreambleUtil.preambleToString(mem));
+    VarOptItemsSketch.toString(sketchBytes);
+    println(VarOptItemsSketch.toString(mem));
     println("  Sketch:");
     println(vis.toString());
   }

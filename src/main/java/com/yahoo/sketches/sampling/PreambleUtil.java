@@ -159,7 +159,7 @@ final class PreambleUtil {
    * @param byteArr the given byte array.
    * @return the summary preamble string.
    */
-  public static String preambleToString(final byte[] byteArr) {
+  static String preambleToString(final byte[] byteArr) {
     final Memory mem = Memory.wrap(byteArr);
     return preambleToString(mem);
   }
@@ -173,7 +173,7 @@ final class PreambleUtil {
    * @param mem the given Memory.
    * @return the summary preamble string.
    */
-  public static String preambleToString(final Memory mem) {
+  static String preambleToString(final Memory mem) {
     final int preLongs = getAndCheckPreLongs(mem);  // make sure we can get the assumed preamble
 
     final Family family = Family.idToFamily(mem.getByte(FAMILY_BYTE));

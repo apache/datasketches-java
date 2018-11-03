@@ -408,22 +408,18 @@ public class HllSketch extends BaseHllSketch {
   }
 
   /**
-   * Returns a human readable string that details the preamble data of a given sketch image
-   * represented as a byte array.
+   * Returns a human readable string of the preamble of a byte array image of an HllSketch.
    * @param byteArr the given byte array
-   * @return a human readable string that details the preamble data of a given sketch image
-   * represented as a byte array.
+   * @return a human readable string of the preamble of a byte array image of an HllSketch.
    */
   public static String toString(final byte[] byteArr) {
     return PreambleUtil.toString(byteArr);
   }
 
   /**
-   * Returns a human readable string that details the preamble data of a given sketch image
-   * represented as a Memory object.
+   * Returns a human readable string of the preamble of a Memory image of an HllSketch.
    * @param mem the given Memory object
-   * @return a human readable string that details the preamble data of a given sketch image
-   * represented as a Memory object.
+   * @return a human readable string of the preamble of a Memory image of an HllSketch.
    */
   public static String toString(final Memory mem) {
     return PreambleUtil.toString(mem);

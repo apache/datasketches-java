@@ -76,6 +76,8 @@ public class ReservoirLongsSketchTest {
 
     println("Empty sketch:");
     println(rls.toString());
+    ReservoirLongsSketch.toString(sketchBytes);
+    ReservoirLongsSketch.toString(mem);
   }
 
   @Test
@@ -135,7 +137,7 @@ public class ReservoirLongsSketchTest {
     // 3. n > k
 
     int i;
-    for (i = 0; i < tgtK - 1; ++i) {
+    for (i = 0; i < (tgtK - 1); ++i) {
       rls.update(i);
     }
 
@@ -146,7 +148,7 @@ public class ReservoirLongsSketchTest {
     validateReservoirEquality(rls, dsCopy);
 
     // check condition 2 next
-    for (; i < k - 1; ++i) {
+    for (; i < (k - 1); ++i) {
       rls.update(i);
     }
     assertEquals(rls.getN(), k - 1);
@@ -156,7 +158,7 @@ public class ReservoirLongsSketchTest {
     assertEquals(dsCopy.getNumSamples(), tgtK);
 
     // and now condition 3
-    for (; i < 2 * k; ++i) {
+    for (; i < (2 * k); ++i) {
       rls.update(i);
     }
     assertEquals(rls.getN(), 2 * k);
@@ -369,7 +371,7 @@ public class ReservoirLongsSketchTest {
     final int k = 100;
     final ReservoirLongsSketch rls = ReservoirLongsSketch.newInstance(k);
 
-    for (int i = 0; i < 2 * k; ++i) {
+    for (int i = 0; i < (2 * k); ++i) {
       rls.update(i);
     }
 
@@ -397,7 +399,7 @@ public class ReservoirLongsSketchTest {
 
     // add items, keeping in exact mode
     double itemCount = 0.0;
-    for (long i = 1; i <= k - 1; ++i) {
+    for (long i = 1; i <= (k - 1); ++i) {
       sketch.update(i);
       itemCount += 1.0;
     }
@@ -409,7 +411,7 @@ public class ReservoirLongsSketchTest {
     assertEquals(ss.getTotalSketchWeight(), itemCount);
 
     // add a few more items, pushing to sampling mode
-    for (long i = k; i <= k + 1; ++i) {
+    for (long i = k; i <= (k + 1); ++i) {
       sketch.update(i);
       itemCount += 1.0;
     }
@@ -430,7 +432,7 @@ public class ReservoirLongsSketchTest {
 
     // finally, a non-degenerate predicate
     // insert negative items with identical weights, filter for negative weights only
-    for (long i = 1; i <= k + 1; ++i) {
+    for (long i = 1; i <= (k + 1); ++i) {
       sketch.update(-i);
       itemCount += 1.0;
     }

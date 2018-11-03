@@ -216,7 +216,7 @@ class ToByteArrayImpl {
         }
         break;
       }
-      default: throw new SketchesStateException("Not Possible: " + sw);
+      default: throw new SketchesStateException("Corruption, should not happen: " + sw);
     }
     return byteArrOut;
   }

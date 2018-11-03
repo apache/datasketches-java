@@ -406,6 +406,24 @@ public final class ReservoirItemsSketch<T> {
   }
 
   /**
+   * Returns a human readable string of the preamble of a byte array image of a ReservoirItemsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a ReservoirItemsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return PreambleUtil.preambleToString(byteArr);
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a ReservoirItemsSketch.
+   * @param mem the given Memory
+   * @return a human readable string of the preamble of a Memory image of a ReservoirItemsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
+  }
+
+  /**
    * Returns a byte array representation of this sketch. May fail for polymorphic item types.
    *
    * @param serDe An instance of ArrayOfItemsSerDe

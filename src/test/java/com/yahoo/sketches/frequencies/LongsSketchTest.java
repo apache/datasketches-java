@@ -108,7 +108,7 @@ public class LongsSketchTest {
     byte[] bytearray0 = sketch.toByteArray();
     WritableMemory mem0 = WritableMemory.wrap(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
-    String str0 = PreambleUtil.preambleToString(mem0);
+    String str0 = LongsSketch.toString(mem0);
     println(str0);
     String string0 = sketch.serializeToString();
     String new_string0 = new_sketch0.serializeToString();
@@ -124,7 +124,7 @@ public class LongsSketchTest {
     byte[] bytearray1 = sketch.toByteArray();
     Memory mem1 = Memory.wrap(bytearray1);
     LongsSketch new_sketch1 = LongsSketch.getInstance(mem1);
-    String str1 = PreambleUtil.preambleToString(mem1);
+    String str1 = LongsSketch.toString(bytearray1);
     println(str1);
     String string1 = sketch.serializeToString();
     String new_string1 = new_sketch1.serializeToString();
@@ -396,6 +396,9 @@ public class LongsSketchTest {
     fis.update(1);
     Row[] rowArr = fis.getFrequentItems(ErrorType.NO_FALSE_POSITIVES);
     Row row = rowArr[0];
+    assertTrue(row.hashCode() != 0);
+    assertTrue(row.equals(row));
+    assertFalse(row.equals(fis));
     assertNotNull(row);
     assertEquals(row.est, 1L);
     assertEquals(row.item, 1L);

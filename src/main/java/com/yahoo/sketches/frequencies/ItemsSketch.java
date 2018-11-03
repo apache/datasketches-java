@@ -191,7 +191,7 @@ public class ItemsSketch<T> {
     //set initial size of hash map
     this.lgMaxMapSize = Math.max(lgMaxMapSize, LG_MIN_MAP_SIZE);
     final int lgCurMapSz = Math.max(lgCurMapSize, LG_MIN_MAP_SIZE);
-    hashMap = new ReversePurgeItemHashMap<T>(1 << lgCurMapSz);
+    hashMap = new ReversePurgeItemHashMap<>(1 << lgCurMapSz);
     this.curMapCap = hashMap.getCapacity();
     final int maxMapCap =
         (int) ((1 << lgMaxMapSize) * ReversePurgeItemHashMap.getLoadFactor());
@@ -243,13 +243,13 @@ public class ItemsSketch<T> {
     }
 
     if (empty) {
-      return new ItemsSketch<T>(lgMaxMapSize, LG_MIN_MAP_SIZE);
+      return new ItemsSketch<>(lgMaxMapSize, LG_MIN_MAP_SIZE);
     }
     //get full preamble
     final long[] preArr = new long[preLongs];
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
-    final ItemsSketch<T> fis = new ItemsSketch<T>(lgMaxMapSize, lgCurMapSize);
+    final ItemsSketch<T> fis = new ItemsSketch<>(lgMaxMapSize, lgCurMapSize);
     fis.streamLength = 0; //update after
     fis.offset = preArr[3];
 
@@ -259,7 +259,7 @@ public class ItemsSketch<T> {
     final long[] countArray = new long[activeItems];
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
     //Get itemArray
-    final int itemsOffset = preBytes + 8 * activeItems;
+    final int itemsOffset = preBytes + (8 * activeItems);
     final T[] itemArray = serDe.deserializeFromMemory(
         srcMem.region(itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
     //update the sketch
@@ -335,7 +335,7 @@ public class ItemsSketch<T> {
    * An count of zero is a no-op, and a negative count will throw an exception.
    */
   public void update(final T item, final long count) {
-    if (item == null || count == 0) {
+    if ((item == null) || (count == 0)) {
       return;
     }
     if (count < 0) {
@@ -536,7 +536,7 @@ public class ItemsSketch<T> {
     public int hashCode() {
       final int prime = 31;
       int result = 1;
-      result = prime * result + (int) (est ^ (est >>> 32));
+      result = (prime * result) + (int) (est ^ (est >>> 32));
       return result;
     }
 
@@ -561,7 +561,7 @@ public class ItemsSketch<T> {
   } //End of class Row<T>
 
   Row<T>[] sortItems(final long threshold, final ErrorType errorType) {
-    final ArrayList<Row<T>> rowList = new ArrayList<Row<T>>();
+    final ArrayList<Row<T>> rowList = new ArrayList<>();
     final ReversePurgeItemHashMap.Iterator<T> iter = hashMap.iterator();
     if (errorType == ErrorType.NO_FALSE_NEGATIVES) {
       while (iter.next()) {
@@ -569,7 +569,7 @@ public class ItemsSketch<T> {
         final long ub = getUpperBound(iter.getKey());
         final long lb = getLowerBound(iter.getKey());
         if (ub >= threshold) {
-          final Row<T> row = new Row<T>(iter.getKey(), est, ub, lb);
+          final Row<T> row = new Row<>(iter.getKey(), est, ub, lb);
           rowList.add(row);
         }
       }
@@ -579,7 +579,7 @@ public class ItemsSketch<T> {
         final long ub = getUpperBound(iter.getKey());
         final long lb = getLowerBound(iter.getKey());
         if (lb >= threshold) {
-          final Row<T> row = new Row<T>(iter.getKey(), est, ub, lb);
+          final Row<T> row = new Row<>(iter.getKey(), est, ub, lb);
           rowList.add(row);
         }
       }
@@ -655,7 +655,7 @@ public class ItemsSketch<T> {
    * Resets this sketch to a virgin state.
    */
   public void reset() {
-    hashMap = new ReversePurgeItemHashMap<T>(1 << LG_MIN_MAP_SIZE);
+    hashMap = new ReversePurgeItemHashMap<>(1 << LG_MIN_MAP_SIZE);
     this.curMapCap = hashMap.getCapacity();
     this.offset = 0;
     this.streamLength = 0;
@@ -675,4 +675,21 @@ public class ItemsSketch<T> {
     return sb.toString();
   }
 
+  /**
+   * Returns a human readable string of the preamble of a byte array image of a ItemsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a ItemsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return toString(Memory.wrap(byteArr));
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a ItemsSketch.
+   * @param mem the given Memory object
+   * @return a human readable string of the preamble of a Memory image of a ItemsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
+  }
 }

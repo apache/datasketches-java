@@ -612,6 +612,25 @@ public final class ItemsSketch<T> {
   }
 
   /**
+   * Returns a human readable string of the preamble of a byte array image of an ItemsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of an ItemsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return PreambleUtil.toString(byteArr, false);
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of an ItemsSketch.
+   * @param mem the given Memory
+   * @return a human readable string of the preamble of a Memory image of an ItemsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.toString(mem, false);
+  }
+
+
+  /**
    * From an existing sketch, this creates a new sketch that can have a smaller value of K.
    * The original sketch is not modified.
    *

@@ -175,7 +175,9 @@ public class ReservoirItemsSketchTest {
 
     println("Full reservoir:");
     println("  Preamble:");
-    println(PreambleUtil.preambleToString(ris.toByteArray(new ArrayOfLongsSerDe())));
+    byte[] byteArr = ris.toByteArray(new ArrayOfLongsSerDe());
+    println(ReservoirItemsSketch.toString(byteArr));
+    ReservoirItemsSketch.toString(Memory.wrap(byteArr));
     println("  Sketch:");
     println(ris.toString());
   }
@@ -393,7 +395,7 @@ public class ReservoirItemsSketchTest {
     for (int i = 0; i < k; ++i) {
       ris.update(i);
     }
-    assertTrue(ris.getImplicitSampleWeight() - 1.5 < EPS);
+    assertTrue((ris.getImplicitSampleWeight() - 1.5) < EPS);
   }
 
   /*
@@ -516,7 +518,7 @@ public class ReservoirItemsSketchTest {
     final int k = 100;
     final ReservoirItemsSketch<Long> rls = ReservoirItemsSketch.newInstance(k);
 
-    for (long i = 0; i < 2 * k; ++i) {
+    for (long i = 0; i < (2 * k); ++i) {
       rls.update(i);
     }
 
@@ -544,7 +546,7 @@ public class ReservoirItemsSketchTest {
 
     // add items, keeping in exact mode
     double itemCount = 0.0;
-    for (long i = 1; i <= k - 1; ++i) {
+    for (long i = 1; i <= (k - 1); ++i) {
       sketch.update(i);
       itemCount += 1.0;
     }
@@ -556,7 +558,7 @@ public class ReservoirItemsSketchTest {
     assertEquals(ss.getTotalSketchWeight(), itemCount);
 
     // add a few more items, pushing to sampling mode
-    for (long i = k; i <= k + 1; ++i) {
+    for (long i = k; i <= (k + 1); ++i) {
       sketch.update(i);
       itemCount += 1.0;
     }
@@ -577,7 +579,7 @@ public class ReservoirItemsSketchTest {
 
     // finally, a non-degenerate predicate
     // insert negative items with identical weights, filter for negative weights only
-    for (long i = 1; i <= k + 1; ++i) {
+    for (long i = 1; i <= (k + 1); ++i) {
       sketch.update(-i);
       itemCount += 1.0;
     }
