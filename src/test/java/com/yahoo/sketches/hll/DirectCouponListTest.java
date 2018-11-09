@@ -161,7 +161,7 @@ public class DirectCouponListTest {
   }
 
   @Test
-  public void checkGetLgCouponArrInts() {
+  public void checkBasicGetLgCouponArrInts() {
     int lgK = 8;
     TgtHllType type = TgtHllType.HLL_8;
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
@@ -185,6 +185,25 @@ public class DirectCouponListTest {
     assertEquals(sk.hllSketchImpl.curMode, CurMode.SET);
     wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0 again
     assertEquals(((AbstractCoupons) sk.hllSketchImpl).getLgCouponArrInts(), 5);
+  }
+
+  @Test
+  public void checkHeapifyGetLgCouponArrInts() {
+    int lgK = 8;
+    TgtHllType type = TgtHllType.HLL_8;
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(lgK, type, wmem);
+    for (int i = 0; i < 8; i++) { sk.update(i); }
+    assertEquals(sk.getCurMode(), CurMode.SET);
+    double est1 = sk.getEstimate();
+
+    wmem.putByte(LG_ARR_BYTE, (byte) 0); //corrupt to 0
+    HllSketch sk2 = HllSketch.heapify(wmem);
+    double est2 = sk2.getEstimate();
+    assertEquals(est2, est1, 0.0);
+    //println(sk2.toString(true, true, true, true));
+    //println(PreambleUtil.toString(wmem));
   }
 
   @Test

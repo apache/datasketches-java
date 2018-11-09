@@ -557,13 +557,15 @@ public final class Util {
   /**
    * Gives the log2 of an integer that is known to be a power of 2.
    *
-   * @param x number
+   * @param x number that is greater than zero
    * @return the log2 of an integer that is known to be a power of 2.
    */
   public static int simpleIntLog2(final int x) {
-    final int e = Integer.numberOfTrailingZeros(x);
-    assert (x == (1 << e));
-    return e;
+    final int exp = Integer.numberOfTrailingZeros(x);
+    if (x != (1 << exp)) {
+      throw new SketchesArgumentException("Argument x cannot be negative or zero.");
+    }
+    return exp;
   }
 
   /**

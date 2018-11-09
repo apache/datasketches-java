@@ -31,7 +31,11 @@ class DirectAuxHashMap implements AuxHashMap {
       insertLgArr(host.wmem, initLgArrInts);
       host.wmem.clear(host.auxStart, 4 << initLgArrInts);
     } else {
-      assert extractLgArr(host.mem) >= initLgArrInts;
+      if (extractLgArr(host.mem) < initLgArrInts) {
+        final int lgArr =
+            PreambleUtil.computeLgArr(host.wmem, host.auxHashMap.getAuxCount(), host.lgConfigK);
+        insertLgArr(host.wmem, lgArr);
+      }
     }
   }
 

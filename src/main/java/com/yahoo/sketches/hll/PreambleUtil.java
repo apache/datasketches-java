@@ -5,7 +5,13 @@
 
 package com.yahoo.sketches.hll;
 
+import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.simpleIntLog2;
 import static com.yahoo.sketches.Util.zeroPad;
+import static com.yahoo.sketches.hll.HllUtil.LG_AUX_ARR_INTS;
+import static com.yahoo.sketches.hll.HllUtil.LG_INIT_SET_SIZE;
+import static com.yahoo.sketches.hll.HllUtil.RESIZE_DENOM;
+import static com.yahoo.sketches.hll.HllUtil.RESIZE_NUMER;
 
 import java.nio.ByteOrder;
 
@@ -262,7 +268,8 @@ final class PreambleUtil {
   }
 
   static int extractLgArr(final Memory mem) {
-    return mem.getByte(LG_ARR_BYTE) & 0XFF;
+    final int lgArr = mem.getByte(LG_ARR_BYTE) & 0XFF;
+    return lgArr;
   }
 
   static void insertLgArr(final WritableMemory wmem, final int lgArr) {
@@ -418,6 +425,19 @@ final class PreambleUtil {
 
   static void insertInt(final WritableMemory wmem, final long byteOffset, final int value) {
     wmem.putInt(byteOffset, value);
+  }
+
+  static int computeLgArr(final Memory mem, final int count, final int lgConfigK) {
+    //value is missing, recompute
+    final CurMode curMode = extractCurMode(mem);
+    if (curMode == CurMode.LIST) { return HllUtil.LG_INIT_LIST_SIZE; }
+    int ceilPwr2 = ceilingPowerOf2(count);
+    if ((RESIZE_DENOM * count) > (RESIZE_NUMER * ceilPwr2)) { ceilPwr2 <<= 1; }
+    if (curMode == CurMode.SET) {
+      return Math.max(LG_INIT_SET_SIZE, simpleIntLog2(ceilPwr2));
+    }
+    //only used for HLL4
+    return Math.max(LG_AUX_ARR_INTS[lgConfigK], simpleIntLog2(ceilPwr2));
   }
 
 }

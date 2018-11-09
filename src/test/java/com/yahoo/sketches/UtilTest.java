@@ -23,7 +23,9 @@ import static com.yahoo.sketches.Util.nanoSecToString;
 import static com.yahoo.sketches.Util.pwr2LawNext;
 import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.Util.pwr2LawPrev;
+import static com.yahoo.sketches.Util.simpleIntLog2;
 import static com.yahoo.sketches.Util.zeroPad;
+import static org.testng.Assert.fail;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -255,6 +257,16 @@ public class UtilTest {
       print(p + " ");
     }
     println("");
+  }
+
+  @Test
+  public void checkSimpleIntLog2() {
+    Assert.assertEquals(simpleIntLog2(2), 1);
+    Assert.assertEquals(simpleIntLog2(1), 0);
+    try {
+      simpleIntLog2(0);
+      fail();
+    } catch (SketchesArgumentException e) {}
   }
 
   @Test
