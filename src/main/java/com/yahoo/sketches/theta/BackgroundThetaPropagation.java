@@ -85,8 +85,7 @@ class BackgroundThetaPropagation implements Runnable {
     } else if (sketchIn != null) {
       final long volTheta = sharedThetaSketch.getVolatileTheta();
       assert
-          volTheta <= sketchIn.getThetaLong() :
-          "volTheta = " + volTheta + ", bufTheta = " + sketchIn.getThetaLong();
+          volTheta <= sketchIn.getThetaLong() : "volTheta = " + volTheta + ", bufTheta = " + sketchIn.getThetaLong();
 
       // propagate values from input sketch one by one
       final long[] cacheIn = sketchIn.getCache();

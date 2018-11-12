@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import org.testng.annotations.Test;
-
 import com.yahoo.sketches.theta.ConcurrentThetaTest.CONCURRENCY_TYPE;
 
 /**
@@ -15,19 +13,19 @@ import com.yahoo.sketches.theta.ConcurrentThetaTest.CONCURRENCY_TYPE;
 public class RunConcurrentThetaTest {
 
   @SuppressWarnings("unused")
-  @Test
+//  @Test
   public void checkBaseLine() throws Exception {
     new ConcurrentThetaTest(CONCURRENCY_TYPE.BASELINE, 1, 0, 3);
   }
 
   @SuppressWarnings("unused")
-  @Test
+//  @Test
   public void checkLockBased() throws Exception {
     new ConcurrentThetaTest(CONCURRENCY_TYPE.LOCK_BASED, 4, 4, 30);
   }
 
   @SuppressWarnings("unused")
-  @Test
+//  @Test
   public void checkConcurrent() throws Exception {
     new ConcurrentThetaTest(CONCURRENCY_TYPE.CONCURRENT, 4, 4, 30);
   }

@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.theta;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This is a concurrent theta sketch that is based on a sequential direct (memory-based)
@@ -165,6 +165,35 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
   }
 
   /**
+   * Returns whether the shared sketch is empty
+   * @return whether the shared sketch is empty
+   */
+  @Override public boolean isSharedEmpty() {
+    return isEmpty();
+  }
+  /**
+   * Returns the number of entries that have been retained by the sketch.
+   * @param valid if true, returns the number of valid entries, which are less than theta and used
+   * for estimation.
+   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
+   * sketch cache.
+   * @return the number of retained entries
+   */
+  @Override public int getSharedRetainedEntries(boolean valid) {
+    return getRetainedEntries(valid);
+  }
+
+  /**
+   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   */
+  @Override public boolean isSharedDirect() {
+    return isDirect();
+  }
+
+  /**
    * Resets the content of the shared sketch to an empty sketch
    */
   @Override public void resetShared() {
@@ -175,8 +204,79 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
    * Rebuilds the hash table to remove dirty values or to reduce the size
    * to nominal entries.
    */
-  @Override public void rebuildShared() {
+  @Override public UpdateSketch rebuildShared() {
     rebuild();
+    updateEstimationSnapshot();
+    return this;
+  }
+
+  /**
+   * Convert this UpdateSketch to a CompactSketch in the chosen form.
+   *
+   * <p>This compacting process converts the hash table form of an UpdateSketch to
+   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
+   * greater than theta will be discarded.  The number of valid values remaining in the
+   * Compact Sketch depends on a number of factors, but may be larger or smaller than
+   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
+   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
+   * on the UpdateSketch prior to this.
+   *
+   * @param dstOrdered <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return this sketch as a CompactSketch in the chosen form
+   */
+  @Override public CompactSketch compactShared(boolean dstOrdered, WritableMemory dstMem) {
+    return compact(dstOrdered, dstMem);
+  }
+
+  /**
+   * Serialize this sketch to a byte array form.
+   * @return byte array of this sketch
+   */
+  @Override public byte[] sharedToByteArray() {
+    return toByteArray();
+  }
+
+  /**
+   * Gets the approximate lower error bound given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the lower bound.
+   */
+  @Override public double getSharedLowerBound(int numStdDev) {
+    return getLowerBound(numStdDev);
+  }
+
+  /**
+   * Gets the approximate upper error bound given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the upper bound.
+   */
+  @Override public double getSharedUpperBound(int numStdDev) {
+    return getUpperBound(numStdDev);
+  }
+
+  /**
+   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
+   * This is true if theta &lt; 1.0 AND isEmpty() is false.
+   *
+   * @return true if the sketch is in estimation mode.
+   */
+  @Override public boolean isSharedEstimationMode() {
+    return isEstimationMode();
+  }
+
+  /**
+   * Returns the number of storage bytes required for this Sketch in its current state.
+   * @param compact if true, returns the bytes required for compact form.
+   * If this sketch is already in compact form this parameter is ignored.
+   * @return the number of storage bytes required for this sketch
+   */
+  @Override public int getSharedCurrentBytes(boolean compact) {
+    return getCurrentBytes(compact);
   }
 
   /**
@@ -197,7 +297,6 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
   }
-
 
   /**
    * Advances the epoch while there is no background propagation
