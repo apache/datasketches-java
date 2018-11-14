@@ -44,19 +44,19 @@ public final class MemoryMurmurHash3 {
       blockMix128(h1h2, k1, k2);
     }
 
-    // Get the tail index, remainder length
-    final long tailIdx = (nblocks << 4); //16 bytes per block
-    final int rem = (int) (lengthBytes - tailIdx); // remainder bytes: 0,1,...,15
+    // Get the tail start, remainder length
+    final long tailStart = (nblocks << 4); //16 bytes per block
+    final int rem = (int) (lengthBytes - tailStart); // remainder bytes: 0,1,...,15
 
     // Get the tail
     final long k1;
     final long k2;
-    if (rem > 8) { //k1 -> whole; k2 -> partial
-      k1 = mem.getLong(offsetBytes + tailIdx);
-      k2 = getLong(mem, offsetBytes + tailIdx + 8, rem - 8);
+    if (rem > 8) { //k1 -> whole; k2 -> partial : rem = 9 - 15
+      k1 = mem.getLong(offsetBytes + tailStart);
+      k2 = getLong(mem, offsetBytes + tailStart + 8, rem - 8);
     }
-    else { //k1 -> whole, partial or 0; k2 == 0
-      k1 = (rem == 0) ? 0 : getLong(mem, offsetBytes + tailIdx, rem);
+    else { //k1 -> whole, partial or 0; k2 == 0 : rem = 0, 1 - 8
+      k1 = (rem == 0) ? 0 : getLong(mem, offsetBytes + tailStart, rem);
       k2 = 0;
     }
     // Mix the tail and length into the hash and return
@@ -110,20 +110,20 @@ public final class MemoryMurmurHash3 {
   }
 
   /**
-   * Gets a long from the given Memory starting at the given offsetBytes and continuing for
-   * remBytes. The bytes are extracted in little-endian order. There is no limit
+   * Gets a partial or full long from the given Memory starting at the given offsetBytes and
+   * continuing for remBytes. The bytes are extracted in little-endian order. There is no limit
    * checking.
    *
    * @param bArr The given input byte array.
    * @param offsetBytes Zero-based index from the original offsetBytes.
-   * @param remBytes Remainder bytes. An integer in the range [1,7].
+   * @param remBytes Remainder bytes. An integer in the range [1,8].
    * @return partial long
    */
   private static long getLong(final Memory mem, final long offsetBytes, final int remBytes) {
     long out = 0L;
-    for (int i = remBytes; i-- > 0;) { //i= 6,5,4,3,2,1,0
+    for (int i = remBytes; i-- > 0; ) { //i= 7,6,5,4,3,2,1,0
       final byte b = mem.getByte(offsetBytes + i);
-      out |= (b & 0xFFL) << (i * 8); //equivalent to ^=
+      out |= (b & 0xFFL) << (i << 3); //equivalent to ^=
     }
     return out;
   }
