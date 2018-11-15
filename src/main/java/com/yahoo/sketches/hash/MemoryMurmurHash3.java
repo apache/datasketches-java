@@ -132,15 +132,16 @@ public final class MemoryMurmurHash3 {
   }
 
   /**
-   * Returns a long array of size 2, which is a 128-bit hash of the input.
+   * Returns a long array of size 2, which is a 128-bit hash of the input. Primarily for testing.
    *
    * <p>This alternative call allows performance comparison with the Memory version to assess if the
    * above Memory version has overhead compared with a simple long array. For short blocks less than
-   * one KB, the Memory version is a few percent slower. For longer blocks, the JIT compiler
+   * 2 KB, the Memory version is a few percent slower. For longer blocks, the JIT compiler
    * is very effective at removing this overhead so that there is virtually no difference in speed
-   * compared to this long array version. Interestingly, for blocks less than one KB the
-   * MurmurHash3 is still slightly faster than either the Memory based or long array based versions
-   * here. For longer blocks, they all have a throughput of about 4GB per second (on my machine).
+   * compared to this long array version. Interestingly, for blocks less than 2 KB the original
+   * MurmurHash3 in the library is still slightly faster than either the Memory based or long array
+   * based versions here. For longer blocks, they all have a throughput of about 4GB per second
+   * (on my machine).
    *
    * @param longArr The input long array. Must be non-null and non-empty.
    * @param offsetLongs the starting point within the input array.
