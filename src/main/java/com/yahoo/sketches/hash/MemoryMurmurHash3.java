@@ -8,8 +8,20 @@ package com.yahoo.sketches.hash;
 import com.yahoo.memory.Memory;
 
 /**
- * This implementation of the MurmurHash3 allows hashing of a block of Memory defined by an offset
- * and length. This implementation produces exactly the same hash result as the MurmurHash3 function.
+ * <p>The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
+ * excellent avalanche and 2-way bit independence properties.</p>
+ *
+ * <p>Austin Appleby's C++
+ * <a href="https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp">
+ * MurmurHash3_x64_128(...), final revision 150</a>,
+ * which is in the Public Domain, was the inspiration for this implementation in Java.</p>
+ *
+ * <p>This implementation of the MurmurHash3 allows hashing of a block of Memory defined by an offset
+ * and length. The calling API also requires the user to supply the small output array of two longs.
+ * This allows the entire hash function to be completely static and free of object allocations.</p>
+ *
+ * <p>This implementation produces exactly the same hash result as the {@link #MurmurHash3} function
+ * given compatible inputs.</p>
  *
  * @author Lee Rhodes
  */
@@ -24,11 +36,11 @@ public final class MemoryMurmurHash3 {
    * @param offsetBytes the starting point within Memory.
    * @param lengthBytes the total number of bytes to be hashed.
    * @param seed A long valued seed.
-   * @param out the size 2 long array for the resulting 128-bit hash
+   * @param hashOut the size 2 long array for the resulting 128-bit hash
    * @return the hash.
    */
   public static long[] hash(final Memory mem, final long offsetBytes, final long lengthBytes,
-      final long seed, final long[] out) {
+      final long seed, final long[] hashOut) {
 
     long h1 = seed;
     long h2 = seed;
@@ -126,9 +138,9 @@ public final class MemoryMurmurHash3 {
     h1 += h2;
     h2 += h1;
 
-    out[0] = h1;
-    out[1] = h2;
-    return out;
+    hashOut[0] = h1;
+    hashOut[1] = h2;
+    return hashOut;
   }
 
   /**
@@ -147,11 +159,11 @@ public final class MemoryMurmurHash3 {
    * @param offsetLongs the starting point within the input array.
    * @param lengthLongs the total number of longsto be hashed.
    * @param seed A long valued seed.
-   * @param out the size 2 long array for the resulting hash
+   * @param hashOut the size 2 long array for the resulting hash
    * @return the hash.
    */
   public static long[] hash(final long[] longArr, final int offsetLongs, final int lengthLongs,
-      final long seed, final long[] out) {
+      final long seed, final long[] hashOut) {
     long h1 = seed;
     long h2 = seed;
 
@@ -205,9 +217,9 @@ public final class MemoryMurmurHash3 {
     h1 += h2;
     h2 += h1;
 
-    out[0] = h1;
-    out[1] = h2;
-    return out;
+    hashOut[0] = h1;
+    hashOut[1] = h2;
+    return hashOut;
   }
 
   /**
