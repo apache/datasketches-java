@@ -29,9 +29,9 @@ public final class MemoryMurmurHash3 {
    */
   public static long[] hash(final Memory mem, final long offsetBytes, final long lengthBytes,
       final long seed, final long[] out) {
-    final long[] h1h2 = out;
-    h1h2[0] = seed;
-    h1h2[1] = seed;
+
+    long h1 = seed;
+    long h2 = seed;
 
     // Number of full 128-bit blocks of 16 bytes.
     // Possible exclusion of a remainder of up to 15 bytes.
@@ -39,9 +39,26 @@ public final class MemoryMurmurHash3 {
 
     // Process the 128-bit blocks (the body) into the hash
     for (long i = 0, j = offsetBytes; i < nblocks; i++, j += 16 ) { //16 bytes per block
-      final long k1 = mem.getLong(j);     //0, 16, 32, ...
-      final long k2 = mem.getLong(j + 8); //8, 24, 40, ...
-      blockMix128(h1h2, k1, k2);
+      long k1 = mem.getLong(j);     //0, 16, 32, ...
+      long k2 = mem.getLong(j + 8); //8, 24, 40, ...
+
+      k1 *= C1;
+      k1 = Long.rotateLeft(k1, 31);
+      k1 *= C2;
+      h1 ^= k1;
+
+      h1 = Long.rotateLeft(h1, 27);
+      h1 += h2;
+      h1 = (h1 * 5) + 0x52dce729;
+
+      k2 *= C2;
+      k2 = Long.rotateLeft(k2, 33);
+      k2 *= C1;
+      h2 ^= k2;
+
+      h2 = Long.rotateLeft(h2, 31);
+      h2 += h1;
+      h2 = (h2 * 5) + 0x38495ab5;
     }
 
     // Get the tail start, remainder length
@@ -49,20 +66,69 @@ public final class MemoryMurmurHash3 {
     final int rem = (int) (lengthBytes - tailStart); // remainder bytes: 0,1,...,15
 
     // Get the tail
-    final long k1;
-    final long k2;
-    if (rem > 8) { //k1 -> whole; k2 -> partial : rem = 9 - 15
-      k1 = mem.getLong(offsetBytes + tailStart);
-      k2 = getLong(mem, offsetBytes + tailStart + 8, rem - 8);
-    }
-    else { //k1 -> whole, partial or 0; k2 == 0 : rem = 0, 1 - 8
-      k1 = (rem == 0) ? 0 : getLong(mem, offsetBytes + tailStart, rem);
-      k2 = 0;
-    }
-    // Mix the tail and length into the hash and return
-    finalMix128(h1h2, k1, k2, lengthBytes);
+    long k1 = 0;
+    long k2 = 0;
+    final long offTail = offsetBytes + tailStart;
 
-    return h1h2;
+    switch (rem) {
+      case 15: k2 ^= (mem.getByte(offTail + 14) & 0xFFL) << 48;
+      //$FALL-THROUGH$
+      case 14: k2 ^= (mem.getByte(offTail + 13) & 0xFFL) << 40;
+      //$FALL-THROUGH$
+      case 13: k2 ^= (mem.getByte(offTail + 12) & 0xFFL) << 32;
+      //$FALL-THROUGH$
+      case 12: k2 ^= (mem.getByte(offTail + 11) & 0xFFL) << 24;
+      //$FALL-THROUGH$
+      case 11: k2 ^= (mem.getByte(offTail + 10) & 0xFFL) << 16;
+      //$FALL-THROUGH$
+      case 10: k2 ^= (mem.getByte(offTail +  9) & 0xFFL) <<  8;
+      //$FALL-THROUGH$
+      case  9: k2 ^= (mem.getByte(offTail +  8) & 0xFFL);
+               k2 *= C2;
+               k2  = Long.rotateLeft(k2, 33);
+               k2 *= C1;
+               h2 ^= k2;
+               //$FALL-THROUGH$
+      case  8: k1 ^= (mem.getByte(offTail +  7) & 0xFFL) << 56;
+      //$FALL-THROUGH$
+      case  7: k1 ^= (mem.getByte(offTail +  6) & 0xFFL) << 48;
+      //$FALL-THROUGH$
+      case  6: k1 ^= (mem.getByte(offTail +  5) & 0xFFL) << 40;
+      //$FALL-THROUGH$
+      case  5: k1 ^= (mem.getByte(offTail +  4) & 0xFFL) << 32;
+      //$FALL-THROUGH$
+      case  4: k1 ^= (mem.getByte(offTail +  3) & 0xFFL) << 24;
+      //$FALL-THROUGH$
+      case  3: k1 ^= (mem.getByte(offTail +  2) & 0xFFL) << 16;
+      //$FALL-THROUGH$
+      case  2: k1 ^= (mem.getByte(offTail +  1) & 0xFFL) <<  8;
+      //$FALL-THROUGH$
+      case  1: k1 ^= (mem.getByte(offTail +  0) & 0xFFL);
+               k1 *= C1;
+               k1  = Long.rotateLeft(k1,31);
+               k1 *= C2;
+               h1 ^= k1;
+               //$FALL-THROUGH$
+      case  0:
+    }
+
+    //finalization: Add the length into the hash and mix
+
+    h1 ^= lengthBytes;
+    h2 ^= lengthBytes;
+
+    h1 += h2;
+    h2 += h1;
+
+    h1 = finalMix64(h1);
+    h2 = finalMix64(h2);
+
+    h1 += h2;
+    h2 += h1;
+
+    out[0] = h1;
+    out[1] = h2;
+    return out;
   }
 
   /**
@@ -85,9 +151,8 @@ public final class MemoryMurmurHash3 {
    */
   public static long[] hash(final long[] longArr, final int offsetLongs, final int lengthLongs,
       final long seed, final long[] out) {
-    final long[] h1h2 = out;
-    h1h2[0] = seed;
-    h1h2[1] = seed;
+    long h1 = seed;
+    long h2 = seed;
 
     // Number of full 128-bit blocks of 2 longs.
     // Possible exclusion of a remainder of 1 long.
@@ -95,84 +160,53 @@ public final class MemoryMurmurHash3 {
 
     // Process the 128-bit blocks (the body) into the hash
     for (int i = 0, j = offsetLongs; i < nblocks; i++, j += 2 ) { //2 longs per block
-      final long k1 = longArr[j];     //0, 2, 4, ...
-      final long k2 = longArr[j + 1]; //1, 3, 5, ...
-      blockMix128(h1h2, k1, k2);
+      long k1 = longArr[j];     //0, 2, 4, ...
+      long k2 = longArr[j + 1]; //1, 3, 5, ...
+
+      k1 *= C1;
+      k1 = Long.rotateLeft(k1, 31);
+      k1 *= C2;
+      h1 ^= k1;
+
+      h1 = Long.rotateLeft(h1, 27);
+      h1 += h2;
+      h1 = (h1 * 5) + 0x52dce729;
+
+      k2 *= C2;
+      k2 = Long.rotateLeft(k2, 33);
+      k2 *= C1;
+      h2 ^= k2;
+
+      h2 = Long.rotateLeft(h2, 31);
+      h2 += h1;
+      h2 = (h2 * 5) + 0x38495ab5;
     }
 
-    // If lengthLongs is odd get the tail and length and mix into the hash
+    // If lengthLongs is odd get the tail and mix into the hash
     if ((lengthLongs & 1) > 0) {
-      finalMix128(h1h2, longArr[(offsetLongs + lengthLongs) - 1], 0L, lengthLongs << 3);
-    } else {
-      finalMix128(h1h2, 0L, 0L, lengthLongs << 3);
+      long k1 = longArr[(offsetLongs + lengthLongs) - 1];
+      k1 *= C1;
+      k1 = Long.rotateLeft(k1, 31);
+      k1 *= C2;
+      h1 ^= k1;
     }
-    return h1h2;
-  }
 
-  /**
-   * Gets a partial or full long from the given Memory starting at the given offsetBytes and
-   * continuing for remBytes. The bytes are extracted in little-endian order. There is no limit
-   * checking.
-   *
-   * @param bArr The given input byte array.
-   * @param offsetBytes Zero-based index from the original offsetBytes.
-   * @param remBytes Remainder bytes. An integer in the range [1,8].
-   * @return partial long
-   */
-  private static long getLong(final Memory mem, final long offsetBytes, final int remBytes) {
-    long out = 0L;
-    for (int i = remBytes; i-- > 0; ) { //i= 7,6,5,4,3,2,1,0
-      final byte b = mem.getByte(offsetBytes + i);
-      out |= (b & 0xFFL) << (i << 3); //equivalent to ^=
-    }
-    return out;
-  }
+    //finalization: Add the length into the hash and mix
+    h1 ^= lengthLongs << 3;
+    h2 ^= lengthLongs << 3;
 
-  /**
-   * Block mix (128-bit block) of input into the internal hash state.
-   * @param h1h2 current hash state
-   * @param k1 intermediate mix value
-   * @param k2 intermediate mix value
-   */
-  private static void blockMix128(final long[] h1h2, final long k1, final long k2) {
-    long h1 = h1h2[0];
-    long h2 = h1h2[1];
-    h1 ^= mixK1(k1);
-    h1 = Long.rotateLeft(h1, 27);
-    h1 += h2;
-    h1 = (h1 * 5) + 0x52dce729;
-
-    h2 ^= mixK2(k2);
-    h2 = Long.rotateLeft(h2, 31);
-    h2 += h1;
-    h2 = (h2 * 5) + 0x38495ab5;
-    h1h2[0] = h1;
-    h1h2[1] = h2;
-  }
-
-  /**
-   * Final mix of the remainder, if any, and the input length into the hash state.
-   * @param h1h2 the input and output hash state
-   * @param k1 up to 8 bytes of the remainder, if any
-   * @param k2 up 7 bytes of the remainder, if any
-   * @param inputLengthBytes the input length in bytes
-   */
-  private static void finalMix128(final long[] h1h2, final long k1, final long k2,
-      final long inputLengthBytes) {
-    long h1 = h1h2[0];
-    long h2 = h1h2[1];
-    h1 ^= mixK1(k1);
-    h2 ^= mixK2(k2);
-    h1 ^= inputLengthBytes;
-    h2 ^= inputLengthBytes;
     h1 += h2;
     h2 += h1;
+
     h1 = finalMix64(h1);
     h2 = finalMix64(h2);
+
     h1 += h2;
     h2 += h1;
-    h1h2[0] = h1;
-    h1h2[1] = h2;
+
+    out[0] = h1;
+    out[1] = h2;
+    return out;
   }
 
   /**
@@ -188,32 +222,6 @@ public final class MemoryMurmurHash3 {
     h *= 0xc4ceb9fe1a85ec53L;
     h ^= h >>> 33;
     return h;
-  }
-
-  /**
-   * Self mix of k1
-   *
-   * @param k1 input argument
-   * @return mix
-   */
-  private static long mixK1(long k1) {
-    k1 *= C1;
-    k1 = Long.rotateLeft(k1, 31);
-    k1 *= C2;
-    return k1;
-  }
-
-  /**
-   * Self mix of k2
-   *
-   * @param k2 input argument
-   * @return mix
-   */
-  private static long mixK2(long k2) {
-    k2 *= C2;
-    k2 = Long.rotateLeft(k2, 33);
-    k2 *= C1;
-    return k2;
   }
 
 }
