@@ -5,17 +5,17 @@
 
 package com.yahoo.sketches.theta;
 
-import com.yahoo.sketches.HashOperations;
-import com.yahoo.sketches.ResizeFactor;
-
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
 import static java.lang.Math.floor;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.yahoo.sketches.HashOperations;
+import com.yahoo.sketches.ResizeFactor;
 
 /**
  * The theta filtering buffer that operates in the context of a single writing thread.

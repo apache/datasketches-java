@@ -1,8 +1,8 @@
 package com.yahoo.sketches.theta;
 
-import com.yahoo.memory.WritableMemory;
-
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import com.yahoo.memory.WritableMemory;
 
 /**
  * An interface to define the API of a shared theta sketch.

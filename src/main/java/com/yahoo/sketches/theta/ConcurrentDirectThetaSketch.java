@@ -5,10 +5,10 @@
 
 package com.yahoo.sketches.theta;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
-
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This is a concurrent theta sketch that is based on a sequential direct (memory-based)
@@ -101,8 +101,10 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
       final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
     final long k = 1 << getLgNomLongs();
-    if (singleHash != NOT_SINGLE_HASH           // namely, is a single hash
-        && getRetainedEntries(false) < (2 * k)  // and a small sketch
+    if ((singleHash != NOT_SINGLE_HASH           // namely, is a single hash
+)
+        && (getRetainedEntries(false) < (2 * k)  // and a small sketch
+)
     ) {                                         // then propagate myself (blocking)
       startPropagation();
       if (!validateEpoch(epoch)) {
