@@ -618,12 +618,14 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertTrue(usk.isEmpty());
 
     for (int i = 0; i< u; i++) {
-      usk.update(i); }
+      usk.update(i);
+    }
     waitForPropagationToComplete();
 
     assertFalse(usk.isEmpty());
     assertTrue(usk.getEstimate() > 0.0);
-    assertTrue(shared.getSharedRetainedEntries(false) > k);
+    int entries = shared.getSharedRetainedEntries(false);
+    assertTrue(entries > k,"entries="+entries+" k="+k);
 
     shared.rebuildShared();
     assertEquals(shared.getSharedRetainedEntries(false), k);
