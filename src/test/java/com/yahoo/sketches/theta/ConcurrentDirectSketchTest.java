@@ -680,7 +680,7 @@ public class ConcurrentDirectSketchTest {
   public void checkBackgroundPropagation() {
     int k = 512;
     this.lgK = 9;
-    int u = 5*k;
+    int u = 10*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -698,7 +698,8 @@ public class ConcurrentDirectSketchTest {
 
       assertFalse(usk.isEmpty());
       assertTrue(usk.getEstimate() > 0.0);
-      assertTrue(shared.getSharedRetainedEntries(false) > k);
+      int entries = shared.getSharedRetainedEntries(false);
+      assertTrue(entries > k,"entries="+entries+" k="+k);
 
       shared.rebuildShared();
       assertEquals(shared.getSharedRetainedEntries(false), k);
