@@ -29,6 +29,7 @@ import com.yahoo.sketches.SketchesStateException;
 public class ConcurrentHeapQuickSelectSketchTest {
   private int lgK;
   private long seed = DEFAULT_UPDATE_SEED;
+  private SharedThetaSketch shared;
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
@@ -38,7 +39,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
@@ -70,7 +71,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final ConcurrentThetaBuilder bldr = configureBuilderNotOrdered();
     assertFalse(bldr.getCacheLimit() == 0);
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer) usk; //for internal checks
@@ -94,7 +95,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
     assertTrue(usk.isEmpty());
@@ -238,7 +239,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     assertEquals(usk.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
@@ -317,7 +318,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
     println("lgArr: "+ usk.getLgArrLongs());
 
@@ -365,7 +366,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     assertTrue(usk.isEmpty());
@@ -387,7 +388,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     assertTrue(usk.isEmpty());
@@ -444,7 +445,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     assertTrue(usk.isEmpty());
@@ -507,7 +508,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
@@ -535,7 +536,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
 
     //empty
@@ -610,7 +611,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int u = 5*k;
     final ConcurrentThetaBuilder bldr = configureBuilderWithCache();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(null);
+    shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
@@ -658,7 +659,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
     bldr.build(null);
-    SharedThetaSketch shared = bldr.getSharedSketch();
+    shared = bldr.getSharedSketch();
     assertFalse(shared.isPropagationInProgress());
     return bldr.build();
   }
@@ -706,10 +707,12 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
 
   private void waitForPropagationToComplete() {
-    try {
-      Thread.sleep(1);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    while (shared.isPropagationInProgress()) {
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 

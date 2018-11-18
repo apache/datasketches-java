@@ -28,6 +28,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class ConcurrentDirectSketchTest {
 
   private int lgK;
+  private SharedThetaSketch shared;
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
@@ -38,7 +39,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
 
       ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
@@ -104,7 +105,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch sk1 = bldr.build();
       for (int i=0; i<u; i++) { sk1.update(i); }
       waitForPropagationToComplete();
@@ -296,7 +297,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
 
       assertEquals(usk.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
@@ -365,7 +366,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
 
       //empty
@@ -412,7 +413,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
 
       assertTrue(usk.isEmpty());
@@ -490,7 +491,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
       ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
@@ -522,7 +523,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
       ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
@@ -554,7 +555,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
       assertTrue(usk.isEmpty());
 
@@ -577,7 +578,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
       assertTrue(usk.isEmpty());
 
@@ -600,7 +601,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(memHandler.get());
+      shared = bldr.build(memHandler.get());
       UpdateSketch usk = bldr.build();
       assertTrue(usk.isEmpty());
 
@@ -622,7 +623,7 @@ public class ConcurrentDirectSketchTest {
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       final ConcurrentThetaBuilder bldr = configureBuilder();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(h.get());
+      shared = bldr.build(h.get());
       UpdateSketch usk = bldr.build();
       assertTrue(usk.isEmpty());
 
@@ -685,7 +686,7 @@ public class ConcurrentDirectSketchTest {
 
       final ConcurrentThetaBuilder bldr = configureBuilderWithCache();
       //must build shared first
-      SharedThetaSketch shared = bldr.build(mem);
+      shared = bldr.build(mem);
       UpdateSketch usk = bldr.build();
       ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
@@ -731,7 +732,7 @@ public class ConcurrentDirectSketchTest {
   private UpdateSketch buildConcSketch(WritableMemory mem) {
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
-    SharedThetaSketch shared = bldr.build(mem);
+    shared = bldr.build(mem);
     assertFalse(shared.isPropagationInProgress());
     return bldr.build();
   }
@@ -754,10 +755,12 @@ public class ConcurrentDirectSketchTest {
   }
 
   private void waitForPropagationToComplete() {
-    try {
-      Thread.sleep(1);
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    while (shared.isPropagationInProgress()) {
+      try {
+        Thread.sleep(1);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
     }
   }
 
