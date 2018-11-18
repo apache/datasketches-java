@@ -608,7 +608,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkBackgroundPropagation() {
     int k = 512;
     this.lgK = 9;
-    int u = 5*k;
+    int u = 10*k;
     final ConcurrentThetaBuilder bldr = configureBuilderWithCache();
     //must build shared first
     shared = bldr.build(null);
