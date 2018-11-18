@@ -707,6 +707,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
 
   private void waitForPropagationToComplete() {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
     while (shared.isPropagationInProgress()) {
       try {
         Thread.sleep(1);
