@@ -139,7 +139,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  @Override public double getLowerBound(int numStdDev) {
+  @Override public double getLowerBound(final int numStdDev) {
     return shared.getSharedLowerBound(numStdDev);
   }
 
@@ -150,11 +150,11 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  @Override public double getUpperBound(int numStdDev) {
+  @Override public double getUpperBound(final int numStdDev) {
     return shared.getSharedUpperBound(numStdDev);
   }
 
-  @Override public int getCurrentBytes(boolean compact) {
+  @Override public int getCurrentBytes(final boolean compact) {
     return shared.getSharedCurrentBytes(compact);
   }
 
@@ -174,6 +174,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param hash to be propagated
    */
   private void propagateToSharedSketch(final long hash) {
+    //noinspection StatementWithEmptyBody
     while (localPropagationInProgress.get()) {
     } //busy wait until previous propagation completed
     localPropagationInProgress.set(true);
@@ -186,6 +187,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * Propagates the content of the buffer as a sketch to the shared sketch
    */
   private void propagateToSharedSketch() {
+    //noinspection StatementWithEmptyBody
     while (localPropagationInProgress.get()) {
     } //busy wait until previous propagation completed
 

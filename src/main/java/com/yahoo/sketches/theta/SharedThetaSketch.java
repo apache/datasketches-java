@@ -102,7 +102,7 @@ public interface SharedThetaSketch {
    * sketch cache.
    * @return the number of retained entries
    */
-  int getSharedRetainedEntries(boolean valid);
+  int getSharedRetainedEntries(final boolean valid);
 
   /**
    * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
@@ -125,7 +125,7 @@ public interface SharedThetaSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  double getSharedLowerBound(int numStdDev);
+  double getSharedLowerBound(final int numStdDev);
 
   /**
    * Gets the approximate upper error bound given the specified number of Standard Deviations.
@@ -134,7 +134,7 @@ public interface SharedThetaSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  double getSharedUpperBound(int numStdDev);
+  double getSharedUpperBound(final int numStdDev);
 
   /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
@@ -150,7 +150,7 @@ public interface SharedThetaSketch {
    * If this sketch is already in compact form this parameter is ignored.
    * @return the number of storage bytes required for this sketch
    */
-  int getSharedCurrentBytes(boolean compact);
+  int getSharedCurrentBytes(final boolean compact);
 
   /**
    * Convert this UpdateSketch to a CompactSketch in the chosen form.
@@ -167,7 +167,7 @@ public interface SharedThetaSketch {
    * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this sketch as a CompactSketch in the chosen form
    */
-  CompactSketch compactShared(boolean dstOrdered, WritableMemory dstMem);
+  CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem);
 
   // ----------------------------------
   // Methods for characterization tests

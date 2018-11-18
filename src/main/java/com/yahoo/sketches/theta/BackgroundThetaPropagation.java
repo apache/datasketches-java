@@ -84,8 +84,8 @@ class BackgroundThetaPropagation implements Runnable {
       sharedThetaSketch.updateSingle(singleHash); // backdoor update, hash function is bypassed
     } else if (sketchIn != null) {
       final long volTheta = sharedThetaSketch.getVolatileTheta();
-      assert
-          volTheta <= sketchIn.getThetaLong() : "volTheta = " + volTheta + ", bufTheta = " + sketchIn.getThetaLong();
+      assert volTheta <= sketchIn.getThetaLong() :
+          "volTheta = " + volTheta + ", bufTheta = " + sketchIn.getThetaLong();
 
       // propagate values from input sketch one by one
       final long[] cacheIn = sketchIn.getCache();

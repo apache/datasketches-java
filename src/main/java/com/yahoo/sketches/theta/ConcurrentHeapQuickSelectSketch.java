@@ -1,3 +1,8 @@
+/*
+ * Copyright 2015-16, Yahoo! Inc.
+ * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
+ */
+
 package com.yahoo.sketches.theta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -126,6 +131,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
    * in progress
    */
+  @SuppressWarnings("StatementWithEmptyBody")
   @Override public void startPropagation() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) {
     } //busy wait till free
@@ -182,7 +188,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * sketch cache.
    * @return the number of retained entries
    */
-  @Override public int getSharedRetainedEntries(boolean valid) {
+  @Override public int getSharedRetainedEntries(final boolean valid) {
     return getRetainedEntries(valid);
   }
 
@@ -223,6 +229,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   /**
    * Convert this UpdateSketch to a CompactSketch in the chosen form.
+   *
    * <p>This compacting process converts the hash table form of an UpdateSketch to
    * a simple list of the valid hash values from the hash table.  Any hash values equal to or
    * greater than theta will be discarded.  The number of valid values remaining in the
@@ -235,7 +242,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this sketch as a CompactSketch in the chosen form
    */
-  @Override public CompactSketch compactShared(boolean dstOrdered, WritableMemory dstMem) {
+  @Override public CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem) {
     return compact(dstOrdered, dstMem);
   }
 
@@ -254,7 +261,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  @Override public double getSharedLowerBound(int numStdDev) {
+  @Override public double getSharedLowerBound(final int numStdDev) {
     return getLowerBound(numStdDev);
   }
 
@@ -265,7 +272,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  @Override public double getSharedUpperBound(int numStdDev) {
+  @Override public double getSharedUpperBound(final  int numStdDev) {
     return getUpperBound(numStdDev);
   }
 
@@ -285,7 +292,7 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * If this sketch is already in compact form this parameter is ignored.
    * @return the number of storage bytes required for this sketch
    */
-  @Override public int getSharedCurrentBytes(boolean compact) {
+  @Override public int getSharedCurrentBytes(final boolean compact) {
     return getCurrentBytes(compact);
   }
 
