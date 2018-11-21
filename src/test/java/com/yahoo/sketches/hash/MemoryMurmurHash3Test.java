@@ -25,7 +25,7 @@ public class MemoryMurmurHash3Test {
     long[] hash2;
 
     WritableMemory wmem = WritableMemory.allocate(cap);
-    for (byte i = 0; i < cap; i++) { wmem.putByte(i, (byte)(-128 + i)); }
+    for (int i = 0; i < cap; i++) { wmem.putByte(i, (byte)(-128 + i)); }
 
     for (int offset = 0; offset < 16; offset++) {
       int arrLen = cap - offset;
@@ -35,7 +35,40 @@ public class MemoryMurmurHash3Test {
       hash2 = MurmurHash3.hash(byteArr2, seed);
       assertEquals(hash1, hash2);
     }
+  }
 
+  @Test
+  public void bytesCheck() {
+    long seed = 0;
+    int offset = 0;
+    int cap = 16;
+
+    long[] hash1;
+    long[] hash2 = new long[2];
+
+    for (int j = 1; j < cap; j++) {
+      byte[] in = new byte[cap];
+
+      WritableMemory wmem = WritableMemory.wrap(in);
+      for (int i = 0; i < j; i++) { wmem.putByte(i, (byte) (-128 + i)); }
+
+      hash1 = MurmurHash3.hash(in, 0);
+      hash2 = MemoryMurmurHash3.hash(wmem, offset, j, seed, hash1);
+
+      printHashes(hash1, hash2);
+    }
+  }
+
+  static void printHashes(long[] hash1, long[] hash2) {
+    String match = ((hash1[0] == hash2[0]) && (hash1[1] == hash2[1]))? "true" : "false";
+    String h1a = Long.toHexString(hash1[0]);
+    String h1b = Long.toHexString(hash1[1]);
+    String h2a = Long.toHexString(hash2[0]);
+    String h2b = Long.toHexString(hash2[1]);
+    String h1s = String.format("%16s %16s", h1a, h1b);
+    String h2s = String.format("%16s %16s %5s", h2a, h2b, match);
+    System.out.println(h1s);
+    System.out.println(h2s);
   }
 
   @Test
@@ -58,7 +91,6 @@ public class MemoryMurmurHash3Test {
       hash2 = MurmurHash3.hash(longArr2, seed);
       assertEquals(hash1, hash2);
     }
-
   }
 
 }

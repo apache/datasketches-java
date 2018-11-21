@@ -389,6 +389,7 @@ public class LongsSketchTest {
     fls.update(1, -1);
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   public void checkGetFrequentItems1() {
     int minSize = 1 << LG_MIN_MAP_SIZE;
