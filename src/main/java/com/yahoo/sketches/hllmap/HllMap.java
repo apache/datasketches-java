@@ -187,12 +187,12 @@ final class HllMap extends Map {
   @Override
   long getMemoryUsageBytes() {
     final long arrays = keysArr_.length
-        + ((long)arrOfHllArr_.length * Long.BYTES)
-        + (invPow2SumLoArr_.length * Double.BYTES)
-        + (invPow2SumHiArr_.length * Double.BYTES)
-        + (hipEstAccumArr_.length * Double.BYTES)
+        + ((long) arrOfHllArr_.length * Long.BYTES)
+        + ((long) invPow2SumLoArr_.length * Double.BYTES)
+        + ((long) invPow2SumHiArr_.length * Double.BYTES)
+        + ((long) hipEstAccumArr_.length * Double.BYTES)
         + stateArr_.length;
-    final long other = (5 * Integer.BYTES) + Float.BYTES + Double.BYTES;
+    final long other = (5L * Integer.BYTES) + Float.BYTES + Double.BYTES;
     return arrays + other;
   }
 
@@ -322,7 +322,7 @@ final class HllMap extends Map {
   private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
       final int hllArrLongs) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    return keySizeBytes + (hllArrLongs * Long.BYTES) + (3 * Double.BYTES) + byteFraction;
+    return keySizeBytes + ((long) hllArrLongs * Long.BYTES) + (3L * Double.BYTES) + byteFraction;
   }
 
 }

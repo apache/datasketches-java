@@ -24,7 +24,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
   public byte[] serializeToByteArray(final String[] items) {
     int length = 0;
     for (int i = 0; i < items.length; i++) {
-      length += items[i].length() * Character.BYTES + Integer.BYTES;
+      length += (items[i].length() * Character.BYTES) + Integer.BYTES;
     }
     final byte[] bytes = new byte[length];
     final WritableMemory mem = WritableMemory.wrap(bytes);
@@ -33,7 +33,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
       mem.putInt(offsetBytes, items[i].length());
       offsetBytes += Integer.BYTES;
       mem.putCharArray(offsetBytes, items[i].toCharArray(), 0, items[i].length());
-      offsetBytes += items[i].length() * Character.BYTES;
+      offsetBytes += (long) (items[i].length()) * Character.BYTES;
     }
     return bytes;
   }
@@ -47,10 +47,10 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final char[] chars = new char[strLength];
-      UnsafeUtil.checkBounds(offsetBytes, strLength * Character.BYTES, mem.getCapacity());
+      UnsafeUtil.checkBounds(offsetBytes, (long) strLength * Character.BYTES, mem.getCapacity());
       mem.getCharArray(offsetBytes, chars, 0, strLength);
       array[i] = new String(chars);
-      offsetBytes += strLength * Character.BYTES;
+      offsetBytes += (long) strLength * Character.BYTES;
     }
     return array;
   }

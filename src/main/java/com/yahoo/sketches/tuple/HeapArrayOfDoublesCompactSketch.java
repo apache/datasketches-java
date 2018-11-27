@@ -64,7 +64,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
           values_ = null;
         } else {
           keys_ = Arrays.copyOf(keys_, i);
-          values_ = Arrays.copyOf(values_, i * numValues_); 
+          values_ = Arrays.copyOf(values_, i * numValues_);
         }
       }
     }
@@ -123,7 +123,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       keys_ = new long[count];
       values_ = new double[count * numValues_];
       mem.getLongArray(ENTRIES_START, keys_, 0, count);
-      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * count, values_, 0, values_.length);
+      mem.getDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values_, 0, values_.length);
     }
   }
 
@@ -138,7 +138,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     int sizeBytes = EMPTY_SIZE;
     if (count > 0) {
       sizeBytes =
-          ENTRIES_START + SIZE_OF_KEY_BYTES * count + SIZE_OF_VALUE_BYTES * numValues_ * count;
+          ENTRIES_START + (SIZE_OF_KEY_BYTES * count) + (SIZE_OF_VALUE_BYTES * numValues_ * count);
     }
     final byte[] bytes = new byte[sizeBytes];
     final WritableMemory mem = WritableMemory.wrap(bytes);
@@ -159,7 +159,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     if (count > 0) {
       mem.putInt(RETAINED_ENTRIES_INT, count);
       mem.putLongArray(ENTRIES_START, keys_, 0, count);
-      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * count, values_, 0, values_.length);
+      mem.putDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values_, 0, values_.length);
     }
     return bytes;
   }

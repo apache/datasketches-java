@@ -211,7 +211,7 @@ public class UniqueCountMap {
     long total = 0;
     for (int i = 0; i < maps_.length; i++) {
       if (maps_[i] != null) {
-        total += maps_[i].getActiveEntries() * keySizeBytes_;
+        total += (long) (maps_[i].getActiveEntries()) * keySizeBytes_;
       }
     }
     return total;
@@ -324,7 +324,7 @@ public class UniqueCountMap {
       final int newLevelCapacity = 1 << level;
       if (level <= NUM_TRAVERSE_MAPS) {
         maps_[level] = CouponTraverseMap.getInstance(keySizeBytes_, newLevelCapacity);
-      } else if (level < maps_.length - 1) {
+      } else if (level < (maps_.length - 1)) {
         maps_[level] = CouponHashMap.getInstance(keySizeBytes_, newLevelCapacity);
       } else {
         maps_[level] = HllMap.getInstance(keySizeBytes_, HLL_K);

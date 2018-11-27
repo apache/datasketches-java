@@ -94,7 +94,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     count_ = hasEntries ? mem.getInt(RETAINED_ENTRIES_INT) : 0;
     if (count_ > 0) {
       mem.getLongArray(ENTRIES_START, keys_, 0, currentCapacity);
-      mem.getDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * currentCapacity, values_, 0,
+      mem.getDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * currentCapacity), values_, 0,
           currentCapacity * numValues_);
     }
     setRebuildThreshold();
@@ -151,7 +151,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   @Override
   int getSerializedSizeBytes() {
-    return ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues_) * getCurrentCapacity();
+    return ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues_)) * getCurrentCapacity());
   }
 
   @Override
@@ -178,7 +178,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     mem.putInt(RETAINED_ENTRIES_INT, count_);
     if (count_ > 0) {
       mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
-      mem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * keys_.length, values_, 0,
+      mem.putDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * keys_.length), values_, 0,
           values_.length);
     }
   }
@@ -255,7 +255,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     count_ = 0;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < oldKeys.length; i++) {
-      if (oldKeys[i] != 0 && oldKeys[i] < theta_) {
+      if ((oldKeys[i] != 0) && (oldKeys[i] < theta_)) {
         insert(oldKeys[i], Arrays.copyOfRange(oldValues, i * numValues_, (i + 1) * numValues_));
       }
     }

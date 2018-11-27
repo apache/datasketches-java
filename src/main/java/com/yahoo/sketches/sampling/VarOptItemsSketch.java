@@ -357,7 +357,7 @@ public final class VarOptItemsSketch<T> {
     int markCount = 0;
     ArrayList<Boolean> markList = null;
     if (isGadget) {
-      final long markOffsetBytes = preLongBytes + (hCount * Double.BYTES);
+      final long markOffsetBytes = preLongBytes + ((long) hCount * Double.BYTES);
       markBytes = ArrayOfBooleansSerDe.computeBytesNeeded(hCount);
       markList = new ArrayList<>(allocatedItems);
 
@@ -371,7 +371,7 @@ public final class VarOptItemsSketch<T> {
       markList.addAll(Arrays.asList(markArray));
     }
 
-    final long offsetBytes = preLongBytes + (hCount * Double.BYTES) + markBytes;
+    final long offsetBytes = preLongBytes + ((long) hCount * Double.BYTES) + markBytes;
     final T[] data = serDe.deserializeFromMemory(
             srcMem.region(offsetBytes, srcMem.getCapacity() - offsetBytes), totalItems);
     final List<T> wrappedData = Arrays.asList(data);
@@ -796,12 +796,12 @@ public final class VarOptItemsSketch<T> {
    * @param mark true if an item comes from a sketch's reservoir region
    */
   void update(final T item, final double weight, final boolean mark) {
+    if (item == null) {
+      return;
+    }
     if (weight <= 0.0) {
       throw new SketchesArgumentException("Item weights must be strictly positive: "
               + weight + ", for item " + item.toString());
-    }
-    if (item == null) {
-      return;
     }
     ++n_;
 

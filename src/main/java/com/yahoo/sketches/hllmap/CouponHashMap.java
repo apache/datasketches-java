@@ -53,7 +53,7 @@ final class CouponHashMap extends Map {
     super(keySizeBytes);
     maxCouponsPerKey_ = maxCouponsPerKey;
     capacityCouponsPerKey_ = (int)(maxCouponsPerKey * INNER_LOAD_FACTOR);
-    entrySizeBytes_ = keySizeBytes + maxCouponsPerKey * Short.BYTES + 1 + 4 + 4;
+    entrySizeBytes_ = keySizeBytes + (maxCouponsPerKey * Short.BYTES) + 1 + 4 + 4;
   }
 
   static CouponHashMap getInstance(final int keySizeBytes, final int maxCouponsPerKey) {
@@ -169,7 +169,7 @@ final class CouponHashMap extends Map {
         curCountsArr_[entryIndex] = 0;
         numDeletedKeys_--;
       }
-      if (numActiveKeys_ + numDeletedKeys_ >= capacityEntries_) {
+      if ((numActiveKeys_ + numDeletedKeys_) >= capacityEntries_) {
         resize();
         entryIndex = ~findKey(key);
         assert entryIndex >= 0;
@@ -189,8 +189,8 @@ final class CouponHashMap extends Map {
     curCountsArr_[entryIndex] = DELETED_KEY_MARKER;
     numActiveKeys_--;
     numDeletedKeys_++;
-    if (numActiveKeys_ > COUPON_MAP_MIN_NUM_ENTRIES
-        && numActiveKeys_ < tableEntries_ * COUPON_MAP_SHRINK_TRIGGER_FACTOR) {
+    if ((numActiveKeys_ > COUPON_MAP_MIN_NUM_ENTRIES)
+        && (numActiveKeys_ < (tableEntries_ * COUPON_MAP_SHRINK_TRIGGER_FACTOR))) {
       resize();
     }
   }
@@ -223,10 +223,10 @@ final class CouponHashMap extends Map {
   @Override
   long getMemoryUsageBytes() {
     final long arrays = keysArr_.length
-        + (long)couponsArr_.length * Short.BYTES
+        + ((long) couponsArr_.length * Short.BYTES)
         + curCountsArr_.length
-        + invPow2SumArr_.length * Float.BYTES
-        + hipEstAccumArr_.length * Float.BYTES;
+        + ((long) invPow2SumArr_.length * Float.BYTES)
+        + ((long) hipEstAccumArr_.length * Float.BYTES);
     final long other = 4 * 5;
     return arrays + other;
   }
@@ -280,10 +280,10 @@ final class CouponHashMap extends Map {
     numActiveKeys_ = 0;
     numDeletedKeys_ = 0;
     for (int i = 0; i < oldNumEntries; i++) {
-      if (oldCurCountsArr[i] != 0 && oldCurCountsArr[i] != DELETED_KEY_MARKER) {
+      if ((oldCurCountsArr[i] != 0) && (oldCurCountsArr[i] != DELETED_KEY_MARKER)) {
         //extract an old valid key
         final byte[] key =
-            Arrays.copyOfRange(oldKeysArr, i * keySizeBytes_, i * keySizeBytes_ + keySizeBytes_);
+            Arrays.copyOfRange(oldKeysArr, i * keySizeBytes_, (i * keySizeBytes_) + keySizeBytes_);
         //insert the key and get its index
         final int index = insertKey(key);
         //copy the coupons array into that index

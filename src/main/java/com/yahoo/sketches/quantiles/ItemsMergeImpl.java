@@ -88,7 +88,7 @@ final class ItemsMergeImpl {
     }
     tgt.n_ = nFinal;
 
-    assert (tgt.getN() / (2 * tgtK)) == tgt.getBitPattern(); // internal consistency check
+    assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
     final T srcMax = src.getMaxValue();
     final T srcMin = src.getMinValue();
@@ -165,7 +165,7 @@ final class ItemsMergeImpl {
     }
     tgt.n_ = nFinal;
 
-    assert (tgt.getN() / (2 * targetK)) == tgt.getBitPattern(); // internal consistency check
+    assert (tgt.getN() / (2L * targetK)) == tgt.getBitPattern(); // internal consistency check
 
     final T srcMax = src.getMaxValue();
     final T srcMin = src.getMinValue();

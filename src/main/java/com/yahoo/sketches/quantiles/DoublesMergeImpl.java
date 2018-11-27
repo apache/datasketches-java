@@ -101,7 +101,7 @@ final class DoublesMergeImpl {
 
     tgt.putN(nFinal);
 
-    assert (tgt.getN() / (2 * tgtK)) == tgt.getBitPattern(); // internal consistency check
+    assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
     double srcMax = src.getMaxValue();
     srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
@@ -191,7 +191,7 @@ final class DoublesMergeImpl {
     }
     tgt.putN(nFinal);
 
-    assert (tgt.getN() / (2 * tgtK)) == newTgtBitPattern; // internal consistency check
+    assert (tgt.getN() / (2L * tgtK)) == newTgtBitPattern; // internal consistency check
 
     double srcMax = src.getMaxValue();
     srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
