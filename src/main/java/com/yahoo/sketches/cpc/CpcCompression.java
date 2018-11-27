@@ -299,7 +299,7 @@ final class CpcCompression {
     }
 
     // Pad the bitstream so that the decompressor's 12-bit peek can't overrun its input.
-    long padding = 10L - numBaseBits;
+    int padding = 10 - numBaseBits;
     if (padding < 0) { padding = 0; }
     bufBits += padding;
     //MAYBE_FLUSH_BITBUF(compressedWords, nextWordIndex);
@@ -459,7 +459,6 @@ final class CpcCompression {
     final int srcK = 1 << srcLgK;
     final int windowBufLen = safeLengthForCompressedWindowBuf(srcK);
     final int[] windowBuf = new int[windowBufLen];
-    assert (windowBuf != null);
     final int pseudoPhase = determinePseudoPhase(srcLgK, source.numCoupons);
     target.cwLengthInts = lowLevelCompressBytes(
         source.slidingWindow,
@@ -477,7 +476,6 @@ final class CpcCompression {
     final int srcLgK = source.lgK;
     final int srcK = 1 << srcLgK;
     final byte[] window = new byte[srcK];
-    assert (window != null);
     // bzero ((void *) window, (size_t) k); // zeroing not needed here (unlike the Hybrid Flavor)
     assert (target.slidingWindow == null);
     target.slidingWindow = window;
@@ -602,7 +600,6 @@ final class CpcCompression {
     final int k = 1 << srcLgK;
 
     final byte[] window = new byte[k];
-    assert (window != null);
 
     int nextTruePair = 0;
 

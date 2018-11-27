@@ -540,7 +540,7 @@ public final class Util {
     int prev;
     do {
       prev = (int)round(pow(2.0, (double) --gi / ppo));
-    } while ( (prev >= curPoint) && (prev > 1));
+    } while (prev >= curPoint);
     return prev;
   }
 

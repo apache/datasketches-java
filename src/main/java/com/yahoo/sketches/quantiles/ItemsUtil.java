@@ -83,7 +83,7 @@ final class ItemsUtil {
         true, sketch);
     sketch.baseBufferCount_ = 0;
     Arrays.fill(baseBuffer, 0, 2 * sketch.getK(), null); // to release the discarded objects
-    assert (n / (2 * sketch.getK())) == sketch.getBitPattern();  // internal consistency check
+    assert (n / (2L * sketch.getK())) == sketch.getBitPattern();  // internal consistency check
   }
 
   static <T> String toString(final boolean sketchSummary, final boolean dataDetail,

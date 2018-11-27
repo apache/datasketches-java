@@ -73,7 +73,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
     keysOffset_ = ENTRIES_START;
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * startingCapacity);
-    mem_.clear(keysOffset_, SIZE_OF_KEY_BYTES * startingCapacity); // clear keys only
+    mem_.clear(keysOffset_, (long) SIZE_OF_KEY_BYTES * startingCapacity); // clear keys only
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     setRebuildThreshold();
   }
@@ -191,14 +191,14 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
     keysOffset_ = ENTRIES_START;
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * startingCapacity);
-    mem_.clear(keysOffset_, SIZE_OF_KEY_BYTES * startingCapacity); // clear keys only
+    mem_.clear(keysOffset_, (long) SIZE_OF_KEY_BYTES * startingCapacity); // clear keys only
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
     setRebuildThreshold();
   }
 
   @Override
   protected long getKey(final int index) {
-    return mem_.getLong(keysOffset_ + (SIZE_OF_KEY_BYTES * index));
+    return mem_.getLong(keysOffset_ + ((long) SIZE_OF_KEY_BYTES * index));
   }
 
   @Override
@@ -223,7 +223,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   @Override
   protected void setValues(final int index, final double[] values) {
-    long offset = valuesOffset_ + (SIZE_OF_VALUE_BYTES * numValues_ * index);
+    long offset = valuesOffset_ + ((long) SIZE_OF_VALUE_BYTES * numValues_ * index);
     for (int i = 0; i < numValues_; i++) {
       mem_.putDouble(offset, values[i]);
       offset += SIZE_OF_VALUE_BYTES;
@@ -232,7 +232,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
 
   @Override
   protected void updateValues(final int index, final double[] values) {
-    long offset = valuesOffset_ + (SIZE_OF_VALUE_BYTES * numValues_ * index);
+    long offset = valuesOffset_ + ((long) SIZE_OF_VALUE_BYTES * numValues_ * index);
     for (int i = 0; i < numValues_; i++) {
       mem_.putDouble(offset, mem_.getDouble(offset) + values[i]);
       offset += SIZE_OF_VALUE_BYTES;
@@ -263,7 +263,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     mem_.getLongArray(keysOffset_, keys, 0, currCapacity);
     mem_.getDoubleArray(valuesOffset_, values, 0, currCapacity * numValues);
     mem_.clear(keysOffset_,
-        (SIZE_OF_KEY_BYTES * newCapacity) + (SIZE_OF_VALUE_BYTES * newCapacity * numValues));
+        ((long) SIZE_OF_KEY_BYTES * newCapacity) + ((long) SIZE_OF_VALUE_BYTES * newCapacity * numValues));
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
     mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte)Integer.numberOfTrailingZeros(newCapacity));
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * newCapacity);
@@ -291,7 +291,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     final int index = HashOperations.hashSearch(mem_, lgCurrentCapacity_, key, ENTRIES_START);
     if (index == -1) { return null; }
     final double[] array = new double[numValues_];
-    mem_.getDoubleArray(valuesOffset_ + (SIZE_OF_VALUE_BYTES * numValues_ * index),
+    mem_.getDoubleArray(valuesOffset_ + ((long) SIZE_OF_VALUE_BYTES * numValues_ * index),
         array, 0, numValues_);
     return array;
   }

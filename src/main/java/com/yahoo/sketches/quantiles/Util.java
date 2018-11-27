@@ -95,7 +95,7 @@ final class Util {
       if (pSample == qSample) {
         i = getNextIndex(pSamplesArr, i);
         j = getNextIndex(qSamplesArr, j);
-      } else if ((pSample < qSample) && (i < pSamplesArrLen)) {
+      } else if (pSample < qSample) {
         i = getNextIndex(pSamplesArr, i);
       } else {
         j = getNextIndex(qSamplesArr, j);

@@ -66,7 +66,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     dstMem.putLong(THETA_LONG, theta_);
     if (count > 0) {
       int keyOffset = ENTRIES_START;
-      int valuesOffset = keyOffset + SIZE_OF_KEY_BYTES * sketch.getRetainedEntries();
+      int valuesOffset = keyOffset + (SIZE_OF_KEY_BYTES * sketch.getRetainedEntries());
       final ArrayOfDoublesSketchIterator it = sketch.iterator();
       int actualCount = 0;
       while (it.next()) {
@@ -110,7 +110,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     if (count > 0) {
       dstMem.putInt(RETAINED_ENTRIES_INT, count);
       dstMem.putLongArray(ENTRIES_START, keys, 0, count);
-      dstMem.putDoubleArray(ENTRIES_START + SIZE_OF_KEY_BYTES * count, values, 0, values.length);
+      dstMem.putDoubleArray(
+          ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * count), values, 0, values.length);
     }
   }
 
@@ -161,7 +162,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
     if (count > 0) {
-      int valuesOffset = ENTRIES_START + SIZE_OF_KEY_BYTES * count;
+      int valuesOffset = ENTRIES_START + (SIZE_OF_KEY_BYTES * count);
       for (int i = 0; i < count; i++) {
         final double[] array = new double[numValues_];
         mem_.getDoubleArray(valuesOffset, array, 0, numValues_);
@@ -177,8 +178,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     final int count = getRetainedEntries();
     int sizeBytes = EMPTY_SIZE;
     if (count > 0) {
-      sizeBytes = ENTRIES_START + SIZE_OF_KEY_BYTES * count
-          + SIZE_OF_VALUE_BYTES * count * numValues_;
+      sizeBytes = ENTRIES_START + (SIZE_OF_KEY_BYTES * count)
+          + (SIZE_OF_VALUE_BYTES * count * numValues_);
     }
     final byte[] byteArray = new byte[sizeBytes];
     final WritableMemory mem = WritableMemory.wrap(byteArray);
@@ -200,7 +201,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   private static void checkIfEnoughMemory(final Memory mem, final int numEntries,
       final int numValues) {
     final int sizeNeeded =
-        ENTRIES_START + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * numEntries;
+        ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * numEntries);
     if (sizeNeeded > mem.getCapacity()) {
       throw new SketchesArgumentException("Not enough memory: need " + sizeNeeded
           + " bytes, got " + mem.getCapacity() + " bytes");

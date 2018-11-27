@@ -99,7 +99,7 @@ final class HeapAnotB extends AnotB {
   }
 
   //restricted
-
+  @SuppressWarnings("null")
   void compute() {
     final int swA = (a_ == null) ? 0 : (a_.isEmpty())
         ? 1 : (a_ instanceof UpdateSketch) ? 4 : (a_.isOrdered()) ? 3 : 2;

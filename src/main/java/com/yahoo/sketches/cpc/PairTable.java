@@ -259,7 +259,7 @@ final class PairTable {
   static void introspectiveInsertionSort(final int[] a, final int l, final int r) {
     final int length = (r - l) + 1;
     long cost = 0;
-    final long costLimit = 8 * length;
+    final long costLimit = 8L * length;
     for (int i = l + 1; i <= r; i++) {
       int j = i;
       final long v = a[i] & 0XFFFF_FFFFL; //v must be long

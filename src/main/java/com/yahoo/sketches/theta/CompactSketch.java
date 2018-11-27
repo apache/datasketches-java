@@ -116,6 +116,7 @@ public abstract class CompactSketch extends Sketch {
       final int curCount, final long thetaLong, final WritableMemory dstMem,
       final byte flags, final int preLongs) {
 
+    assert (dstMem != null) && (compactCache != null);
     final int outLongs = preLongs + curCount;
     final int outBytes = outLongs << 3;
     final int dstBytes = (int) dstMem.getCapacity();

@@ -88,14 +88,14 @@ final class DoublesUpdateImpl {
           final boolean doUpdateVersion,
           final int k,
           final DoublesSketchAccessor tgtSketchBuf,
-          final long bitPattern
-  ) {
+          final long bitPattern) {
     final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
     tgtSketchBuf.setLevel(endingLevel);
     if (doUpdateVersion) { // update version of computation
       // its is okay for optSrcKBuf to be null in this case
       zipSize2KBuffer(size2KBuf, tgtSketchBuf);
     } else { // mergeInto version of computation
+      assert (optSrcKBuf != null);
       tgtSketchBuf.putArray(optSrcKBuf.getArray(0, k), 0, 0, k);
     }
 
