@@ -271,6 +271,7 @@ public class ItemsSketchTest {
     Assert.assertNull(map.getActiveValues());
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   public void checkMisc() {
     ItemsSketch<Long> sk1 = new ItemsSketch<>(1 << LG_MIN_MAP_SIZE);
