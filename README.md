@@ -1,6 +1,8 @@
 [![][travis img]][travis] [![][mavenbadge img]][mavenbadge] [![][versioneye img]][versioneye] [![codecov](https://codecov.io/gh/DataSketches/sketches-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DataSketches/sketches-core)
 
 [![][gitter img]][gitter]
+[![Code Quality: Java][lgtm-badge]][lgtm-badge-url]
+[![Total alerts][lgtm-alerts]][lgtm-alerts-url]
 
 =================
 
@@ -27,3 +29,7 @@
 
 [gitter]:https://gitter.im/DataSketches/sketches-core
 [gitter img]:https://img.shields.io/badge/gitter-JOIN%20CHAT-blue.svg
+[lgtm-badge]: https://img.shields.io/lgtm/grade/java/g/DataSketches/sketches-core.svg?logo=lgtm&logoWidth=18
+[lgtm-badge-url]: https://lgtm.com/projects/g/DataSketches/sketches-core/context:java
+[lgtm-alerts]: https://img.shields.io/lgtm/alerts/g/DataSketches/sketches-core.svg?logo=lgtm&logoWidth=18
+[lgtm-alerts-url]: https://lgtm.com/projects/g/DataSketches/sketches-core/alerts
