@@ -6,15 +6,17 @@
 package com.yahoo.sketches.hash;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
-public class MemoryMurmurHash3Test {
+public class MurmurHash3v2Test {
 
   @Test
   public void offsetChecks() {
@@ -30,7 +32,7 @@ public class MemoryMurmurHash3Test {
 
     for (int offset = 0; offset < 16; offset++) {
       int arrLen = cap - offset;
-      hash1 = MemoryMurmurHash3.hash(wmem, offset, arrLen, seed, hash1);
+      hash1 = MurmurHash3v2.hash(wmem, offset, arrLen, seed, hash1);
       byte[] byteArr2 = new byte[arrLen];
       wmem.getByteArray(offset, byteArr2, 0, arrLen);
       hash2 = MurmurHash3.hash(byteArr2, seed);
@@ -53,8 +55,8 @@ public class MemoryMurmurHash3Test {
       for (int i = 0; i < j; i++) { wmem.putByte(i, (byte) (-128 + i)); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MemoryMurmurHash3.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MemoryMurmurHash3.hash(in, seed);
+      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v2.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -77,8 +79,8 @@ public class MemoryMurmurHash3Test {
       for (int i = 0; i < j; i++) { wmem.putInt(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MemoryMurmurHash3.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MemoryMurmurHash3.hash(in, seed);
+      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v2.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -101,8 +103,8 @@ public class MemoryMurmurHash3Test {
       for (int i = 0; i < j; i++) { wmem.putInt(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MemoryMurmurHash3.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MemoryMurmurHash3.hash(in, seed);
+      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v2.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -125,8 +127,8 @@ public class MemoryMurmurHash3Test {
       for (int i = 0; i < j; i++) { wmem.putLong(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
-      hash2 = MemoryMurmurHash3.hash(wmem, offset, bytes, seed, hash2);
-      long[] hash3 = MemoryMurmurHash3.hash(in, seed);
+      hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
+      long[] hash3 = MurmurHash3v2.hash(in, seed);
 
       assertEquals(hash1, hash2);
       assertEquals(hash1, hash3);
@@ -144,11 +146,51 @@ public class MemoryMurmurHash3Test {
     WritableMemory wmem = WritableMemory.wrap(in);
 
     long[] hash1 = MurmurHash3.hash(in, 0);
-    hash2 = MemoryMurmurHash3.hash(wmem, offset, bytes, seed, hash2);
-    long[] hash3 = MemoryMurmurHash3.hash(in, seed);
+    hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
+    long[] hash3 = MurmurHash3v2.hash(in, seed);
 
     assertEquals(hash1, hash2);
     assertEquals(hash1, hash3);
+  }
+
+  @Test
+  public void checkEmptiesNulls() {
+    long seed = 123;
+    long[] hashOut = new long[2];
+    Memory mem = Memory.wrap(new long[0]);
+    long hash0 = MurmurHash3v2.hash(mem, 0, 0, seed, hashOut)[0];  //mem empty
+    mem = null;
+    assertEquals(MurmurHash3v2.hash(mem, 0, 0, seed, hashOut)[0], hash0); //mem null
+    String s = "";
+    assertEquals(MurmurHash3v2.hash(s, seed, hashOut)[0], hash0); //string empty
+    s = null;
+    assertEquals(MurmurHash3v2.hash(s, seed, hashOut)[0], hash0); //string null
+    byte[] barr = new byte[0];
+    assertEquals(MurmurHash3v2.hash(barr, seed)[0], hash0); //byte[] empty
+    barr = null;
+    assertEquals(MurmurHash3v2.hash(barr, seed)[0], hash0); //byte[] null
+    char[] carr = new char[0];
+    assertEquals(MurmurHash3v2.hash(carr, seed)[0], hash0); //char[] empty
+    carr = null;
+    assertEquals(MurmurHash3v2.hash(carr, seed)[0], hash0); //char[] null
+    int[] iarr = new int[0];
+    assertEquals(MurmurHash3v2.hash(iarr, seed)[0], hash0); //int[] empty
+    iarr = null;
+    assertEquals(MurmurHash3v2.hash(iarr, seed)[0], hash0); //int[] null
+    long[] larr = new long[0];
+    assertEquals(MurmurHash3v2.hash(larr, seed)[0], hash0); //long[] empty
+    larr = null;
+    assertEquals(MurmurHash3v2.hash(larr, seed)[0], hash0); //long[] empty
+  }
+
+  @Test
+  public void checkStringLong() {
+    long seed = 123;
+    long[] hashOut = new long[2];
+    String s = "123";
+    assertTrue(MurmurHash3v2.hash(s, seed, hashOut)[0] != 0);
+    long v = 123;
+    assertTrue(MurmurHash3v2.hash(v, seed, hashOut)[0] != 0);
   }
 
   @Test
@@ -176,8 +218,8 @@ public class MemoryMurmurHash3Test {
 
     WritableMemory wmem = WritableMemory.wrap(dataArr);
     long[] hash1 = MurmurHash3.hash(dataArr, 0);
-    hash2 = MemoryMurmurHash3.hash(wmem, offset, bytes, seed, hash2);
-    long[] hash3 = MemoryMurmurHash3.hash(dbl, seed, hash2);
+    hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
+    long[] hash3 = MurmurHash3v2.hash(dbl, seed, hash2);
 
     assertEquals(hash1, hash2);
     assertEquals(hash1, hash3);
