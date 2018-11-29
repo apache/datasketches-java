@@ -44,7 +44,7 @@ public class MurmurHash3v2Test {
   public void byteArrChecks() {
     long seed = 0;
     int offset = 0;
-    int bytes = 16;
+    int bytes = 1024;
 
     long[] hash2 = new long[2];
 

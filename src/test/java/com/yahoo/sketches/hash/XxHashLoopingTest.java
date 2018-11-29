@@ -28,6 +28,10 @@ public class XxHashLoopingTest {
     }
   }
 
+  /*This data is from
+   * <a href="https://github.com/OpenHFT/Zero-Allocation-Hashing/blob/master/src/test/java/net/openhft/hashing/XxHashTest.java">
+   * OpenHFT/Zero-Allocation-Hashing</a> to test hash compatibility with that implementation.
+   */
   public static final long[] HASHES_OF_LOOPING_BYTES_WITH_SEED_42 = {
     -7444071767201028348L,
     -8959994473701255385L,

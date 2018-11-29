@@ -9,16 +9,19 @@ import com.yahoo.memory.Memory;
 
 /**
  * The XxHash is a fast, non-cryptographic, 64-bit hash function that has
- * excellent avalanche and 2-way bit independence properties. This java version
- * used the C++ version referenced below as inspiration.
+ * excellent avalanche and 2-way bit independence properties.
+ * This java version used the C++ version and the OpenHFT/Zero-Allocation-Hashing implementation
+ * referenced below as inspiration.
  *
  * <p>The C++ source repository:
  * <a href="https://github.com/Cyan4973/xxHash">
- * https://github.com/Cyan4973/xxHash</a>.
- *
- * <p>It has a BSD 2-Clause License:
+ * https://github.com/Cyan4973/xxHash</a>. It has a BSD 2-Clause License:
  * <a href="http://www.opensource.org/licenses/bsd-license.php">
  * http://www.opensource.org/licenses/bsd-license.php</a>
+ *
+ * <p>Portions of this code were leveraged from
+ * <a href="https://github.com/OpenHFT/Zero-Allocation-Hashing/blob/master/src/main/java/net/openhft/hashing/XxHash.java">
+ * OpenHFT/Zero-Allocation-Hashing</a>, which has an Apache 2 license as does this site.
  *
  * @author Lee Rhodes
  */
