@@ -322,7 +322,7 @@ final class HllMap extends Map {
   private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
       final int hllArrLongs) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    return keySizeBytes + ((long) hllArrLongs * Long.BYTES) + (3L * Double.BYTES) + byteFraction;
+    return keySizeBytes + ((double) hllArrLongs * Long.BYTES) + (3.0 * Double.BYTES) + byteFraction;
   }
 
 }
