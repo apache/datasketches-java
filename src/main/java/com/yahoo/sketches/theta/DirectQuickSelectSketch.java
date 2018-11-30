@@ -211,7 +211,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int arrLongs = 1 << getLgArrLongs();
     final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int preBytes = preambleLongs << 3;
-    mem_.clear(preBytes, arrLongs * 8); //clear data array
+    mem_.clear(preBytes, arrLongs * 8L); //clear data array
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true.
     mem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
