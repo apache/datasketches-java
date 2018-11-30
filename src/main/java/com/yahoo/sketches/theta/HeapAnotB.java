@@ -161,13 +161,13 @@ final class HeapAnotB extends AnotB {
       case 2:
       case 3:
       case 4:  { //A is null, B is valid
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = b_.getThetaLong();
         empty_ = true;
         break; //{ThB, 0, T}
       }
       case 8: { //A is empty, B is null
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = a_.getThetaLong();
         empty_ = true;
         break; //{ThA, 0, T}
@@ -176,8 +176,8 @@ final class HeapAnotB extends AnotB {
       case 10:
       case 11:
       case 12: { //A empty, B valid
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = true;
         break; //{minT, 0, T}
@@ -185,7 +185,7 @@ final class HeapAnotB extends AnotB {
       case 16:
       case 24:
       case 32: { //A valid, B null
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = a_.getThetaLong();
         empty_ = a_.isEmpty();
         //move A to cache
@@ -196,8 +196,8 @@ final class HeapAnotB extends AnotB {
       case 17:
       case 25:
       case 33: { //A valid, B empty
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //move A < theta to cache
@@ -210,8 +210,8 @@ final class HeapAnotB extends AnotB {
       case 19:
       case 34:
       case 35: { //A compact or HT, B compact or ordered
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //must convert B to HT
@@ -221,8 +221,8 @@ final class HeapAnotB extends AnotB {
       }
       case 26:
       case 27: { //A ordered early stop, B compact or ordered
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         convertBtoHT(); //builds HT from B
@@ -231,8 +231,8 @@ final class HeapAnotB extends AnotB {
       }
       case 20:
       case 36: { //A compact or HT, B is already HT
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //b is already HT
@@ -242,8 +242,8 @@ final class HeapAnotB extends AnotB {
         break; //{minT, n, E(a)}
       }
       case 28: { //A ordered early stop, B is already hashtable
-        Util.checkSeedHashes(seedHash_, a_.getSeedHash());
-        Util.checkSeedHashes(seedHash_, b_.getSeedHash());
+        Util.checkSeedHashes(seedHash_, a_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        Util.checkSeedHashes(seedHash_, b_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         thetaLong_ = min(a_.getThetaLong(), b_.getThetaLong());
         empty_ = a_.isEmpty();
         //b is already HT
