@@ -51,7 +51,8 @@ final class DirectArrayOfDoublesSketchIterator implements ArrayOfDoublesSketchIt
   public double[] getValues() {
     if (numValues_ == 1) {
       return new double[] {
-        mem_.getDouble(offset_ + ((long) SIZE_OF_KEY_BYTES * numEntries_) + (SIZE_OF_VALUE_BYTES * i_)) };
+        mem_.getDouble(offset_ + ((long) SIZE_OF_KEY_BYTES * numEntries_)
+            + ((long) SIZE_OF_VALUE_BYTES * i_)) };
     }
     final double[] array = new double[numValues_];
     mem_.getDoubleArray(offset_ + ((long) SIZE_OF_KEY_BYTES * numEntries_)

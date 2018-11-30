@@ -281,7 +281,7 @@ final class CouponTraverseMap extends Map {
   private static final double updateEntrySizeBytes(final int tableEntries, final int keySizeBytes,
       final int maxCouponsPerKey) {
     final double byteFraction = Math.ceil(tableEntries / 8.0) / tableEntries;
-    return keySizeBytes + ((long) maxCouponsPerKey * Short.BYTES) + byteFraction;
+    return keySizeBytes + ((double) maxCouponsPerKey * Short.BYTES) + byteFraction;
   }
 
 }

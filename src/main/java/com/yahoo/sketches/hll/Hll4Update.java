@@ -34,7 +34,8 @@ class Hll4Update {
       //Note: if an AUX_TOKEN exists, then auxHashMap must already exist
       final int actualOldValue = (rawStoredOldValue < AUX_TOKEN)
           ? lbOnOldValue
-          : auxHashMap.mustFindValueFor(slotNo); //846 rawStoredOldValue == AUX_TOKEN
+          //846 rawStoredOldValue == AUX_TOKEN
+          : auxHashMap.mustFindValueFor(slotNo); //lgtm [java/dereferenced-value-may-be-null]
 
       if (newValue > actualOldValue) { //848: actualOldValue could still be 0; newValue > 0
 
@@ -58,7 +59,7 @@ class Hll4Update {
             //the byte array already contains aux token
             //This is the case where old and new values are both exceptions.
             //Therefore, the 4-bit array already is AUX_TOKEN. Only need to update auxMap
-            auxHashMap.mustReplace(slotNo, newValue);
+            auxHashMap.mustReplace(slotNo, newValue); //lgtm [java/dereferenced-value-may-be-null]
           }
           else {                              //CASE 2: //885
             //This is the (hypothetical) case where old value is an exception and the new one is not.
