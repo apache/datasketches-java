@@ -47,7 +47,7 @@ public class ConcurrentThetaEstimationTest {
     setUp();
     runTest();
 
-    LOG.info("Done!");
+    //LOG.info("Done!");
   }
 
   public void setUp() {
@@ -65,7 +65,7 @@ public class ConcurrentThetaEstimationTest {
     //long num = 6_000_000_000L;
     long num = 6_000_000L;
     double thresh = 2 * rse;
-    System.err.println("Thresh = " + (thresh * 100) + "%");
+    //System.err.println("Thresh = " + (thresh * 100) + "%");
     for (long i = 1; i <= num; i++) {
       localSketch.update(i);
       seqSketch.update(i);
