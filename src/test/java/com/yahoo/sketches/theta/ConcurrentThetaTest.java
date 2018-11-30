@@ -40,7 +40,7 @@ public class ConcurrentThetaTest {
 
   //Shared Sketch
   private final int shared_lgK = 12; //default
-  private final int poolThreads = 3; //default
+  //private final int poolThreads = 3; //default
   private WritableDirectHandle wdh = null;
   private WritableMemory wmem = null;
   private SharedThetaSketch sharedSketch;

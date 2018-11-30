@@ -11,7 +11,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
@@ -34,7 +33,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     int u = k;
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
@@ -65,7 +64,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkPropagationNotOrdered() {
     int k = 256;
-    this.lgK = 8;
+    lgK = 8;
     int u = 200*k;
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilderNotOrdered();
@@ -87,17 +86,17 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertTrue(shared.getSharedRetainedEntries(false) <= u);
   }
 
-    @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkIllegalSketchID_UpdateSketch() {
     int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     int u = k;
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
     shared = bldr.build(null);
     UpdateSketch usk = bldr.build();
-    ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
+    //ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
     assertTrue(usk.isEmpty());
 
     for (int i = 0; i< u; i++) {
@@ -117,8 +116,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
-    int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     seed = 1021;
     long seed2 = DEFAULT_UPDATE_SEED;
     UpdateSketch usk = buildConcSketch();
@@ -129,7 +127,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyCorruptLgNomLongs() {
-    this.lgK = 4;
+    lgK = 4;
     UpdateSketch usk = buildConcSketch();
     WritableMemory srcMem = WritableMemory.wrap(usk.toByteArray());
     srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
@@ -139,7 +137,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkHeapifyByteArrayExact() {
     int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     int u = k;
     seed = DEFAULT_UPDATE_SEED;
     UpdateSketch usk = buildConcSketch();
@@ -167,7 +165,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkHeapifyByteArrayEstimating() {
     int k = 4096;
-    this.lgK = 12;
+    lgK = 12;
     int u = 2*k;
     seed = DEFAULT_UPDATE_SEED;
 
@@ -197,7 +195,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     int u = 2*k;
     seed = DEFAULT_UPDATE_SEED;
     boolean estimating = (u > k);
@@ -229,11 +227,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkHQStoCompactForms() {
     int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     int u = 4*k;
     boolean estimating = (u > k);
 
-    //boolean compact = false;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
     seed = DEFAULT_UPDATE_SEED;
@@ -313,8 +310,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test
   public void checkHQStoCompactEmptyForms() {
-    int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
@@ -330,8 +326,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     double uskEst = usk.getEstimate();
     double uskLB  = usk.getLowerBound(2);
     double uskUB  = usk.getUpperBound(2);
-    int currentUSBytes = usk.getCurrentBytes(false);
- //   assertEquals(currentUSBytes, (32*8) + 24);  // clumsy, but a function of RF and TCF
+    //int currentUSBytes = usk.getCurrentBytes(false);
+    //assertEquals(currentUSBytes, (32*8) + 24);  // clumsy, but a function of RF and TCF
     int compBytes = usk.getCurrentBytes(true); //compact form
     assertEquals(compBytes, 8);
     assertEquals(usk.isEstimationMode(), estimating);
@@ -360,8 +356,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test
   public void checkExactMode() {
-    int k = 4096;
-    this.lgK = 12;
+    lgK = 12;
     int u = 4096;
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
@@ -383,7 +378,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkEstMode() {
     int k = 4096;
-    this.lgK = 12;
+    lgK = 12;
     int u = 2*k;
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilder();
@@ -406,7 +401,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkErrorBounds() {
     int k = 512;
-    this.lgK = 12;
+    lgK = 12;
 
     seed = DEFAULT_UPDATE_SEED;
     UpdateSketch usk = buildConcSketch();
@@ -439,7 +434,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkRebuild() {
     int k = 16;
-    this.lgK = 4;
+    lgK = 4;
     int u = 4*k;
 
     seed = DEFAULT_UPDATE_SEED;
@@ -469,7 +464,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesStateException.class)
   public void checkBuilder() {
-    this.lgK = 4;
+    lgK = 4;
 
     seed = DEFAULT_UPDATE_SEED;
     final ConcurrentThetaBuilder bldr = configureBuilderWithNominal();
@@ -481,21 +476,21 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderSmallLgNominal() {
-    this.lgK = 1;
+    lgK = 1;
     seed = DEFAULT_UPDATE_SEED;
     configureBuilder();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderSmallNominal() {
-    this.lgK = 2;
+    lgK = 2;
     seed = DEFAULT_UPDATE_SEED;
     configureBuilderWithNominal();
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNegativeHashes() {
-    this.lgK = 9;
+    lgK = 9;
     UpdateSketch qs = buildConcSketch();
     qs.hashUpdate(-1L);
   }
@@ -503,7 +498,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkResetAndStartingSubMultiple() {
     int k = 512;
-    this.lgK = 9;
+    lgK = 9;
     int u = 4*k;
 
     final ConcurrentThetaBuilder bldr = configureBuilder();
@@ -531,8 +526,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
   @Test
   public void checkDQStoCompactEmptyForms() {
-    int k = 512;
-    this.lgK = 9;
+    lgK = 9;
 
     final ConcurrentThetaBuilder bldr = configureBuilder();
     //must build shared first
@@ -574,7 +568,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMinReqBytes() {
     int k = 16;
-    this.lgK = 4;
+    lgK = 4;
     UpdateSketch s1 = buildConcSketch();
     for (int i = 0; i < (4 * k); i++) { s1.update(i); }
     waitForPropagationToComplete();
@@ -587,7 +581,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkThetaAndLgArrLongs() {
     int k = 16;
-    this.lgK = 4;
+    lgK = 4;
     UpdateSketch s1 = buildConcSketch();
     for (int i = 0; i < k; i++) { s1.update(i); }
     waitForPropagationToComplete();
@@ -607,7 +601,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test
   public void checkBackgroundPropagation() {
     int k = 16;
-    this.lgK = 4;
+    lgK = 4;
     int u = 5*k;
     final ConcurrentThetaBuilder bldr = configureBuilderWithCache();
     //must build shared first
@@ -633,7 +627,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     long theta2 = shared.getVolatileTheta();
     int entries = shared.getSharedRetainedEntries(false);
-    assertTrue(entries > k || theta2 < theta1,"entries="+entries+" k="+k+" theta1="+theta1+" theta2="+theta2);
+    assertTrue((entries > k) || (theta2 < theta1),"entries="+entries+" k="+k+" theta1="+theta1+" theta2="+theta2);
 
     shared.rebuildShared();
     assertEquals(shared.getSharedRetainedEntries(false), k);
@@ -643,15 +637,15 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(shared.getSharedRetainedEntries(true), k);
   }
 
-  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
-    try {
-      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
-      fail();
-    } catch (SketchesArgumentException e) {
-      //expected
-    }
-  }
+  //  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
+  //    try {
+  //      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
+  //      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+  //      fail();
+  //    } catch (SketchesArgumentException e) {
+  //      //expected
+  //    }
+  //  }
 
   @Test
   public void printlnTest() {

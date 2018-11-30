@@ -34,7 +34,7 @@ public class ConcurrentThetaEstimationTest {
   private final int sharedLgK = 12; //default
   private final int sharedK = 1 << sharedLgK;
   private final double rse = 1.0 / Math.sqrt(sharedK - 1);
-  private final int poolThreads = 3; //default
+  //private final int poolThreads = 3; //default
   private WritableMemory wmem = null;
   private SharedThetaSketch sharedSketch;
 
@@ -87,17 +87,17 @@ public class ConcurrentThetaEstimationTest {
     double seqEstimate = seq.getEstimate();
     double shError = (sharedEstimate / i) - 1.0;
     double seqError = (seqEstimate / i) - 1.0;
-//    int shEnt = shared.getRetainedEntries(true);
-    int seqEnt = seq.getRetainedEntries(true);
-//    double shTheta = shared.getTheta();
-    double seqTheta = seq.getTheta();
+    //int shEnt = shared.getRetainedEntries(true);
+    //int seqEnt = seq.getRetainedEntries(true);
+    //double shTheta = shared.getTheta();
+    //double seqTheta = seq.getTheta();
 
     String s = "i=" + i + ", shared/seq: "
         + "est=" + sharedEstimate  + "/" + seqEstimate
         + ", error=" + shError + "/" + seqError;
-//        + ", entries=" + shEnt + "/" + seqEnt
-//        + ", theta="+shTheta + "/" + seqTheta;
-//        + ", shared RSE=" + rse;
+      //+ ", entries=" + shEnt + "/" + seqEnt
+      //+ ", theta="+shTheta + "/" + seqTheta;
+      //+ ", shared RSE=" + rse;
       System.err.println(s);
   }
 
