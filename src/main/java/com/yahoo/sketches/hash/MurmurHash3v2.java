@@ -5,9 +5,11 @@
 
 package com.yahoo.sketches.hash;
 
+import static com.yahoo.memory.UnsafeUtil.unsafe;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 
 /**
  * <p>The MurmurHash3 is a fast, non-cryptographic, 128-bit hash function that has
@@ -152,20 +154,24 @@ public final class MurmurHash3v2 {
    * @param hashOut the size 2 long array for the resulting 128-bit hash
    * @return the hash.
    */
-  public static long[] hash(final Memory mem, long offsetBytes, final long lengthBytes,
+  @SuppressWarnings("restriction")
+  public static long[] hash(final Memory mem, final long offsetBytes, final long lengthBytes,
       final long seed, final long[] hashOut) {
     if ((mem == null) || (mem.getCapacity() == 0L)) {
       return emptyOrNull(seed, hashOut);
     }
+    final Object uObj = ((WritableMemory) mem).getArray(); //may be null
+    long cumOff = mem.getCumulativeOffset() + offsetBytes;
+
     long h1 = seed;
     long h2 = seed;
     long rem = lengthBytes;
 
     // Process the 128-bit blocks (the body) into the hash
     while (rem >= 16L) {
-      final long k1 = mem.getLong(offsetBytes);     //0, 16, 32, ...
-      final long k2 = mem.getLong(offsetBytes + 8); //8, 24, 40, ...
-      offsetBytes += 16L;
+      final long k1 = unsafe.getLong(uObj, cumOff);     //0, 16, 32, ...
+      final long k2 = unsafe.getLong(uObj, cumOff + 8); //8, 24, 40, ...
+      cumOff += 16L;
       rem -= 16L;
 
       h1 ^= mixK1(k1);
@@ -185,86 +191,83 @@ public final class MurmurHash3v2 {
       long k2 = 0;
       switch ((int) rem) {
         case 15: {
-          k2 ^= (mem.getByte(offsetBytes + 14) & 0xFFL) << 48;
+          k2 ^= (unsafe.getByte(uObj, cumOff + 14) & 0xFFL) << 48;
         }
         //$FALL-THROUGH$
         case 14: {
-          k2 ^= (mem.getShort(offsetBytes + 12) & 0xFFFFL) << 32;
-          k2 ^= (mem.getInt(offsetBytes + 8) & 0xFFFFFFFFL);
-          k1 = mem.getLong(offsetBytes);
+          k2 ^= (unsafe.getShort(uObj, cumOff + 12) & 0xFFFFL) << 32;
+          k2 ^= (unsafe.getInt(uObj, cumOff + 8) & 0xFFFFFFFFL);
+          k1 = unsafe.getLong(uObj, cumOff);
           break;
         }
 
         case 13: {
-          k2 ^= (mem.getByte(offsetBytes + 12) & 0xFFL) << 32;
+          k2 ^= (unsafe.getByte(uObj, cumOff + 12) & 0xFFL) << 32;
         }
         //$FALL-THROUGH$
         case 12: {
-          k2 ^= (mem.getInt(offsetBytes + 8) & 0xFFFFFFFFL);
-          k1 = mem.getLong(offsetBytes);
+          k2 ^= (unsafe.getInt(uObj, cumOff + 8) & 0xFFFFFFFFL);
+          k1 = unsafe.getLong(uObj, cumOff);
           break;
         }
 
         case 11: {
-          k2 ^= (mem.getByte(offsetBytes + 10) & 0xFFL) << 16;
+          k2 ^= (unsafe.getByte(uObj, cumOff + 10) & 0xFFL) << 16;
         }
         //$FALL-THROUGH$
         case 10: {
-          k2 ^= (mem.getShort(offsetBytes +  8) & 0xFFFFL);
-          k1 = mem.getLong(offsetBytes);
+          k2 ^= (unsafe.getShort(uObj, cumOff +  8) & 0xFFFFL);
+          k1 = unsafe.getLong(uObj, cumOff);
           break;
         }
 
         case  9: {
-          k2 ^= (mem.getByte(offsetBytes +  8) & 0xFFL);
+          k2 ^= (unsafe.getByte(uObj, cumOff +  8) & 0xFFL);
         }
         //$FALL-THROUGH$
         case  8: {
-          k1 = mem.getLong(offsetBytes);
+          k1 = unsafe.getLong(uObj, cumOff);
           break;
         }
 
         case  7: {
-          k1 ^= (mem.getByte(offsetBytes +  6) & 0xFFL) << 48;
+          k1 ^= (unsafe.getByte(uObj, cumOff +  6) & 0xFFL) << 48;
         }
         //$FALL-THROUGH$
         case  6: {
-          k1 ^= (mem.getShort(offsetBytes +  4) & 0xFFFFL) << 32;
-          k1 ^= (mem.getInt(offsetBytes) & 0xFFFFFFFFL);
+          k1 ^= (unsafe.getShort(uObj, cumOff +  4) & 0xFFFFL) << 32;
+          k1 ^= (unsafe.getInt(uObj, cumOff) & 0xFFFFFFFFL);
           break;
         }
 
         case  5: {
-          k1 ^= (mem.getByte(offsetBytes +  4) & 0xFFL) << 32;
+          k1 ^= (unsafe.getByte(uObj, cumOff +  4) & 0xFFL) << 32;
         }
         //$FALL-THROUGH$
         case  4: {
-          k1 ^= (mem.getInt(offsetBytes) & 0xFFFFFFFFL);
+          k1 ^= (unsafe.getInt(uObj, cumOff) & 0xFFFFFFFFL);
           break;
         }
 
         case  3: {
-          k1 ^= (mem.getByte(offsetBytes +  2) & 0xFFL) << 16;
+          k1 ^= (unsafe.getByte(uObj, cumOff +  2) & 0xFFL) << 16;
         }
         //$FALL-THROUGH$
         case  2: {
-          k1 ^= (mem.getShort(offsetBytes) & 0xFFFFL);
+          k1 ^= (unsafe.getShort(uObj, cumOff) & 0xFFFFL);
           break;
         }
 
         case  1: {
-          k1 ^= (mem.getByte(offsetBytes) & 0xFFL);
+          k1 ^= (unsafe.getByte(uObj, cumOff) & 0xFFL);
           break;
         }
-
         //default: break; //can't happen
-
       }
 
       h1 ^= mixK1(k1);
       h2 ^= mixK2(k2);
     }
-
     return finalMix128(h1, h2, lengthBytes, hashOut);
   }
 
@@ -339,6 +342,6 @@ public final class MurmurHash3v2 {
   }
 
   private static long[] emptyOrNull(final long seed, final long[] hashOut) {
-    return finalMix128(seed,seed, 0, hashOut);
+    return finalMix128(seed, seed, 0, hashOut);
   }
 }
