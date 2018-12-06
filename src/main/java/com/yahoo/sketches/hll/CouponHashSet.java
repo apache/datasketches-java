@@ -74,9 +74,7 @@ class CouponHashSet extends CouponList {
     }
     if (memIsCompact) {
       for (int i = 0; i < couponCount; i++) {
-        final int coupon = extractInt(mem, memArrStart + (i << 2));
-        if (coupon == EMPTY) { continue; }
-        set.couponUpdate(coupon);
+        set.couponUpdate(extractInt(mem, memArrStart + (i << 2)));
       }
     } else { //updatable
       set.couponCount = couponCount;
