@@ -205,6 +205,22 @@ public class CpcSketchTest {
     assertEquals(size26, (int) ((0.6 * (1 << 26)) + 40));
   }
 
+  @Test
+  void negative_int_equivalence() throws Exception {
+    CpcSketch sketch = new CpcSketch(11);
+    byte v1 = (byte) -1;
+    sketch.update(v1);
+    short v2 = -1;
+    sketch.update(v2);
+    int v3 = -1;
+    sketch.update(v3);
+    long v4 = -1;
+    sketch.update(v4);
+    assertEquals(sketch.getEstimate(), 1, 0.01);
+    // to compare with C++
+    //com.yahoo.sketches.tuple.TestUtil.writeBytesToFile(sketch.toByteArray(), "cpc-negative-one.bin");
+  }
+
   /**
    * @param s the string to print
    */
