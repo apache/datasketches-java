@@ -30,19 +30,23 @@ import com.yahoo.sketches.ResizeFactor;
  * @author Lee Rhodes
  */
 public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
+
   /**
    * The bound on the size of the buffer
    */
   private final int cacheLimit;
+
   /**
    * Shared sketch consisting of the global sample set and theta value.
    */
   private final SharedThetaSketch shared;
+
   /**
    * Propagation flag is set to true while propagation is in progress (or pending).
    * It is the synchronization primitive to coordinate the work with the propagation thread.
    */
   private final AtomicBoolean localPropagationInProgress;
+
   /**
    * A flag to indicate if we expect the propagated data to be ordered
    */
@@ -79,7 +83,8 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param numEntries the given number of entries (or current count).
    * @return true if numEntries (curCount) is greater than the buffer bound.
    */
-  @Override boolean isOutOfSpace(final int numEntries) {
+  @Override
+  boolean isOutOfSpace(final int numEntries) {
     return numEntries > cacheLimit;
   }
 
@@ -91,7 +96,8 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * A negative hash value will throw an exception.
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
-  @Override UpdateReturnState hashUpdate(final long hash) { //Simplified
+  @Override
+  UpdateReturnState hashUpdate(final long hash) { //Simplified
     HashOperations.checkHashCorruption(hash);
     if (cacheLimit == 0) {
       final long thetaLong = getThetaLong();
@@ -112,7 +118,8 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   /**
    * Resets this sketch back to a virgin empty state.
    */
-  @Override public void reset() {
+  @Override
+  public void reset() {
     if (cacheLimit > 0) {
       java.util.Arrays.fill(getCache(), 0L);
     }
@@ -120,15 +127,18 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     thetaLong_ = shared.getVolatileTheta();
   }
 
-  @Override public boolean isEmpty() {
+  @Override
+  public boolean isEmpty() {
     return shared.isSharedEmpty();
   }
 
-  @Override public byte[] toByteArray() {
+  @Override
+  public byte[] toByteArray() {
     return shared.sharedToByteArray();
   }
 
-  @Override public boolean isDirect() {
+  @Override
+  public boolean isDirect() {
     return shared.isSharedDirect();
   }
 
@@ -139,7 +149,8 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  @Override public double getLowerBound(final int numStdDev) {
+  @Override
+  public double getLowerBound(final int numStdDev) {
     return shared.getSharedLowerBound(numStdDev);
   }
 
@@ -150,11 +161,13 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  @Override public double getUpperBound(final int numStdDev) {
+  @Override
+  public double getUpperBound(final int numStdDev) {
     return shared.getSharedUpperBound(numStdDev);
   }
 
-  @Override public int getCurrentBytes(final boolean compact) {
+  @Override
+  public int getCurrentBytes(final boolean compact) {
     return shared.getSharedCurrentBytes(compact);
   }
 
@@ -164,7 +177,8 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    *
    * @return true if the sketch is in estimation mode.
    */
-  @Override public boolean isEstimationMode() {
+  @Override
+  public boolean isEstimationMode() {
     return shared.isSharedEstimationMode();
   }
 
