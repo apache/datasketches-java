@@ -43,9 +43,8 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
 
     if (ds.isDirect()) {
       return new DirectDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
-    } else {
-      return new HeapDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
     }
+    return new HeapDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
   }
 
   abstract DoublesSketchAccessor copyAndSetLevel(final int level);
