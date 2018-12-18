@@ -162,9 +162,8 @@ public abstract class DoublesSketch {
   public static DoublesSketch heapify(final Memory srcMem) {
     if (checkIsCompactMemory(srcMem)) {
       return CompactDoublesSketch.heapify(srcMem);
-    } else {
-      return UpdateDoublesSketch.heapify(srcMem);
     }
+    return UpdateDoublesSketch.heapify(srcMem);
   }
 
   /**
@@ -176,9 +175,8 @@ public abstract class DoublesSketch {
   public static DoublesSketch wrap(final Memory srcMem) {
     if (checkIsCompactMemory(srcMem)) {
       return DirectCompactDoublesSketch.wrapInstance(srcMem);
-    } else {
-      return DirectUpdateDoublesSketchR.wrapInstance(srcMem);
     }
+    return DirectUpdateDoublesSketchR.wrapInstance(srcMem);
   }
 
   /**
@@ -534,9 +532,8 @@ public abstract class DoublesSketch {
   public byte[] toByteArray() {
     if (isCompact()) {
       return toByteArray(true);
-    } else {
-      return toByteArray(false);
     }
+    return toByteArray(false);
   }
 
   /**
