@@ -15,6 +15,7 @@ import java.util.Random;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.QuantilesHelper;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.kll.KllFloatsSketch;
 
@@ -286,7 +287,7 @@ public abstract class DoublesSketch {
    */
   public double[] getQuantiles(final int evenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(getEvenlySpaced(evenlySpaced));
+    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(evenlySpaced));
   }
 
   /**
@@ -723,24 +724,6 @@ public abstract class DoublesSketch {
     if (srcSketch.isEmpty()) { return newSketch; }
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
-  }
-
-  static double[] getEvenlySpaced(final int evenlySpaced) {
-    final int n = evenlySpaced;
-    if (n <= 0) {
-      throw new SketchesArgumentException("EvenlySpaced must be > zero.");
-    }
-    final double[] fractions = new double[n];
-    double frac = 0.0;
-    fractions[0] = frac;
-    for (int i = 1; i < n; i++) {
-      frac = (double)i / (n - 1);
-      fractions[i] = frac;
-    }
-    if (n > 1) {
-      fractions[n - 1] = 1.0;
-    }
-    return fractions;
   }
 
   //Restricted abstract

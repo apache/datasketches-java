@@ -25,6 +25,7 @@ import java.util.Random;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
+import com.yahoo.sketches.QuantilesHelper;
 import com.yahoo.sketches.SketchesArgumentException;
 
 /**
@@ -344,7 +345,7 @@ public final class ItemsSketch<T> {
    */
   public T[] getQuantiles(final int evenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(getEvenlySpaced(evenlySpaced));
+    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(evenlySpaced));
   }
 
   /**
@@ -746,21 +747,6 @@ public final class ItemsSketch<T> {
    */
   private ItemsAuxiliary<T> constructAuxiliary() {
     return new ItemsAuxiliary<>(this);
-  }
-
-  private static double[] getEvenlySpaced(final int n) {
-    if (n <= 0) {
-      throw new SketchesArgumentException("n must be > zero.");
-    }
-    final double[] fractions = new double[n];
-    fractions[0] = 0.0;
-    for (int i = 1; i < n; i++) {
-      fractions[i] = (double) i / (n - 1);
-    }
-    if (n > 1) {
-      fractions[n - 1] = 1.0;
-    }
-    return fractions;
   }
 
   private static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {
