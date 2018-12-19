@@ -475,7 +475,7 @@ public class KllFloatsSketch {
    *
    * <p>If the sketch is empty this returns null.
    *
-   * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
+   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
    * This must be a positive integer greater than 0. A value of 1 will return the min value.
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
