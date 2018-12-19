@@ -55,9 +55,8 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   public CompactDoublesSketch compact(final WritableMemory dstMem) {
     if (dstMem == null) {
       return HeapCompactDoublesSketch.createFromUpdateSketch(this);
-    } else {
-      return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstMem);
     }
+    return DirectCompactDoublesSketch.createFromUpdateSketch(this, dstMem);
   }
 
   @Override

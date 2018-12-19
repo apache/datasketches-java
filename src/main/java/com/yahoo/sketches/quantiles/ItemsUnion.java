@@ -235,9 +235,8 @@ public final class ItemsUnion<T> {
     if (gadget_ == null) {
       final ItemsSketch<T> sketch = ItemsSketch.getInstance(maxK_, comparator_);
       return sketch.toByteArray(serDe);
-    } else {
-      return gadget_.toByteArray(serDe);
     }
+    return gadget_.toByteArray(serDe);
   }
 
   //@formatter:off
