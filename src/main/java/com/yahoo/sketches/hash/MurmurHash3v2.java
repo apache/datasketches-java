@@ -24,8 +24,8 @@ import com.yahoo.memory.WritableMemory;
  * and length. The calling API also allows the user to supply the small output array of two longs,
  * so that the entire hash function is static and free of object allocations.</p>
  *
- * <p>This implementation produces exactly the same hash result as the {@link #MurmurHash3} function
- * given compatible inputs.</p>
+ * <p>This implementation produces exactly the same hash result as the
+ * {@link MurmurHash3#hash} function given compatible inputs.</p>
  *
  * @author Lee Rhodes
  */

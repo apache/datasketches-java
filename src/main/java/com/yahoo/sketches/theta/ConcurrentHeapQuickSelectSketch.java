@@ -24,14 +24,17 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * A flag to coordinate between several propagation threads
    */
   private final AtomicBoolean sharedPropagationInProgress_;
+
   /**
    * Theta value of concurrent sketch
    */
   private volatile long volatileThetaLong_;
+
   /**
    * A snapshot of the estimated number of unique entries
    */
   private volatile double volatileEstimate_;
+
   /**
    * An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
    * affect the sketch at epoch j>i.
@@ -59,7 +62,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Returns a (fresh) estimation of the number of unique entries
    * @return a (fresh) estimation of the number of unique entries
    */
-  @Override public double getEstimationSnapshot() {
+  @Override
+  public double getEstimationSnapshot() {
     return volatileEstimate_;
   }
 
@@ -67,7 +71,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
    * data, namely, volatile theta and the num of valid entries in the sketch
    */
-  @Override public void updateEstimationSnapshot() {
+  @Override
+  public void updateEstimationSnapshot() {
     volatileEstimate_ = getEstimate();
   }
 
@@ -75,7 +80,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Returns the value of the volatile theta manged by the shared sketch
    * @return the value of the volatile theta manged by the shared sketch
    */
-  @Override public long getVolatileTheta() {
+  @Override
+  public long getVolatileTheta() {
     return volatileThetaLong_;
   }
 
@@ -83,7 +89,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Updates the value of the volatile theta by extracting it from the underlying sketch managed
    * by the shared sketch
    */
-  @Override public void updateVolatileTheta() {
+  @Override
+  public void updateVolatileTheta() {
     volatileThetaLong_ = getThetaLong();
   }
 
@@ -91,7 +98,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Returns true if a propagation is in progress, otherwise false
    * @return an indication of whether there is a pending propagation in progress
    */
-  @Override public boolean isPropagationInProgress() {
+  @Override
+  public boolean isPropagationInProgress() {
     return sharedPropagationInProgress_.get();
   }
 
@@ -102,13 +110,13 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param sketchIn                   any Theta sketch with the data
    * @param singleHash                 a single hash value
    */
-  @Override public void propagate(final AtomicBoolean localPropagationInProgress,
+  @Override
+  public void propagate(final AtomicBoolean localPropagationInProgress,
       final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
     final long k = 1 << getLgNomLongs();
-    if ((singleHash != NOT_SINGLE_HASH               // namely, is a single hash
-)
-        && (getRetainedEntries(false) < (2 * k))) {   // and a small sketch then propagate myself (blocking)
+    if ((singleHash != NOT_SINGLE_HASH)             //namely, is a single hash
+        && (getRetainedEntries(false) < (2 * k))) { //and a small sketch then propagate myself (blocking)
       startPropagation();
       if (!validateEpoch(epoch)) {
         endPropagation(null); // do not change local flag
@@ -129,7 +137,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
    * in progress
    */
-  @Override public void startPropagation() {
+  @Override
+  public void startPropagation() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) {
     } //busy wait till free
   }
@@ -141,7 +150,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param localPropagationInProgress the synchronization primitive through which propagator
    *                                   notifies local thread the propagation is completed
    */
-  @Override public void endPropagation(final AtomicBoolean localPropagationInProgress) {
+  @Override
+  public void endPropagation(final AtomicBoolean localPropagationInProgress) {
     //update volatile theta, uniques estimate and propagation flag
     updateVolatileTheta();
     updateEstimationSnapshot();
@@ -157,7 +167,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param epoch the epoch number to be validates
    * @return true iff the shared sketch is in the context of the given epoch
    */
-  @Override public boolean validateEpoch(final long epoch) {
+  @Override
+  public boolean validateEpoch(final long epoch) {
     return epoch_ == epoch;
   }
 
@@ -165,7 +176,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Updates the shared sketch with the given hash
    * @param hash to be propagated to the shared sketch
    */
-  @Override public void updateSingle(final long hash) {
+  @Override
+  public void updateSingle(final long hash) {
     hashUpdate(hash);
   }
 
@@ -173,7 +185,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Returns whether the shared sketch is empty
    * @return whether the shared sketch is empty
    */
-  @Override public boolean isSharedEmpty() {
+  @Override
+  public boolean isSharedEmpty() {
     return isEmpty();
   }
 
@@ -185,7 +198,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * sketch cache.
    * @return the number of retained entries
    */
-  @Override public int getSharedRetainedEntries(final boolean valid) {
+  @Override
+  public int getSharedRetainedEntries(final boolean valid) {
     return getRetainedEntries(valid);
   }
 
@@ -195,14 +209,16 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @return true if the this sketch's internal data structure is backed by direct (off-heap)
    * Memory.
    */
-  @Override public boolean isSharedDirect() {
+  @Override
+  public boolean isSharedDirect() {
     return isDirect();
   }
 
   /**
    * Resets the content of the shared sketch to an empty sketch
    */
-  @Override public void resetShared() {
+  @Override
+  public void resetShared() {
     reset();
   }
 
@@ -210,7 +226,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Rebuilds the hash table to remove dirty values or to reduce the size
    * to nominal entries.
    */
-  @Override public UpdateSketch rebuildShared() {
+  @Override
+  public UpdateSketch rebuildShared() {
     rebuild();
     updateEstimationSnapshot();
     return this;
@@ -220,7 +237,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
    * @return this sketch as an ordered CompactSketch on the Java heap.
    */
-  @Override public CompactSketch compactShared() {
+  @Override
+  public CompactSketch compactShared() {
     return compact();
   }
 
@@ -239,7 +257,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return this sketch as a CompactSketch in the chosen form
    */
-  @Override public CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem) {
+  @Override
+  public CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem) {
     return compact(dstOrdered, dstMem);
   }
 
@@ -247,7 +266,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Serialize this sketch to a byte array form.
    * @return byte array of this sketch
    */
-  @Override public byte[] sharedToByteArray() {
+  @Override
+  public byte[] sharedToByteArray() {
     return toByteArray();
   }
 
@@ -258,7 +278,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the lower bound.
    */
-  @Override public double getSharedLowerBound(final int numStdDev) {
+  @Override
+  public double getSharedLowerBound(final int numStdDev) {
     return getLowerBound(numStdDev);
   }
 
@@ -269,7 +290,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @return the upper bound.
    */
-  @Override public double getSharedUpperBound(final  int numStdDev) {
+  @Override
+  public double getSharedUpperBound(final  int numStdDev) {
     return getUpperBound(numStdDev);
   }
 
@@ -279,7 +301,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    *
    * @return true if the sketch is in estimation mode.
    */
-  @Override public boolean isSharedEstimationMode() {
+  @Override
+  public boolean isSharedEstimationMode() {
     return isEstimationMode();
   }
 
@@ -289,7 +312,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * If this sketch is already in compact form this parameter is ignored.
    * @return the number of storage bytes required for this sketch
    */
-  @Override public int getSharedCurrentBytes(final boolean compact) {
+  @Override
+  public int getSharedCurrentBytes(final boolean compact) {
     return getCurrentBytes(compact);
   }
 
@@ -297,7 +321,8 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * Resets this sketch back to a virgin empty state.
    * Takes care of mutual exclusion with propagation thread
    */
-  @Override public void reset() {
+  @Override
+  public void reset() {
     advanceEpoch();
     super.reset();
     volatileThetaLong_ = Long.MAX_VALUE;
