@@ -19,6 +19,7 @@ import java.util.Arrays;
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ByteArrayUtil;
 import com.yahoo.sketches.Family;
+import com.yahoo.sketches.QuantilesHelper;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
@@ -466,6 +467,25 @@ public class KllFloatsSketch {
       }
     }
     return quantiles;
+  }
+
+  /**
+   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
+   * specify the number of evenly spaced fractional ranks.
+   *
+   * <p>If the sketch is empty this returns null.
+   *
+   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
+   * This must be a positive integer greater than 0. A value of 1 will return the min value.
+   * A value of 2 will return the min and the max value. A value of 3 will return the min,
+   * the median and the max value, etc.
+   *
+   * @return array of approximations to the given fractions in the same order as given fractions
+   * array.
+   */
+  public float[] getQuantiles(final int numEvenlySpaced) {
+    if (isEmpty()) { return null; }
+    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(numEvenlySpaced));
   }
 
   /**
