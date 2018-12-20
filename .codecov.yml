@@ -1,8 +1,8 @@
 # validate: curl --data-binary @.codecov.yml https://codecov.io/validate
 coverage:
-  precision: 2
+  precision: 1
   round: up
-  range: 70...100
+  range: 70..90
 
   status:
     # Learn more at http://docs.codecov.io/docs/codecov-yaml
@@ -11,11 +11,7 @@ coverage:
         enabled: true
         target: 90%
         threshold: 2%
-    patch:
-      default:
-        enabled: true
-        target: 80%
-        threshold: 10%
+    patch: off
     changes: false
 
 comment:
