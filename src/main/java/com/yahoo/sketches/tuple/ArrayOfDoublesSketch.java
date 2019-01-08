@@ -199,6 +199,7 @@ public abstract class ArrayOfDoublesSketch {
 
   @Override
   public String toString() {
+    final int seedHash = Short.toUnsignedInt(getSeedHash());
     final StringBuilder sb = new StringBuilder();
     sb.append("### ").append(this.getClass().getSimpleName()).append(" SUMMARY: ").append(LS);
     sb.append("   Estimate                : ").append(getEstimate()).append(LS);
@@ -215,12 +216,9 @@ public abstract class ArrayOfDoublesSketch {
       sb.append("   Current Capacity        : ").append(updatable.getCurrentCapacity()).append(LS);
       sb.append("   Resize Factor           : ").append(updatable.getResizeFactor().getValue()).append(LS);
       sb.append("   Sampling Probability (p): ").append(updatable.getSamplingProbability()).append(LS);
-      sb.append("   Update Seed             : ")
-      .append(Long.toHexString(updatable.getSeed())).append(" | ")
-      .append(Long.toString(updatable.getSeed())).append(LS);
     }
     sb.append("   Seed Hash               : ")
-      .append(Integer.toHexString(Short.toUnsignedInt(getSeedHash()))).append(LS);
+      .append(Integer.toHexString(seedHash)).append(" | ").append(seedHash).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }

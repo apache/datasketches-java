@@ -363,7 +363,6 @@ public abstract class Sketch {
     final long[] cache = getCache();
     int nomLongs = 0;
     int arrLongs = cache.length;
-    long seed = 0;
     float p = 0;
     int rf = 0;
     final boolean updateSketch = (this instanceof UpdateSketch);
@@ -374,7 +373,6 @@ public abstract class Sketch {
     if (updateSketch) {
       final UpdateSketch uis = (UpdateSketch)this;
       nomLongs = 1 << uis.getLgNomLongs();
-      seed = uis.getSeed();
       arrLongs = 1 << uis.getLgArrLongs();
       p = uis.getP();
       rf = uis.getResizeFactor().getValue();
@@ -409,7 +407,7 @@ public abstract class Sketch {
       final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
       final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       final String thisSimpleName = this.getClass().getSimpleName();
-      final int seedHash = getSeedHash() & 0XFFFF;
+      final int seedHash = Short.toUnsignedInt(getSeedHash());
 
       sb.append(LS);
       sb.append("### ").append(thisSimpleName).append(" SUMMARY: ").append(LS);
@@ -432,12 +430,8 @@ public abstract class Sketch {
       }
       sb.append("   Array Size Entries      : ").append(arrLongs).append(LS);
       sb.append("   Retained Entries        : ").append(curCount).append(LS);
-      if (updateSketch) {
-        sb.append("   Update Seed             : ")
-          .append(Long.toHexString(seed)).append(" | ")
-          .append(Long.toString(seed)).append(LS);
-      }
-      sb.append("   Seed Hash               : ").append(Integer.toHexString(seedHash)).append(LS);
+      sb.append("   Seed Hash               : ").append(Integer.toHexString(seedHash))
+        .append(" | ").append(seedHash).append(LS);
       sb.append("### END SKETCH SUMMARY").append(LS);
 
     }

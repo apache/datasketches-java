@@ -680,11 +680,13 @@ public final class CpcSketch {
    */
   public String toString(final boolean detail) {
     final int numPairs = (pairTable == null) ? 0 : pairTable.getNumPairs();
+    final int seedHash = Short.toUnsignedInt(computeSeedHash(seed));
     final StringBuilder sb = new StringBuilder();
     sb.append("### CPD SKETCH - PREAMBLE:").append(LS);
     sb.append("  Flavor       : ").append(getFlavor()).append(LS);
     sb.append("  lgK          : ").append(lgK).append(LS);
-    sb.append("  seed         : ").append(seed).append(LS);
+    sb.append("  Seed Hash    : ").append(Integer.toHexString(seedHash))
+      .append(" | ").append(seedHash).append(LS);
     sb.append("  numCoupons   : ").append(numCoupons).append(LS);
     sb.append("  numPairs (SV): ").append(numPairs).append(LS);
     sb.append("  mergeFlag    : ").append(mergeFlag).append(LS);
