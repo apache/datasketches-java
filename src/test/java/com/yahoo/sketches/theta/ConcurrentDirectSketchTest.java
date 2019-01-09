@@ -31,8 +31,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -58,10 +58,22 @@ public class ConcurrentDirectSketchTest {
     }
   }
 
+  @Test
+  public void checkDirectCompactConversion() {
+    lgK = 9;
+    int k = 1 << lgK;
+    try (WritableDirectHandle h = makeNativeMemory(k)) {
+      WritableMemory mem = h.get();
+      buildConcSketch(mem);
+      assertTrue(shared instanceof ConcurrentDirectThetaSketch);
+      assertTrue(shared.compactShared().isCompact());
+    }
+  }
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
-    int k = 8;
     lgK = 3;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
       buildConcSketch(mem);
@@ -70,8 +82,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorMemTooSmall() {
-    int k = 16;
     lgK = 4;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k/2)) {
       WritableMemory mem = h.get();
       buildConcSketch(mem);
@@ -80,8 +92,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyIllegalFamilyID_heapify() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     WritableMemory mem = WritableMemory.wrap(new byte[bytes]);
     buildConcSketch(mem);
@@ -94,8 +106,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkHeapifyMemoryEstimating() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int u = 2*k;
     boolean estimating = (u > k);
 
@@ -137,8 +149,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapIllegalFamilyID_wrap() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     WritableMemory mem = WritableMemory.wrap(new byte[maxBytes]);
 
@@ -152,8 +164,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWrapIllegalFamilyID_direct() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     WritableMemory mem = WritableMemory.wrap(new byte[maxBytes]);
 
@@ -167,8 +179,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     long seed1 = 1021;
     long seed2 = DEFAULT_UPDATE_SEED;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
@@ -186,8 +198,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptLgNomLongs() {
-    int k = 16;
     lgK = 4;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
       buildConcSketch(mem);
@@ -198,8 +210,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkHeapifyByteArrayExact() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -230,8 +242,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkHeapifyByteArrayEstimating() {
-    int k = 4096;
     lgK = 12;
+    int k = 1 << lgK;
     int u = 2*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
@@ -259,8 +271,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkWrapMemoryEst() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int u = 2*k;
     boolean estimating = (u > k);
 
@@ -287,8 +299,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkDQStoCompactForms() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int u = 4*k;
     boolean estimating = (u > k);
     try (WritableDirectHandle h = makeNativeMemory(k)) {
@@ -358,8 +370,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkDQStoCompactEmptyForms() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -403,8 +415,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkEstMode() {
-    int k = 4096;
     lgK = 12;
+    int k = 1 << lgK;
     int u = 2*k;
 
     try (WritableDirectHandle h = makeNativeMemory(k)) {
@@ -426,8 +438,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkErrorBounds() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -461,8 +473,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkUpperAndLowerBounds() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int u = 2*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
@@ -482,8 +494,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkRebuild() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int u = 4*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
@@ -514,8 +526,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkResetAndStartingSubMultiple() {
-    int k = 512;
     lgK = 9;
+    int k = 1 << lgK;
     int u = 4*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
@@ -546,9 +558,9 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkExactModeMemoryArr() {
-    int k = 4096;
     lgK = 12;
-    int u = 4096;
+    int k = 1 << lgK;
+    int u = k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -568,8 +580,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkEstModeMemoryArr() {
-    int k = 4096;
     lgK = 12;
+    int k = 1 << lgK;
     int u = 2*k;
 
     try (WritableDirectHandle h = makeNativeMemory(k)) {
@@ -591,8 +603,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkEstModeNativeMemory() {
-    int k = 4096;
     lgK = 12;
+    int k = 1 << lgK;
     int u = 2*k;
     int memCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
@@ -615,8 +627,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkConstructReconstructFromMemory() {
-    int k = 4096;
     lgK = 12;
+    int k = 1 << lgK;
     int u = 2*k;
 
     try (WritableDirectHandle h = makeNativeMemory(k)) {
@@ -657,8 +669,8 @@ public class ConcurrentDirectSketchTest {
   //checks Alex's bug where lgArrLongs > lgNomLongs +1.
   @Test
   public void checkResizeInBigMem() {
-    int k = 1 << 14;
     lgK = 14;
+    int k = 1 << lgK;
     int u = 1 << 20;
     WritableMemory mem = WritableMemory.wrap(new byte[(8*k*16) +24]);
     UpdateSketch sketch = buildConcSketch(mem);
@@ -677,8 +689,8 @@ public class ConcurrentDirectSketchTest {
 
   @Test
   public void checkBackgroundPropagation() {
-    int k = 16;
     lgK = 4;
+    int k = 1 << lgK;
     int u = 5*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();

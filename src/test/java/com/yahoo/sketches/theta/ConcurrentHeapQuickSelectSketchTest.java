@@ -11,6 +11,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
@@ -98,10 +99,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
     UpdateSketch usk = bldr.build();
     //ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
     assertTrue(usk.isEmpty());
-
+    assertTrue(shared instanceof ConcurrentHeapQuickSelectSketch);
     for (int i = 0; i< u; i++) {
       usk.update(i);
     }
+    assertTrue(((ConcurrentHeapQuickSelectSketch)shared).compactShared().isCompact());
 
     assertFalse(usk.isEmpty());
     assertEquals(usk.getEstimate(), u, 0.0);
@@ -646,6 +648,30 @@ public class ConcurrentHeapQuickSelectSketchTest {
   //      //expected
   //    }
   //  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkBuilderExceptions() {
+    ConcurrentThetaBuilder bldr = new ConcurrentThetaBuilder();
+    try {
+      bldr.setSharedIsDirect(true);
+      SharedThetaSketch sts = bldr.build(null);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    try {
+      bldr.setSharedNominalEntries(8);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    try {
+      bldr.setLocalNominalEntries(8);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    try {
+      bldr.setLocalLogNominalEntries(3);
+      fail();
+    } catch (SketchesArgumentException e) { }
+  }
+
 
   @Test
   public void printlnTest() {
