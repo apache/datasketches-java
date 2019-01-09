@@ -43,7 +43,7 @@ public class ConcurrentThetaTest {
   //private final int poolThreads = 3; //default
   private WritableDirectHandle wdh = null;
   private WritableMemory wmem = null;
-  private SharedThetaSketch sharedSketch;
+  private ConcurrentSharedThetaSketch sharedSketch;
   private UpdateSketch updateSketch;
 
   private CONCURRENCY_TYPE type = CONCURRENCY_TYPE.CONCURRENT;

@@ -10,13 +10,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.yahoo.memory.WritableMemory;
 
 /**
- * An interface to define the API of a shared theta sketch.
+ * An interface to define the API of a concurrent shared theta sketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
  * any time
  *
  * @author eshcar
  */
-public interface SharedThetaSketch {
+public interface ConcurrentSharedThetaSketch {
 
   long NOT_SINGLE_HASH = -1L;
 

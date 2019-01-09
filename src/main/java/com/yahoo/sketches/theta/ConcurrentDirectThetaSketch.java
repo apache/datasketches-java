@@ -20,7 +20,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author Lee Rhodes
  */
 public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
-    implements SharedThetaSketch {
+    implements ConcurrentSharedThetaSketch {
   private volatile long volatileThetaLong_;
   private volatile double volatileEstimate_;
   // A flag to coordinate between several propagation threads
@@ -119,10 +119,10 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
       return;
     }
     // otherwise, be nonblocking, let background thread do the work
-    final BackgroundThetaPropagation job =
-        new BackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
+    final ConcurrentBackgroundThetaPropagation job =
+        new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
             epoch);
-    BackgroundThetaPropagation.propagationExecutorService.execute(job);
+    ConcurrentBackgroundThetaPropagation.propagationExecutorService.execute(job);
   }
 
   /**

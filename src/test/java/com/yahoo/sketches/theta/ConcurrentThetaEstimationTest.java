@@ -36,7 +36,7 @@ public class ConcurrentThetaEstimationTest {
   private final double rse = 1.0 / Math.sqrt(sharedK - 1);
   //private final int poolThreads = 3; //default
   private WritableMemory wmem = null;
-  private SharedThetaSketch sharedSketch;
+  private ConcurrentSharedThetaSketch sharedSketch;
 
   private ConcurrentHeapThetaBuffer localSketch;
   private UpdateSketch seqSketch;
@@ -82,7 +82,7 @@ public class ConcurrentThetaEstimationTest {
     }
   }
 
-  void output(long i, SharedThetaSketch shared, Sketch seq) {
+  void output(long i, ConcurrentSharedThetaSketch shared, Sketch seq) {
     double sharedEstimate = shared.getEstimationSnapshot();
     double seqEstimate = seq.getEstimate();
     double shError = (sharedEstimate / i) - 1.0;

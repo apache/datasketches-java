@@ -61,17 +61,20 @@ See <a href="#validHash">Valid Hash</a>.
 In Theta Sketches, the state <i>Empty</i> for a sketch means that the sketch cache has zero hash values and that none of the
 update methods have been called with valid data.  In other words, the sketch has never seen any data.
 However, if the P sampling mode is used, a virgin sketch will have a theta &lt; 1.0, and a set operation could be
-(and should be) impacted by this lower theta. This is by design. 
-It is only safe to exclude empty sketches from set operations if isEmpty() == true and getTheta() == 1.0.
+(and should be) impacted by this lower theta. This is by design.
 
+It is only safe to exclude empty sketches from set operations if isEmpty() == true and getTheta() == 1.0.
 
 <p>Note that <i>Empty</i> does not mean that theta is 1.0 because if <i>p</i> &lt; 1.0, theta will be set 
 equal to <i>p</i> during construction. 
-Also, a cache of zero values does not mean that the sketch is <i>Empty</i> since set intersection or difference 
-operations can result in a sketch with zero values but with a valid theta and upper and lower bounds. 
+Also, a cache of zero values (<i>getRetainedEntries(true) = 0</i>) does not mean that the sketch is <i>Empty</i> since set intersection or difference 
+operations can result in a sketch with zero values. 
+If the sourcing sketches had seen data then a resulting intersection or difference sketch will be <i>not Empty</i> 
+and have valid upper and lower bounds even if the cache has zero values. In other words, the resulting sketch represents
+a valid distribution of data that just happens to have zero samples collected from it. 
 
-<p>These are subtle distinctions and exist for mathematical correctness. Excluding sketches that are <i>not Empty</i>
-from set operations that would otherwise include them could result in impacting the accuracy of results.
+<p>These are subtle distinctions and exist for mathematical correctness. Excluding sketches that just have <i>getRetainedEntries(true) = 0</i> 
+from set operations them could result in impacting the accuracy of results.
 
 <h3><a name="estMode">Estimation Mode</a></h3>
 Once a Theta Sketch exceeds the configured <a href="#nomEntries">Nominal Entries</a>, or <i>k</i>, number of retained hash values,

@@ -27,7 +27,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 public class ConcurrentDirectSketchTest {
 
   private int lgK;
-  private volatile SharedThetaSketch shared;
+  private volatile ConcurrentSharedThetaSketch shared;
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {

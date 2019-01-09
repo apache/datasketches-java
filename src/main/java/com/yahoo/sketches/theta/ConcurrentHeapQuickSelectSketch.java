@@ -18,7 +18,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author eshcar
  */
 public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
-    implements SharedThetaSketch {
+    implements ConcurrentSharedThetaSketch {
 
   /**
    * A flag to coordinate between several propagation threads
@@ -127,10 +127,10 @@ public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
       return;
     }
     // otherwise, be nonblocking, let background thread do the work
-    final BackgroundThetaPropagation job =
-        new BackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
+    final ConcurrentBackgroundThetaPropagation job =
+        new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
             epoch);
-    BackgroundThetaPropagation.propagationExecutorService.execute(job);
+    ConcurrentBackgroundThetaPropagation.propagationExecutorService.execute(job);
   }
 
   /**

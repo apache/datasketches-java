@@ -28,7 +28,7 @@ public class ConcurrentThetaBuilder {
   private long bSeed;
   private int bCacheLimit;
   private boolean bPropagateOrderedCompact;
-  private SharedThetaSketch bShared;
+  private ConcurrentSharedThetaSketch bShared;
   private boolean bSharedIsDirect;
 
   /**
@@ -79,7 +79,7 @@ public class ConcurrentThetaBuilder {
    * @return a ConcurrentDirectThetaSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    */
-  public SharedThetaSketch build(final WritableMemory dstMem) {
+  public ConcurrentSharedThetaSketch build(final WritableMemory dstMem) {
     if (bSharedIsDirect) {
       if (dstMem == null) {
         throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
@@ -244,7 +244,7 @@ public class ConcurrentThetaBuilder {
    *
    * @return the shared ConcurrentDirectThetaSketch or null if not set.
    */
-  public SharedThetaSketch getSharedSketch() {
+  public ConcurrentSharedThetaSketch getSharedSketch() {
     return bShared;
   }
 

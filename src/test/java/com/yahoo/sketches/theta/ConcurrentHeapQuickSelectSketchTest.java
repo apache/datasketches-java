@@ -29,7 +29,7 @@ import com.yahoo.sketches.SketchesStateException;
 public class ConcurrentHeapQuickSelectSketchTest {
   private int lgK;
   private long seed = DEFAULT_UPDATE_SEED;
-  private volatile SharedThetaSketch shared;
+  private volatile ConcurrentSharedThetaSketch shared;
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
@@ -655,7 +655,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     ConcurrentThetaBuilder bldr = new ConcurrentThetaBuilder();
     try {
       bldr.setSharedIsDirect(true);
-      SharedThetaSketch sts = bldr.build(null);
+      ConcurrentSharedThetaSketch sts = bldr.build(null);
       fail();
     } catch (SketchesArgumentException e) { }
     try {

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @author eshcar
  */
-class BackgroundThetaPropagation implements Runnable {
+class ConcurrentBackgroundThetaPropagation implements Runnable {
   static private final int NUM_POOL_THREADS = 3;
 
   /**
@@ -29,7 +29,7 @@ class BackgroundThetaPropagation implements Runnable {
   /**
    * Shared sketch to absorb the data
    */
-  private final SharedThetaSketch sharedThetaSketch;
+  private final ConcurrentSharedThetaSketch sharedThetaSketch;
   /**
    * Propagation flag of local buffer that is being processed.
    * It is the synchronization primitive to coordinate the work of the propagation with the
@@ -42,7 +42,7 @@ class BackgroundThetaPropagation implements Runnable {
    */
   private final Sketch sketchIn;
   /**
-   * Hash of the datum to be propagated to shared sketch. Can be SharedThetaSketch.NOT_SINGLE_HASH
+   * Hash of the datum to be propagated to shared sketch. Can be ConcurrentSharedThetaSketch.NOT_SINGLE_HASH
    * if the data is propagated through a sketch.
    */
   private final long singleHash;
@@ -53,7 +53,7 @@ class BackgroundThetaPropagation implements Runnable {
    */
   private final long epoch;
 
-  public BackgroundThetaPropagation(final SharedThetaSketch sharedThetaSketch,
+  public ConcurrentBackgroundThetaPropagation(final ConcurrentSharedThetaSketch sharedThetaSketch,
       final AtomicBoolean localPropagationInProgress, final Sketch sketchIn, final long singleHash,
       final long epoch) {
     this.sharedThetaSketch = sharedThetaSketch;
@@ -85,7 +85,7 @@ class BackgroundThetaPropagation implements Runnable {
     }
 
     // 3) handle propagation: either of a single hash or of a sketch
-    if (singleHash != SharedThetaSketch.NOT_SINGLE_HASH) {
+    if (singleHash != ConcurrentSharedThetaSketch.NOT_SINGLE_HASH) {
       sharedThetaSketch.updateSingle(singleHash); // backdoor update, hash function is bypassed
     } else if (sketchIn != null) {
       final long volTheta = sharedThetaSketch.getVolatileTheta();

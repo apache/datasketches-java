@@ -39,7 +39,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   /**
    * Shared sketch consisting of the global sample set and theta value.
    */
-  private final SharedThetaSketch shared;
+  private final ConcurrentSharedThetaSketch shared;
 
   /**
    * Propagation flag is set to true while propagation is in progress (or pending).
@@ -53,7 +53,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   private final boolean propagateOrderedCompact;
 
   ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed, final int cacheLimit,
-      final SharedThetaSketch shared, final boolean propagateOrderedCompact) {
+      final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf
         false); //not a union gadget
@@ -207,7 +207,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
     final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
-    shared.propagate(localPropagationInProgress, compactSketch, SharedThetaSketch.NOT_SINGLE_HASH);
+    shared.propagate(localPropagationInProgress, compactSketch, ConcurrentSharedThetaSketch.NOT_SINGLE_HASH);
     reset();
   }
 }
