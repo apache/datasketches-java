@@ -19,7 +19,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author eshcar
  * @author Lee Rhodes
  */
-public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
+class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
   private volatile long volatileThetaLong_;
   private volatile double volatileEstimate_;
