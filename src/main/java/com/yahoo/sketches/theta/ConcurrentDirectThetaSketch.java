@@ -51,6 +51,15 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
   //Concurrent methods
 
   /**
+   * Gets the unique count estimate.
+   * @return the sketch's best estimate of the cardinality of the input stream.
+   */
+  @Override
+  public double getEstimate() {
+    return getEstimationSnapshot();
+  }
+
+  /**
    * Returns a (fresh) estimation of the number of unique entries
    * @return a (fresh) estimation of the number of unique entries
    */
@@ -65,7 +74,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
    */
   @Override
   public void updateEstimationSnapshot() {
-    volatileEstimate_ = getEstimate();
+    volatileEstimate_ = super.getEstimate();
   }
 
   /**
@@ -206,6 +215,17 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
   }
 
   /**
+   * Rebuilds the hash table to remove dirty values or to reduce the size
+   * to nominal entries.
+   */
+  @Override
+  public UpdateSketch rebuild() {
+    super.rebuild();
+    updateEstimationSnapshot();
+    return this;
+  }
+
+  /**
    * Resets the content of the shared sketch to an empty sketch
    */
   @Override
@@ -219,9 +239,7 @@ public class ConcurrentDirectThetaSketch extends DirectQuickSelectSketch
    */
   @Override
   public UpdateSketch rebuildShared() {
-    rebuild();
-    updateEstimationSnapshot();
-    return this;
+    return rebuild();
   }
 
   /**

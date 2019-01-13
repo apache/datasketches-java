@@ -16,7 +16,7 @@ import com.yahoo.memory.WritableMemory;
  *
  * @author eshcar
  */
-public interface ConcurrentSharedThetaSketch {
+interface ConcurrentSharedThetaSketch {
 
   long NOT_SINGLE_HASH = -1L;
 
@@ -173,10 +173,6 @@ public interface ConcurrentSharedThetaSketch {
    * @return this sketch as a CompactSketch in the chosen form
    */
   CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem);
-
-  // ----------------------------------
-  // Methods for characterization tests
-  // ----------------------------------
 
   /**
    * Rebuilds the hash table to remove dirty values or to reduce the size

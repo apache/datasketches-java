@@ -29,7 +29,7 @@ import com.yahoo.sketches.ResizeFactor;
  * @author eshcar
  * @author Lee Rhodes
  */
-public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
+final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   /**
    * The bound on the size of the buffer
@@ -123,6 +123,7 @@ public final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     if (cacheLimit > 0) {
       java.util.Arrays.fill(getCache(), 0L);
     }
+    localPropagationInProgress.set(false);
     curCount_ = 0;
     thetaLong_ = shared.getVolatileTheta();
   }
