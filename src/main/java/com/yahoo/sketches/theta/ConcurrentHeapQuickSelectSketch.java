@@ -17,7 +17,7 @@ import com.yahoo.sketches.ResizeFactor;
  *
  * @author eshcar
  */
-public class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
+class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
 
   /**
