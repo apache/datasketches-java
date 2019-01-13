@@ -15,6 +15,7 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
@@ -37,10 +38,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 9;
     int u = k;
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
@@ -68,11 +69,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 8;
     int u = 200*k;
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilderNotOrdered();
+    final UpdateSketchBuilder bldr = configureBuilderNotOrdered();
     assertFalse(bldr.getCacheLimit() == 0);
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer) usk; //for internal checks
 
@@ -93,10 +94,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 9;
     int u = k;
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
     //ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
     assertTrue(usk.isEmpty());
     assertTrue(shared instanceof ConcurrentHeapQuickSelectSketch);
@@ -236,10 +237,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     assertEquals(usk.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
     assertFalse(usk.isDirect());
@@ -314,10 +315,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkHQStoCompactEmptyForms() {
     lgK = 9;
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
     println("lgArr: "+ usk.getLgArrLongs());
 
 
@@ -361,10 +362,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 12;
     int u = 4096;
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     assertTrue(usk.isEmpty());
 
@@ -383,10 +384,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 12;
     int u = 2*k;
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     assertTrue(usk.isEmpty());
 
@@ -440,10 +441,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int u = 4*k;
 
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     assertTrue(usk.isEmpty());
 
@@ -469,11 +470,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 4;
 
     seed = DEFAULT_UPDATE_SEED;
-    final ConcurrentThetaBuilder bldr = configureBuilderWithNominal();
+    final UpdateSketchBuilder bldr = configureBuilderWithNominal();
     assertEquals(bldr.getLocalLgNominalEntries(), lgK);
-    assertEquals(bldr.getSharedLgNominalEntries(), lgK);
+    assertEquals(bldr.getLgNominalEntries(), lgK);
     println(bldr.toString());
-    bldr.build();
+    bldr.buildLocalInternal(shared);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -503,10 +504,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 9;
     int u = 4*k;
 
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -530,10 +531,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkDQStoCompactEmptyForms() {
     lgK = 9;
 
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
 
     //empty
     usk.toString(false, true, 0, false); //exercise toString
@@ -605,10 +606,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int k = 16;
     lgK = 4;
     int u = 5*k;
-    final ConcurrentThetaBuilder bldr = configureBuilderWithCache();
+    final UpdateSketchBuilder bldr = configureBuilderWithCache();
     //must build shared first
-    shared = bldr.build(null);
-    UpdateSketch usk = bldr.build();
+    shared = bldr.buildSharedInternal(null);
+    UpdateSketch usk = bldr.buildLocalInternal(shared);
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
@@ -652,14 +653,14 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void checkBuilderExceptions() {
-    ConcurrentThetaBuilder bldr = new ConcurrentThetaBuilder();
+    UpdateSketchBuilder bldr = new UpdateSketchBuilder();
     try {
       bldr.setSharedIsDirect(true);
-      ConcurrentSharedThetaSketch sts = bldr.build(null);
+      ConcurrentSharedThetaSketch sts = bldr.buildSharedInternal(null);
       fail();
     } catch (SketchesArgumentException e) { }
     try {
-      bldr.setSharedNominalEntries(8);
+      bldr.setNominalEntries(8);
       fail();
     } catch (SketchesArgumentException e) { }
     try {
@@ -678,6 +679,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
     println("PRINTING: "+this.getClass().getName());
   }
 
+  @AfterMethod
+  public void clearShared() {
+    shared = null;
+  }
+
   /**
    * @param s value to print
    */
@@ -686,17 +692,16 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   private UpdateSketch buildConcSketch() {
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+    final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
-    bldr.build(null);
-    shared = bldr.getSharedSketch();
+    shared = bldr.buildSharedInternal(null);
     assertFalse(shared.isPropagationInProgress());
-    return bldr.build();
+    return bldr.buildLocalInternal(shared);
   }
 
   //configures builder for both local and shared
-  private ConcurrentThetaBuilder configureBuilder() {
-    final ConcurrentThetaBuilder bldr = new ConcurrentThetaBuilder();
+  private UpdateSketchBuilder configureBuilder() {
+    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
     bldr.setSharedLogNominalEntries(lgK);
     bldr.setLocalLogNominalEntries(lgK);
     bldr.setSeed(seed);
@@ -705,8 +710,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   //configures builder for both local and shared
-  private ConcurrentThetaBuilder configureBuilderNotOrdered() {
-    final ConcurrentThetaBuilder bldr = new ConcurrentThetaBuilder();
+  private UpdateSketchBuilder configureBuilderNotOrdered() {
+    final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
     bldr.setSharedLogNominalEntries(lgK);
     bldr.setLocalLogNominalEntries(4);
     bldr.setSeed(seed);
@@ -717,19 +722,19 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   //configures builder for both local and shared
-  private ConcurrentThetaBuilder configureBuilderWithNominal() {
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+  private UpdateSketchBuilder configureBuilderWithNominal() {
+    final UpdateSketchBuilder bldr = configureBuilder();
     int k = 1 << lgK;
     bldr.setLocalNominalEntries(k);
-    bldr.setSharedNominalEntries(k);
+    bldr.setNominalEntries(k);
     assertTrue(bldr.getPropagateOrderedCompact());
     assertEquals(bldr.getSeed(), DEFAULT_UPDATE_SEED);
     return bldr;
   }
 
   //configures builder for both local and shared
-  private ConcurrentThetaBuilder configureBuilderWithCache() {
-    final ConcurrentThetaBuilder bldr = configureBuilder();
+  private UpdateSketchBuilder configureBuilderWithCache() {
+    final UpdateSketchBuilder bldr = configureBuilder();
     int k = 1 << lgK;
     bldr.setCacheLimit(k);
     return bldr;
