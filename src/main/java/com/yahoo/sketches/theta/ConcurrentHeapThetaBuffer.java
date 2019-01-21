@@ -65,7 +65,12 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     this.propagateOrderedCompact = propagateOrderedCompact;
   }
 
-  //Sketch
+  //Sketch overrides
+
+  @Override
+  public int getCurrentBytes(final boolean compact) {
+    return shared.getSharedCurrentBytes(compact);
+  }
 
   /**
    * Gets the unique count estimate.
@@ -76,17 +81,70 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     return shared.getEstimationSnapshot();
   }
 
-  //restricted methods
-
   /**
-   * Returns true if numEntries (curCount) is greater than the buffer bound.
-   * @param numEntries the given number of entries (or current count).
-   * @return true if numEntries (curCount) is greater than the buffer bound.
+   * Gets the approximate lower error bound given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the lower bound.
    */
   @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > cacheLimit;
+  public double getLowerBound(final int numStdDev) {
+    return shared.getSharedLowerBound(numStdDev);
   }
+
+  /**
+   * Gets the approximate upper error bound given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the upper bound.
+   */
+  @Override
+  public double getUpperBound(final int numStdDev) {
+    return shared.getSharedUpperBound(numStdDev);
+  }
+
+  @Override
+  public boolean isDirect() {
+    return shared.isSharedDirect();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return shared.isSharedEmpty();
+  }
+
+  /**
+   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
+   * This is true if theta &lt; 1.0 AND isEmpty() is false.
+   *
+   * @return true if the sketch is in estimation mode.
+   */
+  @Override
+  public boolean isEstimationMode() {
+    return shared.isSharedEstimationMode();
+  }
+
+  /**
+   * Resets this sketch back to a virgin empty state.
+   */
+  @Override
+  public void reset() {
+    if (cacheLimit > 0) {
+      java.util.Arrays.fill(getCache(), 0L);
+    }
+    localPropagationInProgress.set(false);
+    curCount_ = 0;
+    thetaLong_ = shared.getVolatileTheta();
+  }
+
+  @Override
+  public byte[] toByteArray() {
+    return shared.sharedToByteArray();
+  }
+
+  //restricted methods
 
   /**
    * Updates buffer with given hash value.
@@ -116,71 +174,13 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   }
 
   /**
-   * Resets this sketch back to a virgin empty state.
+   * Returns true if numEntries (curCount) is greater than the buffer bound.
+   * @param numEntries the given number of entries (or current count).
+   * @return true if numEntries (curCount) is greater than the buffer bound.
    */
   @Override
-  public void reset() {
-    if (cacheLimit > 0) {
-      java.util.Arrays.fill(getCache(), 0L);
-    }
-    localPropagationInProgress.set(false);
-    curCount_ = 0;
-    thetaLong_ = shared.getVolatileTheta();
-  }
-
-  @Override
-  public boolean isEmpty() {
-    return shared.isSharedEmpty();
-  }
-
-  @Override
-  public byte[] toByteArray() {
-    return shared.sharedToByteArray();
-  }
-
-  @Override
-  public boolean isDirect() {
-    return shared.isSharedDirect();
-  }
-
-  /**
-   * Gets the approximate lower error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the lower bound.
-   */
-  @Override
-  public double getLowerBound(final int numStdDev) {
-    return shared.getSharedLowerBound(numStdDev);
-  }
-
-  /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the upper bound.
-   */
-  @Override
-  public double getUpperBound(final int numStdDev) {
-    return shared.getSharedUpperBound(numStdDev);
-  }
-
-  @Override
-  public int getCurrentBytes(final boolean compact) {
-    return shared.getSharedCurrentBytes(compact);
-  }
-
-  /**
-   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * This is true if theta &lt; 1.0 AND isEmpty() is false.
-   *
-   * @return true if the sketch is in estimation mode.
-   */
-  @Override
-  public boolean isEstimationMode() {
-    return shared.isSharedEstimationMode();
+  boolean isOutOfSpace(final int numEntries) {
+    return numEntries > cacheLimit;
   }
 
   /**

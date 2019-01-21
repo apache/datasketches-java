@@ -21,52 +21,6 @@ interface ConcurrentSharedThetaSketch {
   long NOT_SINGLE_HASH = -1L;
 
   /**
-   * Returns a (fresh) estimation of the number of unique entries
-   * @return a (fresh) estimation of the number of unique entries
-   */
-  double getEstimationSnapshot();
-
-  /**
-   * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
-   * data, namely, volatile theta and the num of valid entries in the sketch
-   */
-  void updateEstimationSnapshot();
-
-  /**
-   * Returns the value of the volatile theta manged by the shared sketch
-   * @return the value of the volatile theta manged by the shared sketch
-   */
-  long getVolatileTheta();
-
-  /**
-   * Updates the value of the volatile theta by extracting it from the underlying sketch managed
-   * by the shared sketch
-   */
-  void updateVolatileTheta();
-
-  /**
-   * Returns true if a propagation is in progress, otherwise false
-   * @return an indication of whether there is a pending propagation in progress
-   */
-  boolean isPropagationInProgress();
-
-  /**
-   * Propagates the given sketch or hash value into this sketch
-   *
-   * @param localPropagationInProgress the flag to be updated when propagation is done
-   * @param sketchIn                   any Theta sketch with the data
-   * @param singleHash                 a single hash value
-   */
-  void propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
-      final long singleHash);
-
-  /**
-   * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
-   * in progress
-   */
-  void startPropagation();
-
-  /**
    * Completes the propagation: end mutual exclusion block.
    * Notifies the local thread the propagation is completed
    *
@@ -76,52 +30,18 @@ interface ConcurrentSharedThetaSketch {
   void endPropagation(AtomicBoolean localPropagationInProgress);
 
   /**
-   * Validates the shared sketch is in the context of the given epoch
-   *
-   * @param epoch the epoch number to be validates
-   * @return true iff the shared sketch is in the context of the given epoch
+   * Returns a (fresh) estimation of the number of unique entries
+   * @return a (fresh) estimation of the number of unique entries
    */
-  boolean validateEpoch(long epoch);
+  double getEstimationSnapshot();
 
   /**
-   * Updates the shared sketch with the given hash
-   * @param hash to be propagated to the shared sketch
+   * Returns the number of storage bytes required for this Sketch in its current state.
+   * @param compact if true, returns the bytes required for compact form.
+   * If this sketch is already in compact form this parameter is ignored.
+   * @return the number of storage bytes required for this sketch
    */
-  void updateSingle(long hash);
-
-  // ----------------------------------
-  // Methods for tests
-  // ----------------------------------
-
-  /**
-   * Returns whether the shared sketch is empty
-   * @return whether the shared sketch is empty
-   */
-  boolean isSharedEmpty();
-
-  /**
-   * Returns the number of entries that have been retained by the sketch.
-   * @param valid if true, returns the number of valid entries, which are less than theta and used
-   * for estimation.
-   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
-   * sketch cache.
-   * @return the number of retained entries
-   */
-  int getSharedRetainedEntries(final boolean valid);
-
-  /**
-   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   */
-  boolean isSharedDirect();
-
-  /**
-   * Serialize this sketch to a byte array form.
-   * @return byte array of this sketch
-   */
-  byte[] sharedToByteArray();
+  int getSharedCurrentBytes(final boolean compact);
 
   /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
@@ -142,6 +62,32 @@ interface ConcurrentSharedThetaSketch {
   double getSharedUpperBound(final int numStdDev);
 
   /**
+   * Returns the value of the volatile theta manged by the shared sketch
+   * @return the value of the volatile theta manged by the shared sketch
+   */
+  long getVolatileTheta();
+
+  /**
+   * Returns true if a propagation is in progress, otherwise false
+   * @return an indication of whether there is a pending propagation in progress
+   */
+  boolean isPropagationInProgress();
+
+  /**
+   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   */
+  boolean isSharedDirect();
+
+  /**
+   * Returns whether the shared sketch is empty
+   * @return whether the shared sketch is empty
+   */
+  boolean isSharedEmpty();
+
+  /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
    * This is true if theta &lt; 1.0 AND isEmpty() is false.
    *
@@ -150,12 +96,62 @@ interface ConcurrentSharedThetaSketch {
   boolean isSharedEstimationMode();
 
   /**
-   * Returns the number of storage bytes required for this Sketch in its current state.
-   * @param compact if true, returns the bytes required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
-   * @return the number of storage bytes required for this sketch
+   * Propagates the given sketch or hash value into this sketch
+   *
+   * @param localPropagationInProgress the flag to be updated when propagation is done
+   * @param sketchIn                   any Theta sketch with the data
+   * @param singleHash                 a single hash value
    */
-  int getSharedCurrentBytes(final boolean compact);
+  void propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
+      final long singleHash);
+
+  /**
+   * Serialize this sketch to a byte array form.
+   * @return byte array of this sketch
+   */
+  byte[] sharedToByteArray();
+
+  /**
+   * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
+   * in progress
+   */
+  void startPropagation();
+
+  /**
+   * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
+   * data, namely, volatile theta and the num of valid entries in the sketch
+   */
+  void updateEstimationSnapshot();
+
+  /**
+   * Updates the shared sketch with the given hash
+   * @param hash to be propagated to the shared sketch
+   */
+  void updateSingle(long hash);
+
+  /**
+   * Updates the value of the volatile theta by extracting it from the underlying sketch managed
+   * by the shared sketch
+   */
+  void updateVolatileTheta();
+
+  /**
+   * Validates the shared sketch is in the context of the given epoch
+   *
+   * @param epoch the epoch number to be validates
+   * @return true iff the shared sketch is in the context of the given epoch
+   */
+  boolean validateEpoch(long epoch);
+
+  // ----------------------------------
+  // Methods for tests
+  // ----------------------------------
+
+  /**
+   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
+   * @return this sketch as an ordered CompactSketch on the Java heap.
+   */
+  CompactSketch compactShared();
 
   /**
    * Convert this UpdateSketch to a CompactSketch in the chosen form.
@@ -175,6 +171,16 @@ interface ConcurrentSharedThetaSketch {
   CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem);
 
   /**
+   * Returns the number of entries that have been retained by the sketch.
+   * @param valid if true, returns the number of valid entries, which are less than theta and used
+   * for estimation.
+   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
+   * sketch cache.
+   * @return the number of retained entries
+   */
+  int getSharedRetainedEntries(final boolean valid);
+
+  /**
    * Rebuilds the hash table to remove dirty values or to reduce the size
    * to nominal entries.
    * @return this sketch
@@ -186,10 +192,5 @@ interface ConcurrentSharedThetaSketch {
    */
   void resetShared();
 
-  /**
-   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
-   * @return this sketch as an ordered CompactSketch on the Java heap.
-   */
-  CompactSketch compactShared();
-
 }
+
