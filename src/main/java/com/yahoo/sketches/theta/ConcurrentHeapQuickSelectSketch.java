@@ -56,7 +56,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     sharedPropagationInProgress_ = new AtomicBoolean(false);
   }
 
-  //Concurrent methods
+  //Sketch overrides
 
   /**
    * Gets the unique count estimate.
@@ -65,6 +65,80 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   @Override
   public double getEstimate() {
     return getEstimationSnapshot();
+  }
+
+  //HeapQuickSelectSketch overrides
+
+  /**
+   * Rebuilds the hash table to remove dirty values or to reduce the size
+   * to nominal entries.
+   */
+  @Override
+  public UpdateSketch rebuild() {
+    super.rebuild();
+    updateEstimationSnapshot();
+    return this;
+  }
+
+  /**
+   * Resets this sketch back to a virgin empty state.
+   * Takes care of mutual exclusion with propagation thread
+   */
+  @Override
+  public void reset() {
+    advanceEpoch();
+    super.reset();
+    volatileThetaLong_ = Long.MAX_VALUE;
+    volatileEstimate_ = 0;
+  }
+
+  //ConcurrentSharedThetaSketch overrides
+
+  /**
+   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
+   * @return this sketch as an ordered CompactSketch on the Java heap.
+   */
+  @Override
+  public CompactSketch compactShared() {
+    return compact();
+  }
+
+  /**
+   * Convert this UpdateSketch to a CompactSketch in the chosen form.
+   *
+   * <p>This compacting process converts the hash table form of an UpdateSketch to
+   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
+   * greater than theta will be discarded.  The number of valid values remaining in the
+   * Compact Sketch depends on a number of factors, but may be larger or smaller than
+   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
+   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
+   * on the UpdateSketch prior to this.
+   *
+   * @param dstOrdered <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return this sketch as a CompactSketch in the chosen form
+   */
+  @Override
+  public CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem) {
+    return compact(dstOrdered, dstMem);
+  }
+
+  /**
+   * Completes the propagation: end mutual exclusion block.
+   * Notifies the local thread the propagation is completed
+   *
+   * @param localPropagationInProgress the synchronization primitive through which propagator
+   *                                   notifies local thread the propagation is completed
+   */
+  @Override
+  public void endPropagation(final AtomicBoolean localPropagationInProgress) {
+    //update volatile theta, uniques estimate and propagation flag
+    updateVolatileTheta();
+    updateEstimationSnapshot();
+    sharedPropagationInProgress_.set(false);
+    if (localPropagationInProgress != null) {
+      localPropagationInProgress.set(false); //clear local propagation flag
+    }
   }
 
   /**
@@ -77,12 +151,51 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
-   * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
-   * data, namely, volatile theta and the num of valid entries in the sketch
+   * Returns the number of storage bytes required for this Sketch in its current state.
+   * @param compact if true, returns the bytes required for compact form.
+   * If this sketch is already in compact form this parameter is ignored.
+   * @return the number of storage bytes required for this sketch
    */
   @Override
-  public void updateEstimationSnapshot() {
-    volatileEstimate_ = super.getEstimate();
+  public int getSharedCurrentBytes(final boolean compact) {
+    return getCurrentBytes(compact);
+  }
+
+  /**
+   * Gets the approximate lower error bound given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the lower bound.
+   */
+  @Override
+  public double getSharedLowerBound(final int numStdDev) {
+    return getLowerBound(numStdDev);
+  }
+
+  /**
+   * Returns the number of entries that have been retained by the sketch.
+   * @param valid if true, returns the number of valid entries, which are less than theta and used
+   * for estimation.
+   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
+   * sketch cache.
+   * @return the number of retained entries
+   */
+  @Override
+  public int getSharedRetainedEntries(final boolean valid) {
+    return getRetainedEntries(valid);
+  }
+
+  /**
+   * Gets the approximate upper error bound given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return the upper bound.
+   */
+  @Override
+  public double getSharedUpperBound(final  int numStdDev) {
+    return getUpperBound(numStdDev);
   }
 
   /**
@@ -95,21 +208,43 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
-   * Updates the value of the volatile theta by extracting it from the underlying sketch managed
-   * by the shared sketch
-   */
-  @Override
-  public void updateVolatileTheta() {
-    volatileThetaLong_ = getThetaLong();
-  }
-
-  /**
    * Returns true if a propagation is in progress, otherwise false
    * @return an indication of whether there is a pending propagation in progress
    */
   @Override
   public boolean isPropagationInProgress() {
     return sharedPropagationInProgress_.get();
+  }
+
+  /**
+   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
+   * Memory.
+   */
+  @Override
+  public boolean isSharedDirect() {
+    return isDirect();
+  }
+
+  /**
+   * Returns whether the shared sketch is empty
+   * @return whether the shared sketch is empty
+   */
+  @Override
+  public boolean isSharedEmpty() {
+    return isEmpty();
+  }
+
+  /**
+   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
+   * This is true if theta &lt; 1.0 AND isEmpty() is false.
+   *
+   * @return true if the sketch is in estimation mode.
+   */
+  @Override
+  public boolean isSharedEstimationMode() {
+    return isEstimationMode();
   }
 
   /**
@@ -143,6 +278,32 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
+   * Rebuilds the hash table to remove dirty values or to reduce the size
+   * to nominal entries.
+   */
+  @Override
+  public UpdateSketch rebuildShared() {
+    return rebuild();
+  }
+
+  /**
+   * Resets the content of the shared sketch to an empty sketch
+   */
+  @Override
+  public void resetShared() {
+    reset();
+  }
+
+  /**
+   * Serialize this sketch to a byte array form.
+   * @return byte array of this sketch
+   */
+  @Override
+  public byte[] sharedToByteArray() {
+    return toByteArray();
+  }
+
+  /**
    * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
    * in progress
    */
@@ -153,21 +314,30 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
-   * Completes the propagation: end mutual exclusion block.
-   * Notifies the local thread the propagation is completed
-   *
-   * @param localPropagationInProgress the synchronization primitive through which propagator
-   *                                   notifies local thread the propagation is completed
+   * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
+   * data, namely, volatile theta and the num of valid entries in the sketch
    */
   @Override
-  public void endPropagation(final AtomicBoolean localPropagationInProgress) {
-    //update volatile theta, uniques estimate and propagation flag
-    updateVolatileTheta();
-    updateEstimationSnapshot();
-    sharedPropagationInProgress_.set(false);
-    if (localPropagationInProgress != null) {
-      localPropagationInProgress.set(false); //clear local propagation flag
-    }
+  public void updateEstimationSnapshot() {
+    volatileEstimate_ = super.getEstimate();
+  }
+
+  /**
+   * Updates the shared sketch with the given hash
+   * @param hash to be propagated to the shared sketch
+   */
+  @Override
+  public void updateSingle(final long hash) {
+    hashUpdate(hash);
+  }
+
+  /**
+   * Updates the value of the volatile theta by extracting it from the underlying sketch managed
+   * by the shared sketch
+   */
+  @Override
+  public void updateVolatileTheta() {
+    volatileThetaLong_ = getThetaLong();
   }
 
   /**
@@ -181,171 +351,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     return epoch_ == epoch;
   }
 
-  /**
-   * Updates the shared sketch with the given hash
-   * @param hash to be propagated to the shared sketch
-   */
-  @Override
-  public void updateSingle(final long hash) {
-    hashUpdate(hash);
-  }
-
-  /**
-   * Returns whether the shared sketch is empty
-   * @return whether the shared sketch is empty
-   */
-  @Override
-  public boolean isSharedEmpty() {
-    return isEmpty();
-  }
-
-  /**
-   * Returns the number of entries that have been retained by the sketch.
-   * @param valid if true, returns the number of valid entries, which are less than theta and used
-   * for estimation.
-   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
-   * sketch cache.
-   * @return the number of retained entries
-   */
-  @Override
-  public int getSharedRetainedEntries(final boolean valid) {
-    return getRetainedEntries(valid);
-  }
-
-  /**
-   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   */
-  @Override
-  public boolean isSharedDirect() {
-    return isDirect();
-  }
-
-  /**
-   * Rebuilds the hash table to remove dirty values or to reduce the size
-   * to nominal entries.
-   */
-  @Override
-  public UpdateSketch rebuild() {
-    super.rebuild();
-    updateEstimationSnapshot();
-    return this;
-  }
-
-  /**
-   * Resets the content of the shared sketch to an empty sketch
-   */
-  @Override
-  public void resetShared() {
-    reset();
-  }
-
-  /**
-   * Rebuilds the hash table to remove dirty values or to reduce the size
-   * to nominal entries.
-   */
-  @Override
-  public UpdateSketch rebuildShared() {
-    return rebuild();
-  }
-
-  /**
-   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
-   * @return this sketch as an ordered CompactSketch on the Java heap.
-   */
-  @Override
-  public CompactSketch compactShared() {
-    return compact();
-  }
-
-  /**
-   * Convert this UpdateSketch to a CompactSketch in the chosen form.
-   *
-   * <p>This compacting process converts the hash table form of an UpdateSketch to
-   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
-   * greater than theta will be discarded.  The number of valid values remaining in the
-   * Compact Sketch depends on a number of factors, but may be larger or smaller than
-   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
-   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
-   * on the UpdateSketch prior to this.
-   *
-   * @param dstOrdered <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
-   * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return this sketch as a CompactSketch in the chosen form
-   */
-  @Override
-  public CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem) {
-    return compact(dstOrdered, dstMem);
-  }
-
-  /**
-   * Serialize this sketch to a byte array form.
-   * @return byte array of this sketch
-   */
-  @Override
-  public byte[] sharedToByteArray() {
-    return toByteArray();
-  }
-
-  /**
-   * Gets the approximate lower error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the lower bound.
-   */
-  @Override
-  public double getSharedLowerBound(final int numStdDev) {
-    return getLowerBound(numStdDev);
-  }
-
-  /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the upper bound.
-   */
-  @Override
-  public double getSharedUpperBound(final  int numStdDev) {
-    return getUpperBound(numStdDev);
-  }
-
-  /**
-   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * This is true if theta &lt; 1.0 AND isEmpty() is false.
-   *
-   * @return true if the sketch is in estimation mode.
-   */
-  @Override
-  public boolean isSharedEstimationMode() {
-    return isEstimationMode();
-  }
-
-  /**
-   * Returns the number of storage bytes required for this Sketch in its current state.
-   * @param compact if true, returns the bytes required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
-   * @return the number of storage bytes required for this sketch
-   */
-  @Override
-  public int getSharedCurrentBytes(final boolean compact) {
-    return getCurrentBytes(compact);
-  }
-
-  /**
-   * Resets this sketch back to a virgin empty state.
-   * Takes care of mutual exclusion with propagation thread
-   */
-  @Override
-  public void reset() {
-    advanceEpoch();
-    super.reset();
-    volatileThetaLong_ = Long.MAX_VALUE;
-    volatileEstimate_ = 0;
-  }
+  //restricted
 
   /**
    * Advances the epoch while there is no background propagation
