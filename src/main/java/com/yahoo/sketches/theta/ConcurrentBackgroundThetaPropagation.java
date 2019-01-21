@@ -71,7 +71,8 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
    * 3) handle propagation: either of a single hash or of a sketch
    * 4) complete propagation: end mutual exclusion block
    */
-  @Override public void run() {
+  @Override
+  public void run() {
     // 1) start propagation: this ensure mutual exclusion.
     sharedThetaSketch.startPropagation();
     // At this point we are sure no other thread can update the shared sketch while propagation is
