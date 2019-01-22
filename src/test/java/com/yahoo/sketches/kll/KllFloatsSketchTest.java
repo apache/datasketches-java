@@ -279,6 +279,7 @@ public class KllFloatsSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
+    assertEquals(sketch.getK(), KllFloatsSketch.MIN_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
@@ -288,6 +289,7 @@ public class KllFloatsSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
+    assertEquals(sketch.getK(), KllFloatsSketch.MAX_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
