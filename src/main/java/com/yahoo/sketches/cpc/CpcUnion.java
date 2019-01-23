@@ -86,7 +86,6 @@ public class CpcUnion {
 
   /**
    * Construct this unioning object with the default LgK and the default update seed.
-   * @param lgK The given log2 of K.
    */
   public CpcUnion() {
     this(CpcSketch.DEFAULT_LG_K, DEFAULT_UPDATE_SEED);
