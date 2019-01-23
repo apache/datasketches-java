@@ -23,7 +23,7 @@ public class CpcUnionTest {
   @Test
   public void checkExceptions() {
     CpcSketch sk = new CpcSketch(10, 1);
-    CpcUnion union = new CpcUnion(10);
+    CpcUnion union = new CpcUnion();
     try {
       union.update(sk);
       fail();
@@ -35,7 +35,6 @@ public class CpcUnionTest {
       CpcUnion.getBitMatrix(union);
       fail();
     } catch (SketchesStateException e) {}
-    union = new CpcUnion(10);
   }
 
   @Test

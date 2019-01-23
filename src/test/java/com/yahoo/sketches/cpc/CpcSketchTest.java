@@ -207,7 +207,7 @@ public class CpcSketchTest {
 
   @Test
   void negative_int_equivalence() throws Exception {
-    CpcSketch sketch = new CpcSketch(11);
+    CpcSketch sketch = new CpcSketch();
     byte v1 = (byte) -1;
     sketch.update(v1);
     short v2 = -1;
