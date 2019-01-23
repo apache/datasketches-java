@@ -146,7 +146,7 @@
     <module name="UnusedImports"/>
     
     <!-- Filters -->
-    <!-- Enable suppression using comments: //CHECKSTYLE.OFF "RULE" and //CHECKSTYLE.ON "RULE"
+    <!-- Enable suppression using comments: //CHECKSTYLE.OFF: "RULE" and //CHECKSTYLE.ON: "RULE"
      You must specify the specific rule, as in: //CHECKSTYLE.OFF: LineLength -->
     <module name="SuppressionCommentFilter">
       <property name="offCommentFormat" value="CHECKSTYLE.OFF\: ([\w\|]+)"/>
