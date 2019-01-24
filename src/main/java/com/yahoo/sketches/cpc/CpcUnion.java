@@ -85,6 +85,13 @@ public class CpcUnion {
   private CpcSketch accumulator; //can only be empty or sparse Flavor
 
   /**
+   * Construct this unioning object with the default LgK and the default update seed.
+   */
+  public CpcUnion() {
+    this(CpcSketch.DEFAULT_LG_K, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
    * Construct this unioning object with LgK and the default update seed.
    * @param lgK The given log2 of K.
    */

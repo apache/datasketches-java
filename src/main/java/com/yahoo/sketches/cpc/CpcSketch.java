@@ -50,6 +50,7 @@ import com.yahoo.sketches.Family;
 public final class CpcSketch {
   private static final String LS = System.getProperty("line.separator");
   private static final double[] kxpByteLookup = new double[256];
+  public static final int DEFAULT_LG_K = 11;
   final long seed;
   //common variables
   final int lgK;
@@ -64,6 +65,13 @@ public final class CpcSketch {
   //The following variables are only valid in HIP varients
   double kxp;                  //used with HIP
   double hipEstAccum;          //used with HIP
+
+  /**
+   * Constructor with default log_base2 of k
+   */
+  public CpcSketch() {
+    this(DEFAULT_LG_K, DEFAULT_UPDATE_SEED);
+  }
 
   /**
    * Constructor with log_base2 of k.
@@ -88,7 +96,7 @@ public final class CpcSketch {
 
   /**
    * Returns a copy of this sketch
-   * @return a copy of this sketcch
+   * @return a copy of this sketch
    */
   CpcSketch copy() {
     final CpcSketch copy = new CpcSketch(lgK, seed);
