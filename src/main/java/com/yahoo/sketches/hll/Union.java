@@ -44,6 +44,14 @@ public class Union extends BaseHllSketch {
   private final HllSketch gadget;
 
   /**
+   * Construct this Union operator with the default maximum log-base-2 of <i>K</i>.
+   */
+  public Union() {
+    this.lgMaxK = HllSketch.DEFAULT_LG_K;
+    gadget = new HllSketch(lgMaxK, HLL_8);
+  }
+
+  /**
    * Construct this Union operator with a given maximum log-base-2 of <i>K</i>.
    * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
    * between 7 and 21 inclusively.
@@ -167,7 +175,7 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator as an HLL_4 sketch.
    */
   public HllSketch getResult() {
-    return gadget.copyAs(HLL_4);
+    return gadget.copyAs(HllSketch.DEFAULT_HLL_TYPE);
   }
 
   /**
