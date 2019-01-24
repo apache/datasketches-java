@@ -140,7 +140,7 @@ final class DoublesUtil {
     sb.append("   Min Value                    : ")
       .append(String.format("%12.6e", sk.getMinValue())).append(LS);
     sb.append("   Max Value                    : ")
-      .append(String.format("%,12.6e", sk.getMaxValue())).append(LS);
+      .append(String.format("%12.6e", sk.getMaxValue())).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }

@@ -14,6 +14,8 @@ import static com.yahoo.sketches.cpc.CpcUtil.bitMatrixOfSketch;
 import static com.yahoo.sketches.cpc.CpcUtil.checkLgK;
 import static com.yahoo.sketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static java.lang.Math.log;
+import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
@@ -681,21 +683,25 @@ public final class CpcSketch {
   public String toString(final boolean detail) {
     final int numPairs = (pairTable == null) ? 0 : pairTable.getNumPairs();
     final int seedHash = Short.toUnsignedInt(computeSeedHash(seed));
+    final double errConst = mergeFlag ? log(2) : sqrt(log(2) / 2.0);
+    final double rse = errConst / Math.sqrt(1 << lgK);
     final StringBuilder sb = new StringBuilder();
     sb.append("### CPD SKETCH - PREAMBLE:").append(LS);
-    sb.append("  Flavor       : ").append(getFlavor()).append(LS);
-    sb.append("  lgK          : ").append(lgK).append(LS);
-    sb.append("  Seed Hash    : ").append(Integer.toHexString(seedHash))
+    sb.append("  Flavor         : ").append(getFlavor()).append(LS);
+    sb.append("  LgK            : ").append(lgK).append(LS);
+    sb.append("  Merge Flag     : ").append(mergeFlag).append(LS);
+    sb.append("  Error Const    : ").append(errConst).append(LS);
+    sb.append("  RSE            : ").append(rse).append(LS);
+    sb.append("  Seed Hash      : ").append(Integer.toHexString(seedHash))
       .append(" | ").append(seedHash).append(LS);
-    sb.append("  numCoupons   : ").append(numCoupons).append(LS);
-    sb.append("  numPairs (SV): ").append(numPairs).append(LS);
-    sb.append("  mergeFlag    : ").append(mergeFlag).append(LS);
-    sb.append("  fiCol        : ").append(fiCol).append(LS);
-    sb.append("  Window?      : ").append(slidingWindow != null).append(LS);
-    sb.append("  PairTable?   : ").append(pairTable != null).append(LS);
-    sb.append("  winOffset    : ").append(windowOffset).append(LS);
-    sb.append("  kxp          : ").append(kxp).append(LS);
-    sb.append("  hipAccum     : ").append(hipEstAccum).append(LS);
+    sb.append("  Num Coupons    : ").append(numCoupons).append(LS);
+    sb.append("  Num Pairs (SV) : ").append(numPairs).append(LS);
+    sb.append("  First Inter Col: ").append(fiCol).append(LS);
+    sb.append("  Valid Window   : ").append(slidingWindow != null).append(LS);
+    sb.append("  Valid PairTable: ").append(pairTable != null).append(LS);
+    sb.append("  Window Offset  : ").append(windowOffset).append(LS);
+    sb.append("  KxP            : ").append(kxp).append(LS);
+    sb.append("  HIP Accum      : ").append(hipEstAccum).append(LS);
     if (detail) {
       sb.append(LS).append("### CPC SKETCH - DATA").append(LS);
       if (pairTable != null) {
