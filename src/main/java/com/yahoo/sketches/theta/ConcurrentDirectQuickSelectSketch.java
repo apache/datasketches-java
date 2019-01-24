@@ -23,6 +23,8 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
   private volatile long volatileThetaLong_;
   private volatile double volatileEstimate_;
+  // Num of retained entries in which the sketch toggles from sync (exact) mode to async propagation mode
+  private final long exactLimit_;
   // A flag to coordinate between several propagation threads
   private final AtomicBoolean sharedPropagationInProgress_;
   // An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
@@ -44,6 +46,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
+    exactLimit_ = getExactLimit();
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
   }
@@ -133,14 +136,13 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
   /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * This is true if theta &lt; 1.0 AND isEmpty() is false.
-   *
    * @return true if the sketch is in estimation mode.
    */
   @Override
   public boolean isSharedEstimationMode() {
-    return isEstimationMode();
+    return (getRetainedEntries(false) > exactLimit_) || isEstimationMode();
   }
+
 
   /**
    * Propagate the ConcurrentHeapThetaBuffer into this sketch
@@ -153,9 +155,8 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   public void propagate(final AtomicBoolean localPropagationInProgress,
       final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
-    final long k = 1 << getLgNomLongs();
-    if ((singleHash != NOT_SINGLE_HASH)               // namely, is a single hash
-        && (getRetainedEntries(false) < (2 * k))) {   // and a small sketch then propagate myself (blocking)
+    if ((singleHash != NOT_SINGLE_HASH)                   // namely, is a single hash and
+        && (getRetainedEntries(false) < exactLimit_)) {   // a small sketch then propagate myself (blocking)
       startPropagation();
       if (!validateEpoch(epoch)) {
         endPropagation(null); // do not change local flag
@@ -169,7 +170,15 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     final ConcurrentBackgroundThetaPropagation job =
         new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
             epoch);
+//    ConcurrentPropagationService.execute(job);
     ConcurrentBackgroundThetaPropagation.propagationExecutorService.execute(job);
+//    propagationExecutorService_.execute(job);
+  }
+
+  @Override
+  public long calcK() {
+    final long k = 1 << getLgNomLongs();
+    return k;
   }
 
   /**

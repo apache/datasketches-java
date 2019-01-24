@@ -410,7 +410,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     UpdateSketch usk = buildConcSketch();
 
     //Exact mode
-    for (int i = 0; i < k; i++ ) {
+    int limit = (int)ConcurrentSharedThetaSketch.getLimit(k);
+    for (int i = 0; i < limit; i++ ) {
       usk.update(i);
     }
 
@@ -422,7 +423,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     //Est mode
     int u = 10*k;
-    for (int i = k; i < u; i++ ) {
+    for (int i = limit; i < u; i++ ) {
       usk.update(i);
       usk.update(i); //test duplicate rejection
     }

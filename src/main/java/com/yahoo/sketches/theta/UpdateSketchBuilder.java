@@ -35,6 +35,7 @@ public class UpdateSketchBuilder {
   private MemoryRequestServer bMemReqSvr;
 
   //Fields for concurrent theta sketch
+  private int bNumPoolThreads;
   private int bLocalLgNomLongs;
   private int bCacheLimit;
   private boolean bPropagateOrderedCompact;
@@ -63,6 +64,7 @@ public class UpdateSketchBuilder {
     bFam = Family.QUICKSELECT;
     bMemReqSvr = new DefaultMemoryRequestServer();
     // Default values for concurrent sketch
+    bNumPoolThreads = ConcurrentPropagationService.NUM_POOL_THREADS;
     bLocalLgNomLongs = 4; //default is smallest legal QS sketch
     bCacheLimit = 0;
     bPropagateOrderedCompact = true;
@@ -100,6 +102,10 @@ public class UpdateSketchBuilder {
           "Log Nominal Entries must be >= 4 and <= 26: " + lgNomEntries);
     }
     return this;
+  }
+
+  public void setbNumPoolThreads(int bNumPoolThreads) {
+    this.bNumPoolThreads = bNumPoolThreads;
   }
 
   /**
@@ -344,6 +350,7 @@ public class UpdateSketchBuilder {
    * and the given destination WritableMemory.
    */
   public UpdateSketch buildShared(final WritableMemory dstMem) {
+    ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
     } else {
@@ -352,6 +359,7 @@ public class UpdateSketchBuilder {
   }
 
   ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
+    ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
     } else {

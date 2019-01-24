@@ -36,6 +36,11 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   private volatile double volatileEstimate_;
 
   /**
+   * Num of retained entries in which the sketch toggles from sync (exact) mode to async propagation mode
+   */
+  private final long exactLimit_;
+
+  /**
    * An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
    * affect the sketch at epoch j>i.
    */
@@ -53,7 +58,9 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
         false); //unionGadget
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
+    exactLimit_ = getExactLimit();
     sharedPropagationInProgress_ = new AtomicBoolean(false);
+    epoch_ = 0;
   }
 
   //Sketch overrides
@@ -141,13 +148,11 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * This is true if theta &lt; 1.0 AND isEmpty() is false.
-   *
    * @return true if the sketch is in estimation mode.
    */
   @Override
   public boolean isSharedEstimationMode() {
-    return isEstimationMode();
+    return (getRetainedEntries(false) > exactLimit_) || isEstimationMode();
   }
 
   /**
@@ -161,9 +166,8 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   public void propagate(final AtomicBoolean localPropagationInProgress,
       final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
-    final long k = 1 << getLgNomLongs();
-    if ((singleHash != NOT_SINGLE_HASH)             //namely, is a single hash
-        && (getRetainedEntries(false) < (2 * k))) { //and a small sketch then propagate myself (blocking)
+    if ((singleHash != NOT_SINGLE_HASH)                 //namely, is a single hash and
+        && (getRetainedEntries(false) < exactLimit_)) { //a small sketch then propagate myself (blocking)
       startPropagation();
       if (!validateEpoch(epoch)) {
         endPropagation(null); // do not change local flag
@@ -177,8 +181,17 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     final ConcurrentBackgroundThetaPropagation job =
         new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
             epoch);
+//    ConcurrentPropagationService.execute(job);
     ConcurrentBackgroundThetaPropagation.propagationExecutorService.execute(job);
+//    propagationExecutorService_.execute(job);
   }
+
+  @Override
+  public long calcK() {
+    final long k = 1 << getLgNomLongs();
+    return k;
+  }
+
 
   /**
    * Resets the content of the shared sketch to an empty sketch

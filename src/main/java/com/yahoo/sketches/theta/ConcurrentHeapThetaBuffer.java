@@ -31,6 +31,8 @@ import com.yahoo.sketches.ResizeFactor;
  */
 final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
+//  private ExecutorService propagationExecutorService_ = Executors.newSingleThreadExecutor();
+
   /**
    * The bound on the size of the buffer
    */
@@ -155,7 +157,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   @Override
   UpdateReturnState hashUpdate(final long hash) { //Simplified
     HashOperations.checkHashCorruption(hash);
-    if (cacheLimit == 0) {
+    if (cacheLimit == 0 || !shared.isSharedEstimationMode()) {
       final long thetaLong = getThetaLong();
       //The over-theta and zero test
       if (HashOperations.continueCondition(thetaLong, hash)) {
