@@ -281,6 +281,14 @@ public class KllFloatsSketch {
   }
 
   /**
+   * Returns the parameter k
+   * @return parameter k
+   */
+  public int getK() {
+    return k_;
+  }
+
+  /**
    * Returns the length of the input stream.
    * @return stream length
    */
