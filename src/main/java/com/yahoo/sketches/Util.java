@@ -314,7 +314,7 @@ public final class Util {
     return seedHash;
   }
 
-  //Memory byte allignment
+  //Memory byte alignment
 
   /**
    * Checks if parameter v is a multiple of 8 and greater than zero.
@@ -398,21 +398,6 @@ public final class Util {
   }
 
   /**
-   * Computes the ceiling power of 2 as a double. This is the smallest positive power
-   * of 2 that equal to or greater than the given n.
-   *
-   * <p>If n &le; 1.0, returns 1.0. If n == a power of 2, returns n;
-   *
-   * @param n The input argument.
-   * @return the ceiling power of 2.
-   */
-  public static double ceilingPowerOf2double(final double n) {
-    if (n <= 1.0) { return 1.0; }
-    final double exp = ceil(log(n) / log(2.0));
-    return pow(2.0, exp);
-  }
-
-  /**
    * Computes the floor power of 2 within the range [1, 2^30]. This is the largest positive power of
    * 2 that equal to or less than the given n. <br>
    * For:
@@ -429,21 +414,6 @@ public final class Util {
   public static int floorPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     return Integer.highestOneBit(n);
-  }
-
-  /**
-   * Computes the floor power of 2 as a double. This is the largest positive power
-   * of 2 that equal to or less than the given n.
-   *
-   * <p>If n &le; 1.0, returns 1.0. If n == a power of 2, returns n;
-   *
-   * @param n The input argument.
-   * @return the floor power of 2.
-   */
-  public static double floorPowerOf2double(final double n) {
-    if (n <= 1.0) { return 1.0; }
-    final double exp = floor(log(n) / log(2.0));
-    return pow(2.0, exp);
   }
 
   /**
@@ -510,40 +480,6 @@ public final class Util {
     do {
       next = (int)round(pow(2.0, (double) ++gi / ppo));
     } while ( next <= curPoint);
-    return next;
-  }
-
-  /**
-   * Computes the next larger double in the power series
-   * <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.
-   * For illustration, this can be used in a loop as follows:
-   *
-   * <pre>{@code
-   *     double maxP = 1024.0;
-   *     double minP = 1.0;
-   *     int ppo = 2;
-   *
-   *     for (double p = minP; p <= maxP; p = pwr2LawNextDouble(ppo, p)) {
-   *       System.out.print(Math.round(p) + " ");
-   *     }
-   *     //generates the following series:
-   *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
-   * }</pre>
-   *
-   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
-   * @param curPoint the current point of the series. Must be &ge; 1.0.
-   * @param roundToInt if true the output will be rounded to the nearest integer.
-   * @return the next point in the power series.
-   */
-  public static final double pwr2LawNextDouble(final int ppo, final double curPoint,
-      final boolean roundToInt) {
-    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
-    double gi = round(log2(cur) * ppo); //current generating index
-    double next;
-    do {
-      final double n = pow(2.0, ++gi / ppo);
-      next = roundToInt ? round(n) : n;
-    } while (next <= cur);
     return next;
   }
 
@@ -616,6 +552,80 @@ public final class Util {
       final int lgMin) {
     final int lgRF = rf.lg();
     return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : ((lgTarget - lgMin) % lgRF) + lgMin;
+  }
+
+  //log_base or power_base related
+
+  /**
+   * Computes the ceiling power of B as a double. This is the smallest positive power
+   * of B that equal to or greater than the given n.
+   *
+   * @param b The base in the expression &#8968;b<sup>n</sup>&#8969;.
+   * @param n The input argument.
+   * @return the ceiling power of B as a double.
+   */
+  public static double ceilingPowerOfBdouble(final double b, final double n) {
+    final double exp = ceil(logB(b, n));
+    return pow(b, exp);
+  }
+
+  /**
+   * Computes the floor power of B as a double. This is the largest positive power
+   * of B that equal to or less than the given n.
+   *
+   * @param b The base in the expression &#8970;b<sup>n</sup>&#8971;.
+   * @param n The input argument.
+   * @return the floor power of 2.
+   */
+  public static double floorPowerOfBdouble(final double b, final double n) {
+    final double exp = floor(logB(b, n));
+    return pow(b, exp);
+  }
+
+  /**
+   * Returns the logarithm_logBase of x. Example: logB(2.0, x) = log(x) / log(2.0).
+   * @param logBase the base of the logarithm used
+   * @param x the given value
+   * @return the logarithm_logBase of x: logB(2.0, x) = log(x) / log(2.0).
+   */
+  public static final double logB(final double logBase, final double x) {
+    return log(x) / log(logBase);
+  }
+
+  /**
+   * Computes the next larger double in the power series
+   * <i>point = logBase<sup>( i / ppo )</sup></i> given the current point in the series.
+   * For illustration, this can be used in a loop as follows:
+   *
+   * <pre>{@code
+   *     double maxP = 1024.0;
+   *     double minP = 1.0;
+   *     int ppo = 2;
+   *     double logBase = 2.0;
+   *
+   *     for (double p = minP; p <= maxP; p = pwr2LawNextDouble(ppo, p, true, logBase)) {
+   *       System.out.print(Math.round(p) + " ");
+   *     }
+   *     //generates the following series:
+   *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
+   * }</pre>
+   *
+   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
+   * @param curPoint the current point of the series. Must be &ge; 1.0.
+   * @param roundToInt if true the output will be rounded to the nearest integer.
+   * @param logBase the desired base of the logarithms
+   * @return the next point in the power series.
+   */
+  public static final double pwrLawNextDouble(final int ppo, final double curPoint,
+      final boolean roundToInt, final double logBase) {
+    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
+    double gi = round((logB(logBase, cur) * ppo) ); //current generating index
+    double next;
+    do {
+      final double n = pow(logBase, ++gi / ppo);
+      next = roundToInt ? round(n) : n;
+    } while (next <= cur);
+    return next;
   }
 
   //Other checks

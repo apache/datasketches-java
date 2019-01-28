@@ -6,7 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
-import static com.yahoo.sketches.Util.pwr2LawNextDouble;
+import static com.yahoo.sketches.Util.pwrLawNextDouble;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.io.PrintStream;
@@ -62,7 +62,7 @@ public class StreamingValidation {
     long maxN = 64L * (1L << lgK); //1200
     while (n < maxN) {
       doTrialsAtLgKAtN(lgK, n);
-      n = Math.round(pwr2LawNextDouble(ppoN, n, true));
+      n = Math.round(pwrLawNextDouble(ppoN, n, true, 2.0));
     }
   }
 

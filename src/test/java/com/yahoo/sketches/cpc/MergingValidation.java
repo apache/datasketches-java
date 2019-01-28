@@ -6,7 +6,7 @@
 package com.yahoo.sketches.cpc;
 
 import static com.yahoo.sketches.Util.iGoldenU64;
-import static com.yahoo.sketches.Util.pwr2LawNextDouble;
+import static com.yahoo.sketches.Util.pwrLawNextDouble;
 import static com.yahoo.sketches.cpc.IconEstimator.getIconEstimate;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssert;
 import static com.yahoo.sketches.cpc.RuntimeAsserts.rtAssertEquals;
@@ -74,9 +74,9 @@ public class MergingValidation {
       long nB = 0;
       while (nB <= limB) {
         testMerging(lgKm, lgKa, lgKb, nA, nB);
-        nB = Math.round(pwr2LawNextDouble(uPPO, nB, true));
+        nB = Math.round(pwrLawNextDouble(uPPO, nB, true, 2.0));
       }
-      nA = Math.round(pwr2LawNextDouble(uPPO, nA, true));
+      nA = Math.round(pwrLawNextDouble(uPPO, nA, true, 2.0));
     }
   }
 

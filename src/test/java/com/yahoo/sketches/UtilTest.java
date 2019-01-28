@@ -8,14 +8,14 @@ import static com.yahoo.sketches.Util.bytesToInt;
 import static com.yahoo.sketches.Util.bytesToLong;
 import static com.yahoo.sketches.Util.bytesToString;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
-import static com.yahoo.sketches.Util.ceilingPowerOf2double;
+import static com.yahoo.sketches.Util.ceilingPowerOfBdouble;
 import static com.yahoo.sketches.Util.characterPad;
 import static com.yahoo.sketches.Util.checkIfMultipleOf8AndGT0;
 import static com.yahoo.sketches.Util.checkIfPowerOf2;
 import static com.yahoo.sketches.Util.checkProbability;
 import static com.yahoo.sketches.Util.evenlyLgSpaced;
 import static com.yahoo.sketches.Util.floorPowerOf2;
-import static com.yahoo.sketches.Util.floorPowerOf2double;
+import static com.yahoo.sketches.Util.floorPowerOfBdouble;
 import static com.yahoo.sketches.Util.intToBytes;
 import static com.yahoo.sketches.Util.isLessThanUnsigned;
 import static com.yahoo.sketches.Util.isMultipleOf8AndGT0;
@@ -23,8 +23,8 @@ import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.milliSecToString;
 import static com.yahoo.sketches.Util.nanoSecToString;
 import static com.yahoo.sketches.Util.pwr2LawNext;
-import static com.yahoo.sketches.Util.pwr2LawNextDouble;
 import static com.yahoo.sketches.Util.pwr2LawPrev;
+import static com.yahoo.sketches.Util.pwrLawNextDouble;
 import static com.yahoo.sketches.Util.simpleIntLog2;
 import static com.yahoo.sketches.Util.zeroPad;
 import static java.lang.Math.pow;
@@ -80,12 +80,12 @@ public class UtilTest {
 
   @Test
   public void checkCeilingPowerOf2double() {
-    Assert.assertEquals(ceilingPowerOf2double(Integer.MAX_VALUE), pow(2.0, 31));
-    Assert.assertEquals(ceilingPowerOf2double((1 << 30)), pow(2.0, 30));
-    Assert.assertEquals(ceilingPowerOf2double(64.0), 64.0);
-    Assert.assertEquals(ceilingPowerOf2double(65.0), 128.0);
-    Assert.assertEquals(ceilingPowerOf2double(0.0), 1.0);
-    Assert.assertEquals(ceilingPowerOf2double( -1.0), 1.0);
+    Assert.assertEquals(ceilingPowerOfBdouble(2.0, Integer.MAX_VALUE), pow(2.0, 31));
+    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 1 << 30), pow(2.0, 30));
+    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 64.0), 64.0);
+    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 65.0), 128.0);
+    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 0.0), 1.0);
+    Assert.assertEquals(ceilingPowerOfBdouble(2.0, -1.0), 1.0);
   }
 
   @Test
@@ -104,16 +104,16 @@ public class UtilTest {
 
   @Test
   public void checkFloorPowerOf2double() {
-    Assert.assertEquals(floorPowerOf2double( -1.0), 1.0);
-    Assert.assertEquals(floorPowerOf2double(0.0), 1.0);
-    Assert.assertEquals(floorPowerOf2double(1.0), 1.0);
-    Assert.assertEquals(floorPowerOf2double(2.0), 2.0);
-    Assert.assertEquals(floorPowerOf2double(3.0), 2.0);
-    Assert.assertEquals(floorPowerOf2double(4.0), 4.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, -1.0), Double.NaN);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 0.0), 0.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 1.0), 1.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 2.0), 2.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 3.0), 2.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 4.0), 4.0);
 
-    Assert.assertEquals(floorPowerOf2double((1 << 30) - 1), (double)(1 << 29));
-    Assert.assertEquals(floorPowerOf2double((1 << 30)), (double)(1 << 30));
-    Assert.assertEquals(floorPowerOf2double((1 << 30) + 1.0), (double)(1L << 30));
+    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) - 1), (double)(1 << 29));
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 1 << 30), (double)(1 << 30));
+    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) + 1.0), (double)(1L << 30));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -263,15 +263,15 @@ public class UtilTest {
 
   @Test
   public void checkPwr2LawNextDouble() {
-    double next = pwr2LawNextDouble(2, 1.0, true);
+    double next = pwrLawNextDouble(2, 1.0, true, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-    next = pwr2LawNextDouble(2, 1.0, false);
+    next = pwrLawNextDouble(2, 1.0, false, 2.0);
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
-    next = pwr2LawNextDouble(2, 0.5, true);
+    next = pwrLawNextDouble(2, 0.5, true, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-    next = pwr2LawNextDouble(2, 0.5, false);
+    next = pwrLawNextDouble(2, 0.5, false, 2.0);
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
-    next = pwr2LawNextDouble(2, next, false);
+    next = pwrLawNextDouble(2, next, false, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
 
   }
