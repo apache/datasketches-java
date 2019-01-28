@@ -74,9 +74,9 @@ public class MergingValidation {
       long nB = 0;
       while (nB <= limB) {
         testMerging(lgKm, lgKa, lgKb, nA, nB);
-        nB = Math.round(pwr2LawNextDouble(uPPO, nB));
+        nB = Math.round(pwr2LawNextDouble(uPPO, nB, true));
       }
-      nA = Math.round(pwr2LawNextDouble(uPPO, nA));
+      nA = Math.round(pwr2LawNextDouble(uPPO, nA, true));
     }
   }
 

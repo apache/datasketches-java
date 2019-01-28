@@ -83,7 +83,7 @@ public class CompressionCharacterization {
       double lgT = (slope * log2(n)) + lgMaxT;
       int totTrials = Math.max(ceilingPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
       doTrialsAtLgKAtN(lgK, n, totTrials);
-      n = Math.round(pwr2LawNextDouble(uPPO, n));
+      n = Math.round(pwr2LawNextDouble(uPPO, n, true));
     }
   }
 

@@ -76,11 +76,15 @@ public abstract class UpdateSketch extends Sketch {
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
     final Family family = Family.idToFamily(familyID);
-      if ((serVer == 3) && (preLongs == 3)) {
-        return DirectQuickSelectSketch.writableWrap(srcMem, seed);
-      } else {
-        throw new SketchesArgumentException(
-            "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
+    if (family != Family.QUICKSELECT) {
+      throw new SketchesArgumentException(
+        "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
+    }
+    if ((serVer == 3) && (preLongs == 3)) {
+      return DirectQuickSelectSketch.writableWrap(srcMem, seed);
+    } else {
+      throw new SketchesArgumentException(
+        "Corrupted: An UpdateSketch image: must have SerVer = 3 and preLongs = 3");
     }
   }
 

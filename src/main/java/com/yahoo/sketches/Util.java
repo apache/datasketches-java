@@ -6,6 +6,8 @@
 package com.yahoo.sketches;
 
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static java.lang.Math.ceil;
+import static java.lang.Math.floor;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
@@ -396,6 +398,21 @@ public final class Util {
   }
 
   /**
+   * Computes the ceiling power of 2 as a double. This is the smallest positive power
+   * of 2 that equal to or greater than the given n.
+   *
+   * <p>If n &le; 1.0, returns 1.0. If n == a power of 2, returns n;
+   *
+   * @param n The input argument.
+   * @return the ceiling power of 2.
+   */
+  public static double ceilingPowerOf2double(final double n) {
+    if (n <= 1.0) { return 1.0; }
+    final double exp = ceil(log(n) / log(2.0));
+    return pow(2.0, exp);
+  }
+
+  /**
    * Computes the floor power of 2 within the range [1, 2^30]. This is the largest positive power of
    * 2 that equal to or less than the given n. <br>
    * For:
@@ -412,6 +429,21 @@ public final class Util {
   public static int floorPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     return Integer.highestOneBit(n);
+  }
+
+  /**
+   * Computes the floor power of 2 as a double. This is the largest positive power
+   * of 2 that equal to or less than the given n.
+   *
+   * <p>If n &le; 1.0, returns 1.0. If n == a power of 2, returns n;
+   *
+   * @param n The input argument.
+   * @return the floor power of 2.
+   */
+  public static double floorPowerOf2double(final double n) {
+    if (n <= 1.0) { return 1.0; }
+    final double exp = floor(log(n) / log(2.0));
+    return pow(2.0, exp);
   }
 
   /**
@@ -500,14 +532,17 @@ public final class Util {
    *
    * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
    * @param curPoint the current point of the series. Must be &ge; 1.0.
+   * @param roundToInt if true the output will be rounded to the nearest integer.
    * @return the next point in the power series.
    */
-  public static final double pwr2LawNextDouble(final int ppo, final double curPoint) {
+  public static final double pwr2LawNextDouble(final int ppo, final double curPoint,
+      final boolean roundToInt) {
     final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
     double gi = round(log2(cur) * ppo); //current generating index
     double next;
     do {
-      next = round(pow(2.0, ++gi / ppo));
+      final double n = pow(2.0, ++gi / ppo);
+      next = roundToInt ? round(n) : n;
     } while (next <= cur);
     return next;
   }

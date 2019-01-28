@@ -5,9 +5,11 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -132,14 +134,30 @@ public class UpdateSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkCorruption() {
+  public void checkIncompatibleFamily() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
     WritableMemory wmem = WritableMemory.wrap(sk.compact().toByteArray());
-    wmem.putByte(SER_VER_BYTE, (byte) 2);
     UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
   }
 
+  @Test
+  public void checkCorruption() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    sk.update(1);
+    WritableMemory wmem = WritableMemory.wrap(sk.toByteArray());
+    try {
+      wmem.putByte(SER_VER_BYTE, (byte) 2);
+      UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    try {
+      wmem.putByte(SER_VER_BYTE, (byte) 3);
+      wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);
+      UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
+      fail();
+    } catch (SketchesArgumentException e) { }
+  }
 
   @Test
   public void printlnTest() {

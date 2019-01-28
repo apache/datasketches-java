@@ -62,7 +62,7 @@ public class StreamingValidation {
     long maxN = 64L * (1L << lgK); //1200
     while (n < maxN) {
       doTrialsAtLgKAtN(lgK, n);
-      n = Math.round(pwr2LawNextDouble(ppoN, n));
+      n = Math.round(pwr2LawNextDouble(ppoN, n, true));
     }
   }
 
