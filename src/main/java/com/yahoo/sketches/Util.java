@@ -379,13 +379,15 @@ public final class Util {
 
   /**
    * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
-   * of 2 that equal to or greater than the given n. <br>
-   * For:
+   * of 2 that equal to or greater than the given n and equal to a mathematical integer.
+   *
+   * <p>For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
    * <li>2^30 &le; n &le; 2^31 -1 : returns 2^30</li>
    * <li>n == a power of 2 : returns n</li>
-   * <li>otherwise returns the smallest power of 2 greater than n</li>
+   * <li>otherwise returns the smallest power of 2 greater than n and equal to a mathematical
+   * integer</li>
    * </ul>
    *
    * @param n The input argument.
@@ -399,13 +401,15 @@ public final class Util {
 
   /**
    * Computes the floor power of 2 within the range [1, 2^30]. This is the largest positive power of
-   * 2 that equal to or less than the given n. <br>
-   * For:
+   * 2 that equal to or less than the given n and equal to a mathematical integer.
+   *
+   * <p>For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
    * <li>2^30 &le; n &le; 2^31 -1 : returns 2^30</li>
    * <li>n == a power of 2 : returns n</li>
-   * <li>otherwise returns the largest power of 2 less than n</li>
+   * <li>otherwise returns the largest power of 2 less than n and equal to a mathematical
+   * integer.</li>
    * </ul>
    *
    * @param n The given argument.
@@ -558,35 +562,39 @@ public final class Util {
 
   /**
    * Computes the ceiling power of B as a double. This is the smallest positive power
-   * of B that equal to or greater than the given n.
+   * of B that equal to or greater than the given n and equal to a mathematical integer.
+   * The result of this function is consistent with {@link #ceilingPowerOf2(int)} for values
+   * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
    * @param b The base in the expression &#8968;b<sup>n</sup>&#8969;.
    * @param n The input argument.
-   * @return the ceiling power of B as a double.
+   * @return the ceiling power of B as a double and equal to a mathematical integer.
    */
   public static double ceilingPowerOfBdouble(final double b, final double n) {
-    final double exp = ceil(logB(b, n));
-    return pow(b, exp);
+    final double x = (n < 1.0) ? 1.0 : n;
+    return pow(b, ceil(logB(b, x)));
   }
 
   /**
    * Computes the floor power of B as a double. This is the largest positive power
-   * of B that equal to or less than the given n.
+   * of B that equal to or less than the given n and equal to a mathematical integer.
+   * The result of this function is consistent with {@link #floorPowerOf2(int)} for values
+   * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
    *
    * @param b The base in the expression &#8970;b<sup>n</sup>&#8971;.
    * @param n The input argument.
-   * @return the floor power of 2.
+   * @return the floor power of 2 and equal to a mathematical integer.
    */
   public static double floorPowerOfBdouble(final double b, final double n) {
-    final double exp = floor(logB(b, n));
-    return pow(b, exp);
+    final double x = (n < 1.0) ? 1.0 : n;
+    return pow(b, floor(logB(b, x)));
   }
 
   /**
    * Returns the logarithm_logBase of x. Example: logB(2.0, x) = log(x) / log(2.0).
    * @param logBase the base of the logarithm used
    * @param x the given value
-   * @return the logarithm_logBase of x: logB(2.0, x) = log(x) / log(2.0).
+   * @return the logarithm_logBase of x: Example: logB(2.0, x) = log(x) / log(2.0).
    */
   public static final double logB(final double logBase, final double x) {
     return log(x) / log(logBase);
