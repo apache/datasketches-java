@@ -250,6 +250,10 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   }
 
+  int getHashTableThreshold() {
+    return hashTableThreshold_;
+  }
+
   //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
   // Used by hashUpdate()
   private final void resizeCache() {

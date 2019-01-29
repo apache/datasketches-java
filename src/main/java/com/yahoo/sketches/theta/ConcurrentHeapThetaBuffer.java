@@ -5,12 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
-import static java.lang.Math.floor;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -31,12 +27,10 @@ import com.yahoo.sketches.ResizeFactor;
  */
 final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
-//  private ExecutorService propagationExecutorService_ = Executors.newSingleThreadExecutor();
-
   /**
-   * The bound on the size of the buffer
+   * A flag indicating whether the shared sketch is in shared mode and requires eager propagation
    */
-  private final int cacheLimit;
+  private boolean isExactMode;
 
   /**
    * Shared sketch consisting of the global sample set and theta value.
@@ -54,14 +48,13 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   private final boolean propagateOrderedCompact;
 
-  ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed, final int cacheLimit,
-      final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact) {
+  ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed,
+                            final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf
         false); //not a union gadget
 
-    final int maxLimit = (int) floor(REBUILD_THRESHOLD * (1 << getLgArrLongs()));
-    this.cacheLimit = max(min(cacheLimit, maxLimit), 0);
+    isExactMode = true;
     this.shared = shared;
     localPropagationInProgress = new AtomicBoolean(false);
     this.propagateOrderedCompact = propagateOrderedCompact;
@@ -131,12 +124,9 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   @Override
   public void reset() {
-    if (cacheLimit > 0) {
-      java.util.Arrays.fill(getCache(), 0L);
-    }
+    super.reset();
+    isExactMode = true;
     localPropagationInProgress.set(false);
-    curCount_ = 0;
-    thetaLong_ = shared.getVolatileTheta();
   }
 
   @Override
@@ -155,9 +145,12 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   @Override
-  UpdateReturnState hashUpdate(final long hash) { //Simplified
+  UpdateReturnState hashUpdate(final long hash) {
+    if(isExactMode) {
+      isExactMode = !shared.isSharedEstimationMode();
+    }
     HashOperations.checkHashCorruption(hash);
-    if (cacheLimit == 0 || !shared.isSharedEstimationMode()) {
+    if (getHashTableThreshold() == 0 || isExactMode ) {
       final long thetaLong = getThetaLong();
       //The over-theta and zero test
       if (HashOperations.continueCondition(thetaLong, hash)) {
@@ -171,16 +164,6 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
       propagateToSharedSketch();
     }
     return state;
-  }
-
-  /**
-   * Returns true if numEntries (curCount) is greater than the buffer bound.
-   * @param numEntries the given number of entries (or current count).
-   * @return true if numEntries (curCount) is greater than the buffer bound.
-   */
-  @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > cacheLimit;
   }
 
   /**
@@ -209,6 +192,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
     shared.propagate(localPropagationInProgress, compactSketch, ConcurrentSharedThetaSketch.NOT_SINGLE_HASH);
-    reset();
+    super.reset();
+    thetaLong_ = shared.getVolatileTheta();
   }
 }

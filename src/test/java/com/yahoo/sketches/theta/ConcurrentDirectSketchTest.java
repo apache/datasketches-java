@@ -417,7 +417,6 @@ public class ConcurrentDirectSketchTest {
   public void checkEstMode() {
     lgK = 12;
     int k = 1 << lgK;
-    int u = 2*k;
 
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
@@ -425,9 +424,10 @@ public class ConcurrentDirectSketchTest {
       final UpdateSketchBuilder bldr = configureBuilder();
       //must build shared first
       shared = bldr.buildSharedInternal(mem);
-      UpdateSketch usk = bldr.buildLocalInternal(shared);
+      ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
 
       assertTrue(usk.isEmpty());
+      int u = usk.getHashTableThreshold();
 
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForPropagationToComplete();
@@ -503,8 +503,7 @@ public class ConcurrentDirectSketchTest {
       final UpdateSketchBuilder bldr = configureBuilder();
       //must build shared first
       shared = bldr.buildSharedInternal(mem);
-      UpdateSketch usk = bldr.buildLocalInternal(shared);
-      ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
+      ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
 
       assertTrue(usk.isEmpty());
 
@@ -513,6 +512,7 @@ public class ConcurrentDirectSketchTest {
 
       assertFalse(usk.isEmpty());
       assertTrue(usk.getEstimate() > 0.0);
+<<<<<<< HEAD
       assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k);
 
       ((UpdateSketch)shared).rebuild();
@@ -521,6 +521,16 @@ public class ConcurrentDirectSketchTest {
       sk1.rebuild();
       assertEquals(((UpdateSketch)shared).getRetainedEntries(false), k);
       assertEquals(((UpdateSketch)shared).getRetainedEntries(true), k);
+=======
+      assertTrue(shared.getSharedRetainedEntries(false) >= k);
+
+      shared.rebuildShared();
+      assertEquals(shared.getSharedRetainedEntries(false), k);
+      assertEquals(shared.getSharedRetainedEntries(true), k);
+      usk.rebuild();
+      assertEquals(shared.getSharedRetainedEntries(false), k);
+      assertEquals(shared.getSharedRetainedEntries(true), k);
+>>>>>>> remove cache limit, add concurrency error factor
     }
   }
 
@@ -528,7 +538,6 @@ public class ConcurrentDirectSketchTest {
   public void checkResetAndStartingSubMultiple() {
     lgK = 9;
     int k = 1 << lgK;
-    int u = 4*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
@@ -540,11 +549,16 @@ public class ConcurrentDirectSketchTest {
 
       assertTrue(usk.isEmpty());
 
+      int u = 4*sk1.getHashTableThreshold();
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForPropagationToComplete();
 
       assertFalse(usk.isEmpty());
+<<<<<<< HEAD
       assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k);
+=======
+      assertTrue(shared.getSharedRetainedEntries(false) >= k);
+>>>>>>> remove cache limit, add concurrency error factor
       assertTrue(sk1.getThetaLong() < Long.MAX_VALUE);
 
       shared.resetShared();
@@ -582,7 +596,6 @@ public class ConcurrentDirectSketchTest {
   public void checkEstModeMemoryArr() {
     lgK = 12;
     int k = 1 << lgK;
-    int u = 2*k;
 
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
@@ -590,14 +603,21 @@ public class ConcurrentDirectSketchTest {
       final UpdateSketchBuilder bldr = configureBuilder();
       //must build shared first
       shared = bldr.buildSharedInternal(mem);
-      UpdateSketch usk = bldr.buildLocalInternal(shared);
+      ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
       assertTrue(usk.isEmpty());
 
+      int u = 3*usk.getHashTableThreshold();
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForPropagationToComplete();
 
+<<<<<<< HEAD
       assertEquals(usk.getEstimate(), u, u*.05);
       assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k);
+=======
+      double est = usk.getEstimate();
+      assertTrue(est<u*1.05 && est > u*0.95);
+      assertTrue(shared.getSharedRetainedEntries(false) >= k);
+>>>>>>> remove cache limit, add concurrency error factor
     }
   }
 
@@ -605,7 +625,6 @@ public class ConcurrentDirectSketchTest {
   public void checkEstModeNativeMemory() {
     lgK = 12;
     int k = 1 << lgK;
-    int u = 2*k;
     int memCapacity = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
 
     try(WritableDirectHandle memHandler = WritableMemory.allocateDirect(memCapacity)) {
@@ -613,15 +632,21 @@ public class ConcurrentDirectSketchTest {
       final UpdateSketchBuilder bldr = configureBuilder();
       //must build shared first
       shared = bldr.buildSharedInternal(memHandler.get());
-      UpdateSketch usk = bldr.buildLocalInternal(shared);
+      ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
       assertTrue(usk.isEmpty());
+      int u = 3*usk.getHashTableThreshold();
 
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForPropagationToComplete();
       double est = usk.getEstimate();
+<<<<<<< HEAD
       println(""+est);
       assertEquals(usk.getEstimate(), u, u*.05);
       assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k);
+=======
+      assertTrue(est<u*1.05 && est > u*0.95);
+      assertTrue(shared.getSharedRetainedEntries(false) >= k);
+>>>>>>> remove cache limit, add concurrency error factor
     }
   }
 
@@ -629,21 +654,26 @@ public class ConcurrentDirectSketchTest {
   public void checkConstructReconstructFromMemory() {
     lgK = 12;
     int k = 1 << lgK;
-    int u = 2*k;
 
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       final UpdateSketchBuilder bldr = configureBuilder();
       //must build shared first
       shared = bldr.buildSharedInternal(h.get());
-      UpdateSketch usk = bldr.buildLocalInternal(shared);
+      ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
       assertTrue(usk.isEmpty());
+      int u = 3*usk.getHashTableThreshold();
 
       for (int i = 0; i< u; i++) { usk.update(i); } //force estimation
       waitForPropagationToComplete();
 
       double est1 = usk.getEstimate();
+<<<<<<< HEAD
       int count1 = ((UpdateSketch)shared).getRetainedEntries(false);
       assertEquals(est1, u, u*.05);
+=======
+      int count1 = shared.getSharedRetainedEntries(false);
+      assertTrue(est1<u*1.05 && est1 > u*0.95);
+>>>>>>> remove cache limit, add concurrency error factor
       assertTrue(count1 >= k);
 
       byte[] serArr;
@@ -695,7 +725,7 @@ public class ConcurrentDirectSketchTest {
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
-      final UpdateSketchBuilder bldr = configureBuilderWithCache();
+      final UpdateSketchBuilder bldr = configureBuilder();
       //must build shared first
       shared = bldr.buildSharedInternal(mem);
       UpdateSketch usk = bldr.buildLocalInternal(shared);
@@ -718,8 +748,14 @@ public class ConcurrentDirectSketchTest {
       waitForPropagationToComplete();
 
       long theta2 = shared.getVolatileTheta();
+<<<<<<< HEAD
       int entries = ((UpdateSketch)shared).getRetainedEntries(false);
       assertTrue((entries > k) || (theta2 < theta1),"entries="+entries+" k="+k+" theta1="+theta1+" theta2="+theta2);
+=======
+      int entries = shared.getSharedRetainedEntries(false);
+      assertTrue((entries > k) || (theta2 < theta1),
+          "entries="+entries+" k="+k+" theta1="+theta1+" theta2="+theta2);
+>>>>>>> remove cache limit, add concurrency error factor
 
       ((UpdateSketch)shared).rebuild();
       assertEquals(((UpdateSketch)shared).getRetainedEntries(false), k);
@@ -764,6 +800,7 @@ public class ConcurrentDirectSketchTest {
     bldr.setSharedLogNominalEntries(lgK);
     bldr.setLocalLogNominalEntries(lgK);
     bldr.setSeed(DEFAULT_UPDATE_SEED);
+<<<<<<< HEAD
     return bldr;
   }
   //configures builder for both local and shared
@@ -771,6 +808,10 @@ public class ConcurrentDirectSketchTest {
     final UpdateSketchBuilder bldr = configureBuilder();
     int k = 1 << lgK;
     bldr.setCacheLimit(k);
+=======
+    bldr.setSharedIsDirect(true);
+    bldr.setMaxConcurrencyError(0.0);
+>>>>>>> remove cache limit, add concurrency error factor
     return bldr;
   }
 

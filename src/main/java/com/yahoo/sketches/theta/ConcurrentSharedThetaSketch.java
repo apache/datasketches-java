@@ -17,10 +17,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 interface ConcurrentSharedThetaSketch {
 
   long NOT_SINGLE_HASH = -1L;
-  double ERROR = 0.05;
+  double MIN_ERROR = 0.0000001;
 
-  static long getLimit(long k) {
-    return Math.min((2 * k), (long)Math.ceil(1.0/Math.pow(ERROR, 2.0)));
+  static long getLimit(long k, double error) {
+    return 2 * Math.min((k), (long)Math.ceil(1.0/Math.pow(Math.max(error,MIN_ERROR), 2.0)));
   }
 
   /**
@@ -67,11 +67,12 @@ interface ConcurrentSharedThetaSketch {
       final long singleHash);
 
   default long getExactLimit() {
-    final long k = calcK();
-    return getLimit(k);
+    return getLimit(calcK(), getError());
   }
 
   long calcK();
+
+  double getError();
 
   // ----------------------------------
   // Methods for tests

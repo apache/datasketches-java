@@ -40,6 +40,8 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    */
   private final long exactLimit_;
 
+  private final double maxConcurrencyError_;
+
   /**
    * An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
    * affect the sketch at epoch j>i.
@@ -51,13 +53,15 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param maxConcurrencyError
    */
-  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed) {
+  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed, double maxConcurrencyError) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf,
         false); //unionGadget
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
+    maxConcurrencyError_ = maxConcurrencyError;
     exactLimit_ = getExactLimit();
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
@@ -164,7 +168,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    */
   @Override
   public void propagate(final AtomicBoolean localPropagationInProgress,
-      final Sketch sketchIn, final long singleHash) {
+                        final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
     if ((singleHash != NOT_SINGLE_HASH)                 //namely, is a single hash and
         && (getRetainedEntries(false) < exactLimit_)) { //a small sketch then propagate myself (blocking)
@@ -181,15 +185,18 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     final ConcurrentBackgroundThetaPropagation job =
         new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
             epoch);
-//    ConcurrentPropagationService.execute(job);
-    ConcurrentBackgroundThetaPropagation.propagationExecutorService.execute(job);
-//    propagationExecutorService_.execute(job);
+    ConcurrentPropagationService.execute(job);
   }
 
   @Override
   public long calcK() {
     final long k = 1 << getLgNomLongs();
     return k;
+  }
+
+  @Override
+  public double getError() {
+    return maxConcurrencyError_;
   }
 
 

@@ -37,8 +37,8 @@ public class UpdateSketchBuilder {
   //Fields for concurrent theta sketch
   private int bNumPoolThreads;
   private int bLocalLgNomLongs;
-  private int bCacheLimit;
   private boolean bPropagateOrderedCompact;
+  private double maxConcurrencyError;
 
 
   /**
@@ -66,7 +66,6 @@ public class UpdateSketchBuilder {
     // Default values for concurrent sketch
     bNumPoolThreads = ConcurrentPropagationService.NUM_POOL_THREADS;
     bLocalLgNomLongs = 4; //default is smallest legal QS sketch
-    bCacheLimit = 0;
     bPropagateOrderedCompact = true;
   }
 
@@ -253,25 +252,6 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the cache limit size for the ConcurrentHeapThetaBuffer.
-   *
-   * @param cacheLimit the given cacheLimit. The default is zero.
-   * @return this ConcurrentThetaBuilder
-   */
-  public UpdateSketchBuilder setCacheLimit(final int cacheLimit) {
-    bCacheLimit = cacheLimit;
-    return this;
-  }
-
-  /**
-   * Gets the cache limit size for the ConcurrentHeapThetaBuffer.
-   * @return the cache limit size for the ConcurrentHeapThetaBuffer.
-   */
-  public int getCacheLimit() {
-    return bCacheLimit;
-  }
-
-  /**
    * Sets the Propagate Ordered Compact flag to the given value.
    *
    * @param prop the given value
@@ -352,18 +332,18 @@ public class UpdateSketchBuilder {
   public UpdateSketch buildShared(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
-      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
+      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError);
     } else {
-      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError, dstMem);
     }
   }
 
   ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
-      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
+      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError);
     } else {
-      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError, dstMem);
     }
   }
 
@@ -384,7 +364,7 @@ public class UpdateSketchBuilder {
       throw new SketchesStateException("The shared sketch must be built first.");
     }
     final ConcurrentSharedThetaSketch bShared = (ConcurrentSharedThetaSketch)shared;
-    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, bCacheLimit, bShared,
+    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, bShared,
         bPropagateOrderedCompact);
   }
 
@@ -392,7 +372,7 @@ public class UpdateSketchBuilder {
     if (shared == null) {
       throw new SketchesStateException("The shared sketch must be built first.");
     }
-    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, bCacheLimit, shared,
+    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, shared,
         bPropagateOrderedCompact);
   }
 
@@ -411,9 +391,11 @@ public class UpdateSketchBuilder {
     sb.append("Family:").append(TAB).append(bFam).append(LS);
     final String mrsStr = bMemReqSvr.getClass().getSimpleName();
     sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
-    sb.append("Cache Limit:").append(TAB).append(bCacheLimit).append(LS);
     sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
     return sb.toString();
   }
 
+  public void setMaxConcurrencyError(double maxConcurrencyError) {
+    this.maxConcurrencyError = maxConcurrencyError;
+  }
 }
