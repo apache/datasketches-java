@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 class ConcurrentPropagationService {
 
   // Singleton
-  private static ConcurrentPropagationService instance = null;
+  private static volatile ConcurrentPropagationService instance = null;
   private static ExecutorService propagationExecutorService = null;
   //
   static int NUM_POOL_THREADS = 3; // Default: 3 threads
