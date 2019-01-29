@@ -640,25 +640,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(shared.getSharedRetainedEntries(true), k);
   }
 
-  //  private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
-  //    try {
-  //      mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-  //      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
-  //      fail();
-  //    } catch (SketchesArgumentException e) {
-  //      //expected
-  //    }
-  //  }
-
   @SuppressWarnings("unused")
   @Test
   public void checkBuilderExceptions() {
     UpdateSketchBuilder bldr = new UpdateSketchBuilder();
-    try {
-      bldr.setSharedIsDirect(true);
-      ConcurrentSharedThetaSketch sts = bldr.buildSharedInternal(null);
-      fail();
-    } catch (SketchesArgumentException e) { }
     try {
       bldr.setNominalEntries(8);
       fail();

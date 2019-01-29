@@ -38,7 +38,6 @@ public class UpdateSketchBuilder {
   private int bLocalLgNomLongs;
   private int bCacheLimit;
   private boolean bPropagateOrderedCompact;
-  private boolean bSharedIsDirect;
 
 
   /**
@@ -67,7 +66,6 @@ public class UpdateSketchBuilder {
     bLocalLgNomLongs = 4; //default is smallest legal QS sketch
     bCacheLimit = 0;
     bPropagateOrderedCompact = true;
-    bSharedIsDirect = false;
   }
 
   /**
@@ -287,7 +285,6 @@ public class UpdateSketchBuilder {
   }
 
   public UpdateSketchBuilder setSharedIsDirect(final boolean isDirect) {
-    bSharedIsDirect = isDirect;
     return this;
   }
 
@@ -351,24 +348,18 @@ public class UpdateSketchBuilder {
    * and the given destination WritableMemory.
    */
   public UpdateSketch buildShared(final WritableMemory dstMem) {
-    if (bSharedIsDirect) {
-      if (dstMem == null) {
-        throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
-      }
-      return new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem);
-    } else {
+    if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
+    } else {
+      return new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem);
     }
   }
 
   ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
-    if (bSharedIsDirect) {
-      if (dstMem == null) {
-        throw new SketchesArgumentException("Destination WritableMemory cannot be null.");
-      }
-      return new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem);
-    } else {
+    if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
+    } else {
+      return new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem);
     }
   }
 
@@ -419,7 +410,6 @@ public class UpdateSketchBuilder {
     sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
     sb.append("Cache Limit:").append(TAB).append(bCacheLimit).append(LS);
     sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
-    sb.append("Shared is direct:").append(TAB).append(bSharedIsDirect).append(LS);
     return sb.toString();
   }
 
