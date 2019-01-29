@@ -37,10 +37,17 @@ public class KllFloatsSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkBadGetQuantiles() {
+  public void getQuantileInvalidArg() {
     final KllFloatsSketch sketch = new KllFloatsSketch();
     sketch.update(1);
     sketch.getQuantile(-1.0);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void getQuantilesInvalidArg() {
+    final KllFloatsSketch sketch = new KllFloatsSketch();
+    sketch.update(1);
+    sketch.getQuantiles(new double[] {2.0});
   }
 
   @Test
