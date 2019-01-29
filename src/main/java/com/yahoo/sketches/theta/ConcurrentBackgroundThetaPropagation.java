@@ -57,7 +57,7 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
    */
   private final long epoch;
 
-  public ConcurrentBackgroundThetaPropagation(final ConcurrentSharedThetaSketch sharedThetaSketch,
+  ConcurrentBackgroundThetaPropagation(final ConcurrentSharedThetaSketch sharedThetaSketch,
       final AtomicBoolean localPropagationInProgress, final Sketch sketchIn, final long singleHash,
       final long epoch) {
     this.sharedThetaSketch = sharedThetaSketch;
