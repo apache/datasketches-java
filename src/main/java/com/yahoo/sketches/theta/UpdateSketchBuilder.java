@@ -385,7 +385,7 @@ public class UpdateSketchBuilder {
    * @param shared the shared sketch to be accessed through the local theta buffer
    * @return an ConcurrentHeapThetaBuffer
    */
-  public ConcurrentHeapThetaBuffer buildLocal(final UpdateSketch shared) {
+  public UpdateSketch buildLocal(final UpdateSketch shared) {
     if ((shared == null) || !(shared instanceof ConcurrentSharedThetaSketch)) {
       throw new SketchesStateException("The shared sketch must be built first.");
     }
