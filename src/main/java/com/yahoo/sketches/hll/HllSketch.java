@@ -49,16 +49,26 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  */
 public class HllSketch extends BaseHllSketch {
+  public static final int DEFAULT_LG_K = 12;
+  public static final TgtHllType DEFAULT_HLL_TYPE = TgtHllType.HLL_4;
+
   private static final String LS = System.getProperty("line.separator");
   HllSketchImpl hllSketchImpl = null;
 
   /**
-   * Constructs a new on-heap sketch with a HLL_4 sketch as the default.
+   * Constructs a new on-heap sketch with the default lgConfigK and tgtHllType.
+   */
+  public HllSketch() {
+    this(DEFAULT_LG_K, DEFAULT_HLL_TYPE);
+  }
+
+  /**
+   * Constructs a new on-heap sketch with the default tgtHllType.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
    */
   public HllSketch(final int lgConfigK) {
-    this(lgConfigK, TgtHllType.HLL_4);
+    this(lgConfigK, DEFAULT_HLL_TYPE);
   }
 
   /**

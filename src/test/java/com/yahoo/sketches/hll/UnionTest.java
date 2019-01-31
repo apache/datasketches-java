@@ -289,7 +289,7 @@ public class UnionTest {
 
   @Test
   public void checkCompositeEst() {
-    Union u = newUnion(12);
+    Union u = new Union();
     assertEquals(u.getCompositeEstimate(), 0, .03);
     for (int i = 1; i <= 15; i++) { u.update(i); }
     assertEquals(u.getCompositeEstimate(), 15, 15 *.03);
