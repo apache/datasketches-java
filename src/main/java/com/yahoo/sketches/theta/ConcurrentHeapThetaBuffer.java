@@ -69,7 +69,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   @Override
   public int getCurrentBytes(final boolean compact) {
-    return shared.getSharedCurrentBytes(compact);
+    return ((UpdateSketch)shared).getCurrentBytes(compact);
   }
 
   /**
@@ -90,7 +90,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   @Override
   public double getLowerBound(final int numStdDev) {
-    return shared.getSharedLowerBound(numStdDev);
+    return ((UpdateSketch)shared).getLowerBound(numStdDev);
   }
 
   /**
@@ -102,23 +102,21 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   @Override
   public double getUpperBound(final int numStdDev) {
-    return shared.getSharedUpperBound(numStdDev);
+    return ((UpdateSketch)shared).getUpperBound(numStdDev);
   }
 
   @Override
   public boolean isDirect() {
-    return shared.isSharedDirect();
+    return ((UpdateSketch)shared).isDirect();
   }
 
   @Override
   public boolean isEmpty() {
-    return shared.isSharedEmpty();
+    return ((UpdateSketch)shared).isEmpty();
   }
 
   /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * This is true if theta &lt; 1.0 AND isEmpty() is false.
-   *
    * @return true if the sketch is in estimation mode.
    */
   @Override
@@ -141,7 +139,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   @Override
   public byte[] toByteArray() {
-    return shared.sharedToByteArray();
+    return ((UpdateSketch)shared).toByteArray();
   }
 
   //restricted methods

@@ -7,7 +7,7 @@ package com.yahoo.sketches.theta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.yahoo.memory.WritableMemory;
+
 import com.yahoo.sketches.ResizeFactor;
 
 /**
@@ -95,35 +95,6 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   //ConcurrentSharedThetaSketch overrides
 
   /**
-   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
-   * @return this sketch as an ordered CompactSketch on the Java heap.
-   */
-  @Override
-  public CompactSketch compactShared() {
-    return compact();
-  }
-
-  /**
-   * Convert this UpdateSketch to a CompactSketch in the chosen form.
-   *
-   * <p>This compacting process converts the hash table form of an UpdateSketch to
-   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
-   * greater than theta will be discarded.  The number of valid values remaining in the
-   * Compact Sketch depends on a number of factors, but may be larger or smaller than
-   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
-   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
-   * on the UpdateSketch prior to this.
-   *
-   * @param dstOrdered <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
-   * @param dstMem     <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   * @return this sketch as a CompactSketch in the chosen form
-   */
-  @Override
-  public CompactSketch compactShared(final boolean dstOrdered, final WritableMemory dstMem) {
-    return compact(dstOrdered, dstMem);
-  }
-
-  /**
    * Completes the propagation: end mutual exclusion block.
    * Notifies the local thread the propagation is completed
    *
@@ -151,54 +122,6 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
-   * Returns the number of storage bytes required for this Sketch in its current state.
-   * @param compact if true, returns the bytes required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
-   * @return the number of storage bytes required for this sketch
-   */
-  @Override
-  public int getSharedCurrentBytes(final boolean compact) {
-    return getCurrentBytes(compact);
-  }
-
-  /**
-   * Gets the approximate lower error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the lower bound.
-   */
-  @Override
-  public double getSharedLowerBound(final int numStdDev) {
-    return getLowerBound(numStdDev);
-  }
-
-  /**
-   * Returns the number of entries that have been retained by the sketch.
-   * @param valid if true, returns the number of valid entries, which are less than theta and used
-   * for estimation.
-   * Otherwise, return the number of all entries, valid or not, that are currently in the internal
-   * sketch cache.
-   * @return the number of retained entries
-   */
-  @Override
-  public int getSharedRetainedEntries(final boolean valid) {
-    return getRetainedEntries(valid);
-  }
-
-  /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the upper bound.
-   */
-  @Override
-  public double getSharedUpperBound(final  int numStdDev) {
-    return getUpperBound(numStdDev);
-  }
-
-  /**
    * Returns the value of the volatile theta manged by the shared sketch
    * @return the value of the volatile theta manged by the shared sketch
    */
@@ -214,26 +137,6 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   @Override
   public boolean isPropagationInProgress() {
     return sharedPropagationInProgress_.get();
-  }
-
-  /**
-   * Returns true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   * @return true if the this sketch's internal data structure is backed by direct (off-heap)
-   * Memory.
-   */
-  @Override
-  public boolean isSharedDirect() {
-    return isDirect();
-  }
-
-  /**
-   * Returns whether the shared sketch is empty
-   * @return whether the shared sketch is empty
-   */
-  @Override
-  public boolean isSharedEmpty() {
-    return isEmpty();
   }
 
   /**
@@ -266,7 +169,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
         endPropagation(null); // do not change local flag
         return;
       }
-      updateSingle(singleHash);
+      sharedHashUpdate(singleHash);
       endPropagation(localPropagationInProgress);
       return;
     }
@@ -278,29 +181,11 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
-   * Rebuilds the hash table to remove dirty values or to reduce the size
-   * to nominal entries.
-   */
-  @Override
-  public UpdateSketch rebuildShared() {
-    return rebuild();
-  }
-
-  /**
    * Resets the content of the shared sketch to an empty sketch
    */
   @Override
   public void resetShared() {
     reset();
-  }
-
-  /**
-   * Serialize this sketch to a byte array form.
-   * @return byte array of this sketch
-   */
-  @Override
-  public byte[] sharedToByteArray() {
-    return toByteArray();
   }
 
   /**
@@ -327,7 +212,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param hash to be propagated to the shared sketch
    */
   @Override
-  public void updateSingle(final long hash) {
+  public void sharedHashUpdate(final long hash) {
     hashUpdate(hash);
   }
 
