@@ -465,6 +465,9 @@ public class KllFloatsSketch {
     final float[] quantiles = new float[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
+      if (fraction < 0.0 || fraction > 1.0) {
+        throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
+      }
       if      (fraction == 0.0) { quantiles[i] = minValue_; }
       else if (fraction == 1.0) { quantiles[i] = maxValue_; }
       else {
