@@ -398,7 +398,7 @@ public class HllSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkWritableWrapOfCompact() {
-    HllSketch sk = new HllSketch(4);
+    HllSketch sk = new HllSketch();
     byte[] byteArr = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(byteArr);
     HllSketch sk2 = HllSketch.writableWrap(wmem);
