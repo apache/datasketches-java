@@ -284,10 +284,6 @@ public class UpdateSketchBuilder {
     return bPropagateOrderedCompact;
   }
 
-  public UpdateSketchBuilder setSharedIsDirect(final boolean isDirect) {
-    return this;
-  }
-
   /**
    * Returns an UpdateSketch with the current configuration of this Builder.
    * @return an UpdateSketch
@@ -351,7 +347,7 @@ public class UpdateSketchBuilder {
     if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
     } else {
-      return new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, dstMem);
     }
   }
 
@@ -359,13 +355,12 @@ public class UpdateSketchBuilder {
     if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed);
     } else {
-      return new ConcurrentDirectThetaSketch(bLgNomLongs, bSeed, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, dstMem);
     }
   }
 
   /**
-   * Returns a ConcurrentHeapThetaBuffer with the current configuration of this Builder,
-   * which must include a valid ConcurrentDirectThetaSketch.
+   * Returns a ConcurrentHeapThetaBuffer with the current configuration of this Builder
    * The relevant parameters are:
    * <ul><li>Local Nominal Entries</li>
    * <li>seed</li>
