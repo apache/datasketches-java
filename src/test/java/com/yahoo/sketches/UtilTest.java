@@ -104,8 +104,8 @@ public class UtilTest {
 
   @Test
   public void checkFloorPowerOf2double() {
-    Assert.assertEquals(floorPowerOfBdouble(2.0, -1.0), Double.NaN);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 0.0), 0.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, -1.0), 1.0);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 0.0), 1.0);
     Assert.assertEquals(floorPowerOfBdouble(2.0, 1.0), 1.0);
     Assert.assertEquals(floorPowerOfBdouble(2.0, 2.0), 2.0);
     Assert.assertEquals(floorPowerOfBdouble(2.0, 3.0), 2.0);

@@ -40,7 +40,7 @@ class DoublesPmfCdfImpl {
    */
   private static double[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
-    Util.validateValues(splitPoints);
+    Util.checkSplitPointsOrder(splitPoints);
 
     final int numSplitPoints = splitPoints.length;
     final int numCounters = numSplitPoints + 1;

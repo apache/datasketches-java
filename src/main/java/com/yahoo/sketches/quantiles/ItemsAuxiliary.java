@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.quantiles;
 
+import static com.yahoo.sketches.quantiles.Util.checkFractionalRankBounds;
+
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -62,16 +64,15 @@ final class ItemsAuxiliary<T> {
   }
 
   /**
-   * Get the estimated value given phi
-   * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
-   * @return the estimated value given phi
+   * Get the estimated quantile given a fractional rank.
+   * @param fRank the fractional rank where: 0 &le; fRank &le; 1.0.
+   * @return the estimated quantile
    */
-  T getQuantile(final double phi) {
-    assert 0.0 <= phi;
-    assert phi <= 1.0;
+  T getQuantile(final double fRank) {
+    checkFractionalRankBounds(fRank);
     if (auxN_ <= 0) { return null; }
-    final long pos = QuantilesHelper.posOfPhi(phi, auxN_);
-    return (approximatelyAnswerPositionalQuery(pos));
+    final long pos = QuantilesHelper.posOfPhi(fRank, auxN_);
+    return approximatelyAnswerPositionalQuery(pos);
   }
 
   /**

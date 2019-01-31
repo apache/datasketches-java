@@ -363,9 +363,9 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkValidateSplitPoints() {
+  public void checkValidateSplitPointsOrder() {
     double[] arr = {2, 1};
-    Util.validateFractions(arr);
+    Util.checkSplitPointsOrder(arr);
   }
 
   @Test

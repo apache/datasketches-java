@@ -6,6 +6,7 @@
 package com.yahoo.sketches.quantiles;
 
 import static com.yahoo.sketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
+import static com.yahoo.sketches.quantiles.Util.checkFractionalRankBounds;
 import static java.lang.System.arraycopy;
 
 import java.util.Arrays;
@@ -54,16 +55,13 @@ final class DoublesAuxiliary {
   }
 
   /**
-   * Get the estimated value given phi
-   * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
-   * @return the estimated value given phi
+   * Get the estimated quantile given a fractional rank.
+   * @param fRank the fractional rank where: 0 &le; fRank &le; 1.0.
+   * @return the estimated quantile
    */
-  double getQuantile(final double phi) {
-    assert 0.0 <= phi;
-    assert phi <= 1.0;
-    final long n = auxN_;
-    if (n <= 0) { return Double.NaN; }
-    final long pos = QuantilesHelper.posOfPhi(phi, n);
+  double getQuantile(final double fRank) {
+    checkFractionalRankBounds(fRank);
+    final long pos = QuantilesHelper.posOfPhi(fRank, auxN_);
     return approximatelyAnswerPositionalQuery(pos);
   }
 

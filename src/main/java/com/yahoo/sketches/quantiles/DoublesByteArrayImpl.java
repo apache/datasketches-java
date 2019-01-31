@@ -42,14 +42,14 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    if (empty && !sketch.isDirect()) {
+    if (empty && !sketch.isDirect()) { //empty & on-heap
       final byte[] outByteArr = new byte[Long.BYTES];
       final WritableMemory memOut = WritableMemory.wrap(outByteArr);
       final int preLongs = 1;
       insertPre0(memOut, preLongs, flags, sketch.getK());
       return outByteArr;
     }
-    //not empty || not compact; flags passed for convenience
+    //not empty || direct; flags passed for convenience
     return convertToByteArray(sketch, flags, ordered, compact);
   }
 

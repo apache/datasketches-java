@@ -285,31 +285,11 @@ final class Util {
   }
 
   /**
-   * Checks the sequential validity of the given array of fractions.
-   * They must be unique, monotonically increasing and not NaN, not &lt; 0 and not &gt; 1.0.
-   * @param fractions array
-   */
-  static final void validateFractions(final double[] fractions) {
-    if (fractions == null) {
-      throw new SketchesArgumentException("Fractions cannot be null.");
-    }
-    final int len = fractions.length;
-    if (len == 0) { return; }
-    final double flo = fractions[0];
-    final double fhi = fractions[fractions.length - 1];
-    if ((flo < 0.0) || (fhi > 1.0)) {
-      throw new SketchesArgumentException(
-          "A fraction cannot be less than zero or greater than 1.0");
-    }
-    Util.validateValues(fractions);
-  }
-
-  /**
    * Checks the sequential validity of the given array of double values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of double values
    */
-  static final void validateValues(final double[] values) {
+  static final void checkSplitPointsOrder(final double[] values) {
     if (values == null) {
       throw new SketchesArgumentException("Values cannot be null.");
     }
@@ -318,6 +298,17 @@ final class Util {
       if (values[j] < values[j + 1]) { continue; }
       throw new SketchesArgumentException(
           "Values must be unique, monotonically increasing and not NaN.");
+    }
+  }
+
+  /**
+   * Checks that the given fractional rank: <i>0 &le; frank &le; 1.0</i>.
+   * @param frank the given fractional rank.
+   */
+  static final void checkFractionalRankBounds(final double frank) {
+    if ((frank < 0.0) || (frank > 1.0)) {
+      throw new SketchesArgumentException(
+        "Fractional rank must be >= 0 and <= 1.0: " + frank);
     }
   }
 

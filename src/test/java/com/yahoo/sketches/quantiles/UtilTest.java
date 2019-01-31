@@ -112,8 +112,8 @@ public class UtilTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkValidateFractionsException() {
-    Util.validateFractions(null);
+  public void checkValidateValuesNullException() {
+    Util.checkSplitPointsOrder(null);
   }
 
   @Test
@@ -234,12 +234,6 @@ public class UtilTest {
    }
    brr[arr.length] = 0;
    return brr;
- }
-
- @Test(expectedExceptions = SketchesArgumentException.class)
- public void checkValidateValues() {
-   double[] arr = null;
-   Util.validateValues(arr);
  }
 
  @Test

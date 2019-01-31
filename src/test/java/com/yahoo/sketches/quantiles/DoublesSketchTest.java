@@ -113,7 +113,7 @@ public class DoublesSketchTest {
   }
 
   @Test
-  public void directSketchSouldMoveOntoHeapEventually() {
+  public void directSketchShouldMoveOntoHeapEventually() {
     try (WritableDirectHandle wdh = WritableMemory.allocateDirect(1000)) {
       WritableMemory mem = wdh.get();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
@@ -122,6 +122,15 @@ public class DoublesSketchTest {
         sketch.update(i);
       }
       Assert.assertFalse(sketch.isSameResource(mem));
+    }
+  }
+
+  @Test
+  public void checkEmptyDirect() {
+    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(1000)) {
+      WritableMemory mem = wdh.get();
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+      sketch.toByteArray(); //exercises a specific path
     }
   }
 
