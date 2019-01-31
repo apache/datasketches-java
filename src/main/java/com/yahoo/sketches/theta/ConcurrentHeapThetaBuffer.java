@@ -156,8 +156,9 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
       if (HashOperations.continueCondition(thetaLong, hash)) {
         return RejectedOverTheta; //signal that hash was rejected due to theta or zero.
       }
-      propagateToSharedSketch(hash);
-      return InsertedCountIncremented; //not totally correct
+      if(propagateToSharedSketch(hash)) {
+        return InsertedCountIncremented; //not totally correct
+      }
     }
     final UpdateReturnState state = super.hashUpdate(hash);
     if (isOutOfSpace(getRetainedEntries() + 1)) {
@@ -171,14 +172,15 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    *
    * @param hash to be propagated
    */
-  private void propagateToSharedSketch(final long hash) {
+  private boolean propagateToSharedSketch(final long hash) {
     //noinspection StatementWithEmptyBody
     while (localPropagationInProgress.get()) {
     } //busy wait until previous propagation completed
     localPropagationInProgress.set(true);
-    shared.propagate(localPropagationInProgress, null, hash);
+    boolean res = shared.propagate(localPropagationInProgress, null, hash);
     //in this case the parent empty_ and curCount_ were not touched
     thetaLong_ = shared.getVolatileTheta();
+    return res;
   }
 
   /**

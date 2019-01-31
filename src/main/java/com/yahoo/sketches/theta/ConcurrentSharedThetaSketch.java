@@ -24,13 +24,20 @@ interface ConcurrentSharedThetaSketch {
   }
 
   /**
+   * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
+   * in progress
+   */
+  boolean startEagerPropagation();
+
+  /**
    * Completes the propagation: end mutual exclusion block.
    * Notifies the local thread the propagation is completed
    *
    * @param localPropagationInProgress the synchronization primitive through which propagator
    *                                   notifies local thread the propagation is completed
+   * @param isEager true if the propagation is in eager mode
    */
-  void endPropagation(AtomicBoolean localPropagationInProgress);
+  void endPropagation(AtomicBoolean localPropagationInProgress, boolean isEager);
 
   /**
    * Returns a (fresh) estimation of the number of unique entries
@@ -45,10 +52,14 @@ interface ConcurrentSharedThetaSketch {
   long getVolatileTheta();
 
   /**
-   * Returns true if a propagation is in progress, otherwise false
-   * @return an indication of whether there is a pending propagation in progress
+   * Awaits termination of background (lazy) propagation tasks
    */
-  boolean isPropagationInProgress();
+  void awaitBgPropagationTermination();
+
+  /**
+   * Init background (lazy) propagation service
+   */
+  void initBgPropagationService();
 
   /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
@@ -58,13 +69,12 @@ interface ConcurrentSharedThetaSketch {
 
   /**
    * Propagates the given sketch or hash value into this sketch
-   *
-   * @param localPropagationInProgress the flag to be updated when propagation is done
+   *  @param localPropagationInProgress the flag to be updated when propagation is done
    * @param sketchIn                   any Theta sketch with the data
    * @param singleHash                 a single hash value
    */
-  void propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
-      final long singleHash);
+  boolean propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
+                    final long singleHash);
 
   default long getExactLimit() {
     return getLimit(calcK(), getError());
@@ -77,12 +87,6 @@ interface ConcurrentSharedThetaSketch {
   // ----------------------------------
   // Methods for tests
   // ----------------------------------
-
-  /**
-   * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
-   * in progress
-   */
-  void startPropagation();
 
   /**
    * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch

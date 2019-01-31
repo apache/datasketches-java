@@ -50,7 +50,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i< u; i++) {
       sk1.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     assertFalse(usk.isEmpty());
     assertEquals(usk.getEstimate(), u, 0.0);
@@ -82,7 +82,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i < u; i++) {
       sk1.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     assertFalse(usk.isEmpty());
     assertTrue(((UpdateSketch)shared).getRetainedEntries(false) <= u);
@@ -148,7 +148,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     int bytes = usk.getCurrentBytes(false);
     byte[] byteArray = usk.toByteArray();
@@ -177,7 +177,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     double uskEst = usk.getEstimate();
     double uskLB  = usk.getLowerBound(2);
@@ -207,7 +207,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i=0; i<u; i++) {
       sk1.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     double sk1est = sk1.getEstimate();
     double sk1lb  = sk1.getLowerBound(2);
@@ -248,9 +248,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i=0; i<u; i++) {
       usk.update(i);
     }
-    if(shared.isPropagationInProgress()) {
-      waitForPropagationToComplete();
-    }
+    waitForBgPropagationToComplete();
 
     ((UpdateSketch)shared).rebuild(); //forces size back to k
 
@@ -372,7 +370,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i< u; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     assertEquals(usk.getEstimate(), u, 0.0);
     assertEquals(((UpdateSketch)shared).getRetainedEntries(false), u);
@@ -394,7 +392,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i< u; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k); // in general it might be exactly k, but
     // in this
@@ -427,7 +425,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
       usk.update(i);
       usk.update(i); //test duplicate rejection
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
     est = usk.getEstimate();
     lb = usk.getLowerBound(2);
     ub = usk.getUpperBound(2);
@@ -452,7 +450,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i< u; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     assertFalse(usk.isEmpty());
     assertTrue(usk.getEstimate() > 0.0);
@@ -511,13 +509,13 @@ public class ConcurrentHeapQuickSelectSketchTest {
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
-    int u = sk1.getHashTableThreshold();
+    int u = 3*sk1.getHashTableThreshold();
 
     for (int i = 0; i< u; i++) { usk.update(i); }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     assertFalse(usk.isEmpty());
-    assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k);
+    assertTrue(((UpdateSketch)shared).getRetainedEntries(false) >= k);
     assertTrue(sk1.getThetaLong() < Long.MAX_VALUE);
 
     shared.resetShared();
@@ -575,7 +573,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 4;
     UpdateSketch s1 = buildConcSketch();
     for (int i = 0; i < (4 * k); i++) { s1.update(i); }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
     byte[] byteArray = s1.toByteArray();
     byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24);
     Memory mem = Memory.wrap(badBytes);
@@ -588,7 +586,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 4;
     UpdateSketch s1 = buildConcSketch();
     for (int i = 0; i < k; i++) { s1.update(i); }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
     byte[] badArray = s1.toByteArray();
     WritableMemory mem = WritableMemory.wrap(badArray);
     PreambleUtil.insertLgArrLongs(mem, 4);
@@ -619,7 +617,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (; i< k; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
     assertFalse(usk.isEmpty());
     assertTrue(usk.getEstimate() > 0.0);
     long theta1 = shared.getVolatileTheta();
@@ -627,7 +625,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (; i< u; i++) {
       usk.update(i);
     }
-    waitForPropagationToComplete();
+    waitForBgPropagationToComplete();
 
     long theta2 = shared.getVolatileTheta();
     int entries = ((UpdateSketch)shared).getRetainedEntries(false);
@@ -681,7 +679,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
     shared = bldr.buildSharedInternal(null);
-    assertFalse(shared.isPropagationInProgress());
+//    assertFalse(shared.awaitBgPropagationTermination());
     return bldr.buildLocalInternal(shared);
   }
 
@@ -718,24 +716,20 @@ public class ConcurrentHeapQuickSelectSketchTest {
   //configures builder for both local and shared
   private UpdateSketchBuilder configureBuilderWithCache() {
     final UpdateSketchBuilder bldr = configureBuilder();
-    int k = 1 << lgK;
+//    int k = 1 << lgK;
     return bldr;
   }
 
 
-  private void waitForPropagationToComplete() {
+  private void waitForBgPropagationToComplete() {
     try {
       Thread.sleep(10);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    while (shared.isPropagationInProgress()) {
-      try {
-        Thread.sleep(1);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
+    shared.awaitBgPropagationTermination();
+    ConcurrentPropagationService.resetExecutorService(Thread.currentThread().getId());
+    shared.initBgPropagationService();
   }
 
 }

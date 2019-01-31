@@ -69,27 +69,20 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
 
   /**
    * Propagation protocol:
-   * 1) start propagation: this ensure mutual exclusion.
-   *    No other thread can update the shared sketch while propagation is in progress
-   * 2) validate propagation is executed at the context of the right epoch, otherwise abort
-   * 3) handle propagation: either of a single hash or of a sketch
-   * 4) complete propagation: end mutual exclusion block
+   * 1) validate propagation is executed at the context of the right epoch, otherwise abort
+   * 2) handle propagation: either of a single hash or of a sketch
+   * 3) complete propagation: ping local buffer
    */
   @Override
   public void run() {
-    // 1) start propagation: this ensure mutual exclusion.
-    sharedThetaSketch.startPropagation();
-    // At this point we are sure no other thread can update the shared sketch while propagation is
-    // in progress
-
-    // 2) validate propagation is executed at the context of the right epoch, otherwise abort
+    // 1) validate propagation is executed at the context of the right epoch, otherwise abort
     if (!sharedThetaSketch.validateEpoch(epoch)) {
       // invalid epoch - should not propagate
-      sharedThetaSketch.endPropagation(null);
+      sharedThetaSketch.endPropagation(null, false);
       return;
     }
 
-    // 3) handle propagation: either of a single hash or of a sketch
+    // 2) handle propagation: either of a single hash or of a sketch
     if (singleHash != ConcurrentSharedThetaSketch.NOT_SINGLE_HASH) {
       sharedThetaSketch.sharedHashUpdate(singleHash); // backdoor update, hash function is bypassed
     } else if (sketchIn != null) {
@@ -116,8 +109,8 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
       }
     }
 
-    // 4) complete propagation: end mutual exclusion block
-    sharedThetaSketch.endPropagation(localPropagationInProgress);
+    // 3) complete propagation: ping local buffer
+    sharedThetaSketch.endPropagation(localPropagationInProgress, false);
   }
 
 }

@@ -5,8 +5,9 @@
 
 package com.yahoo.sketches.theta;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 import com.yahoo.sketches.ResizeFactor;
 
@@ -19,6 +20,11 @@ import com.yahoo.sketches.ResizeFactor;
  */
 class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
+
+  /**
+   * Propagation thread
+   */
+  private volatile ExecutorService executorService_;
 
   /**
    * A flag to coordinate between several propagation threads
@@ -65,6 +71,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     exactLimit_ = getExactLimit();
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
+    initBgPropagationService();
   }
 
   //Sketch overrides
@@ -111,13 +118,16 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    *
    * @param localPropagationInProgress the synchronization primitive through which propagator
    *                                   notifies local thread the propagation is completed
+   * @param isEager true if the propagation is in eager mode
    */
   @Override
-  public void endPropagation(final AtomicBoolean localPropagationInProgress) {
+  public void endPropagation(final AtomicBoolean localPropagationInProgress, boolean isEager) {
     //update volatile theta, uniques estimate and propagation flag
     updateVolatileTheta();
     updateEstimationSnapshot();
-    sharedPropagationInProgress_.set(false);
+    if(isEager) {
+      sharedPropagationInProgress_.set(false);
+    }
     if (localPropagationInProgress != null) {
       localPropagationInProgress.set(false); //clear local propagation flag
     }
@@ -141,14 +151,23 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     return volatileThetaLong_;
   }
 
-  /**
-   * Returns true if a propagation is in progress, otherwise false
-   * @return an indication of whether there is a pending propagation in progress
-   */
   @Override
-  public boolean isPropagationInProgress() {
-    return sharedPropagationInProgress_.get();
+  public void awaitBgPropagationTermination() {
+    try {
+      executorService_.shutdown();
+      while (!executorService_.awaitTermination(1, TimeUnit.MILLISECONDS)) {
+        Thread.sleep(1);
+      }
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
+
+  @Override
+  public void initBgPropagationService() {
+    executorService_ = ConcurrentPropagationService.getExecutorService(Thread.currentThread().getId());
+  }
+
 
   /**
    * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
@@ -161,31 +180,34 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   /**
    * Propagates the given sketch or hash value into this sketch
-   *
-   * @param localPropagationInProgress the flag to be updated when done
+   *  @param localPropagationInProgress the flag to be updated when done
    * @param sketchIn                   any Theta sketch with the data
    * @param singleHash                 a single hash value
    */
   @Override
-  public void propagate(final AtomicBoolean localPropagationInProgress,
-                        final Sketch sketchIn, final long singleHash) {
+  public boolean propagate(final AtomicBoolean localPropagationInProgress,
+                           final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
     if ((singleHash != NOT_SINGLE_HASH)                 //namely, is a single hash and
         && (getRetainedEntries(false) < exactLimit_)) { //a small sketch then propagate myself (blocking)
-      startPropagation();
+      if(!startEagerPropagation()) {
+        endPropagation(localPropagationInProgress, true);
+        return false;
+      }
       if (!validateEpoch(epoch)) {
-        endPropagation(null); // do not change local flag
-        return;
+        endPropagation(null, true); // do not change local flag
+        return true;
       }
       sharedHashUpdate(singleHash);
-      endPropagation(localPropagationInProgress);
-      return;
+      endPropagation(localPropagationInProgress, true);
+      return true;
     }
     // otherwise, be nonblocking, let background thread do the work
     final ConcurrentBackgroundThetaPropagation job =
         new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
             epoch);
-    ConcurrentPropagationService.execute(job);
+    executorService_.execute(job);
+    return true;
   }
 
   @Override
@@ -213,9 +235,10 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * in progress
    */
   @Override
-  public void startPropagation() {
+  public boolean startEagerPropagation() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) {
-    } //busy wait till free
+    }
+    return (!isSharedEstimationMode());// no eager propagation is allowed in estimation mode
   }
 
   /**
@@ -264,11 +287,14 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * is completed.
    */
   private void advanceEpoch() {
-    startPropagation();
+    awaitBgPropagationTermination();
+    startEagerPropagation();
+    ConcurrentPropagationService.resetExecutorService(Thread.currentThread().getId());
     //noinspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread
     epoch_++;
-    endPropagation(null);
+    endPropagation(null, true);
+    initBgPropagationService();
   }
 }
