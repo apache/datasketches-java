@@ -110,7 +110,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   @Override
   public byte[] toByteArray() {
     final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    ByteArrayUtil.putDouble(bytes, VALUE_DOUBLE, value_);
+    ByteArrayUtil.putDoubleLE(bytes, VALUE_DOUBLE, value_);
     bytes[MODE_BYTE] = (byte) mode_.ordinal();
     return bytes;
   }
