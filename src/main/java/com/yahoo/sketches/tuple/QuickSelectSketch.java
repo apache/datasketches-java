@@ -321,22 +321,22 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     bytes[offset++] = (byte) lgCurrentCapacity_;
     bytes[offset++] = (byte) lgResizeFactor_;
     if (samplingProbability_ < 1f) {
-      ByteArrayUtil.putFloat(bytes, offset, samplingProbability_);
+      ByteArrayUtil.putFloatLE(bytes, offset, samplingProbability_);
       offset += Float.BYTES;
     }
     if (isThetaIncluded) {
-      ByteArrayUtil.putLong(bytes, offset, theta_);
+      ByteArrayUtil.putLongLE(bytes, offset, theta_);
       offset += Long.BYTES;
     }
     if (count_ > 0) {
-      ByteArrayUtil.putInt(bytes, offset, count_);
+      ByteArrayUtil.putIntLE(bytes, offset, count_);
       offset += Integer.BYTES;
     }
     if (count_ > 0) {
       int i = 0;
       for (int j = 0; j < keys_.length; j++) {
         if (summaries_[j] != null) {
-          ByteArrayUtil.putLong(bytes, offset, keys_[j]);
+          ByteArrayUtil.putLongLE(bytes, offset, keys_[j]);
           offset += Long.BYTES;
           System.arraycopy(summariesBytes[i], 0, bytes, offset, summariesBytes[i].length);
           offset += summariesBytes[i].length;

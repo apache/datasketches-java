@@ -150,14 +150,14 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     );
     if (isThetaIncluded) {
-      ByteArrayUtil.putLong(bytes, offset, theta_);
+      ByteArrayUtil.putLongLE(bytes, offset, theta_);
       offset += Long.BYTES;
     }
     if (count > 0) {
-      ByteArrayUtil.putInt(bytes, offset, getRetainedEntries());
+      ByteArrayUtil.putIntLE(bytes, offset, getRetainedEntries());
       offset += Integer.BYTES;
       for (int i = 0; i < count; i++) {
-        ByteArrayUtil.putLong(bytes, offset, keys_[i]);
+        ByteArrayUtil.putLongLE(bytes, offset, keys_[i]);
         offset += Long.BYTES;
       }
       for (int i = 0; i < count; i++) {
