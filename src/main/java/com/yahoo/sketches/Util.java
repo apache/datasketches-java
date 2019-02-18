@@ -65,7 +65,13 @@ public final class Util {
    * function and seed are identical for both sketches, otherwise the assumed 1:1 relationship
    * between the original source key value and the hashed bit string would be violated. Once
    * you have developed a history of stored sketches you are stuck with it.
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">See Default Update Seed</a>
+   *
+   * <p><b>WARNING:</b> This seed is used internally by library sketches in different
+   * packages and thus must be declared public. However, this seed value must not be used by library
+   * users with the MurmurHash3 function. It should be viewed as existing for exclusive, private
+   * use by the library.
+   *
+   * <p><a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">See Default Update Seed</a>
    */
   public static final long DEFAULT_UPDATE_SEED = 9001L;
 
