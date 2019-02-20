@@ -26,17 +26,16 @@ public class QuickSelectTest {
   @Test
   public void checkQuickSelect0Based() {
     int len = 64;
-    int nonZeros = 64;
     long[] arr = new long[len];
-    for (int i = 0; i < nonZeros; i++ ) {
-      arr[i] = i + 1;
+    for (int i = 0; i < len; i++ ) {
+      arr[i] = i;
     }
     for (int pivot = 0; pivot < 64; pivot++ ) {
+      long trueVal = pivot;
       for (int i = 0; i < 1000; i++ ) {
         shuffle(arr);
-        long retVal = select(arr, 1, len - 1, pivot);
-        long idxVal = arr[pivot];
-        Assert.assertEquals(retVal, idxVal);
+        long retVal = select(arr, 0, len - 1, pivot);
+        Assert.assertEquals(retVal, trueVal);
       }
     }
   }
@@ -45,17 +44,15 @@ public class QuickSelectTest {
   public void checkQuickSelect1BasedExcludingZeros() {
     int len = 64;
     int nonZeros = (7 * len) / 8;
-    int zeros = len - nonZeros;
     long[] arr = new long[len];
     for (int i = 0; i < nonZeros; i++ ) {
       arr[i] = i + 1;
     }
-    shuffle(arr);
     int pivot = len / 2;
+    long trueVal = arr[pivot - 1];
+    shuffle(arr);
     long retVal = selectExcludingZeros(arr, nonZeros, pivot);
-    int idx = (pivot + zeros) - 1;
-    long idxVal = arr[idx];
-    Assert.assertEquals(retVal, idxVal);
+    Assert.assertEquals(retVal, trueVal);
   }
 
   @Test
@@ -75,17 +72,16 @@ public class QuickSelectTest {
   @Test
   public void checkQuickSelect1BasedIncludingZeros() {
     int len = 64;
-    int nonZeros = (64 * len) / 64;
+    int zeros = len / 8;
     long[] arr = new long[len];
-    for (int i = 0; i < nonZeros; i++ ) {
+    for (int i = zeros; i < len; i++ ) {
       arr[i] = i + 1;
     }
-    shuffle(arr);
     int pivot = len / 2;
+    long trueVal = arr[pivot - 1];
+    shuffle(arr);
     long retVal = selectIncludingZeros(arr, pivot);
-    int idx = pivot - 1;
-    long idxVal = arr[idx];
-    Assert.assertEquals(retVal, idxVal);
+    Assert.assertEquals(retVal, trueVal);
   }
   
   //double[] arrays
@@ -93,17 +89,16 @@ public class QuickSelectTest {
   @Test
   public void checkQuickSelectDbl0Based() {
     int len = 64;
-    int nonZeros = 64;
     double[] arr = new double[len];
-    for (int i = 0; i < nonZeros; i++ ) {
-      arr[i] = i + 1;
+    for (int i = 0; i < len; i++ ) {
+      arr[i] = i;
     }
     for (int pivot = 0; pivot < 64; pivot++ ) {
+      double trueVal = pivot;
       for (int i = 0; i < 1000; i++ ) {
         shuffle(arr);
-        double retVal = select(arr, 1, len - 1, pivot);
-        double idxVal = arr[pivot];
-        Assert.assertEquals(retVal, idxVal, 0.0);
+        double retVal = select(arr, 0, len - 1, pivot);
+        Assert.assertEquals(retVal, trueVal, 0.0);
       }
     }
   }
@@ -112,17 +107,15 @@ public class QuickSelectTest {
   public void checkQuickSelectDbl1BasedExcludingZeros() {
     int len = 64;
     int nonZeros = (7 * len) / 8;
-    int zeros = len - nonZeros;
     double[] arr = new double[len];
     for (int i = 0; i < nonZeros; i++ ) {
       arr[i] = i + 1;
     }
-    shuffle(arr);
     int pivot = len / 2;
+    double trueVal = arr[pivot - 1];
+    shuffle(arr);
     double retVal = selectExcludingZeros(arr, nonZeros, pivot);
-    int idx = (pivot + zeros) - 1;
-    double idxVal = arr[idx];
-    Assert.assertEquals(retVal, idxVal, 0.0);
+    Assert.assertEquals(retVal, trueVal, 0.0);
   }
 
   @Test
@@ -142,17 +135,16 @@ public class QuickSelectTest {
   @Test
   public void checkQuickSelectDbl1BasedIncludingZeros() {
     int len = 64;
-    int nonZeros = (64 * len) / 64;
+    int zeros = len / 8;
     double[] arr = new double[len];
-    for (int i = 0; i < nonZeros; i++ ) {
+    for (int i = zeros; i < len; i++ ) {
       arr[i] = i + 1;
     }
-    shuffle(arr);
     int pivot = len / 2;
+    double trueVal = arr[pivot -1];
+    shuffle(arr);
     double retVal = selectIncludingZeros(arr, pivot);
-    int idx = pivot - 1;
-    double idxVal = arr[idx];
-    Assert.assertEquals(retVal, idxVal, 0.0);
+    Assert.assertEquals(retVal, trueVal, 0.0);
   }
   
 
