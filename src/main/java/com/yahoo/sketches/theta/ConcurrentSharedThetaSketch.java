@@ -20,12 +20,13 @@ interface ConcurrentSharedThetaSketch {
   double MIN_ERROR = 0.0000001;
 
   static long getLimit(long k, double error) {
-    return 2 * Math.min((k), (long)Math.ceil(1.0/Math.pow(Math.max(error,MIN_ERROR), 2.0)));
+    return 2 * Math.min(k, (long) Math.ceil(1.0 / Math.pow(Math.max(error,MIN_ERROR), 2.0)));
   }
 
   /**
    * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
    * in progress
+   * @return true if eager propogation was started
    */
   boolean startEagerPropagation();
 
@@ -70,23 +71,24 @@ interface ConcurrentSharedThetaSketch {
   /**
    * Propagates the given sketch or hash value into this sketch
    *  @param localPropagationInProgress the flag to be updated when propagation is done
-   * @param sketchIn                   any Theta sketch with the data
-   * @param singleHash                 a single hash value
+   * @param sketchIn any Theta sketch with the data
+   * @param singleHash a single hash value
+   * @return true if propagation successfully started
    */
   boolean propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
-                    final long singleHash);
+    final long singleHash);
 
   default long getExactLimit() {
-    return getLimit(calcK(), getError());
+    return getLimit(getK(), getError());
   }
 
-  long calcK();
+  /**
+   * Gets K as a long
+   * @return K as a long
+   */
+  long getK();
 
   double getError();
-
-  // ----------------------------------
-  // Methods for tests
-  // ----------------------------------
 
   /**
    * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
@@ -113,10 +115,6 @@ interface ConcurrentSharedThetaSketch {
    * @return true iff the shared sketch is in the context of the given epoch
    */
   boolean validateEpoch(long epoch);
-
-  // ----------------------------------
-  // Methods for tests
-  // ----------------------------------
 
   /**
    * Resets the content of the shared sketch to an empty sketch

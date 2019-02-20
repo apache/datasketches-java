@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 
@@ -42,14 +41,14 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @param maxConcurrencyError
+   * @param maxConcurrencyError the max concurrency error value.
    * @param dstMem     the given Memory object destination. It cannot be null.
    */
-    ConcurrentDirectQuickSelectSketch(final int lgNomLongs, final long seed, double maxConcurrencyError,
-                              final WritableMemory dstMem) {
+  ConcurrentDirectQuickSelectSketch(final int lgNomLongs, final long seed,
+      final double maxConcurrencyError, final WritableMemory dstMem) {
     super(lgNomLongs, seed, 1.0F, //p
-        ResizeFactor.X1, //rf,
-        null, dstMem, false);
+      ResizeFactor.X1, //rf,
+      null, dstMem, false);
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
@@ -96,22 +95,14 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     volatileEstimate_ = 0;
   }
 
-  //ConcurrentSharedThetaSketch overrides
+  //ConcurrentSharedThetaSketch declarations
 
-  /**
-   * Completes the propagation: end mutual exclusion block.
-   * Notifies the local thread the propagation is completed
-   *
-   * @param localPropagationInProgress the synchronization primitive through which propagator
-   *                                   notifies local thread the propagation is completed
-   * @param isEager true if the propagation is in eager mode
-   */
   @Override
-  public void endPropagation(final AtomicBoolean localPropagationInProgress, boolean isEager) {
+  public void endPropagation(final AtomicBoolean localPropagationInProgress, final boolean isEager) {
     //update volatile theta, uniques estimate and propagation flag
     updateVolatileTheta();
     updateEstimationSnapshot();
-    if(isEager) {
+    if (isEager) {
       sharedPropagationInProgress_.set(false);
     }
     if (localPropagationInProgress != null) {
@@ -119,28 +110,16 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     }
   }
 
-  /**
-   * Returns a (fresh) estimation of the number of unique entries
-   * @return a (fresh) estimation of the number of unique entries
-   */
   @Override
   public double getEstimationSnapshot() {
     return volatileEstimate_;
   }
 
-  /**
-   * Returns the value of the volatile theta manged by the shared sketch
-   * @return the value of the volatile theta manged by the shared sketch
-   */
   @Override
   public long getVolatileTheta() {
     return volatileThetaLong_;
   }
 
-  /**
-   * Returns true if a propagation is in progress, otherwise false
-   * @return an indication of whether there is a pending propagation in progress
-   */
   @Override
   public void awaitBgPropagationTermination() {
     try {
@@ -148,7 +127,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
       while (!executorService_.awaitTermination(1, TimeUnit.MILLISECONDS)) {
         Thread.sleep(1);
       }
-    } catch (InterruptedException e) {
+    } catch (final InterruptedException e) {
       e.printStackTrace();
     }
   }
@@ -158,29 +137,18 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     executorService_ = ConcurrentPropagationService.getExecutorService(Thread.currentThread().getId());
   }
 
-  /**
-   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * @return true if the sketch is in estimation mode.
-   */
   @Override
   public boolean isSharedEstimationMode() {
     return (getRetainedEntries(false) > exactLimit_) || isEstimationMode();
   }
 
-
-  /**
-   * Propagate the ConcurrentHeapThetaBuffer into this sketch
-   *  @param localPropagationInProgress the flag to be updated when done
-   * @param sketchIn                   any Theta sketch with the data
-   * @param singleHash                 a single hash value
-   */
   @Override
   public boolean propagate(final AtomicBoolean localPropagationInProgress,
                            final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
     if ((singleHash != NOT_SINGLE_HASH)                   // namely, is a single hash and
         && (getRetainedEntries(false) < exactLimit_)) {   // a small sketch then propagate myself (blocking)
-      if(!startEagerPropagation()) {
+      if (!startEagerPropagation()) {
         endPropagation(localPropagationInProgress, true);
         return false;
       }
@@ -201,9 +169,8 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public long calcK() {
-    final long k = 1 << getLgNomLongs();
-    return k;
+  public long getK() {
+    return 1L << getLgNomLongs();
   }
 
   @Override
@@ -211,57 +178,32 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     return maxConcurrencyError_;
   }
 
-  /**
-   * Resets the content of the shared sketch to an empty sketch
-   */
   @Override
   public void resetShared() {
     reset();
   }
 
-  /**
-   * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
-   * in progress
-   */
   @Override
   public boolean startEagerPropagation() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
     return (!isSharedEstimationMode());// no eager propagation is allowed in estimation mode
   }
 
-  /**
-   * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch
-   * data, namely, volatile theta and the num of valid entries in the sketch
-   */
   @Override
   public void updateEstimationSnapshot() {
     volatileEstimate_ = super.getEstimate();
   }
 
-  /**
-   * Updates the shared sketch with the given hash
-   * @param hash to be propagated to the shared sketch
-   */
   @Override
   public void sharedHashUpdate(final long hash) {
     hashUpdate(hash);
   }
 
-  /**
-   * Updates the value of the volatile theta by extracting it from the underlying sketch managed
-   * by the shared sketch
-   */
   @Override
   public void updateVolatileTheta() {
     volatileThetaLong_ = getThetaLong();
   }
 
-  /**
-   * Validates the shared sketch is in the context of the given epoch
-   *
-   * @param epoch the epoch number to be validates
-   * @return true iff the shared sketch is in the context of the given epoch
-   */
   @Override
   public boolean validateEpoch(final long epoch) {
     return epoch_ == epoch;

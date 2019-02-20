@@ -103,7 +103,7 @@ public class UpdateSketchBuilder {
     return this;
   }
 
-  public void setbNumPoolThreads(int bNumPoolThreads) {
+  public void setbNumPoolThreads(final int bNumPoolThreads) {
     this.bNumPoolThreads = bNumPoolThreads;
   }
 
@@ -395,7 +395,7 @@ public class UpdateSketchBuilder {
     return sb.toString();
   }
 
-  public void setMaxConcurrencyError(double maxConcurrencyError) {
+  public void setMaxConcurrencyError(final double maxConcurrencyError) {
     this.maxConcurrencyError = maxConcurrencyError;
   }
 }

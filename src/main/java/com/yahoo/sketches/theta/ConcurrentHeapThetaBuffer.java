@@ -146,17 +146,17 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   @Override
   UpdateReturnState hashUpdate(final long hash) {
-    if(isExactMode) {
+    if (isExactMode) {
       isExactMode = !shared.isSharedEstimationMode();
     }
     HashOperations.checkHashCorruption(hash);
-    if (getHashTableThreshold() == 0 || isExactMode ) {
+    if ((getHashTableThreshold() == 0) || isExactMode ) {
       final long thetaLong = getThetaLong();
       //The over-theta and zero test
       if (HashOperations.continueCondition(thetaLong, hash)) {
         return RejectedOverTheta; //signal that hash was rejected due to theta or zero.
       }
-      if(propagateToSharedSketch(hash)) {
+      if (propagateToSharedSketch(hash)) {
         return InsertedCountIncremented; //not totally correct
       }
     }
@@ -177,7 +177,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     while (localPropagationInProgress.get()) {
     } //busy wait until previous propagation completed
     localPropagationInProgress.set(true);
-    boolean res = shared.propagate(localPropagationInProgress, null, hash);
+    final boolean res = shared.propagate(localPropagationInProgress, null, hash);
     //in this case the parent empty_ and curCount_ were not touched
     thetaLong_ = shared.getVolatileTheta();
     return res;
