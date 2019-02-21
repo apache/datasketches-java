@@ -20,40 +20,33 @@ import java.util.concurrent.atomic.AtomicBoolean;
 class ConcurrentBackgroundThetaPropagation implements Runnable {
   static private final int NUM_POOL_THREADS = 3;
 
-  /**
-   * Pool of threads to serve *all* propagation tasks in the system.
-   */
+  // Pool of threads to serve <i>all</i> propagation tasks in the system.
   static final ExecutorService propagationExecutorService =
       Executors.newWorkStealingPool(NUM_POOL_THREADS);
 
-  /**
-   * Shared sketch to absorb the data
-   */
+  // Shared sketch to absorb the data
   private final ConcurrentSharedThetaSketch sharedThetaSketch;
-  /**
-   * Propagation flag of local buffer that is being processed.
-   * It is the synchronization primitive to coordinate the work of the propagation with the
-   * local buffer.
-   * Updated when the propagation completes.
-   */
+
+  // Propagation flag of local buffer that is being processed.
+  // It is the synchronization primitive to coordinate the work of the propagation with the
+  // local buffer.  Updated when the propagation completes.
   private final AtomicBoolean localPropagationInProgress;
-  /**
-   * Sketch to be propagated to shared sketch. Can be null if only a single hash is propagated
-   */
+
+
+  // Sketch to be propagated to shared sketch. Can be null if only a single hash is propagated
   private final Sketch sketchIn;
-  /**
-   * Hash of the datum to be propagated to shared sketch. Can be ConcurrentSharedThetaSketch.NOT_SINGLE_HASH
-   * if the data is propagated through a sketch.
-   */
+
+  // Hash of the datum to be propagated to shared sketch. Can be ConcurrentSharedThetaSketch.NOT_SINGLE_HASH
+  // if the data is propagated through a sketch.
   private final long singleHash;
-  /**
-   * The propagation epoch. The data can be propagated only within the context of this epoch.
-   * The data should not be propagated if this epoch is not equal to the
-   * shared sketch epoch.
-   */
+
+
+  // The propagation epoch. The data can be propagated only within the context of this epoch.
+  // The data should not be propagated if this epoch is not equal to the
+  // shared sketch epoch.
   private final long epoch;
 
-  public ConcurrentBackgroundThetaPropagation(final ConcurrentSharedThetaSketch sharedThetaSketch,
+  ConcurrentBackgroundThetaPropagation(final ConcurrentSharedThetaSketch sharedThetaSketch,
       final AtomicBoolean localPropagationInProgress, final Sketch sketchIn, final long singleHash,
       final long epoch) {
     this.sharedThetaSketch = sharedThetaSketch;
@@ -65,28 +58,22 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
 
   /**
    * Propagation protocol:
-   * 1) start propagation: this ensure mutual exclusion.
-   *    No other thread can update the shared sketch while propagation is in progress
-   * 2) validate propagation is executed at the context of the right epoch, otherwise abort
-   * 3) handle propagation: either of a single hash or of a sketch
-   * 4) complete propagation: end mutual exclusion block
+   * 1) validate propagation is executed at the context of the right epoch, otherwise abort
+   * 2) handle propagation: either of a single hash or of a sketch
+   * 3) complete propagation: ping local buffer
    */
-  @Override public void run() {
-    // 1) start propagation: this ensure mutual exclusion.
-    sharedThetaSketch.startPropagation();
-    // At this point we are sure no other thread can update the shared sketch while propagation is
-    // in progress
-
-    // 2) validate propagation is executed at the context of the right epoch, otherwise abort
+  @Override
+  public void run() {
+    // 1) validate propagation is executed at the context of the right epoch, otherwise abort
     if (!sharedThetaSketch.validateEpoch(epoch)) {
       // invalid epoch - should not propagate
-      sharedThetaSketch.endPropagation(null);
+      sharedThetaSketch.endPropagation(null, false);
       return;
     }
 
-    // 3) handle propagation: either of a single hash or of a sketch
+    // 2) handle propagation: either of a single hash or of a sketch
     if (singleHash != ConcurrentSharedThetaSketch.NOT_SINGLE_HASH) {
-      sharedThetaSketch.updateSingle(singleHash); // backdoor update, hash function is bypassed
+      hashUpdate(sharedThetaSketch, singleHash);
     } else if (sketchIn != null) {
       final long volTheta = sharedThetaSketch.getVolatileTheta();
       assert volTheta <= sketchIn.getThetaLong() :
@@ -100,19 +87,23 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
           if (hashIn >= volTheta) {
             break; //early stop
           }
-          sharedThetaSketch.updateSingle(hashIn); // backdoor update, hash function is bypassed
+          hashUpdate(sharedThetaSketch, hashIn);
         }
       } else { //not ordered, also may have zeros (gaps) in the array.
         for (final long hashIn : cacheIn) {
           if (hashIn > 0) {
-            sharedThetaSketch.updateSingle(hashIn); // backdoor update, hash function is bypassed
+            hashUpdate(sharedThetaSketch, hashIn);
           }
         }
       }
     }
 
-    // 4) complete propagation: end mutual exclusion block
-    sharedThetaSketch.endPropagation(localPropagationInProgress);
+    // 3) complete propagation: ping local buffer
+    sharedThetaSketch.endPropagation(localPropagationInProgress, false);
+  }
+
+  private static final void hashUpdate(final ConcurrentSharedThetaSketch sketch, final long hashIn) {
+    ((UpdateSketch)sketch).hashUpdate(hashIn); // backdoor update, hash function is bypassed
   }
 
 }

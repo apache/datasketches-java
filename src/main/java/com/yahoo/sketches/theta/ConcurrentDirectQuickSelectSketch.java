@@ -11,11 +11,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 
-
 /**
- * A concurrent shared sketch that is based on HeapQuickSelectSketch.
+ * A concurrent shared sketch that is based on DirectQuickSelectSketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
  * any time.
  * Background propagation threads are used to propagate data from thread local buffers into this
@@ -24,13 +24,13 @@ import com.yahoo.sketches.ResizeFactor;
  * @author eshcar
  * @author Lee Rhodes
  */
-class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
+class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
 
   // The propagation thread
-  private volatile ExecutorService executorService_;
+  private ExecutorService executorService_;
 
-  //A flag to coordinate between several eager propagation threads
+  // A flag to coordinate between several eager propagation threads
   private final AtomicBoolean sharedPropagationInProgress_;
 
   // Theta value of concurrent sketch
@@ -50,18 +50,18 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   private volatile long epoch_;
 
   /**
-   * Construct a new sketch instance on the java heap.
+   * Construct a new sketch instance and initialize the given Memory as its backing store.
    *
-   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
-   * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @param maxConcurrencyError the max concurrency error value
-   *
+   * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
+   * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param maxConcurrencyError the max concurrency error value.
+   * @param dstMem     the given Memory object destination. It cannot be null.
    */
-  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed,
-      final double maxConcurrencyError) {
+  ConcurrentDirectQuickSelectSketch(final int lgNomLongs, final long seed,
+      final double maxConcurrencyError, final WritableMemory dstMem) {
     super(lgNomLongs, seed, 1.0F, //p
-        ResizeFactor.X1, //rf,
-        false); //unionGadget
+      ResizeFactor.X1, //rf,
+      null, dstMem, false); //unionGadget
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
@@ -146,8 +146,8 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   public boolean propagate(final AtomicBoolean localPropagationInProgress,
                            final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
-    if ((singleHash != NOT_SINGLE_HASH)                 //namely, is a single hash and
-        && (getRetainedEntries(false) < exactLimit_)) { //a small sketch then propagate myself (blocking)
+    if ((singleHash != NOT_SINGLE_HASH)                   // namely, is a single hash and
+        && (getRetainedEntries(false) < exactLimit_)) {   // a small sketch then propagate myself (blocking)
       if (!startEagerPropagation()) {
         endPropagation(localPropagationInProgress, true);
         return false;
