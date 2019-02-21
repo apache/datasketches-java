@@ -27,29 +27,21 @@ import com.yahoo.sketches.ResizeFactor;
  */
 final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
-  /**
-   * A flag indicating whether the shared sketch is in shared mode and requires eager propagation
-   */
+  // A flag indicating whether the shared sketch is in shared mode and requires eager propagation
   private boolean isExactMode;
 
-  /**
-   * Shared sketch consisting of the global sample set and theta value.
-   */
+  // Shared sketch consisting of the global sample set and theta value.
   private final ConcurrentSharedThetaSketch shared;
 
-  /**
-   * Propagation flag is set to true while propagation is in progress (or pending).
-   * It is the synchronization primitive to coordinate the work with the propagation thread.
-   */
+  // Propagation flag is set to true while propagation is in progress (or pending).
+  // It is the synchronization primitive to coordinate the work with the propagation thread.
   private final AtomicBoolean localPropagationInProgress;
 
-  /**
-   * A flag to indicate if we expect the propagated data to be ordered
-   */
+  // A flag to indicate if we expect the propagated data to be ordered
   private final boolean propagateOrderedCompact;
 
   ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed,
-                            final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact) {
+      final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf
         false); //not a union gadget
@@ -64,74 +56,51 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   @Override
   public int getCurrentBytes(final boolean compact) {
-    return ((UpdateSketch)shared).getCurrentBytes(compact);
+    return shared.getCurrentBytes(compact);
   }
 
-  /**
-   * Gets the unique count estimate.
-   * @return the sketch's best estimate of the cardinality of the input stream.
-   */
-  @Override //specifically overridden
+  @Override
   public double getEstimate() {
-    return ((UpdateSketch)shared).getEstimate();
+    return shared.getEstimate();
   }
 
-  /**
-   * Gets the approximate lower error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the lower bound.
-   */
   @Override
   public double getLowerBound(final int numStdDev) {
-    return ((UpdateSketch)shared).getLowerBound(numStdDev);
+    return shared.getLowerBound(numStdDev);
   }
 
-  /**
-   * Gets the approximate upper error bound given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the upper bound.
-   */
   @Override
   public double getUpperBound(final int numStdDev) {
-    return ((UpdateSketch)shared).getUpperBound(numStdDev);
+    return shared.getUpperBound(numStdDev);
   }
 
   @Override
   public boolean isDirect() {
-    return ((UpdateSketch)shared).isDirect();
+    return shared.isDirect();
   }
 
   @Override
   public boolean isEmpty() {
-    return ((UpdateSketch)shared).isEmpty();
+    return shared.isEmpty();
   }
 
-  /**
-   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * @return true if the sketch is in estimation mode.
-   */
   @Override
   public boolean isEstimationMode() {
-    return ((UpdateSketch)shared).isEstimationMode();
+    return shared.isEstimationMode();
   }
 
-  /**
-   * Resets this sketch back to a virgin empty state.
-   */
+  @Override
+  public byte[] toByteArray() {
+    return shared.toByteArray();
+  }
+
+  //UpdateSketch overrides
+
   @Override
   public void reset() {
     super.reset();
     isExactMode = true;
     localPropagationInProgress.set(false);
-  }
-
-  @Override
-  public byte[] toByteArray() {
-    return ((UpdateSketch)shared).toByteArray();
   }
 
   //restricted methods
@@ -142,12 +111,13 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    *
    * @param hash the given input hash value.  A hash of zero or Long.MAX_VALUE is ignored.
    * A negative hash value will throw an exception.
-   * @return <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
+   * @return
+   * <a href="{@docRoot}/resources/dictionary.html#updateReturnState">See Update Return State</a>
    */
   @Override
   UpdateReturnState hashUpdate(final long hash) {
     if (isExactMode) {
-      isExactMode = !((UpdateSketch)shared).isEstimationMode();
+      isExactMode = !shared.isEstimationMode();
     }
     HashOperations.checkHashCorruption(hash);
     if ((getHashTableThreshold() == 0) || isExactMode ) {
@@ -193,7 +163,8 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
     final CompactSketch compactSketch = compact(propagateOrderedCompact, null);
     localPropagationInProgress.set(true);
-    shared.propagate(localPropagationInProgress, compactSketch, ConcurrentSharedThetaSketch.NOT_SINGLE_HASH);
+    shared.propagate(localPropagationInProgress, compactSketch,
+        ConcurrentSharedThetaSketch.NOT_SINGLE_HASH);
     super.reset();
     thetaLong_ = shared.getVolatileTheta();
   }

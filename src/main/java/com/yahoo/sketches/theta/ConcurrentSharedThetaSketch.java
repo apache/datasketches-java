@@ -66,16 +66,6 @@ interface ConcurrentSharedThetaSketch {
   boolean propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
     final long singleHash);
 
-  default long getExactLimit() {
-    return getLimit(getK(), getError());
-  }
-
-  /**
-   * Gets K as a long
-   * @return K as a long
-   */
-  long getK();
-
   double getError();
 
   /**
@@ -98,5 +88,24 @@ interface ConcurrentSharedThetaSketch {
    */
   boolean validateEpoch(long epoch);
 
+  //The following are public methods that already exist on the "extends" side of the dual
+  // inheritance. They are provided here to allow casts to this interface access
+  // to these methods without having to cast back to the extended parent class.
+
+  int getCurrentBytes(boolean compact);
+
+  double getEstimate();
+
+  double getLowerBound(int numStdDev);
+
+  double getUpperBound(int numStdDev);
+
+  boolean isDirect();
+
+  boolean isEmpty();
+
+  boolean isEstimationMode();
+
+  byte[] toByteArray();
 }
 

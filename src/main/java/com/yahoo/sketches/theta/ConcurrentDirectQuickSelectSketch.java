@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.ConcurrentSharedThetaSketch.getLimit;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,8 +15,9 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 
 /**
- * This is a concurrent theta sketch that is based on a sequential direct (memory-based)
- * quick-select sketch.
+ * A concurrent shared sketch that is based on DirectQuickSelectSketch.
+ * It reflects all data processed by a single or multiple update threads, and can serve queries at
+ * any time.
  * Background propagation threads are used to propagate data from thread local buffers into this
  * sketch which stores the most up-to-date estimation of number of unique items.
  *
@@ -24,20 +27,30 @@ import com.yahoo.sketches.ResizeFactor;
 class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
 
+  // The propagation thread
   private ExecutorService executorService_;
-  private volatile long volatileThetaLong_;
-  private volatile double volatileEstimate_;
-  // Num of retained entries in which the sketch toggles from sync (exact) mode to async propagation mode
-  private final long exactLimit_;
-  private final double maxConcurrencyError_;
+
   // A flag to coordinate between several eager propagation threads
   private final AtomicBoolean sharedPropagationInProgress_;
+
+  // Theta value of concurrent sketch
+  private volatile long volatileThetaLong_;
+
+  // A snapshot of the estimated number of unique entries
+  private volatile double volatileEstimate_;
+
+  // Num of retained entries in which the sketch toggles from sync (exact) mode to async
+  //  propagation mode
+  private final long exactLimit_;
+
+  private final double maxConcurrencyError_;
+
   // An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
-  // affect the sketch at epoch j>i.
+  // affect the sketch at epoch j > i.
   private volatile long epoch_;
 
   /**
-   * Get a new sketch instance and initialize the given Memory as its backing store.
+   * Construct a new sketch instance and initialize the given Memory as its backing store.
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -48,12 +61,12 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
       final double maxConcurrencyError, final WritableMemory dstMem) {
     super(lgNomLongs, seed, 1.0F, //p
       ResizeFactor.X1, //rf,
-      null, dstMem, false);
+      null, dstMem, false); //unionGadget
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
     maxConcurrencyError_ = maxConcurrencyError;
-    exactLimit_ = getExactLimit();
+    exactLimit_ = getLimit(1L << getLgNomLongs(), getError());
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
@@ -61,21 +74,18 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
   //Sketch overrides
 
-  /**
-   * Gets the unique count estimate.
-   * @return the sketch's best estimate of the cardinality of the input stream.
-   */
   @Override
   public double getEstimate() {
     return volatileEstimate_;
   }
 
-  //DirectQuickSelectSketch overrides
+  @Override
+  public boolean isEstimationMode() {
+    return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
+  }
 
-  /**
-   * Rebuilds the hash table to remove dirty values or to reduce the size
-   * to nominal entries.
-   */
+  //UpdateSketch overrides
+
   @Override
   public UpdateSketch rebuild() {
     super.rebuild();
@@ -84,8 +94,8 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   /**
-   * Resets this sketch back to a virgin empty state.
-   * Takes care of mutual exclusion with propagation thread
+   * {@inheritDoc}
+   * Takes care of mutual exclusion with propagation thread.
    */
   @Override
   public void reset() {
@@ -133,11 +143,6 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public boolean isEstimationMode() {
-    return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
-  }
-
-  @Override
   public boolean propagate(final AtomicBoolean localPropagationInProgress,
                            final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
@@ -156,16 +161,10 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
       return true;
     }
     // otherwise, be nonblocking, let background thread do the work
-    final ConcurrentBackgroundThetaPropagation job =
-        new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
-            epoch);
+    final ConcurrentBackgroundThetaPropagation job = new ConcurrentBackgroundThetaPropagation(
+        this, localPropagationInProgress, sketchIn, singleHash, epoch);
     executorService_.execute(job);
     return true;
-  }
-
-  @Override
-  public long getK() {
-    return 1L << getLgNomLongs();
   }
 
   @Override

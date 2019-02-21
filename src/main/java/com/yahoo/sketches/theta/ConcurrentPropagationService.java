@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Pool of threads to serve *all* propagation tasks in the system.
+ * Pool of threads to serve <i>all</i> propagation tasks in the system.
  *
  * @author eshcar
  */

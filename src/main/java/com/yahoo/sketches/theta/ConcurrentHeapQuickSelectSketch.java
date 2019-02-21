@@ -5,53 +5,48 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.ConcurrentSharedThetaSketch.getLimit;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.yahoo.sketches.ResizeFactor;
 
+
 /**
- * A shared sketch that is based on HeapQuickSelectSketch.
+ * A concurrent shared sketch that is based on HeapQuickSelectSketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
- * any time
+ * any time.
+ * Background propagation threads are used to propagate data from thread local buffers into this
+ * sketch which stores the most up-to-date estimation of number of unique items.
  *
  * @author eshcar
+ * @author Lee Rhodes
  */
 class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
 
-  /**
-   * Propagation thread
-   */
+  // The propagation thread
   private volatile ExecutorService executorService_;
 
-  /**
-   * A flag to coordinate between several propagation threads
-   */
+  //A flag to coordinate between several eager propagation threads
   private final AtomicBoolean sharedPropagationInProgress_;
 
-  /**
-   * Theta value of concurrent sketch
-   */
+  // Theta value of concurrent sketch
   private volatile long volatileThetaLong_;
 
-  /**
-   * A snapshot of the estimated number of unique entries
-   */
+  // A snapshot of the estimated number of unique entries
   private volatile double volatileEstimate_;
 
-  /**
-   * Num of retained entries in which the sketch toggles from sync (exact) mode to async propagation mode
-   */
+  // Num of retained entries in which the sketch toggles from sync (exact) mode to async
+  //  propagation mode
   private final long exactLimit_;
 
   private final double maxConcurrencyError_;
 
-  /**
-   * An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
-   * affect the sketch at epoch j>i.
-   */
+  // An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
+  // affect the sketch at epoch j > i.
   private volatile long epoch_;
 
   /**
@@ -60,16 +55,18 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @param maxConcurrencyError the max concurrency error value
+   *
    */
   ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed,
       final double maxConcurrencyError) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf,
         false); //unionGadget
+
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
     maxConcurrencyError_ = maxConcurrencyError;
-    exactLimit_ = getExactLimit();
+    exactLimit_ = getLimit(1L << getLgNomLongs(), getError());
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
@@ -82,7 +79,12 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     return volatileEstimate_;
   }
 
-  //HeapQuickSelectSketch overrides
+  @Override
+  public boolean isEstimationMode() {
+    return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
+  }
+
+  //UpdateSketch overrides
 
   @Override
   public UpdateSketch rebuild() {
@@ -92,7 +94,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   /**
-   * Resets this sketch back to a virgin empty state.
+   * {@inheritDoc}
    * Takes care of mutual exclusion with propagation thread.
    */
   @Override
@@ -141,11 +143,6 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   @Override
-  public boolean isEstimationMode() {
-    return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
-  }
-
-  @Override
   public boolean propagate(final AtomicBoolean localPropagationInProgress,
                            final Sketch sketchIn, final long singleHash) {
     final long epoch = epoch_;
@@ -164,16 +161,10 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
       return true;
     }
     // otherwise, be nonblocking, let background thread do the work
-    final ConcurrentBackgroundThetaPropagation job =
-        new ConcurrentBackgroundThetaPropagation(this, localPropagationInProgress, sketchIn, singleHash,
-            epoch);
+    final ConcurrentBackgroundThetaPropagation job = new ConcurrentBackgroundThetaPropagation(
+        this, localPropagationInProgress, sketchIn, singleHash, epoch);
     executorService_.execute(job);
     return true;
-  }
-
-  @Override
-  public long getK() {
-    return 1L << getLgNomLongs();
   }
 
   @Override
@@ -183,8 +174,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
 
   @Override
   public boolean startEagerPropagation() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) {
-    }
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
     return (!isEstimationMode());// no eager propagation is allowed in estimation mode
   }
 
@@ -203,7 +193,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     return epoch_ == epoch;
   }
 
-  //restricted
+  //Restricted
 
   /**
    * Advances the epoch while there is no background propagation
@@ -221,4 +211,5 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     endPropagation(null, true);
     initBgPropagationService();
   }
+
 }
