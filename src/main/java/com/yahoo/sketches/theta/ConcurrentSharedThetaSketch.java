@@ -41,12 +41,6 @@ interface ConcurrentSharedThetaSketch {
   void endPropagation(AtomicBoolean localPropagationInProgress, boolean isEager);
 
   /**
-   * Returns a (fresh) estimation of the number of unique entries
-   * @return a (fresh) estimation of the number of unique entries
-   */
-  double getEstimationSnapshot();
-
-  /**
    * Returns the value of the volatile theta manged by the shared sketch
    * @return the value of the volatile theta manged by the shared sketch
    */
@@ -61,12 +55,6 @@ interface ConcurrentSharedThetaSketch {
    * Init background (lazy) propagation service
    */
   void initBgPropagationService();
-
-  /**
-   * Returns true if the sketch is Estimation Mode (as opposed to Exact Mode).
-   * @return true if the sketch is in estimation mode.
-   */
-  boolean isSharedEstimationMode();
 
   /**
    * Propagates the given sketch or hash value into this sketch
@@ -97,12 +85,6 @@ interface ConcurrentSharedThetaSketch {
   void updateEstimationSnapshot();
 
   /**
-   * Updates the shared sketch with the given hash
-   * @param hash to be propagated to the shared sketch
-   */
-  void sharedHashUpdate(long hash);
-
-  /**
    * Updates the value of the volatile theta by extracting it from the underlying sketch managed
    * by the shared sketch
    */
@@ -115,11 +97,6 @@ interface ConcurrentSharedThetaSketch {
    * @return true iff the shared sketch is in the context of the given epoch
    */
   boolean validateEpoch(long epoch);
-
-  /**
-   * Resets the content of the shared sketch to an empty sketch
-   */
-  void resetShared();
 
 }
 

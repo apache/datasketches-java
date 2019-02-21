@@ -73,7 +73,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   @Override //specifically overridden
   public double getEstimate() {
-    return shared.getEstimationSnapshot();
+    return ((UpdateSketch)shared).getEstimate();
   }
 
   /**
@@ -116,7 +116,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
    */
   @Override
   public boolean isEstimationMode() {
-    return shared.isSharedEstimationMode();
+    return ((UpdateSketch)shared).isEstimationMode();
   }
 
   /**
@@ -147,7 +147,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   @Override
   UpdateReturnState hashUpdate(final long hash) {
     if (isExactMode) {
-      isExactMode = !shared.isSharedEstimationMode();
+      isExactMode = !((UpdateSketch)shared).isEstimationMode();
     }
     HashOperations.checkHashCorruption(hash);
     if ((getHashTableThreshold() == 0) || isExactMode ) {

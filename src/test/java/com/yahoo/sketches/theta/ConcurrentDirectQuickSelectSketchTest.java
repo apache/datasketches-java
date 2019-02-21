@@ -546,7 +546,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertTrue(((UpdateSketch)shared).getRetainedEntries(false) >= k);
       assertTrue(sk1.getThetaLong() < Long.MAX_VALUE);
 
-      shared.resetShared();
+      ((UpdateSketch)shared).reset();
       sk1.reset();
       assertTrue(usk.isEmpty());
       assertEquals(((UpdateSketch)shared).getRetainedEntries(false), 0);

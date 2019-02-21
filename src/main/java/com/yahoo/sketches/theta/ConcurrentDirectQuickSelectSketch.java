@@ -67,7 +67,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
    */
   @Override
   public double getEstimate() {
-    return getEstimationSnapshot();
+    return volatileEstimate_;
   }
 
   //DirectQuickSelectSketch overrides
@@ -111,11 +111,6 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public double getEstimationSnapshot() {
-    return volatileEstimate_;
-  }
-
-  @Override
   public long getVolatileTheta() {
     return volatileThetaLong_;
   }
@@ -138,8 +133,8 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public boolean isSharedEstimationMode() {
-    return (getRetainedEntries(false) > exactLimit_) || isEstimationMode();
+  public boolean isEstimationMode() {
+    return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
   }
 
   @Override
@@ -156,7 +151,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
         endPropagation(null, true); // do not change local flag
         return true;
       }
-      sharedHashUpdate(singleHash);
+      hashUpdate(singleHash);
       endPropagation(localPropagationInProgress, true);
       return true;
     }
@@ -179,24 +174,14 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public void resetShared() {
-    reset();
-  }
-
-  @Override
   public boolean startEagerPropagation() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
-    return (!isSharedEstimationMode());// no eager propagation is allowed in estimation mode
+    return (!isEstimationMode());// no eager propagation is allowed in estimation mode
   }
 
   @Override
   public void updateEstimationSnapshot() {
     volatileEstimate_ = super.getEstimate();
-  }
-
-  @Override
-  public void sharedHashUpdate(final long hash) {
-    hashUpdate(hash);
   }
 
   @Override
