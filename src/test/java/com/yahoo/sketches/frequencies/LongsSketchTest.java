@@ -503,6 +503,37 @@ public class LongsSketchTest {
   }
 
   @Test
+  public void checkStringDeserEmptyNotCorrupt() {
+    int size = 1 << LG_MIN_MAP_SIZE;
+    int thresh = (size * 3) / 4;
+    String fmt = "%6d%10s%s";
+    LongsSketch fls = new LongsSketch(size);
+    println("Sketch Size: " + size);
+    String s = null;
+    int i = 0;
+    for ( ; i <= thresh; i++) {
+      fls.update(i+1, 1);
+      s = fls.serializeToString();
+      println(String.format("SER   " + fmt, (i + 1), fls.isEmpty() + " : ", s ));
+      LongsSketch fls2 = LongsSketch.getInstance(s);
+      println(String.format("DESER " + fmt, (i + 1), fls2.isEmpty() + " : ", s ));
+    }
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkStringDeserEmptyCorrupt() {
+    String s = "1,"  //serVer
+             + "10," //FamID
+             + "3,"  //lgMaxMapSz
+             + "0,"  //Empty Flag = false ... corrupted, should be true
+             + "7,"  //stream Len so far
+             + "1,"  //error offset
+             + "0,"  //numActive ...conflict with empty
+             + "8,"; //curMapLen
+    LongsSketch.getInstance(s);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
@@ -546,7 +577,7 @@ public class LongsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.err.println(s); //disable here
+    System.err.println(s); //disable here
   }
 
   private static LongsSketch newFrequencySketch(double eps) {
