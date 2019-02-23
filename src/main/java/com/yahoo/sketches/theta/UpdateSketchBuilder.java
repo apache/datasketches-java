@@ -50,9 +50,12 @@ public class UpdateSketchBuilder {
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
    * For direct sketches, which are targeted for native memory off the Java heap, this value will
    * be fixed at either {@link ResizeFactor#X1} or {@link ResizeFactor#X2}.</li>
-   *
    * <li>MemoryRequestServer (Direct only): {@link com.yahoo.memory.DefaultMemoryRequestServer}.</li>
-   * <li>Concurrent NumPoolThreads: 4</li>
+   * </ul>
+   * Parameters unique to the concurrent sketches only:
+   * <ul>
+   * <li>Number of local Nominal Entries: 4</li>
+   * <li>Concurrent NumPoolThreads: 3</li>
    * <li>Concurrent PropagateOrderedCompact: true</li>
    * <li>Concurrent MaxConcurrencyError: 0</li>
    * </ul>
