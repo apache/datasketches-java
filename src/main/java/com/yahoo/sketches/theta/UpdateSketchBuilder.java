@@ -362,16 +362,19 @@ public class UpdateSketchBuilder {
    * Returns a concurrent shared UpdateSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    *
-   * <p>The relevant parameters for concurrent sketches are:
-   * <ul><li>Nominal Entries (for the shared concurrent sketch)</li>
-   * <li>Local Nominal Entries (for the per-thread local concurrent sketch)</li>
+   * <p>The parameters unique to the shared concurrent sketch are:
+   * <ul>
    * <li>Number of Pool Threads (default is 3)</li>
-   * <li>Propagate Ordered Compact flag</li>
-   * <li>Max Concurrency Error</li>
+   * <li>Maximum Concurrency Error</li>
+   * </ul>
+   *
+   * <p>Key parameters that are in common with other <i>Theta</i> sketches:
+   * <ul>
+   * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
    * <li>Destination Writable Memory (if not null, returned sketch is Direct. Default is null.)</li>
    * </ul>
    *
-   * @param dstMem the given WritableMemory
+   * @param dstMem the given WritableMemory for Direct, otherwise <i>null</i>.
    * @return a concurrent UpdateSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    */
@@ -390,16 +393,16 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a concurrent UpdateSketch to be used as a per-thread local buffer along with the
+   * Returns a local concurrent UpdateSketch to be used as a per-thread local buffer along with the
    * given concurrent shared UpdateSketch and the current configuration of this Builder
-   * The relevant parameters are:
-   * <ul><li>Local Nominal Entries</li>
-   * <li>seed</li>
-   * <li>Cache Limit</li>
-   * <li>Propagate Compact</li>
+   *
+   * <p>The parameters unique to the local concurrent sketch are:
+   * <ul>
+   * <li>Local Nominal Entries or Local Log Nominal Entries</li>
+   * <li>Propagate Ordered Compact flag</li>
    * </ul>
    *
-   * @param shared the shared sketch to be accessed through the local theta buffer
+   * @param shared the concurrent shared sketch to be accessed via the concurrent local sketch.
    * @return an UpdateSketch to be used as a per-thread local buffer.
    */
   public UpdateSketch buildLocal(final UpdateSketch shared) {
