@@ -147,7 +147,7 @@ public class LongsSketch {
   /**
    * The sum of all frequencies of the stream so far.
    */
-  private long streamLength = 0;
+  private long streamWeight = 0;
 
   /**
    * The maximum number of samples used to compute approximate median of counters when doing
@@ -243,7 +243,7 @@ public class LongsSketch {
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
     final LongsSketch fls = new LongsSketch(lgMaxMapSize, lgCurMapSize);
-    fls.streamLength = 0; //update after
+    fls.streamWeight = 0; //update after
     fls.offset = preArr[3];
 
     final int preBytes = preLongs << 3;
@@ -259,7 +259,7 @@ public class LongsSketch {
     for (int i = 0; i < activeItems; i++) {
       fls.update(itemArray[i], countArray[i]);
     }
-    fls.streamLength = preArr[2]; //override streamLength due to updating
+    fls.streamWeight = preArr[2]; //override streamWeight due to updating
     return fls;
   }
 
@@ -280,8 +280,8 @@ public class LongsSketch {
     final int famID   = Integer.parseInt(tokens[1]);
     final int lgMax   = Integer.parseInt(tokens[2]);
     final int flags   = Integer.parseInt(tokens[3]);
-    final long streamLength = Long.parseLong(tokens[4]);
-    final long offset       = Long.parseLong(tokens[5]);
+    final long streamWt = Long.parseLong(tokens[4]);
+    final long offset       = Long.parseLong(tokens[5]); //error offset
     //should always get at least the next 2 from the map
     final int numActive = Integer.parseInt(tokens[6]);
     final int lgCur = Integer.numberOfTrailingZeros(Integer.parseInt(tokens[7]));
@@ -292,11 +292,9 @@ public class LongsSketch {
     }
     Family.FREQUENCY.checkFamilyID(famID);
     final boolean empty = flags > 0;
-    final boolean zeroStream = (streamLength == 0);
-    if (empty ^ zeroStream) {
+    if (!empty && (numActive == 0)) {
       throw new SketchesArgumentException(
-          "Possible Corruption: (Empty ^ StreamLength=0) = true : Empty: " + empty
-            + ", strLen: " + streamLength);
+          "Possible Corruption: !Empty && NumActive=0;  strLen: " + numActive);
     }
     final int numTokens = tokens.length;
     if ((2 * numActive) != (numTokens - STR_PREAMBLE_TOKENS - 2)) {
@@ -306,7 +304,7 @@ public class LongsSketch {
     }
 
     final LongsSketch sketch = new LongsSketch(lgMax, lgCur);
-    sketch.streamLength = streamLength;
+    sketch.streamWeight = streamWt;
     sketch.offset = offset;
     sketch.hashMap = deserializeFromStringArray(tokens);
     return sketch;
@@ -328,7 +326,7 @@ public class LongsSketch {
     final int flags = (hashMap.getNumActive() == 0) ? EMPTY_FLAG_MASK : 0; //3
     final String fmt = "%d,%d,%d,%d,%d,%d,";
     final String s =
-        String.format(fmt, serVer, famID, lgMaxMapSz, flags, streamLength, offset);
+        String.format(fmt, serVer, famID, lgMaxMapSz, flags, streamWeight, offset);
     sb.append(s);
     sb.append(hashMap.serializeToString()); //numActive, curMaplen, key[i], value[i], ...
     // maxMapCap, samplesize are deterministic functions of maxMapSize,
@@ -370,7 +368,7 @@ public class LongsSketch {
       final long[] preArr = new long[preLongs];
       preArr[0] = pre0;
       preArr[1] = insertActiveItems(activeItems, pre);
-      preArr[2] = streamLength;
+      preArr[2] = streamWeight;
       preArr[3] = offset;
       mem.putLongArray(0, preArr, 0, preLongs);
       final int preBytes = preLongs << 3;
@@ -402,7 +400,7 @@ public class LongsSketch {
     if (count < 0) {
       throw new SketchesArgumentException("Count may not be negative");
     }
-    streamLength += count;
+    streamWeight += count;
     hashMap.adjustOrPutValue(item, count);
 
     if (getNumActiveItems() > curMapCap) { //over the threshold, we need to do something
@@ -430,14 +428,14 @@ public class LongsSketch {
     if (other == null) { return this; }
     if (other.isEmpty()) { return this; }
 
-    final long streamLen = streamLength + other.streamLength; //capture before merge
+    final long streamWt = streamWeight + other.streamWeight; //capture before merge
 
     final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
     while (iter.next()) { //this may add to offset during rebuilds
       this.update(iter.getKey(), iter.getValue());
     }
     offset += other.offset;
-    streamLength = streamLen; //corrected streamLength
+    streamWeight = streamWt; //corrected streamWeight
     return this;
   }
 
@@ -689,7 +687,7 @@ public class LongsSketch {
    * @return the sum of the frequencies in the stream seen so far by the sketch
    */
   public long getStreamLength() {
-    return streamLength;
+    return streamWeight;
   }
 
   /**
@@ -725,7 +723,7 @@ public class LongsSketch {
     hashMap = new ReversePurgeLongHashMap(1 << LG_MIN_MAP_SIZE);
     curMapCap = hashMap.getCapacity();
     offset = 0;
-    streamLength = 0;
+    streamWeight = 0;
   }
 
   /**
@@ -736,7 +734,7 @@ public class LongsSketch {
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("FrequentLongsSketch:").append(LS);
-    sb.append("  Stream Length    : " + streamLength).append(LS);
+    sb.append("  Stream Length    : " + streamWeight).append(LS);
     sb.append("  Max Error Offset : " + offset).append(LS);
     sb.append(hashMap.toString());
     return sb.toString();

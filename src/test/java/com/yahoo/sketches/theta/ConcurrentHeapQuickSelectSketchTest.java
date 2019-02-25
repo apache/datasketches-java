@@ -54,7 +54,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     assertFalse(usk.isEmpty());
     assertEquals(usk.getEstimate(), u, 0.0);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), u);
+    assertEquals(shared.getRetainedEntries(false), u);
 
     byte[] byteArray = usk.toByteArray();
     WritableMemory mem = WritableMemory.wrap(byteArray);
@@ -85,7 +85,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     waitForBgPropagationToComplete();
 
     assertFalse(usk.isEmpty());
-    assertTrue(((UpdateSketch)shared).getRetainedEntries(false) <= u);
+    assertTrue(shared.getRetainedEntries(false) <= u);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -104,11 +104,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i< u; i++) {
       usk.update(i);
     }
-    assertTrue(((UpdateSketch)shared).compact().isCompact());
+    assertTrue(shared.compact().isCompact());
 
     assertFalse(usk.isEmpty());
     assertEquals(usk.getEstimate(), u, 0.0);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), u);
+    assertEquals(shared.getRetainedEntries(false), u);
     byte[] byteArray = usk.toByteArray();
     WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
@@ -250,7 +250,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     }
     waitForBgPropagationToComplete();
 
-    ((UpdateSketch)shared).rebuild(); //forces size back to k
+    shared.rebuild(); //forces size back to k
 
     //get baseline values
     double uskEst = usk.getEstimate();
@@ -263,7 +263,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     CompactSketch comp1, comp2, comp3, comp4;
 
-    comp1 = ((UpdateSketch)shared).compact(false,  null);
+    comp1 = shared.compact(false,  null);
 
     assertEquals(comp1.getEstimate(), uskEst);
     assertEquals(comp1.getLowerBound(2), uskLB);
@@ -273,7 +273,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp1.getCurrentBytes(true), uskCompBytes);
     assertEquals(comp1.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
 
-    comp2 = ((UpdateSketch)shared).compact(true, null);
+    comp2 = shared.compact(true, null);
 
     assertEquals(comp2.getEstimate(), uskEst);
     assertEquals(comp2.getLowerBound(2), uskLB);
@@ -286,7 +286,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[] memArr2 = new byte[uskCompBytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);  //allocate mem for compact form
 
-    comp3 = ((UpdateSketch)shared).compact(false,  mem2);  //load the mem2
+    comp3 = shared.compact(false,  mem2);  //load the mem2
 
     assertEquals(comp3.getEstimate(), uskEst);
     assertEquals(comp3.getLowerBound(2), uskLB);
@@ -297,7 +297,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp3.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
 
     mem2.clear();
-    comp4 = ((UpdateSketch)shared).compact(true, mem2);
+    comp4 = shared.compact(true, mem2);
 
     assertEquals(comp4.getEstimate(), uskEst);
     assertEquals(comp4.getLowerBound(2), uskLB);
@@ -336,7 +336,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[] arr2 = new byte[compBytes];
     WritableMemory mem2 = WritableMemory.wrap(arr2);
 
-    CompactSketch csk2 = ((UpdateSketch)shared).compact(false,  mem2);
+    CompactSketch csk2 = shared.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), uskEst);
     assertEquals(csk2.getLowerBound(2), uskLB);
     assertEquals(csk2.getUpperBound(2), uskUB);
@@ -344,7 +344,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk2.isEstimationMode(), estimating);
     assertEquals(csk2.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
 
-    CompactSketch csk3 = ((UpdateSketch)shared).compact(true, mem2);
+    CompactSketch csk3 = shared.compact(true, mem2);
     csk3.toString(false, true, 0, false);
     csk3.toString();
     assertEquals(csk3.getEstimate(), uskEst);
@@ -373,11 +373,11 @@ public class ConcurrentHeapQuickSelectSketchTest {
     waitForBgPropagationToComplete();
 
     assertEquals(usk.getEstimate(), u, 0.0);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), u);
+    assertEquals(shared.getRetainedEntries(false), u);
   }
 
   @Test
-  public void checkEstMode() {
+  public void checkEstMode() { //TODO
     int k = 4096;
     lgK = 12;
     seed = DEFAULT_UPDATE_SEED;
@@ -393,10 +393,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
       usk.update(i);
     }
     waitForBgPropagationToComplete();
-
-    assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k); // in general it might be exactly k, but
-    // in this
-    // case must be greater
+    final int retained = shared.getRetainedEntries(false);
+    //final int retained = ((UpdateSketch) shared).getRetainedEntries(false);
+    assertTrue(retained > k);
+    // in general it might be exactly k, but in this case must be greater
   }
 
   @Test
@@ -454,14 +454,14 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     assertFalse(usk.isEmpty());
     assertTrue(usk.getEstimate() > 0.0);
-    assertTrue(((UpdateSketch)shared).getRetainedEntries(false) > k);
+    assertTrue(shared.getRetainedEntries(false) > k);
 
-    ((UpdateSketch)shared).rebuild();
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), k);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(true), k);
-    ((UpdateSketch)shared).rebuild();
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), k);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(true), k);
+    shared.rebuild();
+    assertEquals(shared.getRetainedEntries(false), k);
+    assertEquals(shared.getRetainedEntries(true), k);
+    shared.rebuild();
+    assertEquals(shared.getRetainedEntries(false), k);
+    assertEquals(shared.getRetainedEntries(true), k);
   }
 
   @Test(expectedExceptions = SketchesStateException.class)
@@ -515,13 +515,13 @@ public class ConcurrentHeapQuickSelectSketchTest {
     waitForBgPropagationToComplete();
 
     assertFalse(usk.isEmpty());
-    assertTrue(((UpdateSketch)shared).getRetainedEntries(false) >= k);
+    assertTrue(shared.getRetainedEntries(false) >= k);
     assertTrue(sk1.getThetaLong() < Long.MAX_VALUE);
 
-    ((UpdateSketch)shared).reset();
+    shared.reset();
     sk1.reset();
     assertTrue(usk.isEmpty());
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), 0);
+    assertEquals(shared.getRetainedEntries(false), 0);
     assertEquals(usk.getEstimate(), 0.0, 0.0);
     assertEquals(sk1.getThetaLong(), Long.MAX_VALUE);
   }
@@ -548,7 +548,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[] memArr2 = new byte[bytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);
 
-    CompactSketch csk2 = ((UpdateSketch)shared).compact(false,  mem2);
+    CompactSketch csk2 = shared.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), uskEst);
     assertEquals(csk2.getLowerBound(2), uskLB);
     assertEquals(csk2.getUpperBound(2), uskUB);
@@ -556,7 +556,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertFalse(csk2.isEstimationMode());
     assertEquals(csk2.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
 
-    CompactSketch csk3 = ((UpdateSketch)shared).compact(true, mem2);
+    CompactSketch csk3 = shared.compact(true, mem2);
     csk3.toString(false, true, 0, false);
     csk3.toString();
     assertEquals(csk3.getEstimate(), uskEst);
@@ -628,18 +628,18 @@ public class ConcurrentHeapQuickSelectSketchTest {
     waitForBgPropagationToComplete();
 
     long theta2 = shared.getVolatileTheta();
-    int entries = ((UpdateSketch)shared).getRetainedEntries(false);
+    int entries = shared.getRetainedEntries(false);
     assertTrue((entries > k) || (theta2 < theta1),"entries="+entries+" k="+k+" theta1="+theta1+" theta2="+theta2);
 
-    ((UpdateSketch)shared).rebuild();
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), k);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(true), k);
+    shared.rebuild();
+    assertEquals(shared.getRetainedEntries(false), k);
+    assertEquals(shared.getRetainedEntries(true), k);
     sk1.rebuild();
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(false), k);
-    assertEquals(((UpdateSketch)shared).getRetainedEntries(true), k);
+    assertEquals(shared.getRetainedEntries(false), k);
+    assertEquals(shared.getRetainedEntries(true), k);
   }
 
-  @SuppressWarnings("unused")
+  //@SuppressWarnings("unused")
   @Test
   public void checkBuilderExceptions() {
     UpdateSketchBuilder bldr = new UpdateSketchBuilder();
@@ -686,7 +686,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   //configures builder for both local and shared
   private UpdateSketchBuilder configureBuilder() {
     final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
-    bldr.setSharedLogNominalEntries(lgK);
+    bldr.setLogNominalEntries(lgK);
     bldr.setLocalLogNominalEntries(lgK);
     bldr.setSeed(seed);
     return bldr;
@@ -695,7 +695,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   //configures builder for both local and shared
   private UpdateSketchBuilder configureBuilderNotOrdered() {
     final UpdateSketchBuilder bldr = new UpdateSketchBuilder();
-    bldr.setSharedLogNominalEntries(lgK);
+    bldr.setLogNominalEntries(lgK);
     bldr.setLocalLogNominalEntries(4);
     bldr.setSeed(seed);
     bldr.setPropagateOrderedCompact(false);

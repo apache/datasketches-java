@@ -38,22 +38,26 @@ public class UpdateSketchBuilder {
   private int bNumPoolThreads;
   private int bLocalLgNomLongs;
   private boolean bPropagateOrderedCompact;
-  private double maxConcurrencyError;
-
+  private double bMaxConcurrencyError;
 
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
    * <ul>
    * <li>Nominal Entries: {@value com.yahoo.sketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value com.yahoo.sketches.Util#DEFAULT_UPDATE_SEED}</li>
-   * <li>Resize Factor: The default for sketches on the Java heap is
-   * {@link ResizeFactor#X8}.
-   * For direct sketches, which are targeted for native memory off the Java heap, this value will
-   * be fixed at either {@link ResizeFactor#X1} or
-   * {@link ResizeFactor#X2}.</li>
-   * <li>{@link com.yahoo.sketches.Family#QUICKSELECT}</li>
    * <li>Input Sampling Probability: 1.0</li>
-   * <li>Memory: null</li>
+   * <li>Family: {@link com.yahoo.sketches.Family#QUICKSELECT}</li>
+   * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
+   * For direct sketches, which are targeted for native memory off the Java heap, this value will
+   * be fixed at either {@link ResizeFactor#X1} or {@link ResizeFactor#X2}.</li>
+   * <li>MemoryRequestServer (Direct only): {@link com.yahoo.memory.DefaultMemoryRequestServer}.</li>
+   * </ul>
+   * Parameters unique to the concurrent sketches only:
+   * <ul>
+   * <li>Number of local Nominal Entries: 4</li>
+   * <li>Concurrent NumPoolThreads: 3</li>
+   * <li>Concurrent PropagateOrderedCompact: true</li>
+   * <li>Concurrent MaxConcurrencyError: 0</li>
    * </ul>
    */
   public UpdateSketchBuilder() {
@@ -67,14 +71,18 @@ public class UpdateSketchBuilder {
     bNumPoolThreads = ConcurrentPropagationService.NUM_POOL_THREADS;
     bLocalLgNomLongs = 4; //default is smallest legal QS sketch
     bPropagateOrderedCompact = true;
+    bMaxConcurrencyError = 0;
   }
 
   /**
-   * Sets the Nominal Entries for this sketch. The minimum value is 16 and the maximum value is
-   * 67,108,864, which is 2^26. Be aware that sketches as large as this maximum value have not
-   * been thoroughly tested or characterized for performance.
+   * Sets the Nominal Entries for this sketch.
+   * This value is also used for building a shared concurrent sketch.
+   * The minimum value is 16 (2^4) and the maximum value is 67,108,864 (2^26).
+   * Be aware that sketches as large as this maximum value may not have been
+   * thoroughly tested or characterized for performance.
+   *
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
-   * This will become the ceiling power of 2 if it is not.
+   * This will become the ceiling power of 2 if the given value is not.
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setNominalEntries(final int nomEntries) {
@@ -87,14 +95,16 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Log Nominal Entries for this sketch. The minimum value is 4 and the
-   * maximum value is 26. Be aware that sketches as large as this maximum
-   * value have not been thoroughly tested or characterized for performance.
+   * Alternative method of setting the Nominal Entries for this sketch from the log_base2 value.
+   * This value is also used for building a shared concurrent sketch.
+   * The minimum value is 4 and the maximum value is 26.
+   * Be aware that sketches as large as this maximum value may not have been
+   * thoroughly tested or characterized for performance.
    *
    * @param lgNomEntries the Log Nominal Entries for the concurrent shared sketch
-   * @return this ConcurrentThetaBuilder
+   * @return this UpdateSketchBuilder
    */
-  public UpdateSketchBuilder setSharedLogNominalEntries(final int lgNomEntries) {
+  public UpdateSketchBuilder setLogNominalEntries(final int lgNomEntries) {
     bLgNomLongs = lgNomEntries;
     if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException(
@@ -103,13 +113,18 @@ public class UpdateSketchBuilder {
     return this;
   }
 
-  public void setbNumPoolThreads(final int bNumPoolThreads) {
-    this.bNumPoolThreads = bNumPoolThreads;
+  /**
+   * Returns Log-base 2 Nominal Entries
+   * @return Log-base 2 Nominal Entries
+   */
+  public int getLgNominalEntries() {
+    return bLgNomLongs;
   }
 
   /**
    * Sets the Nominal Entries for the concurrent local sketch. The minimum value is 16 and the
-   * maximum value is 67,108,864, which is 2^26. Be aware that sketches as large as this maximum
+   * maximum value is 67,108,864, which is 2^26.
+   * Be aware that sketches as large as this maximum
    * value have not been thoroughly tested or characterized for performance.
    *
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
@@ -126,8 +141,10 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Log Nominal Entries for a concurrent local sketch. The minimum value is 4 and the
-   * maximum value is 26. Be aware that sketches as large as this maximum
+   * Alternative method of setting the Nominal Entries for a local concurrent sketch from the
+   * log_base2 value.
+   * The minimum value is 4 and the maximum value is 26.
+   * Be aware that sketches as large as this maximum
    * value have not been thoroughly tested or characterized for performance.
    *
    * @param lgNomEntries the Log Nominal Entries for a concurrent local sketch
@@ -140,14 +157,6 @@ public class UpdateSketchBuilder {
           "Log Nominal Entries must be >= 4 and <= 26: " + lgNomEntries);
     }
     return this;
-  }
-
-  /**
-   * Returns Log-base 2 Nominal Entries
-   * @return Log-base 2 Nominal Entries
-   */
-  public int getLgNominalEntries() {
-    return bLgNomLongs;
   }
 
   /**
@@ -252,10 +261,26 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Sets the Propagate Ordered Compact flag to the given value.
+   * Sets the number of pool threads used for background propagation in the concurrent sketches.
+   * @param numPoolThreads the given number of pool threads
+   */
+  public void setNumPoolThreads(final int numPoolThreads) {
+    bNumPoolThreads = numPoolThreads;
+  }
+
+  /**
+   * Gets the number of background pool threads used for propagation in the concurrent sketches.
+   * @return the number of background pool threads
+   */
+  public int getNumPoolThreads() {
+    return bNumPoolThreads;
+  }
+
+  /**
+   * Sets the Propagate Ordered Compact flag to the given value. Used with concurrent sketches.
    *
    * @param prop the given value
-   * @return this ConcurrentThetaBuilder
+   * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setPropagateOrderedCompact(final boolean prop) {
     bPropagateOrderedCompact = prop;
@@ -263,12 +288,30 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Gets the Propagate Ordered Compact flag
+   * Gets the Propagate Ordered Compact flag used with concurrent sketches.
    * @return the Propagate Ordered Compact flag
    */
   public boolean getPropagateOrderedCompact() {
     return bPropagateOrderedCompact;
   }
+
+  /**
+   * Sets the Maximum Concurrency Error.
+   * @param maxConcurrencyError the given Maximum Concurrency Error.
+   */
+  public void setMaxConcurrencyError(final double maxConcurrencyError) {
+    bMaxConcurrencyError = maxConcurrencyError;
+  }
+
+  /**
+   * Gets the Maximum Concurrency Error.
+   * @return the Maximum Concurrency Error.
+   */
+  public double getMaxConcurrencyError() {
+    return bMaxConcurrencyError;
+  }
+
+  // BUILD FUNCTIONS
 
   /**
    * Returns an UpdateSketch with the current configuration of this Builder.
@@ -316,58 +359,60 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a concurrent UpdateSketch with the current configuration of the Builder
+   * Returns a concurrent shared UpdateSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
-   * The relevant parameters are:
-   * <ul><li>Shared Nominal Entries</li>
-   * <li>seed</li>
-   * <li>Pool Threads</li>
-   * <li>Destination Writable Memory</li>
+   *
+   * <p>The parameters unique to the shared concurrent sketch are:
+   * <ul>
+   * <li>Number of Pool Threads (default is 3)</li>
+   * <li>Maximum Concurrency Error</li>
    * </ul>
    *
-   * @param dstMem the given WritableMemory
+   * <p>Key parameters that are in common with other <i>Theta</i> sketches:
+   * <ul>
+   * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
+   * <li>Destination Writable Memory (if not null, returned sketch is Direct. Default is null.)</li>
+   * </ul>
+   *
+   * @param dstMem the given WritableMemory for Direct, otherwise <i>null</i>.
    * @return a concurrent UpdateSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    */
   public UpdateSketch buildShared(final WritableMemory dstMem) {
-    ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
-    if (dstMem == null) {
-      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError);
-    } else {
-      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError, dstMem);
-    }
+    return (UpdateSketch) buildSharedInternal(dstMem);
   }
 
+  //Also used in test
   ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
-      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError);
+      return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError);
     } else {
-      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, maxConcurrencyError, dstMem);
+      return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError, dstMem);
     }
   }
 
   /**
-   * Returns a ConcurrentHeapThetaBuffer with the current configuration of this Builder
-   * The relevant parameters are:
-   * <ul><li>Local Nominal Entries</li>
-   * <li>seed</li>
-   * <li>Cache Limit</li>
-   * <li>Propagate Compact</li>
+   * Returns a local concurrent UpdateSketch to be used as a per-thread local buffer along with the
+   * given concurrent shared UpdateSketch and the current configuration of this Builder
+   *
+   * <p>The parameters unique to the local concurrent sketch are:
+   * <ul>
+   * <li>Local Nominal Entries or Local Log Nominal Entries</li>
+   * <li>Propagate Ordered Compact flag</li>
    * </ul>
    *
-   * @param shared the shared sketch to be accessed through the local theta buffer
-   * @return an ConcurrentHeapThetaBuffer
+   * @param shared the concurrent shared sketch to be accessed via the concurrent local sketch.
+   * @return an UpdateSketch to be used as a per-thread local buffer.
    */
   public UpdateSketch buildLocal(final UpdateSketch shared) {
     if ((shared == null) || !(shared instanceof ConcurrentSharedThetaSketch)) {
       throw new SketchesStateException("The shared sketch must be built first.");
     }
-    final ConcurrentSharedThetaSketch bShared = (ConcurrentSharedThetaSketch)shared;
-    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, bShared,
-        bPropagateOrderedCompact);
+    return buildLocalInternal((ConcurrentSharedThetaSketch) shared);
   }
 
+  //Also used in test
   ConcurrentHeapThetaBuffer buildLocalInternal(final ConcurrentSharedThetaSketch shared) {
     if (shared == null) {
       throw new SketchesStateException("The shared sketch must be built first.");
@@ -376,15 +421,14 @@ public class UpdateSketchBuilder {
         bPropagateOrderedCompact);
   }
 
-
   @Override
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("UpdateSketchBuilder configuration:").append(LS);
     sb.append("LgK:").append(TAB).append(bLgNomLongs).append(LS);
     sb.append("K:").append(TAB).append(1 << bLgNomLongs).append(LS);
-    sb.append("LgB:").append(TAB).append(bLocalLgNomLongs).append(LS);
-    sb.append("B:").append(TAB).append(1 << bLocalLgNomLongs).append(LS);
+    sb.append("LgLocalK:").append(TAB).append(bLocalLgNomLongs).append(LS);
+    sb.append("LocalK:").append(TAB).append(1 << bLocalLgNomLongs).append(LS);
     sb.append("Seed:").append(TAB).append(bSeed).append(LS);
     sb.append("p:").append(TAB).append(bP).append(LS);
     sb.append("ResizeFactor:").append(TAB).append(bRF).append(LS);
@@ -392,10 +436,9 @@ public class UpdateSketchBuilder {
     final String mrsStr = bMemReqSvr.getClass().getSimpleName();
     sb.append("MemoryRequestServer:").append(TAB).append(mrsStr).append(LS);
     sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
+    sb.append("NumPoolThreads").append(TAB).append(bNumPoolThreads).append(LS);
+    sb.append("MaxConcurrencyError").append(TAB).append(bMaxConcurrencyError).append(LS);
     return sb.toString();
   }
 
-  public void setMaxConcurrencyError(final double maxConcurrencyError) {
-    this.maxConcurrencyError = maxConcurrencyError;
-  }
 }

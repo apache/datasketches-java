@@ -7,6 +7,8 @@ package com.yahoo.sketches.theta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import com.yahoo.memory.WritableMemory;
+
 /**
  * An interface to define the API of a concurrent shared theta sketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
@@ -88,7 +90,7 @@ interface ConcurrentSharedThetaSketch {
    */
   boolean validateEpoch(long epoch);
 
-  //The following are public methods that already exist on the "extends" side of the dual
+  //The following mirrors are public methods that already exist on the "extends" side of the dual
   // inheritance. They are provided here to allow casts to this interface access
   // to these methods without having to cast back to the extended parent class.
 
@@ -107,5 +109,15 @@ interface ConcurrentSharedThetaSketch {
   boolean isEstimationMode();
 
   byte[] toByteArray();
+
+  int getRetainedEntries(boolean valid);
+
+  CompactSketch compact();
+
+  CompactSketch compact(boolean ordered, WritableMemory wmem);
+
+  UpdateSketch rebuild();
+
+  void reset();
 }
 
