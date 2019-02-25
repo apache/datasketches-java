@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -18,11 +16,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author eshcar
  */
 class ConcurrentBackgroundThetaPropagation implements Runnable {
-  static private final int NUM_POOL_THREADS = 3;
-
-  // Pool of threads to serve <i>all</i> propagation tasks in the system.
-  static final ExecutorService propagationExecutorService =
-      Executors.newWorkStealingPool(NUM_POOL_THREADS);
 
   // Shared sketch to absorb the data
   private final ConcurrentSharedThetaSketch sharedThetaSketch;
