@@ -359,8 +359,29 @@ public class UpdateSketchBuilder {
   }
 
   /**
-   * Returns a concurrent shared UpdateSketch with the current configuration of the Builder
-   * and the given destination WritableMemory.
+   * Returns an on-heap concurrent shared UpdateSketch with the current configuration of the
+   * Builder.
+   *
+   * <p>The parameters unique to the shared concurrent sketch are:
+   * <ul>
+   * <li>Number of Pool Threads (default is 3)</li>
+   * <li>Maximum Concurrency Error</li>
+   * </ul>
+   *
+   * <p>Key parameters that are in common with other <i>Theta</i> sketches:
+   * <ul>
+   * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
+   * </ul>
+   *
+   * @return an on-heap concurrent UpdateSketch with the current configuration of the Builder.
+   */
+  public UpdateSketch buildShared() {
+    return (UpdateSketch) buildSharedInternal(null);
+  }
+
+  /**
+   * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
+   * configuration of the Builder and the given destination WritableMemory.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
    * <ul>
