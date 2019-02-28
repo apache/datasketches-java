@@ -577,7 +577,7 @@ public class LongsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.err.println(s); //disable here
+    //System.err.println(s); //disable here
   }
 
   private static LongsSketch newFrequencySketch(double eps) {
