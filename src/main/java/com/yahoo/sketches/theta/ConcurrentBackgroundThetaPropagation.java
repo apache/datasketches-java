@@ -66,7 +66,7 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
 
     // 2) handle propagation: either of a single hash or of a sketch
     if (singleHash != ConcurrentSharedThetaSketch.NOT_SINGLE_HASH) {
-      hashUpdate(sharedThetaSketch, singleHash);
+      sharedThetaSketch.propagate(singleHash);
     } else if (sketchIn != null) {
       final long volTheta = sharedThetaSketch.getVolatileTheta();
       assert volTheta <= sketchIn.getThetaLong() :
@@ -80,12 +80,12 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
           if (hashIn >= volTheta) {
             break; //early stop
           }
-          hashUpdate(sharedThetaSketch, hashIn);
+          sharedThetaSketch.propagate(hashIn);
         }
       } else { //not ordered, also may have zeros (gaps) in the array.
         for (final long hashIn : cacheIn) {
           if (hashIn > 0) {
-            hashUpdate(sharedThetaSketch, hashIn);
+            sharedThetaSketch.propagate(hashIn);
           }
         }
       }
@@ -93,10 +93,6 @@ class ConcurrentBackgroundThetaPropagation implements Runnable {
 
     // 3) complete propagation: ping local buffer
     sharedThetaSketch.endPropagation(localPropagationInProgress, false);
-  }
-
-  private static final void hashUpdate(final ConcurrentSharedThetaSketch sketch, final long hashIn) {
-    ((UpdateSketch)sketch).hashUpdate(hashIn); // backdoor update, hash function is bypassed
   }
 
 }

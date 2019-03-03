@@ -28,7 +28,7 @@ interface ConcurrentSharedThetaSketch {
   /**
    * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
    * in progress
-   * @return true if eager propogation was started
+   * @return true if eager propagation was started
    */
   boolean startEagerPropagation();
 
@@ -59,14 +59,20 @@ interface ConcurrentSharedThetaSketch {
   void initBgPropagationService();
 
   /**
-   * Propagates the given sketch or hash value into this sketch
-   *  @param localPropagationInProgress the flag to be updated when propagation is done
+   * (Eager) Propagates the given sketch or hash value into this sketch
+   * @param localPropagationInProgress the flag to be updated when propagation is done
    * @param sketchIn any Theta sketch with the data
    * @param singleHash a single hash value
    * @return true if propagation successfully started
    */
   boolean propagate(final AtomicBoolean localPropagationInProgress, final Sketch sketchIn,
     final long singleHash);
+
+  /**
+   * (Lazy/Eager) Propagates the given hash value into this sketch
+   * @param singleHash a single hash value
+   */
+  void propagate(final long singleHash);
 
   double getError();
 
