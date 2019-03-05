@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.ConcurrentSharedThetaSketch.getLimit;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,8 +41,6 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   //  propagation mode
   private final long exactLimit_;
 
-  private final double maxConcurrencyError_;
-
   // An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
   // affect the sketch at epoch j > i.
   private volatile long epoch_;
@@ -54,7 +50,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLongs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @param maxConcurrencyError the max concurrency error value.
+   * @param maxConcurrencyError the max error value including error induced by concurrency.
    * @param dstMem     the given Memory object destination. It cannot be null.
    */
   ConcurrentDirectQuickSelectSketch(final int lgNomLongs, final long seed,
@@ -65,8 +61,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
-    maxConcurrencyError_ = maxConcurrencyError;
-    exactLimit_ = getLimit(1L << getLgNomLongs(), getError());
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
@@ -113,6 +108,17 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   //ConcurrentSharedThetaSketch declarations
+
+  @Override
+  public long getExactLimit() {
+    return exactLimit_;
+  }
+
+  @Override
+  public boolean startEagerPropagation() {
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    return (!isEstimationMode());// no eager propagation is allowed in estimation mode
+  }
 
   @Override
   public void endPropagation(final AtomicBoolean localPropagationInProgress, final boolean isEager) {
@@ -177,17 +183,6 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   @Override
   public void propagate(long singleHash) {
     super.hashUpdate(singleHash);
-  }
-
-  @Override
-  public double getError() {
-    return maxConcurrencyError_;
-  }
-
-  @Override
-  public boolean startEagerPropagation() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
-    return (!isEstimationMode());// no eager propagation is allowed in estimation mode
   }
 
   @Override

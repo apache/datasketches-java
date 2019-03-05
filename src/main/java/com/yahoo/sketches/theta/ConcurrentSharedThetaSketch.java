@@ -21,9 +21,15 @@ interface ConcurrentSharedThetaSketch {
   long NOT_SINGLE_HASH = -1L;
   double MIN_ERROR = 0.0000001;
 
-  static long getLimit(long k, double error) {
+  static long computeExactLimit(long k, double error) {
     return 2 * Math.min(k, (long) Math.ceil(1.0 / Math.pow(Math.max(error,MIN_ERROR), 2.0)));
   }
+
+  /**
+   * Returns flip point (number of updates) from exact to estimate mode.
+   * @return flip point from exact to estimate mode
+   */
+  long getExactLimit();
 
   /**
    * Ensures mutual exclusion. No other thread can update the shared sketch while propagation is
@@ -73,8 +79,6 @@ interface ConcurrentSharedThetaSketch {
    * @param singleHash a single hash value
    */
   void propagate(final long singleHash);
-
-  double getError();
 
   /**
    * Updates the estimation of the number of unique entries by capturing a snapshot of the sketch

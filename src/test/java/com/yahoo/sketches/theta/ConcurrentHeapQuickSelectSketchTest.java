@@ -388,7 +388,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     assertTrue(usk.isEmpty());
 
-    int u = usk.getHashTableThreshold();
+    int u = 3*k;
     for (int i = 0; i< u; i++) {
       usk.update(i);
     }
@@ -408,7 +408,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     UpdateSketch usk = buildConcSketch();
 
     //Exact mode
-    int limit = (int)ConcurrentSharedThetaSketch.getLimit(k, 0);
+    int limit = (int)ConcurrentSharedThetaSketch.computeExactLimit(k, 0);
     for (int i = 0; i < limit; i++ ) {
       usk.update(i);
     }
@@ -509,7 +509,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     ConcurrentHeapThetaBuffer sk1 = (ConcurrentHeapThetaBuffer)usk; //for internal checks
 
     assertTrue(usk.isEmpty());
-    int u = 3*sk1.getHashTableThreshold();
+    int u = 3*k;
 
     for (int i = 0; i< u; i++) { usk.update(i); }
     waitForBgPropagationToComplete();

@@ -39,6 +39,7 @@ public class UpdateSketchBuilder {
   private int bLocalLgNomLongs;
   private boolean bPropagateOrderedCompact;
   private double bMaxConcurrencyError;
+  private int bMaxNumLocalThreads;
 
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
@@ -72,6 +73,7 @@ public class UpdateSketchBuilder {
     bLocalLgNomLongs = 4; //default is smallest legal QS sketch
     bPropagateOrderedCompact = true;
     bMaxConcurrencyError = 0;
+    bMaxNumLocalThreads = 1;
   }
 
   /**
@@ -303,12 +305,8 @@ public class UpdateSketchBuilder {
     bMaxConcurrencyError = maxConcurrencyError;
   }
 
-  /**
-   * Gets the Maximum Concurrency Error.
-   * @return the Maximum Concurrency Error.
-   */
-  public double getMaxConcurrencyError() {
-    return bMaxConcurrencyError;
+  public void setbMaxNumLocalThreads(int bMaxNumLocalThreads) {
+    this.bMaxNumLocalThreads = bMaxNumLocalThreads;
   }
 
   // BUILD FUNCTIONS
@@ -439,7 +437,7 @@ public class UpdateSketchBuilder {
       throw new SketchesStateException("The shared sketch must be built first.");
     }
     return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, shared,
-        bPropagateOrderedCompact);
+        bPropagateOrderedCompact, bMaxNumLocalThreads);
   }
 
   @Override
@@ -459,6 +457,7 @@ public class UpdateSketchBuilder {
     sb.append("Propagate Ordered Compact").append(TAB).append(bPropagateOrderedCompact).append(LS);
     sb.append("NumPoolThreads").append(TAB).append(bNumPoolThreads).append(LS);
     sb.append("MaxConcurrencyError").append(TAB).append(bMaxConcurrencyError).append(LS);
+    sb.append("MaxNumLocalThreads").append(TAB).append(bMaxNumLocalThreads).append(LS);
     return sb.toString();
   }
 
