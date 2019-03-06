@@ -427,7 +427,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
 
       assertTrue(usk.isEmpty());
-      int u = usk.getHashTableThreshold();
+      int u = 3*k;
 
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForBgPropagationToComplete();
@@ -538,7 +538,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
       assertTrue(usk.isEmpty());
 
-      int u = 4*sk1.getHashTableThreshold();
+      int u = 4*k;
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForBgPropagationToComplete();
 
@@ -591,7 +591,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
       assertTrue(usk.isEmpty());
 
-      int u = 3*usk.getHashTableThreshold();
+      int u = 3*k;
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForBgPropagationToComplete();
 
@@ -614,7 +614,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       shared = bldr.buildSharedInternal(memHandler.get());
       ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
       assertTrue(usk.isEmpty());
-      int u = 3*usk.getHashTableThreshold();
+      int u = 3*k;
 
       for (int i = 0; i< u; i++) { usk.update(i); }
       waitForBgPropagationToComplete();
@@ -635,7 +635,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       shared = bldr.buildSharedInternal(h.get());
       ConcurrentHeapThetaBuffer usk = bldr.buildLocalInternal(shared);
       assertTrue(usk.isEmpty());
-      int u = 3*usk.getHashTableThreshold();
+      int u = 3*k;
 
       for (int i = 0; i< u; i++) { usk.update(i); } //force estimation
       waitForBgPropagationToComplete();
@@ -754,7 +754,6 @@ public class ConcurrentDirectQuickSelectSketchTest {
     final UpdateSketchBuilder bldr = configureBuilder();
     //must build shared first
     shared = bldr.buildSharedInternal(mem);
-//    assertFalse(shared.awaitBgPropagationTermination());
     return bldr.buildLocalInternal(shared);
   }
 
@@ -764,7 +763,6 @@ public class ConcurrentDirectQuickSelectSketchTest {
     bldr.setLogNominalEntries(lgK);
     bldr.setLocalLogNominalEntries(lgK);
     bldr.setSeed(DEFAULT_UPDATE_SEED);
-    bldr.setMaxConcurrencyError(0.0);
     return bldr;
   }
 

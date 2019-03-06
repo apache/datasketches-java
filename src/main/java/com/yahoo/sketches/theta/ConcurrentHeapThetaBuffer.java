@@ -27,29 +27,36 @@ import com.yahoo.sketches.ResizeFactor;
  */
 final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
-  // A flag indicating whether the shared sketch is in shared mode and requires eager propagation
-  private boolean isExactMode;
+  private static int computeLogBufferSize(final int lgNomLongs, final long exactSize, int maxNumLocalBuffers){
+    return Math.min(lgNomLongs, (int)Math.log(Math.sqrt(exactSize)/(2 * maxNumLocalBuffers)));
+  }
 
   // Shared sketch consisting of the global sample set and theta value.
   private final ConcurrentSharedThetaSketch shared;
+
+  // A flag indicating whether the shared sketch is in shared mode and requires eager propagation
+  // Initially this is true. Once it is set to false (estimation mode) it never flips back.
+  private boolean isExactMode;
+
+  // A flag to indicate if we expect the propagated data to be ordered
+  private final boolean propagateOrderedCompact;
 
   // Propagation flag is set to true while propagation is in progress (or pending).
   // It is the synchronization primitive to coordinate the work with the propagation thread.
   private final AtomicBoolean localPropagationInProgress;
 
-  // A flag to indicate if we expect the propagated data to be ordered
-  private final boolean propagateOrderedCompact;
-
   ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed,
-      final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact) {
-    super(lgNomLongs, seed, 1.0F, //p
-        ResizeFactor.X1, //rf
-        false); //not a union gadget
+      final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact,
+      final int maxNumLocalThreads) {
+    super(computeLogBufferSize(lgNomLongs, shared.getExactLimit(), maxNumLocalThreads)
+        , seed, 1.0F //p
+        , ResizeFactor.X1 //rf
+        , false); //not a union gadget
 
-    isExactMode = true;
     this.shared = shared;
-    localPropagationInProgress = new AtomicBoolean(false);
+    isExactMode = true;
     this.propagateOrderedCompact = propagateOrderedCompact;
+    localPropagationInProgress = new AtomicBoolean(false);
   }
 
   //Sketch overrides

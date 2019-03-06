@@ -5,8 +5,6 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.ConcurrentSharedThetaSketch.getLimit;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -43,8 +41,6 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   //  propagation mode
   private final long exactLimit_;
 
-  private final double maxConcurrencyError_;
-
   // An epoch defines an interval between two resets. A propagation invoked at epoch i cannot
   // affect the sketch at epoch j > i.
   private volatile long epoch_;
@@ -54,19 +50,17 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    *
    * @param lgNomLongs <a href="{@docRoot}/resources/dictionary.html#lgNomLogs">See lgNomLongs</a>.
    * @param seed       <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @param maxConcurrencyError the max concurrency error value
+   * @param maxConcurrencyError the max error value including error induced by concurrency
    *
    */
-  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed,
-      final double maxConcurrencyError) {
+  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed, final double maxConcurrencyError) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf,
         false); //unionGadget
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
-    maxConcurrencyError_ = maxConcurrencyError;
-    exactLimit_ = getLimit(1L << getLgNomLongs(), getError());
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
@@ -105,7 +99,25 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     volatileEstimate_ = 0;
   }
 
+  @Override
+  UpdateReturnState hashUpdate(long hash) {
+    String msg = "No update method should be called directly to a shared theta sketch." +
+        " Updating the shared sketch is only permitted through propagation from local sketches.";
+    throw new RuntimeException(msg);
+  }
+
   //ConcurrentSharedThetaSketch declarations
+
+  @Override
+  public long getExactLimit() {
+    return exactLimit_;
+  }
+
+  @Override
+  public boolean startEagerPropagation() {
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    return (!isEstimationMode());// no eager propagation is allowed in estimation mode
+  }
 
   @Override
   public void endPropagation(final AtomicBoolean localPropagationInProgress, final boolean isEager) {
@@ -156,7 +168,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
         endPropagation(null, true); // do not change local flag
         return true;
       }
-      hashUpdate(singleHash);
+      propagate(singleHash);
       endPropagation(localPropagationInProgress, true);
       return true;
     }
@@ -168,14 +180,8 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   @Override
-  public double getError() {
-    return maxConcurrencyError_;
-  }
-
-  @Override
-  public boolean startEagerPropagation() {
-    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
-    return (!isEstimationMode());// no eager propagation is allowed in estimation mode
+  public void propagate(long singleHash) {
+    super.hashUpdate(singleHash);
   }
 
   @Override
