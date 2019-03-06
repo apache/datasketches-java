@@ -305,8 +305,8 @@ public class UpdateSketchBuilder {
     bMaxConcurrencyError = maxConcurrencyError;
   }
 
-  public void setbMaxNumLocalThreads(int bMaxNumLocalThreads) {
-    this.bMaxNumLocalThreads = bMaxNumLocalThreads;
+  public void setbMaxNumLocalThreads(final int maxNumLocalThreads) {
+    bMaxNumLocalThreads = maxNumLocalThreads;
   }
 
   // BUILD FUNCTIONS

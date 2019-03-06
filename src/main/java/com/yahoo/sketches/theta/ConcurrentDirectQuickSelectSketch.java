@@ -101,9 +101,9 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  UpdateReturnState hashUpdate(long hash) {
-    String msg = "No update method should be called directly to a shared theta sketch." +
-        " Updating the shared sketch is only permitted through propagation from local sketches.";
+  UpdateReturnState hashUpdate(final long hash) {
+    final String msg = "No update method should be called directly to a shared theta sketch."
+        + " Updating the shared sketch is only permitted through propagation from local sketches.";
     throw new RuntimeException(msg);
   }
 
@@ -181,7 +181,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   @Override
-  public void propagate(long singleHash) {
+  public void propagate(final long singleHash) {
     super.hashUpdate(singleHash);
   }
 

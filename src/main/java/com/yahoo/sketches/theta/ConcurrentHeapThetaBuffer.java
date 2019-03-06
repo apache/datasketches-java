@@ -27,8 +27,9 @@ import com.yahoo.sketches.ResizeFactor;
  */
 final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
-  private static int computeLogBufferSize(final int lgNomLongs, final long exactSize, int maxNumLocalBuffers){
-    return Math.min(lgNomLongs, (int)Math.log(Math.sqrt(exactSize)/(2 * maxNumLocalBuffers)));
+  private static int computeLogBufferSize(final int lgNomLongs, final long exactSize,
+      final int maxNumLocalBuffers) {
+    return Math.min(lgNomLongs, (int)Math.log(Math.sqrt(exactSize) / (2 * maxNumLocalBuffers)));
   }
 
   // Shared sketch consisting of the global sample set and theta value.
@@ -48,10 +49,10 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   ConcurrentHeapThetaBuffer(final int lgNomLongs, final long seed,
       final ConcurrentSharedThetaSketch shared, final boolean propagateOrderedCompact,
       final int maxNumLocalThreads) {
-    super(computeLogBufferSize(lgNomLongs, shared.getExactLimit(), maxNumLocalThreads)
-        , seed, 1.0F //p
-        , ResizeFactor.X1 //rf
-        , false); //not a union gadget
+    super(computeLogBufferSize(lgNomLongs, shared.getExactLimit(), maxNumLocalThreads),
+      seed, 1.0F, //p
+      ResizeFactor.X1, //rf
+      false); //not a union gadget
 
     this.shared = shared;
     isExactMode = true;
