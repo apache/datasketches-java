@@ -115,9 +115,6 @@ public abstract class UpdateSketch extends Sketch {
   //Sketch interface
 
   @Override
-  public abstract boolean isEmpty();
-
-  @Override
   public boolean isCompact() {
     return false;
   }

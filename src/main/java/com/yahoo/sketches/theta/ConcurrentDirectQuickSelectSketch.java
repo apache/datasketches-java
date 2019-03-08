@@ -104,7 +104,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   UpdateReturnState hashUpdate(final long hash) {
     final String msg = "No update method should be called directly to a shared theta sketch."
         + " Updating the shared sketch is only permitted through propagation from local sketches.";
-    throw new RuntimeException(msg);
+    throw new UnsupportedOperationException(msg);
   }
 
   //ConcurrentSharedThetaSketch declarations

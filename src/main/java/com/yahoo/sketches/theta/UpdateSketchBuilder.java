@@ -305,8 +305,29 @@ public class UpdateSketchBuilder {
     bMaxConcurrencyError = maxConcurrencyError;
   }
 
-  public void setbMaxNumLocalThreads(final int maxNumLocalThreads) {
+  /**
+   * Gets the Maximum Concurrency Error
+   * @return the Maximum Concurrency Error
+   */
+  public double getMaxConcurrencyError() {
+    return bMaxConcurrencyError;
+  }
+
+  /**
+   * Sets the Maximum Number of Local Threads.
+   * This is used to set the size of the local concurrent buffers.
+   * @param maxNumLocalThreads the given Maximum Number of Local Threads
+   */
+  public void setMaxNumLocalThreads(final int maxNumLocalThreads) {
     bMaxNumLocalThreads = maxNumLocalThreads;
+  }
+
+  /**
+   * Gets the Maximum Number of Local Threads.
+   * @return the Maximum Number of Local Threads.
+   */
+  public int getMaxNumLocalThreads() {
+    return bMaxNumLocalThreads;
   }
 
   // BUILD FUNCTIONS
@@ -401,8 +422,7 @@ public class UpdateSketchBuilder {
     return (UpdateSketch) buildSharedInternal(dstMem);
   }
 
-  //Also used in test
-  ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
+  private ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError);
@@ -426,18 +446,10 @@ public class UpdateSketchBuilder {
    */
   public UpdateSketch buildLocal(final UpdateSketch shared) {
     if ((shared == null) || !(shared instanceof ConcurrentSharedThetaSketch)) {
-      throw new SketchesStateException("The shared sketch must be built first.");
+      throw new SketchesStateException("The concurrent shared sketch must be built first.");
     }
-    return buildLocalInternal((ConcurrentSharedThetaSketch) shared);
-  }
-
-  //Also used in test
-  ConcurrentHeapThetaBuffer buildLocalInternal(final ConcurrentSharedThetaSketch shared) {
-    if (shared == null) {
-      throw new SketchesStateException("The shared sketch must be built first.");
-    }
-    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed, shared,
-        bPropagateOrderedCompact, bMaxNumLocalThreads);
+    return new ConcurrentHeapThetaBuffer(bLocalLgNomLongs, bSeed,
+        (ConcurrentSharedThetaSketch) shared, bPropagateOrderedCompact, bMaxNumLocalThreads);
   }
 
   @Override

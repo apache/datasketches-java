@@ -52,16 +52,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   }
 
   @Override
-  public int getLgNomLongs() {
-    return lgNomLongs_;
-  }
-
-  @Override
-  public ResizeFactor getResizeFactor() {
-    return rf_;
-  }
-
-  @Override
   public boolean isDirect() {
     return false;
   }
@@ -69,6 +59,18 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   @Override
   public boolean hasMemory() {
     return false;
+  }
+
+  //UpdateSketch
+
+  @Override
+  public int getLgNomLongs() {
+    return lgNomLongs_;
+  }
+
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return rf_;
   }
 
   //restricted methods
