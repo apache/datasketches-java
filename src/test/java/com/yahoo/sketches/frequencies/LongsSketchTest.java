@@ -534,6 +534,17 @@ public class LongsSketchTest {
   }
 
   @Test
+  public void checkGetEpsilon() {
+    assertEquals(LongsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);
+  }
+
+  @Test
+  public void checkGetAprioriError() {
+    double eps = 3.5 / 1024;
+    assertEquals(LongsSketch.getAprioriError(1024, 10_000), eps * 10_000);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }

@@ -6,6 +6,7 @@
 package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
@@ -310,6 +311,206 @@ public class LongsSketch {
     return sketch;
   }
 
+  /**
+   * Returns the estimated <i>a priori</i> error given the maxMapSize for the sketch and the
+   * estimatedTotalStreamWeight.
+   * @param maxMapSize the planned map size to be used when constructing this sketch.
+   * @param estimatedTotalStreamWeight the estimated total stream weight.
+   * @return the estimated <i>a priori</i> error.
+   */
+  public static double getAprioriError(final int maxMapSize, final long estimatedTotalStreamWeight) {
+    return getEpsilon(maxMapSize) * estimatedTotalStreamWeight;
+  }
+
+  /**
+   * Returns the current number of counters the sketch is configured to support.
+   *
+   * @return the current number of counters the sketch is configured to support.
+   */
+  public int getCurrentMapCapacity() {
+    return curMapCap;
+  }
+
+  /**
+   * Returns epsilon used to compute <i>a priori</i> error.
+   * This is just the value <i>3.5 / maxMapSize</i>.
+   * @param maxMapSize the planned map size to be used when constructing this sketch.
+   * @return epsilon used to compute <i>a priori</i> error.
+   */
+  public static double getEpsilon(final int maxMapSize) {
+    if (!isPowerOf2(maxMapSize)) {
+      throw new SketchesArgumentException("maxMapSize is not a power of 2.");
+    }
+    return 3.5 / maxMapSize;
+  }
+
+  /**
+   * Gets the estimate of the frequency of the given item.
+   * Note: The true frequency of a item would be the sum of the counts as a result of the
+   * two update functions.
+   *
+   * @param item the given item
+   * @return the estimate of the frequency of the given item
+   */
+  public long getEstimate(final long item) {
+    // If item is tracked:
+    // Estimate = itemCount + offset; Otherwise it is 0.
+    final long itemCount = hashMap.get(item);
+    return (itemCount > 0) ? itemCount + offset : 0;
+  }
+
+  /**
+   * Gets the guaranteed lower bound frequency of the given item, which can never be
+   * negative.
+   *
+   * @param item the given item.
+   * @return the guaranteed lower bound frequency of the given item. That is, a number which
+   * is guaranteed to be no larger than the real frequency.
+   */
+  public long getLowerBound(final long item) {
+    //LB = itemCount or 0
+    return hashMap.get(item);
+  }
+
+  /**
+   * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
+   * given a threshold and an ErrorCondition. If the threshold is lower than getMaximumError(),
+   * then getMaximumError() will be used instead.
+   *
+   * <p>The method first examines all active items in the sketch (items that have a counter).
+   *
+   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result
+   * list if getUpperBound(item) &gt; threshold.
+   * There will be no false negatives, i.e., no Type II error.
+   * There may be items in the set with true frequencies less than the threshold
+   * (false positives).</p>
+   *
+   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result
+   * list if getLowerBound(item) &gt; threshold.
+   * There will be no false positives, i.e., no Type I error.
+   * There may be items omitted from the set with true frequencies greater than the
+   * threshold (false negatives). This is a subset of the NO_FALSE_NEGATIVES case.</p>
+   *
+   * @param threshold to include items in the result list
+   * @param errorType determines whether no false positives or no false negatives are
+   * desired.
+   * @return an array of frequent items
+   */
+  public Row[] getFrequentItems(final long threshold, final ErrorType errorType) {
+    return sortItems(threshold > getMaximumError() ? threshold : getMaximumError(), errorType);
+  }
+
+  /**
+   * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
+   * given an ErrorCondition and the default threshold.
+   * This is the same as getFrequentItems(getMaximumError(), errorType)
+   *
+   * @param errorType determines whether no false positives or no false negatives are
+   * desired.
+   * @return an array of frequent items
+   */
+  public Row[] getFrequentItems(final ErrorType errorType) {
+    return sortItems(getMaximumError(), errorType);
+  }
+
+  /**
+   * @return An upper bound on the maximum error of getEstimate(item) for any item.
+   * This is equivalent to the maximum distance between the upper bound and the lower bound
+   * for any item.
+   */
+  public long getMaximumError() {
+    return offset;
+  }
+
+  /**
+   * Returns the maximum number of counters the sketch is configured to support.
+   *
+   * @return the maximum number of counters the sketch is configured to support.
+   */
+  public int getMaximumMapCapacity() {
+    return (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
+  }
+
+  /**
+   * @return the number of active items in the sketch.
+   */
+  public int getNumActiveItems() {
+    return hashMap.getNumActive();
+  }
+
+  /**
+   * Returns the number of bytes required to store this sketch as an array of bytes.
+   *
+   * @return the number of bytes required to store this sketch as an array of bytes.
+   */
+  public int getStorageBytes() {
+    if (isEmpty()) { return 8; }
+    return (6 * 8) + (16 * getNumActiveItems());
+  }
+
+  /**
+   * Returns the sum of the frequencies (weights or counts) in the stream seen so far by the sketch
+   *
+   * @return the sum of the frequencies in the stream seen so far by the sketch
+   */
+  public long getStreamLength() {
+    return streamWeight;
+  }
+
+  /**
+   * Gets the guaranteed upper bound frequency of the given item.
+   *
+   * @param item the given item
+   * @return the guaranteed upper bound frequency of the given item. That is, a number which
+   * is guaranteed to be no smaller than the real frequency.
+   */
+  public long getUpperBound(final long item) {
+    // UB = itemCount + offset
+    return hashMap.get(item) + offset;
+  }
+
+  /**
+   * Returns true if this sketch is empty
+   *
+   * @return true if this sketch is empty
+   */
+  public boolean isEmpty() {
+    return getNumActiveItems() == 0;
+  }
+
+  /**
+   * This function merges the other sketch into this one.
+   * The other sketch may be of a different size.
+   *
+   * @param other sketch of this class
+   * @return a sketch whose estimates are within the guarantees of the
+   * largest error tolerance of the two merged sketches.
+   */
+  public LongsSketch merge(final LongsSketch other) {
+    if (other == null) { return this; }
+    if (other.isEmpty()) { return this; }
+
+    final long streamWt = streamWeight + other.streamWeight; //capture before merge
+
+    final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
+    while (iter.next()) { //this may add to offset during rebuilds
+      this.update(iter.getKey(), iter.getValue());
+    }
+    offset += other.offset;
+    streamWeight = streamWt; //corrected streamWeight
+    return this;
+  }
+
+  /**
+   * Resets this sketch to a virgin state.
+   */
+  public void reset() {
+    hashMap = new ReversePurgeLongHashMap(1 << LG_MIN_MAP_SIZE);
+    curMapCap = hashMap.getCapacity();
+    offset = 0;
+    streamWeight = 0;
+  }
+
   //Serialization
 
   /**
@@ -381,6 +582,38 @@ public class LongsSketch {
   }
 
   /**
+   * Returns a human readable summary of this sketch.
+   * @return a human readable summary of this sketch.
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("FrequentLongsSketch:").append(LS);
+    sb.append("  Stream Length    : " + streamWeight).append(LS);
+    sb.append("  Max Error Offset : " + offset).append(LS);
+    sb.append(hashMap.toString());
+    return sb.toString();
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a byte array image of a LongsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a LongsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return toString(Memory.wrap(byteArr));
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a LongsSketch.
+   * @param mem the given Memory object
+   * @return  a human readable string of the preamble of a Memory image of a LongsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
+  }
+
+  /**
    * Update this sketch with an item and a frequency count of one.
    * @param item for which the frequency should be increased.
    */
@@ -414,110 +647,6 @@ public class LongsSketch {
         }
       }
     }
-  }
-
-  /**
-   * This function merges the other sketch into this one.
-   * The other sketch may be of a different size.
-   *
-   * @param other sketch of this class
-   * @return a sketch whose estimates are within the guarantees of the
-   * largest error tolerance of the two merged sketches.
-   */
-  public LongsSketch merge(final LongsSketch other) {
-    if (other == null) { return this; }
-    if (other.isEmpty()) { return this; }
-
-    final long streamWt = streamWeight + other.streamWeight; //capture before merge
-
-    final ReversePurgeLongHashMap.Iterator iter = other.hashMap.iterator();
-    while (iter.next()) { //this may add to offset during rebuilds
-      this.update(iter.getKey(), iter.getValue());
-    }
-    offset += other.offset;
-    streamWeight = streamWt; //corrected streamWeight
-    return this;
-  }
-
-  /**
-   * Gets the estimate of the frequency of the given item.
-   * Note: The true frequency of a item would be the sum of the counts as a result of the
-   * two update functions.
-   *
-   * @param item the given item
-   * @return the estimate of the frequency of the given item
-   */
-  public long getEstimate(final long item) {
-    // If item is tracked:
-    // Estimate = itemCount + offset; Otherwise it is 0.
-    final long itemCount = hashMap.get(item);
-    return (itemCount > 0) ? itemCount + offset : 0;
-  }
-
-  /**
-   * Gets the guaranteed upper bound frequency of the given item.
-   *
-   * @param item the given item
-   * @return the guaranteed upper bound frequency of the given item. That is, a number which
-   * is guaranteed to be no smaller than the real frequency.
-   */
-  public long getUpperBound(final long item) {
-    // UB = itemCount + offset
-    return hashMap.get(item) + offset;
-  }
-
-  /**
-   * Gets the guaranteed lower bound frequency of the given item, which can never be
-   * negative.
-   *
-   * @param item the given item.
-   * @return the guaranteed lower bound frequency of the given item. That is, a number which
-   * is guaranteed to be no larger than the real frequency.
-   */
-  public long getLowerBound(final long item) {
-    //LB = itemCount or 0
-    return hashMap.get(item);
-  }
-
-  /**
-   * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
-   * given a threshold and an ErrorCondition. If the threshold is lower than getMaximumError(),
-   * then getMaximumError() will be used instead.
-   *
-   * <p>The method first examines all active items in the sketch (items that have a counter).
-   *
-   * <p>If <i>ErrorType = NO_FALSE_NEGATIVES</i>, this will include an item in the result
-   * list if getUpperBound(item) &gt; threshold.
-   * There will be no false negatives, i.e., no Type II error.
-   * There may be items in the set with true frequencies less than the threshold
-   * (false positives).</p>
-   *
-   * <p>If <i>ErrorType = NO_FALSE_POSITIVES</i>, this will include an item in the result
-   * list if getLowerBound(item) &gt; threshold.
-   * There will be no false positives, i.e., no Type I error.
-   * There may be items omitted from the set with true frequencies greater than the
-   * threshold (false negatives). This is a subset of the NO_FALSE_NEGATIVES case.</p>
-   *
-   * @param threshold to include items in the result list
-   * @param errorType determines whether no false positives or no false negatives are
-   * desired.
-   * @return an array of frequent items
-   */
-  public Row[] getFrequentItems(final long threshold, final ErrorType errorType) {
-    return sortItems(threshold > getMaximumError() ? threshold : getMaximumError(), errorType);
-  }
-
-  /**
-   * Returns an array of Rows that include frequent items, estimates, upper and lower bounds
-   * given an ErrorCondition and the default threshold.
-   * This is the same as getFrequentItems(getMaximumError(), errorType)
-   *
-   * @param errorType determines whether no false positives or no false negatives are
-   * desired.
-   * @return an array of frequent items
-   */
-  public Row[] getFrequentItems(final ErrorType errorType) {
-    return sortItems(getMaximumError(), errorType);
   }
 
   /**
@@ -652,110 +781,6 @@ public class LongsSketch {
 
     final Row[] rowsArr = rowList.toArray(new Row[rowList.size()]);
     return rowsArr;
-  }
-
-  /**
-   * Returns the current number of counters the sketch is configured to support.
-   *
-   * @return the current number of counters the sketch is configured to support.
-   */
-  public int getCurrentMapCapacity() {
-    return curMapCap;
-  }
-
-  /**
-   * @return An upper bound on the maximum error of getEstimate(item) for any item.
-   * This is equivalent to the maximum distance between the upper bound and the lower bound
-   * for any item.
-   */
-  public long getMaximumError() {
-    return offset;
-  }
-
-  /**
-   * Returns true if this sketch is empty
-   *
-   * @return true if this sketch is empty
-   */
-  public boolean isEmpty() {
-    return getNumActiveItems() == 0;
-  }
-
-  /**
-   * Returns the sum of the frequencies (weights or counts) in the stream seen so far by the sketch
-   *
-   * @return the sum of the frequencies in the stream seen so far by the sketch
-   */
-  public long getStreamLength() {
-    return streamWeight;
-  }
-
-  /**
-   * Returns the maximum number of counters the sketch is configured to support.
-   *
-   * @return the maximum number of counters the sketch is configured to support.
-   */
-  public int getMaximumMapCapacity() {
-    return (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
-  }
-
-  /**
-   * @return the number of active items in the sketch.
-   */
-  public int getNumActiveItems() {
-    return hashMap.getNumActive();
-  }
-
-  /**
-   * Returns the number of bytes required to store this sketch as an array of bytes.
-   *
-   * @return the number of bytes required to store this sketch as an array of bytes.
-   */
-  public int getStorageBytes() {
-    if (isEmpty()) { return 8; }
-    return (6 * 8) + (16 * getNumActiveItems());
-  }
-
-  /**
-   * Resets this sketch to a virgin state.
-   */
-  public void reset() {
-    hashMap = new ReversePurgeLongHashMap(1 << LG_MIN_MAP_SIZE);
-    curMapCap = hashMap.getCapacity();
-    offset = 0;
-    streamWeight = 0;
-  }
-
-  /**
-   * Returns a human readable summary of this sketch.
-   * @return a human readable summary of this sketch.
-   */
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("FrequentLongsSketch:").append(LS);
-    sb.append("  Stream Length    : " + streamWeight).append(LS);
-    sb.append("  Max Error Offset : " + offset).append(LS);
-    sb.append(hashMap.toString());
-    return sb.toString();
-  }
-
-  /**
-   * Returns a human readable string of the preamble of a byte array image of a LongsSketch.
-   * @param byteArr the given byte array
-   * @return a human readable string of the preamble of a byte array image of a LongsSketch.
-   */
-  public static String toString(final byte[] byteArr) {
-    return toString(Memory.wrap(byteArr));
-  }
-
-  /**
-   * Returns a human readable string of the preamble of a Memory image of a LongsSketch.
-   * @param mem the given Memory object
-   * @return  a human readable string of the preamble of a Memory image of a LongsSketch.
-   */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.preambleToString(mem);
   }
 
   /**
