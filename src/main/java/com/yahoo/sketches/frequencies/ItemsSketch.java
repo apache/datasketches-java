@@ -6,6 +6,7 @@
 package com.yahoo.sketches.frequencies;
 
 import static com.yahoo.sketches.Util.LS;
+import static com.yahoo.sketches.Util.isPowerOf2;
 import static com.yahoo.sketches.Util.toLog2;
 import static com.yahoo.sketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.frequencies.PreambleUtil.SER_VER;
@@ -151,7 +152,7 @@ public class ItemsSketch<T> {
   /**
    * The sum of all frequencies of the stream so far.
    */
-  private long streamLength = 0;
+  private long streamWeight = 0;
 
   /**
    * The maximum number of samples used to compute approximate median of counters when doing
@@ -250,7 +251,7 @@ public class ItemsSketch<T> {
     srcMem.getLongArray(0, preArr, 0, preLongs);
 
     final ItemsSketch<T> fis = new ItemsSketch<>(lgMaxMapSize, lgCurMapSize);
-    fis.streamLength = 0; //update after
+    fis.streamWeight = 0; //update after
     fis.offset = preArr[3];
 
     final int preBytes = preLongs << 3;
@@ -266,118 +267,41 @@ public class ItemsSketch<T> {
     for (int i = 0; i < activeItems; i++) {
       fis.update(itemArray[i], countArray[i]);
     }
-    fis.streamLength = preArr[2]; //override streamLength due to updating
+    fis.streamWeight = preArr[2]; //override streamWeight due to updating
     return fis;
   }
 
   /**
-   * Returns a byte array representation of this sketch
-   * @param serDe an instance of ArrayOfItemsSerDe
-   * @return a byte array representation of this sketch
+   * Returns the estimated <i>a priori</i> error given the maxMapSize for the sketch and the
+   * estimatedTotalStreamWeight.
+   * @param maxMapSize the planned map size to be used when constructing this sketch.
+   * @param estimatedTotalStreamWeight the estimated total stream weight.
+   * @return the estimated <i>a priori</i> error.
    */
-  @SuppressWarnings("null")
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
-    final int preLongs;
-    final int outBytes;
-    final boolean empty = isEmpty();
-    final int activeItems = getNumActiveItems();
-    byte[] bytes = null;
-    if (empty) {
-      preLongs = 1;
-      outBytes = 8;
-    } else {
-      preLongs = Family.FREQUENCY.getMaxPreLongs();
-      bytes = serDe.serializeToByteArray(hashMap.getActiveKeys());
-      outBytes = ((preLongs + activeItems) << 3) + bytes.length;
-    }
-    final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.wrap(outArr);
-
-    // build first preLong empty or not
-    long pre0 = 0L;
-    pre0 = insertPreLongs(preLongs, pre0);                  //Byte 0
-    pre0 = insertSerVer(SER_VER, pre0);                     //Byte 1
-    pre0 = insertFamilyID(Family.FREQUENCY.getID(), pre0);  //Byte 2
-    pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
-    pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
-    pre0 = empty ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
-
-    if (empty) {
-      mem.putLong(0, pre0);
-    } else {
-      final long pre = 0;
-      final long[] preArr = new long[preLongs];
-      preArr[0] = pre0;
-      preArr[1] = insertActiveItems(activeItems, pre);
-      preArr[2] = this.streamLength;
-      preArr[3] = this.offset;
-      mem.putLongArray(0, preArr, 0, preLongs);
-      final int preBytes = preLongs << 3;
-      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
-      mem.putByteArray(preBytes + (this.getNumActiveItems() << 3), bytes, 0, bytes.length);
-    }
-    return outArr;
+  public static double getAprioriError(final int maxMapSize, final long estimatedTotalStreamWeight) {
+    return getEpsilon(maxMapSize) * estimatedTotalStreamWeight;
   }
 
   /**
-   * Update this sketch with an item and a frequency count of one.
-   * @param item for which the frequency should be increased.
-   */
-  public void update(final T item) {
-    update(item, 1);
-  }
-
-  /**
-   * Update this sketch with a item and a positive frequency count.
-   * @param item for which the frequency should be increased. The item can be any long value and is
-   * only used by the sketch to determine uniqueness.
-   * @param count the amount by which the frequency of the item should be increased.
-   * An count of zero is a no-op, and a negative count will throw an exception.
-   */
-  public void update(final T item, final long count) {
-    if ((item == null) || (count == 0)) {
-      return;
-    }
-    if (count < 0) {
-      throw new SketchesArgumentException("Count may not be negative");
-    }
-    this.streamLength += count;
-    hashMap.adjustOrPutValue(item, count);
-
-    if (getNumActiveItems() > curMapCap) { //over the threshold, we need to do something
-      if (hashMap.getLgLength() < lgMaxMapSize) { //below tgt size, we can grow
-        hashMap.resize(2 * hashMap.getLength());
-        curMapCap = hashMap.getCapacity();
-      } else { //At tgt size, must purge
-        offset += hashMap.purge(sampleSize);
-        if (getNumActiveItems() > getMaximumMapCapacity()) {
-          throw new SketchesStateException("Purge did not reduce active items.");
-        }
-      }
-    }
-  }
-
-  /**
-   * This function merges the other sketch into this one.
-   * The other sketch may be of a different size.
+   * Returns the current number of counters the sketch is configured to support.
    *
-   * @param other sketch of this class
-   * @return a sketch whose estimates are within the guarantees of the
-   * largest error tolerance of the two merged sketches.
+   * @return the current number of counters the sketch is configured to support.
    */
-  public ItemsSketch<T> merge(final ItemsSketch<T> other) {
-    if (other == null) { return this; }
-    if (other.isEmpty()) { return this; }
+  public int getCurrentMapCapacity() {
+    return this.curMapCap;
+  }
 
-    final long streamLen = this.streamLength + other.streamLength; //capture before merge
-
-    final ReversePurgeItemHashMap.Iterator<T> iter = other.hashMap.iterator();
-    while (iter.next()) { //this may add to offset during rebuilds
-      this.update(iter.getKey(), iter.getValue());
+  /**
+   * Returns epsilon used to compute <i>a priori</i> error.
+   * This is just the value <i>3.5 / maxMapSize</i>.
+   * @param maxMapSize the planned map size to be used when constructing this sketch.
+   * @return epsilon used to compute <i>a priori</i> error.
+   */
+  public static double getEpsilon(final int maxMapSize) {
+    if (!isPowerOf2(maxMapSize)) {
+      throw new SketchesArgumentException("maxMapSize is not a power of 2.");
     }
-    this.offset += other.offset;
-    this.streamLength = streamLen; //corrected streamLength
-    return this;
+    return 3.5 / maxMapSize;
   }
 
   /**
@@ -393,18 +317,6 @@ public class ItemsSketch<T> {
     // Estimate = itemCount + offset; Otherwise it is 0.
     final long itemCount = hashMap.get(item);
     return (itemCount > 0) ? itemCount + offset : 0;
-  }
-
-  /**
-   * Gets the guaranteed upper bound frequency of the given item.
-   *
-   * @param item the given item
-   * @return the guaranteed upper bound frequency of the given item. That is, a number which
-   * is guaranteed to be no smaller than the real frequency.
-   */
-  public long getUpperBound(final T item) {
-    // UB = itemCount + offset
-    return hashMap.get(item) + offset;
   }
 
   /**
@@ -459,6 +371,215 @@ public class ItemsSketch<T> {
    */
   public Row<T>[] getFrequentItems(final ErrorType errorType) {
     return sortItems(getMaximumError(), errorType);
+  }
+
+  /**
+   * @return An upper bound on the maximum error of getEstimate(item) for any item.
+   * This is equivalent to the maximum distance between the upper bound and the lower bound
+   * for any item.
+   */
+  public long getMaximumError() {
+    return offset;
+  }
+
+  /**
+   * Returns the maximum number of counters the sketch is configured to support.
+   *
+   * @return the maximum number of counters the sketch is configured to support.
+   */
+  public int getMaximumMapCapacity() {
+    return (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
+  }
+
+  /**
+   * @return the number of active items in the sketch.
+   */
+  public int getNumActiveItems() {
+    return hashMap.getNumActive();
+  }
+
+  /**
+   * Returns the sum of the frequencies in the stream seen so far by the sketch
+   *
+   * @return the sum of the frequencies in the stream seen so far by the sketch
+   */
+  public long getStreamLength() {
+    return this.streamWeight;
+  }
+
+  /**
+   * Gets the guaranteed upper bound frequency of the given item.
+   *
+   * @param item the given item
+   * @return the guaranteed upper bound frequency of the given item. That is, a number which
+   * is guaranteed to be no smaller than the real frequency.
+   */
+  public long getUpperBound(final T item) {
+    // UB = itemCount + offset
+    return hashMap.get(item) + offset;
+  }
+
+  /**
+   * Returns true if this sketch is empty
+   *
+   * @return true if this sketch is empty
+   */
+  public boolean isEmpty() {
+    return getNumActiveItems() == 0;
+  }
+
+  /**
+   * This function merges the other sketch into this one.
+   * The other sketch may be of a different size.
+   *
+   * @param other sketch of this class
+   * @return a sketch whose estimates are within the guarantees of the
+   * largest error tolerance of the two merged sketches.
+   */
+  public ItemsSketch<T> merge(final ItemsSketch<T> other) {
+    if (other == null) { return this; }
+    if (other.isEmpty()) { return this; }
+
+    final long streamLen = this.streamWeight + other.streamWeight; //capture before merge
+
+    final ReversePurgeItemHashMap.Iterator<T> iter = other.hashMap.iterator();
+    while (iter.next()) { //this may add to offset during rebuilds
+      this.update(iter.getKey(), iter.getValue());
+    }
+    this.offset += other.offset;
+    this.streamWeight = streamLen; //corrected streamWeight
+    return this;
+  }
+
+  /**
+   * Resets this sketch to a virgin state.
+   */
+  public void reset() {
+    hashMap = new ReversePurgeItemHashMap<>(1 << LG_MIN_MAP_SIZE);
+    this.curMapCap = hashMap.getCapacity();
+    this.offset = 0;
+    this.streamWeight = 0;
+  }
+
+  //Serialization
+
+  /**
+   * Returns a byte array representation of this sketch
+   * @param serDe an instance of ArrayOfItemsSerDe
+   * @return a byte array representation of this sketch
+   */
+  @SuppressWarnings("null")
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+    final int preLongs;
+    final int outBytes;
+    final boolean empty = isEmpty();
+    final int activeItems = getNumActiveItems();
+    byte[] bytes = null;
+    if (empty) {
+      preLongs = 1;
+      outBytes = 8;
+    } else {
+      preLongs = Family.FREQUENCY.getMaxPreLongs();
+      bytes = serDe.serializeToByteArray(hashMap.getActiveKeys());
+      outBytes = ((preLongs + activeItems) << 3) + bytes.length;
+    }
+    final byte[] outArr = new byte[outBytes];
+    final WritableMemory mem = WritableMemory.wrap(outArr);
+
+    // build first preLong empty or not
+    long pre0 = 0L;
+    pre0 = insertPreLongs(preLongs, pre0);                  //Byte 0
+    pre0 = insertSerVer(SER_VER, pre0);                     //Byte 1
+    pre0 = insertFamilyID(Family.FREQUENCY.getID(), pre0);  //Byte 2
+    pre0 = insertLgMaxMapSize(lgMaxMapSize, pre0);          //Byte 3
+    pre0 = insertLgCurMapSize(hashMap.getLgLength(), pre0); //Byte 4
+    pre0 = empty ? insertFlags(EMPTY_FLAG_MASK, pre0) : insertFlags(0, pre0); //Byte 5
+
+    if (empty) {
+      mem.putLong(0, pre0);
+    } else {
+      final long pre = 0;
+      final long[] preArr = new long[preLongs];
+      preArr[0] = pre0;
+      preArr[1] = insertActiveItems(activeItems, pre);
+      preArr[2] = this.streamWeight;
+      preArr[3] = this.offset;
+      mem.putLongArray(0, preArr, 0, preLongs);
+      final int preBytes = preLongs << 3;
+      mem.putLongArray(preBytes, hashMap.getActiveValues(), 0, activeItems);
+      mem.putByteArray(preBytes + (this.getNumActiveItems() << 3), bytes, 0, bytes.length);
+    }
+    return outArr;
+  }
+
+  /**
+   * Returns a human readable summary of this sketch.
+   * @return a human readable summary of this sketch.
+   */
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("FrequentItemsSketch<T>:").append(LS);
+    sb.append("  Stream Length    : " + streamWeight).append(LS);
+    sb.append("  Max Error Offset : " + offset).append(LS);
+    sb.append(hashMap.toString());
+    return sb.toString();
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a byte array image of a ItemsSketch.
+   * @param byteArr the given byte array
+   * @return a human readable string of the preamble of a byte array image of a ItemsSketch.
+   */
+  public static String toString(final byte[] byteArr) {
+    return toString(Memory.wrap(byteArr));
+  }
+
+  /**
+   * Returns a human readable string of the preamble of a Memory image of a ItemsSketch.
+   * @param mem the given Memory object
+   * @return a human readable string of the preamble of a Memory image of a ItemsSketch.
+   */
+  public static String toString(final Memory mem) {
+    return PreambleUtil.preambleToString(mem);
+  }
+
+  /**
+   * Update this sketch with an item and a frequency count of one.
+   * @param item for which the frequency should be increased.
+   */
+  public void update(final T item) {
+    update(item, 1);
+  }
+
+  /**
+   * Update this sketch with a item and a positive frequency count.
+   * @param item for which the frequency should be increased. The item can be any long value and is
+   * only used by the sketch to determine uniqueness.
+   * @param count the amount by which the frequency of the item should be increased.
+   * An count of zero is a no-op, and a negative count will throw an exception.
+   */
+  public void update(final T item, final long count) {
+    if ((item == null) || (count == 0)) {
+      return;
+    }
+    if (count < 0) {
+      throw new SketchesArgumentException("Count may not be negative");
+    }
+    this.streamWeight += count;
+    hashMap.adjustOrPutValue(item, count);
+
+    if (getNumActiveItems() > curMapCap) { //over the threshold, we need to do something
+      if (hashMap.getLgLength() < lgMaxMapSize) { //below tgt size, we can grow
+        hashMap.resize(2 * hashMap.getLength());
+        curMapCap = hashMap.getCapacity();
+      } else { //At tgt size, must purge
+        offset += hashMap.purge(sampleSize);
+        if (getNumActiveItems() > getMaximumMapCapacity()) {
+          throw new SketchesStateException("Purge did not reduce active items.");
+        }
+      }
+    }
   }
 
   /**
@@ -599,97 +720,4 @@ public class ItemsSketch<T> {
     return rowsArr;
   }
 
-  /**
-   * Returns the current number of counters the sketch is configured to support.
-   *
-   * @return the current number of counters the sketch is configured to support.
-   */
-  public int getCurrentMapCapacity() {
-    return this.curMapCap;
-  }
-
-  /**
-   * @return An upper bound on the maximum error of getEstimate(item) for any item.
-   * This is equivalent to the maximum distance between the upper bound and the lower bound
-   * for any item.
-   */
-  public long getMaximumError() {
-    return offset;
-  }
-
-  /**
-   * Returns true if this sketch is empty
-   *
-   * @return true if this sketch is empty
-   */
-  public boolean isEmpty() {
-    return getNumActiveItems() == 0;
-  }
-
-  /**
-   * Returns the sum of the frequencies in the stream seen so far by the sketch
-   *
-   * @return the sum of the frequencies in the stream seen so far by the sketch
-   */
-  public long getStreamLength() {
-    return this.streamLength;
-  }
-
-  /**
-   * Returns the maximum number of counters the sketch is configured to support.
-   *
-   * @return the maximum number of counters the sketch is configured to support.
-   */
-  public int getMaximumMapCapacity() {
-    return (int) ((1 << lgMaxMapSize) * ReversePurgeLongHashMap.getLoadFactor());
-  }
-
-  /**
-   * @return the number of active items in the sketch.
-   */
-  public int getNumActiveItems() {
-    return hashMap.getNumActive();
-  }
-
-  /**
-   * Resets this sketch to a virgin state.
-   */
-  public void reset() {
-    hashMap = new ReversePurgeItemHashMap<>(1 << LG_MIN_MAP_SIZE);
-    this.curMapCap = hashMap.getCapacity();
-    this.offset = 0;
-    this.streamLength = 0;
-  }
-
-  /**
-   * Returns a human readable summary of this sketch.
-   * @return a human readable summary of this sketch.
-   */
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("FrequentItemsSketch<T>:").append(LS);
-    sb.append("  Stream Length    : " + streamLength).append(LS);
-    sb.append("  Max Error Offset : " + offset).append(LS);
-    sb.append(hashMap.toString());
-    return sb.toString();
-  }
-
-  /**
-   * Returns a human readable string of the preamble of a byte array image of a ItemsSketch.
-   * @param byteArr the given byte array
-   * @return a human readable string of the preamble of a byte array image of a ItemsSketch.
-   */
-  public static String toString(final byte[] byteArr) {
-    return toString(Memory.wrap(byteArr));
-  }
-
-  /**
-   * Returns a human readable string of the preamble of a Memory image of a ItemsSketch.
-   * @param mem the given Memory object
-   * @return a human readable string of the preamble of a Memory image of a ItemsSketch.
-   */
-  public static String toString(final Memory mem) {
-    return PreambleUtil.preambleToString(mem);
-  }
 }

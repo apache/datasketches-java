@@ -367,6 +367,24 @@ public class ItemsSketchTest {
     Assert.assertEquals(sketch2.getEstimate("\u5fb5"), 1);
   }
 
+  @Test
+  public void checkGetEpsilon() {
+    assertEquals(ItemsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);
+  }
+
+  @Test
+  public void checkGetAprioriError() {
+    double eps = 3.5 / 1024;
+    assertEquals(ItemsSketch.getAprioriError(1024, 10_000), eps * 10_000);
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
+  }
+
+  //Restricted methods
+
   private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     try {
@@ -378,10 +396,6 @@ public class ItemsSketchTest {
     }
   }
 
-  @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
-  }
 
   /**
    * @param s value to print

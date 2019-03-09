@@ -113,16 +113,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
-  public HashIterator iterator() {
-    return new MemoryHashIterator(mem_, 1 << getLgArrLongs(), getThetaLong());
-  }
-
-  @Override
-  public ResizeFactor getResizeFactor() {
-    return ResizeFactor.getRF(getLgRF());
-  }
-
-  @Override
   public int getRetainedEntries(final boolean valid) { //always valid
     return mem_.getInt(RETAINED_ENTRIES_INT);
   }
@@ -153,6 +143,11 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
+  public HashIterator iterator() {
+    return new MemoryHashIterator(mem_, 1 << getLgArrLongs(), getThetaLong());
+  }
+
+  @Override
   public byte[] toByteArray() { //MY_FAMILY is stored in mem_
     final byte lgArrLongs = mem_.getByte(LG_ARR_LONGS_BYTE);
     final int preambleLongs = mem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -166,6 +161,16 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //UpdateSketch
 
   @Override
+  public int getLgNomLongs() {
+    return PreambleUtil.extractLgNomLongs(mem_);
+  }
+
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return ResizeFactor.getRF(getLgRF());
+  }
+
+  @Override
   public UpdateSketch rebuild() {
     throw new SketchesReadOnlyException();
   }
@@ -173,11 +178,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   public void reset() {
     throw new SketchesReadOnlyException();
-  }
-
-  @Override
-  public int getLgNomLongs() {
-    return PreambleUtil.extractLgNomLongs(mem_);
   }
 
   //restricted methods
@@ -233,7 +233,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return mem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
   }
 
-  int getLgRF() {
+  int getLgRF() { //only Direct needs this
     return (mem_.getByte(PREAMBLE_LONGS_BYTE) >>> LG_RESIZE_FACTOR_BIT) & 0X3;
   }
 

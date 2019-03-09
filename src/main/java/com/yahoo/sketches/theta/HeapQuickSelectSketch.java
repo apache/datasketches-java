@@ -189,34 +189,29 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
-    if (!compact) { return preambleLongs_; }
-    return computeCompactPreLongs(thetaLong_, empty_, curCount_);
-  }
-
-  @Override
-  WritableMemory getMemory() {
-    return null;
-  }
-
-  @Override
   long[] getCache() {
     return cache_;
   }
 
   @Override
-  boolean isDirty() {
-    return false;
+  int getCurrentPreambleLongs(final boolean compact) {
+    if (!compact) { return preambleLongs_; }
+    return computeCompactPreLongs(thetaLong_, empty_, curCount_);
   }
 
-  @Override
-  boolean isOutOfSpace(final int numEntries) {
-    return numEntries > hashTableThreshold_;
+  //only used by ConcurrentHeapThetaBuffer & Test
+  int getHashTableThreshold() {
+    return hashTableThreshold_;
   }
 
   @Override
   int getLgArrLongs() {
     return lgArrLongs_;
+  }
+
+  @Override
+  WritableMemory getMemory() {
+    return null;
   }
 
   @Override
@@ -247,11 +242,16 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
       }
     }
     return InsertedCountIncremented;
-
   }
 
-  int getHashTableThreshold() {
-    return hashTableThreshold_;
+  @Override
+  boolean isDirty() {
+    return false;
+  }
+
+  @Override
+  boolean isOutOfSpace(final int numEntries) {
+    return numEntries > hashTableThreshold_;
   }
 
   //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
