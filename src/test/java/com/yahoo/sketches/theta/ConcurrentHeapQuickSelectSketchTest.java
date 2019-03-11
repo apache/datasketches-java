@@ -57,8 +57,10 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     byte[] byteArray = local.toByteArray();
     WritableMemory mem = WritableMemory.wrap(byteArray);
-    mem.putByte(SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
+    Sketch sk = Sketch.heapify(mem, seed);
+    assertTrue(sk instanceof HeapQuickSelectSketch); //Intentional promotion to Parent
 
+    mem.putByte(SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
     Sketch.heapify(mem, seed);
   }
 
