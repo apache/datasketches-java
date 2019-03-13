@@ -422,6 +422,10 @@ public class UpdateSketchBuilder {
     return (UpdateSketch) buildSharedInternal(dstMem);
   }
 
+  public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final WritableMemory dstMem) {
+    return (UpdateSketch) buildSharedFromSketchInternal(sketch, dstMem);
+  }
+
   private ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
@@ -429,6 +433,19 @@ public class UpdateSketchBuilder {
     } else {
       return new ConcurrentDirectQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError, dstMem);
     }
+  }
+
+  private ConcurrentSharedThetaSketch buildSharedFromSketchInternal(final UpdateSketch sketch,
+                                                                    final WritableMemory dstMem) {
+    ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
+    if (sketch instanceof HeapQuickSelectSketch) {
+      return new ConcurrentHeapQuickSelectSketch((HeapQuickSelectSketch)sketch, bSeed, bMaxConcurrencyError);
+    }
+    if (sketch instanceof DirectQuickSelectSketch) {
+      return new ConcurrentDirectQuickSelectSketch((DirectQuickSelectSketch)sketch, bSeed,
+          bMaxConcurrencyError, dstMem);
+    }
+    throw new SketchesArgumentException("sketch type not supported.");
   }
 
   /**

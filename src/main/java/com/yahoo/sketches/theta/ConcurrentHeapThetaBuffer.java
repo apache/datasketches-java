@@ -99,7 +99,7 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
 
   @Override
   public byte[] toByteArray() {
-    return shared.toByteArray();
+    throw new UnsupportedOperationException("Local theta buffer need not be serialized");
   }
 
   //UpdateSketch overrides

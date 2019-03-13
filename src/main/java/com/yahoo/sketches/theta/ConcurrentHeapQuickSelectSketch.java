@@ -66,6 +66,24 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     initBgPropagationService();
   }
 
+  ConcurrentHeapQuickSelectSketch(final HeapQuickSelectSketch sketch, final long seed,
+      final double maxConcurrencyError) {
+    super(sketch.lgNomLongs_, seed, 1.0F, //p
+        ResizeFactor.X1, //rf,
+        false);
+
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
+    sharedPropagationInProgress_ = new AtomicBoolean(false);
+    epoch_ = 0;
+    initBgPropagationService();
+    for (final long hashIn : sketch.getCache()) {
+      propagate(hashIn);
+    }
+    thetaLong_ = sketch.thetaLong_;
+    updateVolatileTheta();
+    updateEstimationSnapshot();
+  }
+
   //Sketch overrides
 
   @Override
@@ -76,6 +94,14 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   @Override
   public boolean isEstimationMode() {
     return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
+  }
+
+  @Override
+  public byte[] toByteArray() {
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    final byte[] res = super.toByteArray();
+    sharedPropagationInProgress_.set(false);
+    return res;
   }
 
   //UpdateSketch overrides
