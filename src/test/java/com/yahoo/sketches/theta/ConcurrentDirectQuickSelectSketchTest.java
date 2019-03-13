@@ -667,7 +667,6 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
       byte[] serArr;
       double est2;
-      int count2;
 
       serArr = shared.toByteArray();
       WritableMemory mem = WritableMemory.wrap(serArr);
