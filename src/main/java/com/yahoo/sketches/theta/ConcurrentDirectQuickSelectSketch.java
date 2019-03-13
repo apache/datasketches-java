@@ -99,15 +99,15 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
   }
 
-  //UpdateSketch overrides
-
   @Override
   public byte[] toByteArray() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
-    byte[] res = super.toByteArray();
+    final byte[] res = super.toByteArray();
     sharedPropagationInProgress_.set(false);
     return res;
   }
+
+  //UpdateSketch overrides
 
   @Override
   public UpdateSketch rebuild() {

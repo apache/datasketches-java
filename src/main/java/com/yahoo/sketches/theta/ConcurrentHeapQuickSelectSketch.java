@@ -67,7 +67,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   }
 
   ConcurrentHeapQuickSelectSketch(final HeapQuickSelectSketch sketch, final long seed,
-                                  final double maxConcurrencyError) {
+      final double maxConcurrencyError) {
     super(sketch.lgNomLongs_, seed, 1.0F, //p
         ResizeFactor.X1, //rf,
         false);
@@ -96,15 +96,15 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     return (getRetainedEntries(false) > exactLimit_) || super.isEstimationMode();
   }
 
-  //UpdateSketch overrides
-
   @Override
   public byte[] toByteArray() {
     while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
-    byte[] res = super.toByteArray();
+    final byte[] res = super.toByteArray();
     sharedPropagationInProgress_.set(false);
     return res;
   }
+
+  //UpdateSketch overrides
 
   @Override
   public UpdateSketch rebuild() {

@@ -448,20 +448,19 @@ public class UpdateSketchBuilder {
     throw new SketchesArgumentException("sketch type not supported.");
   }
 
-
-    /**
-     * Returns a local concurrent UpdateSketch to be used as a per-thread local buffer along with the
-     * given concurrent shared UpdateSketch and the current configuration of this Builder
-     *
-     * <p>The parameters unique to the local concurrent sketch are:
-     * <ul>
-     * <li>Local Nominal Entries or Local Log Nominal Entries</li>
-     * <li>Propagate Ordered Compact flag</li>
-     * </ul>
-     *
-     * @param shared the concurrent shared sketch to be accessed via the concurrent local sketch.
-     * @return an UpdateSketch to be used as a per-thread local buffer.
-     */
+  /**
+   * Returns a local concurrent UpdateSketch to be used as a per-thread local buffer along with the
+   * given concurrent shared UpdateSketch and the current configuration of this Builder
+   *
+   * <p>The parameters unique to the local concurrent sketch are:
+   * <ul>
+   * <li>Local Nominal Entries or Local Log Nominal Entries</li>
+   * <li>Propagate Ordered Compact flag</li>
+   * </ul>
+   *
+   * @param shared the concurrent shared sketch to be accessed via the concurrent local sketch.
+   * @return an UpdateSketch to be used as a per-thread local buffer.
+   */
   public UpdateSketch buildLocal(final UpdateSketch shared) {
     if ((shared == null) || !(shared instanceof ConcurrentSharedThetaSketch)) {
       throw new SketchesStateException("The concurrent shared sketch must be built first.");
