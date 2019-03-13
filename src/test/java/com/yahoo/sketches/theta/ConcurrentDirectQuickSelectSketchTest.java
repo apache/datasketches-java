@@ -187,9 +187,8 @@ public class ConcurrentDirectQuickSelectSketchTest {
       final UpdateSketchBuilder bldr = configureBuilder().setSeed(seed1);
       //must build shared first
       shared = bldr.buildShared(mem);
-      UpdateSketch local = bldr.buildLocal(shared);
-      byte[] byteArray = local.toByteArray();
-      Memory srcMem = Memory.wrap(byteArray);
+      byte[]  serArr = shared.toByteArray();
+      Memory srcMem = Memory.wrap(serArr);
       Sketch.heapify(srcMem, seed2);
     }
   }
@@ -223,23 +222,28 @@ public class ConcurrentDirectQuickSelectSketchTest {
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
 
+      final UpdateSketchBuilder bldr = configureBuilder();
       UpdateSketch local = buildSharedReturnLocalSketch(mem);
 
       for (int i=0; i< k; i++) { local.update(i); }
       waitForBgPropagationToComplete();
 
-      int bytes = local.getCurrentBytes(false);
-      byte[] byteArray = local.toByteArray();
-      assertEquals(bytes, byteArray.length);
+      byte[]  serArr = shared.toByteArray();
+      Memory srcMem = Memory.wrap(serArr);
+      Sketch recoveredShared = Sketch.heapify(srcMem);
 
-      Memory srcMem = Memory.wrap(byteArray);
-      Sketch local2 = Sketch.heapify(srcMem);
+      //reconstruct to Native/Direct
+      final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+      final WritableMemory wmem = WritableMemory.allocate(bytes);
+      shared = bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wmem);
+      UpdateSketch local2 = bldr.buildLocal(shared);
+
       assertEquals(local2.getEstimate(), k, 0.0);
       assertEquals(local2.getLowerBound(2), k, 0.0);
       assertEquals(local2.getUpperBound(2), k, 0.0);
       assertEquals(local2.isEmpty(), false);
       assertEquals(local2.isEstimationMode(), false);
-      assertEquals(local2.getClass().getSimpleName(), "HeapQuickSelectSketch");
+      assertEquals(recoveredShared.getClass().getSimpleName(), "HeapQuickSelectSketch");
 
       // Run toString just to make sure that we can pull out all of the relevant information.
       // That is, this is being run for its side-effect of accessing things.
@@ -255,6 +259,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int u = 2*k;
     try (WritableDirectHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.get();
+      final UpdateSketchBuilder bldr = configureBuilder();
       UpdateSketch local = buildSharedReturnLocalSketch(mem);
 
       for (int i=0; i<u; i++) { local.update(i); }
@@ -264,16 +269,24 @@ public class ConcurrentDirectQuickSelectSketchTest {
       double uskLB  = local.getLowerBound(2);
       double uskUB  = local.getUpperBound(2);
       assertEquals(local.isEstimationMode(), true);
-      byte[] byteArray = local.toByteArray();
 
-      Memory srcMem = Memory.wrap(byteArray);
-      Sketch local2 = Sketch.heapify(srcMem);
+      byte[]  serArr = shared.toByteArray();
+      Memory srcMem = Memory.wrap(serArr);
+      Sketch recoveredShared = Sketch.heapify(srcMem);
+
+      //reconstruct to Native/Direct
+      final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+      final WritableMemory wmem = WritableMemory.allocate(bytes);
+      shared = bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wmem);
+      UpdateSketch local2 = bldr.buildLocal(shared);
+
+
       assertEquals(local2.getEstimate(), uskEst);
       assertEquals(local2.getLowerBound(2), uskLB);
       assertEquals(local2.getUpperBound(2), uskUB);
       assertEquals(local2.isEmpty(), false);
       assertEquals(local2.isEstimationMode(), true);
-      assertEquals(local2.getClass().getSimpleName(), "HeapQuickSelectSketch");
+      assertEquals(recoveredShared.getClass().getSimpleName(), "HeapQuickSelectSketch");
     }
   }
 
@@ -656,17 +669,17 @@ public class ConcurrentDirectQuickSelectSketchTest {
       double est2;
       int count2;
 
-      serArr = local.toByteArray();
-
-      WritableMemory mem2 = WritableMemory.wrap(serArr);
+      serArr = shared.toByteArray();
+      WritableMemory mem = WritableMemory.wrap(serArr);
+      UpdateSketch recoveredShared = Sketches.wrapUpdateSketch(mem);
 
       //reconstruct to Native/Direct
-      UpdateSketch local2 = Sketches.wrapUpdateSketch(mem2);
-
+      final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+      final WritableMemory wmem = WritableMemory.allocate(bytes);
+      shared = bldr.buildSharedFromSketch(recoveredShared, wmem);
+      UpdateSketch local2 = bldr.buildLocal(shared);
       est2 = local2.getEstimate();
-      count2 = local2.getRetainedEntries(false);
 
-      assertEquals(count2, count1);
       assertEquals(est2, est1, 0.0);
     }
   }

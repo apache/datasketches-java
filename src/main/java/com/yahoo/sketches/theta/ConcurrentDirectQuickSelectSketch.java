@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
+import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
+
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,6 +69,24 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     initBgPropagationService();
   }
 
+  ConcurrentDirectQuickSelectSketch(final DirectQuickSelectSketch sketch, final long seed,
+                                    final double maxConcurrencyError, final WritableMemory dstMem) {
+    super(sketch.getLgNomLongs(), seed, 1.0F, //p
+        ResizeFactor.X1, //rf,
+        null, dstMem, false); //unionGadget
+
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
+    sharedPropagationInProgress_ = new AtomicBoolean(false);
+    epoch_ = 0;
+    initBgPropagationService();
+    for (final long hashIn : sketch.getCache()) {
+      propagate(hashIn);
+    }
+    mem_.putLong(THETA_LONG, sketch.getThetaLong());
+    updateVolatileTheta();
+    updateEstimationSnapshot();
+  }
+
   //Sketch overrides
 
   @Override
@@ -80,6 +100,14 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   }
 
   //UpdateSketch overrides
+
+  @Override
+  public byte[] toByteArray() {
+    while (!sharedPropagationInProgress_.compareAndSet(false, true)) { } //busy wait till free
+    byte[] res = super.toByteArray();
+    sharedPropagationInProgress_.set(false);
+    return res;
+  }
 
   @Override
   public UpdateSketch rebuild() {

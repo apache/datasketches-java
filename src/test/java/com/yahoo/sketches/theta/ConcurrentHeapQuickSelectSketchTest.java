@@ -18,6 +18,7 @@ import java.util.Arrays;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
@@ -55,8 +56,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(local.getEstimate(), u, 0.0);
     assertEquals(shared.getRetainedEntries(false), u);
 
-    byte[] byteArray = local.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    byte[]  serArr = shared.toByteArray();
+    WritableMemory mem = WritableMemory.wrap(serArr);
     Sketch sk = Sketch.heapify(mem, seed);
     assertTrue(sk instanceof HeapQuickSelectSketch); //Intentional promotion to Parent
 
@@ -107,7 +108,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertFalse(local.isEmpty());
     assertEquals(local.getEstimate(), u, 0.0);
     assertEquals(shared.getRetainedEntries(false), u);
-    byte[] byteArray = local.toByteArray();
+    byte[] byteArray = shared.toByteArray();
     WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
@@ -120,8 +121,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 9;
     seed = 1021;
     long seed2 = DEFAULT_UPDATE_SEED;
-    UpdateSketch local = buildSharedReturnLocalSketch();
-    byte[] byteArray = local.toByteArray();
+    buildSharedReturnLocalSketch();
+    byte[] byteArray = shared.toByteArray();
     Memory srcMem = Memory.wrap(byteArray);
     Sketch.heapify(srcMem, seed2);
   }
@@ -129,8 +130,9 @@ public class ConcurrentHeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyCorruptLgNomLongs() {
     lgK = 4;
-    UpdateSketch local = buildSharedReturnLocalSketch();
-    WritableMemory srcMem = WritableMemory.wrap(local.toByteArray());
+    buildSharedReturnLocalSketch();
+    byte[]  serArr = shared.toByteArray();
+    WritableMemory srcMem = WritableMemory.wrap(serArr);
     srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
     Sketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
@@ -148,6 +150,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     lgK = 9;
     int u = k;
     seed = DEFAULT_UPDATE_SEED;
+    final UpdateSketchBuilder bldr = configureBuilder();
     UpdateSketch local = buildSharedReturnLocalSketch();
 
     for (int i=0; i<u; i++) {
@@ -155,12 +158,16 @@ public class ConcurrentHeapQuickSelectSketchTest {
     }
     waitForBgPropagationToComplete();
 
-    int bytes = local.getCurrentBytes(false);
-    byte[] byteArray = local.toByteArray();
-    assertEquals(bytes, byteArray.length);
+    byte[]  serArr = shared.toByteArray();
+    Memory srcMem = Memory.wrap(serArr);
+    Sketch recoveredShared = Sketches.heapifyUpdateSketch(srcMem);
 
-    Memory srcMem = Memory.wrap(byteArray);
-    UpdateSketch local2 = Sketches.heapifyUpdateSketch(srcMem, seed);
+    //reconstruct to Native/Direct
+    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final WritableMemory wmem = WritableMemory.allocate(bytes);
+    shared = bldr.buildSharedFromSketch((UpdateSketch)recoveredShared, wmem);
+    UpdateSketch local2 = bldr.buildLocal(shared);
+
     assertEquals(local2.getEstimate(), u, 0.0);
     assertEquals(local2.getLowerBound(2), u, 0.0);
     assertEquals(local2.getUpperBound(2), u, 0.0);
@@ -177,6 +184,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int u = 2*k;
     seed = DEFAULT_UPDATE_SEED;
 
+    final UpdateSketchBuilder bldr = configureBuilder();
     UpdateSketch local = buildSharedReturnLocalSketch();
 
     for (int i=0; i<u; i++) {
@@ -188,10 +196,15 @@ public class ConcurrentHeapQuickSelectSketchTest {
     double localLB  = local.getLowerBound(2);
     double localUB  = local.getUpperBound(2);
     assertEquals(local.isEstimationMode(), true);
-    byte[] byteArray = local.toByteArray();
+    byte[]  serArr = shared.toByteArray();
 
-    Memory srcMem = Memory.wrap(byteArray);
-    UpdateSketch local2 = UpdateSketch.heapify(srcMem, seed);
+    Memory srcMem = Memory.wrap(serArr);
+    UpdateSketch recoveredShared = UpdateSketch.heapify(srcMem, seed);
+
+    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final WritableMemory wmem = WritableMemory.allocate(bytes);
+    shared = bldr.buildSharedFromSketch(recoveredShared, wmem);
+    UpdateSketch local2 = bldr.buildLocal(shared);
     assertEquals(local2.getEstimate(), localEst);
     assertEquals(local2.getLowerBound(2), localLB);
     assertEquals(local2.getUpperBound(2), localUB);
@@ -207,6 +220,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int u = 2*k;
     seed = DEFAULT_UPDATE_SEED;
     boolean estimating = (u > k);
+    final UpdateSketchBuilder bldr = configureBuilder();
     UpdateSketch local = buildSharedReturnLocalSketch();
 
     for (int i=0; i<u; i++) {
@@ -220,10 +234,15 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(local.isEstimationMode(), estimating);
     assertFalse(local.isDirect());
 
-    byte[] byteArray = local.toByteArray();
-    Memory mem = Memory.wrap(byteArray);
+    byte[]  serArr = shared.toByteArray();
 
-    UpdateSketch local2 = UpdateSketch.heapify(mem, DEFAULT_UPDATE_SEED);
+    Memory srcMem = Memory.wrap(serArr);
+    UpdateSketch recoveredShared = UpdateSketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
+
+    final int bytes = Sketch.getMaxUpdateSketchBytes(k);
+    final WritableMemory wmem = WritableMemory.allocate(bytes);
+    shared = bldr.buildSharedFromSketch(recoveredShared, wmem);
+    UpdateSketch local2 = bldr.buildLocal(shared);
 
     assertEquals(local2.getEstimate(), localEst);
     assertEquals(local2.getLowerBound(2), localLB);
@@ -579,7 +598,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     UpdateSketch local = buildSharedReturnLocalSketch();
     for (int i = 0; i < (4 * k); i++) { local.update(i); }
     waitForBgPropagationToComplete();
-    byte[] byteArray = local.toByteArray();
+    byte[] byteArray = shared.toByteArray();
     byte[] badBytes = Arrays.copyOfRange(byteArray, 0, 24);
     Memory mem = Memory.wrap(badBytes);
     Sketch.heapify(mem);
@@ -592,7 +611,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     UpdateSketch local = buildSharedReturnLocalSketch();
     for (int i = 0; i < k; i++) { local.update(i); }
     waitForBgPropagationToComplete();
-    byte[] badArray = local.toByteArray();
+    byte[] badArray = shared.toByteArray();
     WritableMemory mem = WritableMemory.wrap(badArray);
     PreambleUtil.insertLgArrLongs(mem, 4);
     PreambleUtil.insertThetaLong(mem, Long.MAX_VALUE / 2);
