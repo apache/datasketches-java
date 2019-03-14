@@ -42,13 +42,12 @@ import com.yahoo.memory.WritableMemory;
  */
 final class CompressedState {
   private static final String LS = System.getProperty("line.separator");
+  private boolean csvIsValid = false;
+  private boolean windowIsValid = false;
   final int lgK;
   final short seedHash;
   int fiCol = 0;
   boolean mergeFlag = false; //compliment of HIP Flag
-  boolean csvIsValid = false;
-  boolean windowIsValid = false;
-
   long numCoupons = 0;
 
   double kxp;
@@ -60,7 +59,7 @@ final class CompressedState {
   int[] cwStream = null; //may be longer than required
   int cwLengthInts = 0;
 
-  int cpcRequiredBytes = 0;
+  //int cpcRequiredBytes = 0;
 
   private CompressedState(final int lgK, final short seedHash) {
     this.lgK = lgK;

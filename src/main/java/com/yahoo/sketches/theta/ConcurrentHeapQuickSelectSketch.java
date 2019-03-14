@@ -239,6 +239,7 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     //noinspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread
+    // Ignore a FindBugs warning
     epoch_++;
     endPropagation(null, true);
     initBgPropagationService();
