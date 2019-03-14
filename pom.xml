@@ -82,11 +82,11 @@
         
         <!-- Codehaus.org Maven Plugins -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
-        <license-maven-plugin.version>1.16</license-maven-plugin.version>
+        <license-maven-plugin.version>1.19</license-maven-plugin.version>
         <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
         
         <!-- Jacoco.org Maven Plugins -->
-        <jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
         
         <!-- Sonatype.org Maven Plugins -->
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
@@ -316,13 +316,7 @@
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${maven-javadoc-plugin.version}</version>
                 </plugin>
-                
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>${maven-jar-plugin.version}</version>
-                </plugin>
-                
+
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
