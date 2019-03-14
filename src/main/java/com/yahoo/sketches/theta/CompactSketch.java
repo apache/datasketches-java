@@ -120,6 +120,7 @@ public abstract class CompactSketch extends Sketch {
     return cacheOut;
   }
 
+  //compactCache and dstMem must be valid
   static final Memory loadCompactMemory(final long[] compactCache, final short seedHash,
       final int curCount, final long thetaLong, final WritableMemory dstMem,
       final byte flags, final int preLongs) {
@@ -152,7 +153,7 @@ public abstract class CompactSketch extends Sketch {
     if (preLongs > 2) {
       insertThetaLong(dstMem, thetaLong);
     }
-    if ((compactCache != null) && (curCount > 0)) {
+    if (curCount > 0) {
       dstMem.putLongArray(preLongs << 3, compactCache, 0, curCount);
     }
     return dstMem;
