@@ -243,7 +243,6 @@ public class CompactSketchTest {
     assertEquals(csk.getCurrentBytes(true), 16);
     assertTrue(csk == csk.compact());
     assertTrue(csk == csk.compact(true, null));
-
   }
 
   @Test
