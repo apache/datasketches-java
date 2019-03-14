@@ -241,6 +241,8 @@ public class CompactSketchTest {
     sk.update(1);
     csk = sk.compact(true, WritableMemory.allocate(16));
     assertEquals(csk.getCurrentBytes(true), 16);
+    assertTrue(csk == csk.compact());
+    assertTrue(csk == csk.compact(true, null));
   }
 
   @Test
