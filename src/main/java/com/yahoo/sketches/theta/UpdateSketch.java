@@ -115,50 +115,11 @@ public abstract class UpdateSketch extends Sketch {
   //Sketch interface
 
   @Override
-  public boolean isCompact() {
-    return false;
+  public CompactSketch compact() {
+    return compact(true, null);
   }
 
   @Override
-  public boolean isOrdered() {
-    return false;
-  }
-
-  //UpdateSketch interface
-
-  /**
-   * Returns a new builder
-   *
-   * @return a new builder
-   */
-  public static final UpdateSketchBuilder builder() {
-    return new UpdateSketchBuilder();
-  }
-
-  /**
-   * Resets this sketch back to a virgin empty state.
-   */
-  public abstract void reset();
-
-  /**
-   * Convert this UpdateSketch to a CompactSketch in the chosen form.
-   *
-   * <p>This compacting process converts the hash table form of an UpdateSketch to
-   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
-   * greater than theta will be discarded.  The number of valid values remaining in the
-   * Compact Sketch depends on a number of factors, but may be larger or smaller than
-   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
-   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
-   * on the UpdateSketch prior to this.
-   *
-   * @param dstOrdered
-   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
-   *
-   * @param dstMem
-   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
-   *
-   * @return this sketch as a CompactSketch in the chosen form
-   */
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     CompactSketch sketchOut = null;
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
@@ -184,13 +145,31 @@ public abstract class UpdateSketch extends Sketch {
     return sketchOut;
   }
 
-  /**
-   * Converts this UpdateSketch to an ordered CompactSketch on the Java heap.
-   * @return this sketch as an ordered CompactSketch on the Java heap.
-   */
-  public CompactSketch compact() {
-    return compact(true, null);
+  @Override
+  public boolean isCompact() {
+    return false;
   }
+
+  @Override
+  public boolean isOrdered() {
+    return false;
+  }
+
+  //UpdateSketch interface
+
+  /**
+   * Returns a new builder
+   *
+   * @return a new builder
+   */
+  public static final UpdateSketchBuilder builder() {
+    return new UpdateSketchBuilder();
+  }
+
+  /**
+   * Resets this sketch back to a virgin empty state.
+   */
+  public abstract void reset();
 
   /**
    * Rebuilds the hash table to remove dirty values or to reduce the size

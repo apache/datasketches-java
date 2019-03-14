@@ -37,6 +37,15 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class UnionImpl extends Union {
+  /**
+   * Although the gadget object is initially an UpdateSketch, in the context of a Union it is used
+   * as a specialized buffer that happens to leverage much of the machinery of an UpdateSketch.
+   * However, in this context some of the key invariants of the sketch algorithm are intentionally
+   * violated as an optimization. As a result this object can not be considered as an UpdateSketch
+   * and should never be exported as an UpdateSketch. It's internal state is not necessarily
+   * finalized and may contain garbage. Also its internal concept of "nominal entries" or "k" can
+   * be meaningless. It is private for very good reasons.
+   */
   private final UpdateSketch gadget_;
   private final short seedHash_; //eliminates having to compute the seedHash on every update.
   private long unionThetaLong_; //when on-heap, this is the only copy

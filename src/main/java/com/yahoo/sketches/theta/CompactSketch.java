@@ -40,6 +40,14 @@ public abstract class CompactSketch extends Sketch {
   //Sketch
 
   @Override
+  public CompactSketch compact() { return this; }
+
+  @Override
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
+    return this;
+  }
+
+  @Override
   public Family getFamily() {
     return Family.COMPACT;
   }

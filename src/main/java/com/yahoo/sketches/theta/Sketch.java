@@ -20,6 +20,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -141,6 +142,38 @@ public abstract class Sketch {
   }
 
   //Sketch interface, defined here with Javadocs
+
+  /**
+   * Converts this sketch to an ordered CompactSketch on the Java heap.
+   *
+   * <p>If this sketch is already in compact form this operation returns <i>this</i>.
+   *
+   * @return this sketch as an ordered CompactSketch on the Java heap.
+   */
+  public abstract CompactSketch compact();
+
+  /**
+   * Convert this sketch to a CompactSketch in the chosen form.
+   *
+   * <p>If this sketch is already in compact form this operation returns <i>this</i>.
+   *
+   * <p>Otherwise, this compacting process converts the hash table form of an UpdateSketch to
+   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
+   * greater than theta will be discarded.  The number of valid values remaining in the
+   * Compact Sketch depends on a number of factors, but may be larger or smaller than
+   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
+   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
+   * on the UpdateSketch prior to this.
+   *
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   *
+   * @param dstMem
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   *
+   * @return this sketch as a CompactSketch in the chosen form
+   */
+  public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);
 
   /**
    * Gets the number of hash values less than the given theta.
