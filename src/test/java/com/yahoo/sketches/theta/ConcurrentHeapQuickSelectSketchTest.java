@@ -18,7 +18,6 @@ import java.util.Arrays;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
-
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
@@ -343,7 +342,6 @@ public class ConcurrentHeapQuickSelectSketchTest {
     UpdateSketch local = bldr.buildLocal(shared);
     println("lgArr: "+ local.getLgArrLongs());
 
-
     //empty
     local.toString(false, true, 0, false);
     boolean estimating = false;
@@ -401,7 +399,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   @Test
-  public void checkEstMode() { //TODO
+  public void checkEstMode() {
     int k = 4096;
     lgK = 12;
     seed = DEFAULT_UPDATE_SEED;
@@ -664,7 +662,6 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(shared.getRetainedEntries(true), k);
   }
 
-  //@SuppressWarnings("unused")
   @Test
   public void checkBuilderExceptions() {
     UpdateSketchBuilder bldr = new UpdateSketchBuilder();
@@ -686,6 +683,14 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(bldr.getMaxConcurrencyError(), 0.04);
     bldr.setMaxNumLocalThreads(4);
     assertEquals(bldr.getMaxNumLocalThreads(), 4);
+  }
+
+  @Test(expectedExceptions = UnsupportedOperationException.class)
+  public void checkToByteArray() {
+    UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    UpdateSketch shared = bldr.buildShared();
+    UpdateSketch local = bldr.buildLocal(shared);
+    local.toByteArray();
   }
 
   @Test
