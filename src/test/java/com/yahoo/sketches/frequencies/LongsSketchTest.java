@@ -416,11 +416,9 @@ public class LongsSketchTest {
   public void checkGetStorageBytes() {
     int minSize = 1 << LG_MIN_MAP_SIZE;
     LongsSketch fls = new LongsSketch(minSize);
-    int bytes = fls.getStorageBytes();
-    assertEquals(bytes, 8);
+    assertEquals(fls.toByteArray().length, fls.getStorageBytes());
     fls.update(1);
-    bytes = fls.getStorageBytes();
-    assertEquals(bytes, 64);
+    assertEquals(fls.toByteArray().length, fls.getStorageBytes());
   }
 
   @Test

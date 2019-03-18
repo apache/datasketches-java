@@ -62,9 +62,10 @@ import com.yahoo.sketches.SketchesStateException;
  * <p>The hash map starts at a very small size (8 entries), and grows as needed up to the
  * specified <i>maxMapSize</i>.</p>
  *
- * <p>The internal memory space usage of this sketch is 18 * <i>mapSize</i> bytes, plus a small
- * constant number of additional bytes. The internal memory space usage of this sketch will never
- * exceed 18 * <i>maxMapSize</i> bytes, plus a small constant number of additional bytes.</p>
+ * <p>At any moment the internal memory space usage of this sketch is 18 * <i>mapSize</i> bytes,
+ * plus a small constant number of additional bytes. The maximum internal memory space usage of
+ * this sketch will never exceed 18 * <i>maxMapSize</i> bytes, plus a small constant number of
+ * additional bytes.</p>
  *
  * <p><b>Maximum Capacity of the Sketch</b></p>
  *
@@ -445,7 +446,7 @@ public class LongsSketch {
    */
   public int getStorageBytes() {
     if (isEmpty()) { return 8; }
-    return (6 * 8) + (16 * getNumActiveItems());
+    return (4 * 8) + (16 * getNumActiveItems());
   }
 
   /**
@@ -547,7 +548,7 @@ public class LongsSketch {
       preLongs = 1;
       outBytes = 8;
     } else {
-      preLongs = Family.FREQUENCY.getMaxPreLongs();
+      preLongs = Family.FREQUENCY.getMaxPreLongs(); //4
       outBytes = (preLongs + (2 * activeItems)) << 3; //2 because both keys and values are longs
     }
     final byte[] outArr = new byte[outBytes];
