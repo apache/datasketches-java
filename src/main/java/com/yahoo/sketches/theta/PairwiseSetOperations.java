@@ -139,7 +139,7 @@ public class PairwiseSetOperations {
     }
 
     //Both sketches are valid with matching seedhashes and ordered
-    //Full Union operation
+    //Full Union operation:
     long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
     final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
     final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
