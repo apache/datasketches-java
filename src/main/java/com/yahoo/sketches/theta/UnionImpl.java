@@ -37,6 +37,7 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class UnionImpl extends Union {
+
   /**
    * Although the gadget object is initially an UpdateSketch, in the context of a Union it is used
    * as a specialized buffer that happens to leverage much of the machinery of an UpdateSketch.
