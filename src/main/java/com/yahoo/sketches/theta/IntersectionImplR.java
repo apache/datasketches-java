@@ -20,10 +20,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
-import static com.yahoo.sketches.theta.PreambleUtil.clearEmpty;
-import static com.yahoo.sketches.theta.PreambleUtil.insertCurCount;
-import static com.yahoo.sketches.theta.PreambleUtil.insertLgArrLongs;
-import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -38,7 +34,7 @@ import com.yahoo.sketches.Util;
  *
  * <p>This implementation uses data either on-heap or off-heap in a given Memory
  * that is owned and managed by the caller.
- * The off-heap Memory, which if managed properly will greatly reduce the need for
+ * The off-heap Memory, which if managed properly, will greatly reduce the need for
  * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
@@ -72,6 +68,16 @@ class IntersectionImplR extends Intersection {
     }
   }
 
+  IntersectionImplR(final short seedHash) {
+    seedHash_ = seedHash;
+    mem_ = null;
+    lgArrLongs_ = 0;
+    curCount_ = -1;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = false;
+    hashTable_ = null;
+  }
+
   /**
    * Wrap an Intersection target around the given source Memory containing intersection data.
    * @param srcMem The source Memory image.
@@ -87,7 +93,7 @@ class IntersectionImplR extends Intersection {
   static IntersectionImplR internalWrapInstance(final Memory srcMem, final IntersectionImplR impl) {
     //Get Preamble
     //Note: Intersection does not use lgNomLongs (or k), per se.
-    //seedHash loaded and checked in private constructor
+    //seedHash loaded and checked in constructor
     final int preLongsMem = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int famID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
@@ -131,7 +137,8 @@ class IntersectionImplR extends Intersection {
   public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
     if (curCount_ < 0) {
       throw new SketchesStateException(
-          "Calling getResult() with no intervening intersections is not a legal result.");
+          "Calling getResult() with no intervening intersections would represent the infinite set, "
+          + "which is not a legal result.");
     }
     long[] compactCacheR;
 
@@ -187,16 +194,7 @@ class IntersectionImplR extends Intersection {
 
   @Override
   public void reset() {
-    curCount_ = -1;
-    thetaLong_ = Long.MAX_VALUE;
-    empty_ = false;
-    hashTable_ = null;
-    if (mem_ != null) {
-      insertLgArrLongs(mem_, lgArrLongs_); //make sure
-      insertCurCount(mem_, -1);
-      insertThetaLong(mem_, Long.MAX_VALUE);
-      clearEmpty(mem_);
-    }
+    throw new SketchesReadOnlyException();
   }
 
   @Override
@@ -237,6 +235,12 @@ class IntersectionImplR extends Intersection {
 
   @Override
   public void update(final Sketch sketchIn) {
+    throw new SketchesReadOnlyException();
+  }
+
+  @Override
+  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
+     final WritableMemory dstMem) {
     throw new SketchesReadOnlyException();
   }
 

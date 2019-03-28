@@ -8,9 +8,7 @@ import org.testng.annotations.Test;
 
 
 /**
- * Empty essentially means that the sketch has never seen data. But just because it has never
- * seen data does not mean it would not impact a union operation. This would occur if P is
- * set &lt; 1.0.
+ * Empty essentially means that the sketch has never seen data.
  *
  * @author Lee Rhodes
  */

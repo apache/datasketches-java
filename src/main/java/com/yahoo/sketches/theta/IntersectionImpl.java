@@ -41,6 +41,10 @@ final class IntersectionImpl extends IntersectionImplR {
     super(wmem, seed, newMem);
   }
 
+  IntersectionImpl(final short seedHash) {
+    super(seedHash);
+  }
+
   /**
    * Construct a new Intersection target on the java heap.
    *
@@ -56,6 +60,7 @@ final class IntersectionImpl extends IntersectionImplR {
     impl.hashTable_ = null;
     return impl;
   }
+
 
   /**
    * Construct a new Intersection target direct to the given destination Memory.
@@ -163,83 +168,118 @@ final class IntersectionImpl extends IntersectionImplR {
 
   @Override
   public void update(final Sketch sketchIn) {
-    final boolean firstCall = curCount_ < 0;
-
-    //Corner cases
-    if (sketchIn == null) { //null -> Th = 1.0, count = 0, empty = true
-      //No seedHash to check
-      //Because of the def of null above and the Empty Rule (which is OR) empty_ must be true.
+    if (sketchIn != null) {
+      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    }
+    //Null / Empty cases.
+    //Note: null == empty := Th = 1.0, count = 0, empty = true
+    if ((sketchIn == null) || sketchIn.isEmpty() || empty_) { //empty rule
+      //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
+      //Whatever the current internal state, we make it empty.
       empty_ = true;
-      thetaLong_ = firstCall ? Long.MAX_VALUE : thetaLong_; //if Nth call, stays the same
+      thetaLong_ = Long.MAX_VALUE;
       curCount_ = 0;
+      lgArrLongs_ = 0;
+      maxLgArrLongs_ = 0;
+      hashTable_ = null;
       if (mem_ != null) {
-        PreambleUtil.setEmpty(mem_);
+        PreambleUtil.setEmpty(mem_); //true
         insertThetaLong(mem_, thetaLong_);
         insertCurCount(mem_, 0);
+        insertLgArrLongs(mem_, lgArrLongs_);
       }
       return;
     }
 
-    //Checks
-    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
-
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
-    empty_ = empty_ || sketchIn.isEmpty();  //Empty rule
-
+    empty_ = false;
     if (mem_ != null) {
       insertThetaLong(mem_, thetaLong_);
-      if (empty_) { PreambleUtil.setEmpty(mem_); }
-      else { clearEmpty(mem_); }
+      PreambleUtil.clearEmpty(mem_); //false
     }
 
     final int sketchInEntries = sketchIn.getRetainedEntries(true);
 
-    // The truth table for the following state machine for corner cases:
-    //   Case  CurCount  SketchInEntries | Actions
-    //     1      <0            0        | CurCount = 0; HT = null; exit
+    // The truth table for the following state machine
+    //   Case  curCount  sketchInEntries | Actions
+    //     1      <0            0        | First update, curCount = 0; HT = null; exit
     //     2       0            0        | CurCount = 0; HT = null; exit
     //     3      >0            0        | CurCount = 0; HT = null; exit
-    //     4      <0           >0        | Clone SketchIn; exit
-    //     5       0           >0        | CurCount = 0; HT = null; exit
-    //     6      >0           >0        | Perform full intersect
-
-    if ((curCount_ == 0) || (sketchInEntries == 0)) { //Cases 1,2,3,5
-      //All future intersections result in zero data, but theta can still be reduced.
-      curCount_ = 0;
-      if (mem_ != null) { insertCurCount(mem_, 0); }
-      hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
-    }
-    else if (firstCall) { //Case 4: Clone the incoming sketch
-      curCount_ = sketchIn.getRetainedEntries(true);
-      final int requiredLgArrLongs = computeMinLgArrLongsFromCount(curCount_);
-      final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
-      lgArrLongs_ = requiredLgArrLongs;
-
-      if (mem_ != null) { //Off heap, check if current dstMem is large enough
-        insertCurCount(mem_, curCount_);
-        insertLgArrLongs(mem_, lgArrLongs_);
-        if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
-          mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
-        }
-        else { //not enough space in dstMem
-          throw new SketchesArgumentException(
-              "Insufficient dstMem hash table space: "
-                  + (1 << requiredLgArrLongs) + " > " + (1 << priorLgArrLongs));
-        }
+    //     5      <0           >0        | First update, clone SketchIn; exit
+    //     6       0           >0        | CurCount = 0; HT = null; exit
+    //     7      >0           >0        | Perform full intersect
+    final int sw = ((curCount_ < 0) ? 1 : (curCount_ == 0) ? 2 : 3)
+        | (((sketchInEntries > 0) ? 1 : 0) << 2) ;
+    switch (sw) {
+      case 1:
+      case 2:
+      case 3:
+      case 6: { //(curCount_ == 0) || (sketchInEntries == 0)
+        //All future intersections result in zero data, but theta can still be reduced.
+        curCount_ = 0;
+        if (mem_ != null) { insertCurCount(mem_, 0); }
+        hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
+        break;
       }
-      else { //On the heap, allocate a HT
-        hashTable_ = new long[1 << lgArrLongs_];
-      }
+      case 5: { // curCount_ < 0; This is the 1st update, clone the incoming sketch
+        curCount_ = sketchIn.getRetainedEntries(true);
+        final int requiredLgArrLongs = computeMinLgArrLongsFromCount(curCount_);
+        final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
+        lgArrLongs_ = requiredLgArrLongs;
 
-      moveDataToTgt(sketchIn.getCache(), curCount_);
-    }
-    else { //Case 6: Perform full intersect
-      //Sets resulting hashTable, curCount and adjusts lgArrLongs
-      performIntersect(sketchIn);
+        if (mem_ != null) { //Off heap, check if current dstMem is large enough
+          insertCurCount(mem_, curCount_);
+          insertLgArrLongs(mem_, lgArrLongs_);
+          if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
+            mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
+          }
+          else { //not enough space in dstMem
+            throw new SketchesArgumentException(
+                "Insufficient dstMem hash table space: "
+                    + (1 << requiredLgArrLongs) + " > " + (1 << priorLgArrLongs));
+          }
+        }
+        else { //On the heap, allocate a HT
+          hashTable_ = new long[1 << lgArrLongs_];
+        }
+        moveDataToTgt(sketchIn.getCache(), curCount_);
+        break;
+      }
+      case 7: { // (curCount > 0) && (sketchInEntries > 0); Perform full intersect
+        //Sets resulting hashTable, curCount and adjusts lgArrLongs
+        performIntersect(sketchIn);
+        break;
+      }
+      //default: not possible
     }
   }
 
-  void performIntersect(final Sketch sketchIn) {
+  @Override
+  public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
+     final WritableMemory dstMem) {
+    reset();
+    update(a);
+    update(b);
+    return getResult(dstOrdered, dstMem);
+  }
+
+  @Override
+  public void reset() {
+    curCount_ = -1;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = false;
+    hashTable_ = null;
+    if (mem_ != null) {
+      insertLgArrLongs(mem_, lgArrLongs_); //make sure
+      insertCurCount(mem_, -1);
+      insertThetaLong(mem_, Long.MAX_VALUE);
+      clearEmpty(mem_);
+    }
+  }
+
+  //restricted
+
+  private void performIntersect(final Sketch sketchIn) {
     // curCount and input data are nonzero, match against HT
     assert ((curCount_ > 0) && (!empty_));
     final long[] cacheIn = sketchIn.getCache();
@@ -299,7 +339,7 @@ final class IntersectionImpl extends IntersectionImplR {
     }
   }
 
-  void moveDataToTgt(final long[] arr, final int count) {
+  private void moveDataToTgt(final long[] arr, final int count) {
     final int arrLongsIn = arr.length;
     int tmpCnt = 0;
     if (mem_ != null) { //Off Heap puts directly into mem

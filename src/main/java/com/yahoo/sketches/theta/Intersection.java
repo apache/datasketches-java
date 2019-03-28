@@ -70,4 +70,29 @@ public abstract class Intersection extends SetOperation {
    */
   public abstract void update(Sketch sketchIn);
 
+  /**
+   * Perform intersect set operation on the two given sketch arguments and return the result as an
+   * ordered CompactSketch on the heap.
+   * @param a The first sketch argument
+   * @param b The second sketch argument
+   * @return an ordered CompactSketch on the heap
+   */
+  public CompactSketch intersect(final Sketch a, final Sketch b) {
+    return intersect(a, b, true, null);
+  }
+
+  /**
+   * Perform intersect set operation on the two given sketches and return the result as a
+   * CompactSketch.
+   * @param a The first sketch argument
+   * @param b The second sketch argument
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
+   * @param dstMem
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return the result as a CompactSketch.
+   */
+  public abstract CompactSketch intersect(Sketch a, Sketch b, boolean dstOrdered,
+      WritableMemory dstMem);
+
 }

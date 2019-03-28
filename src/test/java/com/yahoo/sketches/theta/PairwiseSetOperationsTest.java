@@ -9,8 +9,6 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.SketchesArgumentException;
-
 public class PairwiseSetOperationsTest {
 
   // Intersection
@@ -70,9 +68,9 @@ public class PairwiseSetOperationsTest {
     for (int t = 0; t < trials; t++) {
       for (int i=0; i<u; i++) {
         usk1.update(i + v);
-        usk2.update(i + v + u/2);
+        usk2.update(i + v + (u/2));
       }
-      v += u + u/2;
+      v += u + (u/2);
 
       CompactSketch csk1 = usk1.compact(true, null);
       CompactSketch csk2 = usk2.compact(true, null);
@@ -150,9 +148,9 @@ public class PairwiseSetOperationsTest {
     for (int t = 0; t < trials; t++) {
       for (int i=0; i<u; i++) {
         usk1.update(i + v);
-        usk2.update(i + v + u/2);
+        usk2.update(i + v + (u/2));
       }
-      v += u + u/2;
+      v += u + (u/2);
 
       CompactSketch csk1 = usk1.compact(true, null);
       CompactSketch csk2 = usk2.compact(true, null);
@@ -235,9 +233,9 @@ public class PairwiseSetOperationsTest {
    for (int t = 0; t < trials; t++) {
      for (int i=0; i<u; i++) {
        usk1.update(i + v);
-       usk2.update(i + v + u/2);
+       usk2.update(i + v + (u/2));
      }
-     v += u + u/2;
+     v += u + (u/2);
 
      CompactSketch csk1 = usk1.compact(true, null);
      CompactSketch csk2 = usk2.compact(true, null);
@@ -256,18 +254,6 @@ public class PairwiseSetOperationsTest {
      usk2.reset();
      union.reset();
    }
- }
-
- @Test(expectedExceptions = SketchesArgumentException.class)
- public void checkIntersectionBadArguments() { //any of the ops will do
-   int lgK = 10;
-   int k = 1<<lgK;
-
-   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
-   CompactSketch csk1 = usk1.compact(false, null);
-   CompactSketch csk2 = usk2.compact(false, null);
-   PairwiseSetOperations.intersect(csk1, csk2);
  }
 
  @Test
