@@ -21,6 +21,8 @@ import com.yahoo.sketches.Family;
  * <p>Calling the update function a second time essentially clears the internal state and updates
  * with the new pair of sketches.
  *
+ * <p>As an alternative, one can use the aNotB method that returns the result immediately.
+ *
  * @author Lee Rhodes
  */
 public abstract class AnotB extends SetOperation {
@@ -31,9 +33,15 @@ public abstract class AnotB extends SetOperation {
   }
 
   /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  public abstract CompactSketch getResult();
+
+  /**
    * Gets the result of this set operation as a CompactSketch of the chosen form
    * @param dstOrdered
-   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    *
    * @param dstMem
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
@@ -43,12 +51,6 @@ public abstract class AnotB extends SetOperation {
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
-   */
-  public abstract CompactSketch getResult();
-
-  /**
    * Perform A-and-not-B set operation on the two given sketches.
    * A null sketch is interpreted as an empty sketch.
    *
@@ -56,5 +58,30 @@ public abstract class AnotB extends SetOperation {
    * @param b The incoming sketch for the second argument
    */
   public abstract void update(Sketch a, Sketch b);
+
+  /**
+   * Perform A-and-not-B set operation on the two given sketches and return the result as an
+   * ordered CompactSketch on the heap.
+   * @param a The incoming sketch for the first argument
+   * @param b The incoming sketch for the second argument
+   * @return an ordered CompactSketch on the heap
+   */
+  public CompactSketch aNotB(final Sketch a, final Sketch b) {
+    return aNotB(a, b, true, null);
+  }
+
+  /**
+   * Perform A-and-not-B set operation on the two given sketches and return the result as a
+   * CompactSketch.
+   * @param a The incoming sketch for the first argument
+   * @param b The incoming sketch for the second argument
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
+   * @param dstMem
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   * @return the result as a CompactSketch.
+   */
+  public abstract CompactSketch aNotB(Sketch a, Sketch b, boolean dstOrdered,
+      WritableMemory dstMem);
 
 }

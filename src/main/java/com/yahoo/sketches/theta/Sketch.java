@@ -24,6 +24,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesStateException;
 import com.yahoo.sketches.Util;
 
 /**
@@ -554,6 +555,35 @@ public abstract class Sketch {
     if (((flags & ORDERED_FLAG_MASK) > 0) ^ sketch.isOrdered()) {
       throw new SketchesArgumentException("Possible corruption: "
           + "Memory Ordered Flag inconsistent with Sketch");
+    }
+  }
+
+  /**
+   * Checks for an illegal state of the empty flag. The truth table is as follows:
+   * <pre>
+   *  Empty CurCount Theta State    Comments
+   *    T      0       1.0   OK     The Normal Empty State
+   *    T      0      <1.0   Error  This can be an initial on-heap state if p < 1.0,
+   *                                  but should stored as a Normal Empty State.
+   *    T     !0       1.0   Error  Empty and curCount !0 should never co-exist
+   *    T     !0      <1.0   Error  Empty and curCount !0 should never co-exist
+   *    F      0       1.0   Error  This conflicts with the normal empty state
+   *    F      0      <1.0   OK     This can result from set operations
+   *    F     !0       1.0   OK     This corresponds to a sketch in exact mode
+   *    F     !0      <1.0   OK     This corresponds to a sketch in estimation mode
+   * </pre>
+   *
+   * @param empty the state of the empty flag
+   * @param curCount the current number of retained entries
+   * @param thetaLong the value of theta as a long
+   */
+  static final void checkEmptyState(final boolean empty, final int curCount, final long thetaLong) {
+    final boolean thLT1 = thetaLong < Long.MAX_VALUE;
+    final boolean zeroCount = curCount == 0;
+    final boolean error = (empty && !zeroCount) || (zeroCount && (empty ^ !thLT1));
+    if (error) {
+      throw new SketchesStateException("Improper Empty State: Empty: " + empty
+          + ", CurCount=0: " + zeroCount + " Theta<1.0: " + thLT1);
     }
   }
 
