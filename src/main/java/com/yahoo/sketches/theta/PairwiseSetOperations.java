@@ -88,51 +88,46 @@ public class PairwiseSetOperations {
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB, final int k) {
     //Handle all corner cases with null or empty arguments
     //For backward compatibility, we must allow input empties with Theta < 1.0.
-    final int swA = (skA == null) ? 1 : skA.isEmpty() ? 2 : 3;
-    final int swB = (skB == null) ? 1 : skB.isEmpty() ? 2 : 3;
+    final int swA, swB;
+    if (skA == null) { swA = 1; } else { checkOrdered(skA); swA = skA.isEmpty() ? 2 : 3; }
+    if (skB == null) { swB = 1; } else { checkOrdered(skB); swB = skB.isEmpty() ? 2 : 3; }
     final int sw = (swA << 2) | swB;
     switch (sw) {
       case 5: {  //skA == null;  skB == null; return null. Cannot determine seedhash.
         return null;
       }
       case 6: {  //skA == null;  skB == empty; return empty
-        checkOrdered(skB);
-        return (skB.getThetaLong() == Long.MAX_VALUE) ? skB :
+        return (skB.getThetaLong() == Long.MAX_VALUE) ? skB : //lgtm [java/dereferenced-value-may-be-null]
           HeapCompactOrderedSketch.compact(new long[0], true, skB.getSeedHash(), 0, Long.MAX_VALUE);
       }
       case 7: {  //skA == null;  skB == valid; return skB
-        checkOrdered(skB);
         return maybeCutback(skB, k);
       }
       case 9: {  //skA == empty; skB == null; return empty
-        checkOrdered(skA);
-        return (skA.getThetaLong() == Long.MAX_VALUE) ? skA :
+        return (skA.getThetaLong() == Long.MAX_VALUE) ? skA : //lgtm [java/dereferenced-value-may-be-null]
           HeapCompactOrderedSketch.compact(new long[0], true, skA.getSeedHash(), 0, Long.MAX_VALUE);
       }
       case 10: { //skA == empty; skB == empty; return empty
-        final short seedHash = Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
-        if (skA.getThetaLong() == Long.MAX_VALUE) { checkOrdered(skA); return skA; }
-        if (skB.getThetaLong() == Long.MAX_VALUE) { checkOrdered(skB); return skB; }
+        final short seedHash = seedHashesCheck(skA, skB);
+        if (skA.getThetaLong() == Long.MAX_VALUE) //lgtm [java/dereferenced-value-may-be-null]
+          { return skA; }
+        if (skB.getThetaLong() == Long.MAX_VALUE) //lgtm [java/dereferenced-value-may-be-null]
+          { return skB; }
         return HeapCompactOrderedSketch.compact(new long[0], true, seedHash, 0, Long.MAX_VALUE);
       }
       case 11: { //skA == empty; skB == valid; return skB
-        Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
-        checkOrdered(skB);
+        seedHashesCheck(skA, skB);
         return maybeCutback(skB, k);
       }
       case 13: { //skA == valid; skB == null; return skA
-        checkOrdered(skA);
         return maybeCutback(skA, k);
       }
       case 14: { //skA == valid; skB == empty; return skA
-        Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
-        checkOrdered(skA);
+        seedHashesCheck(skA, skB);
         return maybeCutback(skA, k);
       }
       case 15: { //skA == valid; skB == valid; perform full union
-        Util.checkSeedHashes(skA.getSeedHash(), skB.getSeedHash());
-        checkOrdered(skA);
-        checkOrdered(skB);
+        seedHashesCheck(skA, skB);
         break;
       }
       //default: cannot happen
@@ -223,6 +218,12 @@ public class PairwiseSetOperations {
     if (!csk.isOrdered()) {
       throw new SketchesArgumentException("Given sketch must be ordered.");
     }
+  }
+
+  private static short seedHashesCheck(final Sketch skA, final Sketch skB) {
+    final short seedHashA = skA.getSeedHash(); //lgtm [java/dereferenced-value-may-be-null]
+    final short seedHashB = skB.getSeedHash(); //lgtm [java/dereferenced-value-may-be-null]
+    return Util.checkSeedHashes(seedHashA, seedHashB);
   }
 
 }
