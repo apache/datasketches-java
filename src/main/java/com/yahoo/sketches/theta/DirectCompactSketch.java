@@ -22,7 +22,6 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   DirectCompactSketch(final Memory mem) {
     mem_ = mem;
-    checkEmptyState(isEmpty(), getRetainedEntries(true), getThetaLong()); //TODO remove if not needed
   }
 
   //Sketch

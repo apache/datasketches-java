@@ -44,7 +44,6 @@ abstract class HeapCompactSketch extends CompactSketch {
     thetaLong_ = empty ? Long.MAX_VALUE : thetaLong;
     cache_ = cache;
     preLongs_ = computeCompactPreLongs(thetaLong, empty, curCount);
-    checkEmptyState(isEmpty(), getRetainedEntries(true), getThetaLong()); //TODO remove if not needed
   }
 
   //Sketch

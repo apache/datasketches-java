@@ -12,7 +12,6 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.Sketch.checkEmptyState;
 import static java.lang.Math.max;
 
 import com.yahoo.memory.Memory;
@@ -230,7 +229,7 @@ public abstract class SetOperation {
       curCount = 0;
       thetaLong = Long.MAX_VALUE;
     }
-    checkEmptyState(empty, curCount, thetaLong);
+    //checkEmptyState(empty, curCount, thetaLong);
     CompactSketch sketchOut = null;
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
@@ -258,8 +257,6 @@ public abstract class SetOperation {
     }
     return sketchOut;
   }
-
-
 
   /**
    * Computes minimum lgArrLongs from a current count.

@@ -56,6 +56,7 @@ final class DirectCompactUnorderedSketch extends DirectCompactSketch {
     final long thetaLong = sketch.getThetaLong();
     final boolean empty = sketch.isEmpty();
     final int curCount = sketch.getRetainedEntries(true);
+    //checkEmptyState(empty, curCount, thetaLong);
     final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
