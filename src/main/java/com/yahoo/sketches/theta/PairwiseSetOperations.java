@@ -5,7 +5,7 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.Sketch.checkEmptyState;
+import static com.yahoo.sketches.theta.SetOperation.createCompactSketch;
 
 import java.util.Arrays;
 
@@ -202,9 +202,7 @@ public class PairwiseSetOperations {
     } else {
       outArr = Arrays.copyOf(outCache, curCount); //copy only valid items
     }
-    checkEmptyState(false, curCount, thetaLong);
-    return HeapCompactOrderedSketch
-        .compact(outArr, false, skA.getSeedHash(), curCount, thetaLong);
+    return createCompactSketch(outArr, false, skA.getSeedHash(), curCount, thetaLong, true, null);
   }
 
   private static CompactSketch maybeCutback(final CompactSketch csk, final int k) {
@@ -216,11 +214,8 @@ public class PairwiseSetOperations {
       thetaLong = cache[k];
       final long[] arr = Arrays.copyOf(cache, k);
       curCount = k;
-      checkEmptyState(empty, curCount, thetaLong);
-      return HeapCompactOrderedSketch
-          .compact(arr, empty, csk.getSeedHash(), curCount, thetaLong);
+      return createCompactSketch(arr, empty, csk.getSeedHash(), curCount, thetaLong, true, null);
     }
-    checkEmptyState(empty, curCount, thetaLong);
     return csk;
   }
 

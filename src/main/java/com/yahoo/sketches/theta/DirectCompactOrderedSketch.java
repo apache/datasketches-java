@@ -52,11 +52,11 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
    * @param dstMem the given destination Memory. This clears it before use.
    * @return a DirectCompactOrderedSketch.
    */
-  static DirectCompactOrderedSketch compact(final UpdateSketch sketch,
-      final WritableMemory dstMem) {
+  static DirectCompactOrderedSketch compact(final UpdateSketch sketch, final WritableMemory dstMem) {
     final long thetaLong = sketch.getThetaLong();
     final boolean empty = sketch.isEmpty();
     final int curCount = sketch.getRetainedEntries(true);
+    //checkEmptyState(empty, curCount, thetaLong);
     final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
