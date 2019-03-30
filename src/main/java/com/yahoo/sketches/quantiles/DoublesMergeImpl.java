@@ -76,21 +76,19 @@ final class DoublesMergeImpl {
     assert srcBitPattern == (srcN / (2L * srcK));
 
     final DoublesSketchAccessor tgtSketchBuf = DoublesSketchAccessor.wrap(tgt, true);
+    long newTgtBitPattern = tgt.getBitPattern();
 
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
-        final long newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
+        newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
                 srcLvl,
                 srcSketchBuf.setLevel(srcLvl),
                 scratch2KAcc,
                 false,
                 tgtK,
                 tgtSketchBuf,
-                tgt.getBitPattern()
+                newTgtBitPattern
         );
-
-        tgt.putBitPattern(newTgtBitPattern);
-        // won't update tgt.n_ until the very end
       }
     }
 
@@ -100,6 +98,7 @@ final class DoublesMergeImpl {
     }
 
     tgt.putN(nFinal);
+    tgt.putBitPattern(newTgtBitPattern); // no-op if direct
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
