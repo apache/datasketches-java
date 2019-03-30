@@ -138,7 +138,7 @@ public abstract class DoublesSketch {
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
    */
-  public static final Random rand = new Random(1);
+  public static Random rand = new Random();
 
   DoublesSketch(final int k) {
     Util.checkK(k);
