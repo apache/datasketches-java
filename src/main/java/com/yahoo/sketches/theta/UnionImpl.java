@@ -189,6 +189,11 @@ final class UnionImpl extends Union {
   }
 
   @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
+  }
+
+  @Override
   public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
     final int gadgetCurCount = gadget_.getRetainedEntries(true);
     final int k = 1 << gadget_.getLgNomLongs();
@@ -204,7 +209,7 @@ final class UnionImpl extends Union {
     final long unionThetaLong = (gadget_.isDirect())
         ? gadget_.getMemory().getLong(UNION_THETA_LONG) : unionThetaLong_;
 
-    final long minThetaLong = min(min(curGadgetThetaLong, adjGadgetThetaLong), unionThetaLong);
+    long minThetaLong = min(min(curGadgetThetaLong, adjGadgetThetaLong), unionThetaLong);
     final int curCountOut = (minThetaLong < curGadgetThetaLong)
         ? HashOperations.count(gadgetCacheCopy, minThetaLong)
         : gadgetCurCount;
@@ -213,13 +218,9 @@ final class UnionImpl extends Union {
     final long[] compactCacheOut =
         compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
     final boolean empty = gadget_.isEmpty() && unionEmpty_;
+    if (empty) { minThetaLong = Long.MAX_VALUE; }
     return createCompactSketch(
         compactCacheOut, empty, seedHash_, curCountOut, minThetaLong, dstOrdered, dstMem);
-  }
-
-  @Override
-  public CompactSketch getResult() {
-    return getResult(true, null);
   }
 
   @Override
