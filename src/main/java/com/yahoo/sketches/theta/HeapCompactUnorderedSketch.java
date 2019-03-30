@@ -80,7 +80,7 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
     final long thetaLong = sketch.getThetaLong();
     final boolean empty = sketch.isEmpty();
     final int curCount = sketch.getRetainedEntries(true);
-
+    //checkEmptyState(empty, curCount, thetaLong);
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
     final boolean ordered = false;

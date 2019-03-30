@@ -40,8 +40,8 @@ abstract class HeapCompactSketch extends CompactSketch {
       final int curCount, final long thetaLong) {
     empty_ = empty;
     seedHash_ = seedHash;
-    curCount_ = curCount;
-    thetaLong_ = thetaLong;
+    curCount_ = empty ? 0 : curCount;
+    thetaLong_ = empty ? Long.MAX_VALUE : thetaLong;
     cache_ = cache;
     preLongs_ = computeCompactPreLongs(thetaLong, empty, curCount);
   }

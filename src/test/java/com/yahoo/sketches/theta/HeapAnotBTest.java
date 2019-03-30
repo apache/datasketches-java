@@ -257,20 +257,17 @@ public class HeapAnotBTest {
     boolean ordered = true;
 
     UpdateSketch aU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++)
-     {
-      aU.update(i);        //All 1024
+    for (int i=0; i<k; i++) {
+      aU.update(i);  //All 1024
     }
 
     UpdateSketch bU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(k/2); i++)
-     {
-      bU.update(i);      //512
+    for (int i=0; i<(k/2); i++) {
+      bU.update(i);  //512
     }
 
     UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<((3*k)/4); i++)
-     {
+    for (int i=k/2; i<((3*k)/4); i++) {
       cU.update(i);  //256
     }
 
@@ -335,6 +332,15 @@ public class HeapAnotBTest {
     double est = r.getEstimate();
     println("est: "+est);
     assertEquals(est, k/4.0, 0.0);
+  }
+
+  @Test
+  public void checkAnotBsimple() {
+    UpdateSketch skA = Sketches.updateSketchBuilder().build();
+    UpdateSketch skB = Sketches.updateSketchBuilder().build();
+    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    CompactSketch csk = aNotB.aNotB(skA, skB);
+    assertEquals(csk.getCurrentBytes(true), 8);
   }
 
   @Test

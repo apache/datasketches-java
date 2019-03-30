@@ -555,6 +555,15 @@ public class HeapIntersectionTest {
   }
 
   @Test
+  public void checkPairIntersectSimple() {
+    UpdateSketch skA = Sketches.updateSketchBuilder().build();
+    UpdateSketch skB = Sketches.updateSketchBuilder().build();
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    CompactSketch csk = inter.intersect(skA, skB);
+    assertEquals(csk.getCurrentBytes(true), 8);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

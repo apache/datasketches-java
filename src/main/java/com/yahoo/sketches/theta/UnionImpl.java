@@ -37,6 +37,7 @@ import com.yahoo.sketches.Util;
  * @author Kevin Lang
  */
 final class UnionImpl extends Union {
+
   /**
    * Although the gadget object is initially an UpdateSketch, in the context of a Union it is used
    * as a specialized buffer that happens to leverage much of the machinery of an UpdateSketch.
@@ -48,7 +49,8 @@ final class UnionImpl extends Union {
    */
   private final UpdateSketch gadget_;
   private final short seedHash_; //eliminates having to compute the seedHash on every update.
-  private long unionThetaLong_; //when on-heap, this is the only copy
+  private long unionThetaLong_ = Long.MAX_VALUE; //when on-heap, this is the only copy
+  private boolean unionEmpty_ = true;
 
   private UnionImpl(final UpdateSketch gadget, final long seed) {
     gadget_ = gadget;
@@ -114,6 +116,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -130,6 +133,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -146,6 +150,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -162,6 +167,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -178,7 +184,13 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketch.writableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
+  }
+
+  @Override
+  public CompactSketch getResult() {
+    return getResult(true, null);
   }
 
   @Override
@@ -197,7 +209,7 @@ final class UnionImpl extends Union {
     final long unionThetaLong = (gadget_.isDirect())
         ? gadget_.getMemory().getLong(UNION_THETA_LONG) : unionThetaLong_;
 
-    final long minThetaLong = min(min(curGadgetThetaLong, adjGadgetThetaLong), unionThetaLong);
+    long minThetaLong = min(min(curGadgetThetaLong, adjGadgetThetaLong), unionThetaLong);
     final int curCountOut = (minThetaLong < curGadgetThetaLong)
         ? HashOperations.count(gadgetCacheCopy, minThetaLong)
         : gadgetCurCount;
@@ -205,27 +217,26 @@ final class UnionImpl extends Union {
     //Compact the cache
     final long[] compactCacheOut =
         compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
-    final boolean empty = gadget_.isEmpty();
+    final boolean empty = gadget_.isEmpty() && unionEmpty_;
+    if (empty) { minThetaLong = Long.MAX_VALUE; }
     return createCompactSketch(
         compactCacheOut, empty, seedHash_, curCountOut, minThetaLong, dstOrdered, dstMem);
-  }
-
-  @Override
-  public CompactSketch getResult() {
-    return getResult(true, null);
   }
 
   @Override
   public void reset() {
     gadget_.reset();
     unionThetaLong_ = gadget_.getThetaLong();
+    unionEmpty_ = true;
   }
 
   @Override
   public byte[] toByteArray() {
     final byte[] gadgetByteArr = gadget_.toByteArray();
-    final WritableMemory mem = WritableMemory.wrap(gadgetByteArr);
-    mem.putLong(UNION_THETA_LONG, unionThetaLong_); // union theta
+    final WritableMemory wmem = WritableMemory.wrap(gadgetByteArr);
+    wmem.putLong(UNION_THETA_LONG, unionThetaLong_); // union theta
+    final boolean empty = gadget_.isEmpty() && unionEmpty_;
+    if (!empty) { PreambleUtil.clearEmpty(wmem); }
     return gadgetByteArr;
   }
 
@@ -237,12 +248,13 @@ final class UnionImpl extends Union {
 
   @Override
   public void update(final Sketch sketchIn) { //Only valid for theta Sketches using SerVer = 3
-    //UNION Empty Rule: AND the empty states. This does not require separate treatment.
+    //UNION Empty Rule: AND the empty states.
 
-    if (sketchIn == null) {
-      //null is interpreted as (Theta = 1.0, count = 0, empty = T).  Nothing changes
+    if ((sketchIn == null) || sketchIn.isEmpty()) {
+      //null and empty is interpreted as (Theta = 1.0, count = 0, empty = T).  Nothing changes
       return;
     }
+    //sketchIn is valid and not empty
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
@@ -250,41 +262,47 @@ final class UnionImpl extends Union {
     final long thetaLongIn = sketchIn.getThetaLong();
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule with incoming
     final int curCountIn = sketchIn.getRetainedEntries(true);
-
-    if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
-      //Ordered, thus compact
-      if (sketchIn.isDirect()) {
-        final Memory skMem = ((CompactSketch) sketchIn).getMemory();
-        final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-        for (int i = 0; i < curCountIn; i++ ) {
-          final int offsetBytes = (preambleLongs + i) << 3;
-          final long hashIn = skMem.getLong(offsetBytes);
-          if (hashIn >= unionThetaLong_) { break; } // "early stop"
-          gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+    if (curCountIn > 0) {
+      if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
+        //Ordered, thus compact
+        if (sketchIn.isDirect()) {
+          final Memory skMem = ((CompactSketch) sketchIn).getMemory();
+          final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+          for (int i = 0; i < curCountIn; i++ ) {
+            final int offsetBytes = (preambleLongs + i) << 3;
+            final long hashIn = skMem.getLong(offsetBytes);
+            if (hashIn >= unionThetaLong_) { break; } // "early stop"
+            gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+          }
         }
-      }
-      else { //sketchIn is on the Java Heap or has array
-        final long[] cacheIn = sketchIn.getCache(); //not a copy!
-        for (int i = 0; i < curCountIn; i++ ) {
+        else { //sketchIn is on the Java Heap or has array
+          final long[] cacheIn = sketchIn.getCache(); //not a copy!
+          for (int i = 0; i < curCountIn; i++ ) {
+            final long hashIn = cacheIn[i];
+            if (hashIn >= unionThetaLong_) { break; } // "early stop"
+            gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+          }
+        }
+      } //End ordered, compact
+      else { //either not-ordered compact or Hash Table form. A HT may have dirty values.
+        final long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
+        final int arrLongs = cacheIn.length;
+        for (int i = 0, c = 0; (i < arrLongs) && (c < curCountIn); i++ ) {
           final long hashIn = cacheIn[i];
-          if (hashIn >= unionThetaLong_) { break; } // "early stop"
+          if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; } //rejects dirty values
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+          c++; //insures against invalid state inside the incoming sketch
         }
-      }
-    } //End ordered, compact
-    else { //either not-ordered compact or Hash Table form. A HT may have dirty values.
-      final long[] cacheIn = sketchIn.getCache(); //if off-heap this will be a copy
-      final int arrLongs = cacheIn.length;
-      for (int i = 0, c = 0; (i < arrLongs) && (c < curCountIn); i++ ) {
-        final long hashIn = cacheIn[i];
-        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; } //rejects dirty values
-        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-        c++; //insures against invalid state inside the incoming sketch
       }
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
+    final int gCurCount = gadget_.getRetainedEntries();
+    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
     if (gadget_.isDirect()) {
-      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
+      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+      else { PreambleUtil.clearEmpty(wmem); }
     }
   }
 
@@ -295,7 +313,7 @@ final class UnionImpl extends Union {
     final int cap = (int)skMem.getCapacity();
     final int fam = skMem.getByte(FAMILY_BYTE);
     final int serVer = skMem.getByte(SER_VER_BYTE);
-    if (serVer == 1) { //older SetSketch, which is compact and ordered
+    if (serVer == 1) { //very old SetSketch, which is compact and ordered
       if (fam != 3) { //the original SetSketch
         throw new SketchesArgumentException(
             "Family must be old SET_SKETCH: " + Family.idToFamily(fam));
@@ -383,7 +401,7 @@ final class UnionImpl extends Union {
 
   @Override
   boolean isEmpty() {
-    return gadget_.isEmpty();
+    return gadget_.isEmpty() && unionEmpty_;
   }
 
   //no seedHash, assumes given seed is correct. No p, no empty flag, no concept of direct
@@ -399,9 +417,14 @@ final class UnionImpl extends Union {
       if (hashIn >= unionThetaLong_) { break; } // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
+    final int gCurCount = gadget_.getRetainedEntries();
+    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
     if (gadget_.isDirect()) {
-      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
+      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+      else { PreambleUtil.clearEmpty(wmem); }
     }
   }
 
@@ -428,9 +451,14 @@ final class UnionImpl extends Union {
       if (hashIn >= unionThetaLong_) { break; } // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
+    final int gCurCount = gadget_.getRetainedEntries();
+    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
     if (gadget_.isDirect()) {
-      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
+      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+      else { PreambleUtil.clearEmpty(wmem); }
     }
   }
 
@@ -460,7 +488,7 @@ final class UnionImpl extends Union {
       assert curCount > 0;
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
-    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule
+    unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //theta rule
     final boolean ordered = (skMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
     if (ordered) { //must be compact
       for (int i = 0; i < curCount; i++ ) {
@@ -480,9 +508,14 @@ final class UnionImpl extends Union {
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
+    final int gCurCount = gadget_.getRetainedEntries();
+    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
     if (gadget_.isDirect()) {
-      ((WritableMemory)gadget_.getMemory()).putLong(UNION_THETA_LONG, unionThetaLong_);
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
+      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+      else { PreambleUtil.clearEmpty(wmem); }
     }
   }
 

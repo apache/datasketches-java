@@ -59,7 +59,6 @@ final class ForwardCompatibility {
 
     final long[] compactOrderedCache = new long[curCount];
     srcMem.getLongArray(24, compactOrderedCache, 0, curCount);
-
     return HeapCompactOrderedSketch
         .compact(compactOrderedCache, false, seedHash, curCount, thetaLong);
   }
@@ -93,11 +92,10 @@ final class ForwardCompatibility {
     validateInputSize(reqBytesIn, memCap);
 
     final long thetaLong = (mdLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG);
-    final boolean empty = (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
-
+    boolean empty = (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0;
+    empty = (curCount == 0) && (thetaLong == Long.MAX_VALUE); //force true
     final long[] compactOrderedCache = new long[curCount];
     srcMem.getLongArray(mdLongs << 3, compactOrderedCache, 0, curCount);
-
     return HeapCompactOrderedSketch
         .compact(compactOrderedCache, empty, seedHash, curCount, thetaLong);
   }
