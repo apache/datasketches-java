@@ -83,10 +83,10 @@ public class DebugUnionTest {
     assertTrue(hErrors == 0);
     assertTrue(dErrors == 0);
 
-    println("HeapUnion  : Values: " + hCount + ", errors: " + hErrors);
+    //println("HeapUnion  : Values: " + hCount + ", errors: " + hErrors);
     //println(hSketch.toString(true, true));
 
-    println("DirectUnion: Values: " + dCount + ", errors: " + dErrors);
+    //println("DirectUnion: Values: " + dCount + ", errors: " + dErrors);
     //println(dSketch.toString(true, true));
   }
 
@@ -117,7 +117,7 @@ public class DebugUnionTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s); //disable here
+    //System.out.print(s); //disable here
   }
 
 }
