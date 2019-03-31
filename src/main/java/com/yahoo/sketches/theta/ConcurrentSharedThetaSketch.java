@@ -112,6 +112,8 @@ interface ConcurrentSharedThetaSketch {
 
   double getUpperBound(int numStdDev);
 
+  boolean hasMemory();
+
   boolean isDirect();
 
   boolean isEmpty();

@@ -290,11 +290,13 @@ public class SketchTest {
     Memory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
     Sketch csk2 = Sketch.wrap(v1mem);
     assertFalse(csk2.isDirect());
+    assertFalse(csk2.hasMemory());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
 
     Memory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
     csk2 = Sketch.wrap(v2mem);
     assertFalse(csk2.isDirect());
+    assertFalse(csk2.hasMemory());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
   }
 

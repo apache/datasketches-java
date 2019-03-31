@@ -47,6 +47,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();
@@ -99,6 +100,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), false);
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     assertEquals(sketch.getEstimate(), 1.0);
@@ -127,6 +129,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();
@@ -154,6 +157,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), true); //was forced true
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();
@@ -181,6 +185,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), true); //forced true
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();

@@ -53,7 +53,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   private int hashTableThreshold_;  //never serialized
   private int curCount_ = 0;
   private long thetaLong_;
-  private boolean empty_ = true;
+  boolean empty_ = true;
 
   private long[] cache_;
   private boolean dirty_ = false;
@@ -284,6 +284,11 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   int getLgArrLongs() {
     return lgArrLongs_;
+  }
+
+  @Override
+  void setEmpty(final boolean empty) {
+    empty_ = empty;
   }
 
   @Override

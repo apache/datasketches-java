@@ -7,7 +7,7 @@ package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EMPTY;
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EST_HEAP;
-import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EST_HEAP_UNORDERED;
+import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EST_MEMORY_UNORDERED;
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.NULL;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -86,15 +86,15 @@ public class PairwiseCornerCasesTest {
     int k = 64;
     for (State stateA : State.values()) {
       for (State stateB : State.values()) {
-        if ((stateA == EST_HEAP_UNORDERED) || (stateB == EST_HEAP_UNORDERED)) { continue; }
+        if ((stateA == EST_MEMORY_UNORDERED) || (stateB == EST_MEMORY_UNORDERED)) { continue; }
         cornerCaseChecks(stateA, stateB, k);
       }
     }
   }
 
-  @Test
+  //@Test
   public void checkNull_CNT0_THLT1() {
-    cornerCaseChecks(State.EXACT, State.CNT0_THLT1, 64);
+    cornerCaseChecks(State.NULL, State.CNT0_THLT1, 64);
   }
 
   private static void cornerCaseChecks(State stateA, State stateB, int k) {
@@ -126,6 +126,7 @@ public class PairwiseCornerCasesTest {
     } else {
       Assert.assertEquals(pwEst, stdEst, 0.0);
     }
+
     Assert.assertEquals(pwEmpty, stdEmpty);
     Assert.assertEquals(pwTheta, stdTheta, 0.0);
     Assert.assertEquals(pwEnt, stdEnt);
@@ -186,7 +187,7 @@ public class PairwiseCornerCasesTest {
     CompactSketch skNull = generate(NULL, k);
     CompactSketch skEmpty = generate(EMPTY, k);
     CompactSketch skHeap = generate(EST_HEAP, k);
-    CompactSketch skHeapUO = generate(EST_HEAP_UNORDERED, k);
+    CompactSketch skHeapUO = generate(EST_MEMORY_UNORDERED, k);
 
     try {
       PairwiseSetOperations.union(skNull, skHeapUO, k);
@@ -326,6 +327,7 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.getRetainedEntries(), 0);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.EXACT, k);
@@ -334,6 +336,7 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.getRetainedEntries(), k);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.EST_HEAP, k);
@@ -342,6 +345,7 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.getRetainedEntries() > k, true);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), false);
     assertEquals(csk.isOrdered(), true);
 
     csk = generate(State.CNT0_THLT1, k);
@@ -350,18 +354,20 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.getRetainedEntries(), 0);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), false);
     assertEquals(csk.isOrdered(), true);
 
-    csk = generate(State.EST_HEAP_UNORDERED, k);
+    csk = generate(State.EST_MEMORY_UNORDERED, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), true);
     assertEquals(csk.getRetainedEntries() > k, true);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), true);
     assertEquals(csk.isOrdered(), false);
   }
 
-  enum State {NULL, EMPTY, EXACT, EST_HEAP, CNT0_THLT1, EST_HEAP_UNORDERED}
+  enum State {NULL, EMPTY, EXACT, EST_HEAP, CNT0_THLT1, EST_MEMORY_UNORDERED}
 
   private static CompactSketch generate(State state, int k) {
     UpdateSketch sk = null;
@@ -399,7 +405,7 @@ public class PairwiseCornerCasesTest {
         csk = sk.compact(true, null);
         break;
       }
-      case EST_HEAP_UNORDERED : {
+      case EST_MEMORY_UNORDERED : {
         sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
         for (int i = 0; i < (4 * k); i++) {
           sk.update(i);

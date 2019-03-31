@@ -126,6 +126,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
       int curCount1 = shared.getRetainedEntries(true);
       assertTrue(local.isDirect());
+      assertTrue(local.hasMemory());
       assertEquals(local.getCurrentPreambleLongs(false), 3);
 
       UpdateSketch sharedHeap = Sketches.heapifyUpdateSketch(mem);
@@ -142,6 +143,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       int cacheCount = HashOperations.count(cache, thetaLong);
       assertEquals(curCount1, cacheCount);
       assertFalse(sharedHeap.isDirect());
+      assertFalse(sharedHeap.hasMemory());
     }
   }
 
@@ -334,6 +336,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
       assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
       assertTrue(local.isDirect());
+      assertTrue(local.hasMemory());
 
       for (int i=0; i<u; i++) { local.update(i); }
       waitForBgPropagationToComplete();

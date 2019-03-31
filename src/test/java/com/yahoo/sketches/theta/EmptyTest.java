@@ -79,9 +79,10 @@ public class EmptyTest {
   public void checkPsampling() {
     UpdateSketch sk1 = Sketches.updateSketchBuilder().setP(.5F).build();
     assertTrue(sk1.isEmpty());
-    //However, an empty P-sampling sketch where T < 1.0 and has never seen data is also empty
-    // and will have a full preamble of 24 bytes.
-    assertEquals(sk1.compact().toByteArray().length, 24);
+    //An empty P-sampling sketch where T < 1.0 and has never seen data is also empty
+    // and will have a full preamble of 24 bytes.  But when compacted, theta returns to 1.0, so
+    // it will be stored as only 8 bytes.
+    assertEquals(sk1.compact().toByteArray().length, 8);
   }
 
   /**

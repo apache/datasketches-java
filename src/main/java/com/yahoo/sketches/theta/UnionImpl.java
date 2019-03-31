@@ -49,8 +49,7 @@ final class UnionImpl extends Union {
    */
   private final UpdateSketch gadget_;
   private final short seedHash_; //eliminates having to compute the seedHash on every update.
-  private long unionThetaLong_ = Long.MAX_VALUE; //when on-heap, this is the only copy
-  private boolean unionEmpty_ = true;
+  private long unionThetaLong_; //when on-heap, this is the only copy
 
   private UnionImpl(final UpdateSketch gadget, final long seed) {
     gadget_ = gadget;
@@ -116,7 +115,6 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -133,7 +131,6 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -150,7 +147,6 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -167,7 +163,6 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -184,7 +179,6 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketch.writableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = srcMem.getLong(UNION_THETA_LONG);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
     return unionImpl;
   }
 
@@ -198,7 +192,7 @@ final class UnionImpl extends Union {
     final int gadgetCurCount = gadget_.getRetainedEntries(true);
     final int k = 1 << gadget_.getLgNomLongs();
     final long[] gadgetCacheCopy =
-        (gadget_.isDirect()) ? gadget_.getCache() : gadget_.getCache().clone();
+        (gadget_.hasMemory()) ? gadget_.getCache() : gadget_.getCache().clone();
 
     //Pull back to k
     final long curGadgetThetaLong = gadget_.getThetaLong();
@@ -206,10 +200,10 @@ final class UnionImpl extends Union {
         ? selectExcludingZeros(gadgetCacheCopy, gadgetCurCount, k + 1) : curGadgetThetaLong;
 
     //Finalize Theta and curCount
-    final long unionThetaLong = (gadget_.isDirect())
+    final long unionThetaLong = (gadget_.hasMemory())
         ? gadget_.getMemory().getLong(UNION_THETA_LONG) : unionThetaLong_;
 
-    long minThetaLong = min(min(curGadgetThetaLong, adjGadgetThetaLong), unionThetaLong);
+    final long minThetaLong = min(min(curGadgetThetaLong, adjGadgetThetaLong), unionThetaLong);
     final int curCountOut = (minThetaLong < curGadgetThetaLong)
         ? HashOperations.count(gadgetCacheCopy, minThetaLong)
         : gadgetCurCount;
@@ -217,8 +211,7 @@ final class UnionImpl extends Union {
     //Compact the cache
     final long[] compactCacheOut =
         compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
-    final boolean empty = gadget_.isEmpty() && unionEmpty_;
-    if (empty) { minThetaLong = Long.MAX_VALUE; }
+    final boolean empty = gadget_.isEmpty();
     return createCompactSketch(
         compactCacheOut, empty, seedHash_, curCountOut, minThetaLong, dstOrdered, dstMem);
   }
@@ -227,16 +220,13 @@ final class UnionImpl extends Union {
   public void reset() {
     gadget_.reset();
     unionThetaLong_ = gadget_.getThetaLong();
-    unionEmpty_ = true;
   }
 
   @Override
   public byte[] toByteArray() {
     final byte[] gadgetByteArr = gadget_.toByteArray();
-    final WritableMemory wmem = WritableMemory.wrap(gadgetByteArr);
-    wmem.putLong(UNION_THETA_LONG, unionThetaLong_); // union theta
-    final boolean empty = gadget_.isEmpty() && unionEmpty_;
-    if (!empty) { PreambleUtil.clearEmpty(wmem); }
+    final WritableMemory mem = WritableMemory.wrap(gadgetByteArr);
+    mem.putLong(UNION_THETA_LONG, unionThetaLong_); // union theta
     return gadgetByteArr;
   }
 
@@ -258,14 +248,13 @@ final class UnionImpl extends Union {
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
-
     final long thetaLongIn = sketchIn.getThetaLong();
     unionThetaLong_ = min(unionThetaLong_, thetaLongIn); //Theta rule with incoming
     final int curCountIn = sketchIn.getRetainedEntries(true);
     if (curCountIn > 0) {
       if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
         //Ordered, thus compact
-        if (sketchIn.isDirect()) {
+        if (sketchIn.hasMemory()) {
           final Memory skMem = ((CompactSketch) sketchIn).getMemory();
           final int preambleLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
           for (int i = 0; i < curCountIn; i++ ) {
@@ -295,15 +284,14 @@ final class UnionImpl extends Union {
         }
       }
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
-    final int gCurCount = gadget_.getRetainedEntries();
-    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
-    if (gadget_.isDirect()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
-      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
+    final boolean empty = gadget_.isEmpty() && sketchIn.isEmpty(); //Empty rule
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory) gadget_.getMemory();
+      //OK to modify empty but NOT thetaLong
+      if (empty) { PreambleUtil.setEmpty(wmem); }
       else { PreambleUtil.clearEmpty(wmem); }
-    }
+    } else { ((HeapUpdateSketch) gadget_).setEmpty(empty); }
   }
 
   @Override
@@ -401,7 +389,7 @@ final class UnionImpl extends Union {
 
   @Override
   boolean isEmpty() {
-    return gadget_.isEmpty() && unionEmpty_;
+    return gadget_.isEmpty();
   }
 
   //no seedHash, assumes given seed is correct. No p, no empty flag, no concept of direct
@@ -417,15 +405,15 @@ final class UnionImpl extends Union {
       if (hashIn >= unionThetaLong_) { break; } // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
-    final int gCurCount = gadget_.getRetainedEntries();
-    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
-    if (gadget_.isDirect()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
-      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule
+    final boolean emptyIn = (curCount == 0) && (thetaLongIn == Long.MAX_VALUE);
+    final boolean empty = gadget_.isEmpty() && emptyIn; //Empty rule
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory) gadget_.getMemory();
+      //OK to modify empty but NOT thetaLong
+      if (empty) { PreambleUtil.setEmpty(wmem); }
       else { PreambleUtil.clearEmpty(wmem); }
-    }
+    } else { ((HeapUpdateSketch) gadget_).setEmpty(empty); }
   }
 
   //has seedHash and p, could have 0 entries & theta,
@@ -451,15 +439,15 @@ final class UnionImpl extends Union {
       if (hashIn >= unionThetaLong_) { break; } // "early stop"
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
-    final int gCurCount = gadget_.getRetainedEntries();
-    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
-    if (gadget_.isDirect()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
-      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+    final boolean emptyIn = (curCount == 0) && (thetaLongIn == Long.MAX_VALUE);
+    final boolean empty = gadget_.isEmpty() && emptyIn; //Empty rule
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory) gadget_.getMemory();
+      //OK to modify empty but NOT thetaLong
+      if (empty) { PreambleUtil.setEmpty(wmem); }
       else { PreambleUtil.clearEmpty(wmem); }
-    }
+    } else { ((HeapUpdateSketch) gadget_).setEmpty(empty); }
   }
 
   //has seedHash, p, could have 0 entries & theta,
@@ -508,15 +496,15 @@ final class UnionImpl extends Union {
         gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
       }
     }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //theta rule
-    final int gCurCount = gadget_.getRetainedEntries();
-    unionEmpty_ = (gCurCount == 0) && (unionThetaLong_ == Long.MAX_VALUE); //empty rule
-    if (gadget_.isDirect()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      wmem.putLong(UNION_THETA_LONG, unionThetaLong_);
-      if (unionEmpty_) { PreambleUtil.setEmpty(wmem); }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
+    final boolean emptyIn = (curCount == 0) && (thetaLongIn == Long.MAX_VALUE);
+    final boolean empty = gadget_.isEmpty() && emptyIn; //Empty rule
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory) gadget_.getMemory();
+      //OK to modify empty but NOT thetaLong
+      if (empty) { PreambleUtil.setEmpty(wmem); }
       else { PreambleUtil.clearEmpty(wmem); }
-    }
+    } else { ((HeapUpdateSketch) gadget_).setEmpty(empty); }
   }
 
 }

@@ -77,10 +77,11 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    * @return a CompactSketch
    */
   static CompactSketch compact(final UpdateSketch sketch) {
-    final long thetaLong = sketch.getThetaLong();
-    final boolean empty = sketch.isEmpty();
     final int curCount = sketch.getRetainedEntries(true);
-    //checkEmptyState(empty, curCount, thetaLong);
+    long thetaLong = sketch.getThetaLong();
+    boolean empty = sketch.isEmpty();
+    thetaLong = thetaOnCompact(empty, curCount, thetaLong);
+    empty = emptyOnCompact(curCount, thetaLong);
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
     final boolean ordered = true;

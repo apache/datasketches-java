@@ -136,8 +136,8 @@ public class PairwiseSetOperations {
     //Both sketches are valid with matching seedhashes and ordered
     //Full Union operation:
     long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
-    final long[] cacheA = (skA.isDirect()) ? skA.getCache() : skA.getCache().clone();
-    final long[] cacheB = (skB.isDirect()) ? skB.getCache() : skB.getCache().clone();
+    final long[] cacheA = (skA.hasMemory()) ? skA.getCache() : skA.getCache().clone();
+    final long[] cacheB = (skB.hasMemory()) ? skB.getCache() : skB.getCache().clone();
     final int aLen = cacheA.length;
     final int bLen = cacheB.length;
 
@@ -205,7 +205,7 @@ public class PairwiseSetOperations {
     int curCount = csk.getRetainedEntries(true);
     long thetaLong = csk.getThetaLong();
     if (curCount > k) { //cutback to k
-      final long[] cache = (csk.isDirect()) ? csk.getCache() : csk.getCache().clone();
+      final long[] cache = (csk.hasMemory()) ? csk.getCache() : csk.getCache().clone();
       thetaLong = cache[k];
       final long[] arr = Arrays.copyOf(cache, k);
       curCount = k;
