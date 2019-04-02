@@ -207,6 +207,7 @@ public class HeapQuickSelectSketchTest {
 
     assertEquals(usk.getClass().getSimpleName(), "HeapQuickSelectSketch");
     assertFalse(usk.isDirect());
+    assertFalse(usk.hasMemory());
     assertFalse(usk.isCompact());
     assertFalse(usk.isOrdered());
 

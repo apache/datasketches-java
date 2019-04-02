@@ -232,6 +232,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     double localUB  = local.getUpperBound(2);
     assertEquals(local.isEstimationMode(), estimating);
     assertFalse(local.isDirect());
+    assertFalse(local.hasMemory());
 
     byte[]  serArr = shared.toByteArray();
 
@@ -267,6 +268,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
     assertFalse(local.isDirect());
+    assertFalse(local.hasMemory());
 
     for (int i=0; i<u; i++) {
       local.update(i);

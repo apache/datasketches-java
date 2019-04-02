@@ -33,24 +33,49 @@ import com.yahoo.sketches.SketchesArgumentException;
  *
  * <p>An empty CompactSketch only requires 8 bytes.</p>
  *
- * <p>A SingleItemSketch requires an 8 byte preamble plus a single hash item of 8 bytes.</p>
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  |        |        | FamID  | SerVer |     PreLongs = 1   |
+ * </pre>
  *
- * <p>An exact (non-estimating) CompactSketch requires 16 bytes of preamble plus a compact array of
- * longs.</p>
- *
- * <p>An estimating CompactSketch requires 24 bytes of preamble plus a compact array of longs.</p>
- *
- * <p>An UpdateSketch requires 24 bytes of preamble plus a non-compact array of longs representing a
- * hash table.</p>
- *
- * <p> Union objects require 32 bytes of preamble plus a non-compact array of longs representing a
- * hash table.</p>
+ * <p>A SingleItemSketch (extends CompactSketch) requires an 8 byte preamble plus a single
+ * hash item of 8 bytes.</p>
  *
  * <pre>
  * Long || Start Byte Adr:
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
- *  0   ||    Seed Hash    | Flags  |  LgArr |  lgNom | FamID  | SerVer | RF, Preamble_Longs |
+ *  0   ||    Seed Hash    | Flags  |        |        | FamID  | SerVer |     PreLongs = 1   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||---------------------------Single long hash----------------------------------------|
+ * </pre>
+ *
+ * <p>An exact (non-estimating) CompactSketch requires 16 bytes of preamble plus a compact array of
+ * longs.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  |        |        | FamID  | SerVer |     PreLongs = 2   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
+ *
+ *      ||   23   |   22   |   21    |  20   |   19   |   18   |   17   |    16              |
+ *  2   ||----------------------Start of Compact Long Array----------------------------------|
+ * </pre>
+ *
+ * <p>An estimating CompactSketch requires 24 bytes of preamble plus a compact array of longs.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  |        |        | FamID  | SerVer |     PreLongs = 3   |
  *
  *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
  *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
@@ -59,7 +84,49 @@ import com.yahoo.sketches.SketchesArgumentException;
  *  2   ||------------------------------THETA_LONG-------------------------------------------|
  *
  *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
- *  3   ||---------------------------Start of Long Array-------------------------------------|
+ *  3   ||----------------------Start of Compact Long Array----------------------------------|
+ *  </pre>
+ *
+ * <p>An UpdateSketch requires 24 bytes of preamble plus a non-compact array of longs representing a
+ * hash table.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  |  LgArr |  lgNom | FamID  | SerVer | RF, PreLongs = 3   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
+ *
+ *      ||   23   |   22   |   21    |  20   |   19   |   18   |   17   |    16              |
+ *  2   ||------------------------------THETA_LONG-------------------------------------------|
+ *
+ *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
+ *  3   ||----------------------Start of Hash Table of longs---------------------------------|
+ *  </pre>
+ *
+ * <p> Union objects require 32 bytes of preamble plus a non-compact array of longs representing a
+ * hash table.</p>
+ *
+ * <pre>
+ * Long || Start Byte Adr:
+ * Adr:
+ *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+ *  0   ||    Seed Hash    | Flags  |  LgArr |  lgNom | FamID  | SerVer | RF, PreLongs = 4   |
+ *
+ *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+ *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
+ *
+ *      ||   23   |   22   |   21    |  20   |   19   |   18   |   17   |    16              |
+ *  2   ||------------------------------THETA_LONG-------------------------------------------|
+ *
+ *      ||   31   |   30   |   29   |   28   |   27   |   26   |   25   |    24              |
+ *  3   ||---------------------------UNION THETA LONG----------------------------------------|
+ *
+ *      ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |    32              |
+ *  4   ||----------------------Start of Hash Table of longs---------------------------------|
+ *
  *  </pre>
  *
  *  @author Lee Rhodes
@@ -161,23 +228,23 @@ final class PreambleUtil {
 
     final int seedHash = extractSeedHash(mem);
 
-    //assumes preLongs == 1
-    int curCount = singleItem ? 1 : 0; //preLongs 1 empty or singleItem
+    //assumes preLongs == 1; empty or singleItem
+    int curCount = singleItem ? 1 : 0;
     float p = (float) 1.0;            //preLongs 1 or 2
     long thetaLong = Long.MAX_VALUE;  //preLongs 1 or 2
     long thetaULong = thetaLong;      //preLongs 1, 2 or 3
 
-    if (preLongs == 2) {
+    if (preLongs == 2) { //exact (non-estimating) CompactSketch
       curCount = extractCurCount(mem);
       p = extractP(mem);
     }
-    else if (preLongs == 3) {
+    else if (preLongs == 3) { //Update Sketch
       curCount = extractCurCount(mem);
       p = extractP(mem);
       thetaLong = extractThetaLong(mem);
       thetaULong = thetaLong;
     }
-    else if (preLongs == 4) {
+    else if (preLongs == 4) { //Union
       curCount = extractCurCount(mem);
       p = extractP(mem);
       thetaLong = extractThetaLong(mem);
@@ -358,7 +425,7 @@ final class PreambleUtil {
     wmem.putLong(UNION_THETA_LONG, unionThetaLong);
   }
 
-  //TODO convert to set/clear/any bits
+  //TODO convert these to set/clear/any bits
   static void setEmpty(final WritableMemory wmem) {
     int flags = wmem.getByte(FLAGS_BYTE) & 0XFF;
     flags |= EMPTY_FLAG_MASK;

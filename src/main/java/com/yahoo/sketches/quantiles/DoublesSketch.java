@@ -129,20 +129,24 @@ public abstract class DoublesSketch {
   static final int MAX_K = 1 << 15;
 
   /**
-   * Parameter that controls space usage of sketch and accuracy of estimates.
-   */
-  final int k_;
-
-  /**
    * Setting the seed makes the results of the sketch deterministic if the input values are
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
    */
-  public static Random rand = new Random();
+  static Random rand = new Random();
+
+  /**
+   * Parameter that controls space usage of sketch and accuracy of estimates.
+   */
+  final int k_;
 
   DoublesSketch(final int k) {
     Util.checkK(k);
     k_ = k;
+  }
+
+  synchronized static void setRandom(final long seed) {
+    DoublesSketch.rand = new Random(seed);
   }
 
   /**

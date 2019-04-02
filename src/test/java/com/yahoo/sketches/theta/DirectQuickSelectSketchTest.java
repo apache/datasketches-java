@@ -115,6 +115,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(sk1.getClass().getSimpleName(), "DirectQuickSelectSketch");
       int curCount1 = sk1.getRetainedEntries(true);
       assertTrue(sk1.isDirect());
+      assertTrue(sk1.hasMemory());
       assertFalse(sk1.isDirty());
       assertTrue(sk1.hasMemory());
       assertEquals(sk1.getCurrentPreambleLongs(false), 3);
@@ -133,6 +134,7 @@ public class DirectQuickSelectSketchTest {
       int cacheCount = HashOperations.count(cache, thetaLong);
       assertEquals(curCount1, cacheCount);
       assertFalse(sk2.isDirect());
+      assertFalse(sk2.hasMemory());
       assertFalse(sk2.isDirty());
     }
   }
@@ -287,6 +289,7 @@ public class DirectQuickSelectSketchTest {
 
       assertEquals(usk.getClass().getSimpleName(), "DirectQuickSelectSketch");
       assertTrue(usk.isDirect());
+      assertTrue(usk.hasMemory());
       assertFalse(usk.isCompact());
       assertFalse(usk.isOrdered());
 

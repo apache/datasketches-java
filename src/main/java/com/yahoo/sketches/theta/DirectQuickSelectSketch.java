@@ -30,6 +30,7 @@ import static com.yahoo.sketches.theta.PreambleUtil.insertPreLongs;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSeedHash;
 import static com.yahoo.sketches.theta.PreambleUtil.insertSerVer;
 import static com.yahoo.sketches.theta.PreambleUtil.insertThetaLong;
+import static com.yahoo.sketches.theta.PreambleUtil.insertUnionThetaLong;
 import static com.yahoo.sketches.theta.Rebuilder.actLgResizeFactor;
 import static com.yahoo.sketches.theta.Rebuilder.moveAndResize;
 import static com.yahoo.sketches.theta.Rebuilder.quickSelectAndRebuild;
@@ -132,6 +133,9 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertP(dstMem, p);                                    //bytes 12-15
     final long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
     insertThetaLong(dstMem, thetaLong);                    //bytes 16-23
+    if (unionGadget) {
+      insertUnionThetaLong(dstMem, thetaLong);
+    }
     //@formatter:on
 
     //clear hash table area

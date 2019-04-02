@@ -47,6 +47,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();
@@ -99,6 +100,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), false);
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     assertEquals(sketch.getEstimate(), 1.0);
@@ -127,6 +129,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.isEmpty(), true);
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();
@@ -134,7 +137,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  public void checkSerVer2_24Bytes_1Value() {
+  public void checkSerVer2_24Bytes_0Values() {
     byte[] byteArray = new byte[24];
     WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 2); //mdLongs, RF (RR) = 0
@@ -151,9 +154,10 @@ public class ForwardCompatibilityTest {
 
     Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
-    assertEquals(sketch.isEmpty(), false);
+    assertEquals(sketch.isEmpty(), true); //was forced true
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();
@@ -161,7 +165,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  public void checkSerVer2_32Bytes_1Value() {
+  public void checkSerVer2_32Bytes_0Values() {
     byte[] byteArray = new byte[32];
     WritableMemory mem = WritableMemory.wrap(byteArray);
     mem.putByte(0, (byte) 3); //mdLongs, RF (RR) = 0
@@ -178,9 +182,10 @@ public class ForwardCompatibilityTest {
 
     Memory srcMem = Memory.wrap(byteArray);
     Sketch sketch = Sketch.heapify(srcMem);
-    assertEquals(sketch.isEmpty(), false);
+    assertEquals(sketch.isEmpty(), true); //forced true
     assertEquals(sketch.isEstimationMode(), false);
     assertEquals(sketch.isDirect(), false);
+    assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
     String name = sketch.getClass().getSimpleName();

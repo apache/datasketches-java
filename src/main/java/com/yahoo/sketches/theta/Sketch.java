@@ -557,6 +557,32 @@ public abstract class Sketch {
     }
   }
 
+  /*
+   * The truth table for empty, curCount and theta on compact is as follows:
+   * <pre>
+   * Num Theta CurCount Empty State  Comments
+   *  0    1.0     0      T     OK   The Normal Empty State
+   *  1    1.0     0      F   Error  This conflicts with the normal empty state
+   *  2    1.0    !0      T   Error  Empty and curCount !0 should never co-exist
+   *  3    1.0    !0      F     OK   This corresponds to a sketch in exact mode
+   *  4   <1.0     0      T   Error  This can be an initial UpdateSketch state if p < 1.0,
+   *                                   but should compacted as {Th = 1.0, 0, T}.
+   *  5   <1.0     0      F     OK   This can result from set operations
+   *  6   <1.0    !0      T   Error  Empty and curCount !0 should never co-exist
+   *  7   <1.0    !0      F     OK   This corresponds to a sketch in estimation mode
+   * </pre>
+   * <p>thetaOnCompact() checks for only #4 and corrects theta.
+   * <p>emptyOnCompact() corrects for #1, 2, 6 if they occur
+   * <p>First apply thetaOnCompact() then emptyOnCompact().
+   */
+  static final long thetaOnCompact(final boolean empty, final int curCount, final long thetaLong) {
+    return (empty && (curCount == 0) && (thetaLong < Long.MAX_VALUE)) ? Long.MAX_VALUE : thetaLong;
+  }
+
+  static final boolean emptyOnCompact(final int curCount, final long thetaLong) {
+    return ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
+  }
+
   static final double estimate(final long thetaLong, final int curCount, final boolean empty) {
     if (estMode(thetaLong, empty)) {
       final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;

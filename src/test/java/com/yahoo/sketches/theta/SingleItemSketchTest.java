@@ -113,8 +113,8 @@ public class SingleItemSketchTest {
     assertEquals(sis.getRetainedEntries(true), 1);
     assertEquals(sis.getUpperBound(1), 1.0);
     assertFalse(sis.isDirect());
-    assertFalse(sis.isEmpty());
     assertFalse(sis.hasMemory());
+    assertFalse(sis.isEmpty());
     assertTrue(sis.isOrdered());
   }
 

@@ -12,6 +12,8 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.Sketch.emptyOnCompact;
+import static com.yahoo.sketches.theta.Sketch.thetaOnCompact;
 import static java.lang.Math.max;
 
 import com.yahoo.memory.Memory;
@@ -222,38 +224,39 @@ public abstract class SetOperation {
   abstract boolean isEmpty();
 
   //used only by the set operations
-  static final CompactSketch createCompactSketch(final long[] compactCache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong, final boolean dstOrdered,
+  static final CompactSketch createCompactSketch(final long[] compactCache, boolean empty,
+      final short seedHash, final int curCount, long thetaLong, final boolean dstOrdered,
       final WritableMemory dstMem) {
+    thetaLong = thetaOnCompact(empty, curCount, thetaLong);
+    empty = emptyOnCompact(curCount, thetaLong);
+
     CompactSketch sketchOut = null;
     final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
     switch (sw) {
       case 0: { //dst not ordered, dstMem == null
         sketchOut = HeapCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong);
+            thetaLong); //converts to SingleItem if curCount == 1
         break;
       }
       case 1: { //dst not ordered, dstMem == valid
         sketchOut = DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem);
+            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
         break;
       }
       case 2: { //dst ordered, dstMem == null
         sketchOut = HeapCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong);
+            thetaLong); //converts to SingleItem format if curCount == 1
         break;
       }
       case 3: { //dst ordered, dstMem == valid
         sketchOut = DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem);
+            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
         break;
       }
       //default: //This cannot happen and cannot be tested
     }
     return sketchOut;
   }
-
-
 
   /**
    * Computes minimum lgArrLongs from a current count.
