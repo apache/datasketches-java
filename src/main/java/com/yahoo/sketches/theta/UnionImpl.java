@@ -265,7 +265,7 @@ final class UnionImpl extends Union {
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
     unionThetaLong_ = min(unionThetaLong_, sketchIn.getThetaLong()); //Theta rule
-    unionEmpty_ &= sketchIn.isEmpty();
+    unionEmpty_ = unionEmpty_ && sketchIn.isEmpty();
     final int curCountIn = sketchIn.getRetainedEntries(true);
     if (curCountIn > 0) {
       if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
@@ -415,7 +415,7 @@ final class UnionImpl extends Union {
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule
-    unionEmpty_ &= gadget_.isEmpty();
+    unionEmpty_ = unionEmpty_ && gadget_.isEmpty();
   }
 
   //has seedHash and p, could have 0 entries & theta,
@@ -442,7 +442,7 @@ final class UnionImpl extends Union {
       gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    unionEmpty_ &= gadget_.isEmpty();
+    unionEmpty_ = unionEmpty_ && gadget_.isEmpty();
   }
 
   //has seedHash, p, could have 0 entries & theta,
@@ -492,7 +492,7 @@ final class UnionImpl extends Union {
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
-    unionEmpty_ &= gadget_.isEmpty();
+    unionEmpty_ = unionEmpty_ && gadget_.isEmpty();
   }
 
 }

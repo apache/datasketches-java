@@ -10,7 +10,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashSet;
-import java.util.Random;
 
 import org.testng.annotations.Test;
 
@@ -32,20 +31,20 @@ public class DebugUnionTest {
     UpdateDoublesSketch[] sketchArr = new UpdateDoublesSketch[numSketches];
 
     //builds the input sketches, all on heap
-    DoublesSketch.rand = new Random(1); //make deterministic for test
+    DoublesSketch.setRandom(1); //make deterministic for test
     final HashSet<Double> set = new HashSet<>(); //holds input values
     for (int s = 0; s < numSketches; s++) {
       sketchArr[s] = buildHeapSketch(sketchK, n, valueLimit, set);
     }
 
     //loads the on heap union
-    DoublesSketch.rand = new Random(1); //make deterministic for test
+    DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion hUnion = DoublesUnion.builder().setMaxK(unionK).build();
     for (int s = 0; s < numSketches; s++) { hUnion.update(sketchArr[s]); }
     DoublesSketch hSketch = hUnion.getResult();
 
     //loads the direct union
-    DoublesSketch.rand = new Random(1); //make deterministic for test
+    DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion dUnion;
     DoublesSketch dSketch;
     try ( WritableDirectHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
@@ -61,32 +60,27 @@ public class DebugUnionTest {
 
     assertEquals(hCount, dCount); //Retained items must be the same
 
-    double[] heapItems = new double[hCount];
-    double[] directItems = new double[dCount];
     int hErrors = 0;
     int dErrors = 0;
 
     DoublesSketchIterator hit = hSketch.iterator();
     DoublesSketchIterator dit = dSketch.iterator();
-    int i = 0;
+
     while (hit.next() && dit.next()) {
       double v = hit.getValue();
-      heapItems[i] = v;
       if (!set.contains(v)) { hErrors++; }
 
       double w = dit.getValue();
-      directItems[i] = w;
       if (!set.contains(w)) { dErrors++; }
-      i++;
       assertEquals(v, w, 0); //Items must be returned in same order and be equal
     }
     assertTrue(hErrors == 0);
     assertTrue(dErrors == 0);
 
-    //println("HeapUnion  : Values: " + hCount + ", errors: " + hErrors);
+    println("HeapUnion  : Values: " + hCount + ", errors: " + hErrors);
     //println(hSketch.toString(true, true));
 
-    //println("DirectUnion: Values: " + dCount + ", errors: " + dErrors);
+    println("DirectUnion: Values: " + dCount + ", errors: " + dErrors);
     //println(dSketch.toString(true, true));
   }
 
