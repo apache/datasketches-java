@@ -12,6 +12,7 @@ import static com.yahoo.sketches.theta.SetOperation.getMaxIntersectionBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -19,6 +20,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.SketchesReadOnlyException;
 import com.yahoo.sketches.SketchesStateException;
 
 /**
@@ -750,14 +752,25 @@ public class DirectIntersectionTest {
     }
     WritableMemory memIn1 = WritableMemory.wrap(new byte[memBytes]);
     WritableMemory memIn2 = WritableMemory.wrap(new byte[memBytes]);
-    WritableMemory memOut = WritableMemory.wrap(new byte[memBytes]);
+    WritableMemory memInter = WritableMemory.wrap(new byte[memBytes]);
+    WritableMemory memComp = WritableMemory.wrap(new byte[memBytes]);
     CompactSketch csk1 = sk1.compact(true, memIn1);
     CompactSketch csk2 = sk2.compact(true, memIn2);
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection(memOut);
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection(memInter);
     inter.update(csk1);
     inter.update(csk2);
-    CompactSketch cskOut = inter.getResult(true, memOut);
+    CompactSketch cskOut = inter.getResult(true, memComp);
     assertEquals(cskOut.getEstimate(), 2.0, 0.0);
+
+    Intersection interRO = (Intersection) SetOperation.wrap((Memory)memInter);
+    try {
+      interRO.intersect(sk1, sk2);
+      fail();
+    } catch (SketchesReadOnlyException e) { }
+    try {
+      interRO.reset();
+      fail();
+    } catch (SketchesReadOnlyException e) { }
   }
 
   @Test
