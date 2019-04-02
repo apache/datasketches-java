@@ -97,22 +97,24 @@ public class PairwiseSetOperations {
         return null;
       }
       case 6: {  //skA == null;  skB == empty; return empty
-        return (skB.getThetaLong() == Long.MAX_VALUE) ? skB : //lgtm [java/dereferenced-value-may-be-null]
-          HeapCompactOrderedSketch.compact(new long[0], true, skB.getSeedHash(), 0, Long.MAX_VALUE);
+        final long thetaLong = skB.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
+        return (thetaLong == Long.MAX_VALUE) ? skB
+          : HeapCompactOrderedSketch.compact(new long[0], true, skB.getSeedHash(), 0, Long.MAX_VALUE);
       }
       case 7: {  //skA == null;  skB == valid; return skB
         return maybeCutback(skB, k);
       }
       case 9: {  //skA == empty; skB == null; return empty
-        return (skA.getThetaLong() == Long.MAX_VALUE) ? skA : //lgtm [java/dereferenced-value-may-be-null]
-          HeapCompactOrderedSketch.compact(new long[0], true, skA.getSeedHash(), 0, Long.MAX_VALUE);
+        final long thetaLong = skA.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
+        return (thetaLong == Long.MAX_VALUE) ? skA
+          : HeapCompactOrderedSketch.compact(new long[0], true, skA.getSeedHash(), 0, Long.MAX_VALUE);
       }
       case 10: { //skA == empty; skB == empty; return empty
         final short seedHash = seedHashesCheck(skA, skB);
-        if (skA.getThetaLong() == Long.MAX_VALUE) //lgtm [java/dereferenced-value-may-be-null]
-          { return skA; }
-        if (skB.getThetaLong() == Long.MAX_VALUE) //lgtm [java/dereferenced-value-may-be-null]
-          { return skB; }
+        long thetaLong = skA.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
+        if (thetaLong == Long.MAX_VALUE) { return skA; }
+        thetaLong = skB.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
+        if (thetaLong == Long.MAX_VALUE) { return skB; }
         return HeapCompactOrderedSketch.compact(new long[0], true, seedHash, 0, Long.MAX_VALUE);
       }
       case 11: { //skA == empty; skB == valid; return skB
@@ -135,7 +137,9 @@ public class PairwiseSetOperations {
 
     //Both sketches are valid with matching seedhashes and ordered
     //Full Union operation:
-    long thetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong()); //Theta rule
+    final long thetaLongA = skA.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
+    final long thetaLongB = skB.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
+    long thetaLong = Math.min(thetaLongA, thetaLongB); //Theta rule
     final long[] cacheA = (skA.hasMemory()) ? skA.getCache() : skA.getCache().clone();
     final long[] cacheB = (skB.hasMemory()) ? skB.getCache() : skB.getCache().clone();
     final int aLen = cacheA.length;
