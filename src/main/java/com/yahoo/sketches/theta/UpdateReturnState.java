@@ -13,27 +13,41 @@ package com.yahoo.sketches.theta;
 public enum UpdateReturnState {
 
   /**
-   * Indicates a normal sketch update response and the action that was taken by the sketch.
+   * Indicates that the value was accepted into the sketch and the retained count was incremented.
    */
   InsertedCountIncremented, //all UpdateSketches
 
   /**
-   * Indicates a normal sketch update response and the action that was taken by the sketch.
+   * Indicates that the value was accepted into the sketch and the retained count was not incremented.
    */
   InsertedCountNotIncremented, //used by enhancedHashInsert for Alpha
 
   /**
-   * Indicates a normal sketch update response and the action that was taken by the sketch.
+   * Indicates that the value was inserted into the local concurrent buffer,
+   * but has not yet been propagated to the concurrent shared sketch.
+   */
+  ConcurrentBufferInserted, //used by ConcurrentHeapThetaBuffer
+
+  /**
+   * Indicates that the value has been propagated to the concurrent shared sketch.
+   * This does not reflect the action taken by the shared sketch.
+   */
+  ConcurrentPropagated,  //used by ConcurrentHeapThetaBuffer
+
+  /**
+   * Indicates that the value was rejected as a duplicate.
    */
   RejectedDuplicate, //all UpdateSketches hashUpdate(), enhancedHashInsert
 
   /**
-   * Indicates a normal sketch update response and the action that was taken by the sketch.
+   * Indicates that the value was rejected because it was null or empty.
    */
   RejectedNullOrEmpty, //UpdateSketch.update(arr[])
 
   /**
-   * Indicates a normal sketch update response and the action that was taken by the sketch.
+   * Indicates that the value was rejected because the hash value was negative, zero or
+   * greater than theta.
    */
   RejectedOverTheta; //all UpdateSketches.hashUpdate()
+
 }

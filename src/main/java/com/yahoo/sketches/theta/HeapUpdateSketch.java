@@ -90,9 +90,6 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return Util.computeSeedHash(getSeed());
   }
 
-  //for set operations
-  abstract void setEmpty(boolean empty);
-
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
     final int preBytes = (preLongs << 3) & 0X3F;

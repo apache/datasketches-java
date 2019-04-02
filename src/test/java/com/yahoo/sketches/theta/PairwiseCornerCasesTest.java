@@ -92,9 +92,9 @@ public class PairwiseCornerCasesTest {
     }
   }
 
-  //@Test
-  public void checkNull_CNT0_THLT1() {
-    cornerCaseChecks(State.NULL, State.CNT0_THLT1, 64);
+  @Test
+  public void checkNull_THLT1_CNT0_FALSE() {
+    cornerCaseChecks(State.NULL, State.THLT1_CNT0_FALSE, 64);
   }
 
   private static void cornerCaseChecks(State stateA, State stateB, int k) {
@@ -126,7 +126,7 @@ public class PairwiseCornerCasesTest {
     } else {
       Assert.assertEquals(pwEst, stdEst, 0.0);
     }
-
+    assert pwEmpty == stdEmpty;
     Assert.assertEquals(pwEmpty, stdEmpty);
     Assert.assertEquals(pwTheta, stdTheta, 0.0);
     Assert.assertEquals(pwEnt, stdEnt);
@@ -348,11 +348,20 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.hasMemory(), false);
     assertEquals(csk.isOrdered(), true);
 
-    csk = generate(State.CNT0_THLT1, k);
+    csk = generate(State.THLT1_CNT0_FALSE, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), true);
     assertEquals(csk.getRetainedEntries(), 0);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
+    assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.isOrdered(), true);
+
+    csk = generate(State.THEQ1_CNT0_TRUE, k);
+    assertEquals(csk.isEmpty(), true);
+    assertEquals(csk.isEstimationMode(), false);
+    assertEquals(csk.getRetainedEntries(), 0);
+    assertEquals(csk.getThetaLong() < Long.MAX_VALUE, false);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
     assertEquals(csk.isOrdered(), true);
@@ -367,7 +376,7 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.isOrdered(), false);
   }
 
-  enum State {NULL, EMPTY, EXACT, EST_HEAP, CNT0_THLT1, EST_MEMORY_UNORDERED}
+  enum State {NULL, EMPTY, EXACT, EST_HEAP, THLT1_CNT0_FALSE, THEQ1_CNT0_TRUE, EST_MEMORY_UNORDERED}
 
   private static CompactSketch generate(State state, int k) {
     UpdateSketch sk = null;
@@ -398,11 +407,17 @@ public class PairwiseCornerCasesTest {
         csk = sk.compact(true, null);
         break;
       }
-      case CNT0_THLT1 : {
+      case THLT1_CNT0_FALSE : {
         sk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build();
-        sk.update(7);
+        sk.update(7); //above theta
         assert(sk.getRetainedEntries() == 0);
-        csk = sk.compact(true, null);
+        csk = sk.compact(true, null); //compact as {Th < 1.0, 0, F}
+        break;
+      }
+      case THEQ1_CNT0_TRUE : {
+        sk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build();
+        assert(sk.getRetainedEntries() == 0);
+        csk = sk.compact(true, null); //compact as {Th < 1.0, 0, T}
         break;
       }
       case EST_MEMORY_UNORDERED : {

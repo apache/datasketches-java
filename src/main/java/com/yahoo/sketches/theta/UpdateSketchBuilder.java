@@ -435,11 +435,12 @@ public class UpdateSketchBuilder {
     }
   }
 
-  private ConcurrentSharedThetaSketch buildSharedFromSketchInternal(final UpdateSketch sketch,
-                                                                    final WritableMemory dstMem) {
+  private ConcurrentSharedThetaSketch buildSharedFromSketchInternal(
+      final UpdateSketch sketch, final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (sketch instanceof HeapQuickSelectSketch) {
-      return new ConcurrentHeapQuickSelectSketch((HeapQuickSelectSketch)sketch, bSeed, bMaxConcurrencyError);
+      return new ConcurrentHeapQuickSelectSketch(
+          (HeapQuickSelectSketch)sketch, bSeed, bMaxConcurrencyError);
     }
     if (sketch instanceof DirectQuickSelectSketch) {
       return new ConcurrentDirectQuickSelectSketch((DirectQuickSelectSketch)sketch, bSeed,

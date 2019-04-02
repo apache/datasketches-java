@@ -254,11 +254,6 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     return numEntries > hashTableThreshold_;
   }
 
-  @Override
-  void setEmpty(final boolean empty) {
-    empty_ = empty;
-  }
-
   //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
   // Used by hashUpdate()
   private final void resizeCache() {

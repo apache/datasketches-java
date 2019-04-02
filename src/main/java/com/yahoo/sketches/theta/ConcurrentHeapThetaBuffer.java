@@ -5,7 +5,8 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.UpdateReturnState.InsertedCountIncremented;
+import static com.yahoo.sketches.theta.UpdateReturnState.ConcurrentBufferInserted;
+import static com.yahoo.sketches.theta.UpdateReturnState.ConcurrentPropagated;
 import static com.yahoo.sketches.theta.UpdateReturnState.RejectedOverTheta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,11 +27,6 @@ import com.yahoo.sketches.ResizeFactor;
  * @author Lee Rhodes
  */
 final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
-
-  private static int computeLogBufferSize(final int lgNomLongs, final long exactSize,
-      final int maxNumLocalBuffers) {
-    return Math.min(lgNomLongs, (int)Math.log(Math.sqrt(exactSize) / (2 * maxNumLocalBuffers)));
-  }
 
   // Shared sketch consisting of the global sample set and theta value.
   private final ConcurrentSharedThetaSketch shared;
@@ -58,6 +54,11 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     isExactMode = true;
     this.propagateOrderedCompact = propagateOrderedCompact;
     localPropagationInProgress = new AtomicBoolean(false);
+  }
+
+  private static int computeLogBufferSize(final int lgNomLongs, final long exactSize,
+      final int maxNumLocalBuffers) {
+    return Math.min(lgNomLongs, (int)Math.log(Math.sqrt(exactSize) / (2 * maxNumLocalBuffers)));
   }
 
   //Sketch overrides
@@ -134,18 +135,21 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     }
     HashOperations.checkHashCorruption(hash);
     if ((getHashTableThreshold() == 0) || isExactMode ) {
-      final long thetaLong = getThetaLong();
       //The over-theta and zero test
-      if (HashOperations.continueCondition(thetaLong, hash)) {
+      if (HashOperations.continueCondition(getThetaLong(), hash)) {
         return RejectedOverTheta; //signal that hash was rejected due to theta or zero.
       }
       if (propagateToSharedSketch(hash)) {
-        return InsertedCountIncremented; //not totally correct
+        return ConcurrentPropagated;
       }
     }
     final UpdateReturnState state = super.hashUpdate(hash);
     if (isOutOfSpace(getRetainedEntries() + 1)) {
       propagateToSharedSketch();
+      return ConcurrentPropagated;
+    }
+    if (state == UpdateReturnState.InsertedCountIncremented) {
+      return ConcurrentBufferInserted;
     }
     return state;
   }
