@@ -3,7 +3,7 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.fun;
+package com.yahoo.sketches.tuple.strings;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -18,20 +18,20 @@ import com.yahoo.sketches.tuple.UpdatableSummary;
 /**
  * @author Lee Rhodes
  */
-public class NodesSummary implements UpdatableSummary<String[]> {
+public class StringsSummary implements UpdatableSummary<String[]> {
   private String[] nodesArr = null;
 
-  NodesSummary() { //required for NodesSummaryFactory
+  StringsSummary() { //required for StringsSummaryFactory
     nodesArr = null;
   }
 
-  NodesSummary(final String[] nodesArr) {
+  StringsSummary(final String[] nodesArr) {
     this.nodesArr = nodesArr.clone();
     checkNumNodes(nodesArr.length);
   }
 
   //used by deserialization
-  NodesSummary(final Memory mem) {
+  StringsSummary(final Memory mem) {
     final Buffer buf = mem.asBuffer();
     final int totBytes = buf.getInt();
     checkInBytes(mem, totBytes);
@@ -69,8 +69,8 @@ public class NodesSummary implements UpdatableSummary<String[]> {
   }
 
   @Override
-  public NodesSummary copy() { //shallow copy
-    final NodesSummary nodes = new NodesSummary(nodesArr);
+  public StringsSummary copy() { //shallow copy
+    final StringsSummary nodes = new StringsSummary(nodesArr);
     return nodes;
   }
 
@@ -100,8 +100,8 @@ public class NodesSummary implements UpdatableSummary<String[]> {
    * @param mem the given memory
    * @return the DeserializeResult
    */
-  public static DeserializeResult<NodesSummary> fromMemory(final Memory mem) {
-    final NodesSummary nsum = new NodesSummary(mem);
+  public static DeserializeResult<StringsSummary> fromMemory(final Memory mem) {
+    final StringsSummary nsum = new StringsSummary(mem);
     final int totBytes = mem.getInt(0);
     return new DeserializeResult<>(nsum, totBytes);
   }

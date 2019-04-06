@@ -3,7 +3,7 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.fun;
+package com.yahoo.sketches.tuple.strings;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.tuple.DeserializeResult;
@@ -12,11 +12,11 @@ import com.yahoo.sketches.tuple.SummaryDeserializer;
 /**
  * @author Lee Rhodes
  */
-public class NodesSummaryDeserializer implements SummaryDeserializer<NodesSummary> {
+public class StringsSummaryDeserializer implements SummaryDeserializer<StringsSummary> {
 
   @Override
-  public DeserializeResult<NodesSummary> heapifySummary(final Memory mem) {
-    return NodesSummary.fromMemory(mem);
+  public DeserializeResult<StringsSummary> heapifySummary(final Memory mem) {
+    return StringsSummary.fromMemory(mem);
   }
 
 }

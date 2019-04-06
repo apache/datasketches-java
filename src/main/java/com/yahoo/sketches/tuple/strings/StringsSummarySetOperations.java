@@ -3,22 +3,22 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.fun;
+package com.yahoo.sketches.tuple.strings;
 
 import com.yahoo.sketches.tuple.SummarySetOperations;
 
 /**
  * @author Lee Rhodes
  */
-public class NodesSummarySetOperations implements SummarySetOperations<NodesSummary> {
+public class StringsSummarySetOperations implements SummarySetOperations<StringsSummary> {
 
   @Override
-  public NodesSummary union(final NodesSummary a, final NodesSummary b) {
+  public StringsSummary union(final StringsSummary a, final StringsSummary b) {
     return a.copy();
   }
 
   @Override
-  public NodesSummary intersection(final NodesSummary a, final NodesSummary b) {
+  public StringsSummary intersection(final StringsSummary a, final StringsSummary b) {
     return a.copy();
   }
 

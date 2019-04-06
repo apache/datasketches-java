@@ -3,18 +3,18 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.fun;
+package com.yahoo.sketches.tuple.strings;
 
 import com.yahoo.sketches.tuple.SummaryFactory;
 
 /**
  * @author Lee Rhodes
  */
-public class NodesSummaryFactory implements SummaryFactory<NodesSummary> {
+public class StringsSummaryFactory implements SummaryFactory<StringsSummary> {
 
   @Override
-  public NodesSummary newSummary() {
-    return new NodesSummary();
+  public StringsSummary newSummary() {
+    return new StringsSummary();
   }
 
 }
