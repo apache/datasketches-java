@@ -71,7 +71,7 @@ public class FunSketch {
    * Computes LgK given the threshold and RSE.
    * @param threshold the fraction, between zero and 1.0, of the total stream length that defines
    * a "Frequent" (or heavy) item.
-   * @param rse the desired Relative Standard Error for the sketch
+   * @param rse the desired Relative Standard Error for a computed estimate at the threshold.
    * @return LgK
    */
   public static int computeLgK(final double threshold, final double rse) {
