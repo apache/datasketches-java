@@ -11,10 +11,13 @@ package com.yahoo.sketches.tuple;
 public interface Summary {
 
   /**
-   * @param <S> type of summary
-   * @return copy of the Summary
+   * Deep copy.
+   *
+   * <p><b>Caution:</b> This must implement a deep copy.
+   *
+   * @return deep copy of the Summary
    */
-  public <S extends Summary> S copy();
+  public Summary copy();
 
   /**
    * This is to serialize a Summary instance to a byte array.

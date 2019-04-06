@@ -62,7 +62,7 @@ public class Intersection<S extends Summary> {
       sketch_ = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
       final SketchIterator<S> it = sketchIn.iterator();
       while (it.next()) {
-        final S summary = it.getSummary().copy();
+        final S summary = (S)it.getSummary().copy();
         sketch_.insert(it.getKey(), summary);
       }
     } else {

@@ -13,6 +13,11 @@ public interface SummarySetOperations<S extends Summary> {
 
   /**
    * This is called when a union of two sketches is produced, and both sketches have the same key.
+   *
+   * <p><b>Caution:</b> Do not modify the input Summary objects. Also do not return them directly,
+   * unless they are immutable (most Summary objects are not). For mutable Summary objects, it is
+   * important to create a new Summary object with the correct contents to be returned.
+   *
    * @param a Summary from sketch A
    * @param b Summary from sketch B
    * @return union of Summary A and Summary B
@@ -20,8 +25,13 @@ public interface SummarySetOperations<S extends Summary> {
   public S union(S a, S b);
 
   /**
-   * This is called when an intersection of two sketches is produced, and both sketches have the 
+   * This is called when an intersection of two sketches is produced, and both sketches have the
    * same key.
+   *
+   * <p><b>Caution:</b> Do not modify the input Summary objects. Also do not return them directly,
+   * unless they are immutable (most Summary objects are not). For mutable Summary objects, it is
+   * important to create a new Summary object with the correct contents to be returned.
+   *
    * @param a Summary from sketch A
    * @param b Summary from sketch B
    * @return intersection of Summary A and Summary B
