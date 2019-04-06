@@ -76,7 +76,7 @@ public class FunSketch {
    * @param rse the desired Relative Standard Error for a computed estimate at the threshold.
    * @return LgK
    */
-  public static int computeLgK(final double threshold, final double rse) {
+  static int computeLgK(final double threshold, final double rse) {
     final int k = ceilingPowerOf2((int) Math.ceil(1.0 / (threshold * rse * rse)));
     if (k > (1 << MAX_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Requested Sketch is too large, "
@@ -89,7 +89,7 @@ public class FunSketch {
    * @param nodesArr array of node Strings
    * @return int array of node hashCodes.
    */
-  public static int[] computeKey(final String[] nodesArr) {
+  static int[] computeKey(final String[] nodesArr) {
     final int len = nodesArr.length;
     final int[] arr = new int[len];
     for (int i = 0; i < len; i++) { arr[i] = nodesArr.hashCode(); }
