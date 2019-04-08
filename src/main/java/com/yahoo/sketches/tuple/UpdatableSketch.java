@@ -27,7 +27,7 @@ import com.yahoo.sketches.hash.MurmurHash3;
 public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSelectSketch<S> {
 
   /**
-   * This is to create an instance of an UpdatableQuickSelectSketch.
+   * This is to create a new instance of an UpdatableQuickSelectSketch.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
@@ -41,20 +41,20 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
+  public UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
       final SummaryFactory<S> summaryFactory) {
     super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
 
   /**
    * This is to create an instance of a sketch given a serialized form
-   * @param mem Memory object with serialized UpdatableSketch
+   * @param srcMem Memory object with data of a serialized UpdatableSketch
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
    */
-  UpdatableSketch(final Memory mem, final SummaryDeserializer<S> deserializer,
+  public UpdatableSketch(final Memory srcMem, final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
-    super(mem, deserializer, summaryFactory);
+    super(srcMem, deserializer, summaryFactory);
   }
 
   /**

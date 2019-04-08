@@ -10,11 +10,11 @@ import com.yahoo.sketches.tuple.SummaryFactory;
 /**
  * @author Lee Rhodes
  */
-public class StringsSummaryFactory implements SummaryFactory<StringsSummary> {
+public class ArrayOfStringsSummaryFactory implements SummaryFactory<ArrayOfStringsSummary> {
 
   @Override
-  public StringsSummary newSummary() {
-    return new StringsSummary();
+  public ArrayOfStringsSummary newSummary() {
+    return new ArrayOfStringsSummary();
   }
 
 }

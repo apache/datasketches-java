@@ -12,11 +12,11 @@ import com.yahoo.sketches.tuple.SummaryDeserializer;
 /**
  * @author Lee Rhodes
  */
-public class StringsSummaryDeserializer implements SummaryDeserializer<StringsSummary> {
+public class ArrayOfStringsSummaryDeserializer implements SummaryDeserializer<ArrayOfStringsSummary> {
 
   @Override
-  public DeserializeResult<StringsSummary> heapifySummary(final Memory mem) {
-    return StringsSummary.fromMemory(mem);
+  public DeserializeResult<ArrayOfStringsSummary> heapifySummary(final Memory mem) {
+    return ArrayOfStringsSummary.fromMemory(mem);
   }
 
 }

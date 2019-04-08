@@ -18,20 +18,20 @@ import com.yahoo.sketches.tuple.UpdatableSummary;
 /**
  * @author Lee Rhodes
  */
-public class StringsSummary implements UpdatableSummary<String[]> {
+public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   private String[] nodesArr = null;
 
-  StringsSummary() { //required for StringsSummaryFactory
+  ArrayOfStringsSummary() { //required for ArrayOfStringsSummaryFactory
     nodesArr = null;
   }
 
-  StringsSummary(final String[] nodesArr) {
+  ArrayOfStringsSummary(final String[] nodesArr) {
     this.nodesArr = nodesArr.clone();
     checkNumNodes(nodesArr.length);
   }
 
   //used by deserialization
-  StringsSummary(final Memory mem) {
+  ArrayOfStringsSummary(final Memory mem) {
     final Buffer buf = mem.asBuffer();
     final int totBytes = buf.getInt();
     checkInBytes(mem, totBytes);
@@ -69,8 +69,8 @@ public class StringsSummary implements UpdatableSummary<String[]> {
   }
 
   @Override
-  public StringsSummary copy() { //shallow copy
-    final StringsSummary nodes = new StringsSummary(nodesArr);
+  public ArrayOfStringsSummary copy() {
+    final ArrayOfStringsSummary nodes = new ArrayOfStringsSummary(nodesArr);
     return nodes;
   }
 
@@ -100,8 +100,8 @@ public class StringsSummary implements UpdatableSummary<String[]> {
    * @param mem the given memory
    * @return the DeserializeResult
    */
-  public static DeserializeResult<StringsSummary> fromMemory(final Memory mem) {
-    final StringsSummary nsum = new StringsSummary(mem);
+  public static DeserializeResult<ArrayOfStringsSummary> fromMemory(final Memory mem) {
+    final ArrayOfStringsSummary nsum = new ArrayOfStringsSummary(mem);
     final int totBytes = mem.getInt(0);
     return new DeserializeResult<>(nsum, totBytes);
   }

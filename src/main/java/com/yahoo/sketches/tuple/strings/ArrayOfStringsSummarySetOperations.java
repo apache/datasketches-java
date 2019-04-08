@@ -10,15 +10,15 @@ import com.yahoo.sketches.tuple.SummarySetOperations;
 /**
  * @author Lee Rhodes
  */
-public class StringsSummarySetOperations implements SummarySetOperations<StringsSummary> {
+public class ArrayOfStringsSummarySetOperations implements SummarySetOperations<ArrayOfStringsSummary> {
 
   @Override
-  public StringsSummary union(final StringsSummary a, final StringsSummary b) {
+  public ArrayOfStringsSummary union(final ArrayOfStringsSummary a, final ArrayOfStringsSummary b) {
     return a.copy();
   }
 
   @Override
-  public StringsSummary intersection(final StringsSummary a, final StringsSummary b) {
+  public ArrayOfStringsSummary intersection(final ArrayOfStringsSummary a, final ArrayOfStringsSummary b) {
     return a.copy();
   }
 

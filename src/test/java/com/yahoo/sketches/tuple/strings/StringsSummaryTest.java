@@ -9,7 +9,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.tuple.DeserializeResult;
-import com.yahoo.sketches.tuple.strings.StringsSummary;
+import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 
 /**
  * @author Lee Rhodes
@@ -19,19 +19,19 @@ public class StringsSummaryTest {
   @Test
   public void checkToByteArray() {
     String[] strArr =  new String[] {"abcd", "abcd", "abcd"};
-    StringsSummary nsum = new StringsSummary(strArr);
+    ArrayOfStringsSummary nsum = new ArrayOfStringsSummary(strArr);
     byte[] out = nsum.toByteArray();
 
     Memory mem = Memory.wrap(out);
-    StringsSummary nsum2 = new StringsSummary(mem);
+    ArrayOfStringsSummary nsum2 = new ArrayOfStringsSummary(mem);
     String[] nodesArr = nsum2.getValue();
     for (String s : nodesArr) {
       println(s);
     }
 
     println("\nfromMemory(mem)");
-    DeserializeResult<StringsSummary> dres = StringsSummary.fromMemory(mem);
-    StringsSummary nsum3 = dres.getObject();
+    DeserializeResult<ArrayOfStringsSummary> dres = ArrayOfStringsSummary.fromMemory(mem);
+    ArrayOfStringsSummary nsum3 = dres.getObject();
     nodesArr = nsum3.getValue();
     for (String s : nodesArr) {
       println(s);
