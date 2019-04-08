@@ -1,6 +1,8 @@
-package com.yahoo.sketches.tuple;
+package com.yahoo.sketches.tuple.adouble;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.tuple.DeserializeResult;
+import com.yahoo.sketches.tuple.SummaryDeserializer;
 
 public class DoubleSummaryDeserializer implements SummaryDeserializer<DoubleSummary> {
 

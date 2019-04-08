@@ -4,15 +4,22 @@
  */
 package com.yahoo.sketches.tuple;
 
+import java.net.URL;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.tuple.DoubleSummary.Mode;
+import com.yahoo.sketches.tuple.adouble.DoubleSummary;
+import com.yahoo.sketches.tuple.adouble.DoubleSummary.Mode;
+import com.yahoo.sketches.tuple.adouble.DoubleSummaryDeserializer;
+import com.yahoo.sketches.tuple.adouble.DoubleSummaryFactory;
+import com.yahoo.sketches.tuple.adouble.DoubleSummarySetOperations;
 
 public class UpdatableSketchWithDoubleSummaryTest {
+
   @Test
   public void isEmpty() {
     UpdatableSketch<Double, DoubleSummary> sketch =
@@ -776,9 +783,36 @@ public class UpdatableSketchWithDoubleSummaryTest {
   }
 
   @Test
-  public void serialVersion1Compatibility() throws Exception {
-    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
-        .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
+  public void serialVersion1Compatibility1() {
+    ClassLoader clsLoader = getClass().getClassLoader();
+    URL url = clsLoader.getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin");
+    String fileName = url.getFile();
+    System.out.println(fileName);
+    byte[] bytes = null;
+    try {
+      bytes = TestUtil.readBytesFromFile(fileName);
+      //byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
+      //    .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
+    } catch (Exception e) {
+      System.err.println("Exception Thrown " + bytes.length);
+    }
+    System.out.println("Done");
+  }
+
+  @Test
+  public void serialVersion1Compatibility()
+  {
+    ClassLoader clsLoader = getClass().getClassLoader();
+    URL url = clsLoader.getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin");
+    String fileName = url.getFile();
+    byte[] bytes = null;
+    try {
+      bytes = TestUtil.readBytesFromFile(fileName);
+      //byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
+      //    .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
+    } catch (Exception e) {
+      System.err.println("Exception Thrown");
+    }
     UpdatableSketch<Double, DoubleSummary> sketch =
         Sketches.heapifyUpdatableSketch(
             Memory.wrap(bytes), new DoubleSummaryDeserializer(), new DoubleSummaryFactory());

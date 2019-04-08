@@ -3,9 +3,10 @@
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.tuple;
+package com.yahoo.sketches.tuple.adouble;
 
-import com.yahoo.sketches.tuple.DoubleSummary.Mode;
+import com.yahoo.sketches.tuple.SummarySetOperations;
+import com.yahoo.sketches.tuple.adouble.DoubleSummary.Mode;
 
 /**
  * Methods for producing unions and intersections of two objects of type DoubleSummary.
