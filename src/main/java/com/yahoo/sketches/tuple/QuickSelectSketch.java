@@ -26,7 +26,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @param <S> type of Summary
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
-  private static final byte serialVersionWithSummaryFactoryUID = 1;
+  //private static final byte serialVersionWithSummaryFactoryUID = 1;
   private static final byte serialVersionUID = 2;
 
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
@@ -157,11 +157,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       count = mem.getInt(offset);
       offset += Integer.BYTES;
     }
-    if (version == serialVersionWithSummaryFactoryUID) {
-      final DeserializeResult<SummaryFactory<S>> factoryResult =
-          SerializerDeserializer.deserializeFromMemory(mem, offset);
-      offset += factoryResult.getSize();
-    }
+    //    if (version == serialVersionWithSummaryFactoryUID) {
+    //      final DeserializeResult<SummaryFactory<S>> factoryResult =
+    //          SerializerDeserializer.deserializeFromMemory(mem, offset);
+    //      offset += factoryResult.getSize();
+    //    }
     final int currentCapacity = 1 << lgCurrentCapacity_;
     keys_ = new long[currentCapacity];
     for (int i = 0; i < count; i++) {
