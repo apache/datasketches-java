@@ -11,8 +11,8 @@ import com.yahoo.memory.Buffer;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableBuffer;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.memory.XxHash64;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.hash.MurmurHash3v2;
 import com.yahoo.sketches.tuple.DeserializeResult;
 import com.yahoo.sketches.tuple.UpdatableSummary;
 
@@ -119,7 +119,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   @Override
   public int hashCode() {
     final int[] arr = ArrayOfStringsSketch.computeKey(nodesArr);
-    final int hash = (int) MurmurHash3v2.hash(arr, PRIME)[0];
+    final int hash = (int) XxHash64.hashInts(arr, 0, arr.length, PRIME);
     return hash;
   }
 
