@@ -5,10 +5,6 @@
 
 package com.yahoo.sketches.tuple;
 
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
-
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
@@ -18,8 +14,6 @@ final class SerializerDeserializer {
     ArrayOfDoublesCompactSketch, ArrayOfDoublesUnion }
 
   static final int TYPE_BYTE_OFFSET = 3;
-
-  private static final Map<String, Method> deserializeMethodCache = new HashMap<>();
 
   static void validateFamily(final byte familyId, final byte preambleLongs) {
     final Family family = Family.idToFamily(familyId);
@@ -55,6 +49,8 @@ final class SerializerDeserializer {
   }
 
   // Deprecated methods below. Retained here to support reading legacy data.
+
+  //  private static final Map<String, Method> deserializeMethodCache = new HashMap<>();
 
   //  static <T> DeserializeResult<T> deserializeFromMemory(final Memory mem, final int offset) {
   //    final int classNameLength = mem.getByte(offset);

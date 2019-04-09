@@ -12,6 +12,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableBuffer;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.hash.MurmurHash3v2;
 import com.yahoo.sketches.tuple.DeserializeResult;
 import com.yahoo.sketches.tuple.UpdatableSummary;
 
@@ -19,6 +20,7 @@ import com.yahoo.sketches.tuple.UpdatableSummary;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
+  private static final int PRIME = 0x7A3C_CA71;
   private String[] nodesArr = null;
 
   ArrayOfStringsSummary() { //required for ArrayOfStringsSummaryFactory
@@ -114,13 +116,25 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     //otherwise do not update.
   }
 
-  private static void checkNumNodes(final int numNodes) {
+  @Override
+  public int hashCode() {
+    final int[] arr = ArrayOfStringsSketch.computeKey(nodesArr);
+    final int hash = (int) MurmurHash3v2.hash(arr, PRIME)[0];
+    return hash;
+  }
+
+  @Override
+  public boolean equals(final Object sum) {
+    return hashCode() == sum.hashCode();
+  }
+
+  static void checkNumNodes(final int numNodes) {
     if (numNodes > 127)  {
       throw new SketchesArgumentException("Number of nodes cannot exceed 127.");
     }
   }
 
-  private static void checkInBytes(final Memory mem, final int totBytes) {
+  static void checkInBytes(final Memory mem, final int totBytes) {
     if (mem.getCapacity() < totBytes) {
       throw new SketchesArgumentException("Incoming Memory has insufficient capacity.");
     }

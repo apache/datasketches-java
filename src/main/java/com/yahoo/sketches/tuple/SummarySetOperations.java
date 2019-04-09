@@ -16,7 +16,8 @@ public interface SummarySetOperations<S extends Summary> {
    *
    * <p><b>Caution:</b> Do not modify the input Summary objects. Also do not return them directly,
    * unless they are immutable (most Summary objects are not). For mutable Summary objects, it is
-   * important to create a new Summary object with the correct contents to be returned.
+   * important to create a new Summary object with the correct contents to be returned. Do not
+   * return null summaries.
    *
    * @param a Summary from sketch A
    * @param b Summary from sketch B
@@ -30,7 +31,8 @@ public interface SummarySetOperations<S extends Summary> {
    *
    * <p><b>Caution:</b> Do not modify the input Summary objects. Also do not return them directly,
    * unless they are immutable (most Summary objects are not). For mutable Summary objects, it is
-   * important to create a new Summary object with the correct contents to be returned.
+   * important to create a new Summary object with the correct contents to be returned. Do not
+   * return null summaries.
    *
    * @param a Summary from sketch A
    * @param b Summary from sketch B
