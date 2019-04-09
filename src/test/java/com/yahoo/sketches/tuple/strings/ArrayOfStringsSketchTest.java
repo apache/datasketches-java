@@ -94,7 +94,7 @@ public class ArrayOfStringsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.print(s + LS);
+    //System.out.print(s + LS);
   }
 
   /**

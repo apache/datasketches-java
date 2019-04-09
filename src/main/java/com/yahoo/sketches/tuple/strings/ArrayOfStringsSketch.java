@@ -8,7 +8,6 @@ package com.yahoo.sketches.tuple.strings;
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.tuple.UpdatableSketch;
-//import com.yahoo.sketches.tuple.
 
 /**
  * @author Lee Rhodes
