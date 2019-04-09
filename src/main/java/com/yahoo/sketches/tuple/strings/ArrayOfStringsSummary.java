@@ -49,7 +49,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     this.nodesArr = nodesArr;
   }
 
-  private class ComputeBytes {
+  private static class ComputeBytes {
     final byte numNodes_;
     final int[] nodeLengthsArr_;
     final byte[][] nodeBytesArr_;
@@ -77,7 +77,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   }
 
   public String[] getValue() {
-    return nodesArr;
+    return nodesArr.clone();
   }
 
   @Override
@@ -111,7 +111,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   @Override
   public void update(final String[] value) {
     if (nodesArr == null) {
-      nodesArr = value;
+      nodesArr = value.clone();
     }
     //otherwise do not update.
   }
@@ -124,8 +124,33 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   }
 
   @Override
-  public boolean equals(final Object sum) {
-    return hashCode() == sum.hashCode();
+  public boolean equals(final Object summary) {
+    if ((summary == null) || !(summary instanceof ArrayOfStringsSummary)) {
+      return false;
+    }
+    final String thatStr = stringConcat(((ArrayOfStringsSummary) summary).nodesArr);
+    final String thisStr = stringConcat(nodesArr);
+    return thisStr.equals(thatStr);
+  }
+
+  private static String stringConcat(final String[] strArr) {
+    final StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < strArr.length; i++) { sb.append(strArr[i]); }
+    return sb.toString();
+  }
+
+  /**
+   * @param key to be hashed
+   * @return an index into the hash table This hash function is taken from the internals of
+   * Austin Appleby's MurmurHash3 algorithm. It is also used by the Trove for Java libraries.
+   */
+  static long hash(long key) {
+    key ^= key >>> 33;
+    key *= 0xff51afd7ed558ccdL;
+    key ^= key >>> 33;
+    key *= 0xc4ceb9fe1a85ec53L;
+    key ^= key >>> 33;
+    return key;
   }
 
   static void checkNumNodes(final int numNodes) {
