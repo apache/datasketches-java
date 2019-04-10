@@ -6,7 +6,6 @@
 package com.yahoo.sketches.fun;
 
 import static com.yahoo.sketches.Util.MAX_LG_NOM_LONGS;
-import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.Util.simpleIntLog2;
 
 import com.yahoo.sketches.SketchesArgumentException;
@@ -50,6 +49,10 @@ public class FunSketch {
     sketch = new ArrayOfStringsSketch(lgK);
   }
 
+  public int getLgK() {
+    return lgK;
+  }
+
   public double getEstimate() {
     return sketch.getEstimate();
   }
@@ -62,15 +65,11 @@ public class FunSketch {
     return sketch.getUpperBound(numStdDev);
   }
 
-  public SketchIterator<ArrayOfStringsSummary> iterator() {
-    return sketch.iterator();
-  }
-
   /**
    * Returns the sketch iterator.
    * @return the iterator over the sketch contents
    */
-  public SketchIterator<ArrayOfStringsSummary> getIterator() {
+  public SketchIterator<ArrayOfStringsSummary> iterator() {
     return sketch.iterator();
   }
 
@@ -95,12 +94,13 @@ public class FunSketch {
    * @return LgK
    */
   static int computeLgK(final double threshold, final double rse) {
-    final int k = ceilingPowerOf2((int) Math.ceil(1.0 / (threshold * rse * rse)));
-    if (k > (1 << MAX_LG_NOM_LONGS)) {
-      throw new SketchesArgumentException("Requested Sketch is too large, "
-          + "either increase the threshold or the rse or both.");
+    final double v = Math.ceil(1.0 / (threshold * rse * rse));
+    final int lgK = (int) Math.ceil(Math.log(v) / Math.log(2));
+    if (lgK > MAX_LG_NOM_LONGS) {
+      throw new SketchesArgumentException("Requested Sketch (LgK = " + lgK + ") is too large, "
+          + "either increase the threshold, the rse or both.");
     }
-    return simpleIntLog2(k);
+    return lgK;
   }
 
 }

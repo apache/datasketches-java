@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple.strings;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -51,6 +53,19 @@ public class ArrayOfStringsSummaryTest {
   public void checkInBytes() {
     Memory mem = Memory.wrap(new byte[100]);
     ArrayOfStringsSummary.checkInBytes(mem, 200);
+  }
+
+  @Test
+  public void checkHashCode() {
+    String[] strArr =  new String[] {"abcd", "abcd", "abcd"};
+    ArrayOfStringsSummary sum1 = new ArrayOfStringsSummary(strArr);
+    ArrayOfStringsSummary sum2 = new ArrayOfStringsSummary(strArr);
+    int hc1 = sum1.hashCode();
+    int hc2 = sum2.hashCode();
+    assertEquals(hc1, hc2);
+    assertTrue(sum1.equals(sum2));
+    assertFalse(sum1.equals(hc2));
+    assertFalse(sum1.equals(null));
   }
 
   @Test

@@ -6,10 +6,12 @@
 package com.yahoo.sketches.fun;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
+import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.tuple.SketchIterator;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSketch;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
@@ -54,12 +56,27 @@ public class FunSketchTest {
       count2++;
     }
     assertEquals(count, count2);
+    assertEquals(sketch2.getEstimate(), sketch.getEstimate());
+    assertEquals(sketch2.getLowerBound(2), sketch.getLowerBound(2));
+    assertEquals(sketch2.getUpperBound(2), sketch.getUpperBound(2));
   }
 
   @Test
-  public void checkLgKcompute() {
-    final int lgK = FunSketch.computeLgK(.02, .05); //thresh, RSE
-    println("LgK: " + lgK);
+  public void checkAlternateLgK() {
+    int lgK = FunSketch.computeLgK(.01, .01);
+    assertEquals(lgK, 20);
+    try {
+      lgK = FunSketch.computeLgK(.01, .001);
+      fail();
+    } catch (SketchesArgumentException e) {
+      //println("" + e);
+    }
+  }
+
+  @Test
+  public void checkFunSketchWithThreshold() {
+    FunSketch sk = new FunSketch(.02, .05); //thresh, RSE
+    println("LgK: " + sk.getLgK());
   }
 
   @Test
@@ -71,14 +88,14 @@ public class FunSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.print(s + LS);
+    print(s + LS);
   }
 
   /**
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s);  //disable here
+    //System.out.print(s);  //disable here
   }
 
 }
