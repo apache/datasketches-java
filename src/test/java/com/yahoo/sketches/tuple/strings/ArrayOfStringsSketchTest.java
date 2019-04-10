@@ -21,7 +21,7 @@ import com.yahoo.sketches.tuple.Union;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSketchTest {
-  public static final String LS = System.getProperty("line.separator");
+  private static final String LS = System.getProperty("line.separator");
 
   @Test
   public void checkSketch() {
@@ -94,7 +94,7 @@ public class ArrayOfStringsSketchTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.print(s + LS);
+    System.out.print(s + LS);
   }
 
   /**

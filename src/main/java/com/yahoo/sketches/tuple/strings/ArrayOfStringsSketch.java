@@ -44,6 +44,11 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
     super(1 << lgK, rf.lg(), p, new ArrayOfStringsSummaryFactory());
   }
 
+  /**
+   * Constructs this sketch from a Memory image, which must be from an ArrayOfStringsSketch, and
+   * usually with data.
+   * @param mem the given Memory
+   */
   public ArrayOfStringsSketch(final Memory mem) {
     super(mem, new ArrayOfStringsSummaryDeserializer(), new ArrayOfStringsSummaryFactory());
   }
