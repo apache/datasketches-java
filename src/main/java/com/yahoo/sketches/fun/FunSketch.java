@@ -43,13 +43,36 @@ public class FunSketch {
    * threshold and rse.
    * @param threshold the fraction, between zero and 1.0, of the total stream length that defines
    * a "Frequent" (or heavy) item.
-   * @param rse the desired Relative Standard Error for the sketch.
+   * @param rse the desired Relative Standard Error for an estimate of a returned frequent sketch
+   * at the threshold.
    */
   public FunSketch(final double threshold, final double rse) {
     lgK = computeLgK(threshold, rse);
     bldr.reset();
     bldr.setNominalEntries(1 << lgK);
     sketch = bldr.build();
+  }
+
+  public double getEstimate() {
+    return sketch.getEstimate();
+  }
+
+  public double getLowerBound(final int numStdDev) {
+    return sketch.getLowerBound(numStdDev);
+  }
+
+  public double getUpperBound(final int numStdDev) {
+    return sketch.getUpperBound(numStdDev);
+  }
+
+
+
+  /**
+   * Returns the sketch iterator.
+   * @return the iterator over the sketch contents
+   */
+  public SketchIterator<ArrayOfStringsSummary> getIterator() {
+    return sketch.iterator();
   }
 
   /**
@@ -62,18 +85,11 @@ public class FunSketch {
   }
 
   /**
-   * Returns the sketch iterator.
-   * @return the iterator over the sketch contents
-   */
-  public SketchIterator<ArrayOfStringsSummary> getIterator() {
-    return sketch.iterator();
-  }
-
-  /**
    * Computes LgK given the threshold and RSE.
    * @param threshold the fraction, between zero and 1.0, of the total stream length that defines
    * a "Frequent" (or heavy) item.
-   * @param rse the desired Relative Standard Error for a computed estimate at the threshold.
+   * @param rse the desired Relative Standard Error for an estimate of a returned frequent sketch
+   * at the threshold.
    * @return LgK
    */
   static int computeLgK(final double threshold, final double rse) {
