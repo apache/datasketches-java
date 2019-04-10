@@ -11,10 +11,8 @@ import static com.yahoo.sketches.Util.simpleIntLog2;
 
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.tuple.SketchIterator;
-import com.yahoo.sketches.tuple.UpdatableSketch;
-import com.yahoo.sketches.tuple.UpdatableSketchBuilder;
+import com.yahoo.sketches.tuple.strings.ArrayOfStringsSketch;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
-import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummaryFactory;
 
 /**
  * A Frequent Unique Nodes sketch.
@@ -22,9 +20,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummaryFactory;
  */
 public class FunSketch {
   private final int lgK;
-  private final UpdatableSketchBuilder<String[], ArrayOfStringsSummary> bldr =
-      new UpdatableSketchBuilder<>(new ArrayOfStringsSummaryFactory());
-  private final UpdatableSketch<String[], ArrayOfStringsSummary> sketch;
+  private final ArrayOfStringsSketch sketch;
 
   /**
    * Create new instance of Frequent Unique Nodes Sketch with the given
@@ -33,9 +29,12 @@ public class FunSketch {
    */
   public FunSketch(final int lgK) {
     this.lgK = lgK;
-    bldr.reset();
-    bldr.setNominalEntries(1 << this.lgK);
-    sketch = bldr.build();
+    sketch = new ArrayOfStringsSketch(lgK);
+  }
+
+  FunSketch(final ArrayOfStringsSketch aosSketch) {
+    sketch = aosSketch;
+    lgK = simpleIntLog2(aosSketch.getNominalEntries());
   }
 
   /**
@@ -48,9 +47,7 @@ public class FunSketch {
    */
   public FunSketch(final double threshold, final double rse) {
     lgK = computeLgK(threshold, rse);
-    bldr.reset();
-    bldr.setNominalEntries(1 << lgK);
-    sketch = bldr.build();
+    sketch = new ArrayOfStringsSketch(lgK);
   }
 
   public double getEstimate() {
@@ -65,7 +62,9 @@ public class FunSketch {
     return sketch.getUpperBound(numStdDev);
   }
 
-
+  public SketchIterator<ArrayOfStringsSummary> iterator() {
+    return sketch.iterator();
+  }
 
   /**
    * Returns the sketch iterator.
@@ -80,8 +79,11 @@ public class FunSketch {
    * @param nodesArr the given array of node names.
    */
   public void update(final String[] nodesArr) {
-    final int[] key = computeKey(nodesArr);
-    sketch.update(key, nodesArr);
+    sketch.update(nodesArr, nodesArr);
+  }
+
+  public byte[] toByteArray() {
+    return sketch.toByteArray();
   }
 
   /**
@@ -99,17 +101,6 @@ public class FunSketch {
           + "either increase the threshold or the rse or both.");
     }
     return simpleIntLog2(k);
-  }
-
-  /**
-   * @param nodesArr array of node Strings
-   * @return int array of node hashCodes.
-   */
-  static int[] computeKey(final String[] nodesArr) {
-    final int len = nodesArr.length;
-    final int[] arr = new int[len];
-    for (int i = 0; i < len; i++) { arr[i] = nodesArr.hashCode(); }
-    return arr;
   }
 
 }

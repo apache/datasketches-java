@@ -10,32 +10,24 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
-import com.yahoo.sketches.tuple.Sketch;
 import com.yahoo.sketches.tuple.SketchIterator;
-import com.yahoo.sketches.tuple.Sketches;
-import com.yahoo.sketches.tuple.UpdatableSketch;
-import com.yahoo.sketches.tuple.UpdatableSketchBuilder;
+import com.yahoo.sketches.tuple.strings.ArrayOfStringsSketch;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
-import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummaryDeserializer;
-import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummaryFactory;
+
 
 /**
  * @author Lee Rhodes
  */
 public class FunSketchTest {
+  private static final String LS = System.getProperty("line.separator");
 
   @Test
   public void checkFunSketch() {
     final int lgK = 14;
-    final int k = 1 << lgK;
-    final UpdatableSketchBuilder<String[], ArrayOfStringsSummary> bldr =
-        new UpdatableSketchBuilder<>(new ArrayOfStringsSummaryFactory());
-    bldr.setNominalEntries(k);
-    final UpdatableSketch<String[], ArrayOfStringsSummary> sketch = bldr.build();
+    final FunSketch sketch = new FunSketch(lgK);
 
     final String[] nodesArr = {"abc", "def" };
-    final int[] key = FunSketch.computeKey(nodesArr);
-    sketch.update(key, nodesArr);
+    sketch.update(nodesArr);
 
     final SketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
     int count = 0;
@@ -50,7 +42,8 @@ public class FunSketchTest {
     final byte[] byteArr = sketch.toByteArray();
     //deserialize
     Memory mem = Memory.wrap(byteArr);
-    Sketch<ArrayOfStringsSummary> sketch2 = Sketches.heapifySketch(mem, new ArrayOfStringsSummaryDeserializer());
+    ArrayOfStringsSketch aosSketch = new ArrayOfStringsSketch(mem);
+    FunSketch sketch2 = new FunSketch(aosSketch);
 
     //check output
     final SketchIterator<ArrayOfStringsSummary> it2 = sketch2.iterator();
@@ -65,10 +58,27 @@ public class FunSketchTest {
 
   @Test
   public void checkLgKcompute() {
-    final int lgK = FunSketch.computeLgK(.02, .05);
+    final int lgK = FunSketch.computeLgK(.02, .05); //thresh, RSE
     println("LgK: " + lgK);
   }
 
-  static void println(String s) { System.out.println(s); }
+  @Test
+  public void printlnTest() {
+    println("PRINTING: "+this.getClass().getName());
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void println(String s) {
+    System.out.print(s + LS);
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void print(String s) {
+    System.out.print(s);  //disable here
+  }
 
 }
