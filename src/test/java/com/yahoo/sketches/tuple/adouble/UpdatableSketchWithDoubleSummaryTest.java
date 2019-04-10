@@ -2,7 +2,7 @@
  * Copyright 2015-16, Yahoo! Inc.
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
-package com.yahoo.sketches.tuple;
+package com.yahoo.sketches.tuple.adouble;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -10,9 +10,19 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.tuple.DoubleSummary.Mode;
+import com.yahoo.sketches.tuple.AnotB;
+import com.yahoo.sketches.tuple.CompactSketch;
+import com.yahoo.sketches.tuple.Intersection;
+import com.yahoo.sketches.tuple.Sketch;
+import com.yahoo.sketches.tuple.SketchIterator;
+import com.yahoo.sketches.tuple.Sketches;
+import com.yahoo.sketches.tuple.Union;
+import com.yahoo.sketches.tuple.UpdatableSketch;
+import com.yahoo.sketches.tuple.UpdatableSketchBuilder;
+import com.yahoo.sketches.tuple.adouble.DoubleSummary.Mode;
 
 public class UpdatableSketchWithDoubleSummaryTest {
+
   @Test
   public void isEmpty() {
     UpdatableSketch<Double, DoubleSummary> sketch =
@@ -22,7 +32,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
-    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertNotNull(sketch.toString());
     SketchIterator<DoubleSummary> it = sketch.iterator();
@@ -41,7 +51,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
-    Assert.assertEquals(sketch.getThetaLong() / (double) Long.MAX_VALUE, (double) samplingProbability);
+    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
     Assert.assertEquals(sketch.getTheta(), (double) samplingProbability);
   }
 
@@ -57,8 +67,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertTrue(sketch.getUpperBound(1) > 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0, 0.0000001);
-    Assert.assertEquals(sketch.getThetaLong() / (double) Long.MAX_VALUE,
-        (double) samplingProbability);
+    Assert.assertEquals((float)sketch.getTheta(),  samplingProbability);
     Assert.assertEquals(sketch.getTheta(), (double) samplingProbability);
   }
 
@@ -77,7 +86,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 4096.0);
     Assert.assertEquals(sketch.getUpperBound(1), 4096.0);
     Assert.assertEquals(sketch.getLowerBound(1), 4096.0);
-    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertEquals(sketch.getTheta(), 1.0);
 
     int count = 0;
@@ -94,7 +103,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
-    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertEquals(sketch.getTheta(), 1.0);
   }
 
@@ -129,7 +138,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
-    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertEquals(sketch.getTheta(), 1.0);
 }
 
@@ -775,23 +784,24 @@ public class UpdatableSketchWithDoubleSummaryTest {
       (new DoubleSummaryFactory()).setSamplingProbability(2f).build();
   }
 
-  @Test
-  public void serialVersion1Compatibility() throws Exception {
-    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
-        .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
-    UpdatableSketch<Double, DoubleSummary> sketch =
-        Sketches.heapifyUpdatableSketch(
-            Memory.wrap(bytes), new DoubleSummaryDeserializer(), new DoubleSummaryFactory());
-    Assert.assertTrue(sketch.isEstimationMode());
-    Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
-    Assert.assertEquals(sketch.getRetainedEntries(), 4096);
-    int count = 0;
-    SketchIterator<DoubleSummary> it = sketch.iterator();
-    while (it.next()) {
-      Assert.assertEquals(it.getSummary().getValue(), 10.0);
-      count++;
-    }
-    Assert.assertEquals(count, 4096);
-  }
+//@Test
+//  @Deprecated
+//  public void serialVersion1Compatibility() throws Exception {
+//    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
+//        .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
+//    UpdatableSketch<Double, DoubleSummary> sketch =
+//        Sketches.heapifyUpdatableSketch(
+//            Memory.wrap(bytes), new DoubleSummaryDeserializer(), new DoubleSummaryFactory());
+//    Assert.assertTrue(sketch.isEstimationMode());
+//    Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
+//    Assert.assertEquals(sketch.getRetainedEntries(), 4096);
+//    int count = 0;
+//    SketchIterator<DoubleSummary> it = sketch.iterator();
+//    while (it.next()) {
+//      Assert.assertEquals(it.getSummary().getValue(), 10.0);
+//      count++;
+//    }
+//    Assert.assertEquals(count, 4096);
+//  }
 
 }

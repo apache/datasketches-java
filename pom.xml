@@ -58,7 +58,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         
         <!-- Dependencies -->
-        <memory.version>0.12.1</memory.version>
+        <memory.version>0.12.2</memory.version>
         <testng.version>6.14.3</testng.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
 

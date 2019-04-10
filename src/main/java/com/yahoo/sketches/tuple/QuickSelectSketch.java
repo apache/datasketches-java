@@ -26,7 +26,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @param <S> type of Summary
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
-  private static final byte serialVersionWithSummaryFactoryUID = 1;
+  //private static final byte serialVersionWithSummaryFactoryUID = 1;
   private static final byte serialVersionUID = 2;
 
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
@@ -157,11 +157,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       count = mem.getInt(offset);
       offset += Integer.BYTES;
     }
-    if (version == serialVersionWithSummaryFactoryUID) {
-      final DeserializeResult<SummaryFactory<S>> factoryResult =
-          SerializerDeserializer.deserializeFromMemory(mem, offset);
-      offset += factoryResult.getSize();
-    }
+    //    if (version == serialVersionWithSummaryFactoryUID) {
+    //      final DeserializeResult<SummaryFactory<S>> factoryResult =
+    //          SerializerDeserializer.deserializeFromMemory(mem, offset);
+    //      offset += factoryResult.getSize();
+    //    }
     final int currentCapacity = 1 << lgCurrentCapacity_;
     keys_ = new long[currentCapacity];
     for (int i = 0; i < count; i++) {
@@ -242,19 +242,19 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * Converts the current state of the sketch into a compact sketch
    * @return compact sketch
    */
+  @SuppressWarnings("unchecked")
   public CompactSketch<S> compact() {
     if (getRetainedEntries() == 0) {
       return new CompactSketch<>(null, null, theta_, isEmpty_);
     }
     final long[] keys = new long[getRetainedEntries()];
-    @SuppressWarnings("unchecked")
     final S[] summaries = (S[])
       Array.newInstance(summaries_.getClass().getComponentType(), getRetainedEntries());
     int i = 0;
     for (int j = 0; j < keys_.length; j++) {
       if (summaries_[j] != null) {
         keys[i] = keys_[j];
-        summaries[i] = summaries_[j].copy();
+        summaries[i] = (S)summaries_[j].copy();
         i++;
       }
     }
@@ -351,12 +351,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   // this is a special back door insert for merging
   // not sufficient by itself without keeping track of theta of another sketch
+  @SuppressWarnings("unchecked")
   void merge(final long key, final S summary, final SummarySetOperations<S> summarySetOps) {
     isEmpty_ = false;
     if (key < theta_) {
       final int index = findOrInsert(key);
       if (index < 0) {
-        insertSummary(~index, summary.copy());
+        insertSummary(~index, (S)summary.copy());
       } else {
         insertSummary(index, summarySetOps.union(summaries_[index], summary));
       }

@@ -28,19 +28,19 @@ public class SerializerDeserializerTest {
     SerializerDeserializer.getSketchType(Memory.wrap(bytes));
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void deserializeFromMemoryUsupportedClass() {
-    Memory mem = null;
-    SerializerDeserializer.deserializeFromMemory(mem, 0, "bogus");
-  }
+//  @Test(expectedExceptions = SketchesArgumentException.class)
+//  public void deserializeFromMemoryUsupportedClass() {
+//    Memory mem = null;
+//    SerializerDeserializer.deserializeFromMemory(mem, 0, "bogus");
+//  }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyNotTuple() {
-    SerializerDeserializer.validateFamily((byte) 1, (byte) 0); 
+    SerializerDeserializer.validateFamily((byte) 1, (byte) 0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyWrongPreambleLength() {
-    SerializerDeserializer.validateFamily((byte) Family.TUPLE.getID(), (byte) 0); 
+    SerializerDeserializer.validateFamily((byte) Family.TUPLE.getID(), (byte) 0);
   }
 }

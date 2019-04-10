@@ -3,12 +3,14 @@
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.tuple;
+package com.yahoo.sketches.tuple.adouble;
 
-import com.yahoo.sketches.tuple.DoubleSummary.Mode;
+import com.yahoo.sketches.tuple.SummarySetOperations;
+import com.yahoo.sketches.tuple.adouble.DoubleSummary.Mode;
 
 /**
- * Methods for producing unions and intersections of two objects of type DoubleSummary.
+ * Methods for defining how unions and intersections of two objects of type DoubleSummary
+ * are performed. These methods are not called directly by a user.
  */
 public final class DoubleSummarySetOperations implements SummarySetOperations<DoubleSummary> {
 
@@ -32,8 +34,8 @@ public final class DoubleSummarySetOperations implements SummarySetOperations<Do
   @Override
   public DoubleSummary union(final DoubleSummary a, final DoubleSummary b) {
     final DoubleSummary result = new DoubleSummary(summaryMode_);
-    if (a != null) { result.update(a.getValue()); }
-    if (b != null) { result.update(b.getValue()); }
+    result.update(a.getValue());
+    result.update(b.getValue());
     return result;
   }
 

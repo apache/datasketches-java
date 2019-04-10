@@ -38,7 +38,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
 
   /**
    * This is to set the nominal number of entries.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @return this UpdatableSketchBuilder
    */
@@ -66,7 +66,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @return this UpdatableSketchBuilder
    */
   public UpdatableSketchBuilder<U, S> setSamplingProbability(final float samplingProbability) {
-    if (samplingProbability < 0 || samplingProbability > 1f) {
+    if ((samplingProbability < 0) || (samplingProbability > 1f)) {
       throw new SketchesArgumentException("sampling probability must be between 0 and 1");
     }
     samplingProbability_ = samplingProbability;
@@ -78,8 +78,17 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @return an UpdatableSketch
    */
   public UpdatableSketch<U, S> build() {
-    return new UpdatableSketch<U, S>(nomEntries_, resizeFactor_.lg(), samplingProbability_, 
+    return new UpdatableSketch<>(nomEntries_, resizeFactor_.lg(), samplingProbability_,
         summaryFactory_);
   }
 
+  /**
+   * Resets the Nominal Entries, Resize Factor and Sampling Probability to their default values.
+   * The assignment of <i>U</i> and <i>S</i> remain the same.
+   */
+  public void reset() {
+    nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
+    resizeFactor_ = DEFAULT_RESIZE_FACTOR;
+    samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
+  }
 }

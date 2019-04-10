@@ -9,6 +9,9 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.tuple.adouble.DoubleSummary;
+import com.yahoo.sketches.tuple.adouble.DoubleSummaryDeserializer;
+import com.yahoo.sketches.tuple.adouble.DoubleSummaryFactory;
 
 public class CompactSketchWithDoubleSummaryTest {
   @Test

@@ -3,10 +3,12 @@
  * Licensed under the terms of the Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.tuple;
+package com.yahoo.sketches.tuple.adouble;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ByteArrayUtil;
+import com.yahoo.sketches.tuple.DeserializeResult;
+import com.yahoo.sketches.tuple.UpdatableSummary;
 
 /**
  * Summary for generic tuple sketches of type Double.
@@ -90,7 +92,6 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public DoubleSummary copy() {
     return new DoubleSummary(value_, mode_);
@@ -122,7 +123,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
    * read from the Memory
    */
   public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<DoubleSummary>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE),
+    return new DeserializeResult<>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE),
         Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
   }
 

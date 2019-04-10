@@ -28,6 +28,7 @@ public class Filter<T extends Summary> {
      * @param sketchIn The sketch against which apply the {@link Predicate}
      * @return A new Sketch with some of the entries filtered out based on the {@link Predicate}
      */
+    @SuppressWarnings("unchecked")
     public CompactSketch<T> filter(final Sketch<T> sketchIn) {
         if (sketchIn == null) {
             return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
@@ -39,7 +40,7 @@ public class Filter<T extends Summary> {
         while (it.next()) {
             final T summary = it.getSummary();
             if (predicate.test(summary)) {
-                sketch.insert(it.getKey(), summary.copy());
+                sketch.insert(it.getKey(), (T)summary.copy());
             }
         }
 
