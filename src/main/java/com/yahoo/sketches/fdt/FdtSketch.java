@@ -21,25 +21,27 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 /**
  * A Frequent Distinct Tuples sketch.
  *
- * <p>Given a stream of tuples {d1,d2, d3, ..., dN}, where d1, d2, d3, ..., DN represent dimensions,
- * where each dimension can have different cardinalites. In the stream, the values
- * of each of the dimensions can have many duplicates. The task is to specify up to N-1 dimensions as
- * the primary key, leaving the remainder dimensions unrestrained, and then determine the primary keys
- * that have the most frequent number of distinct combinations of the non-primary dimensions.
+ * <p>Given a multiset of tuples with dimensions <i>{d1,d2, d3, ..., dN}</i>, and a primary subset of
+ * dimensions <i>M < N</i>, the task is to identify the combinations of <i>M</i> subset dimensions
+ * that have the most frequent number of distinct combinations of the <i>N-M</i> non-primary
+ * dimensions.
  *
- * <p>For example, assume N=3, we might specify the primary key as (d1, d2).
- * After feeding the stream of tuples into the sketch, we can identify the primary key combinations
- * that have the most frequent number of distinct occurrences of d3.
+ * <p>For example, assume <i>N=3, M=2</i>, where the primary dimensions are <i>(d1, d2)</i>.
+ * After populating the sketch with a stream of tuples, we wish to identify the primary dimension
+ * combinations of <i>(d1, d2)</i> that have the most frequent number of distinct occurrences of
+ * <i>d3</i>.
  *
- * <p>Alternatively, if we choose the primary key as just d1, then we can identify the d1s that have
- * the most frequent unique combinations of (d2 and d3). The choice of which dimensions to choose as
- * the primary key is done after the data has been collected by the sketch.
+ * <p>Alternatively, if we choose the primary dimension as <i>d1</i>, then we can identify the
+ * <i>d1</i>s that have the most frequent distinct combinations of <i>(d2 and d3)</i>. The choice of
+ * which dimensions to choose as the primary dimensions is performed in a post-processing phase
+ * after the sketch has been populated.
  *
- * <p>As a simple concrete example, let's assume N = 2 and let d1 := IP address, and d2 := User ID.
- * If you choose d1 as the primary key, then the sketch allows the identification of the IP addresses
- * that have the largest populations of unique User IDs. Conversely, if you choose d2 as the
- * primary key, the sketch allows the identification of the User IDs with the largest populations of
- * unique IP addresses.
+ * <p>As a simple concrete example, let's assume <i>N = 2</i> and let <i>d1 := IP address</i>, and
+ * <i>d2 := User ID</i>.
+ * Let's choose <i>d1</i> as the primary dimension, then the sketch allows the identification of the
+ * <i>IP addresses</i> that have the largest populations of distinct <i>User IDs</i>. Conversely,
+ * if we choose <i>d2</i> as the primary dimension, the sketch allows the identification of the
+ * <i>User IDs</i> with the largest populations of distinct <i>IP addresses</i>.
  *
  * <p>An important caveat is that if the distribution is too flat, there may not be any
  * "most frequent" combinations of the primary keys above the threshold. Also, if one primary key
@@ -95,29 +97,31 @@ public class FdtSketch {
   }
 
   /**
-   * Gets the estimate of the unique population represented by the entire sketch.
-   * @return the estimate of the unique population represented by the entire sketch.
+   * Gets the estimate of the distinct population of tuples represented by the entire sketch.
+   * @return the estimate of the distinct population represented by the entire sketch.
    */
   public double getEstimate() {
     return sketch.getEstimate();
   }
 
   /**
-   * Gets the estimate of the unique population represented by the entire sketch.
-   * @param numEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the unique population represented by the sketch subset.
+   * Gets the estimate of the distinct population of subset tuples represented by the count of
+   * entries of that subset.
+   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
+   * @return the estimate of the distinct population represented by the sketch subset.
    */
-  public double getEstimate(final int numEntries) {
-    if (!sketch.isEstimationMode()) { return numEntries; }
-    return numEntries / sketch.getTheta();
+  public double getEstimate(final int numSubsetEntries) {
+    if (!sketch.isEstimationMode()) { return numSubsetEntries; }
+    return numSubsetEntries / sketch.getTheta();
   }
 
   /**
-   * Gets the estimate of the lower bound of the unique population represented by the entire sketch,
+   * Gets the estimate of the lower bound of the distinct population of tuples represented by the
+   * entire sketch, given the number of standard deviations.
    * given numStdDev.
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the estimate of the lower bound of the unique population represented by the entire
+   * @return the estimate of the lower bound of the distinct population represented by the entire
    * sketch given numStdDev.
    */
   public double getLowerBound(final int numStdDev) {
@@ -125,25 +129,25 @@ public class FdtSketch {
   }
 
   /**
-   * Gets the estimate of the lower bound of the unique population represented by a sketch subset,
-   * given numStdDev.
+   * Gets the estimate of the lower bound of the distinct population represented by a sketch subset,
+   * given numStdDev and numSubsetEntries.
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param numEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the lower bound of the unique population represented by the sketch
-   * subset given numStdDev and numEntries.
+   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
+   * @return the estimate of the lower bound of the distinct population represented by the sketch
+   * subset given numStdDev and numSubsetEntries.
    */
-  public double getLowerBound(final int numStdDev, final int numEntries) {
-    if (!sketch.isEstimationMode()) { return numEntries; }
-    return BinomialBoundsN.getLowerBound(numEntries, sketch.getTheta(), numStdDev, sketch.isEmpty());
+  public double getLowerBound(final int numStdDev, final int numSubsetEntries) {
+    if (!sketch.isEstimationMode()) { return numSubsetEntries; }
+    return BinomialBoundsN.getLowerBound(numSubsetEntries, sketch.getTheta(), numStdDev, sketch.isEmpty());
   }
 
   /**
-   * Gets the estimate of the upper bound of the unique population represented by the entire sketch,
+   * Gets the estimate of the upper bound of the distinct population represented by the entire sketch,
    * given numStdDev.
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the estimate of the upper bound of the unique population represented by the entire
+   * @return the estimate of the upper bound of the distinct population represented by the entire
    * sketch given numStdDev.
    */
   public double getUpperBound(final int numStdDev) {
@@ -151,17 +155,17 @@ public class FdtSketch {
   }
 
   /**
-   * Gets the estimate of the upper bound of the unique population represented by a sketch subset,
-   * given numStdDev.
+   * Gets the estimate of the upper bound of the distinct population represented by a sketch subset,
+   * given numStdDev and numSubsetEntries.
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param numEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the upper bound of the unique population represented by the sketch
-   * subset given numStdDev and numEntries.
+   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
+   * @return the estimate of the upper bound of the distinct population represented by the sketch
+   * subset given numStdDev and numSubsetEntries.
    */
-  public double getUpperBound(final int numStdDev, final int numEntries) {
-    if (!sketch.isEstimationMode()) { return numEntries; }
-    return BinomialBoundsN.getUpperBound(numEntries, sketch.getTheta(), numStdDev, sketch.isEmpty());
+  public double getUpperBound(final int numStdDev, final int numSubsetEntries) {
+    if (!sketch.isEstimationMode()) { return numSubsetEntries; }
+    return BinomialBoundsN.getUpperBound(numSubsetEntries, sketch.getTheta(), numStdDev, sketch.isEmpty());
   }
 
   /**

@@ -11,7 +11,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.hash.MurmurHash3;
 
 /**
- * An extension of QuickSelectSketch, which can be updated with many types of keys.
+ * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
  * Summary objects are created using a user-defined SummaryFactory class,
  * which should allow very flexible parameterization if needed.
  * Keys are presented to a sketch along with values of a user-defined
