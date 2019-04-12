@@ -20,7 +20,7 @@ import com.yahoo.sketches.tuple.UpdatableSummary;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
-  private static final int PRIME = 0x7A3C_CA71;
+  public static final int PRIME = 0x7A3C_CA71;
   private String[] nodesArr = null;
 
   ArrayOfStringsSummary() { //required for ArrayOfStringsSummaryFactory
@@ -118,9 +118,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
 
   @Override
   public int hashCode() {
-    final int[] arr = ArrayOfStringsSketch.computeKey(nodesArr);
-    final int hash = (int) XxHash64.hashInts(arr, 0, arr.length, PRIME);
-    return hash;
+    return (int) stringArrHash(nodesArr);
   }
 
   @Override
@@ -133,9 +131,22 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     return thisStr.equals(thatStr);
   }
 
-  private static String stringConcat(final String[] strArr) {
+  /**
+   * @param strArray array of Strings
+   * @return long hash of concatenated strings.
+   */
+  static long stringArrHash(final String[] strArray) {
+    final String s = stringConcat(strArray);
+    return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
+  }
+
+  static String stringConcat(final String[] strArr) {
+    final int len = strArr.length;
     final StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < strArr.length; i++) { sb.append(strArr[i]); }
+    for (int i = 0; i < len; i++) {
+      sb.append(strArr[i]);
+      if ((i + 1) < len) { sb.append(','); }
+    }
     return sb.toString();
   }
 

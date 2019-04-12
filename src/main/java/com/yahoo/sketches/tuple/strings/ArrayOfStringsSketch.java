@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.tuple.strings;
 
+import static com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary.stringArrHash;
+
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.tuple.UpdatableSketch;
@@ -59,20 +61,7 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * @param strArr the given String array value
    */
   public void update(final String[] strArrKey, final String[] strArr) {
-    super.update(computeKey(strArrKey), strArr);
-  }
-
-  /**
-   * @param strArrKey array of Strings
-   * @return int array of String hashCodes.
-   */
-  static int[] computeKey(final String[] strArrKey) {
-    final int len = strArrKey.length;
-    final int[] arr = new int[len];
-    for (int i = 0; i < len; i++) {
-      arr[i] = strArrKey[i].hashCode();
-    }
-    return arr;
+    super.update(stringArrHash(strArrKey), strArr);
   }
 
 }
