@@ -3,7 +3,7 @@
  * Apache License 2.0. See LICENSE file at the project root for terms.
  */
 
-package com.yahoo.sketches.fun;
+package com.yahoo.sketches.fdt;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
@@ -20,13 +20,13 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 /**
  * @author Lee Rhodes
  */
-public class FunSketchTest {
+public class FdtSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
   @Test
   public void checkFunSketch() {
     final int lgK = 14;
-    final FunSketch sketch = new FunSketch(lgK);
+    final FdtSketch sketch = new FdtSketch(lgK);
 
     final String[] nodesArr = {"abc", "def" };
     sketch.update(nodesArr);
@@ -44,8 +44,7 @@ public class FunSketchTest {
     final byte[] byteArr = sketch.toByteArray();
     //deserialize
     Memory mem = Memory.wrap(byteArr);
-    ArrayOfStringsSketch aosSketch = new ArrayOfStringsSketch(mem);
-    FunSketch sketch2 = new FunSketch(aosSketch);
+    FdtSketch sketch2 = new FdtSketch(new ArrayOfStringsSketch(mem));
 
     //check output
     final SketchIterator<ArrayOfStringsSummary> it2 = sketch2.iterator();
@@ -63,10 +62,10 @@ public class FunSketchTest {
 
   @Test
   public void checkAlternateLgK() {
-    int lgK = FunSketch.computeLgK(.01, .01);
+    int lgK = FdtSketch.computeLgK(.01, .01);
     assertEquals(lgK, 20);
     try {
-      lgK = FunSketch.computeLgK(.01, .001);
+      lgK = FdtSketch.computeLgK(.01, .001);
       fail();
     } catch (SketchesArgumentException e) {
       //println("" + e);
@@ -75,9 +74,37 @@ public class FunSketchTest {
 
   @Test
   public void checkFunSketchWithThreshold() {
-    FunSketch sk = new FunSketch(.02, .05); //thresh, RSE
+    FdtSketch sk = new FdtSketch(.02, .05); //thresh, RSE
     println("LgK: " + sk.getLgK());
   }
+
+  @Test
+  public void checkGetPrimaryKey() {
+    String[] arr = {"aaa", "bbb", "ccc"};
+    int[] priKeyIndices = {0,2};
+    String s = FdtSketch.getPrimaryKey(arr, priKeyIndices);
+    println(s);
+  }
+
+  @Test
+  public void simpleCheckPrepare() {
+    FdtSketch sk = new FdtSketch(8);
+    String[] arr1 = {"a", "1", "c"};
+    String[] arr2 = {"a", "2", "c"};
+    String[] arr3 = {"a", "3", "c"};
+    String[] arr4 = {"a", "4", "c"};
+    String[] arr5 = {"a", "1", "d"};
+    String[] arr6 = {"a", "2", "d"};
+    int[] priKeyIndices = {0,2};
+    sk.update(arr1);
+    sk.update(arr2);
+    sk.update(arr3);
+    sk.update(arr4);
+    sk.update(arr5);
+    sk.update(arr6);
+    sk.prepare(priKeyIndices);
+  }
+
 
   @Test
   public void printlnTest() {
@@ -95,7 +122,7 @@ public class FunSketchTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s);  //disable here
+    System.out.print(s);  //disable here
   }
 
 }
