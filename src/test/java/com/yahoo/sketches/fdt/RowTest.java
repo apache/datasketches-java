@@ -14,8 +14,8 @@ public class RowTest {
   private static final String LS = System.getProperty("line.separator");
 
   @Test
-  public void checkToString() {
-    Row<String> ros = new Row<>("A", 10_000_000_000L, 1.2E10, 8E9);
+  public void checkToString() { //check visually
+    Row<String> ros = new Row<>("A", 1_000_000, 10_000_000_000L, 1.2E10, 8E9);
     println(Row.getRowHeader());
     println(ros.toString());
   }
@@ -36,7 +36,7 @@ public class RowTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s);  //disable here
+    //System.out.print(s);  //disable here
   }
 
 }

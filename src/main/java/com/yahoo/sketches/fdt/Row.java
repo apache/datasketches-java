@@ -7,34 +7,41 @@ package com.yahoo.sketches.fdt;
 
 /**
  * Row class that defines the return values from a Frequent Distinct Tuple query.
- * @param <T> type of item
+ * @param <T> type of priKey
  *
  * @author Lee Rhodes
  */
 public class Row<T> implements Comparable<Row<T>> {
-  private final T item;
-  private final long est;
+  private final int count;
+  private final double est;
   private final double ub;
   private final double lb;
-  private static final String FMT =  "%,17d%,20.2f%,20.2f %s";
-  private static final String HFMT = "%17s%20s%20s %s";
+  private final T priKey;
+  private static final String FMT =  "%,12d" + "%,20.2f" + "%,20.2f" + "%,20.2f" + " %s";
+  private static final String HFMT = "%12s"  + "%20s"    + "%20s"    + "%20s"    + " %s";
 
-  Row(final T item, final long estimate, final double ub, final double lb) {
-    this.item = item;
+  Row(final T priKey, final int count, final double estimate, final double ub, final double lb) {
+    this.count = count;
     this.est = estimate;
     this.ub = ub;
     this.lb = lb;
+    this.priKey = priKey;
   }
 
   /**
-   * @return item of type T
+   * @return priKey of type T
    */
-  public T getItem() { return item; }
+  public T getItem() { return priKey; }
+
+  /**
+   * @return the count
+   */
+  public int getCount() { return count; }
 
   /**
    * @return the estimate
    */
-  public long getEstimate() { return est; }
+  public double getEstimate() { return est; }
 
   /**
    * @return the upper bound
@@ -50,25 +57,25 @@ public class Row<T> implements Comparable<Row<T>> {
    * @return the descriptive row header
    */
   public static String getRowHeader() {
-    return String.format(HFMT,"Est", "UB", "LB", "Item");
+    return String.format(HFMT,"Count", "Est", "UB", "LB", "Item");
   }
 
   @Override
   public String toString() {
-    return String.format(FMT, est, ub, lb, item.toString());
+    return String.format(FMT, count, est, ub, lb, priKey.toString());
   }
 
   /**
-   * This compareTo is strictly limited to the Row.getEstimate() value and does not imply any
-   * ordering whatsoever to the other elements of the row: item and upper and lower bounds.
+   * This compareTo is strictly limited to the Row.getCount() value and does not imply any
+   * ordering whatsoever to the other elements of the row: priKey and upper and lower bounds.
    * Defined this way, this compareTo will be consistent with hashCode() and equals(Object).
    * @param that the other row to compare to.
-   * @return a negative integer, zero, or a positive integer as this.getEstimate() is less than,
-   * equal to, or greater than that.getEstimate().
+   * @return a negative integer, zero, or a positive integer as this.getCount() is less than,
+   * equal to, or greater than that.getCount().
    */
   @Override
   public int compareTo(final Row<T> that) {
-    return (this.est < that.est) ? -1 : (this.est > that.est) ? 1 : 0;
+    return (that.count - this.count);
   }
 
 } //End of class Row<T>

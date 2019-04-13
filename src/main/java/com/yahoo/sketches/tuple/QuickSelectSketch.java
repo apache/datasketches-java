@@ -8,6 +8,7 @@ package com.yahoo.sketches.tuple;
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.RESIZE_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.simpleIntLog2;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
@@ -188,6 +189,14 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    */
   public int getNominalEntries() {
     return nomEntries_;
+  }
+
+  /**
+   * Get log_base2 of Nominal Entries
+   * @return log_base2 of Nominal Entries
+   */
+  public int getLgK() {
+    return simpleIntLog2(nomEntries_);
   }
 
   /**

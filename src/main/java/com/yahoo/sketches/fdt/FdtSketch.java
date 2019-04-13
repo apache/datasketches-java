@@ -6,17 +6,13 @@
 package com.yahoo.sketches.fdt;
 
 import static com.yahoo.sketches.Util.MAX_LG_NOM_LONGS;
-import static com.yahoo.sketches.Util.simpleIntLog2;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.sketches.BinomialBoundsN;
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.tuple.SketchIterator;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSketch;
-import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 
 /**
  * A Frequent Distinct Tuples sketch.
@@ -52,9 +48,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
  *
  * @author Lee Rhodes
  */
-public class FdtSketch {
-  private final int lgK;
-  private final ArrayOfStringsSketch sketch;
+public class FdtSketch extends ArrayOfStringsSketch {
 
   /**
    * Create new instance of Frequent Distinct Tuples sketch with the given
@@ -62,21 +56,19 @@ public class FdtSketch {
    * @param lgK Log-base2 of required nominal entries.
    */
   public FdtSketch(final int lgK) {
-    this.lgK = lgK;
-    sketch = new ArrayOfStringsSketch(lgK);
+    super(lgK);
   }
 
   /**
    * Used by deserialization.
-   * @param sketch a ArrayOfStringsSketch
+   * @param mem the image of a FdtSketch
    */
-  FdtSketch(final ArrayOfStringsSketch sketch) {
-    this.sketch = sketch;
-    lgK = simpleIntLog2(sketch.getNominalEntries());
+  FdtSketch(final Memory mem) {
+    super(mem);
   }
 
   /**
-   * Create a new instance of Frequent Distinct Tuples sketch with the given
+   * Create a new instance of Frequent Distinct Tuples sketch with a size determined by the given
    * threshold and rse.
    * @param threshold : the fraction, between zero and 1.0, of the total stream length that defines
    * a "Frequent" (or heavy) item.
@@ -84,25 +76,34 @@ public class FdtSketch {
    * reported tuple (selected with a primary key) at the threshold.
    */
   public FdtSketch(final double threshold, final double rse) {
-    lgK = computeLgK(threshold, rse);
-    sketch = new ArrayOfStringsSketch(lgK);
+    super(computeLgK(threshold, rse));
   }
 
   /**
-   * Gets the Log_base2 of K for the sketch
-   * @return the Log_base2 of K for the sketch
+   * Update the sketch with the given string array tuple.
+   * @param tuple the given string array tuple.
    */
-  public int getLgK() {
-    return lgK;
+  public void update(final String[] tuple) {
+    super.update(tuple, tuple);
   }
 
   /**
-   * Gets the estimate of the distinct population of tuples represented by the entire sketch.
-   * @return the estimate of the distinct population represented by the entire sketch.
+   * Returns a List of Rows of the most frequent distinct population of subset tuples represented
+   * by the count of entries of that subset
+   * @param priKeyIndices these indices define the primary dimensions of the input tuples
+   * @param limit the maximum number of rows (subset groups) to return. If this value is &le; 0, all
+   * rows will be returned.
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @return a List of Rows of the most frequent distinct population of subset tuples represented
+   * by the count of entries of that subset
    */
-  public double getEstimate() {
-    return sketch.getEstimate();
+  public List<Row<String>> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
+    final PostProcessing proc = new PostProcessing(this);
+    return proc.getResult(priKeyIndices, limit, numStdDev);
   }
+
+  // Restricted
 
   /**
    * Gets the estimate of the distinct population of subset tuples represented by the count of
@@ -110,22 +111,9 @@ public class FdtSketch {
    * @param numSubsetEntries number of entries for a chosen subset of the sketch.
    * @return the estimate of the distinct population represented by the sketch subset.
    */
-  public double getEstimate(final int numSubsetEntries) {
-    if (!sketch.isEstimationMode()) { return numSubsetEntries; }
-    return numSubsetEntries / sketch.getTheta();
-  }
-
-  /**
-   * Gets the estimate of the lower bound of the distinct population of tuples represented by the
-   * entire sketch, given the number of standard deviations.
-   * given numStdDev.
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the estimate of the lower bound of the distinct population represented by the entire
-   * sketch given numStdDev.
-   */
-  public double getLowerBound(final int numStdDev) {
-    return sketch.getLowerBound(numStdDev);
+  double getEstimate(final int numSubsetEntries) {
+    if (!isEstimationMode()) { return numSubsetEntries; }
+    return numSubsetEntries / getTheta();
   }
 
   /**
@@ -137,21 +125,9 @@ public class FdtSketch {
    * @return the estimate of the lower bound of the distinct population represented by the sketch
    * subset given numStdDev and numSubsetEntries.
    */
-  public double getLowerBound(final int numStdDev, final int numSubsetEntries) {
-    if (!sketch.isEstimationMode()) { return numSubsetEntries; }
-    return BinomialBoundsN.getLowerBound(numSubsetEntries, sketch.getTheta(), numStdDev, sketch.isEmpty());
-  }
-
-  /**
-   * Gets the estimate of the upper bound of the distinct population represented by the entire sketch,
-   * given numStdDev.
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return the estimate of the upper bound of the distinct population represented by the entire
-   * sketch given numStdDev.
-   */
-  public double getUpperBound(final int numStdDev) {
-    return sketch.getUpperBound(numStdDev);
+  double getLowerBound(final int numStdDev, final int numSubsetEntries) {
+    if (!isEstimationMode()) { return numSubsetEntries; }
+    return BinomialBoundsN.getLowerBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
   }
 
   /**
@@ -163,80 +139,9 @@ public class FdtSketch {
    * @return the estimate of the upper bound of the distinct population represented by the sketch
    * subset given numStdDev and numSubsetEntries.
    */
-  public double getUpperBound(final int numStdDev, final int numSubsetEntries) {
-    if (!sketch.isEstimationMode()) { return numSubsetEntries; }
-    return BinomialBoundsN.getUpperBound(numSubsetEntries, sketch.getTheta(), numStdDev, sketch.isEmpty());
-  }
-
-  /**
-   * Returns the sketch iterator over the summaries retained by the sketch.
-   * @return the iterator over the summaries retained by the sketch.
-   */
-  public SketchIterator<ArrayOfStringsSummary> iterator() {
-    return sketch.iterator();
-  }
-
-  /**
-   * Update the sketch with the given string array tuple.
-   * @param tuple the given string array tuple.
-   */
-  public void update(final String[] tuple) {
-    sketch.update(tuple, tuple);
-  }
-
-  /**
-   * Returns a byte array representing the contents of this sketch.
-   * @return a byte array representing the contents of this sketch.
-   */
-  public byte[] toByteArray() {
-    return sketch.toByteArray();
-  }
-
-  //Post processing
-
-  /**
-   * blah
-   * @param priKeyIndices blah
-   */
-  @SuppressWarnings("unchecked")
-  public void prepare(final int[] priKeyIndices) {
-    final int entries = sketch.getRetainedEntries();
-    final int tableSize = (int) (entries / 0.75);
-    final Map<String, Integer> map = new HashMap<>(tableSize);
-    final SketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
-    while (it.next()) {
-      final String[] arr = it.getSummary().getValue();
-      final String priKey = getPrimaryKey(arr, priKeyIndices);
-      map.compute(priKey, (k, v) -> (v == null) ? 1 : v + 1);
-    }
-    final Object[] entryArr = map.entrySet().toArray();
-    //reverse order
-    Arrays.sort(entryArr, (a, b) ->
-      ((Map.Entry<String, Integer>)b).getValue() - ((Map.Entry<String, Integer>)a).getValue() );
-    final int len = entryArr.length;
-    System.out.println(Row.getRowHeader());
-    for (int i = 0; i < len; i++) {
-      final String s = ((Map.Entry<String, Integer>)entryArr[i]).getKey();
-      final int est =  ((Map.Entry<String, Integer>)entryArr[i]).getValue();
-      final double ub = getUpperBound(2, est);
-      final double lb = getLowerBound(2, est);
-      final Row<String> row = new Row<>(s, est, ub, lb);
-      System.out.println(row.toString());
-    }
-  }
-
-
-
-  static String getPrimaryKey(final String[] arr, final int[] priKeyIndices) {
-    assert priKeyIndices.length < arr.length;
-    final StringBuilder sb = new StringBuilder();
-    final int keys = priKeyIndices.length;
-    for (int i = 0; i < keys; i++) {
-      final int idx = priKeyIndices[i];
-      sb.append(arr[idx]);
-      if ((i + 1) < keys) { sb.append(","); }
-    }
-    return sb.toString();
+  double getUpperBound(final int numStdDev, final int numSubsetEntries) {
+    if (!isEstimationMode()) { return numSubsetEntries; }
+    return BinomialBoundsN.getUpperBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
   }
 
   /**

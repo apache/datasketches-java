@@ -30,7 +30,7 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * <a href="{@docRoot}/resources/dictionary.html#nomEntries">See Nominal Entries</a>
    */
   public ArrayOfStringsSketch(final int lgK) {
-    this(1 << lgK, ResizeFactor.X8, 1.0F);
+    this(lgK, ResizeFactor.X8, 1.0F);
   }
 
   /**

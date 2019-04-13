@@ -68,7 +68,7 @@ public final class HashOperations {
   // make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for
   //  index
   private static int getStride(final long hash, final int lgArrLongs) {
-    return (2 * (int) ((hash >>> (lgArrLongs)) & STRIDE_MASK)) + 1;
+    return (2 * (int) ((hash >>> lgArrLongs) & STRIDE_MASK) ) + 1;
   }
 
   //ON-HEAP

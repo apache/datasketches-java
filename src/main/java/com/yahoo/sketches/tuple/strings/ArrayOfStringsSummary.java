@@ -140,6 +140,10 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
   }
 
+  public static long stringHash(final String s) {
+    return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
+  }
+
   static String stringConcat(final String[] strArr) {
     final int len = strArr.length;
     final StringBuilder sb = new StringBuilder();
