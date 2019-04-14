@@ -55,6 +55,7 @@ public class ArrayOfStringsSummaryTest {
     ArrayOfStringsSummary.checkInBytes(mem, 200);
   }
 
+  @SuppressWarnings("unlikely-arg-type")
   @Test
   public void checkHashCode() {
     String[] strArr =  new String[] {"abcd", "abcd", "abcd"};
