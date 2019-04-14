@@ -5,6 +5,8 @@
 
 package com.yahoo.sketches.fdt;
 
+import static org.testng.Assert.assertEquals;
+
 import org.testng.annotations.Test;
 
 /**
@@ -15,9 +17,15 @@ public class RowTest {
 
   @Test
   public void checkToString() { //check visually
-    Row<String> ros = new Row<>("A", 1_000_000, 10_000_000_000L, 1.2E10, 8E9);
+    Row<String> row = new Row<>("A", 1_000_000, 1E10, 1.2E10, 8E9);
+    assertEquals(row.getPrimaryKey(), "A");
+    assertEquals(row.getCount(), 1_000_000);
+    assertEquals(row.getEstimate(), 1E10);
+    assertEquals(row.getUpperBound(), 1.2E10);
+    assertEquals(row.getLowerBound(), 8E9);
+
     println(Row.getRowHeader());
-    println(ros.toString());
+    println(row.toString());
   }
 
   @Test

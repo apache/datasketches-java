@@ -24,6 +24,7 @@ public class PostProcessing {
   private final int lgArrSize;
   private int groupCount;
   private int totCount;
+  private boolean mapValid;
 
   private final long[] hashArr;
   private final String[] priKeyArr;
@@ -41,19 +42,20 @@ public class PostProcessing {
     hashArr = new long[arrSize];
     priKeyArr = new String[arrSize];
     counterArr = new int[arrSize];
+    mapValid = false;
   }
 
   /**
-   * Returns the number of groups in the final sketch
-   * @return the number of groups in the final sketch
+   * Returns the number of groups in the final sketch.
+   * @return the number of groups in the final sketch.
    */
   public int getGroupCount() {
     return groupCount;
   }
 
   /**
-   * Returns the total count of occurrences for the retained items in the sketch
-   * @return the total count of occurrences for the retained items in the sketch
+   * Returns the total count of occurrences for the retained groups in the sketch.
+   * @return the total count of occurrences for the retained groups in the sketch.
    */
   public int getTotalCount() {
     return totCount;
@@ -71,12 +73,19 @@ public class PostProcessing {
    */
   public List<Row<String>> getResult(final int[] priKeyIndices, final int limit,
       final int numStdDev) {
-    populateMap(priKeyIndices);
+    if (!mapValid) { populateMap(priKeyIndices); }
     return populateList(numStdDev, limit);
   }
 
+  /**
+   * Scan each entry in the sketch. Count the number of duplicate occurrences of each
+   * primary key in a hash map. The number of primary keys in the map is the group count.
+   * @param priKeyIndices identifies the primary key indices
+   */
   void populateMap(final int[] priKeyIndices) {
     final SketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
+    totCount = 0;
+    groupCount = 0;
     while (it.next()) {
       final String[] arr = it.getSummary().getValue();
       final String priKey = getPrimaryKey(arr, priKeyIndices);
@@ -85,23 +94,23 @@ public class PostProcessing {
       if (index < 0) { //was empty, hash inserted
         final int idx = -(index + 1); //actual index
         counterArr[idx] = 1;
+        totCount++;
+        groupCount++;
         priKeyArr[idx] = priKey;
       } else { //found, duplicate
         counterArr[index]++; //increment
+        totCount++;
       }
     }
+    mapValid = true;
   }
 
   List<Row<String>> populateList(final int numStdDev, final int limit) {
-    groupCount = 0;
-    totCount = 0;
     final List<Row<String>> list = new ArrayList<>();
     for (int i = 0; i < arrSize; i++) {
       if (hashArr[i] != 0) {
-        groupCount++;
         final String priKey = priKeyArr[i];
         final int count = counterArr[i];
-        totCount += count;
         final double est = sketch.getEstimate(count);
         final double ub = sketch.getUpperBound(numStdDev, count);
         final double lb = sketch.getLowerBound(numStdDev, count);

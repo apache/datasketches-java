@@ -31,7 +31,7 @@ public class Row<T> implements Comparable<Row<T>> {
   /**
    * @return priKey of type T
    */
-  public T getItem() { return priKey; }
+  public T getPrimaryKey() { return priKey; }
 
   /**
    * @return the count

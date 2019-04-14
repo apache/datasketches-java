@@ -6,6 +6,7 @@
 package com.yahoo.sketches.fdt;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.util.List;
@@ -17,7 +18,6 @@ import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.tuple.SketchIterator;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 
-
 /**
  * @author Lee Rhodes
  */
@@ -25,7 +25,7 @@ public class FdtSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
   @Test
-  public void checkFunSketch() {
+  public void checkFdtSketch() {
     final int lgK = 14;
     final FdtSketch sketch = new FdtSketch(lgK);
 
@@ -76,7 +76,7 @@ public class FdtSketchTest {
   }
 
   @Test
-  public void checkFunSketchWithThreshold() {
+  public void checkFdtSketchWithThreshold() {
     FdtSketch sk = new FdtSketch(.02, .05); //thresh, RSE
     assertEquals(sk.getLgK(), 15);
     println("LgK: " + sk.getLgK());
@@ -94,28 +94,52 @@ public class FdtSketchTest {
   @Test
   public void simpleCheckPostProcessing() {
     FdtSketch sk = new FdtSketch(8);
+    int[] priKeyIndices = {0,2};
     String[] arr1 = {"a", "1", "c"};
     String[] arr2 = {"a", "2", "c"};
     String[] arr3 = {"a", "3", "c"};
     String[] arr4 = {"a", "4", "c"};
     String[] arr5 = {"a", "1", "d"};
     String[] arr6 = {"a", "2", "d"};
-    int[] priKeyIndices = {0,2};
     sk.update(arr1);
     sk.update(arr2);
     sk.update(arr3);
     sk.update(arr4);
     sk.update(arr5);
     sk.update(arr6);
+    //get results from PostProcessing directly
     PostProcessing post = new PostProcessing(sk);
     List<Row<String>> list = post.getResult(priKeyIndices, 0, 2);
     assertEquals(list.size(), 2);
+    assertEquals(post.getGroupCount(), 2);
+    assertEquals(post.getTotalCount(), 6);
     println(Row.getRowHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }
     list = post.getResult(priKeyIndices, 1, 2);
     assertEquals(list.size(), 1);
+
+    //get results from sketch directly
+    list = sk.getResult(priKeyIndices, 0, 2);
+    assertEquals(list.size(), 2);
+  }
+
+  @Test
+  public void checkEstimatingPostProcessing() {
+    FdtSketch sk = new FdtSketch(4);
+    int[] priKeyIndices = {0};
+    for (int i = 0; i < 32; i++) {
+      String[] arr = {"a", Integer.toHexString(i)};
+      sk.update(arr);
+    }
+    assertTrue(sk.isEstimationMode());
+    List<Row<String>> list = sk.getResult(priKeyIndices, 0, 2);
+    assertEquals(list.size(), 1);
+    println(Row.getRowHeader());
+    for (int i = 0; i < list.size(); i++) {
+      println(list.get(i).toString());
+    }
   }
 
 
@@ -135,7 +159,7 @@ public class FdtSketchTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s);  //disable here
+    System.out.print(s);  //disable here
   }
 
 }
