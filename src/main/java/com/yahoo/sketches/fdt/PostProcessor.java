@@ -63,13 +63,13 @@ public class PostProcessor {
   }
 
   /**
-   * Return the most frequent primary dimensions based on the distinct count of the combinations
+   * Return the most frequent Groups (primary dimensions) based on the distinct count of the combinations
    * of the non-primary dimensions.
    * @param priKeyIndices the indices of the primary dimensions
    * @param numStdDev the number of standard deviations for the error bounds, this value is an
    * integer and must be one of 1, 2, or 3.
    * @param limit the maximum number of rows to return. If &le; 0, all rows will be returned.
-   * @return the most frequent primary dimensions based on the distinct count of the combinations
+   * @return the most frequent Groups (primary dimensions) based on the distinct count of the combinations
    * of the non-primary dimensions.
    */
   public List<Group<String>> getGroupList(final int[] priKeyIndices, final int numStdDev,
