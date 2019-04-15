@@ -70,8 +70,8 @@ public class FdtSketch extends ArrayOfStringsSketch {
   /**
    * Create a new instance of Frequent Distinct Tuples sketch with a size determined by the given
    * threshold and rse.
-   * @param threshold : the fraction, between zero and 1.0, of the total stream length that defines
-   * a "Frequent" (or heavy) item.
+   * @param threshold : the fraction, between zero and 1.0, of the total distinct stream length
+   * that defines a "Frequent" (or heavy) item.
    * @param rse the maximum Relative Standard Error for the estimate of the distinct population of a
    * reported tuple (selected with a primary key) at the threshold.
    */
@@ -99,8 +99,16 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * by the count of entries of that subset
    */
   public List<Row<String>> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
-    final PostProcessing proc = new PostProcessing(this);
-    return proc.getResult(priKeyIndices, limit, numStdDev);
+    final PostProcessor proc = new PostProcessor(this);
+    return proc.getResult(priKeyIndices, numStdDev, limit);
+  }
+
+  /**
+   * Returns the PostProcessor that enables multiple queries against the sketch results.
+   * @return the PostProcessor
+   */
+  public PostProcessor getPostProcessor() {
+    return new PostProcessor(this);
   }
 
   // Restricted

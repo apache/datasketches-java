@@ -86,7 +86,7 @@ public class FdtSketchTest {
   public void checkGetPrimaryKey() {
     String[] arr = {"aaa", "bbb", "ccc"};
     int[] priKeyIndices = {0,2};
-    String s = PostProcessing.getPrimaryKey(arr, priKeyIndices);
+    String s = PostProcessor.getPrimaryKey(arr, priKeyIndices);
     assertEquals(s, "aaa,ccc");
     println(s);
   }
@@ -107,9 +107,9 @@ public class FdtSketchTest {
     sk.update(arr4);
     sk.update(arr5);
     sk.update(arr6);
-    //get results from PostProcessing directly
-    PostProcessing post = new PostProcessing(sk);
-    List<Row<String>> list = post.getResult(priKeyIndices, 0, 2);
+    //get results from PostProcessor directly
+    PostProcessor post = new PostProcessor(sk);
+    List<Row<String>> list = post.getResult(priKeyIndices, 2, 0);
     assertEquals(list.size(), 2);
     assertEquals(post.getGroupCount(), 2);
     assertEquals(post.getTotalCount(), 6);
@@ -117,7 +117,7 @@ public class FdtSketchTest {
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }
-    list = post.getResult(priKeyIndices, 1, 2);
+    list = post.getResult(priKeyIndices, 2, 1);
     assertEquals(list.size(), 1);
 
     //get results from sketch directly
@@ -159,7 +159,7 @@ public class FdtSketchTest {
    * @param s value to print
    */
   static void print(String s) {
-    System.out.print(s);  //disable here
+    //System.out.print(s);  //disable here
   }
 
 }

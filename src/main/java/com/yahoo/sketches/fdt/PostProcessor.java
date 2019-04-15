@@ -10,6 +10,7 @@ import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary.stringHash;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.yahoo.sketches.tuple.SketchIterator;
@@ -18,7 +19,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 /**
  * @author Lee Rhodes
  */
-public class PostProcessing {
+public class PostProcessor {
   private final FdtSketch sketch;
   private final int arrSize;
   private final int lgArrSize;
@@ -34,7 +35,7 @@ public class PostProcessing {
    * Construct with the given FdtSketch
    * @param sketch the given sketch to analyze.
    */
-  public PostProcessing(final FdtSketch sketch) {
+  public PostProcessor(final FdtSketch sketch) {
     this.sketch = sketch;
     final int numEntries = sketch.getRetainedEntries();
     arrSize = ceilingPowerOf2((int)(numEntries / 0.75));
@@ -65,14 +66,14 @@ public class PostProcessing {
    * Return the most frequent primary dimensions based on the distinct count of the combinations
    * of the non-primary dimensions.
    * @param priKeyIndices the indices of the primary dimensions
-   * @param limit the maximum number of rows to return. If &le; 0, all rows will be returned.
    * @param numStdDev the number of standard deviations for the error bounds, this value is an
    * integer and must be one of 1, 2, or 3.
+   * @param limit the maximum number of rows to return. If &le; 0, all rows will be returned.
    * @return the most frequent primary dimensions based on the distinct count of the combinations
    * of the non-primary dimensions.
    */
-  public List<Row<String>> getResult(final int[] priKeyIndices, final int limit,
-      final int numStdDev) {
+  public List<Row<String>> getResult(final int[] priKeyIndices, final int numStdDev,
+      final int limit) {
     if (!mapValid) { populateMap(priKeyIndices); }
     return populateList(numStdDev, limit);
   }
@@ -82,10 +83,14 @@ public class PostProcessing {
    * primary key in a hash map. The number of primary keys in the map is the group count.
    * @param priKeyIndices identifies the primary key indices
    */
-  void populateMap(final int[] priKeyIndices) {
+  private void populateMap(final int[] priKeyIndices) {
     final SketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
+    Arrays.fill(hashArr, 0L);
+    Arrays.fill(priKeyArr, null);
+    Arrays.fill(counterArr, 0);
     totCount = 0;
     groupCount = 0;
+
     while (it.next()) {
       final String[] arr = it.getSummary().getValue();
       final String priKey = getPrimaryKey(arr, priKeyIndices);
@@ -105,7 +110,7 @@ public class PostProcessing {
     mapValid = true;
   }
 
-  List<Row<String>> populateList(final int numStdDev, final int limit) {
+  private List<Row<String>> populateList(final int numStdDev, final int limit) {
     final List<Row<String>> list = new ArrayList<>();
     for (int i = 0; i < arrSize; i++) {
       if (hashArr[i] != 0) {
@@ -114,12 +119,15 @@ public class PostProcessing {
         final double est = sketch.getEstimate(count);
         final double ub = sketch.getUpperBound(numStdDev, count);
         final double lb = sketch.getLowerBound(numStdDev, count);
-        final Row<String> row = new Row<>(priKey, count, est, ub, lb);
+        final double thresh = (double) count / sketch.getRetainedEntries();
+        final double rse = sketch.getUpperBound(1, count) / est;
+        final Row<String> row = new Row<>(priKey, count, est, ub, lb, thresh, rse);
         list.add(row);
       }
     }
     list.sort(null);
     final int totLen = list.size();
+
     final List<Row<String>> returnList;
     if ((limit > 0) && (limit < totLen)) {
       returnList = list.subList(0, limit);
@@ -129,6 +137,7 @@ public class PostProcessing {
     return returnList;
   }
 
+  //also used by test
   static String getPrimaryKey(final String[] arr, final int[] priKeyIndices) {
     assert priKeyIndices.length < arr.length;
     final StringBuilder sb = new StringBuilder();

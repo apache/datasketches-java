@@ -16,15 +16,22 @@ public class Row<T> implements Comparable<Row<T>> {
   private final double est;
   private final double ub;
   private final double lb;
+  private final double thresh;
+  private final double rse;
   private final T priKey;
-  private static final String FMT =  "%,12d" + "%,20.2f" + "%,20.2f" + "%,20.2f" + " %s";
-  private static final String HFMT = "%12s"  + "%20s"    + "%20s"    + "%20s"    + " %s";
+  private static final String FMT =
+      "%,12d" + "%,20.2f" + "%,20.2f" + "%,20.2f" + "%10.6f" + "%10.6f" + " %s";
+  private static final String HFMT =
+      "%12s"  + "%20s"    + "%20s"    + "%20s"    + "%10s"   + "%10s"    + " %s";
 
-  Row(final T priKey, final int count, final double estimate, final double ub, final double lb) {
+  Row(final T priKey, final int count, final double estimate, final double ub, final double lb,
+      final double thresh, final double rse) {
     this.count = count;
     this.est = estimate;
     this.ub = ub;
     this.lb = lb;
+    this.thresh = thresh;
+    this.rse = rse;
     this.priKey = priKey;
   }
 
@@ -49,20 +56,30 @@ public class Row<T> implements Comparable<Row<T>> {
   public double getUpperBound() { return ub; }
 
   /**
-   * @return return the lower bound
+   * @return the lower bound
    */
   public double getLowerBound() { return lb; }
+
+  /**
+   * @return the threshold
+   */
+  public double getThreshold() { return thresh; }
+
+  /**
+   * @return the RSE
+   */
+  public double getRse() { return rse; }
 
   /**
    * @return the descriptive row header
    */
   public static String getRowHeader() {
-    return String.format(HFMT,"Count", "Est", "UB", "LB", "Item");
+    return String.format(HFMT,"Count", "Est", "UB", "LB", "Thresh", "RSE", "PriKey");
   }
 
   @Override
   public String toString() {
-    return String.format(FMT, count, est, ub, lb, priKey.toString());
+    return String.format(FMT, count, est, ub, lb, thresh, rse, priKey.toString());
   }
 
   /**
