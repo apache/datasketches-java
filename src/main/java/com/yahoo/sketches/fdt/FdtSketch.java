@@ -111,15 +111,13 @@ public class FdtSketch extends ArrayOfStringsSketch {
     return new PostProcessor(this);
   }
 
-  // Restricted
-
   /**
    * Gets the estimate of the distinct population of subset tuples represented by the count of
    * entries of that subset.
    * @param numSubsetEntries number of entries for a chosen subset of the sketch.
    * @return the estimate of the distinct population represented by the sketch subset.
    */
-  double getEstimate(final int numSubsetEntries) {
+  public double getEstimate(final int numSubsetEntries) {
     if (!isEstimationMode()) { return numSubsetEntries; }
     return numSubsetEntries / getTheta();
   }
@@ -133,7 +131,7 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * @return the estimate of the lower bound of the distinct population represented by the sketch
    * subset given numStdDev and numSubsetEntries.
    */
-  double getLowerBound(final int numStdDev, final int numSubsetEntries) {
+  public double getLowerBound(final int numStdDev, final int numSubsetEntries) {
     if (!isEstimationMode()) { return numSubsetEntries; }
     return BinomialBoundsN.getLowerBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
   }
@@ -147,10 +145,12 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * @return the estimate of the upper bound of the distinct population represented by the sketch
    * subset given numStdDev and numSubsetEntries.
    */
-  double getUpperBound(final int numStdDev, final int numSubsetEntries) {
+  public double getUpperBound(final int numStdDev, final int numSubsetEntries) {
     if (!isEstimationMode()) { return numSubsetEntries; }
     return BinomialBoundsN.getUpperBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
   }
+
+  // Restricted
 
   /**
    * Computes LgK given the threshold and RSE.
