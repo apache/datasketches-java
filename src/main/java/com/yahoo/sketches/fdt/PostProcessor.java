@@ -72,7 +72,7 @@ public class PostProcessor {
    * @return the most frequent primary dimensions based on the distinct count of the combinations
    * of the non-primary dimensions.
    */
-  public List<Row<String>> getResult(final int[] priKeyIndices, final int numStdDev,
+  public List<Group<String>> getGroupList(final int[] priKeyIndices, final int numStdDev,
       final int limit) {
     if (!mapValid) { populateMap(priKeyIndices); }
     return populateList(numStdDev, limit);
@@ -110,8 +110,8 @@ public class PostProcessor {
     mapValid = true;
   }
 
-  private List<Row<String>> populateList(final int numStdDev, final int limit) {
-    final List<Row<String>> list = new ArrayList<>();
+  private List<Group<String>> populateList(final int numStdDev, final int limit) {
+    final List<Group<String>> list = new ArrayList<>();
     for (int i = 0; i < arrSize; i++) {
       if (hashArr[i] != 0) {
         final String priKey = priKeyArr[i];
@@ -121,14 +121,14 @@ public class PostProcessor {
         final double lb = sketch.getLowerBound(numStdDev, count);
         final double thresh = (double) count / sketch.getRetainedEntries();
         final double rse = sketch.getUpperBound(1, count) / est;
-        final Row<String> row = new Row<>(priKey, count, est, ub, lb, thresh, rse);
+        final Group<String> row = new Group<>(priKey, count, est, ub, lb, thresh, rse);
         list.add(row);
       }
     }
     list.sort(null);
     final int totLen = list.size();
 
-    final List<Row<String>> returnList;
+    final List<Group<String>> returnList;
     if ((limit > 0) && (limit < totLen)) {
       returnList = list.subList(0, limit);
     } else {

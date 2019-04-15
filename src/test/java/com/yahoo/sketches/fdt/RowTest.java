@@ -17,7 +17,7 @@ public class RowTest {
 
   @Test
   public void checkToString() { //check visually
-    Row<String> row = new Row<>("AAAAAAAA,BBBBBBBBBB", 1_000_000, 1E10, 1.2E10, 8E9, 0.1, 0.01);
+    Group<String> row = new Group<>("AAAAAAAA,BBBBBBBBBB", 1_000_000, 1E10, 1.2E10, 8E9, 0.1, 0.01);
     assertEquals(row.getPrimaryKey(), "AAAAAAAA,BBBBBBBBBB");
     assertEquals(row.getCount(), 1_000_000);
     assertEquals(row.getEstimate(), 1E10);
@@ -26,7 +26,7 @@ public class RowTest {
     assertEquals(row.getThreshold(), 0.1);
     assertEquals(row.getRse(), 0.01);
 
-    println(Row.getRowHeader());
+    println(Group.getRowHeader());
     println(row.toString());
   }
 

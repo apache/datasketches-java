@@ -6,12 +6,12 @@
 package com.yahoo.sketches.fdt;
 
 /**
- * Row class that defines the return values from a Frequent Distinct Tuple query.
+ * Defines a Group from a Frequent Distinct Tuple query.
  * @param <T> type of priKey
  *
  * @author Lee Rhodes
  */
-public class Row<T> implements Comparable<Row<T>> {
+public class Group<T> implements Comparable<Group<T>> {
   private final int count;
   private final double est;
   private final double ub;
@@ -24,7 +24,7 @@ public class Row<T> implements Comparable<Row<T>> {
   private static final String HFMT =
       "%12s"  + "%20s"    + "%20s"    + "%20s"    + "%10s"   + "%10s"    + " %s";
 
-  Row(final T priKey, final int count, final double estimate, final double ub, final double lb,
+  Group(final T priKey, final int count, final double estimate, final double ub, final double lb,
       final double thresh, final double rse) {
     this.count = count;
     this.est = estimate;
@@ -83,7 +83,7 @@ public class Row<T> implements Comparable<Row<T>> {
   }
 
   /**
-   * This compareTo is strictly limited to the Row.getCount() value and does not imply any
+   * This compareTo is strictly limited to the Group.getCount() value and does not imply any
    * ordering whatsoever to the other elements of the row: priKey and upper and lower bounds.
    * Defined this way, this compareTo will be consistent with hashCode() and equals(Object).
    * @param that the other row to compare to.
@@ -91,9 +91,9 @@ public class Row<T> implements Comparable<Row<T>> {
    * equal to, or greater than that.getCount().
    */
   @Override
-  public int compareTo(final Row<T> that) {
+  public int compareTo(final Group<T> that) {
     return (that.count - this.count);
   }
 
-} //End of class Row<T>
+} //End of class Group<T>
 

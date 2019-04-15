@@ -98,9 +98,9 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * @return a List of Rows of the most frequent distinct population of subset tuples represented
    * by the count of entries of that subset
    */
-  public List<Row<String>> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
+  public List<Group<String>> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
     final PostProcessor proc = new PostProcessor(this);
-    return proc.getResult(priKeyIndices, numStdDev, limit);
+    return proc.getGroupList(priKeyIndices, numStdDev, limit);
   }
 
   /**

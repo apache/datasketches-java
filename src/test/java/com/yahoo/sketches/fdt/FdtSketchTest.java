@@ -109,15 +109,15 @@ public class FdtSketchTest {
     sk.update(arr6);
     //get results from PostProcessor directly
     PostProcessor post = new PostProcessor(sk);
-    List<Row<String>> list = post.getResult(priKeyIndices, 2, 0);
+    List<Group<String>> list = post.getGroupList(priKeyIndices, 2, 0);
     assertEquals(list.size(), 2);
     assertEquals(post.getGroupCount(), 2);
     assertEquals(post.getTotalCount(), 6);
-    println(Row.getRowHeader());
+    println(Group.getRowHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }
-    list = post.getResult(priKeyIndices, 2, 1);
+    list = post.getGroupList(priKeyIndices, 2, 1);
     assertEquals(list.size(), 1);
 
     //get results from sketch directly
@@ -134,9 +134,9 @@ public class FdtSketchTest {
       sk.update(arr);
     }
     assertTrue(sk.isEstimationMode());
-    List<Row<String>> list = sk.getResult(priKeyIndices, 0, 2);
+    List<Group<String>> list = sk.getResult(priKeyIndices, 0, 2);
     assertEquals(list.size(), 1);
-    println(Row.getRowHeader());
+    println(Group.getRowHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }
