@@ -6,7 +6,8 @@
 package com.yahoo.sketches.fdt;
 
 /**
- * Defines a Group from a Frequent Distinct Tuple query.
+ * Defines a Group from a Frequent Distinct Tuple query. This class is called internally during
+ * post processing and is not inteded to be called by the user.
  * Note: this class has a natural ordering that is inconsistent with equals.
  * @author Lee Rhodes
  */

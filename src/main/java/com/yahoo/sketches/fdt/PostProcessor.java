@@ -35,8 +35,8 @@ public class PostProcessor {
   private final int[] counterArr;
 
   /**
-   * Construct with the given FdtSketch
-   * @param sketch the given sketch to analyze.
+   * Construct with a populated FdtSketch
+   * @param sketch the given sketch to query.
    * @param group the Group
    */
   public PostProcessor(final FdtSketch sketch, final Group group) {
@@ -59,14 +59,13 @@ public class PostProcessor {
   }
 
   /**
-   * Return the most frequent Groups (primary dimensions) based on the distinct count of the combinations
-   * of the non-primary dimensions.
+   * Return the most frequent Groups associated with Primary Keys based on the size of the groups.
    * @param priKeyIndices the indices of the primary dimensions
    * @param numStdDev the number of standard deviations for the error bounds, this value is an
    * integer and must be one of 1, 2, or 3.
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @param limit the maximum number of rows to return. If &le; 0, all rows will be returned.
-   * @return the most frequent Groups (primary dimensions) based on the distinct count of the combinations
-   * of the non-primary dimensions.
+   * @return the most frequent Groups associated with Primary Keys based on the size of the groups.
    */
   public List<Group> getGroupList(final int[] priKeyIndices, final int numStdDev,
       final int limit) {
@@ -77,7 +76,7 @@ public class PostProcessor {
 
   /**
    * Scan each entry in the sketch. Count the number of duplicate occurrences of each
-   * primary key in a hash map. The number of primary keys in the map is the group count.
+   * primary key in a hash map.
    * @param priKeyIndices identifies the primary key indices
    */
   private void populateMap(final int[] priKeyIndices) {
@@ -105,6 +104,12 @@ public class PostProcessor {
     mapValid = true;
   }
 
+  /**
+   * Create the list of groups along with the error statistics
+   * @param numStdDev number of standard deviations
+   * @param limit the maximum size of the list to return
+   * @return the list of groups along with the error statistics
+   */
   private List<Group> populateList(final int numStdDev, final int limit) {
     final List<Group> list = new ArrayList<>();
     for (int i = 0; i < mapArrSize; i++) {
@@ -133,14 +138,21 @@ public class PostProcessor {
     return returnList;
   }
 
+  /**
+   * Extract simple string Primary Key defined by the <i>priKeyIndices</i> from the given tuple.
+   * @param tuple the given tuple containing the Primary Key
+   * @param priKeyIndices the indices indicating the ordering and selection of dimensions defining
+   * the Primary Key
+   * @return a simple string Primary Key defined by the <i>priKeyIndices</i> from the given tuple.
+   */
   //also used by test
-  private static String getPrimaryKey(final String[] arr, final int[] priKeyIndices) {
-    assert priKeyIndices.length < arr.length;
+  private static String getPrimaryKey(final String[] tuple, final int[] priKeyIndices) {
+    assert priKeyIndices.length < tuple.length;
     final StringBuilder sb = new StringBuilder();
     final int keys = priKeyIndices.length;
     for (int i = 0; i < keys; i++) {
       final int idx = priKeyIndices[i];
-      sb.append(arr[idx]);
+      sb.append(tuple[idx]);
       if ((i + 1) < keys) { sb.append(","); }
     }
     return sb.toString();

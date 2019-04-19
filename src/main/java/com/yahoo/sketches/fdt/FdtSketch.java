@@ -18,25 +18,32 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSketch;
  * A Frequent Distinct Tuples sketch.
  *
  * <p>Given a multiset of tuples with dimensions <i>{d1,d2, d3, ..., dN}</i>, and a primary subset of
- * dimensions <i>M < N</i>, the task is to identify the combinations of <i>M</i> subset dimensions
+ * dimensions <i>M &lt; N</i>, the task is to identify the combinations of <i>M</i> subset dimensions
  * that have the most frequent number of distinct combinations of the <i>N-M</i> non-primary
  * dimensions.
  *
- * <p>For example, assume <i>N=3, M=2</i>, where the primary dimensions are <i>(d1, d2)</i>.
- * After populating the sketch with a stream of tuples, we wish to identify the primary dimension
- * combinations of <i>(d1, d2)</i> that have the most frequent number of distinct occurrences of
- * <i>d3</i>.
+ * <p>We define a specific combination of the <i>M</i> primary dimensions as a <i>Primary Key</i>
+ * and all combinations of the <i>M</i> primary dimensions as the set of <i>Primary Keys</i>.
  *
- * <p>Alternatively, if we choose the primary dimension as <i>d1</i>, then we can identify the
- * <i>d1</i>s that have the most frequent distinct combinations of <i>(d2 and d3)</i>. The choice of
- * which dimensions to choose as the primary dimensions is performed in a post-processing phase
- * after the sketch has been populated.
+ * <p>We define the set of all combinations of <i>N-M</i> non-primary dimensions associated with a
+ * single primary key as a <i>Group</i>.
+ *
+ * <p>For example, assume <i>N=3, M=2</i>, where the set of Primary Keys are defined by
+ * <i>{d1, d2}</i>. After populating the sketch with a stream of tuples all of size <i>N</i>,
+ * we wish to identify the Primary Keys that have the most frequent number of distinct occurrences
+ * of <i>{d3}</i>. Equivalently, we want to identify the Primary Keys with the largest Groups.
+ *
+ * <p>Alternatively, if we choose the Primary Key as <i>{d1}</i>, then we can identify the
+ * <i>{d1}</i>s that have the largest groups of <i>{d2, d3}</i>. The choice of
+ * which dimensions to choose for the Primary Keys is performed in a post-processing phase
+ * after the sketch has been populated. Thus, multiple queries can be performed against the
+ * populated sketch with different selections of Primary Keys.
  *
  * <p>As a simple concrete example, let's assume <i>N = 2</i> and let <i>d1 := IP address</i>, and
  * <i>d2 := User ID</i>.
- * Let's choose <i>d1</i> as the primary dimension, then the sketch allows the identification of the
+ * Let's choose <i>{d1}</i> as the Primary Keys, then the sketch allows the identification of the
  * <i>IP addresses</i> that have the largest populations of distinct <i>User IDs</i>. Conversely,
- * if we choose <i>d2</i> as the primary dimension, the sketch allows the identification of the
+ * if we choose <i>{d2}</i> as the Primary Keys, the sketch allows the identification of the
  * <i>User IDs</i> with the largest populations of distinct <i>IP addresses</i>.
  *
  * <p>An important caveat is that if the distribution is too flat, there may not be any
@@ -74,6 +81,8 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * that defines a "Frequent" (or heavy) item.
    * @param rse the maximum Relative Standard Error for the estimate of the distinct population of a
    * reported tuple (selected with a primary key) at the threshold.
+   * @throws SketchArguementException if the choices of threshold and rse would require a sketch
+   * larger than 2^26.
    */
   public FdtSketch(final double threshold, final double rse) {
     super(computeLgK(threshold, rse));
@@ -88,15 +97,16 @@ public class FdtSketch extends ArrayOfStringsSketch {
   }
 
   /**
-   * Returns a List of Rows of the most frequent distinct population of subset tuples represented
-   * by the count of entries of that subset
-   * @param priKeyIndices these indices define the primary dimensions of the input tuples
-   * @param limit the maximum number of rows (subset groups) to return. If this value is &le; 0, all
-   * rows will be returned.
-   * @param numStdDev
+   * Returns an ordered List of Groups of the most frequent distinct population of subset tuples
+   * represented by the count of entries of each group.
+   * @param priKeyIndices these indices define the dimensions used for the Primary Keys.
+   * @param limit the maximum number of groups to return. If this value is &le; 0, all
+   * groups will be returned.
+   * @param numStdDev the number of standard deviations for the error bounds, this value is an
+   * integer and must be one of 1, 2, or 3.
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @return a List of Rows of the most frequent distinct population of subset tuples represented
-   * by the count of entries of that subset
+   * @return an ordered List of Groups of the most frequent distinct population of subset tuples
+   * represented by the count of entries of each group.
    */
   public List<Group> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
     final PostProcessor proc = new PostProcessor(this, new Group());
@@ -105,7 +115,7 @@ public class FdtSketch extends ArrayOfStringsSketch {
 
   /**
    * Returns the PostProcessor that enables multiple queries against the sketch results.
-   * @param group the Group to use
+   * @param group the Group class to use during post processing.
    * @return the PostProcessor
    */
   public PostProcessor getPostProcessor(final Group group) {
@@ -113,10 +123,11 @@ public class FdtSketch extends ArrayOfStringsSketch {
   }
 
   /**
-   * Gets the estimate of the distinct population of subset tuples represented by the count of
-   * entries of that subset.
+   * Gets the estimate of the true distinct population of subset tuples represented by the count
+   * of entries in a group. This is primarily used internally.
    * @param numSubsetEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the distinct population represented by the sketch subset.
+   * @return the estimate of the true distinct population of subset tuples represented by the count
+   * of entries in a group.
    */
   public double getEstimate(final int numSubsetEntries) {
     if (!isEstimationMode()) { return numSubsetEntries; }
@@ -124,13 +135,13 @@ public class FdtSketch extends ArrayOfStringsSketch {
   }
 
   /**
-   * Gets the estimate of the lower bound of the distinct population represented by a sketch subset,
-   * given numStdDev and numSubsetEntries.
+   * Gets the estimate of the lower bound of the true distinct population represented by the count
+   * of entries in a group.
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @param numSubsetEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the lower bound of the distinct population represented by the sketch
-   * subset given numStdDev and numSubsetEntries.
+   * @return the estimate of the lower bound of the true distinct population represented by the count
+   * of entries in a group.
    */
   public double getLowerBound(final int numStdDev, final int numSubsetEntries) {
     if (!isEstimationMode()) { return numSubsetEntries; }
@@ -138,13 +149,13 @@ public class FdtSketch extends ArrayOfStringsSketch {
   }
 
   /**
-   * Gets the estimate of the upper bound of the distinct population represented by a sketch subset,
-   * given numStdDev and numSubsetEntries.
+   * Gets the estimate of the upper bound of the true distinct population represented by the count
+   * of entries in a group.
    * @param numStdDev
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
    * @param numSubsetEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the upper bound of the distinct population represented by the sketch
-   * subset given numStdDev and numSubsetEntries.
+   * @return the estimate of the upper bound of the true distinct population represented by the count
+   * of entries in a group.
    */
   public double getUpperBound(final int numStdDev, final int numSubsetEntries) {
     if (!isEstimationMode()) { return numSubsetEntries; }
@@ -165,7 +176,7 @@ public class FdtSketch extends ArrayOfStringsSketch {
     final double v = Math.ceil(1.0 / (threshold * rse * rse));
     final int lgK = (int) Math.ceil(Math.log(v) / Math.log(2));
     if (lgK > MAX_LG_NOM_LONGS) {
-      throw new SketchesArgumentException("Requested Sketch (LgK = " + lgK + ") is too large, "
+      throw new SketchesArgumentException("Requested Sketch (LgK = " + lgK + " &gt; 2^26), "
           + "either increase the threshold, the rse or both.");
     }
     return lgK;
