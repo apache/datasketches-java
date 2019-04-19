@@ -83,15 +83,6 @@ public class FdtSketchTest {
   }
 
   @Test
-  public void checkGetPrimaryKey() {
-    String[] arr = {"aaa", "bbb", "ccc"};
-    int[] priKeyIndices = {0,2};
-    String s = PostProcessor.getPrimaryKey(arr, priKeyIndices);
-    assertEquals(s, "aaa,ccc");
-    println(s);
-  }
-
-  @Test
   public void simpleCheckPostProcessing() {
     FdtSketch sk = new FdtSketch(8);
     int[] priKeyIndices = {0,2};
@@ -108,12 +99,13 @@ public class FdtSketchTest {
     sk.update(arr5);
     sk.update(arr6);
     //get results from PostProcessor directly
-    PostProcessor post = new PostProcessor(sk);
-    List<Group<String>> list = post.getGroupList(priKeyIndices, 2, 0);
+    Group gp = new Group(); //uninitialized
+    PostProcessor post = new PostProcessor(sk, gp);
+    post = sk.getPostProcessor(gp);
+    List<Group> list = post.getGroupList(priKeyIndices, 2, 0);
     assertEquals(list.size(), 2);
     assertEquals(post.getGroupCount(), 2);
-    assertEquals(post.getTotalCount(), 6);
-    println(Group.getRowHeader());
+    println(gp.getRowHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }
@@ -134,9 +126,9 @@ public class FdtSketchTest {
       sk.update(arr);
     }
     assertTrue(sk.isEstimationMode());
-    List<Group<String>> list = sk.getResult(priKeyIndices, 0, 2);
+    List<Group> list = sk.getResult(priKeyIndices, 0, 2);
     assertEquals(list.size(), 1);
-    println(Group.getRowHeader());
+    println(new Group().getRowHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }

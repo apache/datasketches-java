@@ -7,38 +7,55 @@ package com.yahoo.sketches.fdt;
 
 /**
  * Defines a Group from a Frequent Distinct Tuple query.
- * @param <T> type of priKey
- *
+ * Note: this class has a natural ordering that is inconsistent with equals.
  * @author Lee Rhodes
  */
-public class Group<T> implements Comparable<Group<T>> {
-  private final int count;
-  private final double est;
-  private final double ub;
-  private final double lb;
-  private final double thresh;
-  private final double rse;
-  private final T priKey;
-  private static final String FMT =
-      "%,12d" + "%,20.2f" + "%,20.2f" + "%,20.2f" + "%10.6f" + "%10.6f" + " %s";
-  private static final String HFMT =
-      "%12s"  + "%20s"    + "%20s"    + "%20s"    + "%10s"   + "%10s"    + " %s";
+public class Group implements Comparable<Group> {
+  private int count = 0;
+  private double est = 0;
+  private double ub = 0;
+  private double lb = 0;
+  private double thresh = 0;
+  private double rse = 0;
+  private String priKey = null;
+  private final static String fmt =
+      "%,12d" + "%,15.2f" + "%,15.2f" + "%,15.2f" + "%12.6f" + "%12.6f" + " %15s";
+  private final static String hfmt =
+      "%12s"  + "%15s"    + "%15s"    + "%15s"    + "%12s"   + "%12s"   + " %15s";
 
-  Group(final T priKey, final int count, final double estimate, final double ub, final double lb,
-      final double thresh, final double rse) {
+  public Group() { }
+
+  public Group copy() {
+    return new Group();
+  }
+
+  /**
+   * Specifies the parameters to be listed as columns
+   * @param priKey the primary key of the FDT sketch
+   * @param count the number of retained rows associated with this group
+   * @param estimate the estimate of the original population associated with this group
+   * @param ub the upper bound of the estimate
+   * @param lb the lower bound of the extimate
+   * @param thresh the fraction of all retained rows of the sketch associated with this group
+   * @param rse the estimated Relative Standard Error for this group.
+   * @return return this
+   */
+  public Group init(final String priKey, final int count, final double estimate, final double ub,
+      final double lb, final double thresh, final double rse) {
     this.count = count;
-    this.est = estimate;
+    est = estimate;
     this.ub = ub;
     this.lb = lb;
     this.thresh = thresh;
     this.rse = rse;
     this.priKey = priKey;
+    return this;
   }
 
   /**
    * @return priKey of type T
    */
-  public T getPrimaryKey() { return priKey; }
+  public String getPrimaryKey() { return priKey; }
 
   /**
    * @return the count
@@ -73,26 +90,23 @@ public class Group<T> implements Comparable<Group<T>> {
   /**
    * @return the descriptive row header
    */
-  public static String getRowHeader() {
-    return String.format(HFMT,"Count", "Est", "UB", "LB", "Thresh", "RSE", "PriKey");
+  public String getRowHeader() {
+    return String.format(hfmt,"Count", "Est", "UB", "LB", "Thresh", "RSE", "PriKey");
   }
 
   @Override
   public String toString() {
-    return String.format(FMT, count, est, ub, lb, thresh, rse, priKey.toString());
+    return String.format(fmt, count, est, ub, lb, thresh, rse, priKey);
   }
 
   /**
-   * This compareTo is strictly limited to the Group.getCount() value and does not imply any
-   * ordering whatsoever to the other elements of the row: priKey and upper and lower bounds.
-   * Defined this way, this compareTo will be consistent with hashCode() and equals(Object).
-   * @param that the other row to compare to.
-   * @return a negative integer, zero, or a positive integer as this.getCount() is less than,
-   * equal to, or greater than that.getCount().
+   * Note: this class has a natural ordering that is inconsistent with equals.
+   * Ignore FindBugs warning on this issue.
+   * @param that the Group to compare to
    */
   @Override
-  public int compareTo(final Group<T> that) {
-    return (that.count - this.count);
+  public int compareTo(final Group that) {
+    return that.count - count; //decreasing
   }
 
 } //End of class Group<T>

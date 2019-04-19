@@ -460,8 +460,8 @@ public abstract class Sketch {
       sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
       if (updateSketch) {
         sb.append("   Resize Factor           : ").append(rf).append(LS);
+        sb.append("   Array Size Entries      : ").append(arrLongs).append(LS);
       }
-      sb.append("   Array Size Entries      : ").append(arrLongs).append(LS);
       sb.append("   Retained Entries        : ").append(curCount).append(LS);
       sb.append("   Seed Hash               : ").append(Integer.toHexString(seedHash))
         .append(" | ").append(seedHash).append(LS);

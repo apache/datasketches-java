@@ -98,17 +98,18 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * @return a List of Rows of the most frequent distinct population of subset tuples represented
    * by the count of entries of that subset
    */
-  public List<Group<String>> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
-    final PostProcessor proc = new PostProcessor(this);
+  public List<Group> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
+    final PostProcessor proc = new PostProcessor(this, new Group());
     return proc.getGroupList(priKeyIndices, numStdDev, limit);
   }
 
   /**
    * Returns the PostProcessor that enables multiple queries against the sketch results.
+   * @param group the Group to use
    * @return the PostProcessor
    */
-  public PostProcessor getPostProcessor() {
-    return new PostProcessor(this);
+  public PostProcessor getPostProcessor(final Group group) {
+    return new PostProcessor(this, group);
   }
 
   /**

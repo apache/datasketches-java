@@ -17,16 +17,19 @@ import com.yahoo.sketches.tuple.SketchIterator;
 import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 
 /**
+ * This processes the contents of a FDT sketch to extract the
+ * primary keys with the most frequent unique combinations of the non-primary dimensions.
+ *
  * @author Lee Rhodes
  */
 public class PostProcessor {
   private final FdtSketch sketch;
-  private final int arrSize;
-  private final int lgArrSize;
   private int groupCount;
-  private int totCount;
-  private boolean mapValid;
+  private Group group; //uninitialized
 
+  //simple hash-map
+  private boolean mapValid;
+  private final int mapArrSize;
   private final long[] hashArr;
   private final String[] priKeyArr;
   private final int[] counterArr;
@@ -34,16 +37,17 @@ public class PostProcessor {
   /**
    * Construct with the given FdtSketch
    * @param sketch the given sketch to analyze.
+   * @param group the Group
    */
-  public PostProcessor(final FdtSketch sketch) {
+  public PostProcessor(final FdtSketch sketch, final Group group) {
     this.sketch = sketch;
     final int numEntries = sketch.getRetainedEntries();
-    arrSize = ceilingPowerOf2((int)(numEntries / 0.75));
-    lgArrSize = Integer.numberOfTrailingZeros(arrSize);
-    hashArr = new long[arrSize];
-    priKeyArr = new String[arrSize];
-    counterArr = new int[arrSize];
+    mapArrSize = ceilingPowerOf2((int)(numEntries / 0.75));
+    hashArr = new long[mapArrSize];
+    priKeyArr = new String[mapArrSize];
+    counterArr = new int[mapArrSize];
     mapValid = false;
+    this.group = group;
   }
 
   /**
@@ -52,14 +56,6 @@ public class PostProcessor {
    */
   public int getGroupCount() {
     return groupCount;
-  }
-
-  /**
-   * Returns the total count of occurrences for the retained groups in the sketch.
-   * @return the total count of occurrences for the retained groups in the sketch.
-   */
-  public int getTotalCount() {
-    return totCount;
   }
 
   /**
@@ -72,8 +68,9 @@ public class PostProcessor {
    * @return the most frequent Groups (primary dimensions) based on the distinct count of the combinations
    * of the non-primary dimensions.
    */
-  public List<Group<String>> getGroupList(final int[] priKeyIndices, final int numStdDev,
+  public List<Group> getGroupList(final int[] priKeyIndices, final int numStdDev,
       final int limit) {
+    //allows subsequent queries with different priKeyIndices without rebuilding the map
     if (!mapValid) { populateMap(priKeyIndices); }
     return populateList(numStdDev, limit);
   }
@@ -88,31 +85,29 @@ public class PostProcessor {
     Arrays.fill(hashArr, 0L);
     Arrays.fill(priKeyArr, null);
     Arrays.fill(counterArr, 0);
-    totCount = 0;
     groupCount = 0;
+    final int lgMapArrSize = Integer.numberOfTrailingZeros(mapArrSize);
 
     while (it.next()) {
       final String[] arr = it.getSummary().getValue();
       final String priKey = getPrimaryKey(arr, priKeyIndices);
       final long hash = stringHash(priKey);
-      final int index = hashSearchOrInsert(hashArr, lgArrSize, hash);
+      final int index = hashSearchOrInsert(hashArr, lgMapArrSize, hash);
       if (index < 0) { //was empty, hash inserted
         final int idx = -(index + 1); //actual index
         counterArr[idx] = 1;
-        totCount++;
         groupCount++;
         priKeyArr[idx] = priKey;
       } else { //found, duplicate
         counterArr[index]++; //increment
-        totCount++;
       }
     }
     mapValid = true;
   }
 
-  private List<Group<String>> populateList(final int numStdDev, final int limit) {
-    final List<Group<String>> list = new ArrayList<>();
-    for (int i = 0; i < arrSize; i++) {
+  private List<Group> populateList(final int numStdDev, final int limit) {
+    final List<Group> list = new ArrayList<>();
+    for (int i = 0; i < mapArrSize; i++) {
       if (hashArr[i] != 0) {
         final String priKey = priKeyArr[i];
         final int count = counterArr[i];
@@ -120,15 +115,16 @@ public class PostProcessor {
         final double ub = sketch.getUpperBound(numStdDev, count);
         final double lb = sketch.getLowerBound(numStdDev, count);
         final double thresh = (double) count / sketch.getRetainedEntries();
-        final double rse = sketch.getUpperBound(1, count) / est;
-        final Group<String> row = new Group<>(priKey, count, est, ub, lb, thresh, rse);
-        list.add(row);
+        final double rse = (sketch.getUpperBound(1, count) / est) - 1.0;
+        final Group gp = group.copy();
+        gp.init(priKey, count, est, ub, lb, thresh, rse);
+        list.add(gp);
       }
     }
-    list.sort(null);
+    list.sort(null); //Comparable implemented in Group
     final int totLen = list.size();
 
-    final List<Group<String>> returnList;
+    final List<Group> returnList;
     if ((limit > 0) && (limit < totLen)) {
       returnList = list.subList(0, limit);
     } else {
@@ -138,7 +134,7 @@ public class PostProcessor {
   }
 
   //also used by test
-  static String getPrimaryKey(final String[] arr, final int[] priKeyIndices) {
+  private static String getPrimaryKey(final String[] arr, final int[] priKeyIndices) {
     assert priKeyIndices.length < arr.length;
     final StringBuilder sb = new StringBuilder();
     final int keys = priKeyIndices.length;
