@@ -81,8 +81,6 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * that defines a "Frequent" (or heavy) item.
    * @param rse the maximum Relative Standard Error for the estimate of the distinct population of a
    * reported tuple (selected with a primary key) at the threshold.
-   * @throws SketchArguementException if the choices of threshold and rse would require a sketch
-   * larger than 2^26.
    */
   public FdtSketch(final double threshold, final double rse) {
     super(computeLgK(threshold, rse));

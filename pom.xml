@@ -60,6 +60,7 @@
         <!-- Dependencies -->
         <memory.version>0.12.2</memory.version>
         <testng.version>6.14.3</testng.version>
+        <spotbugs.version>4.0.0-beta1</spotbugs.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
 
         <!-- Maven Plugins -->
@@ -90,6 +91,9 @@
         
         <!-- Sonatype.org Maven Plugins -->
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+        
+        <!-- Other Plugins -->
+        <spotbugs-maven-plugin.version>3.1.11</spotbugs-maven-plugin.version>
     </properties>
 
     <prerequisites>
@@ -133,6 +137,12 @@
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs</artifactId>
+          <version>${spotbugs.version}</version>
+          <scope>test</scope>
         </dependency>
 
         <!-- logging -->
@@ -376,6 +386,12 @@
                     <groupId>org.sonatype.plugins</groupId>
                     <artifactId>nexus-staging-maven-plugin</artifactId>
                     <version>${nexus-staging-maven-plugin.version}</version>
+                </plugin>
+
+                <plugin>
+                    <groupId>com.github.spotbugs</groupId>
+                    <artifactId>spotbugs-maven-plugin></artifactId>
+                    <version>${spotbugs-maven-plugin.version}</version>
                 </plugin>
 
             </plugins>
