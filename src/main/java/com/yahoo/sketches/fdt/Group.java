@@ -5,6 +5,9 @@
 
 package com.yahoo.sketches.fdt;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+
 /**
  * Defines a Group from a Frequent Distinct Tuple query. This class is called internally during
  * post processing and is not inteded to be called by the user.
@@ -106,6 +109,8 @@ public class Group implements Comparable<Group> {
    * @param that the Group to compare to
    */
   @Override
+  @SuppressFBWarnings(value = "EQ_COMPARETO_USE_OBJECT_EQUALS",
+    justification = "OK for this use-case")
   public int compareTo(final Group that) {
     return that.count - count; //decreasing
   }

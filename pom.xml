@@ -261,7 +261,12 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <!--
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+            </plugin>
+            -->
         </plugins>
 
         <pluginManagement>
@@ -387,12 +392,13 @@
                     <artifactId>nexus-staging-maven-plugin</artifactId>
                     <version>${nexus-staging-maven-plugin.version}</version>
                 </plugin>
-
+                <!--
                 <plugin>
                     <groupId>com.github.spotbugs</groupId>
                     <artifactId>spotbugs-maven-plugin></artifactId>
                     <version>${spotbugs-maven-plugin.version}</version>
                 </plugin>
+                -->
 
             </plugins>
         </pluginManagement>
