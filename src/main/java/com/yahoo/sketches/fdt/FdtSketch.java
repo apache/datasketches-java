@@ -113,6 +113,15 @@ public class FdtSketch extends ArrayOfStringsSketch {
 
   /**
    * Returns the PostProcessor that enables multiple queries against the sketch results.
+   * This assumes the default Group.
+   * @return the PostProcessor
+   */
+  public PostProcessor getPostProcessor() {
+    return getPostProcessor(new Group());
+  }
+
+  /**
+   * Returns the PostProcessor that enables multiple queries against the sketch results.
    * @param group the Group class to use during post processing.
    * @return the PostProcessor
    */
