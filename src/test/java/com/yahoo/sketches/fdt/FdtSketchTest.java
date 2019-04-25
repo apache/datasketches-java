@@ -103,6 +103,7 @@ public class FdtSketchTest {
     Group gp = new Group(); //uninitialized
     PostProcessor post = new PostProcessor(sk, gp, sep);
     post = sk.getPostProcessor(gp, sep);
+    post = sk.getPostProcessor(); //equivalent
     List<Group> list = post.getGroupList(priKeyIndices, 2, 0);
     assertEquals(list.size(), 2);
     assertEquals(post.getGroupCount(), 2);

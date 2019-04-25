@@ -370,6 +370,9 @@ public class ItemsSketchTest {
   @Test
   public void checkGetEpsilon() {
     assertEquals(ItemsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);
+    try {
+      ItemsSketch.getEpsilon(1000);
+    } catch (SketchesArgumentException e) { }
   }
 
   @Test

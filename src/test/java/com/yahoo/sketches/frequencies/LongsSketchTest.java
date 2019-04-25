@@ -534,6 +534,9 @@ public class LongsSketchTest {
   @Test
   public void checkGetEpsilon() {
     assertEquals(LongsSketch.getEpsilon(1024), 3.5 / 1024, 0.0);
+    try {
+      LongsSketch.getEpsilon(1000);
+    } catch (SketchesArgumentException e) { }
   }
 
   @Test

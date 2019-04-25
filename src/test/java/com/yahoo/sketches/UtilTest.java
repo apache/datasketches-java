@@ -259,6 +259,8 @@ public class UtilTest {
   public void checkPwr2LawNext() {
     int next = pwr2LawNext(2, 1);
     Assert.assertEquals(next, 2);
+    next = pwr2LawNext(2, 0);
+    Assert.assertEquals(next, 1);
   }
 
   @Test
@@ -278,9 +280,9 @@ public class UtilTest {
 
   @Test
   public void checkPwr2LawExamples() {
-    int maxP = 1024;
+    int maxP = 32;
     int minP = 1;
-    int ppo = 2;
+    int ppo = 4;
 
     for (int p = minP; p <= maxP; p = pwr2LawNext(ppo, p)) {
       print(p + " ");
@@ -314,7 +316,7 @@ public class UtilTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
   /**
@@ -328,7 +330,7 @@ public class UtilTest {
    * @param s value to print
    */
   static void print(String s) {
-    //System.out.print(s); //disable here
+    System.out.print(s); //disable here
   }
 
   /**
