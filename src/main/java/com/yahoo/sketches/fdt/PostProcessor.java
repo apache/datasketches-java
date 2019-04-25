@@ -24,6 +24,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
  */
 public class PostProcessor {
   private final FdtSketch sketch;
+  private final char sep;
   private int groupCount;
   private Group group; //uninitialized
 
@@ -38,9 +39,11 @@ public class PostProcessor {
    * Construct with a populated FdtSketch
    * @param sketch the given sketch to query.
    * @param group the Group
+   * @param sep the separator character
    */
-  public PostProcessor(final FdtSketch sketch, final Group group) {
+  public PostProcessor(final FdtSketch sketch, final Group group, final char sep) {
     this.sketch = sketch;
+    this.sep = sep;
     final int numEntries = sketch.getRetainedEntries();
     mapArrSize = ceilingPowerOf2((int)(numEntries / 0.75));
     hashArr = new long[mapArrSize];
@@ -89,7 +92,7 @@ public class PostProcessor {
 
     while (it.next()) {
       final String[] arr = it.getSummary().getValue();
-      final String priKey = getPrimaryKey(arr, priKeyIndices);
+      final String priKey = getPrimaryKey(arr, priKeyIndices, sep);
       final long hash = stringHash(priKey);
       final int index = hashSearchOrInsert(hashArr, lgMapArrSize, hash);
       if (index < 0) { //was empty, hash inserted
@@ -143,17 +146,19 @@ public class PostProcessor {
    * @param tuple the given tuple containing the Primary Key
    * @param priKeyIndices the indices indicating the ordering and selection of dimensions defining
    * the Primary Key
+   * @param sep the separator character
    * @return a simple string Primary Key defined by the <i>priKeyIndices</i> from the given tuple.
    */
   //also used by test
-  private static String getPrimaryKey(final String[] tuple, final int[] priKeyIndices) {
+  private static String getPrimaryKey(final String[] tuple, final int[] priKeyIndices,
+      final char sep) {
     assert priKeyIndices.length < tuple.length;
     final StringBuilder sb = new StringBuilder();
     final int keys = priKeyIndices.length;
     for (int i = 0; i < keys; i++) {
       final int idx = priKeyIndices[i];
       sb.append(tuple[idx]);
-      if ((i + 1) < keys) { sb.append(","); }
+      if ((i + 1) < keys) { sb.append(sep); }
     }
     return sb.toString();
   }

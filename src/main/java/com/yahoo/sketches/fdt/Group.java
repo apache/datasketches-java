@@ -19,13 +19,13 @@ public class Group implements Comparable<Group> {
   private double est = 0;
   private double ub = 0;
   private double lb = 0;
-  private double thresh = 0;
+  private double fraction = 0;
   private double rse = 0;
   private String priKey = null;
   private final static String fmt =
-      "%,12d" + "%,15.2f" + "%,15.2f" + "%,15.2f" + "%12.6f" + "%12.6f" + " %15s";
+      "%,12d" + "%,15.2f" + "%,15.2f" + "%,15.2f" + "%12.6f" + "%12.6f" + " %s";
   private final static String hfmt =
-      "%12s"  + "%15s"    + "%15s"    + "%15s"    + "%12s"   + "%12s"   + " %15s";
+      "%12s"  + "%15s"    + "%15s"    + "%15s"    + "%12s"   + "%12s"   + " %s";
 
   public Group() { }
 
@@ -40,17 +40,17 @@ public class Group implements Comparable<Group> {
    * @param estimate the estimate of the original population associated with this group
    * @param ub the upper bound of the estimate
    * @param lb the lower bound of the extimate
-   * @param thresh the fraction of all retained rows of the sketch associated with this group
+   * @param fraction the fraction of all retained rows of the sketch associated with this group
    * @param rse the estimated Relative Standard Error for this group.
    * @return return this
    */
   public Group init(final String priKey, final int count, final double estimate, final double ub,
-      final double lb, final double thresh, final double rse) {
+      final double lb, final double fraction, final double rse) {
     this.count = count;
     est = estimate;
     this.ub = ub;
     this.lb = lb;
-    this.thresh = thresh;
+    this.fraction = fraction;
     this.rse = rse;
     this.priKey = priKey;
     return this;
@@ -82,9 +82,9 @@ public class Group implements Comparable<Group> {
   public double getLowerBound() { return lb; }
 
   /**
-   * @return the threshold
+   * @return the fraction for this group
    */
-  public double getThreshold() { return thresh; }
+  public double getFraction() { return fraction; }
 
   /**
    * @return the RSE
@@ -92,15 +92,15 @@ public class Group implements Comparable<Group> {
   public double getRse() { return rse; }
 
   /**
-   * @return the descriptive row header
+   * @return the descriptive header
    */
-  public String getRowHeader() {
-    return String.format(hfmt,"Count", "Est", "UB", "LB", "Thresh", "RSE", "PriKey");
+  public String getHeader() {
+    return String.format(hfmt,"Count", "Est", "UB", "LB", "Fraction", "RSE", "PriKey");
   }
 
   @Override
   public String toString() {
-    return String.format(fmt, count, est, ub, lb, thresh, rse, priKey);
+    return String.format(fmt, count, est, ub, lb, fraction, rse, priKey);
   }
 
   /**

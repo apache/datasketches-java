@@ -100,33 +100,36 @@ public class FdtSketch extends ArrayOfStringsSketch {
    * @param priKeyIndices these indices define the dimensions used for the Primary Keys.
    * @param limit the maximum number of groups to return. If this value is &le; 0, all
    * groups will be returned.
-   * @param numStdDev the number of standard deviations for the error bounds, this value is an
-   * integer and must be one of 1, 2, or 3.
+   * @param numStdDev the number of standard deviations for the upper and lower error bounds,
+   * this value is an integer and must be one of 1, 2, or 3.
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param sep the separator character
    * @return an ordered List of Groups of the most frequent distinct population of subset tuples
    * represented by the count of entries of each group.
    */
-  public List<Group> getResult(final int[] priKeyIndices, final int limit, final int numStdDev) {
-    final PostProcessor proc = new PostProcessor(this, new Group());
+  public List<Group> getResult(final int[] priKeyIndices, final int limit, final int numStdDev,
+      final char sep) {
+    final PostProcessor proc = new PostProcessor(this, new Group(), sep);
     return proc.getGroupList(priKeyIndices, numStdDev, limit);
   }
 
   /**
    * Returns the PostProcessor that enables multiple queries against the sketch results.
-   * This assumes the default Group.
+   * This assumes the default Group and the default separator character '|'.
    * @return the PostProcessor
    */
   public PostProcessor getPostProcessor() {
-    return getPostProcessor(new Group());
+    return getPostProcessor(new Group(), '|');
   }
 
   /**
    * Returns the PostProcessor that enables multiple queries against the sketch results.
    * @param group the Group class to use during post processing.
+   * @param sep the separator character.
    * @return the PostProcessor
    */
-  public PostProcessor getPostProcessor(final Group group) {
-    return new PostProcessor(this, group);
+  public PostProcessor getPostProcessor(final Group group, final char sep) {
+    return new PostProcessor(this, group, sep);
   }
 
   /**

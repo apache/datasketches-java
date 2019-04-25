@@ -23,6 +23,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
  */
 public class FdtSketchTest {
   private static final String LS = System.getProperty("line.separator");
+  private static final char sep = '|'; //string separator
 
   @Test
   public void checkFdtSketch() {
@@ -100,12 +101,12 @@ public class FdtSketchTest {
     sk.update(arr6);
     //get results from PostProcessor directly
     Group gp = new Group(); //uninitialized
-    PostProcessor post = new PostProcessor(sk, gp);
-    post = sk.getPostProcessor(gp);
+    PostProcessor post = new PostProcessor(sk, gp, sep);
+    post = sk.getPostProcessor(gp, sep);
     List<Group> list = post.getGroupList(priKeyIndices, 2, 0);
     assertEquals(list.size(), 2);
     assertEquals(post.getGroupCount(), 2);
-    println(gp.getRowHeader());
+    println(gp.getHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }
@@ -113,7 +114,7 @@ public class FdtSketchTest {
     assertEquals(list.size(), 1);
 
     //get results from sketch directly
-    list = sk.getResult(priKeyIndices, 0, 2);
+    list = sk.getResult(priKeyIndices, 0, 2, sep);
     assertEquals(list.size(), 2);
   }
 
@@ -126,9 +127,9 @@ public class FdtSketchTest {
       sk.update(arr);
     }
     assertTrue(sk.isEstimationMode());
-    List<Group> list = sk.getResult(priKeyIndices, 0, 2);
+    List<Group> list = sk.getResult(priKeyIndices, 0, 2, sep);
     assertEquals(list.size(), 1);
-    println(new Group().getRowHeader());
+    println(new Group().getHeader());
     for (int i = 0; i < list.size(); i++) {
       println(list.get(i).toString());
     }

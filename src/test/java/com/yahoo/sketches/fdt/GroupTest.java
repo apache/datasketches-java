@@ -24,10 +24,10 @@ public class GroupTest {
     assertEquals(gp.getEstimate(), 1E10);
     assertEquals(gp.getUpperBound(), 1.2E10);
     assertEquals(gp.getLowerBound(), 8E9);
-    assertEquals(gp.getThreshold(), 0.1);
+    assertEquals(gp.getFraction(), 0.1);
     assertEquals(gp.getRse(), 0.01);
 
-    println(gp.getRowHeader());
+    println(gp.getHeader());
     println(gp.toString());
   }
 
