@@ -61,6 +61,7 @@
         <memory.version>0.12.2</memory.version>
         <testng.version>6.14.3</testng.version>
         <spotbugs.version>4.0.0-beta1</spotbugs.version>
+        <findbugs.version>3.0.0</findbugs.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
 
         <!-- Maven Plugins -->
@@ -129,6 +130,11 @@
             <groupId>com.yahoo.datasketches</groupId>
             <artifactId>memory</artifactId>
             <version>${memory.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${findbugs.version}</version>
         </dependency>
 
         <!-- Test Scope -->

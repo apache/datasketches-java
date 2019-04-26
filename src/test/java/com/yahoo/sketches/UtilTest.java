@@ -316,28 +316,28 @@ public class UtilTest {
    * @param s value to print
    */
   static void println(String s) {
-    System.out.println(s); //disable here
+    print(s + '\t');
   }
 
   /**
    * @param d value to print
    */
   static void println(double d) {
-    //System.out.println(d); //disable here
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void print(String s) {
-    System.out.print(s); //disable here
+    print(Double.toString(d) + '\t');
   }
 
   /**
    * @param d value to print
    */
   static void print(double d) {
-    //System.out.println(d); //disable here
+    print(Double.toString(d));
+  }
+
+  /**
+   * @param s value to print
+   */
+  static void print(String s) {
+    //System.out.print(s); //disable here
   }
 
 }
