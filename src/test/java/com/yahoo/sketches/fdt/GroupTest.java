@@ -18,12 +18,13 @@ public class GroupTest {
   @Test
   public void checkToString() { //check visually
     Group gp = new Group();
-    gp.init("AAAAAAAA,BBBBBBBBBB", 1_000_000, 1E10, 1.2E10, 8E9, 0.1, 0.01);
+    //gp.init("AAAAAAAA,BBBBBBBBBB", 1_000_000, 1E10, 1.2E10, 8E9, 0.1, 0.01);
+    gp.init("AAAAAAAA,BBBBBBBBBB", 100_000_000, 1E8, 1.2E8, 8E7, 0.1, 0.01);
     assertEquals(gp.getPrimaryKey(), "AAAAAAAA,BBBBBBBBBB");
-    assertEquals(gp.getCount(), 1_000_000);
-    assertEquals(gp.getEstimate(), 1E10);
-    assertEquals(gp.getUpperBound(), 1.2E10);
-    assertEquals(gp.getLowerBound(), 8E9);
+    assertEquals(gp.getCount(), 100_000_000);
+    assertEquals(gp.getEstimate(), 1E8);
+    assertEquals(gp.getUpperBound(), 1.2E8);
+    assertEquals(gp.getLowerBound(), 8E7);
     assertEquals(gp.getFraction(), 0.1);
     assertEquals(gp.getRse(), 0.01);
 
