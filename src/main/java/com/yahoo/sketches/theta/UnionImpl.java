@@ -301,6 +301,15 @@ final class UnionImpl extends Union {
       }
     }
     unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule with gadget
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
+      if (unionEmpty_) {
+        PreambleUtil.setEmpty(wmem);
+      } else {
+        PreambleUtil.clearEmpty(wmem);
+      }
+    }
   }
 
   @Override

@@ -777,6 +777,56 @@ public class DirectUnionTest {
   }
 
   @Test
+  public void reproduceDruidBugOrig() {
+    final int k = 16384;
+    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i < 100000; i++) {
+      usk.update(Integer.toString(i));
+    }
+    usk.rebuild();
+    final Sketch s = usk.compact();
+    System.out.println(s);
+
+    final WritableMemory mem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
+    SetOperation.builder().setNominalEntries(k).build(Family.UNION, mem);
+    System.out.println(((Union)SetOperation.wrap(mem)).getResult());
+
+    ((Union)SetOperation.wrap(mem)).update(s);
+    System.out.println(((Union)SetOperation.wrap(mem)).getResult());
+  }
+
+
+  @Test
+  public void checkForDruidBug() {
+    final int k = 16384;
+    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i < 100000; i++) {
+      usk.update(Integer.toString(i));
+    }
+    usk.rebuild();
+    //println(usk.toString()); //Print rebuilt sketch OK
+
+    final Sketch s = usk.compact();
+    //println(s.toString()); //OK
+
+    //create empty target union in off-heap mem
+    final WritableMemory mem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
+    Union union1 = SetOperation.builder().setNominalEntries(k).buildUnion(mem);
+
+    union1.update(s);
+
+    //println(PreambleUtil.preambleToString(mem));
+
+    CompactSketch csk = union1.getResult();
+    //println(csk.toString());
+    assertTrue(csk.getTheta() < 0.2);
+    assertEquals(csk.getRetainedEntries(), 16384);
+    final double est = csk.getEstimate();
+    assertTrue(est > 98663.0);
+    assertTrue(est < 101530.0);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
@@ -785,7 +835,7 @@ public class DirectUnionTest {
    * @param s value to print
    */
   static void println(String s) {
-    //System.out.println(s); //Disable here
+    System.out.println(s); //Disable here
   }
 
 }
