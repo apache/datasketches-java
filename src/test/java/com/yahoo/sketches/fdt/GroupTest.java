@@ -18,7 +18,6 @@ public class GroupTest {
   @Test
   public void checkToString() { //check visually
     Group gp = new Group();
-    //gp.init("AAAAAAAA,BBBBBBBBBB", 1_000_000, 1E10, 1.2E10, 8E9, 0.1, 0.01);
     gp.init("AAAAAAAA,BBBBBBBBBB", 100_000_000, 1E8, 1.2E8, 8E7, 0.1, 0.01);
     assertEquals(gp.getPrimaryKey(), "AAAAAAAA,BBBBBBBBBB");
     assertEquals(gp.getCount(), 100_000_000);
