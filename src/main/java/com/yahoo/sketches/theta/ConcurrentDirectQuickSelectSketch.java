@@ -14,8 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 /**
  * A concurrent shared sketch that is based on DirectQuickSelectSketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
@@ -235,10 +233,8 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
   /**
    * Advances the epoch while there is no background propagation
    * This ensures a propagation invoked before the reset cannot affect the sketch after the reset
-   * is completed.
+   * is completed. Ignore VO_VOLATILE_INCREMENT findbugs warning, it is False Positive.
    */
-  @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT",
-      justification = "False Positive")
   private void advanceEpoch() {
     awaitBgPropagationTermination();
     startEagerPropagation();
@@ -246,7 +242,6 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     //noinspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread.
-    // Ignore a FindBugs warning
     epoch_++;
     endPropagation(null, true);
     initBgPropagationService();
