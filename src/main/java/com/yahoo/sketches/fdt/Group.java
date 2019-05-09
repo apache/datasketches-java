@@ -5,7 +5,6 @@
 
 package com.yahoo.sketches.fdt;
 
-
 /**
  * Defines a Group from a Frequent Distinct Tuple query. This class is called internally during
  * post processing and is not inteded to be called by the user.
@@ -111,5 +110,5 @@ public class Group implements Comparable<Group> {
     return that.count - count; //decreasing
   }
 
-} //End of class Group<T>
+}
 
