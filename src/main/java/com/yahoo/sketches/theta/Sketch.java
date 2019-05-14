@@ -231,7 +231,8 @@ public abstract class Sketch {
 
   /**
    * Returns the maximum number of storage bytes required for a CompactSketch with the given
-   * number of actual entries.
+   * number of actual entries. Note that this assumes the worse case of the sketch in
+   * estimation mode, which requires storing theta and count.
    * @param numberOfEntries the actual number of entries stored with the CompactSketch.
    * @return the maximum number of storage bytes required for a CompactSketch with the given number
    * of entries.

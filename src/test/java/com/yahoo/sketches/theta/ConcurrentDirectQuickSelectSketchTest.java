@@ -686,6 +686,15 @@ public class ConcurrentDirectQuickSelectSketchTest {
     }
   }
 
+  @Test
+  public void checkNullMemory() {
+    UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    final UpdateSketch sk = bldr.build();
+    for (int i = 0; i < 1000; i++) { sk.update(i); }
+    final UpdateSketch shared = bldr.buildSharedFromSketch(sk, null);
+    assertEquals(shared.getRetainedEntries(), 1000);
+    assertFalse(shared.hasMemory());
+  }
 
   //checks Alex's bug where lgArrLongs > lgNomLongs +1.
   @Test
