@@ -63,19 +63,23 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
-    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(),
+        maxConcurrencyError);
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
   }
 
-  ConcurrentDirectQuickSelectSketch(final DirectQuickSelectSketch sketch, final long seed,
-                                    final double maxConcurrencyError, final WritableMemory dstMem) {
+  ConcurrentDirectQuickSelectSketch(final UpdateSketch sketch, final long seed,
+      final double maxConcurrencyError, final WritableMemory dstMem) {
     super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
-        null, dstMem, false); //unionGadget
+        null, //mem Req Svr
+        dstMem,
+        false); //unionGadget
 
-    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(),
+        maxConcurrencyError);
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();

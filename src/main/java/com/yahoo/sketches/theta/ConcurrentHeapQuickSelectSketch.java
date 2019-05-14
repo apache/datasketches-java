@@ -52,33 +52,36 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
    * @param maxConcurrencyError the max error value including error induced by concurrency
    *
    */
-  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed, final double maxConcurrencyError) {
+  ConcurrentHeapQuickSelectSketch(final int lgNomLongs, final long seed,
+      final double maxConcurrencyError) {
     super(lgNomLongs, seed, 1.0F, //p
         ResizeFactor.X1, //rf,
         false); //unionGadget
 
     volatileThetaLong_ = Long.MAX_VALUE;
     volatileEstimate_ = 0;
-    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(),
+        maxConcurrencyError);
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
   }
 
-  ConcurrentHeapQuickSelectSketch(final HeapQuickSelectSketch sketch, final long seed,
+  ConcurrentHeapQuickSelectSketch(final UpdateSketch sketch, final long seed,
       final double maxConcurrencyError) {
-    super(sketch.lgNomLongs_, seed, 1.0F, //p
+    super(sketch.getLgNomLongs(), seed, 1.0F, //p
         ResizeFactor.X1, //rf,
-        false);
+        false); //unionGadget
 
-    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(), maxConcurrencyError);
+    exactLimit_ = ConcurrentSharedThetaSketch.computeExactLimit(1L << getLgNomLongs(),
+        maxConcurrencyError);
     sharedPropagationInProgress_ = new AtomicBoolean(false);
     epoch_ = 0;
     initBgPropagationService();
     for (final long hashIn : sketch.getCache()) {
       propagate(hashIn);
     }
-    thetaLong_ = sketch.thetaLong_;
+    thetaLong_ = sketch.getThetaLong();
     updateVolatileTheta();
     updateEstimationSnapshot();
   }

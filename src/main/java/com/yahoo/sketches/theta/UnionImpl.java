@@ -8,7 +8,6 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
@@ -266,7 +265,7 @@ final class UnionImpl extends Union {
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
-    unionEmpty_ = unionEmpty_ && sketchIn.isEmpty() && gadget_.isEmpty();
+    unionEmpty_ = false;
     final int curCountIn = sketchIn.getRetainedEntries(true);
     if (curCountIn > 0) {
       if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
@@ -305,11 +304,7 @@ final class UnionImpl extends Union {
     if (gadget_.hasMemory()) {
       final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
       PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      if (unionEmpty_) {
-        PreambleUtil.setEmpty(wmem);
-      } else {
-        PreambleUtil.clearEmpty(wmem);
-      }
+      PreambleUtil.clearEmpty(wmem);
     }
   }
 
@@ -419,8 +414,9 @@ final class UnionImpl extends Union {
     final long thetaLongIn = skMem.getLong(THETA_LONG);
     final int curCountIn = skMem.getInt(RETAINED_ENTRIES_INT);
     unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //Theta rule
-    final boolean emptyIn = curCountIn == 0;
-    unionEmpty_ = unionEmpty_ && emptyIn && gadget_.isEmpty();
+    final boolean emptyIn = (curCountIn == 0) && (unionThetaLong_ == Long.MAX_VALUE);
+    if (emptyIn) { return; }
+    unionEmpty_ = false;
 
     final int preLongs = 3;
     for (int i = 0; i < curCountIn; i++ ) {
@@ -433,11 +429,7 @@ final class UnionImpl extends Union {
     if (gadget_.hasMemory()) {
       final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
       PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      if (unionEmpty_) {
-        PreambleUtil.setEmpty(wmem);
-      } else {
-        PreambleUtil.clearEmpty(wmem);
-      }
+      PreambleUtil.clearEmpty(wmem);
     }
   }
 
@@ -447,18 +439,17 @@ final class UnionImpl extends Union {
     final int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
     final long thetaLongIn;
-    final int flags = skMem.getByte(FLAGS_BYTE) & 0X3F;
     if (preLongs == 1) { //does not change anything {1.0, 0, T}
       return;
     }
-    if (preLongs == 2) { //exact mode
+    if (preLongs == 2) { //exact mode, not empty
       assert curCount > 0;
       thetaLongIn = Long.MAX_VALUE;
-    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection)
+    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection), not empty
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //Theta rule
-    unionEmpty_ = unionEmpty_ && ((flags & EMPTY_FLAG_MASK) > 0) && gadget_.isEmpty();
+    unionEmpty_ = false;
     for (int i = 0; i < curCount; i++ ) {
       final int offsetBytes = (preLongs + i) << 3;
       final long hashIn = skMem.getLong(offsetBytes);
@@ -469,11 +460,7 @@ final class UnionImpl extends Union {
     if (gadget_.hasMemory()) {
       final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
       PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      if (unionEmpty_) {
-        PreambleUtil.setEmpty(wmem);
-      } else {
-        PreambleUtil.clearEmpty(wmem);
-      }
+      PreambleUtil.clearEmpty(wmem);
     }
   }
 
@@ -493,18 +480,18 @@ final class UnionImpl extends Union {
         return; //otherwise an empty sketch {1.0, 0, T}. Nothing changed
       }
     }
-    else if (preLongs == 2) { //curCount has to be > 0 and exact mode. Cannot be from intersection.
+    else if (preLongs == 2) {
+      //curCount has to be > 0 and exact mode. Cannot be from intersection. Not empty.
       curCountIn = skMem.getInt(RETAINED_ENTRIES_INT);
       assert curCountIn > 0;
       thetaLongIn = Long.MAX_VALUE;
     }
-    else { //prelongs == 3, curCount may be 0 (e.g., from intersection).
+    else { //prelongs == 3, curCount may be 0 (e.g., from intersection), but not empty.
       curCountIn = skMem.getInt(RETAINED_ENTRIES_INT);
-      assert curCountIn > 0;
       thetaLongIn = skMem.getLong(THETA_LONG);
     }
     unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //theta rule
-    unionEmpty_ = unionEmpty_ && ((flags & EMPTY_FLAG_MASK) > 0)  && gadget_.isEmpty();
+    unionEmpty_ = false;
     final boolean ordered = (skMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
     if (ordered) { //must be compact
       for (int i = 0; i < curCountIn; i++ ) {
@@ -528,11 +515,7 @@ final class UnionImpl extends Union {
     if (gadget_.hasMemory()) {
       final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
       PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      if (unionEmpty_) {
-        PreambleUtil.setEmpty(wmem);
-      } else {
-        PreambleUtil.clearEmpty(wmem);
-      }
+      PreambleUtil.clearEmpty(wmem);
     }
   }
 
