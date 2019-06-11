@@ -803,6 +803,32 @@ public class DirectUnionTest {
   }
 
   @Test
+  public void checkForDruidBug2() { //update union with just sketch memory reference
+    final int k = 16384;
+    final UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i = 0; i < 100000; i++) {
+      usk.update(Integer.toString(i));
+    }
+    usk.rebuild(); //optional but created the symptom
+    final WritableMemory memIn = WritableMemory.allocate(usk.getCurrentBytes(true));
+    usk.compact(true, memIn); //side effect of loading the memIn
+
+    //create empty target union in off-heap mem
+    final WritableMemory mem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
+    Union union1 = SetOperation.builder().setNominalEntries(k).buildUnion(mem);
+
+    union1.update(memIn);
+
+    CompactSketch csk = union1.getResult();
+
+    assertTrue(csk.getTheta() < 0.2);
+    assertEquals(csk.getRetainedEntries(), 16384);
+    final double est = csk.getEstimate();
+    assertTrue(est > 98663.0);
+    assertTrue(est < 101530.0);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

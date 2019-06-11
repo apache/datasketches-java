@@ -24,7 +24,7 @@
     <groupId>org.apache.datasketches</groupId>
     <artifactId>datasketches-java</artifactId>
     <packaging>jar</packaging> <!-- jar is the default -->
-    <version>0.13.4-SNAPSHOT</version>
+    <version>0.13.5-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Core sketch algorithms used alone and by other repositories in the DataSketches library.</description>

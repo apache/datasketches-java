@@ -395,12 +395,13 @@ public class UpdateSketchBuilder {
    * @return an on-heap concurrent UpdateSketch with the current configuration of the Builder.
    */
   public UpdateSketch buildShared() {
-    return (UpdateSketch) buildSharedInternal(null);
+    return buildShared(null);
   }
 
   /**
    * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
-   * configuration of the Builder and the given destination WritableMemory.
+   * configuration of the Builder and the given destination WritableMemory. If the destination
+   * WritableMemory is null, this defaults to an on-heap concurrent shared UpdateSketch.
    *
    * <p>The parameters unique to the shared concurrent sketch are:
    * <ul>
@@ -419,14 +420,6 @@ public class UpdateSketchBuilder {
    * and the given destination WritableMemory.
    */
   public UpdateSketch buildShared(final WritableMemory dstMem) {
-    return (UpdateSketch) buildSharedInternal(dstMem);
-  }
-
-  public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final WritableMemory dstMem) {
-    return (UpdateSketch) buildSharedFromSketchInternal(sketch, dstMem);
-  }
-
-  private ConcurrentSharedThetaSketch buildSharedInternal(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
       return new ConcurrentHeapQuickSelectSketch(bLgNomLongs, bSeed, bMaxConcurrencyError);
@@ -435,23 +428,43 @@ public class UpdateSketchBuilder {
     }
   }
 
-  private ConcurrentSharedThetaSketch buildSharedFromSketchInternal(
-      final UpdateSketch sketch, final WritableMemory dstMem) {
+  /**
+   * Returns a direct (potentially off-heap) concurrent shared UpdateSketch with the current
+   * configuration of the Builder, the data from the given sketch, and the given destination
+   * WritableMemory. If the destination WritableMemory is null, this defaults to an on-heap
+   * concurrent shared UpdateSketch.
+   *
+   * <p>The parameters unique to the shared concurrent sketch are:
+   * <ul>
+   * <li>Number of Pool Threads (default is 3)</li>
+   * <li>Maximum Concurrency Error</li>
+   * </ul>
+   *
+   * <p>Key parameters that are in common with other <i>Theta</i> sketches:
+   * <ul>
+   * <li>Nominal Entries or Log Nominal Entries (for the shared concurrent sketch)</li>
+   * <li>Destination Writable Memory (if not null, returned sketch is Direct. Default is null.)</li>
+   * </ul>
+   *
+   * @param sketch a given UpdateSketch from which the data is used to initialize the returned
+   * shared sketch.
+   * @param dstMem the given WritableMemory for Direct, otherwise <i>null</i>.
+   * @return a concurrent UpdateSketch with the current configuration of the Builder
+   * and the given destination WritableMemory.
+   */
+  public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
-    if (sketch instanceof HeapQuickSelectSketch) {
-      return new ConcurrentHeapQuickSelectSketch(
-          (HeapQuickSelectSketch)sketch, bSeed, bMaxConcurrencyError);
+    if (dstMem == null) {
+      return new ConcurrentHeapQuickSelectSketch(sketch, bSeed, bMaxConcurrencyError);
+    } else {
+      return new ConcurrentDirectQuickSelectSketch(sketch, bSeed, bMaxConcurrencyError, dstMem);
     }
-    if (sketch instanceof DirectQuickSelectSketch) {
-      return new ConcurrentDirectQuickSelectSketch((DirectQuickSelectSketch)sketch, bSeed,
-          bMaxConcurrencyError, dstMem);
-    }
-    throw new SketchesArgumentException("sketch type not supported.");
   }
 
   /**
-   * Returns a local concurrent UpdateSketch to be used as a per-thread local buffer along with the
-   * given concurrent shared UpdateSketch and the current configuration of this Builder
+   * Returns a local, on-heap, concurrent UpdateSketch to be used as a per-thread local buffer
+   * along with the given concurrent shared UpdateSketch and the current configuration of this
+   * Builder.
    *
    * <p>The parameters unique to the local concurrent sketch are:
    * <ul>
