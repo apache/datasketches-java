@@ -16,11 +16,13 @@
 # http://docs.travis-ci.com/user/customizing-the-build/
 
 # Execute Maven to create Cobertura report and submit Coveralls data:
-#. mvn cobertura:cobertura coveralls:report
+#  mvn cobertura:cobertura coveralls:report
 
 language: java
 
 sudo: false # faster builds
+
+dist: trusty
 
 jdk:
  - oraclejdk8
