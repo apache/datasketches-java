@@ -1,4 +1,22 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 # http://docs.travis-ci.com/user/customizing-the-build/
+
+# Execute Maven to create Cobertura report and submit Coveralls data:
+#. mvn cobertura:cobertura coveralls:report
 
 language: java
 
@@ -10,11 +28,14 @@ jdk:
 install:
  - mvn install -Dmaven.javadoc.skip=true -Dsource.skip=true -DskipTests=true -Dgpg.skip=true
 
+before_script:
+ - _JAVA_OPTIONS="-Xmx4g -Xms1g"
+
 script:
  - mvn clean compile test -Dgpg.skip=true
 
 after_success: 
-- bash <(curl -s https://codecov.io/bash)
+ - mvn clean cobertura:cobertura coveralls:report
 
 notifications:
   email: false

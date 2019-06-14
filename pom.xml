@@ -26,6 +26,7 @@
     <packaging>jar</packaging> <!-- jar is the default -->
     <version>0.13.5-incubating-SNAPSHOT</version>
 
+    <!-- Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Core sketch algorithms used alone and by other repositories in the DataSketches library.</description>
     <url>https://datasketches.github.io/</url>
@@ -40,18 +41,19 @@
 
     <developers>
         <developer>
-            <name>DataSketchesDevelopers</name>
-            <organization>DataSketches</organization>
-            <organizationUrl>https://github.com/orgs/DataSketches/people</organizationUrl>
-        </developer>
-        <developer>
-            <name>DataSketchesCollaborators</name>
-            <organization>DataSketches</organization>
-            <organizationUrl>https://github.com/orgs/DataSketches/outside-collaborators</organizationUrl>
+            <name>Apache DataSketches Committers</name>
+            <url>https://datasketches.apache.org/community/#committers</url>
         </developer>
     </developers>
 
     <mailingLists>
+        <mailingList>
+            <name>Apache DataSketches (incubating) developers list</name>
+            <subscribe>dev-subscribe@datasketches.apache.org</subscribe>
+            <unsubscribe>dev-unsubscribe@datasketches.apache.org</unsubscribe>
+            <post>dev@datasketches.apache.org</post>
+            <archive>https://mail-archives.apache.org/mod_mbox/datasketches-dev</archive>
+        </mailingList>
         <mailingList>
             <name>sketches-user</name>
             <archive>https://groups.google.com/forum/#!forum/sketches-user</archive>
@@ -60,10 +62,11 @@
             <post>mailto:sketches-user@googlegroups.com</post>
         </mailingList>
     </mailingLists>
+    <!-- End Project Information -->
 
     <properties>
         <!-- System-wide properties -->
-        <argLine>-Xmx1024m -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
+        <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
         <charset.encoding>UTF-8</charset.encoding>
         <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
         <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
@@ -71,7 +74,7 @@
         <java.version>1.8</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
-        
+
         <!-- Dependencies -->
         <memory.version>0.12.2</memory.version>
         <testng.version>6.14.3</testng.version>
@@ -86,50 +89,56 @@
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-help-plugin.version>3.1.0</maven-help-plugin.version>
         <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
-        <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
         <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
+        <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-        <maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
         <maven-site-plugin.version>3.5.1</maven-site-plugin.version>
         <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         
         <!-- Codehaus.org Maven Plugins -->
+        <cobertura-maven-plugin.version>2.7</cobertura-maven-plugin.version>
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <license-maven-plugin.version>1.19</license-maven-plugin.version>
         <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
         
-        <!-- Jacoco.org Maven Plugins -->
-        <jacoco-maven-plugin.version>0.8.3</jacoco-maven-plugin.version>
-        
         <!-- Sonatype.org Maven Plugins -->
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
         
-        <!-- Other Plugins -->
-
+        <!-- eluder.org Maven Plugins -->
+        <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     </properties>
+
+    <!-- Environment Settings -->
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/Apache/incubator-datasketches-java/issues</url>
+    </issueManagement>
+
+    <ciManagement>
+        <system>travis</system>
+        <url>https://travis-ci.org/apache/incubator-datasketches-java</url>
+    </ciManagement>
+
+    <scm>
+        <connection>scm:git:ssh://git@github.com/apache/incubator-datasketches-java.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/apache/incubator-datasketches-java.git</developerConnection>
+        <url>https://github.com/apache/incubator-datasketches-java.git</url>
+        <tag>HEAD</tag>
+    </scm>
 
     <prerequisites>
         <maven>3.0.4</maven>
     </prerequisites>
 
-    <scm>
-        <connection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</connection>
-        <developerConnection>scm:git:ssh://git@github.com/DataSketches/sketches-core.git</developerConnection>
-        <url>https://github.com/DataSketches/sketches-core</url>
-        <tag>HEAD</tag>
-    </scm>
-
-    <issueManagement>
-        <system>GitHub Issues</system>
-        <url>https://github.com/DataSketches/sketches-core/issues</url>
-    </issueManagement>
-
-    <ciManagement>
-        <system>travis</system>
-        <url>https://travis-ci.org/DataSketches/sketches-core</url>
-    </ciManagement>
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
 
     <distributionManagement>
         <repository>
@@ -144,7 +153,7 @@
             <artifactId>memory</artifactId>
             <version>${memory.version}</version>
         </dependency>
-            
+
         <!-- Test Scope -->
         <dependency>
             <groupId>org.testng</groupId>
@@ -152,8 +161,8 @@
             <version>${testng.version}</version>
             <scope>test</scope>
         </dependency>
-            
-        <!-- logging -->
+
+        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -161,14 +170,6 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <repositories>
-        <repository>
-            <id>jcenter</id>
-            <name>bintray</name>
-            <url>https://jcenter.bintray.com</url>
-        </repository>
-    </repositories>
 
     <build>
         <plugins>
@@ -218,25 +219,19 @@
                 </configuration>
             </plugin>
 
-            <!-- Code coverage plugin, generates coverage report to target/site/jacoco/
-                 To skip coverage generation add -Djacoco.skip=true -->
+            <!-- Generates code coverage report from website. -->
             <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>report</id>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>report</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+            </plugin>
+
+             <!-- Submit code coverage report to Coveralls.io. -->
+            <plugin>
+                <groupId>org.eluder.coveralls</groupId>
+                <artifactId>coveralls-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Since we use Travis CI we do not have to put a Coveralls token here. -->
+                </configuration>
             </plugin>
 
             <plugin>
@@ -253,18 +248,6 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>test-jar</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -348,12 +331,6 @@
 
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-shade-plugin</artifactId>
-                    <version>${maven-shade-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-site-plugin</artifactId>
                     <version>${maven-site-plugin.version}</version>
                 </plugin>
@@ -384,9 +361,20 @@
                 </plugin>
 
                 <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco-maven-plugin.version}</version>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>cobertura-maven-plugin</artifactId>
+                    <version>${cobertura-maven-plugin.version}</version>
+                    <configuration>
+                        <format>xml</format>
+                        <!-- aggregated reports for multi-module projects, for when we use modules -->
+                        <aggregate>true</aggregate>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.eluder.coveralls</groupId>
+                    <artifactId>coveralls-maven-plugin</artifactId>
+                    <version>${coveralls-maven-plugin.version}</version>
                 </plugin>
 
                 <plugin>
@@ -401,6 +389,7 @@
 
     <reporting />
 
+    <!-- This is optional -->
     <profiles>
         <profile>
             <id>strict</id>
