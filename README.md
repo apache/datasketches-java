@@ -1,10 +1,13 @@
-[![][travis img]][travis] [![][mavenbadge img]][mavenbadge] 
-[![Code Quality: Java][lgtm-badge]][lgtm-badge-url] [![Total alerts][lgtm-alerts]][lgtm-alerts-url] [![codecov](https://codecov.io/gh/DataSketches/sketches-core/branch/master/graph/badge.svg)](https://codecov.io/gh/DataSketches/sketches-core)
+[![Build Status](https://travis-ci.org/apache/incubator-datasketches-java.svg?branch=master)](https://travis-ci.org/apache/incubator-datasketches-java)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.yahoo.datasketches/sketches-core/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.yahoo.datasketches/sketches-core) 
+[![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/apache/incubator-datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/incubator-datasketches-java/context:java)
+[![Total alerts](https://img.shields.io/lgtm/alerts/g/apache/incubator-datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/incubator-datasketches-java/alerts/)
+[![Coverage Status](https://coveralls.io/repos/github/apache/incubator-datasketches-java/badge.svg?branch=master)](https://coveralls.io/github/apache/incubator-datasketches-java?branch=master)
 
 
 =================
 
-# Sketches Core Library
+# DataSketches Core Java Library
 
 ## [Documentation](https://datasketches.github.io)
 
@@ -16,13 +19,4 @@
 ## [Building](https://github.com/DataSketches/sketches-core/blob/master/README_building.md)
 
 
-[travis]:https://travis-ci.org//DataSketches/sketches-core/builds?branch=master
-[travis img]:https://secure.travis-ci.org/DataSketches/sketches-core.svg?branch=master
 
-[mavenbadge]:https://search.maven.org/#search|gav|1|g%3A%22com.yahoo.datasketches%22%20AND%20a%3A%22sketches-core%22
-[mavenbadge img]:https://maven-badges.herokuapp.com/maven-central/com.yahoo.datasketches/sketches-core/badge.svg
-
-[lgtm-badge]: https://img.shields.io/lgtm/grade/java/g/DataSketches/sketches-core.svg?logo=lgtm&logoWidth=18
-[lgtm-badge-url]: https://lgtm.com/projects/g/DataSketches/sketches-core/context:java
-[lgtm-alerts]: https://img.shields.io/lgtm/alerts/g/DataSketches/sketches-core.svg?logo=lgtm&logoWidth=18
-[lgtm-alerts-url]: https://lgtm.com/projects/g/DataSketches/sketches-core/alerts
