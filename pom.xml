@@ -115,6 +115,11 @@ under the License.
     </scm>
 
     <repositories>
+        <repository> <!-- Temporary until artifacts created in Apache -->
+            <id>jcenter</id>
+            <name>bintray</name>
+            <url>https://jcenter.bintray.com</url>
+        </repository>
         <repository>
             <id>apache.snapshots</id>
             <name>Apache Snapshot Repository</name>
@@ -124,8 +129,8 @@ under the License.
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.datasketches</groupId>
-            <artifactId>datasketches-memory</artifactId>
+            <groupId>com.yahoo.datasketches</groupId> <!-- Temporary until artifacts created in Apache -->
+            <artifactId>memory</artifactId>
             <version>${datasketches-memory.version}</version>
         </dependency>
 
@@ -241,7 +246,6 @@ under the License.
                 </configuration>
             </plugin>
         </plugins>
-
     </build>
 
     <profiles>
