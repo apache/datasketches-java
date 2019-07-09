@@ -1,35 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
-  ~ Licensed to the Apache Software Foundation (ASF) under one
-  ~ or more contributor license agreements.  See the NOTICE file
-  ~ distributed with this work for additional information
-  ~ regarding copyright ownership.  The ASF licenses this file
-  ~ to you under the Apache License, Version 2.0 (the
-  ~ "License"); you may not use this file except in compliance
-  ~ with the License.  You may obtain a copy of the License at
-  ~
-  ~   http://www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ Unless required by applicable law or agreed to in writing,
-  ~ software distributed under the License is distributed on an
-  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-  ~ KIND, either express or implied.  See the License for the
-  ~ specific language governing permissions and limitations
-  ~ under the License.
-  -->
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
+
+  http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+-->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>org.apache</groupId>
+        <artifactId>apache</artifactId>
+        <version>21</version>
+    </parent>
+
     <groupId>org.apache.datasketches</groupId>
     <artifactId>datasketches-core</artifactId>
-    <packaging>jar</packaging> <!-- jar is the default -->
+    <packaging>jar</packaging>
     <version>0.13.5-incubating-SNAPSHOT</version>
 
     <!-- Project Information -->
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Core sketch algorithms used alone and by other repositories in the DataSketches library.</description>
-    <url>https://datasketches.github.io/</url>
+    <url>https://datasketches.apache.org/</url>
     <inceptionYear>2015</inceptionYear>
 
     <licenses>
@@ -76,51 +83,30 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependencies -->
-        <memory.version>0.12.2</memory.version>
+        <datasketches-memory.version>0.12.2</datasketches-memory.version>
         <testng.version>6.14.3</testng.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
 
-        <!-- Maven Plugins -->
-        <maven-assembly-plugin.version>3.1.0</maven-assembly-plugin.version>
-        <maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
-        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
-        <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
-        <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-help-plugin.version>3.1.0</maven-help-plugin.version>
-        <maven-install-plugin.version>2.5.2</maven-install-plugin.version>
-        <maven-javadoc-plugin.version>3.0.1</maven-javadoc-plugin.version>
-        <maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
-        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-        <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-        <maven-site-plugin.version>3.5.1</maven-site-plugin.version>
-        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-        <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
-        
-        <!-- Codehaus.org Maven Plugins -->
-        <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+        <!-- org.codehaus.plexus used for strict profile testing-->
+        <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
+
+        <!-- External Maven Plugins -->
+
+        <!-- org.codehaus.mojo Maven Plugins -->
         <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <license-maven-plugin.version>1.19</license-maven-plugin.version>
-        <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
-        
-        <!-- Sonatype.org Maven Plugins -->
+
+        <!-- org.jacoco Maven Plugins -->
+        <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+
+        <!-- org.sonatype Maven Plugins -->
         <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        
-        <!-- eluder.org Maven Plugins -->
+
+        <!-- org.eluder Maven Plugins -->
         <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     </properties>
 
     <!-- Environment Settings -->
-    <issueManagement>
-        <system>GitHub Issues</system>
-        <url>https://github.com/Apache/incubator-datasketches-java/issues</url>
-    </issueManagement>
-
-    <ciManagement>
-        <system>travis</system>
-        <url>https://travis-ci.org/apache/incubator-datasketches-java</url>
-    </ciManagement>
-
     <scm>
         <connection>scm:git:ssh://git@github.com/apache/incubator-datasketches-java.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/apache/incubator-datasketches-java.git</developerConnection>
@@ -128,30 +114,24 @@
         <tag>HEAD</tag>
     </scm>
 
-    <prerequisites>
-        <maven>3.0.4</maven>
-    </prerequisites>
-
     <repositories>
-        <repository>
+        <repository> <!-- Temporary until artifacts created in Apache -->
             <id>jcenter</id>
             <name>bintray</name>
             <url>https://jcenter.bintray.com</url>
         </repository>
-    </repositories>
-
-    <distributionManagement>
         <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>apache.snapshots</id>
+            <name>Apache Snapshot Repository</name>
+            <url>https://repository.apache.org/snapshots</url>
         </repository>
-    </distributionManagement>
+    </repositories>
 
     <dependencies>
         <dependency>
-            <groupId>com.yahoo.datasketches</groupId>
+            <groupId>com.yahoo.datasketches</groupId> <!-- Temporary until artifacts created in Apache -->
             <artifactId>memory</artifactId>
-            <version>${memory.version}</version>
+            <version>${datasketches-memory.version}</version>
         </dependency>
 
         <!-- Test Scope -->
@@ -173,11 +153,25 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <!-- version in parent -->
+                <executions>
+                    <execution>
+                        <id>sign-release-artifacts</id>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
+                <!-- version in parent -->
+                <configuration>  <!-- not in parent -->
                   <!--
                     <show>private</show>
                   -->
@@ -197,20 +191,28 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <!-- version in parent -->
                 <executions>
                     <execution>
                         <id>attach-sources</id>
                         <goals>
                             <goal>jar-no-fork</goal>
-                            <goal>test-jar-no-fork</goal>
+                            <goal>test-jar-no-fork</goal> <!-- not in parent -->
                         </goals>
                     </execution>
                 </executions>
             </plugin>
 
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- version in parent -->
+            </plugin>
+
+            <plugin> <!-- MAY NOT NEED THIS -->
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>${nexus-staging-maven-plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
                     <serverId>sonatype-nexus-staging</serverId> <!-- from ~/.m2/settings.xml -->
@@ -223,176 +225,62 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
              <!-- Submit code coverage report to Coveralls.io. -->
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
+                <version>${coveralls-maven-plugin.version}</version>
                 <configuration>
                     <!-- Since we use Travis CI we do not have to put a Coveralls token here. -->
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
 
         <pluginManagement>
             <plugins>
-                <!-- ORG.APACHE.MAVEN -->
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>${maven-assembly-plugin.version}</version>
+                <!-- Ignore nuisance warning from Apache parent plugin: 
+                  "maven-remote-resources-plugin (goal "process") is ignored by m2e" -->
+                <plugin> 
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
+                    <configuration>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>org.apache.maven.plugins</groupId>
+                                        <artifactId>maven-remote-resources-plugin</artifactId>
+                                        <versionRange>[1.0,)</versionRange>
+                                        <goals>
+                                            <goal>process</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore>
+                                        </ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
+                    </configuration>
                 </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-clean-plugin</artifactId>
-                    <version>${maven-clean-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${maven-compiler-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-dependency-plugin</artifactId>
-                    <version>${maven-dependency-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>${maven-deploy-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-gpg-plugin</artifactId>
-                    <version>${maven-gpg-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-help-plugin</artifactId>
-                    <version>${maven-help-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-install-plugin</artifactId>
-                    <version>${maven-install-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>${maven-jar-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${maven-javadoc-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <version>${maven-release-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>${maven-resources-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>${maven-site-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven-source-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin.version}</version>
-                </plugin>
-
-                <!-- OTHER -->
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>exec-maven-plugin</artifactId>
-                    <version>${exec-maven-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>license-maven-plugin</artifactId>
-                    <version>${license-maven-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco-maven-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>prepare-agent</id>
-                            <goals>
-                                <goal>prepare-agent</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.eluder.coveralls</groupId>
-                    <artifactId>coveralls-maven-plugin</artifactId>
-                    <version>${coveralls-maven-plugin.version}</version>
-                </plugin>
-
-                <plugin>
-                    <groupId>org.sonatype.plugins</groupId>
-                    <artifactId>nexus-staging-maven-plugin</artifactId>
-                    <version>${nexus-staging-maven-plugin.version}</version>
-                </plugin>
-
             </plugins>
         </pluginManagement>
+
     </build>
 
-    <reporting />
-
-    <!-- This is optional -->
     <profiles>
         <profile>
             <id>strict</id>
@@ -403,6 +291,7 @@
                         <plugin>
                             <groupId>org.apache.maven.plugins</groupId>
                             <artifactId>maven-compiler-plugin</artifactId>
+                            <!-- version in parent -->
                             <configuration>
                                 <source>${maven.compiler.source}</source>
                                 <target>${maven.compiler.target}</target>
