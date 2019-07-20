@@ -29,7 +29,7 @@ under the License.
     </parent>
 
     <groupId>org.apache.datasketches</groupId>
-    <artifactId>datasketches-core</artifactId>
+    <artifactId>datasketches-java</artifactId>
     <packaging>jar</packaging>
     <version>0.13.5-incubating-SNAPSHOT</version>
 
