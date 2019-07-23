@@ -67,18 +67,20 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
       getNoMatchSetFromSketch(a);
     } else {
       final long[] hashTable;
-      hashTable = convertToHashTable(b);
+      hashTable = convertToHashTable(b, theta_);
       final int lgHashTableSize = Integer.numberOfTrailingZeros(hashTable.length);
       final int noMatchSize = a.getRetainedEntries();
       keys_ = new long[noMatchSize];
       values_ = new double[noMatchSize * numValues_];
       final ArrayOfDoublesSketchIterator it = a.iterator();
       while (it.next()) {
-        final int index = HashOperations.hashSearch(hashTable, lgHashTableSize, it.getKey());
-        if (index == -1) {
-          keys_[count_] = it.getKey();
-          System.arraycopy(it.getValues(), 0, values_, count_ * numValues_, numValues_);
-          count_++;
+        if (it.getKey() < theta_) {
+          final int index = HashOperations.hashSearch(hashTable, lgHashTableSize, it.getKey());
+          if (index == -1) {
+            keys_[count_] = it.getKey();
+            System.arraycopy(it.getValues(), 0, values_, count_ * numValues_, numValues_);
+            count_++;
+          }
         }
       }
     }
@@ -118,7 +120,7 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     return result;
   }
 
-  private static long[] convertToHashTable(final ArrayOfDoublesSketch sketch) {
+  private static long[] convertToHashTable(final ArrayOfDoublesSketch sketch, long theta) {
     final int size = Math.max(
       ceilingPowerOf2((int) Math.ceil(sketch.getRetainedEntries() / REBUILD_THRESHOLD)),
       1 << MIN_LG_NOM_LONGS
@@ -127,7 +129,9 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
     final ArrayOfDoublesSketchIterator it = sketch.iterator();
     final int lgSize = Integer.numberOfTrailingZeros(size);
     while (it.next()) {
-      HashOperations.hashInsertOnly(hashTable, lgSize, it.getKey());
+      if (it.getKey() < theta) {
+        HashOperations.hashInsertOnly(hashTable, lgSize, it.getKey());
+      }
     }
     return hashTable;
   }

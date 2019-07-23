@@ -770,7 +770,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     aNotB.update(sketchA, sketchB);
     CompactSketch<DoubleSummary> result = aNotB.getResult();
     Assert.assertFalse(result.isEmpty());
- // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
+    // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03);
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
@@ -783,7 +783,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     aNotB.update(sketchA.compact(), sketchB.compact());
     result = aNotB.getResult();
     Assert.assertFalse(result.isEmpty());
- // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
+    // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03);
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
@@ -791,6 +791,42 @@ public class UpdatableSketchWithDoubleSummaryTest {
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
     }
+  }
+
+  @Test
+  public void aNotBEstimationModeLargeB() {
+    int key = 0;
+    UpdatableSketch<Double, DoubleSummary> sketchA =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
+    for (int i = 0; i < 10000; i++) {
+      sketchA.update(key++, 1.0);
+    }
+
+    key -= 2000; // overlap
+    UpdatableSketch<Double, DoubleSummary> sketchB =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
+    for (int i = 0; i < 100000; i++) {
+      sketchB.update(key++, 1.0);
+    }
+
+    final int expected = 10000 - 2000;
+    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    aNotB.update(sketchA, sketchB);
+    CompactSketch<DoubleSummary> result = aNotB.getResult();
+    Assert.assertFalse(result.isEmpty());
+    // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
+    Assert.assertEquals(result.getEstimate(), expected, expected * 0.1);
+    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
+    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
+
+    // same thing, but compact sketches
+    aNotB.update(sketchA.compact(), sketchB.compact());
+    result = aNotB.getResult();
+    Assert.assertFalse(result.isEmpty());
+    // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
+    Assert.assertEquals(result.getEstimate(), expected, expected * 0.1);
+    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
+    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

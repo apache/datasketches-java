@@ -250,6 +250,42 @@ public class ArrayOfDoublesAnotBTest {
     }
   }
 
+  @Test
+  public void estimationModeLargeB() {
+    int key = 0;
+    ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) sketchA.update(key++, new double[] {1});
+
+    key -= 2000; // overlap
+    ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < 100000; i++) sketchB.update(key++, new double[] {1});
+
+    final int expected = 10000 - 2000;
+    ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
+    aNotB.update(sketchA, sketchB);
+    ArrayOfDoublesCompactSketch result = aNotB.getResult();
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getEstimate(), expected, expected * 0.1); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
+    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
+    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
+    ArrayOfDoublesSketchIterator it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getValues(), new double[] {1});
+    }
+
+    // same operation, but compact sketches and off-heap result
+    aNotB.update(sketchA.compact(), sketchB.compact());
+    result = aNotB.getResult(WritableMemory.wrap(new byte[1000000]));
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertEquals(result.getEstimate(), expected, expected * 0.1); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
+    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
+    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
+    it = result.iterator();
+    while (it.next()) {
+      Assert.assertEquals(it.getValues(), new double[] {1});
+    }
+  }
+
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeedA() {
     ArrayOfDoublesSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
