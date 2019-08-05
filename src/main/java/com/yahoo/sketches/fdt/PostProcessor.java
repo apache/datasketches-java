@@ -33,6 +33,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 /**
  * This processes the contents of a FDT sketch to extract the
  * primary keys with the most frequent unique combinations of the non-primary dimensions.
+ * The source sketch is not modified.
  *
  * @author Lee Rhodes
  */
@@ -105,6 +106,7 @@ public class PostProcessor {
     final int lgMapArrSize = Integer.numberOfTrailingZeros(mapArrSize);
 
     while (it.next()) {
+      //getSummary() is not a copy, but getValue() is
       final String[] arr = it.getSummary().getValue();
       final String priKey = getPrimaryKey(arr, priKeyIndices, sep);
       final long hash = stringHash(priKey);
