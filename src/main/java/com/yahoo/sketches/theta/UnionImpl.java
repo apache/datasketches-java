@@ -310,7 +310,7 @@ final class UnionImpl extends Union {
           final long hashIn = cacheIn[i];
           if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; } //rejects dirty values
           gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-          c++; //insures against invalid state inside the incoming sketch
+          c++; //ensures against invalid state inside the incoming sketch
         }
       }
     }
