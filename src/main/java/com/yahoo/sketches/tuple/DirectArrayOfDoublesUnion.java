@@ -19,7 +19,10 @@
 
 package com.yahoo.sketches.tuple;
 
+import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.Family;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * Direct Union operation for tuple sketches of type ArrayOfDoubles.
@@ -41,25 +44,45 @@ class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    */
   DirectArrayOfDoublesUnion(final int nomEntries, final int numValues, final long seed, 
       final WritableMemory dstMem) {
-    super(new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed, dstMem));
+    super(new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed,
+        dstMem.writableRegion(PREAMBLE_SIZE_BYTES, dstMem.getCapacity() - PREAMBLE_SIZE_BYTES)));
     mem_ = dstMem;
+    mem_.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
+    mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
+    mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
+    mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
+    mem_.putLong(THETA_LONG, sketch_.getThetaLong());
   }
 
   DirectArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch, final WritableMemory mem) {
     super(sketch);
     mem_ = mem;
-  }
-
-  @Override
-  public void reset() {
-    sketch_ = new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, 3, 1f, numValues_, seed_, mem_);
-    setThetaLong(sketch_.getThetaLong());
+    theta_ = mem.getLong(THETA_LONG);
   }
 
   @Override
   void setThetaLong(final long theta) {
     super.setThetaLong(theta);
     mem_.putLong(THETA_LONG, theta);
+  }
+
+  static ArrayOfDoublesUnion wrapUnion(final WritableMemory mem, final long seed, final boolean isWritable) {
+    final byte version = mem.getByte(ArrayOfDoublesUnion.SERIAL_VERSION_BYTE);
+    if (version != ArrayOfDoublesUnion.serialVersionUID) {
+      throw new SketchesArgumentException("Serial version mismatch. Expected: "
+        + serialVersionUID + ", actual: " + version);
+    }
+    SerializerDeserializer.validateFamily(mem.getByte(FAMILY_ID_BYTE), mem.getByte(PREAMBLE_LONGS_BYTE));
+    SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
+        SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
+
+    if (isWritable) {
+      final WritableMemory sketchMem = mem.writableRegion(PREAMBLE_SIZE_BYTES,
+          mem.getCapacity() - PREAMBLE_SIZE_BYTES);
+      return new DirectArrayOfDoublesUnion(new DirectArrayOfDoublesQuickSelectSketch(sketchMem, seed), mem);
+    }
+    final Memory sketchMem = mem.region(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES);
+    return new DirectArrayOfDoublesUnionR(new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed), mem);
   }
 
 }

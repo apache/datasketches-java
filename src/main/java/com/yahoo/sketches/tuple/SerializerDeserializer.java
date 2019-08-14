@@ -62,35 +62,4 @@ final class SerializerDeserializer {
     return SketchType.values()[sketchTypeByte];
   }
 
-  // Deprecated methods below. Retained here to support reading legacy data.
-
-  //  private static final Map<String, Method> deserializeMethodCache = new HashMap<>();
-
-  //  static <T> DeserializeResult<T> deserializeFromMemory(final Memory mem, final int offset) {
-  //    final int classNameLength = mem.getByte(offset);
-  //    final byte[] classNameBuffer = new byte[classNameLength];
-  //    mem.getByteArray(offset + 1, classNameBuffer, 0, classNameLength);
-  //    final String className = new String(classNameBuffer, UTF_8);
-  //    final DeserializeResult<T> result =
-  //        deserializeFromMemory(mem, offset + classNameLength + 1, className);
-  //    return new DeserializeResult<>(result.getObject(), result.getSize() + classNameLength + 1);
-  //  }
-
-  //  @SuppressWarnings("unchecked")
-  //  static <T> DeserializeResult<T>
-  //      deserializeFromMemory(final Memory mem, final int offset, final String className) {
-  //    try {
-  //      Method method = deserializeMethodCache.get(className);
-  //      if (method == null) {
-  //          method = Class.forName(className).getMethod("fromMemory", Memory.class);
-  //          deserializeMethodCache.put(className, method);
-  //      }
-  //      return (DeserializeResult<T>)
-  //          method.invoke(null, mem.region(offset, mem.getCapacity() - offset));
-  //    } catch (final IllegalAccessException | SketchesArgumentException | InvocationTargetException
-  //        | NoSuchMethodException | SecurityException | ClassNotFoundException e) {
-  //      throw new SketchesArgumentException("Failed to deserialize class " + className + " " + e);
-  //    }
-  //  }
-
 }

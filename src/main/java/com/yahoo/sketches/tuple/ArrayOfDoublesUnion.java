@@ -51,18 +51,10 @@ public abstract class ArrayOfDoublesUnion {
   static final int SEED_HASH_SHORT = 6;
   static final int THETA_LONG = 8;
 
-  final int nomEntries_;
-  final int numValues_;
-  final long seed_;
-  final short seedHash_;
   ArrayOfDoublesQuickSelectSketch sketch_;
   long theta_;
 
   ArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch) {
-    nomEntries_ = sketch.getNominalEntries();
-    numValues_ = sketch.getNumValues();
-    seed_ = sketch.getSeed();
-    seedHash_ = Util.computeSeedHash(seed_);
     sketch_ = sketch;
     theta_ = sketch.getThetaLong();
   }
@@ -102,7 +94,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrap(final Memory mem, final long seed) {
-    return wrapUnionImpl((WritableMemory) mem, seed, false);
+    return DirectArrayOfDoublesUnion.wrapUnion((WritableMemory) mem, seed, false);
   }
 
   /**
@@ -121,7 +113,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrap(final WritableMemory mem, final long seed) {
-    return wrapUnionImpl(mem, seed, true);
+    return DirectArrayOfDoublesUnion.wrapUnion(mem, seed, true);
   }
 
   /**
@@ -130,16 +122,24 @@ public abstract class ArrayOfDoublesUnion {
    */
   public void update(final ArrayOfDoublesSketch sketchIn) {
     if (sketchIn == null) { return; }
-    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(sketch_.getSeedHash(), sketchIn.getSeedHash());
     if (sketch_.getNumValues() != sketchIn.getNumValues()) {
       throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
           + sketch_.getNumValues() + " and " + sketchIn.getNumValues());
     }
     if (sketchIn.isEmpty()) { return; }
-    if (sketchIn.getThetaLong() < theta_) { theta_ = sketchIn.getThetaLong(); }
+    if (sketchIn.getThetaLong() < theta_) {
+      setThetaLong(sketchIn.getThetaLong());
+    }
     final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
     while (it.next()) {
-      sketch_.merge(it.getKey(), it.getValues());
+      if (it.getKey() < theta_) {
+        sketch_.merge(it.getKey(), it.getValues());
+      }
+    }
+    // keep the union theta as low as low as possible for performance
+    if (sketch_.getThetaLong() < theta_) {
+      setThetaLong(sketch_.getThetaLong());
     }
   }
 
@@ -149,13 +149,14 @@ public abstract class ArrayOfDoublesUnion {
    * @return compact sketch representing the union (off-heap if memory is provided)
    */
   public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
+    long theta = theta_;
     if (sketch_.getRetainedEntries() > sketch_.getNominalEntries()) {
-      theta_ = Math.min(theta_, sketch_.getNewTheta());
+      theta = Math.min(theta, sketch_.getNewTheta());
     }
     if (dstMem == null) {
-      return new HeapArrayOfDoublesCompactSketch(sketch_, theta_);
+      return new HeapArrayOfDoublesCompactSketch(sketch_, theta);
     }
-    return new DirectArrayOfDoublesCompactSketch(sketch_, theta_, dstMem);
+    return new DirectArrayOfDoublesCompactSketch(sketch_, theta, dstMem);
   }
 
   /**
@@ -169,7 +170,10 @@ public abstract class ArrayOfDoublesUnion {
   /**
    * Resets the union to an empty state
    */
-  public abstract void reset();
+  public void reset() {
+    sketch_.reset();
+    setThetaLong(sketch_.getThetaLong());
+  }
 
   /**
    * @return a byte array representation of this object
@@ -194,57 +198,11 @@ public abstract class ArrayOfDoublesUnion {
    * @return maximum required storage bytes given nomEntries and numValues
    */
   public static int getMaxBytes(final int nomEntries, final int numValues) {
-    return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues);
+    return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues) + PREAMBLE_SIZE_BYTES;
   }
 
   void setThetaLong(final long theta) {
     theta_ = theta;
-  }
-
-  static ArrayOfDoublesUnion wrapUnionImpl(final WritableMemory mem, final long seed,
-      final boolean isWritable) {
-    final SerializerDeserializer.SketchType type = SerializerDeserializer.getSketchType(mem);
-    final ArrayOfDoublesQuickSelectSketch sketch;
-    final ArrayOfDoublesUnion union;
-
-    // compatibility with version 0.9.1 and lower
-    if (type == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      if (isWritable) {
-        sketch = new DirectArrayOfDoublesQuickSelectSketch(mem, seed);
-        union = new DirectArrayOfDoublesUnion(sketch, mem);
-      } else {
-        sketch = new DirectArrayOfDoublesQuickSelectSketchR(mem, seed);
-        union = new DirectArrayOfDoublesUnionR(sketch, mem);
-      }
-      return union; //Do not need to set theta_
-    }
-    //versions > 0.9.1
-
-    //sanity checks
-    final byte version = mem.getByte(ArrayOfDoublesUnion.SERIAL_VERSION_BYTE);
-    if (version != ArrayOfDoublesUnion.serialVersionUID) {
-      throw new SketchesArgumentException("Serial version mismatch. Expected: "
-        + ArrayOfDoublesUnion.serialVersionUID + ", actual: " + version);
-    }
-    SerializerDeserializer.validateFamily(mem.getByte(ArrayOfDoublesUnion.FAMILY_ID_BYTE),
-        mem.getByte(ArrayOfDoublesUnion.PREAMBLE_LONGS_BYTE));
-    SerializerDeserializer.validateType(mem.getByte(ArrayOfDoublesUnion.SKETCH_TYPE_BYTE),
-        SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
-
-    if (isWritable) {
-      final WritableMemory sketchMem = mem.writableRegion(ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES,
-          mem.getCapacity() - ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES);
-      sketch = new DirectArrayOfDoublesQuickSelectSketch(sketchMem, seed);
-      union = new DirectArrayOfDoublesUnion(sketch, mem);
-
-    } else {
-      final Memory sketchMem = mem.region(ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES,
-          mem.getCapacity() - ArrayOfDoublesUnion.PREAMBLE_SIZE_BYTES);
-      sketch = new DirectArrayOfDoublesQuickSelectSketchR(sketchMem, seed);
-      union = new DirectArrayOfDoublesUnionR(sketch, mem);
-    }
-    union.theta_ = mem.getLong(ArrayOfDoublesUnion.THETA_LONG);
-    return union;
   }
 
 }
