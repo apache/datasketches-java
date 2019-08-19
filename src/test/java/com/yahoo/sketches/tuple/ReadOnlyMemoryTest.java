@@ -113,21 +113,4 @@ public class ReadOnlyMemoryTest {
     union2.update(sketch2);
   }
 
-  @Test
-  public void wrapAndTryUpdatingUnionV0_9_1() throws Exception {
-    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
-        .getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(Memory.wrap(bytes));
-    ArrayOfDoublesCompactSketch result = union2.getResult();
-    Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
-
-    boolean thrown = false;
-    try {
-      union2.reset();
-    } catch (SketchesReadOnlyException e) {
-      thrown = true;
-    }
-    Assert.assertTrue(thrown);
-  }
-
 }

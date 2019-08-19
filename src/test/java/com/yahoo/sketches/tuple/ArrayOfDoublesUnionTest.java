@@ -48,8 +48,10 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch1);
     union.update(sketch2);
-    int maxBytes = ArrayOfDoublesUnion.getMaxBytes(union.nomEntries_, union.numValues_);
-    Assert.assertEquals(maxBytes, 131104);
+    int maxBytes = ArrayOfDoublesUnion.getMaxBytes(
+        ArrayOfDoublesSetOperationBuilder.DEFAULT_NOMINAL_ENTRIES,
+        ArrayOfDoublesSetOperationBuilder.DEFAULT_NUMBER_OF_VALUES);
+    Assert.assertEquals(maxBytes, 131120); // 48 bytes preamble + 2 * nominal entries * (key size + value size)
     ArrayOfDoublesCompactSketch result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
     double[][] values = result.getValues();
@@ -198,25 +200,18 @@ public class ArrayOfDoublesUnionTest {
     }
   }
 
-  @Test
-  public void heapDeserializeV0_9_1() throws Exception {
-    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(bytes));
-    ArrayOfDoublesCompactSketch result = union2.getResult();
-    Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void noSupportHeapifyV0_9_1() throws Exception {
+    final byte[] bytes = TestUtil.readBytesFromFile(
+        getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
+    ArrayOfDoublesUnion.heapify(Memory.wrap(bytes));
+  }
 
-    union2.reset();
-    result = union2.getResult();
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertFalse(result.isEstimationMode());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getTheta(), 1.0);
-    double[][] values = result.getValues();
-    for (int i = 0; i < values.length; i++) {
-      Assert.assertEquals(values[i][0], 2.0);
-    }
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void noSupportWrapV0_9_1() throws Exception {
+    final byte[] bytes = TestUtil.readBytesFromFile(
+        getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
+    ArrayOfDoublesUnion.wrap(WritableMemory.wrap(bytes));
   }
 
   @Test
@@ -455,6 +450,67 @@ public class ArrayOfDoublesUnionTest {
     ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
     union.update(sketch);
+  }
+
+  @Test
+  public void directDruidUsageOneSketch() {
+    final WritableMemory mem = WritableMemory.wrap(new byte[1000000]);
+    new ArrayOfDoublesSetOperationBuilder().buildUnion(mem); // just set up memory to wrap later
+
+    final int n = 100000; // estimation mode
+    final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < n; i++) {
+      sketch.update(i, new double[] {1.0});
+    }
+    sketch.trim(); // pretend this is a result from a union
+
+    // as Druid wraps memory
+    ArrayOfDoublesSketches.wrapUnion(mem).update(sketch.compact(WritableMemory.wrap(new byte[1000000])));
+
+    ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
+    Assert.assertEquals(result.getEstimate(), sketch.getEstimate());
+    Assert.assertEquals(result.isEstimationMode(), sketch.isEstimationMode());
+  }
+
+  @Test
+  public void directDruidUsageTwoSketches() {
+    final WritableMemory mem = WritableMemory.wrap(new byte[1000000]);
+    new ArrayOfDoublesSetOperationBuilder().buildUnion(mem); // just set up memory to wrap later
+
+    int key = 0;
+
+    final int n1 = 100000; // estimation mode
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < n1; i++) {
+      sketch1.update(key++, new double[] {1.0});
+    }
+    // as Druid wraps memory
+    ArrayOfDoublesSketches.wrapUnion(mem).update(sketch1.compact(WritableMemory.wrap(new byte[1000000])));
+
+    final int n2 = 1000000; // estimation mode
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < n2; i++) {
+      sketch2.update(key++, new double[] {1.0});
+    }
+    // as Druid wraps memory
+    ArrayOfDoublesSketches.wrapUnion(mem).update(sketch2.compact(WritableMemory.wrap(new byte[1000000])));
+
+    // build one sketch that must be the same as union
+    key = 0; // reset to have the same keys
+    final int n = n1 + n2;
+    final ArrayOfDoublesUpdatableSketch expected = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    for (int i = 0; i < n; i++) {
+      expected.update(key++, new double[] {1.0});
+    }
+    expected.trim(); // union result is trimmed, so we need to trim this sketch for valid comparison
+
+    ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
+    Assert.assertEquals(result.getEstimate(), expected.getEstimate());
+    Assert.assertEquals(result.isEstimationMode(), expected.isEstimationMode());
+    Assert.assertEquals(result.getUpperBound(1), expected.getUpperBound(1));
+    Assert.assertEquals(result.getLowerBound(1), expected.getLowerBound(1));
+    Assert.assertEquals(result.getRetainedEntries(), expected.getRetainedEntries());
+    Assert.assertEquals(result.getNumValues(), expected.getNumValues());
   }
 
 }

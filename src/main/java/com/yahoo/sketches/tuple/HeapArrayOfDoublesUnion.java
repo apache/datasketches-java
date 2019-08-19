@@ -39,8 +39,9 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
     super(new HeapArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed));
   }
 
-  HeapArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch) {
+  HeapArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch, final long theta) {
     super(sketch);
+    theta_ = theta;
   }
 
   /**
@@ -50,14 +51,6 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
    * @return a ArrayOfDoublesUnion on the Java heap
    */
   static ArrayOfDoublesUnion heapifyUnion(final Memory mem, final long seed) {
-    final SerializerDeserializer.SketchType type = SerializerDeserializer.getSketchType(mem);
-
-    // compatibility with version 0.9.1 and lower
-    if (type == SerializerDeserializer.SketchType.ArrayOfDoublesQuickSelectSketch) {
-      final ArrayOfDoublesQuickSelectSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(mem, seed);
-      return new HeapArrayOfDoublesUnion(sketch);
-    }
-
     final byte version = mem.getByte(SERIAL_VERSION_BYTE);
     if (version != serialVersionUID) {
       throw new SketchesArgumentException("Serial version mismatch. Expected: "
@@ -67,18 +60,9 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
     SerializerDeserializer.validateType(mem.getByte(SKETCH_TYPE_BYTE),
         SerializerDeserializer.SketchType.ArrayOfDoublesUnion);
 
-    final long unionTheta = mem.getLong(THETA_LONG);
     final Memory sketchMem = mem.region(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES);
     final ArrayOfDoublesQuickSelectSketch sketch = new HeapArrayOfDoublesQuickSelectSketch(sketchMem, seed);
-    final ArrayOfDoublesUnion union = new HeapArrayOfDoublesUnion(sketch);
-    union.theta_ = unionTheta;
-    return union;
-  }
-
-  @Override
-  public void reset() {
-    sketch_ = new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, 3, 1f, numValues_, seed_);
-    theta_ = sketch_.getThetaLong();
+    return new HeapArrayOfDoublesUnion(sketch, mem.getLong(THETA_LONG));
   }
 
 }
