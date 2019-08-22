@@ -23,6 +23,7 @@ import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateLowerBou
 import static com.yahoo.sketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Common utility functions for the sampling family of sketches.
@@ -36,7 +37,6 @@ final class SamplingUtil {
    */
   private static final double DEFAULT_KAPPA = 2.0;
 
-  public static final Random rand = new Random();
 
   private SamplingUtil() {}
 
@@ -56,9 +56,9 @@ final class SamplingUtil {
   }
 
   static double nextDoubleExcludeZero() {
-    double r = rand.nextDouble();
+    double r = rand().nextDouble();
     while (r == 0.0) {
-      r = rand.nextDouble();
+      r = rand().nextDouble();
     }
     return r;
   }
@@ -77,5 +77,9 @@ final class SamplingUtil {
   static double pseudoHypergeometricLBonP(final long n, final int k, final double samplingRate) {
     final double adjustedKappa = DEFAULT_KAPPA * Math.sqrt(1 - samplingRate);
     return approximateLowerBoundOnP(n, k, adjustedKappa);
+  }
+
+  public static Random rand() {
+    return ThreadLocalRandom.current();
   }
 }

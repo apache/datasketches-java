@@ -323,8 +323,8 @@ public final class ReservoirLongsSketch {
       ++itemsSeen_;
       // prob(keep_item) < k / n = reservoirSize_ / itemsSeen_
       // so multiply to get: keep if rand * itemsSeen_ < reservoirSize_
-      if ((SamplingUtil.rand.nextDouble() * itemsSeen_) < reservoirSize_) {
-        final int newSlot = SamplingUtil.rand.nextInt(reservoirSize_);
+      if ((SamplingUtil.rand().nextDouble() * itemsSeen_) < reservoirSize_) {
+        final int newSlot = SamplingUtil.rand().nextInt(reservoirSize_);
         data_[newSlot] = item;
       }
     }

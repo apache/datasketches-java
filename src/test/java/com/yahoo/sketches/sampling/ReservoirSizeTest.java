@@ -108,7 +108,7 @@ public class ReservoirSizeTest {
     final int numIters = 100;
 
     for (int i = 0; i < numIters; ++i) {
-      final int input = SamplingUtil.rand.nextInt(maxValue) + 1;
+      final int input = SamplingUtil.rand().nextInt(maxValue) + 1;
       final int result = ReservoirSize.decodeValue(ReservoirSize.computeSize(input));
 
       // result must be no smaller than input
