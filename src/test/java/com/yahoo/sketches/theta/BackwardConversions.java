@@ -197,8 +197,8 @@ public class BackwardConversions {
     }
     if (skV3 instanceof SingleItemSketch) {
       SingleItemSketch sis = (SingleItemSketch) skV3;
-      wmem = WritableMemory.allocate(16);
-      wmem.putByte(0, (byte) 1); //preLongs
+      wmem = WritableMemory.allocate(24);
+      wmem.putByte(0, (byte) 2); //preLongs
       wmem.putByte(1, (byte) 2); //SerVer
       wmem.putByte(2, (byte) 3); //SetSketch
       byte flags = (byte) 0xA;  //NoRebuild, notEmpty, ReadOnly, LE

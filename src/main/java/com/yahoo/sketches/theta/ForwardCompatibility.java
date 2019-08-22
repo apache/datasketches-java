@@ -53,17 +53,17 @@ final class ForwardCompatibility {
    */
   static final CompactSketch heapify1to3(final Memory srcMem, final long seed) {
     final int memCap = (int) srcMem.getCapacity();
+    final int preLongs = extractPreLongs(srcMem); //always 3 for serVer 1
+    if (preLongs != 3) { //TODO Test this
+      throw new SketchesArgumentException("PreLongs must be 3 for SerVer 1: " + preLongs);
+    }
+
     final int curCount = extractCurCount(srcMem);
     final long thetaLong = extractThetaLong(srcMem);
     final boolean empty = Sketch.emptyOnCompact(curCount, thetaLong);
 
     if (empty || (memCap <= 24)) { //return empty
       return EmptyCompactSketch.getInstance();
-    }
-
-    final int preLongs = extractPreLongs(srcMem); //always 3 for serVer 1
-    if (preLongs != 3) { //TODO Test this
-      throw new SketchesArgumentException("PreLongs must be 3 for SerVer 1: " + preLongs);
     }
 
     final int reqCap = (curCount + preLongs) << 3;
@@ -112,7 +112,7 @@ final class ForwardCompatibility {
       if (curCount == 0) {
         return EmptyCompactSketch.getInstance();
       }
-      if (curCount == 1) { //TODO Test this
+      if (curCount == 1) {
         reqBytesIn = (preLongs + 1) << 3;
         validateInputSize(reqBytesIn, memCap);
         final long hash = srcMem.getLong(preLongs << 3);
@@ -134,7 +134,7 @@ final class ForwardCompatibility {
       if ((curCount == 0) && (thetaLong == Long.MAX_VALUE)) {
         return EmptyCompactSketch.getInstance();
       }
-      if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) { //TODO Test here to end
+      if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
         reqBytesIn = (preLongs + 1) << 3;
         validateInputSize(reqBytesIn, memCap);
         final long hash = srcMem.getLong(preLongs << 3);

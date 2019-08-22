@@ -125,8 +125,8 @@ public class PairwiseSetOperations {
     final int sw = (swA << 2) | swB;
     switch (sw) {
       case 5:   //skA == null/ECS;  skB == null; return EmptyCompactSketch.
-      case 6:   //skA == null/ECS;  skB == empty; return EmptyCompactSketch.
-      case 9: { //skA == empty; skB == null/ECS; return EmptyCompactSketch.
+      case 6:   //skA == null/ECS;  skB == empty; return EmptyCompactSketch. *
+      case 9: { //skA == empty; skB == null/ECS; return EmptyCompactSketch. *
         return EmptyCompactSketch.getInstance();
       }
       case 7: {  //skA == null/ECS;  skB == valid; return skB
