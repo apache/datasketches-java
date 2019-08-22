@@ -296,9 +296,8 @@ public class HeapQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setResizeFactor(X2).setNominalEntries(k).build();
     println("lgArr: "+ usk.getLgArrLongs());
 
-
     //empty
-    usk.toString(false, true, 0, false);
+    println(usk.toString(false, true, 0, false));
     boolean estimating = false;
     assertEquals(usk.getClass().getSimpleName(), "HeapQuickSelectSketch");
     double uskEst = usk.getEstimate();
@@ -319,17 +318,17 @@ public class HeapQuickSelectSketchTest {
     assertEquals(csk2.getUpperBound(2), uskUB);
     assertEquals(csk2.isEmpty(), true);
     assertEquals(csk2.isEstimationMode(), estimating);
-    assertEquals(csk2.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+    assertEquals(csk2.getClass().getSimpleName(), "EmptyCompactSketch");
 
     CompactSketch csk3 = usk.compact(true, mem2);
-    csk3.toString(false, true, 0, false);
-    csk3.toString();
+    println(csk3.toString(false, true, 0, false));
+    println(csk3.toString());
     assertEquals(csk3.getEstimate(), uskEst);
     assertEquals(csk3.getLowerBound(2), uskLB);
     assertEquals(csk3.getUpperBound(2), uskUB);
     assertEquals(csk3.isEmpty(), true);
     assertEquals(csk3.isEstimationMode(), estimating);
-    assertEquals(csk3.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+    assertEquals(csk3.getClass().getSimpleName(), "EmptyCompactSketch");
   }
 
   @Test

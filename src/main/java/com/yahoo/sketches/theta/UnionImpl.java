@@ -27,7 +27,6 @@ import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -324,11 +323,41 @@ final class UnionImpl extends Union {
 
   @Override
   public void update(final Memory skMem) {
-    //UNION Empty Rule: AND the empty states
     if (skMem == null) { return; }
     final int cap = (int)skMem.getCapacity();
+    if (cap < 16) { return; } //empty or garbage
+    if (cap == 16) {
+      final long hash = skMem.getLong(8);
+      if (hash == 0) { return; } //hash cannot be zero, must be empty
+    }
+    if (SingleItemSketch.testPre0SeedHash(skMem.getLong(0), seedHash_)) {
+      update(skMem.getLong(8));
+      return;
+    }
+
     final int fam = skMem.getByte(FAMILY_BYTE);
     final int serVer = skMem.getByte(SER_VER_BYTE);
+
+    if (serVer == 3) { //The OpenSource sketches
+      if ((fam < 1) || (fam > 3)) {
+        throw new SketchesArgumentException(
+            "Family must be Alpha, QuickSelect, or Compact: " + Family.idToFamily(fam));
+      }
+      Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
+      processVer3(skMem);
+      return;
+    }
+
+    if (serVer == 2) { //older SetSketch, which is compact and ordered
+      if (fam != 3) { //the original SetSketch
+        throw new SketchesArgumentException(
+            "Family must be old SET_SKETCH: " + Family.idToFamily(fam));
+      }
+      Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
+      processVer2(skMem);
+      return;
+    }
+
     if (serVer == 1) { //very old SetSketch, which is compact and ordered
       if (fam != 3) { //the original SetSketch
         throw new SketchesArgumentException(
@@ -336,28 +365,10 @@ final class UnionImpl extends Union {
       }
       if (cap <= 24) { return; } //empty
       processVer1(skMem);
+      return;
     }
-    else if (serVer == 2) { //older SetSketch, which is compact and ordered
-      if (fam != 3) { //the original SetSketch
-        throw new SketchesArgumentException(
-            "Family must be old SET_SKETCH: " + Family.idToFamily(fam));
-      }
-      if (cap <= 8) { return; } //empty
-      Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
-      processVer2(skMem);
-    }
-    else if (serVer == 3) { //The OpenSource sketches
-      if ((fam < 1) || (fam > 3)) {
-        throw new SketchesArgumentException(
-            "Family must be Alpha, QuickSelect, or Compact: " + Family.idToFamily(fam));
-      }
-      if (cap <= 8) { return; } //empty and Theta = 1.0
-      Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
-      processVer3(skMem);
-    }
-    else {
-      throw new SketchesArgumentException("SerVer is unknown: " + serVer);
-    }
+
+    throw new SketchesArgumentException("SerVer is unknown: " + serVer);
   }
 
   @Override
@@ -484,15 +495,9 @@ final class UnionImpl extends Union {
     final int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int curCountIn;
     final long thetaLongIn;
-    final int flags = skMem.getByte(FLAGS_BYTE) & 0X3F;
-    if (preLongs == 1) { //SingleItemSketch if not empty, Read-Only, Compact and Ordered
-      if (flags == (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK)) { //nonEmpty Singleton
-        curCountIn = 1;
-        thetaLongIn = Long.MAX_VALUE;
-        //fall through
-      } else {
-        return; //otherwise an empty sketch {1.0, 0, T}. Nothing changed
-      }
+
+    if (preLongs == 1) { //SingleItem already handled. Treat as empty
+      return;
     }
     else if (preLongs == 2) {
       //curCount has to be > 0 and exact mode. Cannot be from intersection. Not empty.

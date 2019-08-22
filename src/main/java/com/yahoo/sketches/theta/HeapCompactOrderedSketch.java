@@ -45,7 +45,7 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    */
-  private HeapCompactOrderedSketch(final long[] cache, final boolean empty, final short seedHash,
+  HeapCompactOrderedSketch(final long[] cache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong) {
     super(cache, empty, seedHash, curCount, thetaLong);
   }
@@ -62,7 +62,7 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
     checkSeedHashes(memSeedHash, computedSeedHash);
 
     final int preLongs = extractPreLongs(srcMem);
-    final boolean empty = PreambleUtil.isEmpty(srcMem);
+    final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 8
     int curCount = 0;
     long thetaLong = Long.MAX_VALUE;
     long[] cache = new long[0];
@@ -86,28 +86,6 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
   }
 
   /**
-   * Converts the given UpdateSketch to this compact form.
-   * @param sketch the given UpdateSketch
-   * @return a CompactSketch
-   */
-  static CompactSketch compact(final UpdateSketch sketch) {
-    final int curCount = sketch.getRetainedEntries(true);
-    long thetaLong = sketch.getThetaLong();
-    boolean empty = sketch.isEmpty();
-    thetaLong = thetaOnCompact(empty, curCount, thetaLong);
-    empty = emptyOnCompact(curCount, thetaLong);
-    final short seedHash = sketch.getSeedHash();
-    final long[] cache = sketch.getCache();
-    final boolean ordered = true;
-    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
-    if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
-      return new SingleItemSketch(cacheOut[0], seedHash);
-    }
-    return new HeapCompactOrderedSketch(cacheOut, empty, seedHash, curCount, thetaLong);
-  }
-
-
-  /**
    * Constructs this sketch from correct, valid arguments.
    * @param cache in compact, ordered form
    * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
@@ -120,9 +98,6 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    */
   static CompactSketch compact(final long[] cache, final boolean empty,
       final short seedHash, final int curCount, final long thetaLong) {
-    if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
-      return new SingleItemSketch(cache[0], seedHash);
-    }
     return new HeapCompactOrderedSketch(cache, empty, seedHash, curCount, thetaLong);
   }
 
@@ -132,8 +107,6 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
   public byte[] toByteArray() {
     return toByteArray(true);
   }
-
-  //restricted methods
 
   @Override
   public boolean isOrdered() {

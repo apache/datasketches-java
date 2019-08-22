@@ -20,6 +20,8 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer1;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -122,8 +124,8 @@ public class UnionImplTest {
     for (int i=0; i<k; i++) {
       sketch.update(i);
     }
-    sketch.compact(true, v3mem);
-    WritableMemory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
+    CompactSketch csk = sketch.compact(true, v3mem);
+    WritableMemory v1mem = (WritableMemory) convertSerVer3toSerVer1(csk);
 
     v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
 
@@ -139,8 +141,8 @@ public class UnionImplTest {
     for (int i=0; i<k; i++) {
       sketch.update(i);
     }
-    sketch.compact(true, v3mem);
-    WritableMemory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
+    CompactSketch csk = sketch.compact(true, v3mem);
+    WritableMemory v2mem = (WritableMemory) convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
 
     v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
 

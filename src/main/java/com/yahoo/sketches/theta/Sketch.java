@@ -24,6 +24,7 @@ import static com.yahoo.sketches.HashOperations.count;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.LS;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
+import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.Util.zeroPad;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -31,7 +32,9 @@ import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
@@ -47,8 +50,8 @@ import com.yahoo.sketches.Util;
  * @author Lee Rhodes
  */
 public abstract class Sketch {
-
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;   //Unique to Heap
+
 
   Sketch() {}
 
@@ -80,9 +83,7 @@ public abstract class Sketch {
   public static Sketch heapify(final Memory srcMem, final long seed) {
     final int serVer = srcMem.getByte(SER_VER_BYTE);
     if (serVer == 3) {
-      final byte famID = srcMem.getByte(FAMILY_BYTE);
-      final boolean ordered = (srcMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
-      return constructHeapSketch(famID, ordered, srcMem, seed);
+      return heapifyFromMemory(srcMem, seed);
     }
     if (serVer == 1) {
       return ForwardCompatibility.heapify1to3(srcMem, seed);
@@ -134,21 +135,38 @@ public abstract class Sketch {
         }
       }
       case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
-        if (serVer == 1) {
+        if (serVer == 3) {
+          final long cap = srcMem.getCapacity();
+          if (cap < 16) { //EMPTY?
+            return EmptyCompactSketch.getInstance(srcMem);
+          }
+          if (cap == 16) { //SINGLEITEM?
+            return SingleItemSketch.heapify(srcMem, seed);
+          }
+          //not empty & not singleItem, assume cap > 16
+          final int flags = srcMem.getByte(FLAGS_BYTE);
+          final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) > 0;
+          final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
+          if (!compactFlag) {
+            throw new SketchesArgumentException(
+                "Corrupted: COMPACT family sketch image must have compact flag set");
+          }
+          final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
+          if (!readOnly) {
+            throw new SketchesArgumentException(
+                "Corrupted: COMPACT family sketch image must have Read-Only flag set");
+          }
+          return orderedFlag ? DirectCompactOrderedSketch.wrapInstance(srcMem, seed)
+                : DirectCompactUnorderedSketch.wrapInstance(srcMem, seed);
+        } //end of serVer 3
+        else if (serVer == 1) {
           return ForwardCompatibility.heapify1to3(srcMem, seed);
         }
         else if (serVer == 2) {
           return ForwardCompatibility.heapify2to3(srcMem, seed);
         }
-        final int flags = srcMem.getByte(FLAGS_BYTE);
-        final boolean compact = (flags & COMPACT_FLAG_MASK) > 0; //used for corruption check
-        final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-        if (compact) {
-            return ordered ? DirectCompactOrderedSketch.wrapInstance(srcMem, seed)
-                           : DirectCompactUnorderedSketch.wrapInstance(srcMem, seed);
-        }
         throw new SketchesArgumentException(
-            "Corrupted: " + family + " family image must have compact flag set");
+            "Corrupted: Serialization Version " + serVer + " not recognized.");
       }
       default: throw new SketchesArgumentException(
           "Sketch cannot wrap family: " + family + " as a Sketch");
@@ -252,7 +270,9 @@ public abstract class Sketch {
    * of entries.
    */
   public static int getMaxCompactSketchBytes(final int numberOfEntries) {
-    return (numberOfEntries << 3) + (Family.COMPACT.getMaxPreLongs() << 3);
+    if (numberOfEntries == 0) { return 8; }
+    if (numberOfEntries == 1) { return 16; }
+    return (numberOfEntries << 3) + 24;
   }
 
   /**
@@ -623,7 +643,7 @@ public abstract class Sketch {
   }
 
   /**
-   * Instantiates a Heap Sketch from Memory.
+   * Instantiates a Heap Sketch from Memory. SerVer 1 & 2 already handled.
    * @param famID the Family ID
    * @param ordered true if the sketch is of the Compact family and ordered
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -631,15 +651,24 @@ public abstract class Sketch {
    * The seed required to instantiate a non-compact sketch.
    * @return a Sketch
    */
-  private static final Sketch constructHeapSketch(final byte famID, final boolean ordered,
-      final Memory srcMem, final long seed) {
-    final boolean compact = (srcMem.getByte(FLAGS_BYTE) & COMPACT_FLAG_MASK) != 0;
-    final Family family = idToFamily(famID);
+  private static final Sketch heapifyFromMemory(final Memory srcMem, final long seed) {
+    final byte familyID = srcMem.getByte(FAMILY_BYTE);
+    final int preLongs = PreambleUtil.extractPreLongs(srcMem);
+    final int flags = PreambleUtil.extractFlags(srcMem);
+    final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) != 0;
+    final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
+
+    final Family family = idToFamily(familyID);
+    final long cap = srcMem.getCapacity();
+    if (cap < 8) {
+      throw new SketchesArgumentException(
+          "Corrupted: valid sketch must be at least 8 bytes.");
+    }
     switch (family) {
       case ALPHA: {
-        if (compact) {
-          throw new SketchesArgumentException("Possibly Corrupted " + family
-              + " image: cannot be compact");
+        if (compactFlag) {
+          throw new SketchesArgumentException(
+              "Corrupted: ALPHA family image: cannot be compact");
         }
         return HeapAlphaSketch.heapifyInstance(srcMem, seed);
       }
@@ -647,16 +676,35 @@ public abstract class Sketch {
         return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
       }
       case COMPACT: {
-        if (!compact) {
-          throw new SketchesArgumentException("Possibly Corrupted " + family
-              + " image: must be compact");
+        if (!compactFlag) {
+          throw new SketchesArgumentException(
+              "Corrupted: COMPACT family sketch image must have compact flag set");
         }
-        return ordered ? HeapCompactOrderedSketch.heapifyInstance(srcMem, seed)
+        final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) != 0;
+        if (!readOnly) {
+          throw new SketchesArgumentException(
+              "Corrupted: COMPACT family sketch image must have Read-Only flag set");
+        }
+        final boolean empty = PreambleUtil.isEmpty(srcMem); //also checks memCap < 16
+        if (empty) { //empty flag or < 16 bytes
+          return EmptyCompactSketch.getInstance(srcMem);
+        }
+        //cap >= 16 and not emptyFlag. Note older sketches may have missing empty flag.
+        if (preLongs == 1) {
+          final short memSeedHash = (short) extractSeedHash(srcMem);
+          final short computedSeedHash = computeSeedHash(seed);
+          if ((memSeedHash == computedSeedHash) && orderedFlag) { //SINGLE ITEM
+            return SingleItemSketch.heapify(srcMem, seed);
+          } else { //EMPTY
+            return EmptyCompactSketch.getInstance(srcMem);
+          }
+        }
+        return orderedFlag ? HeapCompactOrderedSketch.heapifyInstance(srcMem, seed)
                        : HeapCompactUnorderedSketch.heapifyInstance(srcMem, seed);
-      }
+      } //end of Compact
       default: {
-        throw new SketchesArgumentException("Sketch cannot heapify family: " + family
-            + " as a Sketch");
+        throw new SketchesArgumentException(
+            "Sketch cannot heapify family: " + family + " as a Sketch");
       }
     }
   }

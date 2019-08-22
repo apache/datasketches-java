@@ -28,6 +28,8 @@ import static com.yahoo.sketches.ResizeFactor.X4;
 import static com.yahoo.sketches.ResizeFactor.X8;
 import static com.yahoo.sketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer1;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
@@ -42,6 +44,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -89,8 +92,7 @@ public class SketchTest {
         sketch.getRetainedEntries(true));
     assertEquals(compPreLongs, 2);
 
-    for (int i=k; i<(2*k); i++)
-     {
+    for (int i = k; i < (2*k); i++) {
       sketch.update(i); //go estimation mode
     }
     int curCount = sketch.getRetainedEntries(true);
@@ -108,7 +110,9 @@ public class SketchTest {
 
     for (int i=0; i<3; i++) {
       int maxCompBytes = Sketch.getMaxCompactSketchBytes(i);
-      assertEquals(maxCompBytes, (Family.COMPACT.getMaxPreLongs() << 3) + (i*8));
+      if (i == 0) { assertEquals(maxCompBytes,  8); }
+      if (i == 1) { assertEquals(maxCompBytes, 16); }
+      if (i > 1) { assertEquals(maxCompBytes, 24 + (i * 8)); } //assumes maybe estimation mode
     }
   }
 
@@ -298,17 +302,16 @@ public class SketchTest {
       sketch1.update(i);
     }
     double uest1 = sketch1.getEstimate();
-    int bytes = sketch1.getCurrentBytes(true);
-    WritableMemory v3mem = WritableMemory.wrap(new byte[bytes]);
-    sketch1.compact(true, v3mem);
 
-    Memory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
+    CompactSketch csk = sketch1.compact();
+
+    Memory v1mem = convertSerVer3toSerVer1(csk);
     Sketch csk2 = Sketch.wrap(v1mem);
     assertFalse(csk2.isDirect());
     assertFalse(csk2.hasMemory());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
 
-    Memory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
+    Memory v2mem = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
     csk2 = Sketch.wrap(v2mem);
     assertFalse(csk2.isDirect());
     assertFalse(csk2.hasMemory());
@@ -318,9 +321,11 @@ public class SketchTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
-    WritableMemory cmem = WritableMemory.wrap(new byte[8]);
+    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) + 24]);
+    WritableMemory cmem = WritableMemory.wrap(new byte[32]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
+    sketch.update(1);
+    sketch.update(2);
     assertTrue(sketch.isSameResource(mem));
     DirectCompactOrderedSketch dcos = (DirectCompactOrderedSketch) sketch.compact(true, cmem);
     assertTrue(dcos.isSameResource(cmem));

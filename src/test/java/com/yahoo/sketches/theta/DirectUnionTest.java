@@ -19,8 +19,8 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV2;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer1;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static com.yahoo.sketches.theta.HeapUnionTest.testAllCompactForms;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.SetOperation.getMaxUnionBytes;
@@ -53,12 +53,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //256
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i); //256 no overlap
     }
 
@@ -82,12 +80,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //2*k
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i); //2*k no overlap
     }
 
@@ -109,12 +105,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //256
     }
-    for (int i=0; i<u  ; i++)
-     {
+    for (int i=0; i<u  ; i++) {
       usk2.update(i); //512, 256 overlapped
     }
 
@@ -138,12 +132,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //256
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i); //256 no overlap
     }
 
@@ -172,12 +164,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //256
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i); //256 no overlap
     }
 
@@ -205,12 +195,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //2k
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i); //2k no overlap, exact
     }
 
@@ -236,12 +224,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //2k estimating
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i); //2k no overlap, exact, will force early stop
     }
 
@@ -277,12 +263,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build(); //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i); //2k estimating
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
@@ -319,12 +303,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i);  //2k estimating
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
@@ -361,12 +343,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();   //2k estimating
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(2 * k).build(); //2k exact for early stop test
 
-    for (int i=0; i<(u/2); i++)
-     {
+    for (int i=0; i<(u/2); i++) {
       usk1.update(i);  //2k estimating
     }
-    for (int i=u/2; i<u; i++)
-     {
+    for (int i=u/2; i<u; i++) {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
@@ -448,12 +428,10 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u1; i++)
-     {
+    for (int i=0; i<u1; i++) {
       usk1.update(i); //2*k
     }
-    for (int i=u1; i<totU; i++)
-     {
+    for (int i=u1; i<totU; i++) {
       usk2.update(i); //2*k + 1024 no overlap
     }
 
@@ -484,20 +462,15 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u1; i++)
-     {
+    for (int i=0; i<u1; i++) {
       usk1.update(i); //2*k
     }
-    for (int i=u1; i<totU; i++)
-     {
+    for (int i=u1; i<totU; i++) {
       usk2.update(i); //2*k + 1024 no overlap
     }
 
-    WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(true, null).toByteArray());
-    WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
-
-    Memory v1mem1 = convertSerV3toSerV1(skMem1);
-    Memory v1mem2 = convertSerV3toSerV1(skMem2);
+    Memory v1mem1 = convertSerVer3toSerVer1(usk1.compact(true, null));
+    Memory v1mem2 = convertSerVer3toSerVer1(usk2.compact(true, null));
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -520,20 +493,15 @@ public class DirectUnionTest {
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<u1; i++)
-     {
+    for (int i=0; i<u1; i++) {
       usk1.update(i); //2*k
     }
-    for (int i=u1; i<totU; i++)
-     {
+    for (int i=u1; i<totU; i++) {
       usk2.update(i); //2*k + 1024 no overlap
     }
 
-    WritableMemory skMem1 = WritableMemory.wrap(usk1.compact(true, null).toByteArray());
-    WritableMemory skMem2 = WritableMemory.wrap(usk2.compact(true, null).toByteArray());
-
-    Memory v2mem1 = convertSerV3toSerV2(skMem1);
-    Memory v2mem2 = convertSerV3toSerV2(skMem2);
+    Memory v2mem1 = convertSerVer3toSerVer2(usk1.compact(true, null), Util.DEFAULT_UPDATE_SEED);
+    Memory v2mem2 = convertSerVer3toSerVer2(usk2.compact(true, null), Util.DEFAULT_UPDATE_SEED);
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -554,7 +522,7 @@ public class DirectUnionTest {
     CompactSketch usk1c = usk1.compact(true, null);
     WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
 
-    Memory v1mem1 = convertSerV3toSerV1(v3mem1);
+    Memory v1mem1 = convertSerVer3toSerVer1(usk1c);
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -562,7 +530,7 @@ public class DirectUnionTest {
     CompactSketch cOut = union.getResult(true, null);
     assertEquals(cOut.getEstimate(), 0.0, 0.0);
 
-    Memory v2mem1 = convertSerV3toSerV2(v3mem1);
+    Memory v2mem1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED);
 
     uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
     union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
@@ -609,6 +577,8 @@ public class DirectUnionTest {
     int k = 1 << lgK;
 
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    usk1.update(1);
+    usk1.update(2);
     CompactSketch usk1c = usk1.compact(true, null);
     WritableMemory v3mem1 = WritableMemory.wrap(usk1c.toByteArray());
     //corrupt SerVer
@@ -621,7 +591,6 @@ public class DirectUnionTest {
   }
 
   @Test
-  //where the granted mem is larger than required
   public void checkEmptySerVer2and3() {
     int lgK = 12; //4096
     int k = 1 << lgK;
@@ -635,7 +604,7 @@ public class DirectUnionTest {
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
     union.update(v3mem1);
 
-    Memory v2mem1 = convertSerV3toSerV2(v3mem1);
+    Memory v2mem1 = convertSerVer3toSerVer2(usk1c, Util.DEFAULT_UPDATE_SEED);
     WritableMemory v2mem2 = WritableMemory.wrap(new byte[16]);
     v2mem1.copyTo(0, v2mem2, 0, 8);
 

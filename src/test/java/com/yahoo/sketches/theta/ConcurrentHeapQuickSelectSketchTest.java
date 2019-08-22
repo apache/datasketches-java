@@ -362,7 +362,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     //empty
     local.toString(false, true, 0, false);
     boolean estimating = false;
-    assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
+    assertTrue(local instanceof ConcurrentHeapThetaBuffer);
     double localEst = local.getEstimate();
     double localLB  = local.getLowerBound(2);
     double localUB  = local.getUpperBound(2);
@@ -381,7 +381,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk2.getUpperBound(2), localUB);
     assertEquals(csk2.isEmpty(), true);
     assertEquals(csk2.isEstimationMode(), estimating);
-    assertEquals(csk2.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+    assertTrue(csk2 instanceof EmptyCompactSketch);
 
     CompactSketch csk3 = shared.compact(true, mem2);
     csk3.toString(false, true, 0, false);
@@ -391,7 +391,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk3.getUpperBound(2), localUB);
     assertEquals(csk3.isEmpty(), true);
     assertEquals(csk3.isEstimationMode(), estimating);
-    assertEquals(csk3.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+    assertTrue(csk3 instanceof EmptyCompactSketch);
   }
 
   @Test
@@ -576,7 +576,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
 
     //empty
     local.toString(false, true, 0, false); //exercise toString
-    assertEquals(local.getClass().getSimpleName(), "ConcurrentHeapThetaBuffer");
+    assertTrue(local instanceof ConcurrentHeapThetaBuffer);
     double localEst = local.getEstimate();
     double localLB  = local.getLowerBound(2);
     double uskUB  = local.getUpperBound(2);
@@ -593,7 +593,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk2.getUpperBound(2), uskUB);
     assertTrue(csk2.isEmpty());
     assertFalse(csk2.isEstimationMode());
-    assertEquals(csk2.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+    assertTrue(csk2 instanceof EmptyCompactSketch);
 
     CompactSketch csk3 = shared.compact(true, mem2);
     csk3.toString(false, true, 0, false);
@@ -603,7 +603,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk3.getUpperBound(2), uskUB);
     assertTrue(csk3.isEmpty());
     assertFalse(csk3.isEstimationMode());
-    assertEquals(csk3.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+    assertTrue(csk2 instanceof EmptyCompactSketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

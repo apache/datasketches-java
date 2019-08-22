@@ -22,6 +22,7 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EMPTY;
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EST_HEAP;
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EST_MEMORY_UNORDERED;
+import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.EXACT;
 import static com.yahoo.sketches.theta.PairwiseCornerCasesTest.State.NULL;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
@@ -129,13 +130,13 @@ public class PairwiseCornerCasesTest {
     int stdEnt = comp.getRetainedEntries(true);
 
     CompactSketch pwComp = PairwiseSetOperations.union(cskA, cskB, k);
-    double pwEst = (pwComp != null)? pwComp.getEstimate() : -1.0;
-    boolean pwEmpty = (pwComp != null)? pwComp.isEmpty() : true;
-    double pwTheta = (pwComp != null)? pwComp.getTheta() : 1.0;
-    int pwEnt = (pwComp != null)? pwComp.getRetainedEntries(true) : 0;
+    double pwEst = pwComp.getEstimate();
+    boolean pwEmpty = pwComp.isEmpty();
+    double pwTheta = pwComp.getTheta();
+    int pwEnt = pwComp.getRetainedEntries(true);
 
     if ((stateA == NULL) && (stateB == NULL)) {
-      Assert.assertEquals(pwEst, -1.0, 0.0);
+      Assert.assertEquals(pwEst,  0.0, 0.0);
       Assert.assertEquals(stdEst, 0.0, 0.0);
     } else {
       Assert.assertEquals(pwEst, stdEst, 0.0);
@@ -155,13 +156,13 @@ public class PairwiseCornerCasesTest {
     stdEnt = comp.getRetainedEntries(true);
 
     pwComp = PairwiseSetOperations.intersect(cskA, cskB);
-    pwEst = (pwComp != null)? pwComp.getEstimate() : -1.0;
-    pwEmpty = (pwComp != null)? pwComp.isEmpty() : true;
-    pwTheta = (pwComp != null)? pwComp.getTheta() : 1.0;
-    pwEnt = (pwComp != null)? pwComp.getRetainedEntries(true) : 0;
+    pwEst = pwComp.getEstimate();
+    pwEmpty = pwComp.isEmpty();
+    pwTheta = pwComp.getTheta();
+    pwEnt = pwComp.getRetainedEntries(true);
 
     if ((stateA == NULL) && (stateB == NULL)) {
-      Assert.assertEquals(pwEst, -1.0, 0.0);
+      Assert.assertEquals(pwEst,  0.0, 0.0);
       Assert.assertEquals(stdEst, 0.0, 0.0);
     } else {
       Assert.assertEquals(pwEst, stdEst, 0.0);
@@ -179,13 +180,13 @@ public class PairwiseCornerCasesTest {
     stdEnt = comp.getRetainedEntries(true);
 
     pwComp = PairwiseSetOperations.aNotB(cskA, cskB);
-    pwEst = (pwComp != null)? pwComp.getEstimate() : -1.0;
-    pwEmpty = (pwComp != null)? pwComp.isEmpty() : true;
-    pwTheta = (pwComp != null)? pwComp.getTheta() : 1.0;
-    pwEnt = (pwComp != null)? pwComp.getRetainedEntries(true) : 0;
+    pwEst = pwComp.getEstimate();
+    pwEmpty = pwComp.isEmpty();
+    pwTheta = pwComp.getTheta();
+    pwEnt = pwComp.getRetainedEntries(true);
 
     if ((stateA == NULL) && (stateB == NULL)) {
-      Assert.assertEquals(pwEst, -1.0, 0.0);
+      Assert.assertEquals(pwEst,  0.0, 0.0);
       Assert.assertEquals(stdEst, 0.0, 0.0);
     } else {
       Assert.assertEquals(pwEst, stdEst, 0.0);
@@ -234,62 +235,65 @@ public class PairwiseCornerCasesTest {
   @Test
   public void checkSeedHash() {
     int k = 64;
-    CompactSketch skEmptyS2 =
-        Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build().compact(true, null);
-    UpdateSketch tmp = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
-    tmp.update(1);
-    CompactSketch skHeapS2 = tmp.compact(true, null);
-    CompactSketch skEmpty = generate(EMPTY, k);
+    UpdateSketch tmp1 = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
+    tmp1.update(1); tmp1.update(3);
+    CompactSketch skSmallSeed2 = tmp1.compact(true, null);
+
+    UpdateSketch tmp2 = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
+    tmp2.update(1); tmp2.update(2);
+    CompactSketch skSmallSeed2B = tmp2.compact(true, null);
+
+    CompactSketch skExact = generate(EXACT, k);
     CompactSketch skHeap = generate(EST_HEAP, 2 * k);
     //Intersect
     try {
-      PairwiseSetOperations.intersect(skEmpty, skEmptyS2);
+      PairwiseSetOperations.intersect(skExact, skSmallSeed2);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.intersect(skEmpty, skHeapS2);
+      PairwiseSetOperations.intersect(skExact, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.intersect(skHeapS2, skEmpty);
+      PairwiseSetOperations.intersect(skSmallSeed2B, skExact);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.intersect(skHeap, skHeapS2);
+      PairwiseSetOperations.intersect(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     //A NOT B
     try {
-      PairwiseSetOperations.aNotB(skEmpty, skEmptyS2);
+      PairwiseSetOperations.aNotB(skExact, skSmallSeed2);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.aNotB(skEmpty, skHeapS2);
+      PairwiseSetOperations.aNotB(skExact, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.aNotB(skHeapS2, skEmpty);
+      PairwiseSetOperations.aNotB(skSmallSeed2B, skExact);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.aNotB(skHeap, skHeapS2);
+      PairwiseSetOperations.aNotB(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     //Union
     try {
-      PairwiseSetOperations.union(skEmpty, skEmptyS2);
+      PairwiseSetOperations.union(skExact, skSmallSeed2);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.union(skEmpty, skHeapS2);
+      PairwiseSetOperations.union(skExact, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.union(skHeapS2, skEmpty);
+      PairwiseSetOperations.union(skSmallSeed2B, skExact);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
-      PairwiseSetOperations.union(skHeap, skHeapS2);
+      PairwiseSetOperations.union(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
 
@@ -401,7 +405,7 @@ public class PairwiseCornerCasesTest {
         //already null
         break;
       }
-      case EMPTY : {
+      case EMPTY : { //results in EmptyCompactSketch
         csk = Sketches.updateSketchBuilder().setNominalEntries(k).build().compact(true, null);
         break;
       }

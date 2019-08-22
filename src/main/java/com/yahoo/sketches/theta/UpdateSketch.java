@@ -22,6 +22,8 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.MIN_LG_NOM_LONGS;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
+import static com.yahoo.sketches.theta.CompactSketch.compactCache;
+import static com.yahoo.sketches.theta.CompactSketch.loadCompactMemory;
 import static com.yahoo.sketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -135,29 +137,83 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    CompactSketch sketchOut = null;
-    final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
-    switch (sw) {
-      case 0: { //dst not ordered, dstMem == null
-        sketchOut = HeapCompactUnorderedSketch.compact(this);
-        break;
+    final int curCount = this.getRetainedEntries(true);
+    long thetaLong = getThetaLong();
+    thetaLong = Sketch.thetaOnCompact(isEmpty(), curCount, thetaLong);
+    final boolean empty = Sketch.emptyOnCompact(curCount, thetaLong);
+    if (empty) {
+      final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
+      if (dstMem != null) {
+        dstMem.putByteArray(0, sk.toByteArray(), 0, 8);
       }
-      case 1: { //dst not ordered, dstMem == valid
-        sketchOut = DirectCompactUnorderedSketch.compact(this, dstMem);
-        break;
-      }
-      case 2: { //dst ordered, dstMem == null
-        sketchOut = HeapCompactOrderedSketch.compact(this);
-        break;
-      }
-      case 3: { //dst ordered, dstMem == valid
-        sketchOut = DirectCompactOrderedSketch.compact(this, dstMem);
-        break;
-      }
-      //default: //This cannot happen and cannot be tested
+      return sk;
     }
-    return sketchOut;
+    //not empty
+    if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
+      final long[] cache = getCache();
+      final long[] cacheOut = compactCache(cache, curCount, thetaLong, dstOrdered);
+      final long hash = cacheOut[0];
+      final SingleItemSketch sis = new SingleItemSketch(hash, getSeedHash());
+      if (dstMem != null) {
+        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
+      }
+      return new SingleItemSketch(hash, getSeedHash());
+    }
+    if (dstMem == null) {
+      return compactHeap(this, dstOrdered, curCount, thetaLong);
+    } else {
+      return compactDirect(this, dstMem, dstOrdered, curCount, thetaLong);
+    }
   }
+
+  /**
+   * Converts the given UpdateSketch to a compact form.
+   * EmptyCompactSketch and SingleItemSketch have already been checked.
+   * @param sketch the given UpdateSketch
+   * @param ordered true if the destination is to be ordered.
+   * @param curCount the number of retained entries.
+   * @param thetaLong the value of theta.
+   * @return a CompactSketch
+   */
+  private static CompactSketch compactHeap(final UpdateSketch sketch, final boolean ordered,
+      final int curCount, final long thetaLong) {
+    final short seedHash = sketch.getSeedHash();
+    final long[] cache = sketch.getCache();
+    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    if (ordered) {
+      return new HeapCompactOrderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
+    } else {
+      return new HeapCompactUnorderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
+    }
+  }
+
+  /**
+   * Converts the given UpdateSketch to a compact form.
+   * EmptyCompactSketch and SingleItemSketch have already been checked.
+   * @param sketch the given UpdateSketch
+   * @param dstMem the given destination Memory. This clears it before use.
+   * @param ordered true if the destination is to be ordered.
+   * @param curCount the number of retained entries.
+   * @param thetaLong the value of theta.
+   * @return a CompactSketch.
+   */
+  static CompactSketch compactDirect(final UpdateSketch sketch,
+      final WritableMemory dstMem, final boolean ordered, final int curCount, final long thetaLong) {
+    final int preLongs = computeCompactPreLongs(thetaLong, false, curCount);
+    final short seedHash = sketch.getSeedHash();
+    final long[] cache = sketch.getCache();
+    final long[] compactCache = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    if (ordered) {
+      final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
+      loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+      return new DirectCompactOrderedSketch(dstMem);
+    } else {
+      final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
+      loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+      return new DirectCompactUnorderedSketch(dstMem);
+    }
+  }
+
 
   @Override
   public boolean isCompact() {
