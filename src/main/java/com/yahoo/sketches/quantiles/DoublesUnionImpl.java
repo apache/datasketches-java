@@ -120,7 +120,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
 
   @Override
   public void update(final Memory mem) {
-    gadget_ = updateLogic(maxK_, gadget_, HeapUpdateDoublesSketch.heapifyInstance(mem));
+    gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(mem));
   }
 
   @Override
