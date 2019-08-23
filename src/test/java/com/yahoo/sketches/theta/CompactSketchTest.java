@@ -174,6 +174,16 @@ public class CompactSketchTest {
     assertEquals(testSk.getCurrentPreambleLongs(true), refSk.getCurrentPreambleLongs(true));
   }
 
+  @Test
+  public void checkDirectSingleItemSketch() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    sk.update(1);
+    int bytes = sk.getCurrentBytes(true);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    sk.compact(true, wmem);
+    Sketch csk2 = Sketch.heapify(wmem);
+    assertTrue(csk2 instanceof SingleItemSketch);
+  }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkMemTooSmall() {
@@ -220,10 +230,12 @@ public class CompactSketchTest {
   public void checkDirectCompactSingleItemSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     CompactSketch csk = sk.compact(true, WritableMemory.allocate(16));
-    assertEquals(csk.getCurrentBytes(true), 8);
+    int bytes = csk.getCurrentBytes(true);
+    assertEquals(bytes, 8);
     sk.update(1);
     csk = sk.compact(true, WritableMemory.allocate(16));
-    assertEquals(csk.getCurrentBytes(true), 16);
+    bytes = csk.getCurrentBytes(true);
+    assertEquals(bytes, 16);
     assertTrue(csk == csk.compact());
     assertTrue(csk == csk.compact(true, null));
   }
@@ -247,6 +259,16 @@ public class CompactSketchTest {
     PreambleUtil.clearEmpty(wmem); //corrupt to simulate missing empty flag
     Sketch csk = Sketch.heapify(wmem);
     assertTrue(csk instanceof EmptyCompactSketch);
+  }
+
+  @Test
+  public void checkGetCache() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().setP((float).5).build();
+    sk.update(7);
+    int bytes = sk.getCurrentBytes(true);
+    CompactSketch csk = sk.compact(true, WritableMemory.allocate(bytes));
+    long[] cache = csk.getCache();
+    assertTrue(cache.length == 0);
   }
 
   @Test

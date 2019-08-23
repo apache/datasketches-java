@@ -89,7 +89,6 @@ public final class SingleItemSketch extends CompactSketch {
     if (testPre0SeedHash(memPre0, DEFAULT_SEED_HASH)) {
       return new SingleItemSketch(mem.getLong(8));
     }
-    System.out.println("memPre0 : " + Long.toHexString(memPre0));
     final long def = ((DEFAULT_SEED_HASH << 48) | PRE0_LO6);
     throw new SketchesArgumentException("Input Memory does not match defualt Preamble. " + LS
         + "Memory Pre0   : " + Long.toHexString(memPre0) + LS

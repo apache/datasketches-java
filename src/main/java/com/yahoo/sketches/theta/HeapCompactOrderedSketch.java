@@ -63,24 +63,15 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
 
     final int preLongs = extractPreLongs(srcMem);
     final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 8
-    int curCount = 0;
     long thetaLong = Long.MAX_VALUE;
-    long[] cache = new long[0];
-
-    if (preLongs == 1) {
-      if (!empty) { //singleItem
-        return new SingleItemSketch(srcMem.getLong(8), memSeedHash);
-      }
-      //else empty
-    } else { //preLongs > 1
-      curCount = extractCurCount(srcMem);
-      cache = new long[curCount];
-      if (preLongs == 2) {
-        srcMem.getLongArray(16, cache, 0, curCount);
-      } else { //preLongs == 3
-        srcMem.getLongArray(24, cache, 0, curCount);
-        thetaLong = extractThetaLong(srcMem);
-      }
+    //preLongs == 1 handled before this method, so preLongs > 1
+    final int curCount = extractCurCount(srcMem);
+    final long[] cache = new long[curCount];
+    if (preLongs == 2) {
+      srcMem.getLongArray(16, cache, 0, curCount);
+    } else { //preLongs == 3
+      srcMem.getLongArray(24, cache, 0, curCount);
+      thetaLong = extractThetaLong(srcMem);
     }
     return new HeapCompactOrderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
   }

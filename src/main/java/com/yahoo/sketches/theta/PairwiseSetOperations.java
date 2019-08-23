@@ -110,44 +110,24 @@ public class PairwiseSetOperations {
     //Handle all corner cases with null or empty arguments
     //For backward compatibility, we must allow input empties with Theta < 1.0.
     final int swA, swB;
-    if ((skA == null) || (skA instanceof EmptyCompactSketch)) {
-      swA = 1;
-    } else {
-      checkOrdered(skA);
-      swA = skA.isEmpty() ? 2 : 3;
-    }
-    if ((skB == null) || (skB instanceof EmptyCompactSketch)) {
-      swB = 1;
-    } else {
-      checkOrdered(skB);
-      swB = skB.isEmpty() ? 2 : 3;
-    }
-    final int sw = (swA << 2) | swB;
+    swA = ((skA == null) || (skA instanceof EmptyCompactSketch)) ? 0 : 2;
+    swB = ((skB == null) || (skB instanceof EmptyCompactSketch)) ? 0 : 1;
+    final int sw = swA | swB;
     switch (sw) {
-      case 5:   //skA == null/ECS;  skB == null; return EmptyCompactSketch.
-      case 6:   //skA == null/ECS;  skB == empty; return EmptyCompactSketch. *
-      case 9: { //skA == empty; skB == null/ECS; return EmptyCompactSketch. *
+      case 0: { //skA == null/ECS;  skB == null/ECS; return EmptyCompactSketch.
         return EmptyCompactSketch.getInstance();
       }
-      case 7: {  //skA == null/ECS;  skB == valid; return skB
+      case 1: { //skA == null/ECS;  skB == valid; return skB
+        checkOrdered(skB);
         return maybeCutback(skB, k);
       }
-      case 10: { //skA == empty; skB == empty; return empty
-        seedHashesCheck(skA, skB);
-        return EmptyCompactSketch.getInstance();
-      }
-      case 11: { //skA == empty; skB == valid; return skB
-        seedHashesCheck(skA, skB);
-        return maybeCutback(skB, k);
-      }
-      case 13: { //skA == valid; skB == null/ECS; return skA
+      case 2: { //skA == valid; skB == null/ECS; return skA
+        checkOrdered(skA);
         return maybeCutback(skA, k);
       }
-      case 14: { //skA == valid; skB == empty; return skA
-        seedHashesCheck(skA, skB);
-        return maybeCutback(skA, k);
-      }
-      case 15: { //skA == valid; skB == valid; perform full union
+      case 3: { //skA == valid; skB == valid; perform full union
+        checkOrdered(skA);
+        checkOrdered(skB);
         seedHashesCheck(skA, skB);
         break;
       }
