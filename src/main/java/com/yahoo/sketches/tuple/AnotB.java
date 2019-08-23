@@ -69,7 +69,7 @@ public final class AnotB<S extends Summary> {
       keys_ = new long[noMatchSize];
       summaries_ = (S[]) Array.newInstance(a.summaries_.getClass().getComponentType(), noMatchSize);
       for (int i = 0; i < a.keys_.length; i++) {
-        if (a.keys_[i] != 0) {
+        if (a.keys_[i] != 0 && a.keys_[i] < theta_) {
           final int index = HashOperations.hashSearch(hashTable, lgHashTableSize, a.keys_[i]);
           if (index == -1) {
             keys_[count_] = a.keys_[i];

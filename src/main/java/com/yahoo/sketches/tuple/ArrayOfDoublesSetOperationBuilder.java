@@ -32,8 +32,8 @@ public class ArrayOfDoublesSetOperationBuilder {
   private int numValues_;
   private long seed_;
 
-  private static final int DEFAULT_NOMINAL_ENTRIES = 4096;
-  private static final int DEFAULT_NUMBER_OF_VALUES = 1;
+  public static final int DEFAULT_NOMINAL_ENTRIES = 4096;
+  public static final int DEFAULT_NUMBER_OF_VALUES = 1;
 
   /**
    * Creates an instance of the builder with default parameters
