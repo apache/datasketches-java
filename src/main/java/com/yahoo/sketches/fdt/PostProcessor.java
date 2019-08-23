@@ -33,6 +33,7 @@ import com.yahoo.sketches.tuple.strings.ArrayOfStringsSummary;
 /**
  * This processes the contents of a FDT sketch to extract the
  * primary keys with the most frequent unique combinations of the non-primary dimensions.
+ * The source sketch is not modified.
  *
  * @author Lee Rhodes
  */
