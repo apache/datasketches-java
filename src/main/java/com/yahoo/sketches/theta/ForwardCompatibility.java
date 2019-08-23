@@ -54,7 +54,7 @@ final class ForwardCompatibility {
   static final CompactSketch heapify1to3(final Memory srcMem, final long seed) {
     final int memCap = (int) srcMem.getCapacity();
     final int preLongs = extractPreLongs(srcMem); //always 3 for serVer 1
-    if (preLongs != 3) { //TODO Test this
+    if (preLongs != 3) {
       throw new SketchesArgumentException("PreLongs must be 3 for SerVer 1: " + preLongs);
     }
 
