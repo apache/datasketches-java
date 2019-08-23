@@ -106,6 +106,7 @@ public class PostProcessor {
     final int lgMapArrSize = Integer.numberOfTrailingZeros(mapArrSize);
 
     while (it.next()) {
+      //getSummary() is not a copy, but getValue() is
       final String[] arr = it.getSummary().getValue();
       final String priKey = getPrimaryKey(arr, priKeyIndices, sep);
       final long hash = stringHash(priKey);
