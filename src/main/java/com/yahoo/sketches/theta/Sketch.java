@@ -593,7 +593,7 @@ public abstract class Sketch {
   }
 
   /*
-   * The truth table for empty, curCount and theta on compact is as follows:
+   * The truth table for empty, curCount and theta when compacting is as follows:
    * <pre>
    * Num Theta CurCount Empty State  Comments
    *  0    1.0     0      T     OK   The Normal Empty State
@@ -607,14 +607,14 @@ public abstract class Sketch {
    *  7   <1.0    !0      F     OK   This corresponds to a sketch in estimation mode
    * </pre>
    * <p>thetaOnCompact() checks for only #4 and corrects theta.
-   * <p>emptyOnCompact() corrects for #1, 2, 6 if they occur
-   * <p>First apply thetaOnCompact() then emptyOnCompact().
+   * <p>emptyFromCountAndTheta() corrects for #1, 2, 6 if they occur
+   * <p>First apply thetaOnCompact() then emptyFromCountAndTheta().
    */
   static final long thetaOnCompact(final boolean empty, final int curCount, final long thetaLong) {
     return (empty && (curCount == 0) && (thetaLong < Long.MAX_VALUE)) ? Long.MAX_VALUE : thetaLong;
   }
 
-  static final boolean emptyOnCompact(final int curCount, final long thetaLong) {
+  static final boolean emptyFromCountAndTheta(final int curCount, final long thetaLong) {
     return ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
   }
 
@@ -652,18 +652,18 @@ public abstract class Sketch {
    * @return a Sketch
    */
   private static final Sketch heapifyFromMemory(final Memory srcMem, final long seed) {
-    final byte familyID = srcMem.getByte(FAMILY_BYTE);
-    final int preLongs = PreambleUtil.extractPreLongs(srcMem);
-    final int flags = PreambleUtil.extractFlags(srcMem);
-    final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) != 0;
-    final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
-
-    final Family family = idToFamily(familyID);
     final long cap = srcMem.getCapacity();
     if (cap < 8) {
       throw new SketchesArgumentException(
           "Corrupted: valid sketch must be at least 8 bytes.");
     }
+    final byte familyID = srcMem.getByte(FAMILY_BYTE);
+    final Family family = idToFamily(familyID);
+    final int preLongs = PreambleUtil.extractPreLongs(srcMem);
+    final int flags = PreambleUtil.extractFlags(srcMem);
+    final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) != 0;
+    final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
+
     switch (family) {
       case ALPHA: {
         if (compactFlag) {

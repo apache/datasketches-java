@@ -41,7 +41,7 @@ final class ForwardCompatibility {
    * Convert a serialization version (SerVer) 1 sketch to a SerVer 3 sketch.
    * Note: SerVer 1 sketches always have metadata-longs of 3 and are always stored
    * in a compact ordered form, but with 3 different sketch types.  All SerVer 1 sketches will
-   * be converted to a SerVer 3 sketches.
+   * be converted to a SerVer 3 sketches. There is no concept of p-sampling, no empty bit.
    *
    * @param srcMem the image of a SerVer 1 sketch
    *
@@ -60,7 +60,7 @@ final class ForwardCompatibility {
 
     final int curCount = extractCurCount(srcMem);
     final long thetaLong = extractThetaLong(srcMem);
-    final boolean empty = Sketch.emptyOnCompact(curCount, thetaLong);
+    final boolean empty = Sketch.emptyFromCountAndTheta(curCount, thetaLong);
 
     if (empty || (memCap <= 24)) { //return empty
       return EmptyCompactSketch.getInstance();
@@ -84,7 +84,7 @@ final class ForwardCompatibility {
   /**
    * Convert a serialization version (SerVer) 2 sketch to a SerVer 3 HeapCompactOrderedSketch.
    * Note: SerVer 2 sketches can have metadata-longs of 1,2 or 3 and are always stored
-   * in a compact ordered form, but with 4 different sketch types.
+   * in a compact ordered form (not as a hash table), but with 4 different sketch types.
    * @param srcMem the image of a SerVer 2 sketch
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * The seed used for building the sketch image in srcMem
@@ -105,7 +105,7 @@ final class ForwardCompatibility {
       validateInputSize(reqBytesIn, memCap);
       return EmptyCompactSketch.getInstance();
     }
-    if (preLongs == 2) { //includes pre0 + count, no theta
+    if (preLongs == 2) { //includes pre0 + count, no theta (== 1.0)
       reqBytesIn = preLongs << 3;
       validateInputSize(reqBytesIn, memCap);
       curCount = extractCurCount(srcMem);

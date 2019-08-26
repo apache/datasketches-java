@@ -140,7 +140,7 @@ public abstract class UpdateSketch extends Sketch {
     final int curCount = this.getRetainedEntries(true);
     long thetaLong = getThetaLong();
     thetaLong = Sketch.thetaOnCompact(isEmpty(), curCount, thetaLong);
-    final boolean empty = Sketch.emptyOnCompact(curCount, thetaLong);
+    final boolean empty = Sketch.emptyFromCountAndTheta(curCount, thetaLong);
     if (empty) {
       final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
       if (dstMem != null) {

@@ -26,7 +26,7 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.Sketch.emptyOnCompact;
+import static com.yahoo.sketches.theta.Sketch.emptyFromCountAndTheta;
 import static com.yahoo.sketches.theta.Sketch.thetaOnCompact;
 import static java.lang.Math.max;
 
@@ -242,7 +242,7 @@ public abstract class SetOperation {
       final short seedHash, final int curCount, long thetaLong, final boolean dstOrdered,
       final WritableMemory dstMem) {
     thetaLong = thetaOnCompact(empty, curCount, thetaLong);
-    empty = emptyOnCompact(curCount, thetaLong);
+    empty = emptyFromCountAndTheta(curCount, thetaLong);
     if (empty) {
       final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
       if (dstMem != null) {

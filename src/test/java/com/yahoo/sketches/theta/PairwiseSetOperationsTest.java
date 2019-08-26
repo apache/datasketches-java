@@ -271,6 +271,40 @@ public class PairwiseSetOperationsTest {
  }
 
  @Test
+ public void checkUnionCutbackToK() {
+   int lgK = 10;
+   int k = 1<<lgK;
+   int u = (3 * k);
+
+   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+   Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+
+   for (int i=0; i < u; i++) {
+     usk1.update(i);
+     usk2.update(i + (2 * u));
+   }
+
+   CompactSketch csk1 = usk1.compact(true, null);
+   CompactSketch csk2 = usk2.compact(true, null);
+
+   Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, k);
+   double pwEst = pwSk.getEstimate();
+
+   union.update(csk1);
+   union.update(csk2);
+   CompactSketch stdSk = union.getResult(true, null);
+   double stdEst = stdSk.getEstimate();
+
+   assertEquals(pwEst, stdEst, stdEst * .06);
+
+   usk1.reset();
+   usk2.reset();
+   union.reset();
+
+ }
+
+ @Test
  public void checkEmptyNullRules() {
    int k = 16;
    UpdateSketch uskA = UpdateSketch.builder().setNominalEntries(k).build();

@@ -32,10 +32,12 @@ import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVe
 import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
+import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static com.yahoo.sketches.theta.Sketch.getMaxCompactSketchBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -346,6 +348,67 @@ public class SketchTest {
     double theta = sketch1.rebuild().getTheta();
     int count = sketch1.getCountLessThanTheta(theta);
     assertEquals(count, k);
+  }
+
+  private static WritableMemory createCompactSketchMemory(int k, int u) {
+    UpdateSketch usk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    for (int i = 0; i < u; i++) { usk.update(i); }
+    int bytes = Sketch.getMaxCompactSketchBytes(usk.getRetainedEntries(true));
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    usk.compact(true, wmem);
+    return wmem;
+  }
+
+  @Test
+  public void checkCompactFlagsOnWrap() {
+    WritableMemory wmem = createCompactSketchMemory(16, 32);
+    Sketch sk = Sketch.wrap(wmem);
+    assertTrue(sk instanceof CompactSketch);
+    int flags = PreambleUtil.extractFlags(wmem);
+
+    int flagsNoCompact = flags & ~COMPACT_FLAG_MASK;
+    PreambleUtil.insertFlags(wmem, flagsNoCompact);
+    try {
+      sk = Sketch.wrap(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
+
+    int flagsNoReadOnly = flags & ~READ_ONLY_FLAG_MASK;
+    PreambleUtil.insertFlags(wmem, flagsNoReadOnly);
+    try {
+      sk = Sketch.wrap(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
+    PreambleUtil.insertFlags(wmem, flags); //repair to original
+    PreambleUtil.insertSerVer(wmem, 5);
+    try {
+      sk = Sketch.wrap(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkCompactSizeAndFlagsOnHeapify() {
+    WritableMemory wmem = createCompactSketchMemory(16, 32);
+    Sketch sk = Sketch.heapify(wmem);
+    assertTrue(sk instanceof CompactSketch);
+    int flags = PreambleUtil.extractFlags(wmem);
+
+    int flagsNoCompact = flags & ~READ_ONLY_FLAG_MASK;
+    PreambleUtil.insertFlags(wmem, flagsNoCompact);
+    try {
+      sk = Sketch.heapify(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
+
+    wmem = WritableMemory.allocate(7);
+    PreambleUtil.insertSerVer(wmem, 3);
+    //PreambleUtil.insertFamilyID(wmem, 3);
+    try {
+      sk = Sketch.heapify(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
+
   }
 
   @Test

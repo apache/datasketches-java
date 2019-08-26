@@ -194,8 +194,8 @@ public class PairwiseSetOperations {
 
     int curCount = indexOut;
     final long[] outArr;
-    if (indexOut > k) {
-      outArr = Arrays.copyOf(outCache, k); //cutback to k
+    if (indexOut > k) { //unlikely
+      outArr = Arrays.copyOf(outCache, k); //cutback to k, just in case
       curCount = k;
     } else {
       outArr = Arrays.copyOf(outCache, curCount); //copy only valid items

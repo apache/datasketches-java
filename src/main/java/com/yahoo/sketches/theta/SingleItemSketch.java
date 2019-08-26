@@ -29,6 +29,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
@@ -44,7 +45,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   private final long[] arr = new long[2];
 
-  //use to test a candidate pre0 given a seed  TODO need?
+  //use to test a candidate pre0 given a seed
   static boolean testPre0Seed(final long candidate, final long seed) {
     final long seedHash = computeSeedHash(seed) & 0xFFFFL;
     return testPre0SeedHash(candidate, seedHash);
@@ -53,7 +54,7 @@ public final class SingleItemSketch extends CompactSketch {
   //use to test a candidate pre0 given a seedHash
   static boolean testPre0SeedHash(final long candidate, final long seedHash) {
     final long test1 = (seedHash << 48) | PRE0_LO6; //no SI bit
-    final long test2 = test1 | ((long)SINGLEITEM_FLAG_MASK << 40);
+    final long test2 = test1 | ((long)SINGLEITEM_FLAG_MASK << 40); //adds the SI bit
     final long mask = PRE0_MASK; //ignores the SI flag
     final long masked = candidate & mask;
     return (masked == test1) || (candidate == test2);
@@ -80,40 +81,34 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a Memory and assumes the DEFAULT_UPDATE_SEED.
-   * @param mem the Memory to be heapified.  It must be a least 16 bytes.
+   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and assumes the
+   * DEFAULT_UPDATE_SEED.
+   * @param srcMem the Memory to be heapified.  It must be a least 16 bytes.
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch heapify(final Memory mem) {
-    final long memPre0 = mem.getLong(0);
-    if (testPre0SeedHash(memPre0, DEFAULT_SEED_HASH)) {
-      return new SingleItemSketch(mem.getLong(8));
-    }
-    final long def = ((DEFAULT_SEED_HASH << 48) | PRE0_LO6);
-    throw new SketchesArgumentException("Input Memory does not match defualt Preamble. " + LS
-        + "Memory Pre0   : " + Long.toHexString(memPre0) + LS
-        + "default Pre0  : " + Long.toHexString(def));
+  public static SingleItemSketch heapify(final Memory srcMem) {
+    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a Memory.
+   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and a seed.
    * Checks the seed hash of the given Memory against a hash of the given seed.
-   * @param mem the Memory to be heapified
+   * @param srcMem the Memory to be heapified
    * @param seed a given hash seed
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch heapify(final Memory mem, final long seed) {
-    final long memPre0 = mem.getLong(0);
-    final short seedHashMem = mem.getShort(6);
+  public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
+    final long memPre0 = srcMem.getLong(0);
+    final short seedHashMem = srcMem.getShort(6);
     final short seedHashCk = computeSeedHash(seed);
     checkSeedHashes(seedHashMem, seedHashCk);
     if (testPre0SeedHash(memPre0, seedHashCk)) {
-      return new SingleItemSketch(mem.getLong(8), seedHashCk);
+      return new SingleItemSketch(srcMem.getLong(8), seedHashCk);
     }
     final long def = (((long)seedHashCk << 48) | PRE0_LO6);
     throw new SketchesArgumentException("Input Memory does not match required Preamble. " + LS
-        + "Memory Pre0   : " + Long.toHexString(memPre0) + LS
-        + "default Pre0  : " + Long.toHexString(def));
+        + "Memory    Pre0 : " + Long.toHexString(memPre0) + LS
+        + "Should be Pre0 : " + Long.toHexString(def));
   }
 
   //Create methods using the default seed

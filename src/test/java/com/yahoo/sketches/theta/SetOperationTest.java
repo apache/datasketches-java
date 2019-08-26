@@ -56,12 +56,10 @@ public class SetOperationTest {
     UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
 
-    for (int i=0; i<(k/2); i++)
-     {
+    for (int i=0; i<(k/2); i++) {
       usk1.update(i); //256
     }
-    for (int i=k/2; i<k; i++)
-     {
+    for (int i=k/2; i<k; i++) {
       usk2.update(i); //256 no overlap
     }
 
@@ -149,12 +147,10 @@ public class SetOperationTest {
     UpdateSketch usk1 = UpdateSketch.builder().setSeed(seed).setNominalEntries(k).build();
     UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(k/2); i++)
-     {
+    for (int i=0; i<(k/2); i++) {
       usk1.update(i); //256
     }
-    for (int i=k/2; i<k; i++)
-     {
+    for (int i=k/2; i<k; i++) {
       usk2.update(i); //256 no overlap
     }
 
@@ -177,8 +173,7 @@ public class SetOperationTest {
   public void checkIllegalSetOpHeapify() {
     int k = 64;
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++)
-     {
+    for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
     byte[] byteArray = usk1.toByteArray();
@@ -190,13 +185,36 @@ public class SetOperationTest {
   public void checkIllegalSetOpWrap() {
     int k = 64;
     UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++)
-     {
+    for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
     byte[] byteArray = usk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
     Sketches.wrapIntersection(mem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkIllegalSetOpWrap2() {
+    int k = 64;
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=0; i<k; i++) {
+      usk1.update(i); //64
+    }
+    WritableMemory wmem = WritableMemory.wrap(usk1.toByteArray());
+    PreambleUtil.insertSerVer(wmem, 2); //corrupt
+    Memory mem = wmem;
+    SetOperation.wrap(mem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkIllegalSetOpWrap3() {
+    int k = 64;
+    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=0; i<k; i++) {
+      usk1.update(i); //64
+    }
+    WritableMemory wmem = WritableMemory.wrap(usk1.toByteArray());
+    SetOperation.wrap(wmem);
   }
 
   @Test

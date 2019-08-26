@@ -28,11 +28,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
+import com.yahoo.sketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes
@@ -309,6 +311,19 @@ public class SingleItemSketchTest {
     Sketch csk2 = Sketches.heapifySketch(wmem);
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
+  }
+
+  @Test
+  public void checkSingleItemBadFlags() {
+    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    sk1.update(1);
+    WritableMemory wmem = WritableMemory.allocate(16);
+    sk1.compact(true, wmem);
+    wmem.putByte(5, (byte) 0); //corrupt flags
+    try {
+      SingleItemSketch.heapify(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
   }
 
   @Test
