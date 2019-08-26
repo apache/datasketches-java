@@ -271,64 +271,94 @@ public class PairwiseSetOperationsTest {
  }
 
  @Test
- public void checkEmptyRules() {
+ public void checkUnionCutbackToK() {
+   int lgK = 10;
+   int k = 1<<lgK;
+   int u = (3 * k);
+
+   UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+   UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+   Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
+
+   for (int i=0; i < u; i++) {
+     usk1.update(i);
+     usk2.update(i + (2 * u));
+   }
+
+   CompactSketch csk1 = usk1.compact(true, null);
+   CompactSketch csk2 = usk2.compact(true, null);
+
+   Sketch pwSk = PairwiseSetOperations.union(csk1, csk2, k);
+   double pwEst = pwSk.getEstimate();
+
+   union.update(csk1);
+   union.update(csk2);
+   CompactSketch stdSk = union.getResult(true, null);
+   double stdEst = stdSk.getEstimate();
+
+   assertEquals(pwEst, stdEst, stdEst * .06);
+
+   usk1.reset();
+   usk2.reset();
+   union.reset();
+
+ }
+
+ @Test
+ public void checkEmptyNullRules() {
    int k = 16;
    UpdateSketch uskA = UpdateSketch.builder().setNominalEntries(k).build();
    UpdateSketch uskB = UpdateSketch.builder().setNominalEntries(k).build();
-   CompactSketch cskA = uskA.compact();
-   CompactSketch cskB = uskB.compact();
+   CompactSketch cskAempty = uskA.compact();
+   CompactSketch cskBempty = uskB.compact();
+   CompactSketch cskAnull = null;
+   CompactSketch cskBnull = null;
+   uskA.update(1);
+   CompactSketch cskA1 = uskA.compact();
+
    Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
    AnotB aNotB = SetOperation.builder().buildANotB();
    Intersection inter = SetOperation.builder().buildIntersection();
-   CompactSketch cskC, cskR;
 
-   //Empty, Empty
+   checkSetOps(union, inter, aNotB, k, cskAnull, cskBnull);   //Null, Null
+   checkSetOps(union, inter, aNotB, k, cskAnull, cskBempty);  //Null, Empty
+   checkSetOps(union, inter, aNotB, k, cskAempty, cskBnull);  //Empty, Null
+   checkSetOps(union, inter, aNotB, k, cskAempty, cskBempty); //Empty, Empty
+   checkSetOps(union, inter, aNotB, k, cskA1, cskBempty);     //NotEmpty, Empty
+   checkSetOps(union, inter, aNotB, k, cskAempty, cskA1);     //Empty, NotEmpty
+ }
+
+ private static void checkSetOps(Union union, Intersection inter, AnotB aNotB, int k,
+     CompactSketch cskA, CompactSketch cskB) {
+   checkUnion(union, cskA, cskB, k);
+   checkIntersection(inter, cskA, cskB);
+   checkAnotB(aNotB, cskA, cskB);
+
+ }
+
+ private static void checkUnion(Union union, CompactSketch cskA, CompactSketch cskB, int k) {
    union.update(cskA);
    union.update(cskB);
-   cskC = union.getResult();
-   cskR = PairwiseSetOperations.union(cskA, cskB, k);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
+   CompactSketch cskU = union.getResult();
+   CompactSketch cskP = PairwiseSetOperations.union(cskA, cskB, k);
+   assertEquals(cskU.isEmpty(), cskP.isEmpty());
    union.reset();
+ }
 
+ private static void checkIntersection(Intersection inter, CompactSketch cskA, CompactSketch cskB) {
    inter.update(cskA);
    inter.update(cskB);
-   cskC = inter.getResult();
-   cskR = PairwiseSetOperations.intersect(cskA, cskB);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
+   CompactSketch cskI = inter.getResult();
+   CompactSketch cskP = PairwiseSetOperations.intersect(cskA, cskB);
+   assertEquals(cskI.isEmpty(), cskP.isEmpty());
    inter.reset();
+ }
 
+ private static void checkAnotB(AnotB aNotB, CompactSketch cskA, CompactSketch cskB) {
    aNotB.update(cskA, cskB);
-   cskC = aNotB.getResult();
-   cskR = PairwiseSetOperations.aNotB(cskA, cskB);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
-
-   //NotEmpty, Empty
-   uskA.update(1);
-   cskA = uskA.compact();
-
-   union.update(cskA);
-   union.update(cskB);
-   cskC = union.getResult();
-   cskR = PairwiseSetOperations.union(cskA, cskB, k);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
-   union.reset();
-
-   inter.update(cskA);
-   inter.update(cskB);
-   cskC = inter.getResult();
-   cskR = PairwiseSetOperations.intersect(cskA, cskB);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
-   inter.reset();
-
-   aNotB.update(cskA, cskB);
-   cskC = aNotB.getResult();
-   cskR = PairwiseSetOperations.aNotB(cskA, cskB);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
-
-   aNotB.update(cskB, cskA);  //check the reverse
-   cskC = aNotB.getResult();
-   cskR = PairwiseSetOperations.aNotB(cskB, cskA);
-   assertEquals(cskC.isEmpty(), cskR.isEmpty());
+   CompactSketch cskD = aNotB.getResult();
+   CompactSketch cskP = PairwiseSetOperations.aNotB(cskA, cskB);
+   assertEquals(cskD.isEmpty(), cskP.isEmpty());
  }
 
   @Test

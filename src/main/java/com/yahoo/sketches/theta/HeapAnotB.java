@@ -124,10 +124,24 @@ final class HeapAnotB extends AnotB {
   //restricted
 
   void compute() {
-    final int swA = (a_ == null) ? 0 : (a_.isEmpty())
-        ? 1 : (a_ instanceof UpdateSketch) ? 4 : (a_.isOrdered()) ? 3 : 2;
-    final int swB = (b_ == null) ? 0 : (b_.isEmpty()) ? 1 : (b_ instanceof UpdateSketch)
-        ? 4 : (b_.isOrdered()) ? 3 : 2;
+    final int swA = ((a_ == null) || (a_ instanceof EmptyCompactSketch))
+        ? 0
+        : (a_.isEmpty())
+          ? 1
+          : (a_ instanceof UpdateSketch)
+            ? 4
+            : (a_.isOrdered())
+              ? 3
+              : 2;
+    final int swB = ((b_ == null) || (b_ instanceof EmptyCompactSketch))
+        ? 0
+        : (b_.isEmpty())
+          ? 1
+          : (b_ instanceof UpdateSketch)
+            ? 4
+            : (b_.isOrdered())
+              ? 3
+              : 2;
     final int sw = (swA * 8) | swB;
 
     //  NOTES:

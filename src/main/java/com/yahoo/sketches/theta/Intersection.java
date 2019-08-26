@@ -38,7 +38,11 @@ public abstract class Intersection extends SetOperation {
    * Gets the result of this operation as a CompactSketch of the chosen form.
    * The update method must have been called at least once, otherwise an exception will be
    * thrown. This is because a virgin Intersection object represents the Universal Set,
-   * which would have an infinite number of values.
+   * which has an infinite number of values.
+   *
+   * <p>Note that presenting an intersection with an empty or null sketch sets the internal
+   * state of the intersection to empty = true, and current count = 0. This is consistent with
+   * the mathematical definition of the intersection of any set with the null set is always null.</p>
    *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>

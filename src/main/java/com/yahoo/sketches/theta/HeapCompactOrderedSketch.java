@@ -45,7 +45,7 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    */
-  private HeapCompactOrderedSketch(final long[] cache, final boolean empty, final short seedHash,
+  HeapCompactOrderedSketch(final long[] cache, final boolean empty, final short seedHash,
       final int curCount, final long thetaLong) {
     super(cache, empty, seedHash, curCount, thetaLong);
   }
@@ -62,50 +62,19 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
     checkSeedHashes(memSeedHash, computedSeedHash);
 
     final int preLongs = extractPreLongs(srcMem);
-    final boolean empty = PreambleUtil.isEmpty(srcMem);
-    int curCount = 0;
+    final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 8
     long thetaLong = Long.MAX_VALUE;
-    long[] cache = new long[0];
-
-    if (preLongs == 1) {
-      if (!empty) { //singleItem
-        return new SingleItemSketch(srcMem.getLong(8), memSeedHash);
-      }
-      //else empty
-    } else { //preLongs > 1
-      curCount = extractCurCount(srcMem);
-      cache = new long[curCount];
-      if (preLongs == 2) {
-        srcMem.getLongArray(16, cache, 0, curCount);
-      } else { //preLongs == 3
-        srcMem.getLongArray(24, cache, 0, curCount);
-        thetaLong = extractThetaLong(srcMem);
-      }
+    //preLongs == 1 handled before this method, so preLongs > 1
+    final int curCount = extractCurCount(srcMem);
+    final long[] cache = new long[curCount];
+    if (preLongs == 2) {
+      srcMem.getLongArray(16, cache, 0, curCount);
+    } else { //preLongs == 3
+      srcMem.getLongArray(24, cache, 0, curCount);
+      thetaLong = extractThetaLong(srcMem);
     }
     return new HeapCompactOrderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
   }
-
-  /**
-   * Converts the given UpdateSketch to this compact form.
-   * @param sketch the given UpdateSketch
-   * @return a CompactSketch
-   */
-  static CompactSketch compact(final UpdateSketch sketch) {
-    final int curCount = sketch.getRetainedEntries(true);
-    long thetaLong = sketch.getThetaLong();
-    boolean empty = sketch.isEmpty();
-    thetaLong = thetaOnCompact(empty, curCount, thetaLong);
-    empty = emptyOnCompact(curCount, thetaLong);
-    final short seedHash = sketch.getSeedHash();
-    final long[] cache = sketch.getCache();
-    final boolean ordered = true;
-    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
-    if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
-      return new SingleItemSketch(cacheOut[0], seedHash);
-    }
-    return new HeapCompactOrderedSketch(cacheOut, empty, seedHash, curCount, thetaLong);
-  }
-
 
   /**
    * Constructs this sketch from correct, valid arguments.
@@ -120,9 +89,6 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    */
   static CompactSketch compact(final long[] cache, final boolean empty,
       final short seedHash, final int curCount, final long thetaLong) {
-    if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
-      return new SingleItemSketch(cache[0], seedHash);
-    }
     return new HeapCompactOrderedSketch(cache, empty, seedHash, curCount, thetaLong);
   }
 
@@ -132,8 +98,6 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
   public byte[] toByteArray() {
     return toByteArray(true);
   }
-
-  //restricted methods
 
   @Override
   public boolean isOrdered() {

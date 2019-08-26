@@ -22,19 +22,19 @@ package com.yahoo.sketches.theta;
 import static com.yahoo.sketches.QuickSelect.selectExcludingZeros;
 import static com.yahoo.sketches.theta.CompactSketch.compactCache;
 import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
-import static com.yahoo.sketches.theta.PreambleUtil.SEED_HASH_SHORT;
-import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.UNION_THETA_LONG;
 import static com.yahoo.sketches.theta.PreambleUtil.clearEmpty;
+import static com.yahoo.sketches.theta.PreambleUtil.extractCurCount;
 import static com.yahoo.sketches.theta.PreambleUtil.extractFamilyID;
+import static com.yahoo.sketches.theta.PreambleUtil.extractFlags;
+import static com.yahoo.sketches.theta.PreambleUtil.extractLgArrLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractPreLongs;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSeedHash;
+import static com.yahoo.sketches.theta.PreambleUtil.extractSerVer;
+import static com.yahoo.sketches.theta.PreambleUtil.extractThetaLong;
 import static com.yahoo.sketches.theta.PreambleUtil.extractUnionThetaLong;
 import static com.yahoo.sketches.theta.PreambleUtil.insertUnionThetaLong;
 import static java.lang.Math.min;
@@ -324,39 +324,178 @@ final class UnionImpl extends Union {
 
   @Override
   public void update(final Memory skMem) {
-    //UNION Empty Rule: AND the empty states
     if (skMem == null) { return; }
-    final int cap = (int)skMem.getCapacity();
-    final int fam = skMem.getByte(FAMILY_BYTE);
-    final int serVer = skMem.getByte(SER_VER_BYTE);
-    if (serVer == 1) { //very old SetSketch, which is compact and ordered
-      if (fam != 3) { //the original SetSketch
-        throw new SketchesArgumentException(
-            "Family must be old SET_SKETCH: " + Family.idToFamily(fam));
-      }
-      if (cap <= 24) { return; } //empty
-      processVer1(skMem);
-    }
-    else if (serVer == 2) { //older SetSketch, which is compact and ordered
-      if (fam != 3) { //the original SetSketch
-        throw new SketchesArgumentException(
-            "Family must be old SET_SKETCH: " + Family.idToFamily(fam));
-      }
-      if (cap <= 8) { return; } //empty
-      Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
-      processVer2(skMem);
-    }
-    else if (serVer == 3) { //The OpenSource sketches
+    final int cap = (int) skMem.getCapacity();
+    if (cap < 16) { return; } //empty or garbage
+    final int serVer = extractSerVer(skMem);
+    final int fam = extractFamilyID(skMem);
+
+    if (serVer == 3) { //The OpenSource sketches (Aug 4, 2015)
       if ((fam < 1) || (fam > 3)) {
         throw new SketchesArgumentException(
             "Family must be Alpha, QuickSelect, or Compact: " + Family.idToFamily(fam));
       }
-      if (cap <= 8) { return; } //empty and Theta = 1.0
-      Util.checkSeedHashes(seedHash_, skMem.getShort(SEED_HASH_SHORT));
       processVer3(skMem);
+      return;
     }
-    else {
-      throw new SketchesArgumentException("SerVer is unknown: " + serVer);
+
+    if (fam != 3) { //In older sketches this family was called the SetSketch
+      throw new SketchesArgumentException(
+          "Family must be old SET_SKETCH (now COMPACT) = 3: " + Family.idToFamily(fam));
+    }
+
+    if (serVer == 2) { //older Sketch, which is compact and ordered
+      Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
+      processVer2(skMem);
+      return;
+    }
+
+    if (serVer == 1) { //much older Sketch, which is compact and ordered
+      processVer1(skMem, cap);
+      return;
+    }
+
+    throw new SketchesArgumentException("SerVer is unknown: " + serVer);
+  }
+
+  //Has seedHash, p, could have 0 entries & theta < 1.0,
+  //could be unordered, ordered, compact, or not compact, size >= 16,
+  //could be Alpha, QuickSelect, or Compact.
+  private void processVer3(final Memory skMem) {
+    final int preLongs = extractPreLongs(skMem);
+
+    if (preLongs == 1) { //we know cap >= 16
+      //This test requires compact, ordered, notEmpty, ReadOnly, LE, seedHash is OK;
+      // OR the above and the SI bit is set
+      if (SingleItemSketch.testPre0SeedHash(skMem.getLong(0), seedHash_)) {
+        final long hash = skMem.getLong(8);
+        update(hash); //a hash < 1 will be rejected later
+        return;
+      }
+      return; //empty
+    }
+
+    Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
+
+    final int curCountIn;
+    final long thetaLongIn;
+
+    if (preLongs == 2) { //exact mode
+      curCountIn = extractCurCount(skMem);
+      if (curCountIn == 0) { return; } //should be > 0, but if it is return empty anyway.
+      thetaLongIn = Long.MAX_VALUE;
+    }
+
+    else { //prelongs == 3
+      //curCount may be 0 (e.g., from intersection); but sketch cannot be empty.
+      curCountIn = extractCurCount(skMem);
+      thetaLongIn = extractThetaLong(skMem);
+    }
+
+    unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //theta rule
+    unionEmpty_ = false;
+    final int flags = extractFlags(skMem);
+    final boolean ordered = (flags & ORDERED_FLAG_MASK) != 0;
+    if (ordered) { //must be compact
+
+      for (int i = 0; i < curCountIn; i++ ) {
+        final int offsetBytes = (preLongs + i) << 3;
+        final long hashIn = skMem.getLong(offsetBytes);
+        if (hashIn >= unionThetaLong_) { break; } // "early stop"
+        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+      }
+    }
+
+    else { //not-ordered, could be compact or hash-table form
+      final boolean compact = (flags & COMPACT_FLAG_MASK) != 0;
+      final int size = (compact) ? curCountIn : 1 << extractLgArrLongs(skMem);
+
+      for (int i = 0; i < size; i++ ) {
+        final int offsetBytes = (preLongs + i) << 3;
+        final long hashIn = skMem.getLong(offsetBytes);
+        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; }
+        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+      }
+    }
+
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
+
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
+      PreambleUtil.clearEmpty(wmem);
+    }
+  }
+
+  //has seedHash and p, could have 0 entries & theta,
+  // can only be compact, ordered, size >= 8
+  private void processVer2(final Memory skMem) {
+    final int preLongs = extractPreLongs(skMem);
+
+    if (preLongs == 1) { //does not change anything, return empty
+      return;
+    }
+
+    Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
+
+    final int curCountIn;
+    final long thetaLongIn;
+
+    if (preLongs == 2) { //exact mode, not empty, cannot be a set operation
+      curCountIn = extractCurCount(skMem);
+      if (curCountIn == 0) { return; } //should be > 0, but if it is return empty anyway.
+      thetaLongIn = Long.MAX_VALUE;
+    }
+
+    else { //prelongs == 3
+      //curCount may be 0 (e.g., from intersection); but sketch cannot be empty.
+      curCountIn = extractCurCount(skMem);
+      thetaLongIn = extractThetaLong(skMem);
+    }
+
+    unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //Theta rule
+    unionEmpty_ = false;
+
+    for (int i = 0; i < curCountIn; i++ ) {
+      final int offsetBytes = (preLongs + i) << 3;
+      final long hashIn = skMem.getLong(offsetBytes);
+      if (hashIn >= unionThetaLong_) { break; } // "early stop"
+      gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+    }
+
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
+
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
+      PreambleUtil.clearEmpty(wmem);
+    }
+  }
+
+  //no seedHash, assumes given seed is correct. No p, no empty flag, no concept of direct
+  // can only be compact, ordered, size > 24
+  private void processVer1(final Memory skMem, final int cap) {
+    final long thetaLongIn = skMem.getLong(THETA_LONG);
+    final int curCountIn = extractCurCount(skMem);
+    if ((cap <= 24) || ((curCountIn == 0) && (unionThetaLong_ == Long.MAX_VALUE))) {
+      return; //empty
+    }
+
+    unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //Theta rule
+    unionEmpty_ = false;
+
+    final int preLongs = 3;
+    for (int i = 0; i < curCountIn; i++ ) {
+      final int offsetBytes = (preLongs + i) << 3;
+      final long hashIn = skMem.getLong(offsetBytes);
+      if (hashIn >= unionThetaLong_) { break; } // "early stop"
+      gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
+    }
+    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule
+    if (gadget_.hasMemory()) {
+      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
+      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
+      PreambleUtil.clearEmpty(wmem);
     }
   }
 
@@ -420,117 +559,6 @@ final class UnionImpl extends Union {
   @Override
   boolean isEmpty() {
     return gadget_.isEmpty() && unionEmpty_;
-  }
-
-  //no seedHash, assumes given seed is correct. No p, no empty flag, no concept of direct
-  // can only be compact, ordered, size > 24
-  private void processVer1(final Memory skMem) {
-    final long thetaLongIn = skMem.getLong(THETA_LONG);
-    final int curCountIn = skMem.getInt(RETAINED_ENTRIES_INT);
-    unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //Theta rule
-    final boolean emptyIn = (curCountIn == 0) && (unionThetaLong_ == Long.MAX_VALUE);
-    if (emptyIn) { return; }
-    unionEmpty_ = false;
-
-    final int preLongs = 3;
-    for (int i = 0; i < curCountIn; i++ ) {
-      final int offsetBytes = (preLongs + i) << 3;
-      final long hashIn = skMem.getLong(offsetBytes);
-      if (hashIn >= unionThetaLong_) { break; } // "early stop"
-      gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-    }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //Theta rule
-    if (gadget_.hasMemory()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      PreambleUtil.clearEmpty(wmem);
-    }
-  }
-
-  //has seedHash and p, could have 0 entries & theta,
-  // can only be compact, ordered, size >= 8
-  private void processVer2(final Memory skMem) {
-    final int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int curCount = skMem.getInt(RETAINED_ENTRIES_INT);
-    final long thetaLongIn;
-    if (preLongs == 1) { //does not change anything {1.0, 0, T}
-      return;
-    }
-    if (preLongs == 2) { //exact mode, not empty
-      assert curCount > 0;
-      thetaLongIn = Long.MAX_VALUE;
-    } else { //prelongs == 3, curCount may be 0 (e.g., from intersection), not empty
-      thetaLongIn = skMem.getLong(THETA_LONG);
-    }
-    unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //Theta rule
-    unionEmpty_ = false;
-    for (int i = 0; i < curCount; i++ ) {
-      final int offsetBytes = (preLongs + i) << 3;
-      final long hashIn = skMem.getLong(offsetBytes);
-      if (hashIn >= unionThetaLong_) { break; } // "early stop"
-      gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-    }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong());
-    if (gadget_.hasMemory()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      PreambleUtil.clearEmpty(wmem);
-    }
-  }
-
-  //has seedHash, p, could have 0 entries & theta,
-  // could be unordered, ordered, compact, or not, size >= 8
-  private void processVer3(final Memory skMem) {
-    final int preLongs = skMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int curCountIn;
-    final long thetaLongIn;
-    final int flags = skMem.getByte(FLAGS_BYTE) & 0X3F;
-    if (preLongs == 1) { //SingleItemSketch if not empty, Read-Only, Compact and Ordered
-      if (flags == (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK)) { //nonEmpty Singleton
-        curCountIn = 1;
-        thetaLongIn = Long.MAX_VALUE;
-        //fall through
-      } else {
-        return; //otherwise an empty sketch {1.0, 0, T}. Nothing changed
-      }
-    }
-    else if (preLongs == 2) {
-      //curCount has to be > 0 and exact mode. Cannot be from intersection. Not empty.
-      curCountIn = skMem.getInt(RETAINED_ENTRIES_INT);
-      assert curCountIn > 0;
-      thetaLongIn = Long.MAX_VALUE;
-    }
-    else { //prelongs == 3, curCount may be 0 (e.g., from intersection), but not empty.
-      curCountIn = skMem.getInt(RETAINED_ENTRIES_INT);
-      thetaLongIn = skMem.getLong(THETA_LONG);
-    }
-    unionThetaLong_ = min(min(unionThetaLong_, thetaLongIn), gadget_.getThetaLong()); //theta rule
-    unionEmpty_ = false;
-    final boolean ordered = (skMem.getByte(FLAGS_BYTE) & ORDERED_FLAG_MASK) != 0;
-    if (ordered) { //must be compact
-      for (int i = 0; i < curCountIn; i++ ) {
-        final int offsetBytes = (preLongs + i) << 3;
-        final long hashIn = skMem.getLong(offsetBytes);
-        if (hashIn >= unionThetaLong_) { break; } // "early stop"
-        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-      }
-    }
-    else { //not-ordered, could be compact or hash-table form
-      final boolean compact = (skMem.getByte(FLAGS_BYTE) & COMPACT_FLAG_MASK) != 0;
-      final int size = (compact) ? curCountIn : 1 << skMem.getByte(LG_ARR_LONGS_BYTE);
-      for (int i = 0; i < size; i++ ) {
-        final int offsetBytes = (preLongs + i) << 3;
-        final long hashIn = skMem.getLong(offsetBytes);
-        if ((hashIn <= 0L) || (hashIn >= unionThetaLong_)) { continue; }
-        gadget_.hashUpdate(hashIn); //backdoor update, hash function is bypassed
-      }
-    }
-    unionThetaLong_ = min(unionThetaLong_, gadget_.getThetaLong()); //sync thetaLongs
-    if (gadget_.hasMemory()) {
-      final WritableMemory wmem = (WritableMemory)gadget_.getMemory();
-      PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
-      PreambleUtil.clearEmpty(wmem);
-    }
   }
 
 }

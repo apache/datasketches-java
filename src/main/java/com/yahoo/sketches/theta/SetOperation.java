@@ -26,7 +26,7 @@ import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
 import static com.yahoo.sketches.Util.ceilingPowerOf2;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.SER_VER_BYTE;
-import static com.yahoo.sketches.theta.Sketch.emptyOnCompact;
+import static com.yahoo.sketches.theta.Sketch.emptyFromCountAndTheta;
 import static com.yahoo.sketches.theta.Sketch.thetaOnCompact;
 import static java.lang.Math.max;
 
@@ -242,34 +242,38 @@ public abstract class SetOperation {
       final short seedHash, final int curCount, long thetaLong, final boolean dstOrdered,
       final WritableMemory dstMem) {
     thetaLong = thetaOnCompact(empty, curCount, thetaLong);
-    empty = emptyOnCompact(curCount, thetaLong);
-
-    CompactSketch sketchOut = null;
-    final int sw = (dstOrdered ? 2 : 0) | ((dstMem != null) ? 1 : 0);
-    switch (sw) {
-      case 0: { //dst not ordered, dstMem == null
-        sketchOut = HeapCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong); //converts to SingleItem if curCount == 1
-        break;
+    empty = emptyFromCountAndTheta(curCount, thetaLong);
+    if (empty) {
+      final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
+      if (dstMem != null) {
+        dstMem.putByteArray(0, sk.toByteArray(), 0, 8);
       }
-      case 1: { //dst not ordered, dstMem == valid
-        sketchOut = DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
-        break;
-      }
-      case 2: { //dst ordered, dstMem == null
-        sketchOut = HeapCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong); //converts to SingleItem format if curCount == 1
-        break;
-      }
-      case 3: { //dst ordered, dstMem == valid
-        sketchOut = DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
-        break;
-      }
-      //default: //This cannot happen and cannot be tested
+      return sk;
     }
-    return sketchOut;
+    if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
+      final SingleItemSketch sis = new SingleItemSketch(compactCache[0], seedHash);
+      if ((dstMem != null) && (dstMem.getCapacity() >= 16)) {
+        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
+      }
+      return sis;
+    }
+    if (dstMem == null) {
+      if (dstOrdered) {
+        return HeapCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong); //converts to SingleItem format if curCount == 1
+      } else {
+        return HeapCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong); //converts to SingleItem if curCount == 1
+      }
+    } else {
+      if (dstOrdered) {
+        return DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
+      } else {
+        return DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
+            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
+      }
+    }
   }
 
   /**

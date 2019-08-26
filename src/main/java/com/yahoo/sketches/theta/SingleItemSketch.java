@@ -23,69 +23,92 @@ import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
 import static com.yahoo.sketches.Util.checkSeedHashes;
 import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
-import static com.yahoo.sketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static com.yahoo.sketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static com.yahoo.sketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static com.yahoo.sketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
+import com.yahoo.sketches.Util;
 
 /**
  * @author Lee Rhodes
  */
 public final class SingleItemSketch extends CompactSketch {
-  private static final long FLAGS =
-      (READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK  | ORDERED_FLAG_MASK) & 0xFFL;
-  private static final long LO6BYTES = (FLAGS << 40) | (3L << 16) | (3L << 8) | 1L;
   private static final long DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED) & 0xFFFFL;
-  private static final long DEFAULT_PRE0 =  (DEFAULT_SEED_HASH << 48) | LO6BYTES;
+  private static final String LS = System.getProperty("line.separator");
+
+  //For backward compatibility, a candidate pre0 long must have Flags= compact, read-only, ordered,
+  //  empty=0; COMPACT-Family=3, SerVer=3, PreLongs=1, plus the relevant seedHash.
+  private static final long PRE0_LO6 =  0X00_00_1A_00_00_03_03_01L; //no SI flag, requires not empty
+  private static final long PRE0_MASK = 0XFF_FF_DF_FF_FF_FF_FF_FFL; //removes SI flag
 
   private final long[] arr = new long[2];
 
-  private SingleItemSketch(final long hash) {
-    arr[0] = DEFAULT_PRE0;
-    arr[1] = hash;
-  }
-
-  private SingleItemSketch(final long hash, final long seed) {
+  //use to test a candidate pre0 given a seed
+  static boolean testPre0Seed(final long candidate, final long seed) {
     final long seedHash = computeSeedHash(seed) & 0xFFFFL;
-    arr[0] = (seedHash << 48) | LO6BYTES;
+    return testPre0SeedHash(candidate, seedHash);
+  }
+
+  //use to test a candidate pre0 given a seedHash
+  static boolean testPre0SeedHash(final long candidate, final long seedHash) {
+    final long test1 = (seedHash << 48) | PRE0_LO6; //no SI bit
+    final long test2 = test1 | ((long)SINGLEITEM_FLAG_MASK << 40); //adds the SI bit
+    final long mask = PRE0_MASK; //ignores the SI flag
+    final long masked = candidate & mask;
+    return (masked == test1) || (candidate == test2);
+  }
+
+  //Internal Constructor. All checking has been done, assumes default seed
+  private SingleItemSketch(final long hash) {
+    arr[0] = (DEFAULT_SEED_HASH << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
     arr[1] = hash;
   }
 
+  //Internal Constructor.All checking has been done, give the relevant seed
+  SingleItemSketch(final long hash, final long seed) {
+    final long seedHash = computeSeedHash(seed) & 0xFFFFL;
+    arr[0] = (seedHash << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
+    arr[1] = hash;
+  }
+
+  //All checking has been done, give the relevant seed
   SingleItemSketch(final long hash, final short seedHash) {
     final long seedH = seedHash & 0xFFFFL;
-    arr[0] = (seedH << 48) | LO6BYTES;
+    arr[0] = (seedH << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
     arr[1] = hash;
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a Memory and assumes the DEFAULT_UPDATE_SEED.
-   * @param mem the Memory to be heapified.  It must be a least 16 bytes.
+   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and assumes the
+   * DEFAULT_UPDATE_SEED.
+   * @param srcMem the Memory to be heapified.  It must be a least 16 bytes.
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch heapify(final Memory mem) {
-    final long memPre0 = mem.getLong(0);
-    checkDefaultBytes0to7(memPre0);
-    return new SingleItemSketch(mem.getLong(8));
+  public static SingleItemSketch heapify(final Memory srcMem) {
+    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a Memory.
+   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and a seed.
    * Checks the seed hash of the given Memory against a hash of the given seed.
-   * @param mem the Memory to be heapified
+   * @param srcMem the Memory to be heapified
    * @param seed a given hash seed
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch heapify(final Memory mem, final long seed) {
-    final long memPre0 = mem.getLong(0);
-    checkDefaultBytes0to5(memPre0);
-    final short seedHashIn = mem.getShort(6);
+  public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
+    final long memPre0 = srcMem.getLong(0);
+    final short seedHashMem = srcMem.getShort(6);
     final short seedHashCk = computeSeedHash(seed);
-    checkSeedHashes(seedHashIn, seedHashCk);
-    return new SingleItemSketch(mem.getLong(8), seed);
+    checkSeedHashes(seedHashMem, seedHashCk);
+    if (testPre0SeedHash(memPre0, seedHashCk)) {
+      return new SingleItemSketch(srcMem.getLong(8), seedHashCk);
+    }
+    final long def = (((long)seedHashCk << 48) | PRE0_LO6);
+    throw new SketchesArgumentException("Input Memory does not match required Preamble. " + LS
+        + "Memory    Pre0 : " + Long.toHexString(memPre0) + LS
+        + "Should be Pre0 : " + Long.toHexString(def));
   }
 
   //Create methods using the default seed
@@ -383,21 +406,6 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return (short) (arr[0] >>> 48);
-  }
-
-  static void checkDefaultBytes0to7(final long memPre0) {
-    if (memPre0 != DEFAULT_PRE0) {
-      throw new SketchesArgumentException(
-        "Input Memory does not match defualt Preamble bytes 0 through 7.");
-    }
-  }
-
-  static void checkDefaultBytes0to5(final long memPre0) {
-    final long mask = (1L << 48) - 1L;
-    if ((memPre0 & mask) != LO6BYTES) {
-      throw new SketchesArgumentException(
-        "Input Memory does not match defualt Preamble bytes 0 through 5.");
-    }
   }
 
 }

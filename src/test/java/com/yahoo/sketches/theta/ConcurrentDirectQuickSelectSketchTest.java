@@ -438,7 +438,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk2.getUpperBound(2), localUB);
       assertTrue(csk2.isEmpty());
       assertFalse(csk2.isEstimationMode());
-      assertEquals(csk2.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+      assertTrue(csk2 instanceof EmptyCompactSketch);
 
       CompactSketch csk3 = shared.compact(true, mem2);
       csk3.toString(false, true, 0, false);
@@ -448,7 +448,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk3.getUpperBound(2), localUB);
       assertTrue(csk3.isEmpty());
       assertFalse(csk3.isEstimationMode());
-      assertEquals(csk3.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+      assertTrue(csk2 instanceof EmptyCompactSketch);
     }
   }
 

@@ -20,9 +20,7 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.REBUILD_THRESHOLD;
-import static com.yahoo.sketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static com.yahoo.sketches.theta.PreambleUtil.FAMILY_BYTE;
-import static com.yahoo.sketches.theta.PreambleUtil.FLAGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static com.yahoo.sketches.theta.PreambleUtil.LG_RESIZE_FACTOR_BIT;
@@ -148,7 +146,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean isEmpty() {
-    return (mem_.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) > 0;
+    return PreambleUtil.isEmpty(mem_);
   }
 
   @Override

@@ -41,170 +41,148 @@ public class CompactSketchTest {
   @Test
   public void checkHeapifyWrap() {
     int k = 4096;
-    checkHeapifyWrap(k, 0); //empty
-    checkHeapifyWrap(k, k); //exact
-    checkHeapifyWrap(k, 4 * k); //estimating
+    final boolean ordered = true;
+    checkHeapifyWrap(k, 0, ordered);
+    checkHeapifyWrap(k, 1, ordered);
+    checkHeapifyWrap(k, 1, !ordered);
+    checkHeapifyWrap(k, k, ordered);  //exact
+    checkHeapifyWrap(k, k, !ordered); //exact
+    checkHeapifyWrap(k, 4 * k, ordered); //estimating
+    checkHeapifyWrap(k, 4 * k, !ordered); //estimating
   }
 
   //test combinations of compact ordered/not ordered and heap/direct
-  public void checkHeapifyWrap(int k, int u) {
+  public void checkHeapifyWrap(int k, int u, boolean ordered) {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<u; i++) {
+
+    for (int i=0; i<u; i++) { //populate update sketch
       usk.update(i);
     }
-    assertFalse(usk.isDirect());
-    assertFalse(usk.hasMemory());
-    double uskEst = usk.getEstimate();
-    assertEquals(uskEst, u, 0.05 * u);
-    int uskCount = usk.getRetainedEntries(true);
-    short uskSeedHash = usk.getSeedHash();
-    long uskThetaLong = usk.getThetaLong();
 
-    CompactSketch csk, csk2, csk3;
-    byte[] byteArray;
-    boolean ordered = true;
-    boolean compact = true;
+    /****ON HEAP MEMORY -- HEAPIFY****/
+    CompactSketch refSk = usk.compact(ordered, null);
+    byte[] barr = refSk.toByteArray();
+    Memory srcMem = Memory.wrap(barr);
+    CompactSketch testSk = (CompactSketch) Sketch.heapify(srcMem);
 
-    /****/
-    csk = usk.compact( !ordered, null); //NOT ORDERED
-    assertEquals(csk.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
-    assertFalse(csk.isDirect());
-    assertFalse(csk.hasMemory());
-    assertTrue(csk.isCompact());
-    assertFalse(csk.isOrdered());
+    checkByRange(refSk, testSk, u, ordered);
 
-    assertEquals(csk.getFamily(), Family.COMPACT);
-    //println("Ord: "+(!ordered)+", Mem: "+"Null");
-    //println(csk.toString(true, true, 8, true));
-    //println(PreambleUtil.toString(byteArray));
+    /**Via byte[]**/
+    byte[] byteArray = refSk.toByteArray();
+    Memory heapROMem = Memory.wrap(byteArray);
+    testSk = (CompactSketch)Sketch.heapify(heapROMem);
 
-    //put image in memory, check heapify
-    Memory srcMem = Memory.wrap(csk.toByteArray());
-    csk2 = (CompactSketch) Sketch.heapify(srcMem);
-    //println(csk2.toString(true, true, 8, true));
-    double csk2est = csk2.getEstimate();
-    assertEquals(csk2est, uskEst, 0.0);
-    assertEquals(csk2.getRetainedEntries(true), uskCount);
-    assertEquals(csk2.getSeedHash(), uskSeedHash);
-    assertEquals(csk2.getThetaLong(), uskThetaLong);
-    assertNull(csk2.getMemory());
-    assertFalse(csk2.isOrdered()); //CHECK NOT ORDERED
-    assertNotNull(csk2.getCache());
+    checkByRange(refSk, testSk, u, ordered);
 
-    /****/
-    csk = usk.compact(  ordered, null); //ORDERED
-    assertEquals(csk.getClass().getSimpleName(), "HeapCompactOrderedSketch");
-    assertFalse(csk.isDirect());
-    assertFalse(csk.hasMemory());
-    assertTrue(csk.isCompact());
-    assertTrue(csk.isOrdered()); //CHECK ORDERED
-
-
-    Memory srcMem2 = Memory.wrap(csk.toByteArray());
-    csk3 = (CompactSketch)Sketch.heapify(srcMem2);
-    double csk3est = csk3.getEstimate();
-    assertEquals(csk3est, uskEst, 0.0);
-
-    assertEquals(csk3.getRetainedEntries(true), uskCount);
-    assertEquals(csk3.getSeedHash(), uskSeedHash);
-    assertEquals(csk3.getThetaLong(), uskThetaLong);
-    assertNull(csk3.getMemory());
-    assertFalse(csk3.isDirect());
-    assertFalse(csk3.hasMemory());
-    assertTrue(csk3.isOrdered());
-    assertNotNull(csk3.getCache());
-
-    /****/
+    /****OFF HEAP MEMORY -- WRAP****/
     //Prepare Memory for direct
-    int bytes = usk.getCurrentBytes(compact);
-    WritableMemory directMem;
-    Memory heapROMem;
+    int bytes = usk.getCurrentBytes(true); //for Compact
 
     try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes)) {
-      directMem = wdh.get();
-      //Memory heapMem;
+      WritableMemory directMem = wdh.get();
 
       /**Via CompactSketch.compact**/
-      csk = usk.compact(!ordered, directMem); //NOT ORDERED, DIRECT
-      assertEquals(csk.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
-      assertTrue(csk.hasMemory());
-      assertTrue(csk.isDirect());
-      assertTrue(csk.hasMemory());
+      refSk = usk.compact(ordered, directMem);
+      testSk = (CompactSketch)Sketch.wrap(directMem);
 
-      csk2 = (CompactSketch)Sketch.wrap(directMem);
-      assertEquals(csk2.getEstimate(), uskEst, 0.0);
-
-      assertEquals(csk2.getRetainedEntries(true), uskCount);
-      assertEquals(csk2.getSeedHash(), uskSeedHash);
-      assertEquals(csk2.getThetaLong(), uskThetaLong);
-      assertNotNull(csk2.getMemory());
-      assertTrue(csk2.isDirect());
-      assertTrue(csk2.hasMemory());
-      assertFalse(csk2.isOrdered());
-      assertNotNull(csk2.getCache());
-
-      csk = usk.compact( !ordered, directMem);
-      assertEquals(csk.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
-      assertTrue(csk.isDirect());
-      assertTrue(csk.hasMemory());
-      assertTrue(csk.isCompact());
-      assertFalse(csk.isOrdered());
-
-      /**Via byte[]**/
-      byteArray = csk.toByteArray();
-      heapROMem = Memory.wrap(byteArray);
-      csk2 = (CompactSketch)Sketch.wrap(heapROMem);
-      assertEquals(csk2.getEstimate(), uskEst, 0.0);
-
-      assertEquals(csk2.getRetainedEntries(true), uskCount);
-      assertEquals(csk2.getSeedHash(), uskSeedHash);
-      assertEquals(csk2.getThetaLong(), uskThetaLong);
-      assertNotNull(csk2.getMemory());
-      assertFalse(csk2.isOrdered());
-      assertNotNull(csk2.getCache());
-      assertFalse(csk2.isDirect());
-      assertTrue(csk2.hasMemory());
+      checkByRange(refSk, testSk, u, ordered);
 
       /**Via CompactSketch.compact**/
-      csk = usk.compact(  ordered, directMem);
-      assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
-      assertTrue(csk.isDirect());
-      assertTrue(csk.hasMemory());
-      assertTrue(csk.isCompact());
-      assertTrue(csk.isOrdered());
-
-      csk2 = (CompactSketch)Sketch.wrap(directMem);
-      assertEquals(csk2.getEstimate(), uskEst, 0.0);
-
-      assertEquals(csk2.getRetainedEntries(true), uskCount);
-      assertEquals(csk2.getSeedHash(), uskSeedHash);
-      assertEquals(csk2.getThetaLong(), uskThetaLong);
-      assertNotNull(csk2.getMemory());
-      assertTrue(csk2.isDirect());
-      assertTrue(csk2.hasMemory());
-      assertTrue(csk2.isOrdered());
-      assertNotNull(csk2.getCache());
-
-      /**Via byte[]**/
-      csk = usk.compact(  ordered, directMem);
-      assertEquals(csk.getClass().getSimpleName(), "DirectCompactOrderedSketch");
-      assertTrue(csk2.isDirect());
-      assertTrue(csk2.hasMemory());
-
-      byteArray = csk.toByteArray();
-      heapROMem = Memory.wrap(byteArray);
-      csk2 = (CompactSketch)Sketch.wrap(heapROMem);
-      assertEquals(csk2.getEstimate(), uskEst, 0.0);
-
-      assertEquals(csk2.getRetainedEntries(true), uskCount);
-      assertEquals(csk2.getSeedHash(), uskSeedHash);
-      assertEquals(csk2.getThetaLong(), uskThetaLong);
-      assertNotNull(csk2.getMemory());
-      assertTrue(csk2.isOrdered());
-      assertNotNull(csk2.getCache());
-      assertFalse(csk2.isDirect());
-      assertTrue(csk2.hasMemory());
+      testSk = (CompactSketch)Sketch.wrap(directMem);
+      checkByRange(refSk, testSk, u, ordered);
     }
+  }
+
+  private static void checkByRange(Sketch refSk, Sketch testSk, int u, boolean ordered) {
+    if (u == 0) {
+      checkEmptySketch(testSk);
+    } else if (u == 1) {
+      checkSingleItemSketch(testSk, refSk);
+    } else {
+      checkOtherCompactSketch(testSk, refSk, ordered);
+    }
+  }
+
+  private static void checkEmptySketch(Sketch testSk) {
+    assertEquals(testSk.getFamily(), Family.COMPACT);
+    assertTrue(testSk instanceof EmptyCompactSketch);
+    assertTrue(testSk.isEmpty());
+    assertTrue(testSk.isOrdered());
+    assertNull(testSk.getMemory());
+    assertFalse(testSk.isDirect());
+    assertFalse(testSk.hasMemory());
+    assertEquals(testSk.getSeedHash(), 0);
+    assertEquals(testSk.getRetainedEntries(true), 0);
+    assertEquals(testSk.getEstimate(), 0.0, 0.0);
+    assertEquals(testSk.getCurrentBytes(true), 8);
+    assertNotNull(testSk.iterator());
+    assertEquals(testSk.toByteArray().length, 8);
+    assertEquals(testSk.getCache().length, 0);
+    assertEquals(testSk.getCurrentPreambleLongs(true), 1);
+  }
+
+  private static void checkSingleItemSketch(Sketch testSk, Sketch refSk) {
+    assertEquals(testSk.getFamily(), Family.COMPACT);
+    assertTrue(testSk instanceof SingleItemSketch);
+    assertFalse(testSk.isEmpty());
+    assertTrue(testSk.isOrdered());
+    assertNull(testSk.getMemory());
+    assertFalse(testSk.isDirect());
+    assertFalse(testSk.hasMemory());
+    assertEquals(testSk.getSeedHash(), refSk.getSeedHash());
+    assertEquals(testSk.getRetainedEntries(true), 1);
+    assertEquals(testSk.getEstimate(), 1.0, 0.0);
+    assertEquals(testSk.getCurrentBytes(true), 16);
+    assertNotNull(testSk.iterator());
+    assertEquals(testSk.toByteArray().length, 16);
+    assertEquals(testSk.getCache().length, 1);
+    assertEquals(testSk.getCurrentPreambleLongs(true), 1);
+  }
+
+  private static void checkOtherCompactSketch(Sketch testSk, Sketch refSk, boolean ordered) {
+    assertEquals(testSk.getFamily(), Family.COMPACT);
+    assertFalse(testSk.isEmpty());
+    assertNotNull(testSk.iterator());
+    assertEquals(testSk.isOrdered(), ordered);
+    if (refSk.hasMemory()) {
+      assertTrue(testSk.hasMemory());
+      assertNotNull(testSk.getMemory());
+      if (ordered) {
+        assertTrue(testSk instanceof DirectCompactOrderedSketch);
+      } else {
+        assertTrue(testSk instanceof DirectCompactUnorderedSketch);
+      }
+      if (refSk.isDirect()) {
+        assertTrue(testSk.isDirect());
+      } else {
+        assertFalse(testSk.isDirect());
+      }
+    } else {
+      assertFalse(testSk.hasMemory());
+      if (ordered) {
+        assertTrue(testSk instanceof HeapCompactOrderedSketch);
+      } else {
+        assertTrue(testSk instanceof HeapCompactUnorderedSketch);
+      }
+    }
+    assertEquals(testSk.getSeedHash(), refSk.getSeedHash());
+    assertEquals(testSk.getRetainedEntries(true), refSk.getRetainedEntries());
+    assertEquals(testSk.getEstimate(), refSk.getEstimate(), 0.0);
+    assertEquals(testSk.getCurrentBytes(true), refSk.getCurrentBytes(true));
+    assertEquals(testSk.toByteArray().length, refSk.toByteArray().length);
+    assertEquals(testSk.getCache().length, refSk.getCache().length);
+    assertEquals(testSk.getCurrentPreambleLongs(true), refSk.getCurrentPreambleLongs(true));
+  }
+
+  @Test
+  public void checkDirectSingleItemSketch() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    sk.update(1);
+    int bytes = sk.getCurrentBytes(true);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    sk.compact(true, wmem);
+    Sketch csk2 = Sketch.heapify(wmem);
+    assertTrue(csk2 instanceof SingleItemSketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -252,12 +230,45 @@ public class CompactSketchTest {
   public void checkDirectCompactSingleItemSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     CompactSketch csk = sk.compact(true, WritableMemory.allocate(16));
-    assertEquals(csk.getCurrentBytes(true), 8);
+    int bytes = csk.getCurrentBytes(true);
+    assertEquals(bytes, 8);
     sk.update(1);
     csk = sk.compact(true, WritableMemory.allocate(16));
-    assertEquals(csk.getCurrentBytes(true), 16);
+    bytes = csk.getCurrentBytes(true);
+    assertEquals(bytes, 16);
     assertTrue(csk == csk.compact());
     assertTrue(csk == csk.compact(true, null));
+  }
+
+  @Test
+  public void checkHeapifySingleItemSketch() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    sk.update(1);
+    int bytes = Sketches.getMaxCompactSketchBytes(2); //1 more than needed
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    sk.compact(false, wmem);
+    Sketch csk = Sketch.heapify(wmem);
+    assertTrue(csk instanceof SingleItemSketch);
+  }
+
+  @Test
+  public void checkHeapifyEmptySketch() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    WritableMemory wmem = WritableMemory.allocate(16); //extra bytes
+    sk.compact(false, wmem);
+    PreambleUtil.clearEmpty(wmem); //corrupt to simulate missing empty flag
+    Sketch csk = Sketch.heapify(wmem);
+    assertTrue(csk instanceof EmptyCompactSketch);
+  }
+
+  @Test
+  public void checkGetCache() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().setP((float).5).build();
+    sk.update(7);
+    int bytes = sk.getCurrentBytes(true);
+    CompactSketch csk = sk.compact(true, WritableMemory.allocate(bytes));
+    long[] cache = csk.getCache();
+    assertTrue(cache.length == 0);
   }
 
   @Test

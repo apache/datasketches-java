@@ -40,14 +40,17 @@ public class PairwiseSetOperations {
   /**
    * This implements a stateless, pair-wise <i>Intersect</i> operation on sketches
    * that are either Heap-based or Direct.
-   * If both inputs are null a null is returned.
+   * If both inputs are null an EmptyCompactSketch is returned.
    *
    * @param skA The first Sketch argument.
    * @param skB The second Sketch argument.
    * @return the result as an ordered CompactSketch on the heap.
    */
   public static CompactSketch intersect(final Sketch skA, final Sketch skB) {
-    if ((skA == null) && (skB == null)) { return null; }
+    if (((skA == null) || (skA instanceof EmptyCompactSketch))
+        && ((skB == null) || (skB instanceof EmptyCompactSketch))) {
+      return EmptyCompactSketch.getInstance();
+    }
     final short seedHash = (skA == null) ? skB.getSeedHash() : skA.getSeedHash();
     final Intersection inter = new IntersectionImpl(seedHash);
     return inter.intersect(skA, skB, true, null);
@@ -56,15 +59,19 @@ public class PairwiseSetOperations {
   /**
    * This implements a stateless, pair-wise <i>A AND NOT B</i> operation on Sketches
    * that are either Heap-based or Direct.
-   * If both inputs are null a null is returned.
+   * If both inputs are null an EmptyCompactSketch is returned.
    *
    * @param skA The first Sketch argument.
    * @param skB The second Sketch argument.
    * @return the result as an ordered CompactSketch on the heap.
    */
   public static CompactSketch aNotB(final Sketch skA, final Sketch skB) {
-    if ((skA == null) && (skB == null)) { return null; }
-    final short seedHash = (skA == null) ? skB.getSeedHash() : skA.getSeedHash();
+    if (((skA == null) || (skA instanceof EmptyCompactSketch))
+        && ((skB == null) || (skB instanceof EmptyCompactSketch))) {
+      return EmptyCompactSketch.getInstance();
+    }
+    final short seedHash = ((skA == null) || (skA instanceof EmptyCompactSketch))
+        ? skB.getSeedHash() : skA.getSeedHash();
     final HeapAnotB anotb = new HeapAnotB(seedHash);
     return anotb.aNotB(skA, skB, true, null);
   }
@@ -72,7 +79,7 @@ public class PairwiseSetOperations {
   /**
    * This implements a stateless, pair-wise union operation on ordered,
    * CompactSketches that are either Heap-based or Direct.
-   * If both inputs are null a null is returned.
+   * If both inputs are null an EmptyCompactSketch is returned.
    * If one is null the other is returned, which can be either Heap-based or Direct.
    * This is equivalent to union(skA, skB, k) where k is the default of 4096.
    *
@@ -103,46 +110,24 @@ public class PairwiseSetOperations {
     //Handle all corner cases with null or empty arguments
     //For backward compatibility, we must allow input empties with Theta < 1.0.
     final int swA, swB;
-    if (skA == null) { swA = 1; } else { checkOrdered(skA); swA = skA.isEmpty() ? 2 : 3; }
-    if (skB == null) { swB = 1; } else { checkOrdered(skB); swB = skB.isEmpty() ? 2 : 3; }
-    final int sw = (swA << 2) | swB;
+    swA = ((skA == null) || (skA instanceof EmptyCompactSketch)) ? 0 : 2;
+    swB = ((skB == null) || (skB instanceof EmptyCompactSketch)) ? 0 : 1;
+    final int sw = swA | swB;
     switch (sw) {
-      case 5: {  //skA == null;  skB == null; return null. Cannot determine seedhash.
-        return null;
+      case 0: { //skA == null/ECS;  skB == null/ECS; return EmptyCompactSketch.
+        return EmptyCompactSketch.getInstance();
       }
-      case 6: {  //skA == null;  skB == empty; return empty
-        final long thetaLong = skB.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
-        return (thetaLong == Long.MAX_VALUE) ? skB
-          : HeapCompactOrderedSketch.compact(new long[0], true, skB.getSeedHash(), 0, Long.MAX_VALUE);
-      }
-      case 7: {  //skA == null;  skB == valid; return skB
+      case 1: { //skA == null/ECS;  skB == valid; return skB
+        checkOrdered(skB);
         return maybeCutback(skB, k);
       }
-      case 9: {  //skA == empty; skB == null; return empty
-        final long thetaLong = skA.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
-        return (thetaLong == Long.MAX_VALUE) ? skA
-          : HeapCompactOrderedSketch.compact(new long[0], true, skA.getSeedHash(), 0, Long.MAX_VALUE);
-      }
-      case 10: { //skA == empty; skB == empty; return empty
-        final short seedHash = seedHashesCheck(skA, skB);
-        long thetaLong = skA.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
-        if (thetaLong == Long.MAX_VALUE) { return skA; }
-        thetaLong = skB.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
-        if (thetaLong == Long.MAX_VALUE) { return skB; }
-        return HeapCompactOrderedSketch.compact(new long[0], true, seedHash, 0, Long.MAX_VALUE);
-      }
-      case 11: { //skA == empty; skB == valid; return skB
-        seedHashesCheck(skA, skB);
-        return maybeCutback(skB, k);
-      }
-      case 13: { //skA == valid; skB == null; return skA
+      case 2: { //skA == valid; skB == null/ECS; return skA
+        checkOrdered(skA);
         return maybeCutback(skA, k);
       }
-      case 14: { //skA == valid; skB == empty; return skA
-        seedHashesCheck(skA, skB);
-        return maybeCutback(skA, k);
-      }
-      case 15: { //skA == valid; skB == valid; perform full union
+      case 3: { //skA == valid; skB == valid; perform full union
+        checkOrdered(skA);
+        checkOrdered(skB);
         seedHashesCheck(skA, skB);
         break;
       }
@@ -209,8 +194,8 @@ public class PairwiseSetOperations {
 
     int curCount = indexOut;
     final long[] outArr;
-    if (indexOut > k) {
-      outArr = Arrays.copyOf(outCache, k); //cutback to k
+    if (indexOut > k) { //unlikely
+      outArr = Arrays.copyOf(outCache, k); //cutback to k, just in case
       curCount = k;
     } else {
       outArr = Arrays.copyOf(outCache, curCount); //copy only valid items

@@ -20,12 +20,15 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.Util.computeSeedHash;
 import static com.yahoo.sketches.hash.MurmurHash3.hash;
 import static com.yahoo.sketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static com.yahoo.sketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -37,6 +40,7 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public class SingleItemSketchTest {
+  final static short DEFAULT_SEED_HASH = (short) (computeSeedHash(DEFAULT_UPDATE_SEED) & 0XFFFFL);
 
   @Test
   public void check1() {
@@ -168,21 +172,22 @@ public class SingleItemSketchTest {
     assertEquals(sis.getCurrentPreambleLongs(true), 1);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkDefaultBytes0to7() {
-    SingleItemSketch.checkDefaultBytes0to7(0L);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkDefaultBytes0to5() {
-    SingleItemSketch.checkDefaultBytes0to5(0L);
+  @Test//(expectedExceptions = SketchesArgumentException.class)
+  public void testPre0Seed() {
+    long pre0_lo6 = 0X00_00_1A_00_00_03_03_01L; //no SI flag, requires not empty
+    long pre0 = ((long)DEFAULT_SEED_HASH << 48) | pre0_lo6;
+    assertTrue(SingleItemSketch.testPre0Seed(pre0, DEFAULT_UPDATE_SEED));
+    //add SI flag
+    pre0 |= ((long)SINGLEITEM_FLAG_MASK << 40);
+    assertTrue(SingleItemSketch.testPre0Seed(pre0, DEFAULT_UPDATE_SEED));
   }
 
   @Test
   public void unionWrapped() {
     Sketch sketch = SingleItemSketch.create(1);
     Union union = Sketches.setOperationBuilder().buildUnion();
-    union.update(Memory.wrap(sketch.toByteArray()));
+    Memory mem = Memory.wrap(sketch.toByteArray());
+    union.update(mem);
     assertEquals(union.getResult().getEstimate(), 1, 0);
   }
 
@@ -213,9 +218,9 @@ public class SingleItemSketchTest {
     bytes = Sketches.getMaxCompactSketchBytes(1);
     wmem = WritableMemory.wrap(new byte[bytes]);
     csk = sk1.compact(true, wmem);
-    assertFalse(csk instanceof SingleItemSketch);
+    assertTrue(csk instanceof SingleItemSketch);
     csk = sk1.compact(false, wmem);
-    assertFalse(csk instanceof SingleItemSketch);
+    assertTrue(csk instanceof SingleItemSketch);
   }
 
   @Test
@@ -301,9 +306,24 @@ public class SingleItemSketchTest {
     inter.update(sk1);
     inter.update(sk2);
     WritableMemory wmem = WritableMemory.wrap(new byte[16]);
-    inter.getResult(false, wmem);
+    CompactSketch csk = inter.getResult(false, wmem);
+    assertTrue(csk instanceof SingleItemSketch);
     Sketch csk2 = Sketches.heapifySketch(wmem);
+    assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
+  }
+
+  @Test
+  public void checkSingleItemBadFlags() {
+    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    sk1.update(1);
+    WritableMemory wmem = WritableMemory.allocate(16);
+    sk1.compact(true, wmem);
+    wmem.putByte(5, (byte) 0); //corrupt flags
+    try {
+      SingleItemSketch.heapify(wmem);
+      fail();
+    } catch (SketchesArgumentException e) { }
   }
 
   @Test

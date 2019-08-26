@@ -39,14 +39,10 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   //Sketch
-
+  //overidden by EmptyCompactSketch and SingleItemSketch
   @Override
   public int getCurrentBytes(final boolean compact) { //compact is ignored here
     final int preLongs = getCurrentPreambleLongs(true);
-    final boolean empty = PreambleUtil.isEmpty(mem_);
-    if (preLongs == 1) {
-      return (empty) ? 8 : 16; //empty or singleItem
-    }
     //preLongs > 1
     final int curCount = extractCurCount(mem_);
     return (preLongs + curCount) << 3;
@@ -57,16 +53,11 @@ abstract class DirectCompactSketch extends CompactSketch {
     return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
   }
 
+  //overidden by EmptyCompactSketch and SingleItemSketch
   @Override
   public int getRetainedEntries(final boolean valid) { //compact is always valid
-    final int preLongs = getCurrentPreambleLongs(true);
-    final boolean empty = PreambleUtil.isEmpty(mem_);
-    if (preLongs == 1) {
-      return (empty) ? 0 : 1;
-    }
     //preLongs > 1
-    final int curCount = extractCurCount(mem_);
-    return curCount;
+    return extractCurCount(mem_);
   }
 
   @Override

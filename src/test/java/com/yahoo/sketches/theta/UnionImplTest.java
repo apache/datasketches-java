@@ -20,6 +20,8 @@
 package com.yahoo.sketches.theta;
 
 import static com.yahoo.sketches.Util.DEFAULT_UPDATE_SEED;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer1;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -117,15 +119,14 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkVer1FamilyException() {
     int k = 16;
-    WritableMemory v3mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sketch.update(i);
     }
-    sketch.compact(true, v3mem);
-    WritableMemory v1mem = ForwardCompatibilityTest.convertSerV3toSerV1(v3mem);
+    CompactSketch csk = sketch.compact(true, null);
+    WritableMemory v1mem = (WritableMemory) convertSerVer3toSerVer1(csk);
 
-    v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
+    v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte) 2); //corrupt family
 
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(v1mem);
@@ -134,18 +135,26 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkVer2FamilyException() {
     int k = 16;
-    WritableMemory v3mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sketch.update(i);
     }
-    sketch.compact(true, v3mem);
-    WritableMemory v2mem = ForwardCompatibilityTest.convertSerV3toSerV2(v3mem);
+    CompactSketch csk = sketch.compact(true, null);
+    WritableMemory v2mem = (WritableMemory) convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
 
     v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
 
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(v2mem);
+  }
+
+  @Test
+  public void checkVer2EmptyHandling() {
+    int k = 16;
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    Memory mem = convertSerVer3toSerVer2(sketch.compact(), Util.DEFAULT_UPDATE_SEED);
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    union.update(mem);
   }
 
   @Test

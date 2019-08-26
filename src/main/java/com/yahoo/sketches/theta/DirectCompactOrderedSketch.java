@@ -42,7 +42,7 @@ import com.yahoo.memory.WritableMemory;
  */
 final class DirectCompactOrderedSketch extends DirectCompactSketch {
 
-  private DirectCompactOrderedSketch(final Memory mem) {
+  DirectCompactOrderedSketch(final Memory mem) {
     super(mem);
   }
 
@@ -58,29 +58,6 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
     final short computedSeedHash = computeSeedHash(seed);
     checkSeedHashes(memSeedHash, computedSeedHash);
     return new DirectCompactOrderedSketch(srcMem);
-  }
-
-  /**
-   * Converts the given UpdateSketch to this compact form.
-   * @param sketch the given UpdateSketch
-   * @param dstMem the given destination Memory. This clears it before use.
-   * @return a DirectCompactOrderedSketch.
-   */
-  static DirectCompactOrderedSketch compact(final UpdateSketch sketch, final WritableMemory dstMem) {
-    final int curCount = sketch.getRetainedEntries(true);
-    long thetaLong = sketch.getThetaLong();
-    boolean empty = sketch.isEmpty();
-    thetaLong = thetaOnCompact(empty, curCount, thetaLong);
-    empty = emptyOnCompact(curCount, thetaLong);
-    final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
-    final short seedHash = sketch.getSeedHash();
-    final long[] cache = sketch.getCache();
-    final int requiredFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
-    final byte flags = (byte) (requiredFlags | (empty ? EMPTY_FLAG_MASK : 0));
-    final boolean ordered = true;
-    final long[] compactCache = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
-    loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
-    return new DirectCompactOrderedSketch(dstMem);
   }
 
   /**

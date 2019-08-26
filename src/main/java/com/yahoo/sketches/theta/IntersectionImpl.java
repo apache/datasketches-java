@@ -182,12 +182,9 @@ final class IntersectionImpl extends IntersectionImplR {
 
   @Override
   public void update(final Sketch sketchIn) {
-    if (sketchIn != null) {
-      Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
-    }
-    //Null / Empty cases.
-    //Note: null == empty := Th = 1.0, count = 0, empty = true
-    if ((sketchIn == null) || sketchIn.isEmpty() || empty_) { //empty rule
+    //Null/Empty cases: Note: null == empty := Th = 1.0, count = 0, empty = true
+    if (empty_ || (sketchIn == null) || sketchIn.isEmpty()
+        || (sketchIn instanceof EmptyCompactSketch)) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make it empty.
       empty_ = true;
@@ -204,7 +201,7 @@ final class IntersectionImpl extends IntersectionImplR {
       }
       return;
     }
-
+    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = false;
     if (mem_ != null) {

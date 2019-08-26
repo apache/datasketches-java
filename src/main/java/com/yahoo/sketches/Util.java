@@ -311,7 +311,8 @@ public final class Util {
   public static final short checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) {
       throw new SketchesArgumentException(
-          "Incompatible Seed Hashes. " + seedHashA + ", " + seedHashB);
+          "Incompatible Seed Hashes. " + Integer.toHexString(seedHashA & 0XFFFF)
+            + ", " + Integer.toHexString(seedHashB & 0XFFFF));
     }
     return seedHashA;
   }

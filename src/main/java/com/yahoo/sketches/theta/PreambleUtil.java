@@ -45,7 +45,9 @@ import com.yahoo.sketches.SketchesArgumentException;
  * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
  * <i>byte</i> values are treated as unsigned.</p>
  *
- * <p>An empty CompactSketch only requires 8 bytes.</p>
+ * <p>An empty CompactSketch only requires 8 bytes.
+ * Flags: notSI, Ordered*, Compact, Empty*, ReadOnly, LE.
+ * (*) Earlier versions did not set these.</p>
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -55,7 +57,8 @@ import com.yahoo.sketches.SketchesArgumentException;
  * </pre>
  *
  * <p>A SingleItemSketch (extends CompactSketch) requires an 8 byte preamble plus a single
- * hash item of 8 bytes.</p>
+ * hash item of 8 bytes. Flags: SingleItem*, Ordered, Compact, notEmpty, ReadOnly, LE.
+ * (*) Earlier versions did not set these.</p>
  *
  * <pre>
  * Long || Start Byte Adr:
@@ -170,7 +173,8 @@ final class PreambleUtil {
   static final int EMPTY_FLAG_MASK      = 4; //SerVer 2, 3
   static final int COMPACT_FLAG_MASK    = 8; //SerVer 2 was NO_REBUILD_FLAG_MASK, 3
   static final int ORDERED_FLAG_MASK    = 16;//SerVer 2 was UNORDERED_FLAG_MASK, 3
-  static final int SINGLEITEM_FLAG_MASK = 32;//SerVer 3. Reserved, set but not read
+  static final int SINGLEITEM_FLAG_MASK = 32;//SerVer 3
+  //The last 2 bits of the flags byte are reserved and assumed to be zero, for now.
 
   //Backward compatibility: SerVer1 preamble always 3 longs, SerVer2 preamble: 1, 2, 3 longs
   //               SKETCH_TYPE_BYTE             2  //SerVer1, SerVer2
@@ -453,8 +457,9 @@ final class PreambleUtil {
   }
 
   static boolean isEmpty(final Memory mem) {
-    final int flags = mem.getByte(FLAGS_BYTE) & 0xFFFF;
-    return (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean emptyFlag = (mem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) > 0;
+    final boolean emptyCap = mem.getCapacity() < 16L;
+    return emptyFlag || emptyCap;
   }
 
   /**

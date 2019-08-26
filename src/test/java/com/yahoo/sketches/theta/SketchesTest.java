@@ -19,7 +19,7 @@
 
 package com.yahoo.sketches.theta;
 
-import static com.yahoo.sketches.theta.ForwardCompatibilityTest.convertSerV3toSerV1;
+import static com.yahoo.sketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static com.yahoo.sketches.theta.Sketches.getMaxCompactSketchBytes;
 import static com.yahoo.sketches.theta.Sketches.getMaxIntersectionBytes;
 import static com.yahoo.sketches.theta.Sketches.getMaxUnionBytes;
@@ -47,7 +47,7 @@ import com.yahoo.sketches.Util;
  */
 public class SketchesTest {
 
-  private static Memory getCompactSketch(int k, int from, int to) {
+  private static Memory getCompactSketchMemory(int k, int from, int to) {
     UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
     for (int i=from; i<to; i++) {
       sk1.update(i);
@@ -58,10 +58,24 @@ public class SketchesTest {
     return mem;
   }
 
+  private static Memory getMemoryFromCompactSketch(CompactSketch csk) {
+    byte[] sk1bytes = csk.toByteArray();
+    Memory mem = Memory.wrap(sk1bytes);
+    return mem;
+  }
+
+  private static CompactSketch getCompactSketch(int k, int from, int to) {
+    UpdateSketch sk1 = updateSketchBuilder().setNominalEntries(k).build();
+    for (int i=from; i<to; i++) {
+      sk1.update(i);
+    }
+    return sk1.compact(true, null);
+  }
+
   @Test
   public void checkSketchMethods() {
     int k = 1024;
-    Memory mem = getCompactSketch(k, 0, k);
+    Memory mem = getCompactSketchMemory(k, 0, k);
 
     CompactSketch csk2 = (CompactSketch)heapifySketch(mem);
     assertEquals((int)csk2.getEstimate(), k);
@@ -79,8 +93,8 @@ public class SketchesTest {
   @Test
   public void checkSetOpMethods() {
     int k = 1024;
-    Memory mem1 = getCompactSketch(k, 0, k);
-    Memory mem2 = getCompactSketch(k, k/2, (3*k)/2);
+    Memory mem1 = getCompactSketchMemory(k, 0, k);
+    Memory mem2 = getCompactSketchMemory(k, k/2, (3*k)/2);
 
     SetOperationBuilder bldr = setOperationBuilder();
     Union union = bldr.setNominalEntries(2 * k).buildUnion();
@@ -136,7 +150,8 @@ public class SketchesTest {
   public void checkStaticEstimators() {
     int k = 4096;
     int u = 4*k;
-    Memory srcMem = getCompactSketch(k, 0, u);
+    CompactSketch csk = getCompactSketch(k, 0, u);
+    Memory srcMem = getMemoryFromCompactSketch(csk);
     double est = Sketches.getEstimate(srcMem);
     assertEquals(est, u, 0.05*u);
     double rse = 1.0/Math.sqrt(k);
@@ -144,13 +159,15 @@ public class SketchesTest {
     assertEquals(ub, est+rse, 0.05*u);
     double lb = Sketches.getLowerBound(1, srcMem);
     assertEquals(lb, est-rse, 0.05*u);
-    Memory memV1 = convertSerV3toSerV1(srcMem);
+    Memory memV1 = convertSerVer3toSerVer1(csk);
     boolean empty = Sketches.getEmpty(memV1);
     assertFalse(empty);
-    Memory emptyMemV3 = getCompactSketch(k, 0, 0);
+
+    CompactSketch csk2 = getCompactSketch(k, 0, 0);
+    Memory emptyMemV3 = getMemoryFromCompactSketch(csk2);
     assertEquals(Sketches.getRetainedEntries(emptyMemV3), 0);
     assertEquals(Sketches.getThetaLong(emptyMemV3), Long.MAX_VALUE);
-    Memory emptyMemV1 = convertSerV3toSerV1(emptyMemV3);
+    Memory emptyMemV1 = convertSerVer3toSerVer1(csk2);
     empty = Sketches.getEmpty(emptyMemV1);
     assertTrue(empty);
   }
