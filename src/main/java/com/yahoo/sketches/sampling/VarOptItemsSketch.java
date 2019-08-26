@@ -899,7 +899,7 @@ public final class VarOptItemsSketch<T> {
       // pure reservoir mode, so can simply eject a randomly chosen sample from the reservoir
       assert r_ >= 2;
 
-      final int rIdxToDelete = 1 + SamplingUtil.rand.nextInt(r_); // 1 for the gap
+      final int rIdxToDelete = 1 + SamplingUtil.rand().nextInt(r_); // 1 for the gap
       final int rightmostRIdx = (1 + r_) - 1;
       swapValues(rIdxToDelete, rightmostRIdx);
       weights_.set(rightmostRIdx, -1.0);
@@ -1153,7 +1153,7 @@ public final class VarOptItemsSketch<T> {
     if (r_ == 1) {
       return offset;
     } else {
-      return offset + SamplingUtil.rand.nextInt(r_);
+      return offset + SamplingUtil.rand().nextInt(r_);
     }
   }
 

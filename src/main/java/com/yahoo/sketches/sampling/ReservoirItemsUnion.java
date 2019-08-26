@@ -418,11 +418,11 @@ public final class ReservoirItemsUnion<T> {
 
       final double rescaled_one = targetTotal;
       assert (rescaled_prob < rescaled_one); // Use an exception to enforce strict lightness?
-      final double rescaled_flip = rescaled_one * SamplingUtil.rand.nextDouble();
+      final double rescaled_flip = rescaled_one * SamplingUtil.rand().nextDouble();
       if (rescaled_flip < rescaled_prob) {
         // Intentionally NOT doing optimization to extract slot number from rescaled_flip.
         // Grabbing new random bits to ensure all slots in play
-        final int slotNo = SamplingUtil.rand.nextInt(tgtK);
+        final int slotNo = SamplingUtil.rand().nextInt(tgtK);
         gadget_.insertValueAtPosition(source.getValueAtPosition(i), slotNo);
       } // end of inlined weight update
     } // end of loop over source samples

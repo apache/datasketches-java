@@ -296,7 +296,7 @@ public class VarOptItemsSketchTest {
     for (long i = 0; i < n; ++i) {
       // generate weights above and below 1.0 using w ~ exp(5*N(0,1)) which covers about
       // 10 orders of magnitude
-      final double w = Math.exp(5 * SamplingUtil.rand.nextGaussian());
+      final double w = Math.exp(5 * SamplingUtil.rand().nextGaussian());
       inputSum += w;
       sketch.update(i, w);
     }
