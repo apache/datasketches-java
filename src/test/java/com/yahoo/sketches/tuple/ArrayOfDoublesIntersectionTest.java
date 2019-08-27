@@ -25,11 +25,14 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ArrayOfDoublesIntersectionTest {
   private static ArrayOfDoublesCombiner combiner = new ArrayOfDoublesCombiner() {
     @Override
     public double[] combine(double[] a, double[] b) {
-      for (int i = 0; i < a.length; i++) a[i] += b[i];
+      for (int i = 0; i < a.length; i++) {
+        a[i] += b[i];
+      }
       return a;
     }
   };
@@ -143,7 +146,9 @@ public class ArrayOfDoublesIntersectionTest {
     Assert.assertEquals(result.getLowerBound(1), 1.0);
     Assert.assertEquals(result.getUpperBound(1), 1.0);
     double[][] values = result.getValues();
-    for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 4.0);
+    for (int i = 0; i < values.length; i++) {
+      Assert.assertEquals(values[i][0], 4.0);
+    }
 
     intersection.reset();
     intersection.update(null, null);
@@ -159,10 +164,14 @@ public class ArrayOfDoublesIntersectionTest {
   public void heapDisjointEstimationMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch1.update(key++, new double[] {1.0});
+    }
 
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch2.update(key++, new double[] {1.0});
+    }
 
     ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, combiner);
@@ -181,11 +190,15 @@ public class ArrayOfDoublesIntersectionTest {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().
         build(WritableMemory.wrap(new byte[1000000]));
-    for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch1.update(key++, new double[] {1.0});
+    }
 
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().
         build(WritableMemory.wrap(new byte[1000000]));
-    for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch2.update(key++, new double[] {1.0});
+    }
 
     ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().
         buildIntersection(WritableMemory.wrap(new byte[1000000]));
@@ -204,11 +217,15 @@ public class ArrayOfDoublesIntersectionTest {
   public void heapEstimationMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch1.update(key++, new double[] {1.0});
+    }
 
     key -= 4096; // overlap half of the entries
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch2.update(key++, new double[] {1.0});
+    }
 
     ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.update(sketch1, combiner);
@@ -219,18 +236,24 @@ public class ArrayOfDoublesIntersectionTest {
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
     double[][] values = result.getValues();
-    for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 2.0);
+    for (int i = 0; i < values.length; i++) {
+      Assert.assertEquals(values[i][0], 2.0);
+    }
   }
 
   @Test
   public void directEstimationMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
-    for (int i = 0; i < 8192; i++) sketch1.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch1.update(key++, new double[] {1.0});
+    }
 
     key -= 4096; // overlap half of the entries
     ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
-    for (int i = 0; i < 8192; i++) sketch2.update(key++, new double[] {1.0});
+    for (int i = 0; i < 8192; i++) {
+      sketch2.update(key++, new double[] {1.0});
+    }
 
     ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection(WritableMemory.wrap(new byte[1000000]));
     intersection.update(sketch1, combiner);
@@ -241,7 +264,9 @@ public class ArrayOfDoublesIntersectionTest {
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
     double[][] values = result.getValues();
-    for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 2.0);
+    for (int i = 0; i < values.length; i++) {
+      Assert.assertEquals(values[i][0], 2.0);
+    }
   }
 
   @Test
@@ -270,7 +295,9 @@ public class ArrayOfDoublesIntersectionTest {
     Assert.assertEquals(result.getLowerBound(1), 1.0);
     Assert.assertEquals(result.getUpperBound(1), 1.0);
     double[][] values = result.getValues();
-    for (int i = 0; i < values.length; i++) Assert.assertEquals(values[i][0], 4.0);
+    for (int i = 0; i < values.length; i++) {
+      Assert.assertEquals(values[i][0], 4.0);
+    }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

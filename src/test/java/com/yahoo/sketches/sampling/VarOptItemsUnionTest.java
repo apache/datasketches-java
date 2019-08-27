@@ -36,10 +36,10 @@ import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
-
 /**
  * @author Jon Malkin
  */
+@SuppressWarnings("javadoc")
 public class VarOptItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
@@ -166,8 +166,8 @@ public class VarOptItemsUnionTest {
     sketch = getUnweightedLongsVIS(k, k + 1); // tau = (k + 1) / k
     union.update(sketch);
     result = union.getResult();
-    expectedWeight = 2.0 * n + k + 1;
-    assertEquals(result.getN(), 2 * n + k + 1);
+    expectedWeight = (2.0 * n) + k + 1;
+    assertEquals(result.getN(), (2 * n) + k + 1);
     assertEquals(result.getTotalWtR(), expectedWeight, EPS);
 
     union.reset();
@@ -237,7 +237,7 @@ public class VarOptItemsUnionTest {
 
     compareUnionsExact(union1, union2); // union2 should be unchanged
 
-    for (long i = 1; i < k - 1; ++i) {
+    for (long i = 1; i < (k - 1); ++i) {
       ris.update(i);
       vis.update(i, 1.0);
     }
@@ -312,7 +312,7 @@ public class VarOptItemsUnionTest {
     // reservoir tau will be greater than gadget's tau
     VarOptItemsSketch<Long> vis = VarOptItemsSketch.newInstance(k);
     ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.newInstance(k);
-    for (long i = 1; i < 2 * n; ++i) {
+    for (long i = 1; i < (2 * n); ++i) {
       ris.update(i);
       vis.update(i, 1.0);
     }
@@ -324,7 +324,7 @@ public class VarOptItemsUnionTest {
     // reservoir tau will be smaller than gadget's tau
     vis = VarOptItemsSketch.newInstance(k);
     ris = ReservoirItemsSketch.newInstance(k);
-    for (long i = 1; i <= k + 1; ++i) {
+    for (long i = 1; i <= (k + 1); ++i) {
       ris.update(i);
       vis.update(i, 1.0);
     }

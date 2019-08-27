@@ -33,6 +33,7 @@ import java.util.Random;
  *
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class LzTzSpeedTesting {
   static final byte[] byteTrailingZerosTable = new byte[256];
   static final byte[] byteLeadingZerosTable = new byte[256];

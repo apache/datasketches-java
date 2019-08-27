@@ -32,6 +32,7 @@ import com.yahoo.sketches.tuple.DeserializeResult;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class ArrayOfStringsSummaryTest {
 
   @Test

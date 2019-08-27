@@ -35,6 +35,7 @@ import com.yahoo.memory.WritableMemory;
  * implementation that <i>owns</i> the native memory allocations, thus is responsible for
  * allocating larger Memory when requested and the actual freeing of the old memory allocations.
  */
+@SuppressWarnings("javadoc")
 public class DirectQuantilesMemoryRequestTest {
 
   @Test

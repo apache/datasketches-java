@@ -24,8 +24,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import com.yahoo.sketches.hllmap.CouponTraverseMap;
-
+@SuppressWarnings("javadoc")
 public class CouponTraverseMapTest {
 
   @Test

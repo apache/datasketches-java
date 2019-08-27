@@ -44,7 +44,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-//@SuppressWarnings("unused")
+@SuppressWarnings("javadoc")
 public class HllSketchTest {
 
   @Test

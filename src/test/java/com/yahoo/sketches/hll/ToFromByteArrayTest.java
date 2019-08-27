@@ -31,8 +31,8 @@ import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
- *
  */
+@SuppressWarnings("javadoc")
 public class ToFromByteArrayTest {
 
   static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};

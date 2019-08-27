@@ -21,6 +21,7 @@ package com.yahoo.sketches;
 
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class SketchesExceptionTest {
 
   @Test(expectedExceptions = SketchesException.class)

@@ -50,6 +50,7 @@ import com.yahoo.sketches.Util;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class HeapAlphaSketchTest {
   private Family fam_ = ALPHA;
 

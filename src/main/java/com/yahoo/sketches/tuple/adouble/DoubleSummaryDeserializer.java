@@ -23,6 +23,9 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.tuple.DeserializeResult;
 import com.yahoo.sketches.tuple.SummaryDeserializer;
 
+/**
+ * @author Lee Rhodes
+ */
 public class DoubleSummaryDeserializer implements SummaryDeserializer<DoubleSummary> {
 
   @Override

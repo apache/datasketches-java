@@ -26,13 +26,14 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 
+@SuppressWarnings("javadoc")
 public class SerDeCompatibilityTest {
 
   static final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
 
   @Test
   public void itemsToLongs() {
-    ItemsSketch<Long> sketch1 = new ItemsSketch<Long>(8);
+    ItemsSketch<Long> sketch1 = new ItemsSketch<>(8);
     sketch1.update(1L);
     sketch1.update(2L);
     sketch1.update(3L);

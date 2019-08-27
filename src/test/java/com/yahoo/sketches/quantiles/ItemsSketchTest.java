@@ -37,6 +37,7 @@ import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ItemsSketchTest {
 
   @BeforeMethod

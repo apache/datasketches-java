@@ -36,6 +36,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
 

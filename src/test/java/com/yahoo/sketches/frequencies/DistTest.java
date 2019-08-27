@@ -22,6 +22,7 @@ package com.yahoo.sketches.frequencies;
 import org.testng.Assert;
 //import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class DistTest {
 
   /**
@@ -29,7 +30,7 @@ public class DistTest {
    * @return a random number generated from the geometric distribution.
    */
   public static long randomGeometricDist(double prob) {
-    assert (prob > 0.0 && prob < 1.0);
+    assert ((prob > 0.0) && (prob < 1.0));
     return 1 + (long) (Math.log(Math.random()) / Math.log(1.0 - prob));
   }
 
@@ -40,8 +41,9 @@ public class DistTest {
     int i;
     double ans = 0.0;
 
-    for (i = 1; i <= n; i++)
+    for (i = 1; i <= n; i++) {
       ans += Math.pow(1. / i, theta);
+    }
     return (ans);
   }
 
@@ -60,18 +62,20 @@ public class DistTest {
     // the first time since it uses the random generators
 
     alpha = 1. / (1. - theta);
-    eta = (1. - Math.pow(2. / n, 1. - theta)) / (1. - zeta(2, theta) / zetan);
+    eta = (1. - Math.pow(2. / n, 1. - theta)) / (1. - (zeta(2, theta) / zetan));
 
     u = 0.0;
-    while (u == 0.0)
+    while (u == 0.0) {
       u = Math.random();
+    }
     uz = u * zetan;
-    if (uz < 1.)
+    if (uz < 1.) {
       val = 1;
-    else if (uz < (1. + Math.pow(0.5, theta)))
+    } else if (uz < (1. + Math.pow(0.5, theta))) {
       val = 2;
-    else
-      val = 1 + (n * Math.pow(eta * u - eta + 1., alpha));
+    } else {
+      val = 1 + (n * Math.pow(((eta * u) - eta) + 1., alpha));
+    }
 
     return (long) val;
   }
@@ -82,11 +86,12 @@ public class DistTest {
     double prob = .1;
     for (int i = 0; i < 100; i++) {
       long item = randomGeometricDist(prob);
-      if (item > maxItem)
+      if (item > maxItem) {
         maxItem = item;
+      }
       // If you succeed with probability p the probability
       // of failing 20/p times is smaller than 1/2^20.
-      Assert.assertTrue(maxItem < 20.0 / prob);
+      Assert.assertTrue(maxItem < (20.0 / prob));
     }
   }
 

@@ -87,8 +87,8 @@ final class UnionImpl extends Union {
    */
   static UnionImpl initNewHeapInstance(final int lgNomLongs, final long seed, final float p,
       final ResizeFactor rf) {
-    final UpdateSketch gadget = new HeapQuickSelectSketch(
-        lgNomLongs, seed, p, rf, true); //create with UNION family
+    final UpdateSketch gadget = //create with UNION family
+        new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, true);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     unionImpl.unionEmpty_ = gadget.isEmpty();
@@ -114,8 +114,8 @@ final class UnionImpl extends Union {
       final ResizeFactor rf,
       final MemoryRequestServer memReqSvr,
       final WritableMemory dstMem) {
-    final UpdateSketch gadget = new DirectQuickSelectSketch(
-        lgNomLongs, seed, p, rf, memReqSvr, dstMem, true); //create with UNION family
+    final UpdateSketch gadget = //create with UNION family
+        new DirectQuickSelectSketch(lgNomLongs, seed, p, rf, memReqSvr, dstMem, true);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = gadget.getThetaLong();
     unionImpl.unionEmpty_ = gadget.isEmpty();

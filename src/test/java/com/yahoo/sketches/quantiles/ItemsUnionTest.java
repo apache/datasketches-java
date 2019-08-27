@@ -31,6 +31,7 @@ import com.yahoo.sketches.ArrayOfItemsSerDe;
 import com.yahoo.sketches.ArrayOfLongsSerDe;
 import com.yahoo.sketches.ArrayOfStringsSerDe;
 
+@SuppressWarnings("javadoc")
 public class ItemsUnionTest {
 
   @Test
@@ -348,20 +349,20 @@ public class ItemsUnionTest {
     skValid2 = buildIS(32, n, n);
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
     Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid2.getMaxValue(), 2 * n - 1.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxValue(), (2 * n) - 1.0, 0.0);
 
     n = 512;
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, n, n);
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
     Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid2.getMaxValue(), 2 * n - 1.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxValue(), (2 * n) - 1.0, 0.0);
 
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, n, n);
     ItemsMergeImpl.mergeInto(skValid2, skValid1);
     Assert.assertEquals(skValid1.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid1.getMaxValue(), 2 * n - 1.0, 0.0);
+    Assert.assertEquals(skValid1.getMaxValue(), (2 * n) - 1.0, 0.0);
   }
 
   @Test
@@ -386,7 +387,7 @@ public class ItemsUnionTest {
     Assert.assertEquals(bytesOut.length, 8);
     Assert.assertTrue(union.isEmpty());
 
-    final byte[] byteArr = buildIS(k, 2 * k + 5).toByteArray(serDe);
+    final byte[] byteArr = buildIS(k, (2 * k) + 5).toByteArray(serDe);
     final Memory mem = Memory.wrap(byteArr);
     union = ItemsUnion.getInstance(mem, Comparator.naturalOrder(), serDe);
     bytesOut = union.toByteArray(serDe);

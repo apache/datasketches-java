@@ -39,6 +39,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesException;
 import com.yahoo.sketches.SketchesStateException;
 
+@SuppressWarnings("javadoc")
 public class ReservoirLongsSketchTest {
   private static final double EPS = 1e-8;
 

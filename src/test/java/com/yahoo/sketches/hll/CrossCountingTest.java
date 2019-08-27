@@ -29,7 +29,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "javadoc"})
 public class CrossCountingTest {
   static final String LS = System.getProperty("line.separator");
 

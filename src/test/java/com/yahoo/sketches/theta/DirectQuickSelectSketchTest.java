@@ -55,6 +55,7 @@ import com.yahoo.sketches.SketchesReadOnlyException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class DirectQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)

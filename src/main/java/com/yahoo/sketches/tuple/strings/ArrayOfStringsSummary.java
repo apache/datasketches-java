@@ -34,7 +34,7 @@ import com.yahoo.sketches.tuple.UpdatableSummary;
  * @author Lee Rhodes
  */
 public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
-  public static final int PRIME = 0x7A3C_CA71;
+  private static final int PRIME = 0x7A3C_CA71;
   private String[] nodesArr = null;
 
   ArrayOfStringsSummary() { //required for ArrayOfStringsSummaryFactory
@@ -90,6 +90,9 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     return nodes;
   }
 
+  /**
+   * @return the nodes array for this summary.
+   */
   public String[] getValue() {
     return nodesArr.clone();
   }
@@ -154,6 +157,10 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
   }
 
+  /**
+   * @param s the string to hash
+   * @return the hash of the string
+   */
   public static long stringHash(final String s) {
     return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
   }

@@ -28,6 +28,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ArrayOfDoublesUnionTest {
 
   @Test

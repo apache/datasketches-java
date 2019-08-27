@@ -39,6 +39,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author eshcar
  */
+@SuppressWarnings("javadoc")
 public class ConcurrentDirectQuickSelectSketchTest {
 
   private int lgK;

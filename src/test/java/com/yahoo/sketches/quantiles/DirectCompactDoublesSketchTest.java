@@ -36,7 +36,9 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class DirectCompactDoublesSketchTest {
+
   @BeforeMethod
   public void setUp() {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing

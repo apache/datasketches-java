@@ -37,6 +37,7 @@ import com.yahoo.memory.WritableMemory;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
+@SuppressWarnings("javadoc")
 public class CompressionCharacterization {
   private String hfmt;
   private String dfmt;

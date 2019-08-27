@@ -33,6 +33,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class MurmurHash3AdaptorTest {
 
   @Test
@@ -90,7 +91,7 @@ public class MurmurHash3AdaptorTest {
     result = hashToBytes(arr, 0L);
     Assert.assertEquals(result, null);
   }
-  
+
   @Test
   public void checkToBytesByteArr() {
     byte[] arr = { 1, 2 };
@@ -195,7 +196,7 @@ public class MurmurHash3AdaptorTest {
     result = hashToLongs(arr, 0L);
     Assert.assertEquals(result, null);
   }
-  
+
   @Test
   public void checkToLongsByteArr() {
     byte[] arr = { 1, 2 };
@@ -265,8 +266,8 @@ public class MurmurHash3AdaptorTest {
   }
 
   //Check asInt() functions
-  
-  @Test 
+
+  @Test
   public void checkAsInt() {
     int lo = (3 << 28);
     int hi = (1 << 30) + 1;
@@ -276,31 +277,31 @@ public class MurmurHash3AdaptorTest {
       Assert.assertTrue((result >= 0) && (result < lo));
       result = asInt(longArr, hi);
       Assert.assertTrue((result >= 0) && (result < hi));
-      
+
       int[] intArr = {i, i+1};           //int[]
       result = asInt(intArr, lo);
       Assert.assertTrue((result >= 0) && (result < lo));
       result = asInt(intArr, hi);
       Assert.assertTrue((result >= 0) && (result < hi));
-      
+
       byte[] byteArr = {i, (byte)(i+1)}; //byte[]
       result = asInt(byteArr, lo);
       Assert.assertTrue((result >= 0) && (result < lo));
       result = asInt(byteArr, hi);
       Assert.assertTrue((result >= 0) && (result < hi));
-      
+
       long longV = i;                    //long
       result = asInt(longV, lo);
       Assert.assertTrue((result >= 0) && (result < lo));
       result = asInt(longV, hi);
       Assert.assertTrue((result >= 0) && (result < hi));
-      
+
       double v = i;                //double
       result = asInt(v, lo);
       Assert.assertTrue((result >= 0) && (result < lo));
       result = asInt(v, hi);
       Assert.assertTrue((result >= 0) && (result < hi));
-      
+
       String s = Integer.toString(i);    //String
       result = asInt(s, lo);
       Assert.assertTrue((result >= 0) && (result < lo));
@@ -308,37 +309,37 @@ public class MurmurHash3AdaptorTest {
       Assert.assertTrue((result >= 0) && (result < hi));
     }
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseLongNull() {
     long[] arr = null;
     asInt(arr, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseLongEmpty() {
     long[] arr = new long[0];
     asInt(arr, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseIntNull() {
     int[] arr = null;
     asInt(arr, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseIntEmpty() {
     int[] arr = new int[0];
     asInt(arr, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseByteNull() {
     byte[] arr = null;
     asInt(arr, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseByteEmpty() {
     byte[] arr = new byte[0];
@@ -350,26 +351,26 @@ public class MurmurHash3AdaptorTest {
     String s = null;
     asInt(s, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseStringEmpty() {
     String s = "";
     asInt(s, 1000);
   }
-  
+
   @Test (expectedExceptions = SketchesArgumentException.class)
   public void checkAsIntCornerCaseNTooSmall() {
     String s = "abc";
     asInt(s, 1);
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here

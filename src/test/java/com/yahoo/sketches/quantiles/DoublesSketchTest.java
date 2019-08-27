@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
 
+@SuppressWarnings("javadoc")
 public class DoublesSketchTest {
 
   @Test

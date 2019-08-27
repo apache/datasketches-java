@@ -39,6 +39,7 @@ import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.SketchesStateException;
 
+@SuppressWarnings("javadoc")
 public class VarOptItemsSketchTest {
   static final double EPS = 1e-10;
 

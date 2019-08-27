@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ArrayOfDoublesAnotBTest {
 
   @Test
@@ -219,11 +220,15 @@ public class ArrayOfDoublesAnotBTest {
   public void estimationMode() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) sketchA.update(key++, new double[] {1});
+    for (int i = 0; i < 8192; i++) {
+      sketchA.update(key++, new double[] {1});
+    }
 
     key -= 4096; // overlap half of the entries
     ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 8192; i++) sketchB.update(key++, new double[] {1});
+    for (int i = 0; i < 8192; i++) {
+      sketchB.update(key++, new double[] {1});
+    }
 
     ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
     aNotB.update(sketchA, sketchB);
@@ -254,11 +259,15 @@ public class ArrayOfDoublesAnotBTest {
   public void estimationModeLargeB() {
     int key = 0;
     ArrayOfDoublesUpdatableSketch sketchA = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 10000; i++) sketchA.update(key++, new double[] {1});
+    for (int i = 0; i < 10000; i++) {
+      sketchA.update(key++, new double[] {1});
+    }
 
     key -= 2000; // overlap
     ArrayOfDoublesUpdatableSketch sketchB = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    for (int i = 0; i < 100000; i++) sketchB.update(key++, new double[] {1});
+    for (int i = 0; i < 100000; i++) {
+      sketchB.update(key++, new double[] {1});
+    }
 
     final int expected = 10000 - 2000;
     ArrayOfDoublesAnotB aNotB = new ArrayOfDoublesSetOperationBuilder().buildAnotB();

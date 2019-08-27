@@ -51,6 +51,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class UtilTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)

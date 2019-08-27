@@ -26,6 +26,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class SerializerDeserializerTest {
 
   @Test

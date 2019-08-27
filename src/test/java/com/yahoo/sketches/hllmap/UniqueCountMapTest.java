@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
+@SuppressWarnings("javadoc")
 public class UniqueCountMapTest {
   private final static int INIT_ENTRIES = 211;
   @Test

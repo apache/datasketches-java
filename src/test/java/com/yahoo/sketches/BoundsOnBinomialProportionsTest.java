@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 /**
  * @author Kevin Lang
  */
+@SuppressWarnings("javadoc")
 public class BoundsOnBinomialProportionsTest {
 
   @Test
@@ -51,7 +52,7 @@ public class BoundsOnBinomialProportionsTest {
       //      System.out.printf ("LB\t%d\t%d\t%.1f\t%.16g%n", n, k, kappa, lb);
     }
   }
-  
+
   @Test
   public static void tinyUBTest () {
     // these answers were computed using a different programming language and therefore might not match exactly.
@@ -68,7 +69,7 @@ public class BoundsOnBinomialProportionsTest {
       //      System.out.printf ("UB\t%d\t%d\t%.1f\t%.16g%n", n, k, kappa, ub);
     }
   }
-  
+
   // This is for Kevin's use only, and will not be one of the unit tests.
   public static void lotsOfSpewage (long maxN) {
     for (long n = 0; n <= maxN; n++) {
@@ -113,7 +114,7 @@ public class BoundsOnBinomialProportionsTest {
     println("LB: "+lb);
     println("UB: "+ub);
   }
-  
+
   @Test
   public static void checkInputs() {
     try {
@@ -139,24 +140,24 @@ public class BoundsOnBinomialProportionsTest {
     }
     assertEquals(estimateUnknownP(0, 0), 0.5, 0.0);
   }
-  
+
   @Test
   public static void checkErf() {
     assertTrue(erf(-2.0) < 0.99);
     assertTrue(erf(2.0)  > 0.99);
   }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
-  
+
+
 }

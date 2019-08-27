@@ -39,6 +39,7 @@ import com.yahoo.sketches.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class DirectAuxHashMapTest {
 
   @Test

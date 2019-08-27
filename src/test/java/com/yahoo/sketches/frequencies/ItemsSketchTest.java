@@ -41,6 +41,7 @@ import com.yahoo.sketches.ArrayOfUtf16StringsSerDe;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.frequencies.ItemsSketch.Row;
 
+@SuppressWarnings("javadoc")
 public class ItemsSketchTest {
 
   @Test

@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ReservoirSizeTest {
   @Test
   public void checkComputeSize() {

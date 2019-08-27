@@ -21,14 +21,15 @@ package com.yahoo.sketches.frequencies;
 
 import com.yahoo.sketches.hash.MurmurHash3;
 
+@SuppressWarnings("javadoc")
 public class StressTestHashMap {
 
   public static void main(String[] args) {
     stress();
   }
-  
+
   private static void stress() {
-    for (int capacity = 2 << 5; capacity < 2 << 24; capacity *= 2) {
+    for (int capacity = 2 << 5; capacity < (2 << 24); capacity *= 2) {
       int n = 10000000;
 
       long[] keys = new long[n];
@@ -36,7 +37,7 @@ public class StressTestHashMap {
 
       for (int i = 0; i < n; i++) {
         keys[i] = murmur(i);
-        values[i] = (i < capacity / 2) ? n : 1;
+        values[i] = (i < (capacity / 2)) ? n : 1;
       }
 
       ReversePurgeLongHashMap hashmap = new ReversePurgeLongHashMap(capacity);

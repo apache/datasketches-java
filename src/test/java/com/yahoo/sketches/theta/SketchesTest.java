@@ -45,6 +45,7 @@ import com.yahoo.sketches.Util;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class SketchesTest {
 
   private static Memory getCompactSketchMemory(int k, int from, int to) {

@@ -43,6 +43,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableDirectHandle;
 import com.yahoo.memory.WritableMemory;
 
+@SuppressWarnings("javadoc")
 public class PreambleUtilTest {
 
   @Test

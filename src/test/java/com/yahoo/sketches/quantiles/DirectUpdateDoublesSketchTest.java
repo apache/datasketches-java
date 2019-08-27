@@ -35,6 +35,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class DirectUpdateDoublesSketchTest {
 
   @BeforeMethod

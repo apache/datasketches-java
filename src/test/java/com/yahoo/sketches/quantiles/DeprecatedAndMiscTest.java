@@ -31,6 +31,7 @@ import com.yahoo.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class DeprecatedAndMiscTest {
 
   @SuppressWarnings({ "deprecation", "unused" })
