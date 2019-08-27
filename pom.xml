@@ -83,7 +83,7 @@ under the License.
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
         <!-- Dependencies -->
-        <datasketches-memory.version>0.12.2</datasketches-memory.version>
+        <datasketches-memory.version>1.1.0-incubating</datasketches-memory.version>
         <testng.version>6.14.3</testng.version>
         <slf4j-api.version>1.7.25</slf4j-api.version>
 
@@ -129,8 +129,8 @@ under the License.
 
     <dependencies>
         <dependency>
-            <groupId>com.yahoo.datasketches</groupId> <!-- Temporary until artifacts created in Apache -->
-            <artifactId>memory</artifactId>
+            <groupId>org.apache.datasketches</groupId>
+            <artifactId>datasketches-memory</artifactId>
             <version>${datasketches-memory.version}</version>
         </dependency>
 
