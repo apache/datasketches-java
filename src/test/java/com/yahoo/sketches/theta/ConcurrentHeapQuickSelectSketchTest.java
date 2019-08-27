@@ -42,6 +42,7 @@ import com.yahoo.sketches.SketchesStateException;
 /**
  * @author eshcar
  */
+@SuppressWarnings("javadoc")
 public class ConcurrentHeapQuickSelectSketchTest {
   private int lgK;
   private long seed = DEFAULT_UPDATE_SEED;

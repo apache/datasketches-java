@@ -28,6 +28,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.ArrayOfDoublesSerDe;
 import com.yahoo.sketches.ArrayOfItemsSerDe;
 
+@SuppressWarnings("javadoc")
 public class SerDeCompatibilityTest {
 
   private static final ArrayOfItemsSerDe<Double> serDe = new ArrayOfDoublesSerDe();
@@ -59,7 +60,7 @@ public class SerDeCompatibilityTest {
     DoublesSketchTest.testSketchEquality(sketch1, cs);
     //final byte[] bytes = sketch1.compact().toByteArray(); // must be compact
     final byte[] bytes = cs.toByteArray(); // must be compact
-    
+
     //reconstruct with ItemsSketch
     final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes),
         Comparator.naturalOrder(), serDe);
@@ -72,5 +73,5 @@ public class SerDeCompatibilityTest {
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch2.getQuantile(0.5), 500.0, 17);
   }
-  
+
 }

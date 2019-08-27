@@ -38,6 +38,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class SpecialCBinariesTest {
   static PrintStream ps = System.out;
   static final String LS = System.getProperty("line.separator");

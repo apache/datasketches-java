@@ -24,6 +24,7 @@ import java.util.Comparator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class ItemsSketchIteratorTest {
 
   @Test
@@ -48,7 +49,7 @@ public class ItemsSketchIteratorTest {
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
       ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
-      for (int i = 0; i < n; i++) { 
+      for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
       ItemsSketchIterator<Integer> it = sketch.iterator();

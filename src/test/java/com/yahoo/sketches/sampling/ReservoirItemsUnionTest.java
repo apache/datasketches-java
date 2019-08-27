@@ -44,6 +44,7 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
 // Tests mostly focus on Long since other types are already tested in ReservoirItemsSketchTest.
+@SuppressWarnings("javadoc")
 public class ReservoirItemsUnionTest {
   @Test
   public void checkEmptyUnion() {
@@ -321,7 +322,7 @@ public class ReservoirItemsUnionTest {
     assertEquals(riu.getResult().getK(), k); // power of 2, so exact
 
     data = new ArrayList<>(2 * k);
-    for (int i = 0; i < 2 * k; ++i) {
+    for (int i = 0; i < (2 * k); ++i) {
       data.add(i);
     }
     riu.update(10 * n, 2 * k, data);

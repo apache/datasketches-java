@@ -44,6 +44,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.QuantilesHelper;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class HeapUpdateDoublesSketchTest {
 
   @BeforeMethod

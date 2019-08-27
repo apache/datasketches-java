@@ -25,9 +25,8 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
-import com.yahoo.sketches.hllmap.CouponHashMap;
-import com.yahoo.sketches.hllmap.Map;
 
+@SuppressWarnings("javadoc")
 public class CouponHashMapTest {
 
   @Test

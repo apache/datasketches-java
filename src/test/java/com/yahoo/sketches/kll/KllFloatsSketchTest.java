@@ -31,6 +31,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.tuple.TestUtil;
 
+@SuppressWarnings("javadoc")
 public class KllFloatsSketchTest {
 
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
@@ -417,7 +418,7 @@ public class KllFloatsSketchTest {
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
-    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1}); 
+    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
     final float[] quantiles2 = sketch.getQuantiles(3);
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1f);

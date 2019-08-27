@@ -22,6 +22,7 @@ package com.yahoo.sketches.quantiles;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class DoublesSketchIteratorTest {
 
   @Test
@@ -46,7 +47,7 @@ public class DoublesSketchIteratorTest {
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
       UpdateDoublesSketch sketch = DoublesSketch.builder().build();
-      for (int i = 0; i < n; i++) { 
+      for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
       DoublesSketchIterator it = sketch.iterator();

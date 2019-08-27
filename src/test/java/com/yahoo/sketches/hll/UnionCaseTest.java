@@ -33,8 +33,8 @@ import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
- *
  */
+@SuppressWarnings("javadoc")
 public class UnionCaseTest {
   long v = 0;
 

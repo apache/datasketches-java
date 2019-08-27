@@ -37,6 +37,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.Family;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ReservoirLongsUnionTest {
   @Test
   public void checkEmptyUnion() {

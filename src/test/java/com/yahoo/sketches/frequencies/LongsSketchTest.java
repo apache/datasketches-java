@@ -41,6 +41,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 import com.yahoo.sketches.frequencies.LongsSketch.Row;
 
+@SuppressWarnings("javadoc")
 public class LongsSketchTest {
 
   @Test

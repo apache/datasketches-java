@@ -34,6 +34,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
 
+@SuppressWarnings("javadoc")
 public class UnionImplTest {
 
   @Test

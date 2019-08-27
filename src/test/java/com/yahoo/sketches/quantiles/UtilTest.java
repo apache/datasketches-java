@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class UtilTest {
 
   @Test

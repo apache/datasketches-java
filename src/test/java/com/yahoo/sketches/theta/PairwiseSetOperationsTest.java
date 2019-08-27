@@ -23,6 +23,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class PairwiseSetOperationsTest {
 
   // Intersection

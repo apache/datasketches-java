@@ -28,6 +28,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.Memory;
 
+@SuppressWarnings("javadoc")
 public class ForwardCompatibilityTest {
 
   @Test

@@ -34,6 +34,7 @@ import org.testng.Assert;
 // These results are for the version that delays the rollup until the next value comes in.
 // The @Test annotations have to be enabled to use this class and a section in KllHelper also
 // needs to be enabled.
+@SuppressWarnings("javadoc")
 public class KllValidationTest {
 
   private static final long[] correctResultsWithReset = {

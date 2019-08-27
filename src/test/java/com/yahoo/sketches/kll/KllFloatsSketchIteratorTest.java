@@ -22,6 +22,7 @@ package com.yahoo.sketches.kll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class KllFloatsSketchIteratorTest {
 
   @Test
@@ -46,7 +47,7 @@ public class KllFloatsSketchIteratorTest {
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
       KllFloatsSketch sketch = new KllFloatsSketch();
-      for (int i = 0; i < n; i++) { 
+      for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
       KllFloatsSketchIterator it = sketch.iterator();

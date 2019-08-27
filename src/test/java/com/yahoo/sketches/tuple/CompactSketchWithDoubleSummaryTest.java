@@ -28,10 +28,11 @@ import com.yahoo.sketches.tuple.adouble.DoubleSummary;
 import com.yahoo.sketches.tuple.adouble.DoubleSummaryDeserializer;
 import com.yahoo.sketches.tuple.adouble.DoubleSummaryFactory;
 
+@SuppressWarnings("javadoc")
 public class CompactSketchWithDoubleSummaryTest {
   @Test
   public void emptyFromNonPublicConstructorNullArray() {
-    CompactSketch<DoubleSummary> sketch = new CompactSketch<DoubleSummary>(null, null, Long.MAX_VALUE, true);
+    CompactSketch<DoubleSummary> sketch = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -49,7 +50,7 @@ public class CompactSketchWithDoubleSummaryTest {
   public void emptyFromNonPublicConstructor() {
     long[] keys = new long[0];
     DoubleSummary[] summaries = (DoubleSummary[]) java.lang.reflect.Array.newInstance(DoubleSummary.class, 0);
-    CompactSketch<DoubleSummary> sketch = new CompactSketch<DoubleSummary>(keys, summaries, Long.MAX_VALUE, true);
+    CompactSketch<DoubleSummary> sketch = new CompactSketch<>(keys, summaries, Long.MAX_VALUE, true);
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -136,7 +137,9 @@ public class CompactSketchWithDoubleSummaryTest {
   @Test
   public void serializeDeserializeEstimation() throws Exception {
     UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
-    for (int i = 0; i < 8192; i++) us.update(i, 1.0);
+    for (int i = 0; i < 8192; i++) {
+      us.update(i, 1.0);
+    }
     us.trim();
     CompactSketch<DoubleSummary> sketch1 = us.compact();
     byte[] bytes = sketch1.toByteArray();
@@ -162,7 +165,9 @@ public class CompactSketchWithDoubleSummaryTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeWrongType() {
     UpdatableSketch<Double, DoubleSummary> us = new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
-    for (int i = 0; i < 8192; i++) us.update(i, 1.0);
+    for (int i = 0; i < 8192; i++) {
+      us.update(i, 1.0);
+    }
     CompactSketch<DoubleSummary> sketch1 = us.compact();
     Sketches.heapifyUpdatableSketch(Memory.wrap(sketch1.toByteArray()), new DoubleSummaryDeserializer(),
         new DoubleSummaryFactory());

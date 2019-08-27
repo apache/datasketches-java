@@ -41,6 +41,7 @@ import com.yahoo.sketches.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class DirectIntersectionTest {
   private static final int PREBYTES = CONST_PREAMBLE_LONGS << 3; //24
 

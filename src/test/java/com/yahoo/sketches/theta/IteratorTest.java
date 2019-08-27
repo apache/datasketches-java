@@ -29,6 +29,7 @@ import com.yahoo.sketches.Family;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class IteratorTest {
 
   @Test

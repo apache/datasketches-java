@@ -26,6 +26,7 @@ import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class DirectArrayOfDoublesQuickSelectSketchTest {
   @Test
   public void isEmpty() {

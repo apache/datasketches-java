@@ -32,12 +32,13 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class QuickSelectTest {
   private static final String LS = System.getProperty("line.separator");
   private static final Random random = new Random(); // pseudo-random number generator
 
   //long[] arrays
-  
+
   @Test
   public void checkQuickSelect0Based() {
     int len = 64;
@@ -98,9 +99,9 @@ public class QuickSelectTest {
     long retVal = selectIncludingZeros(arr, pivot);
     Assert.assertEquals(retVal, trueVal);
   }
-  
+
   //double[] arrays
-  
+
   @Test
   public void checkQuickSelectDbl0Based() {
     int len = 64;
@@ -161,7 +162,7 @@ public class QuickSelectTest {
     double retVal = selectIncludingZeros(arr, pivot);
     Assert.assertEquals(retVal, trueVal, 0.0);
   }
-  
+
 
   /**
    * Rearrange the elements of an array in random order.
@@ -190,11 +191,11 @@ public class QuickSelectTest {
       a[r] = temp;
     }
   }
-  
-  
+
+
   /**
    * Returns an integer uniformly between 0 (inclusive) and n (exclusive) where {@code n > 0}
-   * 
+   *
    * @param n the upper exclusive bound
    * @return random integer
    */
@@ -228,7 +229,7 @@ public class QuickSelectTest {
     }
     return sb.toString();
   }
-  
+
   //For console testing
   static void test1() {
     int len = 16;
@@ -285,7 +286,7 @@ public class QuickSelectTest {
     println(printArr(arr));
   }
 
-  //For console testing    
+  //For console testing
   static void test3() {
     int len = 16;
     int nonZeros = (3 * len) / 4;
@@ -368,7 +369,7 @@ public class QuickSelectTest {
     println(printArr(arr));
   }
 
-  //For console testing    
+  //For console testing
   static void testDbl3() {
     int len = 16;
     int nonZeros = (3 * len) / 4;
@@ -395,7 +396,7 @@ public class QuickSelectTest {
     println("Result Array:"+LS);
     println(printArr(arr));
   }
-  
+
 //  public static void main(String[] args) {
 //    println(LS+"==LONGS 1=========="+LS);
 //    test1();
@@ -409,7 +410,7 @@ public class QuickSelectTest {
 //    testDbl2();
 //    println(LS+"==DOUBLES 3========"+LS);
 //    testDbl3();
-//    
+//
 //
 //    QuickSelectTest qst = new QuickSelectTest();
 //    qst.checkQuickSelect0Based();
@@ -422,24 +423,24 @@ public class QuickSelectTest {
 //    qst.checkQuickSelectDbl1BasedIncludingZeros();
 //
 //  }
-  
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
-  
+
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here
   }
-  
+
   /**
-   * @param d value to print 
+   * @param d value to print
    */
   static void println(double d) {
     //System.out.println(d); //disable here
   }
-  
+
 }

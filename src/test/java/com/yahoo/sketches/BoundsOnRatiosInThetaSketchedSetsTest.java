@@ -29,6 +29,7 @@ import com.yahoo.sketches.theta.Intersection;
 import com.yahoo.sketches.theta.Sketches;
 import com.yahoo.sketches.theta.UpdateSketch;
 
+@SuppressWarnings("javadoc")
 public class BoundsOnRatiosInThetaSketchedSetsTest {
 
   @Test
@@ -38,7 +39,7 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
     int uA = 10000;
     int uC = 100000;
     for (int i=0; i<uA; i++) { skA.update(i); }
-    for (int i=0; i<uC; i++) { skC.update(i+uA/2); }
+    for (int i=0; i<uC; i++) { skC.update(i+(uA/2)); }
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.update(skA);
     inter.update(skC);
@@ -76,7 +77,7 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
     int uA = 100000;
     int uC = 10000;
     for (int i=0; i<uA; i++) { skA.update(i); }
-    for (int i=0; i<uC; i++) { skC.update(i+uA/2); }
+    for (int i=0; i<uC; i++) { skC.update(i+(uA/2)); }
     BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skC);
   }
 
@@ -86,7 +87,7 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
   }
 
   /**
-   * @param s value to print 
+   * @param s value to print
    */
   static void println(String s) {
     //System.out.println(s); //disable here

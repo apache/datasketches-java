@@ -40,6 +40,7 @@ import com.yahoo.sketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class PreambleUtilTest {
 
   @Test

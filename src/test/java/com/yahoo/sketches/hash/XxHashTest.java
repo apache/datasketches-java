@@ -28,6 +28,7 @@ import com.yahoo.memory.Memory;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class XxHashTest {
 
   @Test

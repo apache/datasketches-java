@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 
 import com.yahoo.memory.WritableMemory;
 
+@SuppressWarnings("javadoc")
 public class PairwiseCornerCasesTest {
 
   Random rand = new Random(9001); //deterministic

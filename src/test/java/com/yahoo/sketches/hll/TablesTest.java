@@ -28,10 +28,12 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import com.yahoo.sketches.SketchesArgumentException;
+
 /**
  * @author Lee Rhodes
  *
  */
+@SuppressWarnings("javadoc")
 public class TablesTest {
 
   @Test

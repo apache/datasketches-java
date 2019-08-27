@@ -644,8 +644,6 @@ public abstract class Sketch {
 
   /**
    * Instantiates a Heap Sketch from Memory. SerVer 1 & 2 already handled.
-   * @param famID the Family ID
-   * @param ordered true if the sketch is of the Compact family and ordered
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * The seed required to instantiate a non-compact sketch.

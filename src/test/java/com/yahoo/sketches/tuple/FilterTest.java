@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 import com.yahoo.sketches.tuple.adouble.DoubleSummary;
 import com.yahoo.sketches.tuple.adouble.DoubleSummaryFactory;
 
+@SuppressWarnings("javadoc")
 public class FilterTest {
 
     private static final int numberOfElements = 100;

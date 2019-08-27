@@ -26,6 +26,7 @@ import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 import com.yahoo.sketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class ArrayOfDoublesQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -36,7 +37,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
   @Test
   public void heapToDirectExactTwoDoubles() {
     double[] valuesArr = {1.0, 2.0};
-    ArrayOfDoublesUpdatableSketch sketch1 = 
+    ArrayOfDoublesUpdatableSketch sketch1 =
         new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     sketch1.update("a", valuesArr);
     sketch1.update("b", valuesArr);
@@ -69,7 +70,7 @@ public class ArrayOfDoublesQuickSelectSketchTest {
     long seed = 1;
     double[] values = {1.0};
 
-    ArrayOfDoublesUpdatableSketch sketch1 = 
+    ArrayOfDoublesUpdatableSketch sketch1 =
         new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
     sketch1.update("a", values);
     sketch1.update("b", values);
@@ -85,15 +86,15 @@ public class ArrayOfDoublesQuickSelectSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInsertExceptions() {
-    ArrayOfDoublesUpdatableSketch sketch1 = 
+    ArrayOfDoublesUpdatableSketch sketch1 =
         new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     sketch1.update("a", new double[] {1.0});
   }
-  
+
   @Test
   public void directToHeapExactTwoDoubles() {
     double[] valuesArr = {1.0, 2.0};
-    ArrayOfDoublesUpdatableSketch sketch1 = 
+    ArrayOfDoublesUpdatableSketch sketch1 =
         new ArrayOfDoublesUpdatableSketchBuilder().
         setNumberOfValues(2).build(WritableMemory.wrap(new byte[1000000]));
     sketch1.update("a", valuesArr);
@@ -121,13 +122,13 @@ public class ArrayOfDoublesQuickSelectSketchTest {
       Assert.assertEquals(array[1], 4.0);
     }
   }
-  
+
   @Test
   public void directToHeapWithSeed() {
     long seed = 1;
     double[] values = {1.0};
 
-    ArrayOfDoublesUpdatableSketch sketch1 = 
+    ArrayOfDoublesUpdatableSketch sketch1 =
         new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build(
             WritableMemory.wrap(new byte[1000000]));
     sketch1.update("a", values);

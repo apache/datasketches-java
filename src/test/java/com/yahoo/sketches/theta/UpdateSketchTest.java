@@ -35,9 +35,11 @@ import com.yahoo.sketches.Family;
 import com.yahoo.sketches.ResizeFactor;
 import com.yahoo.sketches.SketchesArgumentException;
 import com.yahoo.sketches.Util;
+
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class UpdateSketchTest {
 
   @Test

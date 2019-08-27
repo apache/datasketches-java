@@ -39,6 +39,7 @@ import com.yahoo.sketches.Util;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class HeapUnionTest {
 
   @Test

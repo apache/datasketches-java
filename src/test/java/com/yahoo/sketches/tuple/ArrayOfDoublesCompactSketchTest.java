@@ -25,6 +25,7 @@ import org.testng.annotations.Test;
 import com.yahoo.memory.Memory;
 import com.yahoo.memory.WritableMemory;
 
+@SuppressWarnings("javadoc")
 public class ArrayOfDoublesCompactSketchTest {
   @Test
   public void heapToDirectExactTwoDoubles() {

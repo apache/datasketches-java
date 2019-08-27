@@ -34,6 +34,7 @@ import com.yahoo.sketches.tuple.Union;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class ArrayOfStringsSketchTest {
   private static final String LS = System.getProperty("line.separator");
 

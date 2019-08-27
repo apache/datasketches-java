@@ -36,6 +36,7 @@ import com.yahoo.sketches.tuple.UpdatableSketch;
 import com.yahoo.sketches.tuple.UpdatableSketchBuilder;
 import com.yahoo.sketches.tuple.adouble.DoubleSummary.Mode;
 
+@SuppressWarnings("javadoc")
 public class UpdatableSketchWithDoubleSummaryTest {
 
   @Test

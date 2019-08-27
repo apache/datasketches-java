@@ -32,6 +32,7 @@ import com.yahoo.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class CompressedStateTest {
   static PrintStream ps = System.out;
   long vIn = 0;

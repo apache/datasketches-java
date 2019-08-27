@@ -30,6 +30,7 @@ import com.yahoo.sketches.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class AuxHashMapTest {
   static final String LS = System.getProperty("line.separator");
 

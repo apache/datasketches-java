@@ -29,8 +29,8 @@ import com.yahoo.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
- *
  */
+@SuppressWarnings("javadoc")
 public class HllArrayTest {
 
   @Test
