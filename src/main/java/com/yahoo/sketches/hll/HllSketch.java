@@ -63,7 +63,15 @@ import com.yahoo.sketches.SketchesArgumentException;
  * @author Kevin Lang
  */
 public class HllSketch extends BaseHllSketch {
+
+  /**
+   * The default Log_base2 of K
+   */
   public static final int DEFAULT_LG_K = 12;
+
+  /**
+   * The default HLL-TYPE is HLL_4
+   */
   public static final TgtHllType DEFAULT_HLL_TYPE = TgtHllType.HLL_4;
 
   private static final String LS = System.getProperty("line.separator");

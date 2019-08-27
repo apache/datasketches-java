@@ -32,7 +32,14 @@ public class ArrayOfDoublesSetOperationBuilder {
   private int numValues_;
   private long seed_;
 
+  /**
+   * Default Nominal Entries (a.k.a. K)
+   */
   public static final int DEFAULT_NOMINAL_ENTRIES = 4096;
+
+  /**
+   * Default number of values
+   */
   public static final int DEFAULT_NUMBER_OF_VALUES = 1;
 
   /**
@@ -46,7 +53,7 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * This is to set the nominal number of entries.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
    * given value.
    * @return this builder
    */
@@ -95,7 +102,7 @@ public class ArrayOfDoublesSetOperationBuilder {
   }
 
   /**
-   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the 
+   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the
    * builder.
    * The new instance is allocated on the heap if the memory is not provided.
    * The number of nominal entries is not relevant to this, so it is ignored.
@@ -106,7 +113,7 @@ public class ArrayOfDoublesSetOperationBuilder {
   }
 
   /**
-   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the 
+   * Creates an instance of ArrayOfDoublesIntersection based on the current configuration of the
    * builder.
    * The new instance is allocated on the heap if the memory is not provided.
    * The number of nominal entries is not relevant to this, so it is ignored.

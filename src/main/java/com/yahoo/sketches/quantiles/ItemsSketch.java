@@ -567,11 +567,17 @@ public final class ItemsSketch<T> {
    return getN() == 0;
   }
 
+  /**
+   * @return true if this sketch is off-heap
+   */
   @SuppressWarnings("static-method")
   public boolean isDirect() {
     return false;
   }
 
+  /**
+   * @return true if in estimation mode
+   */
   public boolean isEstimationMode() {
     return getN() >= (2L * k_);
   }
@@ -684,6 +690,9 @@ public final class ItemsSketch<T> {
     dstMem.putByteArray(0, byteArr, 0, byteArr.length);
   }
 
+  /**
+   * @return the iterator for this class
+   */
   public ItemsSketchIterator<T> iterator() {
     return new ItemsSketchIterator<>(this, bitPattern_);
   }

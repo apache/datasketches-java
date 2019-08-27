@@ -56,6 +56,9 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
     return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
   }
 
+  /**
+   * @return a CompactDoublesSketch of this class
+   */
   public CompactDoublesSketch compact() {
     return compact(null);
   }

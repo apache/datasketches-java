@@ -19,6 +19,10 @@
 
 package com.yahoo.sketches;
 
+/**
+ * Useful methods for byte arrays.
+ * @author Lee Rhodes
+ */
 public final class ByteArrayUtil {
 
   /**

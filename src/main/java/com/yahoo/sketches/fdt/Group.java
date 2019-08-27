@@ -38,11 +38,10 @@ public class Group implements Comparable<Group> {
   private final static String hfmt =
       "%12s"  + "%15s"    + "%15s"    + "%15s"    + "%12s"   + "%12s"   + " %s";
 
+  /**
+   * Construct an empty Group
+   */
   public Group() { }
-
-  public Group copy() {
-    return new Group();
-  }
 
   /**
    * Specifies the parameters to be listed as columns
@@ -117,7 +116,7 @@ public class Group implements Comparable<Group> {
   /**
    * Note: this class has a natural ordering that is inconsistent with equals.
    * Ignore FindBugs EQ_COMPARETO_USE_OBJECT_EQUALS warning.
-   * @param that the Group to compare to
+   * @param that The Group to compare to
    */
   @Override
   public int compareTo(final Group that) {
