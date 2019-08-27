@@ -413,28 +413,6 @@ public class ReservoirItemsSketchTest {
     assertTrue((ris.getImplicitSampleWeight() - 1.5) < EPS);
   }
 
-  /*
-  @Test
-  public void checkReadOnlyHeapify() {
-    final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
-    Memory sketchMem = getBasicSerializedLongsRIS();
-
-    // Load from read-only and writable memory to ensure they deserialize identically
-    ReservoirItemsSketch<Long> ris = ReservoirItemsSketch.heapify(sketchMem.asReadOnlyMemory(),
-            serDe);
-    ReservoirItemsSketch<Long> fromWritable = ReservoirItemsSketch.heapify(sketchMem, serDe);
-    validateReservoirEquality(ris, fromWritable);
-
-    // Same with an empty sketch
-    final byte[] sketchBytes = ReservoirItemsSketch.<Long>newInstance(32).toByteArray(serDe);
-    sketchMem = new NativeMemory(sketchBytes);
-
-    ris = ReservoirItemsSketch.heapify(sketchMem.asReadOnlyMemory(), serDe);
-    fromWritable = ReservoirItemsSketch.heapify(sketchMem, serDe);
-    validateReservoirEquality(ris, fromWritable);
-  }
-  */
-
   @Test
   public void checkVersionConversion() {
     // version change from 1 to 2 only impact first preamble long, so empty sketch is sufficient
