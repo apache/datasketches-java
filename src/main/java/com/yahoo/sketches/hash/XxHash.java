@@ -47,7 +47,14 @@ public class XxHash {
   private static final long P4 = -8796714831421723037L;
   private static final long P5 =  2870177450012600261L;
 
-
+  /**
+   * Compute the has of the given Memory object.
+   * @param mem The given Memory object
+   * @param offsetBytes Starting at this offset in bytes
+   * @param lengthBytes Continuing for this number of bytes
+   * @param seed use this seed for the hash function
+   * @return return the resulting 64-bit hash value.
+   */
   public static long hash(final Memory mem, final long offsetBytes, final long lengthBytes,
       final long seed) {
     return mem.xxHash64(offsetBytes, lengthBytes, seed);

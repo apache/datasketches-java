@@ -720,6 +720,9 @@ public abstract class DoublesSketch {
     }
   }
 
+  /**
+   * @return the iterator for this class
+   */
   public DoublesSketchIterator iterator() {
     return new DoublesSketchIterator(this, getBitPattern());
   }

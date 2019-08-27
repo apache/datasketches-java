@@ -140,7 +140,7 @@ public class PostProcessor {
         final double lb = sketch.getLowerBound(numStdDev, count);
         final double thresh = (double) count / sketch.getRetainedEntries();
         final double rse = (sketch.getUpperBound(1, count) / est) - 1.0;
-        final Group gp = group.copy();
+        final Group gp = new Group();
         gp.init(priKey, count, est, ub, lb, thresh, rse);
         list.add(gp);
       }

@@ -64,6 +64,10 @@ import com.yahoo.sketches.Family;
 public final class CpcSketch {
   private static final String LS = System.getProperty("line.separator");
   private static final double[] kxpByteLookup = new double[256];
+
+  /**
+   * The default Log_base2 of K
+   */
   public static final int DEFAULT_LG_K = 11;
   final long seed;
   //common variables

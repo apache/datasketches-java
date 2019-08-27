@@ -40,18 +40,30 @@ public class SampleSubsetSummary {
     this.totalSketchWeight = totalSketchWeight;
   }
 
+  /**
+   * @return the Lower Bound
+   */
   public double getLowerBound() {
     return lowerBound;
   }
 
+  /**
+   * @return the total sketch weight
+   */
   public double getTotalSketchWeight() {
     return totalSketchWeight;
   }
 
+  /**
+   * @return the Upper Bound
+   */
   public double getUpperBound() {
     return upperBound;
   }
 
+  /**
+   * @return the unique count estimate
+   */
   public double getEstimate() {
     return estimate;
   }

@@ -95,7 +95,9 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
     boolean getMark() { return sketch_.getMark(idx_); }
   }
 
-  // standard iterator
+  /**
+   * The standard iterator
+   */
   public class VarOptItemsIterator implements Iterator<WeightedSample> {
     int currIdx_;
     int finalIdx_; // inclusive final index

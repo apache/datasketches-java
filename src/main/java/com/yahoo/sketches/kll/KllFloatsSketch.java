@@ -150,6 +150,9 @@ import com.yahoo.sketches.Util;
  */
 public class KllFloatsSketch {
 
+  /**
+   * The default value of K.
+   */
   public static final int DEFAULT_K = 200;
   static final int DEFAULT_M = 8;
   static final int MIN_K = DEFAULT_M;
@@ -479,7 +482,7 @@ public class KllFloatsSketch {
     final float[] quantiles = new float[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
-      if (fraction < 0.0 || fraction > 1.0) {
+      if ((fraction < 0.0) || (fraction > 1.0)) {
         throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
       }
       if      (fraction == 0.0) { quantiles[i] = minValue_; }
@@ -848,6 +851,9 @@ public class KllFloatsSketch {
     return new KllFloatsSketch(mem);
   }
 
+  /**
+   * @return the iterator for this class
+   */
   public KllFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(items_, levels_, numLevels_);
   }
