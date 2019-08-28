@@ -31,11 +31,11 @@ import org.apache.datasketches.memory.Memory;
  * <a href="https://github.com/Cyan4973/xxHash">
  * https://github.com/Cyan4973/xxHash</a>. It has a BSD 2-Clause License:
  * <a href="http://www.opensource.org/licenses/bsd-license.php">
- * http://www.opensource.org/licenses/bsd-license.php</a>
+ * http://www.opensource.org/licenses/bsd-license.php</a>   See LICENSE.
  *
- * <p>Portions of this code were leveraged from
+ * <p>Portions of this code were adapted from
  * <a href="https://github.com/OpenHFT/Zero-Allocation-Hashing/blob/master/src/main/java/net/openhft/hashing/XxHash.java">
- * OpenHFT/Zero-Allocation-Hashing</a>, which has an Apache 2 license as does this site.
+ * OpenHFT/Zero-Allocation-Hashing</a>, which has an Apache 2 license as does this site. See LICENSE.
  *
  * @author Lee Rhodes
  */
@@ -48,7 +48,7 @@ public class XxHash {
   private static final long P5 =  2870177450012600261L;
 
   /**
-   * Compute the has of the given Memory object.
+   * Compute the hash of the given Memory object.
    * @param mem The given Memory object
    * @param offsetBytes Starting at this offset in bytes
    * @param lengthBytes Continuing for this number of bytes
