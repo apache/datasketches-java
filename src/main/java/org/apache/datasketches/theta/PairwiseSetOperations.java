@@ -73,7 +73,7 @@ public class PairwiseSetOperations {
     final short seedHash = ((skA == null) || (skA instanceof EmptyCompactSketch))
         ? skB.getSeedHash() : skA.getSeedHash();
     final HeapAnotB anotb = new HeapAnotB(seedHash);
-    return anotb.aNotB(skA, skB, true, null);
+    return anotb.aNotB(skA, skB, true, null); //handles null arguments just fine.
   }
 
   /**

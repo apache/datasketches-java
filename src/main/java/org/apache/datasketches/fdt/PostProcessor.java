@@ -41,6 +41,7 @@ public class PostProcessor {
   private final FdtSketch sketch;
   private final char sep;
   private int groupCount;
+  @SuppressWarnings("unused")
   private Group group; //uninitialized
 
   //simple hash-map

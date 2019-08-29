@@ -66,7 +66,7 @@ final class Util {
 
   /**
    * Computes the raw delta area between two quantile sketches for the
-   * {@link #kolmogorovSmirnovTest(DoubleSketch, DoubleSketch, double)
+   * {@link #kolmogorovSmirnovTest(DoublesSketch, DoublesSketch, double)
    * Kolmogorov-Smirnov Test}
    * method.
    * @param sketch1 Input DoubleSketch 1
@@ -123,7 +123,7 @@ final class Util {
 
   /**
    * Computes the adjusted delta area threshold for the
-   * {@link #kolmogorovSmirnovTest(DoubleSketch, DoubleSketch, double) Kolmogorov-Smirnov Test}
+   * {@link #kolmogorovSmirnovTest(DoublesSketch, DoublesSketch, double) Kolmogorov-Smirnov Test}
    * method.
    * This adjusts the computed threshold by the error epsilons of the two given sketches.
    * See <a href="https://en.wikipedia.org/wiki/Kolmogorov-Smirnov_test">Kolmogorov–Smirnov Test</a>
