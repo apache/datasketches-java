@@ -201,17 +201,46 @@ abstract class BaseHllSketch {
   public abstract void reset();
 
   /**
-   * Returns the serialization of this sketch as a byte array in compact form, which can be
-   * converted back to on on-heap sketch (<i>heapified</i>) where it can be used for read or
-   * write operations.
-   * or directly <i>wrapped</i> designed
-   * to be heapified only. It is not directly updatable.
-   * @return the serialization of this sketch as a byte array.
+   * Serializes this sketch as a byte array in compact form. The compact form is smaller in size
+   * than the updatable form and read-only. It can be used in union operations as follows:
+   * <pre>
+   *     Union union; HllSketch sk, sk2;
+   *     int lgK = 12;
+   *     sk = new HllSketch(lgK, TgtHllType.HLL_4); //can be 4, 6, or 8
+   *     for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
+   *     byte[] arr = HllSketch.toCompactByteArray();
+   *     //...
+   *     union = Union.heapify(arr); //initializes the union using data from the array.
+   *     //OR, if used in an off-heap environment:
+   *     union = Union.heapify(Memory.wrap(arr)); //same as above, except from Memory object.
+   *
+   *     //To recover an updatable heap sketch:
+   *     sk2 = HllSketch.heapify(arr);
+   *     //OR, if used in an off-heap environment:
+   *     sk2 = HllSketch.heapify(Memory.wrap(arr));
+   * </pre>
+   *
+   * <p>The sketch "wrapping" operation skips actual deserialization thus is quite fast. However,
+   * any attempt to update the derived HllSketch will result in a Read-only exception.
+   * @return this sketch as a compact byte array.
    */
   public abstract byte[] toCompactByteArray();
 
   /**
-   * Serializes this sketch as an updatable byte array.
+   * Serializes this sketch as a byte array in an updatable form. The updatable form is larger than
+   * the compact form. The use of this form is primarily in environments that support updating
+   * sketches in off-heap memory. If the sketch is constructed using HLL_8, sketch updating and
+   * union updating operations can actually occur in WritableMemory, which can be off-heap:
+   * <pre>
+   *     Union union; HllSketch sk;
+   *     int lgK = 12;
+   *     sk = new HllSketch(lgK, TgtHllType.HLL_8) //must be 8
+   *     for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
+   *     byte[] arr = sk.toUpdatableByteArray();
+   *     WritableMemory wmem = WritableMemory.wrap(arr);
+   *     //...
+   *     union = Union.writableWrap(wmem); //no deserialization!
+   * </pre>
    * @return this sketch as an updatable byte array.
    */
   public abstract byte[] toUpdatableByteArray();

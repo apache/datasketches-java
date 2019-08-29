@@ -31,6 +31,7 @@ import static org.apache.datasketches.hll.PreambleUtil.extractSerVer;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -112,8 +113,8 @@ final class HllUtil {
 
   //Exceptions
   static final void noWriteAccess() {
-    throw new SketchesArgumentException(
-        "This sketch does not have write access to the underlying resource.");
+    throw new SketchesReadOnlyException(
+        "This sketch is compact or does not have write access to the underlying resource.");
   }
 
   static final void badPreambleState(final Memory mem) {

@@ -35,11 +35,10 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -416,6 +415,25 @@ public class HllSketchTest {
     byte[] byteArr = sk.toCompactByteArray();
     WritableMemory wmem = WritableMemory.wrap(byteArr);
     HllSketch sk2 = HllSketch.writableWrap(wmem);
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkJavadocExample() {
+    Union union; HllSketch sk, sk2;
+    int lgK = 12;
+    sk = new HllSketch(lgK, TgtHllType.HLL_4); //can be 4, 6, or 8
+    for (int i = 0; i < (2 << lgK); i++) { sk.update(i); }
+    byte[] arr = sk.toCompactByteArray();
+    //  ...
+    union = Union.heapify(arr); //initializes the union using data from the array.
+    //OR, if used in an off-heap environment:
+    union = Union.heapify(Memory.wrap(arr));
+
+    //To recover an updatable Heap sketch:
+    sk2 = HllSketch.heapify(arr);
+    //OR, if used in an off-heap environment:
+    sk2 = HllSketch.heapify(Memory.wrap(arr));
   }
 
   @Test
