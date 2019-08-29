@@ -25,11 +25,11 @@ import static org.testng.Assert.fail;
 
 import java.util.HashSet;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -58,7 +58,7 @@ public class DirectHllSketchTest {
     try {
       sk2.update(1);
       fail();
-    } catch (SketchesArgumentException e) {
+    } catch (SketchesReadOnlyException e) {
       //expected
     }
   }
