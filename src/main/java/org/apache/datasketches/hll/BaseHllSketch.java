@@ -203,7 +203,7 @@ abstract class BaseHllSketch {
   /**
    * Serializes this sketch as a byte array in compact form. The compact form is smaller in size
    * than the updatable form and read-only. It can be used in union operations as follows:
-   * <pre>
+   * <pre>{@code
    *     Union union; HllSketch sk, sk2;
    *     int lgK = 12;
    *     sk = new HllSketch(lgK, TgtHllType.HLL_4); //can be 4, 6, or 8
@@ -218,7 +218,7 @@ abstract class BaseHllSketch {
    *     sk2 = HllSketch.heapify(arr);
    *     //OR, if used in an off-heap environment:
    *     sk2 = HllSketch.heapify(Memory.wrap(arr));
-   * </pre>
+   * }</pre>
    *
    * <p>The sketch "wrapping" operation skips actual deserialization thus is quite fast. However,
    * any attempt to update the derived HllSketch will result in a Read-only exception.
@@ -231,7 +231,7 @@ abstract class BaseHllSketch {
    * the compact form. The use of this form is primarily in environments that support updating
    * sketches in off-heap memory. If the sketch is constructed using HLL_8, sketch updating and
    * union updating operations can actually occur in WritableMemory, which can be off-heap:
-   * <pre>
+   * <pre>{@code
    *     Union union; HllSketch sk;
    *     int lgK = 12;
    *     sk = new HllSketch(lgK, TgtHllType.HLL_8) //must be 8
@@ -240,7 +240,7 @@ abstract class BaseHllSketch {
    *     WritableMemory wmem = WritableMemory.wrap(arr);
    *     //...
    *     union = Union.writableWrap(wmem); //no deserialization!
-   * </pre>
+   * }</pre>
    * @return this sketch as an updatable byte array.
    */
   public abstract byte[] toUpdatableByteArray();
