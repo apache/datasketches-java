@@ -17,7 +17,7 @@ Apache License version 2.0 (see LICENSE)
 This product contains code to implement the xxHash function:
   * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/XxHash.java
 
-This code was adapted from
+and was adapted from
   https://github.com/OpenHFT/Zero-Allocation-Hashing, 
   Copyright 2015 Higher Frequency Trading http://www.higherfrequencytrading.com
 
