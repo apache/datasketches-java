@@ -60,7 +60,6 @@ import org.testng.annotations.Test;
 public class UtilTest {
   private static final String LS = System.getProperty("line.separator");
 
-
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPowerOf2() {
     checkIfPowerOf2(31, "31");
@@ -330,19 +329,29 @@ public class UtilTest {
 
   //Resources
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  void resourcesFileTest() {
+  @Test
+  public void resourcefileExists() {
     final String shortFileName = "cpc-empty.bin";
     final File file = getResourceFile(shortFileName);
     assertTrue(file.exists());
-    getResourceFile(shortFileName + "123");
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
-  void resourcesBytesTest() {
+  public void resourceFileNotFound() {
+    final String shortFileName = "cpc-empty.bin";
+    getResourceFile(shortFileName + "123");
+  }
+
+  @Test
+  public void resourceBytesCorrect() {
     final String shortFileName = "cpc-empty.bin";
     final byte[] bytes = getResourceBytes(shortFileName);
     assertTrue(bytes.length == 8);
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  public void resourceBytesFileNotFound() {
+    final String shortFileName = "cpc-empty.bin";
     getResourceBytes(shortFileName + "123");
   }
 
