@@ -336,7 +336,7 @@ public class UtilTest {
     assertTrue(file.exists());
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void resourceFileNotFound() {
     final String shortFileName = "cpc-empty.bin";
     getResourceFile(shortFileName + "123");
@@ -349,7 +349,7 @@ public class UtilTest {
     assertTrue(bytes.length == 8);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void resourceBytesFileNotFound() {
     final String shortFileName = "cpc-empty.bin";
     getResourceBytes(shortFileName + "123");
