@@ -714,7 +714,7 @@ public final class Util {
       final String path = uri.getPath(); //decodes any special characters
       return path;
     } catch (final NullPointerException | URISyntaxException e) {
-      throw new IllegalArgumentException("Cannot find resource: " + shortFileName + LS + e);
+      throw new SketchesArgumentException("Cannot find resource: " + shortFileName + LS + e);
     }
   }
 
@@ -738,7 +738,7 @@ public final class Util {
     try {
       return Files.readAllBytes(Paths.get(getResourcePath(shortFileName)));
     } catch (final IOException e) {
-      throw new IllegalArgumentException("Cannot read resource: " + shortFileName + LS + e);
+      throw new SketchesArgumentException("Cannot read resource: " + shortFileName + LS + e);
     }
   }
 
