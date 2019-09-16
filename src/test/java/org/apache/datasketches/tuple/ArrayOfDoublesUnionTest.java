@@ -19,14 +19,15 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.Util.getResourceBytes;
+
 import java.util.Arrays;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ArrayOfDoublesUnionTest {
@@ -203,15 +204,13 @@ public class ArrayOfDoublesUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] bytes = TestUtil.readBytesFromFile(
-        getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
+    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.bin");
     ArrayOfDoublesUnion.heapify(Memory.wrap(bytes));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] bytes = TestUtil.readBytesFromFile(
-        getClass().getClassLoader().getResource("ArrayOfDoublesUnion_v0.9.1.bin").getFile());
+    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.bin");
     ArrayOfDoublesUnion.wrap(WritableMemory.wrap(bytes));
   }
 

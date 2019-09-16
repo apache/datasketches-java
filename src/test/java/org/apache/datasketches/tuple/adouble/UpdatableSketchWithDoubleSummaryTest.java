@@ -19,12 +19,9 @@
 
 package org.apache.datasketches.tuple.adouble;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
@@ -35,6 +32,8 @@ import org.apache.datasketches.tuple.Union;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class UpdatableSketchWithDoubleSummaryTest {
@@ -835,25 +834,5 @@ public class UpdatableSketchWithDoubleSummaryTest {
     new UpdatableSketchBuilder<>
       (new DoubleSummaryFactory()).setSamplingProbability(2f).build();
   }
-
-//@Test
-//  @Deprecated
-//  public void serialVersion1Compatibility() throws Exception {
-//    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
-//        .getResource("UpdatableSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
-//    UpdatableSketch<Double, DoubleSummary> sketch =
-//        Sketches.heapifyUpdatableSketch(
-//            Memory.wrap(bytes), new DoubleSummaryDeserializer(), new DoubleSummaryFactory());
-//    Assert.assertTrue(sketch.isEstimationMode());
-//    Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
-//    Assert.assertEquals(sketch.getRetainedEntries(), 4096);
-//    int count = 0;
-//    SketchIterator<DoubleSummary> it = sketch.iterator();
-//    while (it.next()) {
-//      Assert.assertEquals(it.getSummary().getValue(), 10.0);
-//      count++;
-//    }
-//    Assert.assertEquals(count, 4096);
-//  }
 
 }

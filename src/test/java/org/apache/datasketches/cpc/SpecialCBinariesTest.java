@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.Util.getResourceFile;
 import static org.testng.Assert.assertTrue;
 
 import java.io.File;
@@ -27,13 +28,12 @@ import java.io.PrintStream;
 import java.nio.ByteOrder;
 import java.nio.file.Files;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMapHandle;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -47,13 +47,12 @@ public class SpecialCBinariesTest {
   @SuppressWarnings("unused")
   public void checkCpc10mBin() {
     String fileName = "cpc-10m.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       try {
         CpcSketch sk = CpcSketch.heapify(mem);
       } catch (SketchesArgumentException e) {} // Image was truncated by 4 bytes
-
     } catch (IOException e) {
       e.printStackTrace();
     }

@@ -26,6 +26,14 @@ import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 /**
  * Common utility functions.
  *
@@ -683,6 +691,55 @@ public final class Util {
    */
   public static boolean isLessThanUnsigned(final long n1, final long n2) {
     return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
+  }
+
+  //Resources
+
+  /**
+   * Gets the absolute path of the given resource file's shortName.
+   *
+   * <p>Note that the ClassLoader.getResource(shortName) returns a URL,
+   * which can have special characters, e.g., "%20" for spaces. This method
+   * obtains the URL, converts it to a URI, then does a uri.getPath(), which
+   * decodes any special characters in the URI path. This is required to make
+   * obtaining resources operating-system independent.</p>
+   *
+   * @param shortFileName the last name in the pathname's name sequence.
+   * @return the absolute path of the given resource file's shortName.
+   */
+  public static String getResourcePath(final String shortFileName) {
+    try {
+      final URL url = Util.class.getClassLoader().getResource(shortFileName);
+      final URI uri = url.toURI();
+      final String path = uri.getPath(); //decodes any special characters
+      return path;
+    } catch (final NullPointerException | URISyntaxException e) {
+      throw new SketchesArgumentException("Cannot find resource: " + shortFileName + LS + e);
+    }
+  }
+
+  /**
+   * Gets the file defined by the given resource file's shortFileName.
+   * @param shortFileName the last name in the pathname's name sequence.
+   * @return the file defined by the given resource file's shortFileName.
+   */
+  public static File getResourceFile(final String shortFileName) {
+    return new File(getResourcePath(shortFileName));
+  }
+
+  /**
+   * Returns a byte array of the contents of the file defined by the given resource file's
+   * shortFileName.
+   * @param shortFileName the last name in the pathname's name sequence.
+   * @return a byte array of the contents of the file defined by the given resource file's
+   * shortFileName.
+   */
+  public static byte[] getResourceBytes(final String shortFileName) {
+    try {
+      return Files.readAllBytes(Paths.get(getResourcePath(shortFileName)));
+    } catch (final IOException e) {
+      throw new SketchesArgumentException("Cannot read resource: " + shortFileName + LS + e);
+    }
   }
 
 }

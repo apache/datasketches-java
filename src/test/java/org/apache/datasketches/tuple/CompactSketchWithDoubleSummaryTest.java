@@ -19,14 +19,15 @@
 
 package org.apache.datasketches.tuple;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static org.apache.datasketches.Util.getResourceBytes;
 
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryDeserializer;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class CompactSketchWithDoubleSummaryTest {
@@ -175,8 +176,7 @@ public class CompactSketchWithDoubleSummaryTest {
 
   @Test
   public void serialVersion1Compatibility() throws Exception {
-    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader()
-        .getResource("CompactSketchWithDoubleSummary4K_serialVersion1.bin").getFile());
+    byte[] bytes = getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.bin");
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes), new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);

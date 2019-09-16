@@ -19,17 +19,16 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.tuple.TestUtil;
+import org.apache.datasketches.memory.Memory;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class KllFloatsSketchTest {
@@ -353,7 +352,7 @@ public class KllFloatsSketchTest {
 
   @Test
   public void deserializeOneItemV1() throws Exception {
-    byte[] bytes = TestUtil.readBytesFromFile(getClass().getClassLoader().getResource("kll_sketch_float_one_item_v1.bin").getFile());
+    byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.bin");
     KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertFalse(sketch.isEmpty());
     assertFalse(sketch.isEstimationMode());

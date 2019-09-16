@@ -19,16 +19,16 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.Util.getResourceFile;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
+import org.testng.annotations.Test;
 
 /**
  * Checks sketch images obtained from C++.
@@ -42,7 +42,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkEmptyBin() {
     String fileName = "cpc-empty.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory wmem = mh.get();
       println(PreambleUtil.toString(wmem, true));
@@ -56,7 +56,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkSparseBin() {
     String fileName = "cpc-sparse.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U99");
@@ -82,7 +82,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkHybridBin() {
     String fileName = "cpc-hybrid.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U199");
@@ -108,7 +108,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkPinnedBin() {
     String fileName = "cpc-pinned.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U1999");
@@ -134,7 +134,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkSlidingBin() {
     String fileName = "cpc-sliding.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       println("CPP GENERATED SKETCH FROM BINARY FILE LgK=11, U0 to U19999");
@@ -162,7 +162,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkEmptyImages() {
     String fileName = "cpc-empty.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       int cap = (int) mem.getCapacity();
@@ -182,7 +182,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkSparseImages() {
     String fileName = "cpc-sparse.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       int cap = (int) mem.getCapacity();
@@ -203,7 +203,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkHybridImages() {
     String fileName = "cpc-hybrid.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       int cap = (int) mem.getCapacity();
@@ -224,7 +224,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkPinnedImages() {
     String fileName = "cpc-pinned.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       int cap = (int) mem.getCapacity();
@@ -245,7 +245,7 @@ public class CpcCBinariesTest {
   @Test
   public void checkSlidingImages() {
     String fileName = "cpc-sliding.bin";
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
+    File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
       int cap = (int) mem.getCapacity();
@@ -303,6 +303,5 @@ public class CpcCBinariesTest {
   static void println(String s) {
     //ps.println(s); //disable here
   }
-
 
 }
