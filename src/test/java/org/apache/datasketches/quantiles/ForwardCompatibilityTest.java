@@ -19,17 +19,15 @@
 
 package org.apache.datasketches.quantiles;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import static org.apache.datasketches.Util.getResourceBytes;
 
+import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.Memory;
-
 @SuppressWarnings("javadoc")
 public class ForwardCompatibilityTest {
+  private static final String LS = System.getProperty("line.separator");
 
   @Test
   //fullPath: sketches/src/test/resources/Qk128_n50_v0.3.0.bin
@@ -111,7 +109,7 @@ public class ForwardCompatibilityTest {
     getAndCheck(ver, n, expected);
   }
 
-  private void getAndCheck(String ver, int n, double quantile) {
+  private static void getAndCheck(String ver, int n, double quantile) {
     DoublesSketch.rand.setSeed(131); //make deterministic
     //create fileName
     int k = 128;
@@ -119,9 +117,8 @@ public class ForwardCompatibilityTest {
     String fileName = String.format("Qk%d_n%d_v%s.bin", k, n, ver);
     println("fullName: "+ fileName);
     println("Old Median: " + quantile);
-    //create & Read File
-    File file = new File(getClass().getClassLoader().getResource(fileName).getFile());
-    byte[] byteArr2 = readFile(file);
+    //Read File bytes
+    byte[] byteArr2 = getResourceBytes(fileName);
     Memory srcMem = Memory.wrap(byteArr2);
 
     // heapify as update sketch
@@ -139,27 +136,23 @@ public class ForwardCompatibilityTest {
     Assert.assertEquals(q2, quantile, 0.0);
   }
 
-  private static byte[] readFile(File file) {
-    try ( FileInputStream streamIn = new FileInputStream(file) ) {
-      byte[] byteArr = new byte[(int)file.length()];
-      streamIn.read(byteArr);
-      return byteArr;
-    }
-    catch (NullPointerException | IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
 
+  static void println(final Object o) {
+    if (o == null) { print(LS); }
+    else { print(o.toString() + LS); }
+  }
+
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void print(final Object o) {
+    if (o != null) {
+      //System.out.print(o.toString()); //disable here
+    }
   }
 
 }

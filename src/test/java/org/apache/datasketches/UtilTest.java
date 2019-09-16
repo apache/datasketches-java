@@ -19,6 +19,7 @@
 
 package org.apache.datasketches;
 
+import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.bytesToInt;
 import static org.apache.datasketches.Util.bytesToLong;
 import static org.apache.datasketches.Util.bytesToString;
@@ -31,6 +32,8 @@ import static org.apache.datasketches.Util.checkProbability;
 import static org.apache.datasketches.Util.evenlyLgSpaced;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.Util.floorPowerOfBdouble;
+import static org.apache.datasketches.Util.getResourceBytes;
+import static org.apache.datasketches.Util.getResourceFile;
 import static org.apache.datasketches.Util.intToBytes;
 import static org.apache.datasketches.Util.isLessThanUnsigned;
 import static org.apache.datasketches.Util.isMultipleOf8AndGT0;
@@ -42,8 +45,10 @@ import static org.apache.datasketches.Util.pwr2LawPrev;
 import static org.apache.datasketches.Util.pwrLawNextDouble;
 import static org.apache.datasketches.Util.simpleIntLog2;
 import static org.apache.datasketches.Util.zeroPad;
-import static java.lang.Math.pow;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
+
+import java.io.File;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -53,6 +58,8 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class UtilTest {
+  private static final String LS = System.getProperty("line.separator");
+
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPowerOf2() {
@@ -170,13 +177,13 @@ public class UtilTest {
     long v = 123456789;
     String vHex = Long.toHexString(v);
     String out = zeroPad(vHex, 16);
-    println(out);
+    println("Pad 16, prepend 0: " + out);
   }
 
   @Test
   public void checkCharacterPad() {
-    String s = "Sleeping ... ";
-    String out = characterPad(s, 20, 'z', true);
+    String s = "Pad 30, postpend z:";
+    String out = characterPad(s, 30, 'z', true);
     println(out);
   }
 
@@ -321,39 +328,41 @@ public class UtilTest {
     } catch (SketchesArgumentException e) {}
   }
 
+  //Resources
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  void resourcesFileTest() {
+    final String shortFileName = "cpc-empty.bin";
+    final File file = getResourceFile(shortFileName);
+    assertTrue(file.exists());
+    getResourceFile(shortFileName + "123");
+  }
+
+  @Test(expectedExceptions = IllegalArgumentException.class)
+  void resourcesBytesTest() {
+    final String shortFileName = "cpc-empty.bin";
+    final byte[] bytes = getResourceBytes(shortFileName);
+    assertTrue(bytes.length == 8);
+    getResourceBytes(shortFileName + "123");
+  }
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
-    print("  Long MAX & MIN: "); print(Long.MAX_VALUE); print(", "); println(Long.MIN_VALUE);
-    print("  Doubles:        "); print(1.2345); print(", "); println(5.4321);
+  }
+
+  static void println(final Object o) {
+    if (o == null) { print(LS); }
+    else { print(o.toString() + LS); }
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    print(s + '\t');
-  }
-
-  /**
-   * @param d value to print
-   */
-  static void println(double d) {
-    print(Double.toString(d) + '\t');
-  }
-
-  /**
-   * @param d value to print
-   */
-  static void print(double d) {
-    print(Double.toString(d));
-  }
-
-  /**
-   * @param s value to print
-   */
-  static void print(String s) {
-    //System.out.print(s); //disable here
+  static void print(final Object o) {
+    if (o != null) {
+      //System.out.print(o.toString()); //disable here
+    }
   }
 
 }
