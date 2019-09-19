@@ -202,40 +202,60 @@ APPENDIX A: How to apply the Apache License to your work.
     limitations under the License.
     ---------------------------------------------
 
-APPENDIX B: Additional licenses relevant to this work.
-
-  Apache DataSketches-java (INCUBATING):
+APPENDIX B: Additional licenses relevant to Apache DataSketches-java (INCUBATING):
 
     Apache DataSketches-java (incubating) includes a number of source 
-    files with separate copyright notices and license terms. Your use of 
+    files with code that has been adapted from 3rd party source code
+    subject to different copyright notices and license terms. Your use of 
     the source code for these subcomponents is subject to the terms and
-    conditions of the following licenses. See the NOTICE file for details
-    of the licence dependencies that refer to the following licences.
+    conditions of the following licenses. 
 
+    BSD-2-Clause License
+    ================================
+    Redistribution and use in source and binary forms, with or without 
+    modification, are permitted provided that the following conditions 
+    are met:
 
-BSD-2-Clause License
-================================
-Copyright (C) 2012-2016, Yann Collet.
+    1. Redistributions of source code must retain the above copyright 
+    notice, this list of conditions and the following disclaimer.
 
-Redistribution and use in source and binary forms, with or without 
-modification, are permitted provided that the following conditions 
-are met:
+    2. Redistributions in binary form must reproduce the above copyright 
+    notice, this list of conditions and the following disclaimer in the 
+    documentation and/or other materials provided with the distribution.
 
-1. Redistributions of source code must retain the above copyright 
-notice, this list of conditions and the following disclaimer.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
+    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+    HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
+    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
+    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
+    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
+    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    
+    Code locations subject to the above license:
+    -------------------------------------------------------------
+    This product contains code to implement the xxHash function:
+      * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/XxHash.java
+      * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/XxHashTest.java
+    and adapted from C++ source code located at:
+      * https://github.com/Cyan4973/xxHash/blob/dev/xxhash.c
+      * https://github.com/Cyan4973/xxHash/blob/dev/xxhash.h
+    Copyright (C) 2012-2016, Yann Collet.
+    
+    
+    Public Domain (optional)
+    ================================
+    This product contains code to implement and test Austin Appleby's C++ public domain implementation of the 
+    MurmurHash3 algorithm, 
+    * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3.java
+    * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3Adaptor.java
+    * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3v2.java
+    * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/MurmurHash3AdaptorTest.java
+    * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/MurmurHash3Test.java
+    * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/MurmurHash3v2Test.java
+    and adapted from C++ source code located at
+    https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 
-2. Redistributions in binary form must reproduce the above copyright 
-notice, this list of conditions and the following disclaimer in the 
-documentation and/or other materials provided with the distribution.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
-HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT 
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY 
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.

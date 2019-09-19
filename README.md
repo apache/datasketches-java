@@ -35,11 +35,69 @@ Please refer to our [website](https://datasketches.github.io) for more comprehen
 Note that we have a parallel core component for C++ and Python implementations of the same sketch algorithms, 
 [incubator-datasketches-cpp](https://github.com/apache/incubator-datasketches-cpp).
 
+## Documentation and Feedback
 
-## [DataSketches Library Website](https://datasketches.github.io/)
+### [DataSketches Library Website](https://datasketches.github.io/)
 
-## [Latest Release](https://github.com/apache/incubator-datasketches-java/releases)
+### [Java Core Overview](https://datasketches.github.io/docs/TheChallenge.html)
 
-## [Forum](https://groups.google.com/forum/#!forum/sketches-user)
+### [Java Core Javadocs](https://datasketches.github.io/api/core/snapshot/apidocs/index.html)
 
-## Note: This package can only be compiled using Java 1.8.
+### [Forum](https://groups.google.com/forum/#!forum/sketches-user)
+
+## Downloading Latest Release
+__NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory 
+    must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements.
+    
+This is required by the Oracle Java Specification in order to ensure location-independent 
+    access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
+
+### [Zip File from Apache Archive](http://archive.apache.org/dist/incubator/datasketches/java/)
+
+### [Jar Files from Maven Central](https://repository.apache.org/content/repositories/releases/org/apache/datasketches/datasketches-java/)
+
+### [GitHub](https://github.com/apache/incubator-datasketches-java/releases)
+
+## Build Instructions
+
+### JDK8 is Required Compiler
+This DataSketches component is pure Java and you must compile using JDK 8.
+
+### Recommended Build Tool
+The DataSketches-java component structured as a Maven project and Maven is the recommended Build Tool.
+
+There are two types of tests: normal unit tests and tests run by the strict profile.  
+
+To run normal unit tests:
+
+    $ mvn clean test
+    
+To run the strict profile tests:
+
+    $ mvn clean test -P strict
+
+To install jars built from the downloaded source:
+
+    $ mvn clean install -DskipTests=true
+    
+This will create the following jars:
+
+* datasketches-java-X.Y.Z-incubating.jar The compiled main class files.
+* datasketches-java-X.Y.Z-incubating-tests.jar The compiled test class files.
+* datasketches-java-X.Y.Z-incubating-sources.jar The main source files.
+* datasketches-java-X.Y.Z-incubating-test-sources.jar The test source files
+* datasketches-java-X.Y.Z-incubating-javadoc.jar  The compressed Javadocs.
+
+### Dependencies
+
+#### Run-time
+There is one run-time dependency: 
+
+* org.apache.datasketches : datasketches-memory
+
+#### Testing
+See the pom.xml file for test dependencies.
+
+
+
+
