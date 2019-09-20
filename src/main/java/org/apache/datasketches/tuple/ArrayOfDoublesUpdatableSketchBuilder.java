@@ -21,6 +21,7 @@ package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
@@ -54,12 +55,12 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
 
   /**
    * This is to set the nominal number of entries.
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than 
-   * given value.
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
+   * or equal to given value.
    * @return this builder
    */
   public ArrayOfDoublesUpdatableSketchBuilder setNominalEntries(final int nomEntries) {
-    nomEntries_ = nomEntries;
+    nomEntries_ = 1 << checkNomLongs(nomEntries);
     return this;
   }
 
@@ -81,9 +82,9 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @param samplingProbability sampling probability from 0 to 1
    * @return this builder
    */
-  public ArrayOfDoublesUpdatableSketchBuilder 
+  public ArrayOfDoublesUpdatableSketchBuilder
         setSamplingProbability(final float samplingProbability) {
-    if (samplingProbability < 0 || samplingProbability > 1f) {
+    if ((samplingProbability < 0) || (samplingProbability > 1f)) {
       throw new SketchesArgumentException("sampling probability must be between 0 and 1");
     }
     samplingProbability_ = samplingProbability;
@@ -115,7 +116,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public ArrayOfDoublesUpdatableSketch build() {
-      return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), 
+      return new HeapArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(),
           samplingProbability_, numValues_, seed_);
   }
 
@@ -125,7 +126,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public ArrayOfDoublesUpdatableSketch build(final WritableMemory dstMem) {
-    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(), 
+    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries_, resizeFactor_.lg(),
         samplingProbability_, numValues_, seed_, dstMem);
   }
 

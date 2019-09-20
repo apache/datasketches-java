@@ -87,7 +87,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling
    * probability
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
-   * given value.
+   * or equal to the given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
    * <pre>
    * 0 - no resizing (max size allocated),

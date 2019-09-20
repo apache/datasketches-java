@@ -26,6 +26,7 @@ import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.TAB;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
@@ -103,11 +104,7 @@ public class UpdateSketchBuilder {
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setNominalEntries(final int nomEntries) {
-    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
-    if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
-      throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
-        + nomEntries);
-    }
+    bLgNomLongs = checkNomLongs(nomEntries);
     return this;
   }
 
@@ -122,11 +119,7 @@ public class UpdateSketchBuilder {
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLogNominalEntries(final int lgNomEntries) {
-    bLgNomLongs = lgNomEntries;
-    if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
-      throw new SketchesArgumentException(
-          "Log Nominal Entries must be >= 4 and <= 26: " + lgNomEntries);
-    }
+    bLgNomLongs = checkNomLongs(1 << lgNomEntries);
     return this;
   }
 

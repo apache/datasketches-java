@@ -20,6 +20,7 @@
 package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
+import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
@@ -53,11 +54,11 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
   /**
    * This is to set the nominal number of entries.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
-   * given value.
+   * or equal to the given value.
    * @return this UpdatableSketchBuilder
    */
   public UpdatableSketchBuilder<U, S> setNominalEntries(final int nomEntries) {
-    nomEntries_ = nomEntries;
+    nomEntries_ = 1 << checkNomLongs(nomEntries);
     return this;
   }
 

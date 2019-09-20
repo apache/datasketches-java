@@ -665,6 +665,22 @@ public final class Util {
     return next;
   }
 
+  /**
+   * Checks that the given nomLongs is within bounds and returns the Log2 of the ceiling power of 2
+   * of the given nomLongs.
+   * @param nomLongs the given number of nominal longs.  This can be any value from 16 to
+   * 67108864, inclusive.
+   * @return The Log2 of the ceiling power of 2 of the given nomLongs.
+   */
+  public static final int checkNomLongs(final int nomLongs) {
+    final int lgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomLongs));
+    if ((lgNomLongs > MAX_LG_NOM_LONGS) || (lgNomLongs < MIN_LG_NOM_LONGS)) {
+      throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
+        + nomLongs);
+    }
+    return lgNomLongs;
+  }
+
   //Other checks
 
   /**

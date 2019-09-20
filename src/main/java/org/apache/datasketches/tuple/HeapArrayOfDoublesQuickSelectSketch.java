@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.ceilingPowerOf2;
-
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -63,7 +61,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor,
       final float samplingProbability, final int numValues, final long seed) {
     super(numValues, seed);
-    nomEntries_ = ceilingPowerOf2(nomEntries);
+    nomEntries_ = nomEntries;
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);

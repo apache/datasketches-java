@@ -43,7 +43,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
   /**
    * This is to create a new instance of an UpdatableQuickSelectSketch.
    * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
-   * given value.
+   * or equal to the given value.
    * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
    * <pre>
    * 0 - no resizing (max size allocated),
