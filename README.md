@@ -23,9 +23,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/apache/incubator-datasketches-java.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/apache/incubator-datasketches-java/alerts/)
 [![Coverage Status](https://coveralls.io/repos/github/apache/incubator-datasketches-java/badge.svg?branch=master&service=github)](https://coveralls.io/github/apache/incubator-datasketches-java?branch=master)
 
-
 =================
-
 
 # DataSketches Core Java Component
 This is the core Java component of the DataSketches library.  It contains all of the sketching algorithms and can be accessed directly from user applications. 
@@ -71,7 +69,7 @@ There are two types of tests: normal unit tests and tests run by the strict prof
 To run normal unit tests:
 
     $ mvn clean test
-    
+
 To run the strict profile tests:
 
     $ mvn clean test -P strict
@@ -79,7 +77,7 @@ To run the strict profile tests:
 To install jars built from the downloaded source:
 
     $ mvn clean install -DskipTests=true
-    
+
 This will create the following jars:
 
 * datasketches-java-X.Y.Z-incubating.jar The compiled main class files.
