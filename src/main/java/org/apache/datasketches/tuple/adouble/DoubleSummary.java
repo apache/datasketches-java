@@ -28,7 +28,7 @@ import org.apache.datasketches.tuple.UpdatableSummary;
  * Summary for generic tuple sketches of type Double.
  * This summary keeps a double value. On update a predefined operation is performed depending on
  * the mode.
- * Three modes are supported: Sum, Min and Max. The default mode is Sum.
+ * Supported modes: Sum, Min, Max, AlwaysOne, Increment. The default mode is Sum.
  */
 public final class DoubleSummary implements UpdatableSummary<Double> {
 
@@ -36,18 +36,35 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
    * The aggregation modes for this Summary
    */
   public static enum Mode {
+
     /**
-     * The aggregation mode is the summation function
+     * The aggregation mode is the summation function.
+     * <p>New retained value = previous retained value + incoming value</p>
      */
     Sum,
+
     /**
-     * The aggregation mode is the minimum function
+     * The aggregation mode is the minimum function.
+     * <p>New retained value = min(previous retained value, incoming value)</p>
      */
     Min,
     /**
-     * The aggregation mode is the maximum function
+     * The aggregation mode is the maximum function.
+     * <p>New retained value = max(previous retained value, incoming value)</p>
      */
-    Max
+    Max,
+
+    /**
+     * The aggregation mode is always one.
+     * <p>New retained value = 1.0</p>
+     */
+    AlwaysOne,
+
+    /**
+     * The aggregation mode is increment by one.
+     * <p>New retained value = previous retained value + 1.0</p>
+     */
+    Increment
   }
 
   private double value_;
@@ -61,7 +78,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   }
 
   /**
-   * Creates an instance of DoubleSummary with zero starting value and a given mode (Sum)
+   * Creates an instance of DoubleSummary with a starting value and a given mode (Sum)
    * @param mode update mode
    */
   public DoubleSummary(final Mode mode) {
@@ -76,7 +93,11 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
       case Max:
         value_ = Double.NEGATIVE_INFINITY;
         break;
-        //default: //This cannot happen and cannot be tested
+      case AlwaysOne:
+        value_ = 1.0;
+        break;
+      case Increment:
+        value_ = 0;
     }
   }
 
@@ -102,7 +123,11 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
     case Max:
       if (value > value_) { value_ = value; }
       break;
-      //default: //This cannot happen and cannot be tested
+    case AlwaysOne:
+      value_ = 1.0;
+      break;
+    case Increment:
+      value_++;
     }
   }
 
@@ -119,14 +144,14 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   }
 
   private static final int SERIALIZED_SIZE_BYTES = 9;
-  private static final int VALUE_DOUBLE = 0;
-  private static final int MODE_BYTE = 8;
+  private static final int VALUE_INDEX = 0;
+  private static final int MODE_BYTE_INDEX = 8;
 
   @Override
   public byte[] toByteArray() {
     final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    ByteArrayUtil.putDoubleLE(bytes, VALUE_DOUBLE, value_);
-    bytes[MODE_BYTE] = (byte) mode_.ordinal();
+    ByteArrayUtil.putDoubleLE(bytes, VALUE_INDEX, value_);
+    bytes[MODE_BYTE_INDEX] = (byte) mode_.ordinal();
     return bytes;
   }
 
@@ -137,8 +162,8 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
    * read from the Memory
    */
   public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<>(new DoubleSummary(mem.getDouble(VALUE_DOUBLE),
-        Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
+    return new DeserializeResult<>(new DoubleSummary(mem.getDouble(VALUE_INDEX),
+        Mode.values()[mem.getByte(MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
   }
 
 }

@@ -54,6 +54,12 @@ public final class DoubleSummarySetOperations implements SummarySetOperations<Do
   }
 
   @Override
+  /**
+   * Intersection is not well defined or even meaningful between numeric values.
+   * Nevertheless, this can be defined to be just a different type of aggregation.
+   * In this case it is defined to be the same as union. It can be overridden to
+   * be a more meaningful operation.
+   */
   public DoubleSummary intersection(final DoubleSummary a, final DoubleSummary b) {
     return union(a, b);
   }

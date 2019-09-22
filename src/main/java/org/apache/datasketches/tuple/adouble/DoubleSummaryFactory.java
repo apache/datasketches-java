@@ -22,8 +22,7 @@ package org.apache.datasketches.tuple.adouble;
 import org.apache.datasketches.tuple.SummaryFactory;
 
 /**
- * Factory for DoubleSummary. It supports three modes of operation of DoubleSummary:
- * Sum, Min and Max.
+ * Factory for DoubleSummary.
  */
 public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
 
@@ -48,21 +47,5 @@ public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary>
   public DoubleSummary newSummary() {
     return new DoubleSummary(summaryMode_);
   }
-
-  //private static final int SERIALIZED_SIZE_BYTES = 1;
-  //private static final int MODE_BYTE = 0;
-
-  /*
-   * This is deprecated and exists here just to test compatibility with previous serialization format.
-   * In the current serial version of sketches factories are not serialized.
-   * Creates an instance of the DoubleSummaryFactory given a serialized representation
-   * @param mem Memory object with serialized DoubleSummaryFactory
-   * @return DeserializedResult object, which contains a DoubleSummaryFactory object and number of
-   * bytes read from the Memory
-   */
-  //  public static DeserializeResult<DoubleSummaryFactory> fromMemory(final Memory mem) {
-  //    return new DeserializeResult<DoubleSummaryFactory>(
-  //        new DoubleSummaryFactory(Mode.values()[mem.getByte(MODE_BYTE)]), SERIALIZED_SIZE_BYTES);
-  //  }
 
 }

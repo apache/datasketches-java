@@ -79,7 +79,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param value The given U value
    */
   public void update(final long key, final U value) {
-  update(new long[] {key}, value);
+    update(new long[] {key}, value);
   }
 
   /**
