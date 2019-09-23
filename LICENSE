@@ -186,7 +186,7 @@ APPENDIX A: How to apply the Apache License to your work.
     file or class name and description of purpose be included on the
     same "printed page" as the copyright notice for easier
     identification within third-party archives.
-    ---------------------------------------------
+    -------------------------------------------------------------
     Copyright [yyyy] [name of copyright owner]
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -200,18 +200,28 @@ APPENDIX A: How to apply the Apache License to your work.
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-    ---------------------------------------------
+    -------------------------------------------------------------
 
-APPENDIX B: Additional licenses relevant to Apache DataSketches-java (INCUBATING):
+APPENDIX B: Additional licenses relevant to this product:
 
-    Apache DataSketches-java (incubating) includes a number of source 
-    files with code that has been adapted from 3rd party source code
-    subject to different copyright notices and license terms. Your use of 
+    This product includes a number of source files with code that has been 
+    adapted from 3rd party sources including sources that may be subject 
+    to different copyright notices and license terms. Your use of 
     the source code for these subcomponents is subject to the terms and
-    conditions of the following licenses. 
+    conditions of the following licenses.
+    
+    Apache License version 2.0 (see above)
+    =============================================================
+    Zero-Allocation Hashing
+    Copyright 2015 Higher Frequency Trading http://www.higherfrequencytrading.com
+    This product contains code to implement the xxHash function:
+      * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/XxHash.java
+    and adapted from Java source code located at:
+      * https://github.com/OpenHFT/Zero-Allocation-Hashing/blob/master/src/main/java/net/openhft/hashing/XxHash.java
+    
 
     BSD-2-Clause License
-    ================================
+    =============================================================
     xxHash Library
     Copyright (c) 2012-present, Yann Collet
     All rights reserved.
@@ -250,7 +260,7 @@ APPENDIX B: Additional licenses relevant to Apache DataSketches-java (INCUBATING
 
 
     Public Domain (optional)
-    ================================
+    =============================================================
     This product contains code to implement and test Austin Appleby's C++ public domain implementation of the 
     MurmurHash3 algorithm, 
     * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3.java
