@@ -95,3 +95,12 @@ There is one run-time dependency:
 
 #### Testing
 See the pom.xml file for test dependencies.
+
+## Resources
+
+### [Issues for datasketches-java](https://github.com/apache/incubator-datasketches-java/issues)
+
+### [Forum](https://groups.google.com/forum/#!forum/sketches-user)
+
+### [Dev mailing list](dev@datasketches.apache.org)
+
