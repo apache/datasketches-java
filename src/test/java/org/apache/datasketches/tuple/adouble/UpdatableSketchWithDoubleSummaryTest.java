@@ -45,8 +45,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
   public void isEmpty() {
     int lgK = 12;
     DoubleSketch sketch = new DoubleSketch(lgK, mode);
-//    UpdatableSketch<Double, DoubleSummary> sketch =
-//        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -61,18 +59,26 @@ public class UpdatableSketchWithDoubleSummaryTest {
   }
 
   @Test
+  public void checkLowK() {
+    UpdatableSketchBuilder<Double, DoubleSummary> bldr = new UpdatableSketchBuilder<>(
+        new DoubleSummaryFactory(Mode.Sum));
+    bldr.setNominalEntries(16);
+    UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
+    assertEquals(sk.getLgK(), 16);
+  }
+
+  @Test
   public void serDeTest() {
     int lgK = 12;
     int K = 1 << lgK;
-    DoubleSummary.Mode a1Mode = DoubleSummary.Mode.AlwaysOne;
-    DoubleSketch a1Sk = new DoubleSketch(lgK, a1Mode);
+    DoubleSketch a1Sk = new DoubleSketch(lgK, Mode.AlwaysOne);
     int m = 2 * K;
     for (int key = 0; key < m; key++) {
       a1Sk.update(key, 1.0);
     }
     double est1 = a1Sk.getEstimate();
     Memory mem = Memory.wrap(a1Sk.toByteArray());
-    DoubleSketch a1Sk2 = new DoubleSketch(mem, a1Mode);
+    DoubleSketch a1Sk2 = new DoubleSketch(mem, Mode.AlwaysOne);
     double est2 = a1Sk2.getEstimate();
     assertEquals(est1, est2);
   }
@@ -81,8 +87,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
   public void checkStringKey() {
     int lgK = 12;
     int K = 1 << lgK;
-    DoubleSummary.Mode a1Mode = DoubleSummary.Mode.AlwaysOne;
-    DoubleSketch a1Sk1 = new DoubleSketch(lgK, a1Mode);
+    DoubleSketch a1Sk1 = new DoubleSketch(lgK, Mode.AlwaysOne);
     int m = K / 2;
     for (int key = 0; key < m; key++) {
       a1Sk1.update(Integer.toHexString(key), 1.0);

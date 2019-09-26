@@ -223,7 +223,7 @@ public class UnionImplTest {
     println(""+csk1.getEstimate());
   }
 
-  @Test
+  @Test //checks for bug introduced in 1.0.0-incubating.
   public void checkDirectUnionSingleItem() {
     int num = 2;
     UpdateSketch[] skArr = new UpdateSketch[num];
