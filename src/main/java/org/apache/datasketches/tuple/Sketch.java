@@ -116,10 +116,14 @@ public abstract class Sketch<S extends Summary> {
    * @return a SketchIterator
    */
   public SketchIterator<S> iterator() {
-    return new SketchIterator<S>(keys_, summaries_);
+    return new SketchIterator<>(keys_, summaries_);
   }
 
-  long getThetaLong() {
+  /**
+   * Returns Theta as a long
+   * @return Theta as a long
+   */
+  public long getThetaLong() {
     return theta_;
   }
 
