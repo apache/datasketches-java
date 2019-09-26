@@ -64,7 +64,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
         new DoubleSummaryFactory(Mode.Sum));
     bldr.setNominalEntries(16);
     UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
-    assertEquals(sk.getLgK(), 16);
+    assertEquals(sk.getLgK(), 4);
   }
 
   @Test
