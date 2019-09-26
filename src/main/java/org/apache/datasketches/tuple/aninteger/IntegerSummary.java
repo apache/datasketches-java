@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches.tuple.adouble;
+package org.apache.datasketches.tuple.aninteger;
 
 import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.memory.Memory;
@@ -25,13 +25,13 @@ import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.UpdatableSummary;
 
 /**
- * Summary for generic tuple sketches of type Double.
- * This summary keeps a double value. On update a predefined operation is performed depending on
+ * Summary for generic tuple sketches of type Integer.
+ * This summary keeps an Integer value. On update a predefined operation is performed depending on
  * the mode.
  * Supported modes: Sum, Min, Max, AlwaysOne, Increment. The default mode is Sum.
  */
-public final class DoubleSummary implements UpdatableSummary<Double> {
-  private double value_;
+public class IntegerSummary implements UpdatableSummary<Integer> {
+  private int value_;
   private final Mode mode_;
 
   /**
@@ -59,48 +59,53 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
 
     /**
      * The aggregation mode is always one.
-     * <p>New retained value = 1.0</p>
+     * <p>New retained value = 1</p>
      */
     AlwaysOne
   }
 
   /**
-   * Creates an instance of DoubleSummary with a given starting value and mode
+   * Creates an instance of IntegerSummary with a given starting value and mode.
    * @param value starting value
    * @param mode update mode
    */
-  private DoubleSummary(final double value, final Mode mode) {
+  private IntegerSummary(final int value, final Mode mode) {
     value_ = value;
     mode_ = mode;
   }
 
   /**
-   * Creates an instance of DoubleSummary with a given mode.
-   * @param mode update mode
+   * Creates an instance of IntegerSummary with a given mode.
+   * @param mode update mode. This should not be called by a user.
    */
-  public DoubleSummary(final Mode mode) {
+  public IntegerSummary(final Mode mode) {
     mode_ = mode;
     switch (mode) {
       case Sum:
         value_ = 0;
         break;
       case Min:
-        value_ = Double.POSITIVE_INFINITY;
+        value_ = Integer.MAX_VALUE;
         break;
       case Max:
-        value_ = Double.NEGATIVE_INFINITY;
+        value_ = Integer.MIN_VALUE;
         break;
       case AlwaysOne:
-        value_ = 1.0;
+        value_ = 1;
         break;
     }
   }
 
+  /**
+   * Updates an instance of IntegerSummary with the given value.
+   * This should not be called by the user.
+   * @param value The given value.
+   */
   @Override
-  public void update(final Double value) {
+  public void update(final Integer value) {
     switch (mode_) {
     case Sum:
-      value_ += value.doubleValue();
+      value_ += value;
       break;
     case Min:
       if (value < value_) { value_ = value; }
@@ -109,43 +114,43 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
       if (value > value_) { value_ = value; }
       break;
     case AlwaysOne:
-      value_ = 1.0;
+      value_ = 1;
       break;
     }
   }
 
   @Override
-  public DoubleSummary copy() {
-    return new DoubleSummary(value_, mode_);
+  public IntegerSummary copy() {
+    return new IntegerSummary(value_, mode_);
   }
 
   /**
-   * @return current value of the DoubleSummary
+   * @return current value of the IntegerSummary
    */
-  public double getValue() {
+  public int getValue() {
     return value_;
   }
 
-  private static final int SERIALIZED_SIZE_BYTES = 9;
+  private static final int SERIALIZED_SIZE_BYTES = 5;
   private static final int VALUE_INDEX = 0;
-  private static final int MODE_BYTE_INDEX = 8;
+  private static final int MODE_BYTE_INDEX = 4;
 
   @Override
   public byte[] toByteArray() {
     final byte[] bytes = new byte[SERIALIZED_SIZE_BYTES];
-    ByteArrayUtil.putDoubleLE(bytes, VALUE_INDEX, value_);
+    ByteArrayUtil.putIntLE(bytes, VALUE_INDEX, value_);
     bytes[MODE_BYTE_INDEX] = (byte) mode_.ordinal();
     return bytes;
   }
 
   /**
-   * Creates an instance of the DoubleSummary given a serialized representation
-   * @param mem Memory object with serialized DoubleSummary
-   * @return DeserializedResult object, which contains a DoubleSummary object and number of bytes
+   * Creates an instance of the IntegerSummary given a serialized representation
+   * @param mem Memory object with serialized IntegerSummary
+   * @return DeserializedResult object, which contains a IntegerSummary object and number of bytes
    * read from the Memory
    */
-  public static DeserializeResult<DoubleSummary> fromMemory(final Memory mem) {
-    return new DeserializeResult<>(new DoubleSummary(mem.getDouble(VALUE_INDEX),
+  public static DeserializeResult<IntegerSummary> fromMemory(final Memory mem) {
+    return new DeserializeResult<>(new IntegerSummary(mem.getInt(VALUE_INDEX),
         Mode.values()[mem.getByte(MODE_BYTE_INDEX)]), SERIALIZED_SIZE_BYTES);
   }
 

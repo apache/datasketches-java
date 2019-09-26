@@ -17,36 +17,30 @@
  * under the License.
  */
 
-package org.apache.datasketches.tuple.adouble;
+package org.apache.datasketches.tuple.aninteger;
 
 import org.apache.datasketches.tuple.SummaryFactory;
 
 /**
- * Factory for DoubleSummary.
+ * Factory for IntegerSummary.
+ *
+ * @author Lee Rhodes
  */
-public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
+public class IntegerSummaryFactory implements SummaryFactory<IntegerSummary> {
 
-  private final DoubleSummary.Mode summaryMode_;
-
-  /**
-   * Creates an instance of DoubleSummaryFactory with default mode
-   */
-  @Deprecated
-  public DoubleSummaryFactory() {
-    summaryMode_ = DoubleSummary.Mode.Sum;
-  }
+  private final IntegerSummary.Mode summaryMode_;
 
   /**
-   * Creates an instance of DoubleSummaryFactory with a given mode
+   * Creates an instance of IntegerSummaryFactory with a given mode
    * @param summaryMode summary mode
    */
-  public DoubleSummaryFactory(final DoubleSummary.Mode summaryMode) {
+  public IntegerSummaryFactory(final IntegerSummary.Mode summaryMode) {
     summaryMode_ = summaryMode;
   }
 
   @Override
-  public DoubleSummary newSummary() {
-    return new DoubleSummary(summaryMode_);
+  public IntegerSummary newSummary() {
+    return new IntegerSummary(summaryMode_);
   }
 
 }

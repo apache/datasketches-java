@@ -26,13 +26,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableDirectHandle;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class UnionImplTest {
@@ -225,15 +224,51 @@ public class UnionImplTest {
   }
 
   @Test
+  public void checkDirectUnionSingleItem() {
+    int num = 2;
+    UpdateSketch[] skArr = new UpdateSketch[num];
+    for (int i = 0; i < num; i++) {
+      skArr[i] = new UpdateSketchBuilder().build();
+    }
+    for (int i = 0; i < (num/2); i++) {
+      skArr[i].update(i);
+      skArr[i + (num/2)].update(i);
+      skArr[i].update(i + num);
+    }
+
+    Union union = new SetOperationBuilder().buildUnion();
+    for (int i = 0; i < num; i++) {
+      union.update(skArr[i]);
+    }
+
+    CompactSketch csk = union.getResult();
+    assertEquals(csk.getEstimate(), 2.0);
+    //println(csk.toString(true, true, 1, true));
+
+    Memory[] memArr = new Memory[num];
+    for (int i = 0; i < num; i++) {
+      memArr[i] = Memory.wrap(skArr[i].compact().toByteArray());
+    }
+    union = new SetOperationBuilder().buildUnion();
+    for (int i = 0; i < num; i++) {
+      union.update(memArr[i]);
+    }
+
+    csk = union.getResult();
+    assertEquals(csk.getEstimate(), 2.0);
+    //println(csk.toString(true, true, 1, true));
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }

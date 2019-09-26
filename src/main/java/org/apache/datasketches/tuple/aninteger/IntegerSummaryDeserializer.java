@@ -17,36 +17,20 @@
  * under the License.
  */
 
-package org.apache.datasketches.tuple.adouble;
+package org.apache.datasketches.tuple.aninteger;
 
-import org.apache.datasketches.tuple.SummaryFactory;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.tuple.DeserializeResult;
+import org.apache.datasketches.tuple.SummaryDeserializer;
 
 /**
- * Factory for DoubleSummary.
+ * @author Lee Rhodes
  */
-public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
-
-  private final DoubleSummary.Mode summaryMode_;
-
-  /**
-   * Creates an instance of DoubleSummaryFactory with default mode
-   */
-  @Deprecated
-  public DoubleSummaryFactory() {
-    summaryMode_ = DoubleSummary.Mode.Sum;
-  }
-
-  /**
-   * Creates an instance of DoubleSummaryFactory with a given mode
-   * @param summaryMode summary mode
-   */
-  public DoubleSummaryFactory(final DoubleSummary.Mode summaryMode) {
-    summaryMode_ = summaryMode;
-  }
+public class IntegerSummaryDeserializer implements SummaryDeserializer<IntegerSummary> {
 
   @Override
-  public DoubleSummary newSummary() {
-    return new DoubleSummary(summaryMode_);
+  public DeserializeResult<IntegerSummary> heapifySummary(final Memory mem) {
+    return IntegerSummary.fromMemory(mem);
   }
 
 }

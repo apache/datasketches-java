@@ -17,36 +17,8 @@
  * under the License.
  */
 
-package org.apache.datasketches.tuple.adouble;
-
-import org.apache.datasketches.tuple.SummaryFactory;
-
 /**
- * Factory for DoubleSummary.
+ * @author Lee Rhodes
  */
-public final class DoubleSummaryFactory implements SummaryFactory<DoubleSummary> {
 
-  private final DoubleSummary.Mode summaryMode_;
-
-  /**
-   * Creates an instance of DoubleSummaryFactory with default mode
-   */
-  @Deprecated
-  public DoubleSummaryFactory() {
-    summaryMode_ = DoubleSummary.Mode.Sum;
-  }
-
-  /**
-   * Creates an instance of DoubleSummaryFactory with a given mode
-   * @param summaryMode summary mode
-   */
-  public DoubleSummaryFactory(final DoubleSummary.Mode summaryMode) {
-    summaryMode_ = summaryMode;
-  }
-
-  @Override
-  public DoubleSummary newSummary() {
-    return new DoubleSummary(summaryMode_);
-  }
-
-}
+package org.apache.datasketches.tuple.aninteger;

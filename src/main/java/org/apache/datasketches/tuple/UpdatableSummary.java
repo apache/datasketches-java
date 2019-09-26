@@ -26,7 +26,8 @@ package org.apache.datasketches.tuple;
 public interface UpdatableSummary<U> extends Summary {
 
   /**
-   * This is to provide a method of updating summaries
+   * This is to provide a method of updating summaries.
+   * This should not be called by the user.
    * @param value update value
    */
   public void update(U value);

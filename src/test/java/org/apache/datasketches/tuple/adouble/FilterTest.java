@@ -17,21 +17,26 @@
  * under the License.
  */
 
-package org.apache.datasketches.tuple;
+package org.apache.datasketches.tuple.adouble;
 
 import java.util.Random;
 
+import org.apache.datasketches.tuple.Filter;
+import org.apache.datasketches.tuple.Sketch;
+import org.apache.datasketches.tuple.Sketches;
+import org.apache.datasketches.tuple.UpdatableSketch;
+import org.apache.datasketches.tuple.UpdatableSketchBuilder;
+import org.apache.datasketches.tuple.adouble.DoubleSummary;
+import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
+import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.tuple.adouble.DoubleSummary;
-import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
-
 @SuppressWarnings("javadoc")
 public class FilterTest {
-
     private static final int numberOfElements = 100;
     private static final Random random = new Random(1);//deterministic for this class
+    private final DoubleSummary.Mode mode = Mode.Sum;
 
     @Test
     public void emptySketch() {
@@ -64,7 +69,7 @@ public class FilterTest {
     @Test
     public void filledSketchShouldBehaveTheSame() {
         UpdatableSketch<Double, DoubleSummary> sketch =
-            new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
+            new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
 
         fillSketch(sketch, numberOfElements, 0.0);
 
@@ -82,7 +87,7 @@ public class FilterTest {
     @Test
     public void filledSketchShouldFilterOutElements() {
         UpdatableSketch<Double, DoubleSummary> sketch =
-            new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
+            new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
 
         fillSketch(sketch, numberOfElements, 0.0);
         fillSketch(sketch, 2 * numberOfElements, 1.0);
@@ -101,7 +106,7 @@ public class FilterTest {
     @Test
     public void filteringInEstimationMode() {
         UpdatableSketch<Double, DoubleSummary> sketch =
-            new UpdatableSketchBuilder<>(new DoubleSummaryFactory()).build();
+            new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
 
         int n = 10000;
         fillSketch(sketch, n, 0.0);
@@ -122,7 +127,7 @@ public class FilterTest {
     public void nonEmptySketchWithNoEntries() {
       UpdatableSketch<Double, DoubleSummary> sketch =
           new UpdatableSketchBuilder<>(
-              new DoubleSummaryFactory()).setSamplingProbability(0.0001f).build();
+              new DoubleSummaryFactory(mode)).setSamplingProbability(0.0001f).build();
       sketch.update(0, 0.0);
 
       Assert.assertFalse(sketch.isEmpty());

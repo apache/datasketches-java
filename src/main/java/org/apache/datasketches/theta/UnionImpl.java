@@ -369,7 +369,8 @@ final class UnionImpl extends Union {
       // OR the above and the SI bit is set
       if (SingleItemSketch.testPre0SeedHash(skMem.getLong(0), seedHash_)) {
         final long hash = skMem.getLong(8);
-        update(hash); //a hash < 1 will be rejected later
+        //backdoor update, hash function is bypassed. A hash < 1 will be rejected later
+        gadget_.hashUpdate(hash);
         return;
       }
       return; //empty
