@@ -45,7 +45,7 @@ public class EngagementTest {
     int daysPerMonth = 30;
     IntegerSketch[] skArr = new IntegerSketch[30];
     for (int i = 0; i < 30; i++) {
-      skArr[i] = new IntegerSketch(lgK, sumMode);
+      skArr[i] = new IntegerSketch(lgK, IntegerSummary.Mode.AlwaysOne);
     }
     for (int i = 0; i <= days; i++) { //31 generating indices
       int numIds = numIDs(daysPerMonth, i);
