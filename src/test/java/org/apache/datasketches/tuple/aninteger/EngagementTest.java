@@ -22,6 +22,8 @@ package org.apache.datasketches.tuple.aninteger;
 import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.round;
+import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.AlwaysOne;
+import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.tuple.CompactSketch;
@@ -40,16 +42,14 @@ public class EngagementTest {
     int lgK = 12;
     int K = 1 << lgK; // = 4096
     int days = 30;
-    IntegerSummary.Mode sumMode = IntegerSummary.Mode.Sum;
     int v = 0;
-    int daysPerMonth = 30;
-    IntegerSketch[] skArr = new IntegerSketch[30];
+    IntegerSketch[] skArr = new IntegerSketch[days];
     for (int i = 0; i < 30; i++) {
-      skArr[i] = new IntegerSketch(lgK, IntegerSummary.Mode.AlwaysOne);
+      skArr[i] = new IntegerSketch(lgK, AlwaysOne);
     }
     for (int i = 0; i <= days; i++) { //31 generating indices
-      int numIds = numIDs(daysPerMonth, i);
-      int numDays = numDays(daysPerMonth, i);
+      int numIds = numIDs(days, i);
+      int numDays = numDays(days, i);
       int myV = v++;
       for (int d = 0; d < numDays; d++) {
         for (int id = 0; id < numIds; id++) {
@@ -59,7 +59,7 @@ public class EngagementTest {
       v += numIds;
     }
 
-    int numVisits = unionOps(K, sumMode, skArr);
+    int numVisits = unionOps(K, Sum, skArr);
     assertEquals(numVisits, 897);
   }
 
@@ -67,17 +67,16 @@ public class EngagementTest {
   public void simpleCheckAlwaysOneIntegerSketch() {
     int lgK = 12;
     int K = 1 << lgK; // = 4096
-    IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
 
-    IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
-    IntegerSketch a1Sk2 = new IntegerSketch(lgK, a1Mode);
+    IntegerSketch a1Sk1 = new IntegerSketch(lgK, AlwaysOne);
+    IntegerSketch a1Sk2 = new IntegerSketch(lgK, AlwaysOne);
 
     int m = 2 * K;
     for (int key = 0; key < m; key++) {
       a1Sk1.update(key, 1);
       a1Sk2.update(key + (m/2), 1); //overlap by 1/2 = 1.5m = 12288.
     }
-    int numVisits = unionOps(K, a1Mode, a1Sk1, a1Sk2);
+    int numVisits = unionOps(K, AlwaysOne, a1Sk1, a1Sk2);
     assertEquals(numVisits, K);
   }
 
@@ -141,7 +140,7 @@ public class EngagementTest {
    * @param o object to print
    */
   static void println(Object o) {
-    //System.out.println(o.toString()); //Disable
+    printf("%s\n", o.toString());
   }
 
   /**
@@ -149,6 +148,6 @@ public class EngagementTest {
    * @param args arguments
    */
   static void printf(String fmt, Object ... args) {
-    //System.out.printf(fmt, args); //Disable
+    //System.out.printf(fmt, args); //Enable/Disable printing here
   }
 }
