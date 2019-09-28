@@ -44,7 +44,7 @@ public class EngagementTest {
     int days = 30;
     int v = 0;
     IntegerSketch[] skArr = new IntegerSketch[days];
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < days; i++) {
       skArr[i] = new IntegerSketch(lgK, AlwaysOne);
     }
     for (int i = 0; i <= days; i++) { //31 generating indices
@@ -63,21 +63,16 @@ public class EngagementTest {
     assertEquals(numVisits, 897);
   }
 
-  @Test
-  public void simpleCheckAlwaysOneIntegerSketch() {
-    int lgK = 12;
-    int K = 1 << lgK; // = 4096
+  private static int numIDs(int daysPerMonth, int index) {
+    double d = daysPerMonth;
+    double i = index;
+    return (int)(round(exp((i * log(d)) / d)));
+  }
 
-    IntegerSketch a1Sk1 = new IntegerSketch(lgK, AlwaysOne);
-    IntegerSketch a1Sk2 = new IntegerSketch(lgK, AlwaysOne);
-
-    int m = 2 * K;
-    for (int key = 0; key < m; key++) {
-      a1Sk1.update(key, 1);
-      a1Sk2.update(key + (m/2), 1); //overlap by 1/2 = 1.5m = 12288.
-    }
-    int numVisits = unionOps(K, AlwaysOne, a1Sk1, a1Sk2);
-    assertEquals(numVisits, K);
+  private static int numDays(int daysPerMonth, int index) {
+    double d = daysPerMonth;
+    double i = index;
+    return (int)(round(exp(((d - i) * log(d)) / d)));
   }
 
   private static int unionOps(int K, IntegerSummary.Mode mode, IntegerSketch ... sketches) {
@@ -114,26 +109,30 @@ public class EngagementTest {
   }
 
   @Test
+  public void simpleCheckAlwaysOneIntegerSketch() {
+    int lgK = 12;
+    int K = 1 << lgK; // = 4096
+
+    IntegerSketch a1Sk1 = new IntegerSketch(lgK, AlwaysOne);
+    IntegerSketch a1Sk2 = new IntegerSketch(lgK, AlwaysOne);
+
+    int m = 2 * K;
+    for (int key = 0; key < m; key++) {
+      a1Sk1.update(key, 1);
+      a1Sk2.update(key + (m/2), 1); //overlap by 1/2 = 1.5m = 12288.
+    }
+    int numVisits = unionOps(K, AlwaysOne, a1Sk1, a1Sk2);
+    assertEquals(numVisits, K);
+  }
+
+  @Test
   public void checkPwrLaw() {
-    int dpm = 30;
-    for (int i = 0; i <= dpm; i++) {
-      int numIds = numIDs(dpm, i);
-      int numDays = numDays(dpm, i);
+    int days = 30;
+    for (int i = 0; i <= days; i++) {
+      int numIds = numIDs(days, i);
+      int numDays = numDays(days, i);
       printf("%6d%6d%6d\n", i, numIds, numDays);
     }
-  }
-
-  private static int numIDs(int daysPerMonth, int index) {
-    double d = daysPerMonth;
-    double i = index;
-    return (int)(round(exp((i * log(d)) / d)));
-  }
-
-  private static int numDays(int daysPerMonth, int index) {
-    double d = daysPerMonth;
-    double i = index;
-    return (int)(round(exp(((d - i) * log(d)) / d)));
-
   }
 
   /**
