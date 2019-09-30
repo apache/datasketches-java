@@ -63,14 +63,14 @@ public class EngagementTest {
     assertEquals(numVisits, 897);
   }
 
-  private static int numIDs(int daysPerMonth, int index) {
-    double d = daysPerMonth;
+  private static int numIDs(int totalDays, int index) {
+    double d = totalDays;
     double i = index;
     return (int)(round(exp((i * log(d)) / d)));
   }
 
-  private static int numDays(int daysPerMonth, int index) {
-    double d = daysPerMonth;
+  private static int numDays(int totalDays, int index) {
+    double d = totalDays;
     double i = index;
     return (int)(round(exp(((d - i) * log(d)) / d)));
   }
