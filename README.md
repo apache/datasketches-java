@@ -33,15 +33,13 @@ Please refer to our [website](https://datasketches.github.io) for more comprehen
 Note that we have a parallel core component for C++ and Python implementations of the same sketch algorithms, 
 [incubator-datasketches-cpp](https://github.com/apache/incubator-datasketches-cpp).
 
-## Documentation and Feedback
+## Documentation
 
 ### [DataSketches Library Website](https://datasketches.github.io/)
 
 ### [Java Core Overview](https://datasketches.github.io/docs/TheChallenge.html)
 
 ### [Java Core Javadocs](https://datasketches.github.io/api/core/snapshot/apidocs/index.html)
-
-### [Forum](https://groups.google.com/forum/#!forum/sketches-user)
 
 ## Downloading Latest Release
 __NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory 
@@ -103,4 +101,3 @@ See the pom.xml file for test dependencies.
 ### [Forum](https://groups.google.com/forum/#!forum/sketches-user)
 
 ### [Dev mailing list](dev@datasketches.apache.org)
-

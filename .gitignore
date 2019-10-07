@@ -51,6 +51,7 @@ tmp/
 out/
 build/
 jarsIn/
+*.jar
 build.xml
 .idea
 *.properties

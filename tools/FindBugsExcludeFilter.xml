@@ -28,14 +28,14 @@ under the License.
        but this allows us to tune these constants for different sketches. -->
   <Match>
     <Bug pattern="DB_DUPLICATE_BRANCHES" />
-    <Class name="com.yahoo.sketches.theta.DirectQuickSelectSketchR" />
+    <Class name="org.apache.datasketches.theta.DirectQuickSelectSketchR" />
     <Method name="setHashTableThreshold" />
   </Match>
 
   <!-- False positive.  In this case we want to ignore the exceptions -->
   <Match>
     <Bug pattern="DE_MIGHT_IGNORE" />
-    <Class name="com.yahoo.sketches.theta.PairwiseCornerCasesTest" />
+    <Class name="org.apache.datasketches.theta.PairwiseCornerCasesTest" />
     <Method name="checkNotOrdered" />
   </Match>
   
