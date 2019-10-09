@@ -27,12 +27,16 @@ under the License.
     <version>21</version>
   </parent>
   <groupId>org.apache.datasketches</groupId>
+  
+  <!-- UNIQUE FOR THIS JAVA COMPONENT -->
   <artifactId>datasketches-java</artifactId>
   <version>1.2.0-incubating-SNAPSHOT</version>
-  <name>${project.artifactId}</name>
   <description>Core sketch algorithms used alone 
     and by other Java repositories in the DataSketches library.</description>
+  <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
+  
   <url>https://datasketches.apache.org/</url>
+  <name>${project.artifactId}</name>
   <inceptionYear>2015</inceptionYear>
   <packaging>jar</packaging>
   <!-- jar is the default -->
@@ -89,6 +93,14 @@ under the License.
     </developer>
   </developers>
   <properties>
+    
+    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
+    <datasketches-memory.version>1.1.0-incubating</datasketches-memory.version>
+    <slf4j-simple.version>1.7.27</slf4j-simple.version>
+    <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
+    
+    <!-- Test -->
+    <testng.version>6.14.3</testng.version>
     <!-- System-wide properties -->
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
     <charset.encoding>UTF-8</charset.encoding>
@@ -98,10 +110,6 @@ under the License.
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
-    <!-- Dependencies -->
-    <datasketches-memory.version>1.1.0-incubating</datasketches-memory.version>
-    <testng.version>6.14.3</testng.version>
-    <slf4j-simple.version>1.7.27</slf4j-simple.version>
     <!-- org.codehaus.plexus used for strict profile testing-->
     <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
     <!--  Maven Plugins -->
@@ -151,6 +159,8 @@ under the License.
     </repository>
   </repositories>
   <dependencies>
+    
+    <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <dependency>
       <groupId>org.apache.datasketches</groupId>
       <artifactId>datasketches-memory</artifactId>
@@ -158,15 +168,18 @@ under the License.
     </dependency>
     <!-- Test Scope -->
     <dependency>
-      <groupId>org.testng</groupId>
-      <artifactId>testng</artifactId>
-      <version>${testng.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>${slf4j-simple.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
+    
+    <!-- Test Scope -->
+    <dependency>
+      <groupId>org.testng</groupId>
+      <artifactId>testng</artifactId>
+      <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
