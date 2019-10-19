@@ -22,7 +22,7 @@ sudo: false # faster builds
 dist: trusty
 
 jdk:
- - oraclejdk8
+ - openjdk8
 
 install:
  - mvn clean install -q -Dmaven.javadoc.skip=true -Dsource.skip=true -DskipTests=true -Dgpg.skip=true
