@@ -76,6 +76,46 @@ public abstract class Sketch<S extends Summary> {
   }
 
   /**
+   * Gets the estimate of the true distinct population of subset tuples represented by the count
+   * of entries in a subset of the total retained entries of the sketch.
+   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
+   * @return the estimate of the true distinct population of subset tuples represented by the count
+   * of entries in a subset of the total retained entries of the sketch.
+   */
+  public double getEstimate(final int numSubsetEntries) {
+    if (!isEstimationMode()) { return numSubsetEntries; }
+    return numSubsetEntries / getTheta();
+  }
+
+  /**
+   * Gets the estimate of the lower bound of the true distinct population represented by the count
+   * of entries in a subset of the total retained entries of the sketch.
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
+   * @return the estimate of the lower bound of the true distinct population represented by the count
+   * of entries in a subset of the total retained entries of the sketch.
+   */
+  public double getLowerBound(final int numStdDev, final int numSubsetEntries) {
+    if (!isEstimationMode()) { return numSubsetEntries; }
+    return BinomialBoundsN.getLowerBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
+  }
+
+  /**
+   * Gets the estimate of the upper bound of the true distinct population represented by the count
+   * of entries in a subset of the total retained entries of the sketch.
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
+   * @return the estimate of the upper bound of the true distinct population represented by the count
+   * of entries in a subset of the total retained entries of the sketch.
+   */
+  public double getUpperBound(final int numStdDev, final int numSubsetEntries) {
+    if (!isEstimationMode()) { return numSubsetEntries; }
+    return BinomialBoundsN.getUpperBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
+  }
+
+  /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>
    * @return true if empty.
    */

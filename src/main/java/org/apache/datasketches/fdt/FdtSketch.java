@@ -23,7 +23,6 @@ import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
 
 import java.util.List;
 
-import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
@@ -123,46 +122,6 @@ public class FdtSketch extends ArrayOfStringsSketch {
    */
   public PostProcessor getPostProcessor(final Group group, final char sep) {
     return new PostProcessor(this, group, sep);
-  }
-
-  /**
-   * Gets the estimate of the true distinct population of subset tuples represented by the count
-   * of entries in a group. This is primarily used internally.
-   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the true distinct population of subset tuples represented by the count
-   * of entries in a group.
-   */
-  public double getEstimate(final int numSubsetEntries) {
-    if (!isEstimationMode()) { return numSubsetEntries; }
-    return numSubsetEntries / getTheta();
-  }
-
-  /**
-   * Gets the estimate of the lower bound of the true distinct population represented by the count
-   * of entries in a group.
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the lower bound of the true distinct population represented by the count
-   * of entries in a group.
-   */
-  public double getLowerBound(final int numStdDev, final int numSubsetEntries) {
-    if (!isEstimationMode()) { return numSubsetEntries; }
-    return BinomialBoundsN.getLowerBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
-  }
-
-  /**
-   * Gets the estimate of the upper bound of the true distinct population represented by the count
-   * of entries in a group.
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param numSubsetEntries number of entries for a chosen subset of the sketch.
-   * @return the estimate of the upper bound of the true distinct population represented by the count
-   * of entries in a group.
-   */
-  public double getUpperBound(final int numStdDev, final int numSubsetEntries) {
-    if (!isEstimationMode()) { return numSubsetEntries; }
-    return BinomialBoundsN.getUpperBound(numSubsetEntries, getTheta(), numStdDev, isEmpty());
   }
 
   // Restricted

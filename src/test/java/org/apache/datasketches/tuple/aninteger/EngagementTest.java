@@ -24,7 +24,6 @@ import static java.lang.Math.log;
 import static java.lang.Math.round;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.AlwaysOne;
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
-import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.SketchIterator;
@@ -36,18 +35,19 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class EngagementTest {
+  public static final int numStdDev = 2;
 
   @Test
   public void computeEngagementHistogram() {
-    int lgK = 12;
-    int K = 1 << lgK; // = 4096
+    int lgK = 8; //Using a larger sketch, say >= 9 will produce exact results for this little example
+    int K = 1 << lgK;
     int days = 30;
     int v = 0;
     IntegerSketch[] skArr = new IntegerSketch[days];
     for (int i = 0; i < days; i++) {
       skArr[i] = new IntegerSketch(lgK, AlwaysOne);
     }
-    for (int i = 0; i <= days; i++) { //31 generating indices
+    for (int i = 0; i <= days; i++) { //31 generating indices for symmetry
       int numIds = numIDs(days, i);
       int numDays = numDays(days, i);
       int myV = v++;
@@ -58,9 +58,7 @@ public class EngagementTest {
       }
       v += numIds;
     }
-
-    int numVisits = unionOps(K, Sum, skArr);
-    assertEquals(numVisits, 897);
+    unionOps(K, Sum, skArr);
   }
 
   private static int numIDs(int totalDays, int index) {
@@ -75,7 +73,7 @@ public class EngagementTest {
     return (int)(round(exp(((d - i) * log(d)) / d)));
   }
 
-  private static int unionOps(int K, IntegerSummary.Mode mode, IntegerSketch ... sketches) {
+  private static void unionOps(int K, IntegerSummary.Mode mode, IntegerSketch ... sketches) {
     IntegerSummarySetOperations setOps = new IntegerSummarySetOperations(mode, mode);
     Union<IntegerSummary> union = new Union<>(K, setOps);
     int len = sketches.length;
@@ -86,59 +84,43 @@ public class EngagementTest {
     CompactSketch<IntegerSummary> result = union.getResult();
     SketchIterator<IntegerSummary> itr = result.iterator();
 
-    int[] freqArr = new int[len +1];
+    int[] numDaysArr = new int[len + 1]; //zero index ignored
 
     while (itr.next()) {
-      int value = itr.getSummary().getValue();
-      freqArr[value]++;
+      //For each unique visitor from the result sketch, get the # days visited
+      int numDaysVisited = itr.getSummary().getValue();
+      //increment the number of visitors that visited numDays
+      numDaysArr[numDaysVisited]++; //values range from 1 to 30
     }
+
     println("Engagement Histogram:");
-    printf("%12s,%12s\n","Days Visited", "Visitors");
-    int sumVisitors = 0;
+    println("Number of Unique Visitors by Number of Days Visited");
+    printf("%12s%12s%12s%12s\n","Days Visited", "Estimate", "LB", "UB");
     int sumVisits = 0;
-    for (int i = 0; i < freqArr.length; i++) {
-      int visits = freqArr[i];
-      if (visits == 0) { continue; }
-      sumVisitors += visits;
-      sumVisits += (visits * i);
-      printf("%12d,%12d\n", i, visits);
+    for (int i = 0; i < numDaysArr.length; i++) {
+      int visitorsAtDaysVisited = numDaysArr[i];
+      if (visitorsAtDaysVisited == 0) { continue; }
+      int lbVisitorsAtDaysVisited = (int) round(result.getLowerBound(numStdDev, visitorsAtDaysVisited));
+      int ubVisitorsAtDaysVisited = (int) round(result.getUpperBound(numStdDev, visitorsAtDaysVisited));
+      sumVisits += visitorsAtDaysVisited * i;
+      printf("%12d%12d%12d%12d\n",
+          i, visitorsAtDaysVisited, lbVisitorsAtDaysVisited, ubVisitorsAtDaysVisited);
     }
-    println("Total Visitors: " + sumVisitors);
-    println("Total Visits  : " + sumVisits);
-    return sumVisits;
-  }
-
-  @Test
-  public void simpleCheckAlwaysOneIntegerSketch() {
-    int lgK = 12;
-    int K = 1 << lgK; // = 4096
-
-    IntegerSketch a1Sk1 = new IntegerSketch(lgK, AlwaysOne);
-    IntegerSketch a1Sk2 = new IntegerSketch(lgK, AlwaysOne);
-
-    int m = 2 * K;
-    for (int key = 0; key < m; key++) {
-      a1Sk1.update(key, 1);
-      a1Sk2.update(key + (m/2), 1); //overlap by 1/2 = 1.5m = 12288.
-    }
-    int numVisits = unionOps(K, AlwaysOne, a1Sk1, a1Sk2);
-    assertEquals(numVisits, K);
-  }
-
-  @Test
-  public void checkPwrLaw() {
-    int days = 30;
-    for (int i = 0; i <= days; i++) {
-      int numIds = numIDs(days, i);
-      int numDays = numDays(days, i);
-      printf("%6d%6d%6d\n", i, numIds, numDays);
-    }
+    double visitors = result.getEstimate();
+    double lbVisitors = result.getLowerBound(numStdDev);
+    double ubVisitors = result.getUpperBound(numStdDev);
+    int lbVisits = (int) round((sumVisits * lbVisitors)/visitors);
+    int ubVisits = (int) round((sumVisits * ubVisitors)/visitors);
+    printf("\n%12s%12s%12s%12s\n","Totals", "Estimate", "LB", "UB");
+    printf("%12s%12d%12d%12d\n", "Visitors",
+        (int)round(visitors), (int)round(lbVisitors), (int)round(ubVisitors));
+    printf("%12s%12d%12d%12d\n", "Visits", sumVisits, lbVisits, ubVisits);
   }
 
   /**
    * @param o object to print
    */
-  static void println(Object o) {
+  private static void println(Object o) {
     printf("%s\n", o.toString());
   }
 
@@ -146,7 +128,7 @@ public class EngagementTest {
    * @param fmt format
    * @param args arguments
    */
-  static void printf(String fmt, Object ... args) {
+  private static void printf(String fmt, Object ... args) {
     //System.out.printf(fmt, args); //Enable/Disable printing here
   }
 }
