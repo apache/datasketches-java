@@ -39,7 +39,7 @@ public class EngagementTest {
 
   @Test
   public void computeEngagementHistogram() {
-    int lgK = 8; //Using a larger sketch, say >= 9 will produce exact results for this little example
+    int lgK = 8; //Using a larger sketch >= 9 will produce exact results for this little example
     int K = 1 << lgK;
     int days = 30;
     int v = 0;
