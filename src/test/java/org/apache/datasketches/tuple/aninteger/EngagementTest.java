@@ -39,7 +39,7 @@ public class EngagementTest {
 
   @Test
   public void computeEngagementHistogram() {
-    int lgK = 8; //Using a larger sketch, say >= 9 will produce exact results for this little example
+    int lgK = 8; //Using a larger sketch >= 9 will produce exact results for this little example
     int K = 1 << lgK;
     int days = 30;
     int v = 0;
@@ -84,7 +84,7 @@ public class EngagementTest {
     CompactSketch<IntegerSummary> result = union.getResult();
     SketchIterator<IntegerSummary> itr = result.iterator();
 
-    int[] numDaysArr = new int[len + 1]; //zero index ignored
+    int[] numDaysArr = new int[len + 1]; //zero index is ignored
 
     while (itr.next()) {
       //For each unique visitor from the result sketch, get the # days visited
@@ -93,28 +93,38 @@ public class EngagementTest {
       numDaysArr[numDaysVisited]++; //values range from 1 to 30
     }
 
-    println("Engagement Histogram:");
+    println("\nEngagement Histogram:");
     println("Number of Unique Visitors by Number of Days Visited");
     printf("%12s%12s%12s%12s\n","Days Visited", "Estimate", "LB", "UB");
     int sumVisits = 0;
+    double theta = result.getTheta();
     for (int i = 0; i < numDaysArr.length; i++) {
       int visitorsAtDaysVisited = numDaysArr[i];
       if (visitorsAtDaysVisited == 0) { continue; }
-      int lbVisitorsAtDaysVisited = (int) round(result.getLowerBound(numStdDev, visitorsAtDaysVisited));
-      int ubVisitorsAtDaysVisited = (int) round(result.getUpperBound(numStdDev, visitorsAtDaysVisited));
       sumVisits += visitorsAtDaysVisited * i;
-      printf("%12d%12d%12d%12d\n",
-          i, visitorsAtDaysVisited, lbVisitorsAtDaysVisited, ubVisitorsAtDaysVisited);
+
+      double estVisitorsAtDaysVisited = visitorsAtDaysVisited / theta;
+      double lbVisitorsAtDaysVisited = result.getLowerBound(numStdDev, visitorsAtDaysVisited);
+      double ubVisitorsAtDaysVisited = result.getUpperBound(numStdDev, visitorsAtDaysVisited);
+
+      printf("%12d%12.0f%12.0f%12.0f\n",
+          i, estVisitorsAtDaysVisited, lbVisitorsAtDaysVisited, ubVisitorsAtDaysVisited);
     }
+
+    //The estimate and bounds of the total number of visitors comes directly from the sketch.
     double visitors = result.getEstimate();
     double lbVisitors = result.getLowerBound(numStdDev);
     double ubVisitors = result.getUpperBound(numStdDev);
-    int lbVisits = (int) round((sumVisits * lbVisitors)/visitors);
-    int ubVisits = (int) round((sumVisits * ubVisitors)/visitors);
     printf("\n%12s%12s%12s%12s\n","Totals", "Estimate", "LB", "UB");
-    printf("%12s%12d%12d%12d\n", "Visitors",
-        (int)round(visitors), (int)round(lbVisitors), (int)round(ubVisitors));
-    printf("%12s%12d%12d%12d\n", "Visits", sumVisits, lbVisits, ubVisits);
+    printf("%12s%12.0f%12.0f%12.0f\n", "Visitors", visitors, lbVisitors, ubVisitors);
+
+    //The total number of visits, however, is a scaled metric and takes advantage of the fact that
+    //the retained entries in the sketch is a uniform random sample of all unique visitors, and
+    //the the rest of the unique users will likely behave in the same way.
+    double estVisits = sumVisits / theta;
+    double lbVisits = (estVisits * lbVisitors) / visitors;
+    double ubVisits = (estVisits * ubVisitors) / visitors;
+    printf("%12s%12.0f%12.0f%12.0f\n\n", "Visits", estVisits, lbVisits, ubVisits);
   }
 
   /**
@@ -129,6 +139,6 @@ public class EngagementTest {
    * @param args arguments
    */
   private static void printf(String fmt, Object ... args) {
-    //System.out.printf(fmt, args); //Enable/Disable printing here
+    System.out.printf(fmt, args); //Enable/Disable printing here
   }
 }
