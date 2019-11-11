@@ -27,7 +27,7 @@ import static org.apache.datasketches.hll.HllUtil.pair;
  *
  * @author Lee Rhodes
  */
-abstract class HllPairIterator implements PairIterator {
+abstract class HllPairIterator extends PairIterator {
   final int lengthPairs;
   int index;
   int value;
@@ -95,5 +95,7 @@ abstract class HllPairIterator implements PairIterator {
   }
 
   abstract int value();
+
+
 
 }

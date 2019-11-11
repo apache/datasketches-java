@@ -22,13 +22,13 @@ package org.apache.datasketches.hll;
 /**
  * @author Lee Rhodes
  */
-interface PairIterator {
+abstract class PairIterator {
 
   /**
    * Gets the header string for a list of pairs
    * @return the header string for a list of pairs
    */
-  default String getHeader() {
+  String getHeader() {
     return String.format("%10s%10s%10s%6s", "Index", "Key", "Slot", "Value");
   }
 
@@ -36,20 +36,20 @@ interface PairIterator {
    * Gets the index into the array
    * @return the index into the array
    */
-  int getIndex();
+  abstract int getIndex();
 
   /**
    * Gets the key
    * @return the key
    */
-  int getKey();
+  abstract int getKey();
 
   /**
    * Gets the key, value pair as a single int where the key is the lower 26 bits
    * and the value is in the upper 6 bits.
    * @return the key, value pair.
    */
-  int getPair();
+  abstract int getPair();
 
   /**
    * Gets the target or actual HLL slot number, which is derived from the key.
@@ -57,13 +57,13 @@ interface PairIterator {
    * In HLL mode, this will be the actual slot number and equal to the key.
    * @return the target or actual HLL slot number.
    */
-  int getSlot();
+  abstract int getSlot();
 
   /**
    * Gets the current pair as a string
    * @return the current pair as a string
    */
-  default String getString() {
+  String getString() {
     final int index = getIndex();
     final int key = getKey();
     final int slot = getSlot();
@@ -75,20 +75,20 @@ interface PairIterator {
    * Gets the value
    * @return the value
    */
-  int getValue();
+  abstract int getValue();
 
   /**
    * Returns true at the next pair in sequence.
    * If false, the iteration is done.
    * @return true at the next pair in sequence.
    */
-  boolean nextAll();
+  abstract boolean nextAll();
 
   /**
    * Returns true at the next pair where getKey() and getValue() are valid.
    * If false, the iteration is done.
    * @return true at the next pair where getKey() and getValue() are valid.
    */
-  boolean nextValid();
+  abstract boolean nextValid();
 
 }

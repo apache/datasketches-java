@@ -28,7 +28,7 @@ import org.apache.datasketches.memory.Memory;
  *
  * @author Lee Rhodes
  */
-class IntMemoryPairIterator implements PairIterator {
+public class IntMemoryPairIterator extends PairIterator {
   final Memory mem;
   final long offsetBytes;
   final int lengthPairs;

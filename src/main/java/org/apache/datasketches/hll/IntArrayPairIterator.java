@@ -26,7 +26,7 @@ import static org.apache.datasketches.hll.HllUtil.EMPTY;
  *
  * @author Lee Rhodes
  */
-class IntArrayPairIterator implements PairIterator {
+class IntArrayPairIterator extends PairIterator {
   private final int[] array;
   private final int slotMask;
   private final int lengthPairs;
