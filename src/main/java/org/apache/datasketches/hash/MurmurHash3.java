@@ -321,7 +321,7 @@ public final class MurmurHash3 implements Serializable {
    */
   private static long getLong(final byte[] bArr, final int index, final int rem) {
     long out = 0L;
-    for (int i = rem; i-- > 0;) { //i= 7,6,5,4,3,2,1,0
+    for (int i = rem; i > 0; i--) { //i= 7,6,5,4,3,2,1,0
       final byte b = bArr[index + i];
       out ^= (b & 0xFFL) << (i * 8); //equivalent to |=
     }
@@ -340,7 +340,7 @@ public final class MurmurHash3 implements Serializable {
    */
   private static long getLong(final char[] charArr, final int index, final int rem) {
     long out = 0L;
-    for (int i = rem; i-- > 0;) { //i= 3,2,1,0
+    for (int i = rem; i > 0; i--) { //i= 3,2,1,0
       final char c = charArr[index + i];
       out ^= (c & 0xFFFFL) << (i * 16); //equivalent to |=
     }
@@ -359,7 +359,7 @@ public final class MurmurHash3 implements Serializable {
    */
   private static long getLong(final int[] intArr, final int index, final int rem) {
     long out = 0L;
-    for (int i = rem; i-- > 0;) { //i= 1,0
+    for (int i = rem; i > 0; i--) { //i= 1,0
       final int v = intArr[index + i];
       out ^= (v & 0xFFFFFFFFL) << (i * 32); //equivalent to |=
     }

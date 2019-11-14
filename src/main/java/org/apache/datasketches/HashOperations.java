@@ -50,7 +50,7 @@ public final class HashOperations {
   public static int countPart(final long[] srcArr, final int lgArrLongs, final long thetaLong) {
     int cnt = 0;
     final int len = 1 << lgArrLongs;
-    for (int i = len; i-- > 0;) {
+    for (int i = len; i > 0; i--) {
       final long hash = srcArr[i];
       if (continueCondition(thetaLong, hash) ) {
         continue;
@@ -69,7 +69,7 @@ public final class HashOperations {
   public static int count(final long[] srcArr, final long thetaLong) {
     int cnt = 0;
     final int len = srcArr.length;
-    for (int i = len; i-- > 0;) {
+    for (int i = len; i > 0; i--) {
       final long hash = srcArr[i];
       if (continueCondition(thetaLong, hash) ) {
         continue;

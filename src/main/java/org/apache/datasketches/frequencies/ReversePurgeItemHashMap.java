@@ -136,14 +136,14 @@ class ReversePurgeItemHashMap<T> {
     // firstProbe keeps track of this point.
     // When we find the next non-empty cell, we know we are at the high end of a cluster
     // Work towards the front; delete any non-positive entries.
-    for (int probe = firstProbe; probe-- > 0;) {
+    for (int probe = firstProbe; probe > 0; probe--) {
       if (states[probe] > 0 && values[probe] <= 0) {
         hashDelete(probe); //does the work of deletion and moving higher items towards the front.
         numActive--;
       }
     }
     //now work on the first cluster that was skipped.
-    for (int probe = states.length; probe-- > firstProbe;) {
+    for (int probe = states.length; probe > firstProbe; probe--) {
       if (states[probe] > 0 && values[probe] <= 0) {
         hashDelete(probe);
         numActive--;
@@ -156,7 +156,7 @@ class ReversePurgeItemHashMap<T> {
    * values are retained.
    */
   void adjustAllValuesBy(final long adjustAmount) {
-    for (int i = values.length; i-- > 0;) {
+    for (int i = values.length; i > 0; i--) {
       values[i] += adjustAmount;
     }
   }
