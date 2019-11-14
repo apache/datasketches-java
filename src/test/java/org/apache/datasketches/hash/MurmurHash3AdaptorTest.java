@@ -39,7 +39,7 @@ public class MurmurHash3AdaptorTest {
   @Test
   public void checkToBytesLong() {
     byte[] result = hashToBytes(2L, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
   }
@@ -48,7 +48,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToBytesLongArr() {
     long[] arr = { 1L, 2L };
     byte[] result = hashToBytes(arr, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -64,7 +64,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToBytesIntArr() {
     int[] arr = { 1, 2 };
     byte[] result = hashToBytes(arr, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -80,7 +80,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToBytesCharArr() {
     char[] arr = { 1, 2 };
     byte[] result = hashToBytes(arr, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -96,7 +96,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToBytesByteArr() {
     byte[] arr = { 1, 2 };
     byte[] result = hashToBytes(arr, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -112,15 +112,15 @@ public class MurmurHash3AdaptorTest {
   @Test
   public void checkToBytesDouble() {
     byte[] result = hashToBytes(1.0, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     result = hashToBytes(0.0, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     result = hashToBytes( -0.0, 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
   }
@@ -128,7 +128,7 @@ public class MurmurHash3AdaptorTest {
   @Test
   public void checkToBytesString() {
     byte[] result = hashToBytes("1", 0L);
-    for (int i = 8; i > 0; i--) {
+    for (int i = 0; i < 8; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     result = hashToBytes("", 0L);
@@ -144,7 +144,7 @@ public class MurmurHash3AdaptorTest {
   @Test
   public void checkToLongsLong() {
     long[] result = hashToLongs(2L, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
   }
@@ -153,7 +153,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToLongsLongArr() {
     long[] arr = { 1L, 2L };
     long[] result = hashToLongs(arr, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -169,7 +169,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToLongsIntArr() {
     int[] arr = { 1, 2 };
     long[] result = hashToLongs(arr, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -185,7 +185,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToLongsCharArr() {
     char[] arr = { 1, 2 };
     long[] result = hashToLongs(arr, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -201,7 +201,7 @@ public class MurmurHash3AdaptorTest {
   public void checkToLongsByteArr() {
     byte[] arr = { 1, 2 };
     long[] result = hashToLongs(arr, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     arr = null;
@@ -217,15 +217,15 @@ public class MurmurHash3AdaptorTest {
   @Test
   public void checkToLongsDouble() {
     long[] result = hashToLongs(1.0, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     result = hashToLongs(0.0, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     result = hashToLongs( -0.0, 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
   }
@@ -233,7 +233,7 @@ public class MurmurHash3AdaptorTest {
   @Test
   public void checkToLongsString() {
     long[] result = hashToLongs("1", 0L);
-    for (int i = 2; i > 0; i--) {
+    for (int i = 0; i < 2; i++) {
       Assert.assertNotEquals(result[i], 0);
     }
     result = hashToLongs("", 0L);
