@@ -243,10 +243,10 @@ public class UnionCaseTest {
     int n2 = 193;
     int n3 = 16;
     int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1); //LIST
-    HllSketch h2 = build(11, HLL_6, n2); //HLL
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
+    Union u = buildUnion(12, n1); //LIST 6
+    HllSketch h2 = build(11, HLL_6, n2); //HLL 193
+    HllSketch h3 = build(10, HLL_8, n3); //16
+    u.update(h2); //6 + 193 = 199 HLL
     println(u.toString());
     assertEquals(u.getCurMode(), HLL);
     u.update(h3);

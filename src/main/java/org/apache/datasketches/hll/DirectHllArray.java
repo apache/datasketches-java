@@ -35,6 +35,7 @@ import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 import static org.apache.datasketches.hll.PreambleUtil.insertAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertCurMin;
+import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertHipAccum;
 import static org.apache.datasketches.hll.PreambleUtil.insertKxQ0;
 import static org.apache.datasketches.hll.PreambleUtil.insertKxQ1;
@@ -201,6 +202,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  void putEmptyFlag(final boolean empty) {
+    insertEmptyFlag(wmem, empty);
+  }
+
+  @Override
   void putHipAccum(final double hipAccum) {
     insertHipAccum(wmem, hipAccum);
   }
@@ -245,6 +251,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     if (wmem == null) {
       throw new SketchesArgumentException("Cannot reset a read-only sketch");
     }
+    insertEmptyFlag(wmem, true);
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(0, bytes);
     return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);

@@ -95,9 +95,6 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract int getHllByteArrBytes();
 
-  @Override
-  abstract PairIterator iterator();
-
   abstract double getKxQ0();
 
   abstract double getKxQ1();
@@ -134,6 +131,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
     HllUtil.checkNumStdDev(numStdDev);
     return HllEstimators.hllUpperBound(this, numStdDev);
   }
+
+  @Override
+  abstract PairIterator iterator();
 
   abstract void putAuxHashMap(AuxHashMap auxHashMap, boolean compact);
 

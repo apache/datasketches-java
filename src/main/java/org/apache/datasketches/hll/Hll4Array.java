@@ -20,6 +20,8 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
+import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.hiNibbleMask;
 import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
@@ -77,6 +79,7 @@ class Hll4Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
+    empty = false;
     final int newValue = HllUtil.getValue(coupon);
     if (newValue <= getCurMin()) {
       return this; // super quick rejection; only works for large N
@@ -85,11 +88,6 @@ class Hll4Array extends HllArray {
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     Hll4Update.internalHll4Update(this, slotNo, newValue);
     return this;
-  }
-
-  @Override
-  PairIterator iterator() {
-    return new HeapHll4Iterator(1 << lgConfigK);
   }
 
   @Override
@@ -111,6 +109,30 @@ class Hll4Array extends HllArray {
       auxBytes = 4 << auxHashMap.getLgAuxArrInts();
     }
     return HLL_BYTE_ARR_START + getHllByteArrBytes() + auxBytes;
+  }
+
+  @Override
+  PairIterator iterator() {
+    return new HeapHll4Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  HllSketchImpl mergeTo(final HllSketchImpl impl) {
+    HllSketchImpl out = impl;
+    final int slots = 1 << lgConfigK;
+    for (int slotNo = 0; slotNo < slots; slotNo++) {
+      int value = hllByteArr[slotNo >>> 1] & 0xFF;
+      final int nib = ((slotNo & 1) > 0) ? value >>> 4 : value & loNibbleMask;
+      if (nib == AUX_TOKEN) {
+        final AuxHashMap auxHashMap = getAuxHashMap();
+        value = auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
+      } else {
+        value = nib;
+      }
+      if (value == 0) { continue; }
+      out = out.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+    }
+    return out;
   }
 
   @Override

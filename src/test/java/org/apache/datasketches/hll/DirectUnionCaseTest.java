@@ -29,9 +29,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -47,6 +46,7 @@ public class DirectUnionCaseTest {
     int n3 = 2;
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1);
+    println(u.toString());
     HllSketch h2 = build(11, HLL_6, n2);
     HllSketch h3 = build(10, HLL_8, n3);
     u.update(h2);
@@ -269,7 +269,7 @@ public class DirectUnionCaseTest {
     int sum = n1 + n2 + n3;
     Union u = buildUnion(12, n1); //LIST
     HllSketch h2 = build(11, HLL_6, n2); //HLL
-    HllSketch h3 = build(10, HLL_8, n3);
+    HllSketch h3 = build(10, HLL_8, n3); //HLL
     u.update(h2);
     println(u.toString());
     assertEquals(u.getCurMode(), HLL);

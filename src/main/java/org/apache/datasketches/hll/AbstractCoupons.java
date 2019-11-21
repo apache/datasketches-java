@@ -100,6 +100,9 @@ abstract class AbstractCoupons extends HllSketchImpl {
   }
 
   @Override
+  void putEmptyFlag(final boolean empty) {} //no-op for coupons
+
+  @Override
   byte[] toCompactByteArray() {
     return toCouponByteArray(this, true);
   }

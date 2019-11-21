@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.hll.HllUtil.EMPTY;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
+import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
@@ -60,13 +63,45 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  PairIterator iterator() {
-    return new HeapHll8Iterator(1 << lgConfigK);
+  HllSketchImpl couponUpdate(final int coupon) {
+    empty = false;
+    final int configKmask = (1 << lgConfigK) - 1;
+    final int slotNo = coupon & configKmask;
+    final int newVal = coupon >>> KEY_BITS_26;
+    assert newVal > 0;
+
+    final int curVal = hllByteArr[slotNo] & VAL_MASK_6;
+    if (newVal > curVal) {
+      hllByteArr[slotNo] = (byte) newVal;
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
+      if (curVal == 0) {
+        numAtCurMin--; //interpret numAtCurMin as num Zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
+    return this;
   }
 
   @Override
   final int getSlot(final int slotNo) {
     return hllByteArr[slotNo] & VAL_MASK_6;
+  }
+
+  @Override
+  PairIterator iterator() {
+    return new HeapHll8Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  HllSketchImpl mergeTo(final HllSketchImpl impl) {
+    HllSketchImpl out = impl;
+    final int slots = 1 << lgConfigK;
+    for (int i = 0; i < slots; i++ ) {
+      final int value = hllByteArr[i] & VAL_MASK_6;
+      if (value == 0) { continue; }
+      out = out.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
+    }
+    return out;
   }
 
   @Override
@@ -86,6 +121,18 @@ class Hll8Array extends HllArray {
     int value() {
       return hllByteArr[index] & VAL_MASK_6;
     }
+
+    @Override
+    public boolean nextValid() {
+      while (++index < lengthPairs) {
+        value = hllByteArr[index] & VAL_MASK_6;
+        if (value != EMPTY) {
+          return true;
+        }
+      }
+      return false;
+    }
+
   }
 
 }

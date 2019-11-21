@@ -25,7 +25,7 @@ package org.apache.datasketches.hll;
  */
 final class CompositeInterpolationXTable {
 
-  //CHECKSTYLE.OFF: LineLength
+  // CHECKSTYLE:OFF LineLength
   /**
    * 18 Values, index 0 is LgK = 4, index 17 is LgK = 21.
    */
@@ -779,5 +779,5 @@ final class CompositeInterpolationXTable {
     20970344.006053
   }
   };
-  //CHECKSTYLE.ON: LineLength
+  // CHECKSTYLE:ON LineLength
 }

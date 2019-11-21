@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
+import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
@@ -64,13 +66,47 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  PairIterator iterator() {
-    return new HeapHll6Iterator(1 << lgConfigK);
+  HllSketchImpl couponUpdate(final int coupon) {
+    empty = false;
+    final int configKmask = (1 << getLgConfigK()) - 1;
+    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
+    final int newVal = HllUtil.getValue(coupon);
+    assert newVal > 0;
+
+    final int curVal = getSlot(slotNo);
+    if (newVal > curVal) {
+      putSlot(slotNo, newVal);
+      hipAndKxQIncrementalUpdate(this, curVal, newVal);
+      if (curVal == 0) {
+        decNumAtCurMin(); //interpret numAtCurMin as num Zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
+    return this;
   }
 
   @Override
   final int getSlot(final int slotNo) {
     return Hll6Array.get6Bit(mem, 0, slotNo);
+  }
+
+  @Override
+  PairIterator iterator() {
+    return new HeapHll6Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  HllSketchImpl mergeTo(final HllSketchImpl impl) {
+    HllSketchImpl out = impl;
+    final int slots = 1 << lgConfigK;
+    for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
+      final int tmp = mem.getShort(bitOffset / 8);
+      final int shift = (bitOffset % 8) & 0X7;
+      final int value = (tmp >>> shift) & VAL_MASK_6;
+      if (value == 0) { continue; }
+      out = out.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+    }
+    return out;
   }
 
   @Override

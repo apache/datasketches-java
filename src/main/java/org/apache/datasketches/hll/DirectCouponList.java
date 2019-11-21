@@ -125,13 +125,13 @@ class DirectCouponList extends AbstractCoupons {
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
     final int len = 1 << getLgCouponArrInts();
-    for (int i = 0; i < len; i++) { //search for empty slot
+    for (int i = 0; i < len; i++) { //search for empty slot and duplicates
       final int couponAtIdx = extractInt(mem, LIST_INT_ARR_START + (i << 2));
       if (couponAtIdx == EMPTY) {
         insertInt(wmem, LIST_INT_ARR_START + (i << 2), coupon);
         int couponCount = extractListCount(mem);
         insertListCount(wmem, ++couponCount);
-        insertEmptyFlag(wmem, false);
+        insertEmptyFlag(wmem, false); //TODO only first time
         if (couponCount >= len) { //array full
           if (lgConfigK < 8) {
             return promoteListOrSetToHll(this);//oooFlag = false
@@ -141,7 +141,7 @@ class DirectCouponList extends AbstractCoupons {
         return this;
       }
       //cell not empty
-      if (couponAtIdx == coupon) { return this; } //duplicate
+      if (couponAtIdx == coupon) { return this; } //return if duplicate
       //cell not empty & not a duplicate, continue
     } //end for
     throw new SketchesStateException("Invalid State: no empties & no duplicates");
@@ -160,13 +160,6 @@ class DirectCouponList extends AbstractCoupons {
   @Override
   int[] getCouponIntArr() { //here only to satisfy the abstract, should not be used
     return null;
-  }
-
-  @Override
-  PairIterator iterator() {
-    final long dataStart = getMemDataStart();
-    final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
-    return new IntMemoryPairIterator(mem, dataStart, lenInts, lgConfigK);
   }
 
   @Override
@@ -223,6 +216,26 @@ class DirectCouponList extends AbstractCoupons {
     return this.mem.isSameResource(mem);
   }
 
+  @Override
+  PairIterator iterator() {
+    final long dataStart = getMemDataStart();
+    final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
+    return new IntMemoryPairIterator(mem, dataStart, lenInts, lgConfigK);
+  }
+
+  @Override
+  HllSketchImpl mergeTo(final HllSketchImpl impl) {
+    HllSketchImpl out = impl;
+    final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
+    final int dataStart = getMemDataStart();
+    for (int i = 0; i < lenInts; i++) {
+      final int pair = mem.getInt(dataStart + (i << 2));
+      if (pair == 0) { continue; }
+      out = out.couponUpdate(pair);
+    }
+    return out;
+  }
+
   @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
     assert wmem != null;
@@ -234,8 +247,10 @@ class DirectCouponList extends AbstractCoupons {
     if (wmem == null) {
       throw new SketchesArgumentException("Cannot reset a read-only sketch");
     }
+    insertEmptyFlag(wmem, true);
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(0, bytes);
+
     return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
   }
 
@@ -259,7 +274,7 @@ class DirectCouponList extends AbstractCoupons {
     insertFlags(wmem, (byte) OUT_OF_ORDER_FLAG_MASK); //set oooFlag
     insertCurMin(wmem, 0); //was list count
     insertCurMode(wmem, CurMode.SET);
-    //tgtHllType should already be set
+    //tgtHllType should already be ok
     final int maxBytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(LIST_INT_ARR_START, maxBytes - LIST_INT_ARR_START); //clear all past first 8
 

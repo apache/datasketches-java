@@ -60,8 +60,6 @@ build.xml
 *.tag
 
 # Jekyll
-Gemfile
-Gemfile.lock
 _site/
 _*
 _*/

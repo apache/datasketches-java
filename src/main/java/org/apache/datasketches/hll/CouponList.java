@@ -151,11 +151,6 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  PairIterator iterator() {
-    return new IntArrayPairIterator(couponIntArr, lgConfigK);
-  }
-
-  @Override
   int getLgCouponArrInts() {
     return lgCouponArrInts;
   }
@@ -203,6 +198,23 @@ class CouponList extends AbstractCoupons {
   @Override
   boolean isSameResource(final Memory mem) {
     return false;
+  }
+
+  @Override
+  PairIterator iterator() {
+    return new IntArrayPairIterator(couponIntArr, lgConfigK);
+  }
+
+  @Override
+  HllSketchImpl mergeTo(final HllSketchImpl impl) {
+    HllSketchImpl out = impl;
+    final int arrLen = couponIntArr.length;
+    for (int i = 0; i < arrLen; i++) {
+      final int pair = couponIntArr[i];
+      if (pair == 0) { continue; }
+      out = out.couponUpdate(pair);
+    }
+    return out;
   }
 
   @Override

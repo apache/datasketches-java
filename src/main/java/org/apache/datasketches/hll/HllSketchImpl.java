@@ -38,23 +38,31 @@ abstract class HllSketchImpl {
     this.curMode = curMode;
   }
 
+  /**
+   * Returns a copy of this sketch on the Heap.
+   * The LgConfigK, TgtHllType and CurMode are not changed.
+   * @return Returns a copy of this sketch on the Heap.
+   */
   abstract HllSketchImpl copy();
 
+  /**
+   * Returns a copy of this sketch on the Heap with the given TgtHllType.
+   * The LgConfigK and CurMode are not changed.
+   * @return Returns a copy of this sketch on the Heap with the given TgtHllType.
+   */
   abstract HllSketchImpl copyAs(TgtHllType tgtHllType);
 
   abstract HllSketchImpl couponUpdate(int coupon);
-
- CurMode getCurMode() {
-   return curMode;
- }
 
   abstract int getCompactSerializationBytes();
 
   abstract double getCompositeEstimate();
 
-  abstract double getEstimate();
+  CurMode getCurMode() {
+    return curMode;
+  }
 
-  abstract PairIterator iterator();
+  abstract double getEstimate();
 
   int getLgConfigK() {
     return lgConfigK;
@@ -87,6 +95,12 @@ abstract class HllSketchImpl {
   abstract boolean isOutOfOrderFlag();
 
   abstract boolean isSameResource(Memory mem);
+
+  abstract PairIterator iterator();
+
+  abstract HllSketchImpl mergeTo(HllSketchImpl impl);
+
+  abstract void putEmptyFlag(boolean empty);
 
   abstract void putOutOfOrderFlag(boolean oooFlag);
 

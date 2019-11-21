@@ -139,6 +139,6 @@ public class EngagementTest {
    * @param args arguments
    */
   private static void printf(String fmt, Object ... args) {
-    System.out.printf(fmt, args); //Enable/Disable printing here
+    //System.out.printf(fmt, args); //Enable/Disable printing here
   }
 }

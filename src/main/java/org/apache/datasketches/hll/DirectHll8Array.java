@@ -19,9 +19,12 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
+import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
+import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -51,6 +54,7 @@ class DirectHll8Array extends DirectHllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
+    insertEmptyFlag(wmem, false);
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);
@@ -74,13 +78,25 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
+  final int getSlot(final int slotNo) {
+    return mem.getByte(HLL_BYTE_ARR_START + slotNo) & VAL_MASK_6;
+  }
+
+  @Override
   PairIterator iterator() {
     return new DirectHll8Iterator(1 << lgConfigK);
   }
 
   @Override
-  final int getSlot(final int slotNo) {
-    return mem.getByte(HLL_BYTE_ARR_START + slotNo) & VAL_MASK_6;
+  HllSketchImpl mergeTo(final HllSketchImpl impl) {
+    HllSketchImpl out = impl;
+    final int slots = 1 << lgConfigK;
+    for (int i = 0; i < slots; i++ ) {
+      final int value = mem.getByte(HLL_BYTE_ARR_START + i) & VAL_MASK_6;
+      if (value == 0) { continue; }
+      out = out.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
+    }
+    return out;
   }
 
   @Override

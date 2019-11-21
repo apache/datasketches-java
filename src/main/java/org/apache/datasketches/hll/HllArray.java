@@ -22,6 +22,7 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractCurMin;
+import static org.apache.datasketches.hll.PreambleUtil.extractEmptyFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractHipAccum;
 import static org.apache.datasketches.hll.PreambleUtil.extractKxQ0;
 import static org.apache.datasketches.hll.PreambleUtil.extractKxQ1;
@@ -39,12 +40,14 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 abstract class HllArray extends AbstractHllArray {
   boolean oooFlag = false; //Out-Of-Order Flag
+  boolean empty = true;
   int curMin; //always zero for Hll6 and Hll8, only used / tracked by Hll4Array
   int numAtCurMin; //interpreted as num zeros when curMin == 0
   double hipAccum;
   double kxq0;
   double kxq1;
   byte[] hllByteArr = null; //init by sub-classes
+  final int configKmask;
 
   /**
    * Standard constructor for new instance
@@ -58,6 +61,7 @@ abstract class HllArray extends AbstractHllArray {
     hipAccum = 0;
     kxq0 = 1 << lgConfigK;
     kxq1 = 0;
+    configKmask = (1 << lgConfigK) - 1;
   }
 
   /**
@@ -67,6 +71,7 @@ abstract class HllArray extends AbstractHllArray {
   HllArray(final HllArray that) {
     super(that.getLgConfigK(), that.getTgtHllType(), CurMode.HLL);
     oooFlag = that.isOutOfOrderFlag();
+    empty = that.isEmpty();
     curMin = that.getCurMin();
     numAtCurMin = that.getNumAtCurMin();
     hipAccum = that.getHipAccum();
@@ -79,6 +84,7 @@ abstract class HllArray extends AbstractHllArray {
     } else {
       putAuxHashMap(null, false);
     }
+    configKmask = (1 << lgConfigK) - 1;
   }
 
   static final HllArray newHeapHll(final int lgConfigK, final TgtHllType tgtHllType) {
@@ -90,25 +96,6 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   void addToHipAccum(final double delta) {
     hipAccum += delta;
-  }
-
-  @Override //used by HLL6 and HLL8, overridden by HLL4
-  HllSketchImpl couponUpdate(final int coupon) {
-    final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    final int newVal = HllUtil.getValue(coupon);
-    assert newVal > 0;
-
-    final int curVal = getSlot(slotNo);
-    if (newVal > curVal) {
-      putSlot(slotNo, newVal);
-      hipAndKxQIncrementalUpdate(this, curVal, newVal);
-      if (curVal == 0) {
-        decNumAtCurMin(); //interpret numAtCurMin as num Zeros
-        assert getNumAtCurMin() >= 0;
-      }
-    }
-    return this;
   }
 
   @Override
@@ -173,8 +160,9 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   boolean isEmpty() {
-    final int configK = 1 << getLgConfigK();
-    return (getCurMin() == 0) && (getNumAtCurMin() == configK);
+    return empty;
+    //final int configK = 1 << getLgConfigK();
+    //return (getCurMin() == 0) && (getNumAtCurMin() == configK);
   }
 
   @Override
@@ -208,6 +196,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  void putEmptyFlag(final boolean empty) {
+    this.empty = empty;
+  }
+
+  @Override
   void putHipAccum(final double value) {
     hipAccum = value;
   }
@@ -234,6 +227,7 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   HllSketchImpl reset() {
+    empty = true;
     return new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
   }
 
@@ -251,6 +245,7 @@ abstract class HllArray extends AbstractHllArray {
   //used by heapify by all Heap HLL
   static final void extractCommonHll(final Memory srcMem, final HllArray hllArray) {
     hllArray.putOutOfOrderFlag(extractOooFlag(srcMem));
+    hllArray.putEmptyFlag(extractEmptyFlag(srcMem));
     hllArray.putCurMin(extractCurMin(srcMem));
     hllArray.putHipAccum(extractHipAccum(srcMem));
     hllArray.putKxQ0(extractKxQ0(srcMem));
