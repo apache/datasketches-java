@@ -23,7 +23,7 @@ under the License.
 -->
 
 <!--
-  SketchesCheckstyle.xml for datasketches-java
+  SketchesCheckstyle.xml
 
   Checkstyle is very configurable. Be sure to read the documentation at
   http://checkstyle.sourceforge.net (or in your downloaded distribution). Note: Does not work with https.
@@ -46,6 +46,14 @@ under the License.
   
   <module name="NewlineAtEndOfFile">
     <property name="lineSeparator" value="lf"/>
+  </module>
+  
+  <!-- Size Violations -->
+  <module name="LineLength">
+    <property name="severity" value="warning"/>
+    <property name="max" value="110"/>
+    <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
+    <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
   </module>
   
   <module name="TreeWalker">
@@ -185,7 +193,7 @@ under the License.
       <property name="allowMissingParamTags" value="false"/>
       <property name="allowMissingThrowsTags" value="true"/>
       <property name="allowMissingReturnTag" value="false"/>
-      <property name="minLineCount" value="2"/>
+      <!-- <property name="minLineCount" value="2"/> -->
       <property name="allowedAnnotations" value="Override, Test"/>
       <property name="allowThrowsTagsForSubclasses" value="true"/>
     </module>
@@ -331,14 +339,6 @@ under the License.
       <property name="illegalPattern" value="true"/>
       <property name="message" value="Trailing whitespace"/>
       <property name="ignoreComments" value="true"/>
-    </module>
-    
-    <!-- Size Violations -->
-    <module name="LineLength">
-      <property name="severity" value="warning"/>
-      <property name="max" value="110"/>
-      <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-      <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
     </module>
     
     <!-- Whitespace -->
