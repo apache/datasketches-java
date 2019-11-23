@@ -64,7 +64,6 @@ class Hll8Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    empty = false;
     final int configKmask = (1 << lgConfigK) - 1;
     final int slotNo = coupon & configKmask;
     final int newVal = coupon >>> KEY_BITS_26;

@@ -112,6 +112,11 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract AuxHashMap getNewAuxHashMap();
 
+  /**
+   * Returns the number of slots that have the value CurMin.
+   * If CurMin is 0, then it returns the number of zeros in the array.
+   * @return the number of slots that have the value CurMin.
+   */
   abstract int getNumAtCurMin();
 
   @Override

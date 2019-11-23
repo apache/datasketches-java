@@ -79,7 +79,6 @@ class Hll4Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    empty = false;
     final int newValue = HllUtil.getValue(coupon);
     if (newValue <= getCurMin()) {
       return this; // super quick rejection; only works for large N

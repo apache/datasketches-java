@@ -52,7 +52,7 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 class ToByteArrayImpl {
 
-  // To byte array used by the heap HLL types.
+  // To byte array used by the heap HLL modes.
   static final byte[] toHllByteArray(final AbstractHllArray impl, final boolean compact) {
     int auxBytes = 0;
     if (impl.tgtHllType == TgtHllType.HLL_4) {

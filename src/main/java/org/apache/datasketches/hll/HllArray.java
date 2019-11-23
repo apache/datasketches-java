@@ -40,9 +40,8 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 abstract class HllArray extends AbstractHllArray {
   boolean oooFlag = false; //Out-Of-Order Flag
-  boolean empty = true;
-  int curMin; //always zero for Hll6 and Hll8, only used / tracked by Hll4Array
-  int numAtCurMin; //interpreted as num zeros when curMin == 0
+  int curMin; //always zero for Hll6 and Hll8, only used by Hll4Array
+  int numAtCurMin; //# of values at curMin. If curMin = 0, it is # of zeros
   double hipAccum;
   double kxq0;
   double kxq1;
@@ -71,7 +70,6 @@ abstract class HllArray extends AbstractHllArray {
   HllArray(final HllArray that) {
     super(that.getLgConfigK(), that.getTgtHllType(), CurMode.HLL);
     oooFlag = that.isOutOfOrderFlag();
-    empty = that.isEmpty();
     curMin = that.getCurMin();
     numAtCurMin = that.getNumAtCurMin();
     hipAccum = that.getHipAccum();
@@ -160,9 +158,7 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   boolean isEmpty() {
-    return empty;
-    //final int configK = 1 << getLgConfigK();
-    //return (getCurMin() == 0) && (getNumAtCurMin() == configK);
+    return false; //because there should be no normal way to create an HllArray that is empty
   }
 
   @Override
@@ -196,9 +192,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  void putEmptyFlag(final boolean empty) {
-    this.empty = empty;
-  }
+  void putEmptyFlag(final boolean empty) { }
 
   @Override
   void putHipAccum(final double value) {
@@ -227,7 +221,6 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   HllSketchImpl reset() {
-    empty = true;
     return new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
   }
 

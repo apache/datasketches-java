@@ -389,7 +389,6 @@ public class Union extends BaseHllSketch {
         break;
       }
       case 8: { //src: LIST, gadget: HLL
-        //if (inLgK < gadgetLgK) { dstImpl = downsample(dstImpl, inLgK); }
         dstImpl = srcImpl.mergeTo(dstImpl);
         //whichever is True wins:
         dstImpl.putOutOfOrderFlag(dstImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());

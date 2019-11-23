@@ -67,7 +67,6 @@ class Hll6Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    empty = false;
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getLow26(coupon) & configKmask;
     final int newVal = HllUtil.getValue(coupon);

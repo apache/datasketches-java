@@ -20,6 +20,7 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.checkPreamble;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -474,7 +475,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   void couponUpdate(final int coupon) {
-    if (coupon == EMPTY) { return; }
+    if ((coupon >>> KEY_BITS_26 ) == EMPTY) { return; }
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 
