@@ -67,17 +67,17 @@ class Hll6Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    final int newVal = HllUtil.getValue(coupon);
+    final int configKmask = (1 << lgConfigK) - 1;
+    final int slotNo = coupon & configKmask;
+    final int newVal = coupon >>> KEY_BITS_26;
     assert newVal > 0;
 
-    final int curVal = getSlot(slotNo);
+    final int curVal = get6Bit(mem, 0, slotNo);
     if (newVal > curVal) {
-      putSlot(slotNo, newVal);
+      put6Bit(mem, 0, slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
-        decNumAtCurMin(); //interpret numAtCurMin as num Zeros
+        numAtCurMin--; //interpret numAtCurMin as num Zeros
         assert getNumAtCurMin() >= 0;
       }
     }
