@@ -18,7 +18,7 @@
  */
 
 /**
- * <p>This package is the parent package for all sketch algorithms.
+ * This package is the parent package for all sketch algorithms.
  * Classes at this level are used by more than one sub-package.
  *
  * @author Lee Rhodes

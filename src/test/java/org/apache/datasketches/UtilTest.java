@@ -85,7 +85,7 @@ public class UtilTest {
       checkIfPowerOf2(7, "Test 7");
       Assert.fail("Expected SketchesArgumentException");
     }
-    catch (SketchesArgumentException e) {
+    catch (final SketchesArgumentException e) {
       //pass
     }
   }
@@ -159,10 +159,10 @@ public class UtilTest {
 
   @Test
   public void checkIsLessThanUnsigned() {
-    long n1 = 1;
-    long n2 = 3;
-    long n3 = -3;
-    long n4 = -1;
+    final long n1 = 1;
+    final long n2 = 3;
+    final long n3 = -3;
+    final long n4 = -1;
     Assert.assertTrue(isLessThanUnsigned(n1, n2));
     Assert.assertTrue(isLessThanUnsigned(n2, n3));
     Assert.assertTrue(isLessThanUnsigned(n3, n4));
@@ -173,16 +173,16 @@ public class UtilTest {
 
   @Test
   public void checkZeroPad() {
-    long v = 123456789;
-    String vHex = Long.toHexString(v);
-    String out = zeroPad(vHex, 16);
+    final long v = 123456789;
+    final String vHex = Long.toHexString(v);
+    final String out = zeroPad(vHex, 16);
     println("Pad 16, prepend 0: " + out);
   }
 
   @Test
   public void checkCharacterPad() {
-    String s = "Pad 30, postpend z:";
-    String out = characterPad(s, 30, 'z', true);
+    final String s = "Pad 30, postpend z:";
+    final String out = characterPad(s, 30, 'z', true);
     println(out);
   }
 
@@ -203,10 +203,10 @@ public class UtilTest {
 
   @Test
   public void checkEvenlyLgSpaced() {
-    int lgStart = 0;
-    int lgEnd = 4;
-    int ppo = 1;
-    int points = (ppo * (lgEnd - lgStart)) +1;
+    final int lgStart = 0;
+    final int lgEnd = 4;
+    final int ppo = 1;
+    final int points = (ppo * (lgEnd - lgStart)) + 1;
     int[] pts = evenlyLgSpaced(lgStart, lgEnd, points);
     Assert.assertEquals(pts[0], 1);
     Assert.assertEquals(pts[1], 2);
@@ -229,32 +229,32 @@ public class UtilTest {
 
   @Test
   public void checkBytesToInt() {
-    byte[] arr = new byte[] {4, 3, 2, 1};
-    int result = 4 + (3 << 8) + (2 << 16) + (1 << 24);
+    final byte[] arr = new byte[] {4, 3, 2, 1};
+    final int result = 4 + (3 << 8) + (2 << 16) + (1 << 24);
     Assert.assertEquals(bytesToInt(arr), result);
-    byte[] arr2 = intToBytes(result, new byte[4]);
+    final byte[] arr2 = intToBytes(result, new byte[4]);
     Assert.assertEquals(arr, arr2);
   }
 
   @Test
   public void checkBytesToLong() {
-    byte[] arr = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
-    long result = 8L + (7L << 8) + (6L << 16) + (5L << 24)
+    final byte[] arr = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
+    final long result = 8L + (7L << 8) + (6L << 16) + (5L << 24)
                + (4L << 32) + (3L << 40) + (2L << 48) + (1L << 56);
     Assert.assertEquals(bytesToLong(arr), result);
   }
 
   @Test
   public void checkBytesToString() {
-    long lng = 0XF8F7F6F504030201L;
+    final long lng = 0XF8F7F6F504030201L;
     //println(Long.toHexString(lng));
     byte[] bytes = new byte[8];
     bytes = Util.longToBytes(lng, bytes);
-    String sep = ".";
-    String unsignLE = bytesToString(bytes, false, true, sep);
-    String signedLE = bytesToString(bytes, true, true, sep);
-    String unsignBE = bytesToString(bytes, false,  false, sep);
-    String signedBE = bytesToString(bytes, true,  false, sep);
+    final String sep = ".";
+    final String unsignLE = bytesToString(bytes, false, true, sep);
+    final String signedLE = bytesToString(bytes, true, true, sep);
+    final String unsignBE = bytesToString(bytes, false,  false, sep);
+    final String signedBE = bytesToString(bytes, true,  false, sep);
     Assert.assertEquals(unsignLE, "1.2.3.4.245.246.247.248");
     Assert.assertEquals(signedLE, "1.2.3.4.-11.-10.-9.-8");
     Assert.assertEquals(unsignBE, "248.247.246.245.4.3.2.1");
@@ -263,17 +263,17 @@ public class UtilTest {
 
   @Test
   public void checkNsecToString() {
-    long nS = 1000000000L + 1000000L + 1000L + 1L;
-    String result = nanoSecToString(nS);
-    String expected = "1.001_001_001";
+    final long nS = 1000000000L + 1000000L + 1000L + 1L;
+    final String result = nanoSecToString(nS);
+    final String expected = "1.001_001_001";
     Assert.assertEquals(result, expected);
   }
 
   @Test
   public void checkMsecToString() {
-    long nS = (60L * 60L * 1000L) + (60L * 1000L) + 1000L + 1L;
-    String result = milliSecToString(nS);
-    String expected = "1:01:01.001";
+    final long nS = (60L * 60L * 1000L) + (60L * 1000L) + 1000L + 1L;
+    final String result = milliSecToString(nS);
+    final String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);
   }
 
@@ -302,9 +302,9 @@ public class UtilTest {
 
   @Test
   public void checkPwr2LawExamples() {
-    int maxP = 32;
-    int minP = 1;
-    int ppo = 4;
+    final int maxP = 32;
+    final int minP = 1;
+    final int ppo = 4;
 
     for (int p = minP; p <= maxP; p = pwr2LawNext(ppo, p)) {
       print(p + " ");
@@ -324,7 +324,7 @@ public class UtilTest {
     try {
       simpleIntLog2(0);
       fail();
-    } catch (SketchesArgumentException e) {}
+    } catch (final SketchesArgumentException e) { }
   }
 
   //Resources
@@ -357,7 +357,7 @@ public class UtilTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   static void println(final Object o) {

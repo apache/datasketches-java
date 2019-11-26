@@ -63,8 +63,16 @@ public class CompressionCharacterization {
   private CpcSketch[] unCompressedSketches;
 
 
-  public CompressionCharacterization(int lgMinK, int lgMaxK, int lgMinT, int lgMaxT, int lgMulK,
-      int uPPO, int incLgK, PrintStream pS, PrintWriter pW) {
+  public CompressionCharacterization(
+      final int lgMinK,
+      final int lgMaxK,
+      final int lgMinT,
+      final int lgMaxT,
+      final int lgMulK,
+      final int uPPO,
+      final int incLgK,
+      final PrintStream pS,
+      final PrintWriter pW) {
     this.lgMinK = lgMinK;
     this.lgMaxK = lgMaxK;
     this.lgMinT = lgMinT;
@@ -88,27 +96,27 @@ public class CompressionCharacterization {
     }
   }
 
-  private void doRangeOfNAtLgK(int lgK) {
+  private void doRangeOfNAtLgK(final int lgK) {
     long n = 1;
-    int lgMaxN = lgK + lgMulK;
-    long maxN = 1L << lgMaxN;
-    double slope = -(double)(lgMaxT - lgMinT) / lgMaxN;
+    final int lgMaxN = lgK + lgMulK;
+    final long maxN = 1L << lgMaxN;
+    final double slope = -(double)(lgMaxT - lgMinT) / lgMaxN;
 
     while (n <= maxN) {
-      double lgT = (slope * log2(n)) + lgMaxT;
-      int totTrials = Math.max(ceilingPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
+      final double lgT = (slope * log2(n)) + lgMaxT;
+      final int totTrials = Math.max(ceilingPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
       doTrialsAtLgKAtN(lgK, n, totTrials);
       n = Math.round(pwrLawNextDouble(uPPO, n, true, 2.0));
     }
   }
 
-  private void doTrialsAtLgKAtN(int lgK, long n, int totalTrials) {
-    int k = 1 << lgK;
-    int minNK = (int) ((k < n) ? k : n);
-    double nOverK = (double) n / k;
-    int lgTotTrials = Integer.numberOfTrailingZeros(totalTrials);
-    int lgWaves = Math.max(lgTotTrials - 10, 0);
-    int trialsPerWave = 1 << (lgTotTrials - lgWaves);
+  private void doTrialsAtLgKAtN(final int lgK, final long n, final int totalTrials) {
+    final int k = 1 << lgK;
+    final int minNK = (int) ((k < n) ? k : n);
+    final double nOverK = (double) n / k;
+    final int lgTotTrials = Integer.numberOfTrailingZeros(totalTrials);
+    final int lgWaves = Math.max(lgTotTrials - 10, 0);
+    final int trialsPerWave = 1 << (lgTotTrials - lgWaves);
     //printf("%d %d %d %d\n", totalTrials, lgTotTrials, 1 << lgWaves, trialsPerWave);
     streamSketches = new CpcSketch[trialsPerWave];
     compressedStates1 = new CompressedState[trialsPerWave];
@@ -128,14 +136,14 @@ public class CompressionCharacterization {
     long sumUnc_nS = 0;
     long sumEqu_nS = 0;
     long nanoStart, nanoEnd;
-    long start = System.currentTimeMillis();
+    final long start = System.currentTimeMillis();
     //Wave Loop
     for (int w = 0; w < (1 << lgWaves); w++) {
 
       //Construct array with sketches loop
       nanoStart = System.nanoTime();
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CpcSketch sketch = new CpcSketch(lgK);
+        final CpcSketch sketch = new CpcSketch(lgK);
         streamSketches[trial] = sketch;
       }
       nanoEnd = System.nanoTime();
@@ -144,7 +152,7 @@ public class CompressionCharacterization {
 
       //Sketch Update loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CpcSketch sketch = streamSketches[trial];
+        final CpcSketch sketch = streamSketches[trial];
         for (long i = 0; i < n; i++) { //increment loop
           sketch.update(vIn += iGoldenU64);
         }
@@ -155,8 +163,8 @@ public class CompressionCharacterization {
 
       //Compress loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CpcSketch sketch = streamSketches[trial];
-        CompressedState state = CompressedState.compress(sketch);
+        final CpcSketch sketch = streamSketches[trial];
+        final CompressedState state = CompressedState.compress(sketch);
         compressedStates1[trial] = state;
         totalC += sketch.numCoupons;
         totalW += state.csvLengthInts + state.cwLengthInts;
@@ -167,9 +175,9 @@ public class CompressionCharacterization {
 
       //State to Memory loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CompressedState state = compressedStates1[trial];
-        long cap = state.getRequiredSerializedBytes();
-        WritableMemory wmem = WritableMemory.allocate((int) cap);
+        final CompressedState state = compressedStates1[trial];
+        final long cap = state.getRequiredSerializedBytes();
+        final WritableMemory wmem = WritableMemory.allocate((int) cap);
         state.exportToMemory(wmem);
         memoryArr[trial] = wmem;
       }
@@ -180,8 +188,8 @@ public class CompressionCharacterization {
 
       //Memory to State loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        Memory mem = memoryArr[trial];
-        CompressedState state = importFromMemory(mem);
+        final Memory mem = memoryArr[trial];
+        final CompressedState state = importFromMemory(mem);
         compressedStates2[trial] = state;
       }
 
@@ -191,7 +199,7 @@ public class CompressionCharacterization {
 
       //Uncompress loop
       for (int trial = 0; trial < trialsPerWave; trial++) {
-        CompressedState state = compressedStates2[trial];
+        final CompressedState state = compressedStates2[trial];
         CpcSketch uncSk = null;
         uncSk = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
         unCompressedSketches[trial] = uncSk;
@@ -212,11 +220,11 @@ public class CompressionCharacterization {
 
     } // end wave loop
 
-    double total_S = (System.currentTimeMillis() - start) / 1E3;
-    double avgC = (1.0 * totalC) / totalTrials;
-    double avgCoK = avgC / k;
-    double avgWords = (1.0 * totalW) / totalTrials;
-    double avgBytes = (4.0 * totalW) / totalTrials;
+    final double total_S = (System.currentTimeMillis() - start) / 1E3;
+    final double avgC = (1.0 * totalC) / totalTrials;
+    final double avgCoK = avgC / k;
+    final double avgWords = (1.0 * totalW) / totalTrials;
+    final double avgBytes = (4.0 * totalW) / totalTrials;
 
     final double avgCtor_nS = Math.round((double) sumCtor_nS / totalTrials);
 
@@ -242,10 +250,10 @@ public class CompressionCharacterization {
     final double avgEqu_nSperMinNK = avgEqu_nS / minNK;
 
 
-    int len = unCompressedSketches.length;
-    Flavor finFlavor = unCompressedSketches[len - 1].getFlavor();
-    String offStr = Integer.toString(unCompressedSketches[len - 1].windowOffset);
-    String flavorOff = finFlavor.toString() + String.format("%2s", offStr);
+    final int len = unCompressedSketches.length;
+    final Flavor finFlavor = unCompressedSketches[len - 1].getFlavor();
+    final String offStr = Integer.toString(unCompressedSketches[len - 1].windowOffset);
+    final String flavorOff = finFlavor.toString() + String.format("%2s", offStr);
     printf(dfmt,
         lgK,
         totalTrials,
@@ -273,13 +281,13 @@ public class CompressionCharacterization {
         total_S);
   }
 
-  private void printf(String format, Object ... args) {
+  private void printf(final String format, final Object ... args) {
     if (ps != null) { ps.printf(format, args); }
     if (pw != null) { pw.printf(format, args); }
   }
 
   private void assembleFormats() {
-    String[][] assy = {
+    final String[][] assy = {
         {"lgK",        "%3s",  "%3d"},
         {"Trials",     "%9s",  "%9d"},
         {"n",          "%12s", "%12d"},
@@ -305,13 +313,13 @@ public class CompressionCharacterization {
         {"AvgEqu_nSperMinNK", "%18s", "%18.4g"},
         {"Total_S",           "%8s",  "%8.3f"}
     };
-    int cols = assy.length;
+    final int cols = assy.length;
     hStrArr = new String[cols];
-    StringBuilder headerFmt = new StringBuilder();
-    StringBuilder dataFmt = new StringBuilder();
+    final StringBuilder headerFmt = new StringBuilder();
+    final StringBuilder dataFmt = new StringBuilder();
     headerFmt.append("\nCompression Characterization\n");
     for (int i = 0; i < cols; i++) {
-      hStrArr[i] =assy[i][0];
+      hStrArr[i] = assy[i][0];
       headerFmt.append(assy[i][1]);
       headerFmt.append((i < (cols - 1)) ? "\t" : "\n");
       dataFmt.append(assy[i][2]);

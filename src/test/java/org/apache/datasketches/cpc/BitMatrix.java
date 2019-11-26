@@ -36,11 +36,11 @@ class BitMatrix {
   private long[] bitMatrix;
   private boolean numCouponsInvalid; //only used if we allowed merges
 
-  BitMatrix(int lgK) {
+  BitMatrix(final int lgK) {
     this(lgK, DEFAULT_UPDATE_SEED);
   }
 
-  BitMatrix(int lgK, long seed) {
+  BitMatrix(final int lgK, final long seed) {
     this.lgK = lgK;
     this.seed = seed;
     bitMatrix = new long[1 << lgK];
@@ -82,7 +82,7 @@ class BitMatrix {
     if (col > 63) { col = 63; } // clip so that 0 <= col <= 63
     final long kMask = (1L << lgK) - 1L;
     int row = (int) (hash0 & kMask);
-    int rowCol = (row << 6) | col;
+    final int rowCol = (row << 6) | col;
 
     // Avoid the hash table's "empty" value which is (2^26 -1, 63) (all ones) by changing it
     // to the pair (2^26 - 2, 63), which effectively merges the two cells.
@@ -90,8 +90,8 @@ class BitMatrix {
     // It can't happen at all if lgK (or maxLgK) < 26.
     if (rowCol == -1) { row ^= 1; } //set the LSB of row to 0
 
-    long oldPattern = bitMatrix[row];
-    long newPattern = oldPattern | (1L << col);
+    final long oldPattern = bitMatrix[row];
+    final long newPattern = oldPattern | (1L << col);
     if (newPattern != oldPattern) {
       numCoupons++;
       bitMatrix[row] = newPattern;

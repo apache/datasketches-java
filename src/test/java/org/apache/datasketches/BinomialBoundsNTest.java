@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class BinomialBoundsNTest {
 
-  public static double[] runTestAux (long max_numSamplesI, int ci, double min_p) {
+  public static double[] runTestAux(final long max_numSamplesI, final int ci, final double min_p) {
     long numSamplesI = 0;
     double p, lb, ub;
     double sum1 = 0.0;
@@ -47,31 +47,31 @@ public class BinomialBoundsNTest {
       p = 1.0;
 
       while (p >= min_p) {
-        lb = BinomialBoundsN.getLowerBound (numSamplesI, p, ci, false);
-        ub = BinomialBoundsN.getUpperBound (numSamplesI, p, ci, false);
+        lb = BinomialBoundsN.getLowerBound(numSamplesI, p, ci, false);
+        ub = BinomialBoundsN.getUpperBound(numSamplesI, p, ci, false);
 
         // if (numSamplesI == 300 && p > 0.365 && p < 0.367) { ub += 0.01; }  // artificial discrepancy
 
         // the logarithm helps discrepancies to not be swamped out of the total
-        sum1 += Math.log (lb + 1.0);
-        sum2 += Math.log (ub + 1.0);
+        sum1 += Math.log(lb + 1.0);
+        sum2 += Math.log(ub + 1.0);
         count += 2;
 
         if (p < 1.0) {
-          lb = BinomialBoundsN.getLowerBound (numSamplesI, 1.0 - p, ci, false);
-          ub = BinomialBoundsN.getUpperBound (numSamplesI, 1.0 - p, ci, false);
-          sum3 += Math.log (lb + 1.0);
-          sum4 += Math.log (ub + 1.0);
+          lb = BinomialBoundsN.getLowerBound(numSamplesI, 1.0 - p, ci, false);
+          ub = BinomialBoundsN.getUpperBound(numSamplesI, 1.0 - p, ci, false);
+          sum3 += Math.log(lb + 1.0);
+          sum4 += Math.log(ub + 1.0);
           count += 2;
         }
 
         p *= 0.99;
       }
-      numSamplesI = Math.max (numSamplesI+1, (1001*numSamplesI)/1000);
+      numSamplesI = Math.max(numSamplesI + 1, (1001 * numSamplesI) / 1000);
     }
 
     println(String.format("{%.15e, %.15e, %.15e, %.15e, %d}", sum1, sum2, sum3, sum4, count));
-    double[] arrOut = {sum1, sum2, sum3, sum4, count};
+    final double[] arrOut = {sum1, sum2, sum3, sum4, count};
     return arrOut;
   }
 
@@ -81,24 +81,24 @@ public class BinomialBoundsNTest {
   public static void checkBounds() {
     int i = 0;
     for (int ci = 1; ci <= 3; ci++, i++) {
-      double[] arr = runTestAux (20, ci, 1e-3);
-      for (int j=0; j<5; j++) {
-        assertTrue(((arr[j] / std[i][j]) -1.0) < TOL);
+      final double[] arr = runTestAux(20, ci, 1e-3);
+      for (int j = 0; j < 5; j++) {
+        assertTrue(((arr[j] / std[i][j]) - 1.0) < TOL);
       }
     }
     for (int ci = 1; ci <= 3; ci++, i++) {
-      double[] arr = runTestAux (200, ci, 1e-5);
-      for (int j=0; j<5; j++) {
-        assertTrue(((arr[j] / std[i][j]) -1.0) < TOL);
+      final double[] arr = runTestAux(200, ci, 1e-5);
+      for (int j = 0; j < 5; j++) {
+        assertTrue(((arr[j] / std[i][j]) - 1.0) < TOL);
       }
     }
     //comment last one out for a shorter test
-//    for (int ci = 1; ci <= 3; ci++, i++) {
-//      double[] arr = runTestAux (2000, ci, 1e-7);
-//      for (int j=0; j<5; j++) {
-//        assertTrue((arr[j] / std[i][j] -1.0) < TOL);
-//      }
-//    }
+    //  for (int ci = 1; ci <= 3; ci++, i++) {
+    //    final double[] arr = runTestAux(2000, ci, 1e-7);
+    //    for (int j = 0; j < 5; j++) {
+    //      assertTrue(((arr[j] / std[i][j]) - 1.0) < TOL);
+    //  }
+    //}
   }
 
   // With all 3 enabled the test should produce in groups of 3 */
@@ -126,19 +126,19 @@ public class BinomialBoundsNTest {
       checkArgs(10L, 1.0, 0);
       checkArgs(10L, 1.0, 4);
       fail("Expected SketchesArgumentException");
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //pass
     }
   }
 
   @Test
   public static void checkComputeApproxBino_LB_UB() {
-    long n = 100;
-    double theta = (2.0 - 1e-5)/2.0;
+    final long n = 100;
+    final double theta = (2.0 - 1e-5) / 2.0;
     double result = getLowerBound(n, theta, 1, false);
     assertEquals(result, n, 0.0);
     result = getUpperBound(n, theta, 1, false);
-    assertEquals(result, n+1, 0.0);
+    assertEquals(result, n + 1, 0.0);
     result = getLowerBound(n, theta, 1, true);
     assertEquals(result, 0.0, 0.0);
     result = getUpperBound(n, theta, 1, true);
@@ -153,28 +153,28 @@ public class BinomialBoundsNTest {
   @Test
   public static void boundsExample() {
     println("BinomialBoundsN Example:");
-    int k = 500;
-    double theta = 0.001;
-    int stdDev = 2;
-    double ub = BinomialBoundsN.getUpperBound(k, theta, stdDev, false);
-    double est = k/theta;
-    double lb = BinomialBoundsN.getLowerBound(k, theta, stdDev, false);
-    println("K="+k+", Theta="+theta+", SD="+stdDev);
-    println("UB:  "+ub);
-    println("Est: "+est);
-    println("LB:  "+lb);
+    final int k = 500;
+    final double theta = 0.001;
+    final int stdDev = 2;
+    final double ub = BinomialBoundsN.getUpperBound(k, theta, stdDev, false);
+    final double est = k / theta;
+    final double lb = BinomialBoundsN.getLowerBound(k, theta, stdDev, false);
+    println("K=" + k + ", Theta=" + theta + ", SD=" + stdDev);
+    println("UB:  " + ub);
+    println("Est: " + est);
+    println("LB:  " + lb);
     println("");
   }
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

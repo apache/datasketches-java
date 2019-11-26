@@ -34,9 +34,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class HashOperationsTest {
@@ -65,13 +64,13 @@ public class HashOperationsTest {
 
   @Test
   public void checkHashArrayInsert() {
-    long[] hTable = new long[16];
-    long[] hashIn = new long[1];
-    for (int i=0; i<8; i++) {
+    final long[] hTable = new long[16];
+    final long[] hashIn = new long[1];
+    for (int i = 0; i < 8; i++) {
       hashIn[0] = i;
-      long h = hash(hashIn, 0)[0] >>> 1;
+      final long h = hash(hashIn, 0)[0] >>> 1;
       hashInsertOnly(hTable, 4, h);
-      int count = hashArrayInsert(hTable, hTable, 4, Long.MAX_VALUE);
+      final int count = hashArrayInsert(hTable, hTable, 4, Long.MAX_VALUE);
       assertEquals(count, 0);
     }
 
@@ -79,52 +78,52 @@ public class HashOperationsTest {
 
   @Test
   public void testContinueCondtion() {
-    long thetaLong = Long.MAX_VALUE/2;
+    final long thetaLong = Long.MAX_VALUE / 2;
     assertTrue(continueCondition(thetaLong, 0));
     assertTrue(continueCondition(thetaLong, thetaLong));
-    assertTrue(continueCondition(thetaLong, thetaLong +1));
-    assertFalse(continueCondition(thetaLong, thetaLong -1));
+    assertTrue(continueCondition(thetaLong, thetaLong + 1));
+    assertFalse(continueCondition(thetaLong, thetaLong - 1));
   }
 
   @Test
   public void testHashInsertOnlyNoStride() {
-    long[] table = new long[32];
-    int index = hashInsertOnly(table, 5, 1);
+    final long[] table = new long[32];
+    final int index = hashInsertOnly(table, 5, 1);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
   }
 
   @Test
   public void testHashInsertOnlyWithStride() {
-    long[] table = new long[32];
+    final long[] table = new long[32];
     table[1] = 1;
-    int index = hashInsertOnly(table, 5, 1);
+    final int index = hashInsertOnly(table, 5, 1);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
   }
 
   @Test
   public void testHashInsertOnlyMemoryNoStride() {
-    long[] table = new long[32];
-    WritableMemory mem = WritableMemory.wrap(table);
-    int index = fastHashInsertOnly(mem, 5, 1, 0);
+    final long[] table = new long[32];
+    final WritableMemory mem = WritableMemory.wrap(table);
+    final int index = fastHashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
   }
 
   @Test
   public void testHashInsertOnlyMemoryWithStride() {
-    long[] table = new long[32];
+    final long[] table = new long[32];
     table[1] = 1;
-    WritableMemory mem = WritableMemory.wrap(table);
-    int index = fastHashInsertOnly(mem, 5, 1, 0);
+    final WritableMemory mem = WritableMemory.wrap(table);
+    final int index = fastHashInsertOnly(mem, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
   }
 
   @Test
   public void checkFullHeapTableCatchesInfiniteLoop() {
-    long[] table = new long[32];
+    final long[] table = new long[32];
     for (int i = 1; i <= 32; ++i) {
       hashInsertOnly(table, 5, i);
     }
@@ -150,8 +149,8 @@ public class HashOperationsTest {
 
   @Test
   public void checkFullDirectTableCatchesInfiniteLoop() {
-    long[] table = new long[32];
-    WritableMemory mem = WritableMemory.wrap(table);
+    final long[] table = new long[32];
+    final WritableMemory mem = WritableMemory.wrap(table);
     for (int i = 1; i <= 32; ++i) {
       fastHashInsertOnly(mem, 5, i, 0);
     }
@@ -177,8 +176,8 @@ public class HashOperationsTest {
 
   @Test
   public void checkFullFastDirectTableCatchesInfiniteLoop() {
-    long[] table = new long[32];
-    WritableMemory wmem = WritableMemory.wrap(table);
+    final long[] table = new long[32];
+    final WritableMemory wmem = WritableMemory.wrap(table);
 
     for (int i = 1; i <= 32; ++i) {
       fastHashInsertOnly(wmem, 5, i, 0);
@@ -203,13 +202,13 @@ public class HashOperationsTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 
