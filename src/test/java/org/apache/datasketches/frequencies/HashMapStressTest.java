@@ -20,15 +20,15 @@
 package org.apache.datasketches.frequencies;
 
 import org.apache.datasketches.hash.MurmurHash3;
+//import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class StressTestHashMap {
+public class HashMapStressTest {
 
-  public static void main(String[] args) {
-    stress();
-  }
-
-  private static void stress() {
+  //@Test
+  public static void stress() {
+    println("ReversePurgeLongHashMap Stress Test");
+    printf("%12s%15s%n", "Capacity", "TimePerAdjust");
     for (int capacity = 2 << 5; capacity < (2 << 24); capacity *= 2) {
       int n = 10000000;
 
@@ -42,11 +42,12 @@ public class StressTestHashMap {
 
       ReversePurgeLongHashMap hashmap = new ReversePurgeLongHashMap(capacity);
       long timePerAdjust = timeOneHashMap(hashmap, keys, values, (int) (.75 * capacity));
-      System.out.format("%s\t%d\t%d%n", hashmap.getClass().getSimpleName(), capacity, timePerAdjust);
+      printf("%12d%15d%n", capacity, timePerAdjust);
     }
   }
 
-  private static long timeOneHashMap(ReversePurgeLongHashMap hashMap, long[] keys, long[] values, int sizeToShift) {
+  private static long timeOneHashMap(ReversePurgeLongHashMap hashMap, long[] keys, long[] values,
+      int sizeToShift) {
     final long startTime = System.nanoTime();
     int n = keys.length;
     assert (n == values.length);
@@ -65,4 +66,9 @@ public class StressTestHashMap {
     long[] keyArr = { key };
     return MurmurHash3.hash(keyArr, 0)[0];
   }
+
+  private static void println(Object obj) { System.out.println(obj.toString()); }
+
+  private static void printf(String fmt, Object ... args) { System.out.printf(fmt, args); }
+
 }

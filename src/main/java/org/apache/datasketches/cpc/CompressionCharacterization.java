@@ -34,6 +34,11 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
+ * This code is used both by unit tests, for short running tests,
+ * and by the characterization repository for longer running, more exhaustive testing. To be
+ * accessible for both, this code is part of the main hierarchy. It is not used during normal
+ * production runtime.
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */

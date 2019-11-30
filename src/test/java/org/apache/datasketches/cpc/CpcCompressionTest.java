@@ -48,7 +48,7 @@ public class CpcCompressionTest {
 
   @Test
   public void checkWriteReadUnary() {
-    int[] compressedWords = new int[256];
+    final int[] compressedWords = new int[256];
 
     final long[] ptrArr = new long[3];
     int nextWordIndex = 0; //must be int
@@ -72,7 +72,7 @@ public class CpcCompressionTest {
     }
 
     // Pad the bitstream so that the decompressor's 12-bit peek can't overrun its input.
-    long padding = 7;
+    final long padding = 7;
     bufBits += padding;
     //MAYBE_FLUSH_BITBUF(compressedWords, nextWordIndex);
     if (bufBits >= 32) {
@@ -85,7 +85,7 @@ public class CpcCompressionTest {
       assert (bufBits < 32);
       compressedWords[nextWordIndex++] = (int) bitBuf;
     }
-    int numWordsUsed = nextWordIndex;
+    final int numWordsUsed = nextWordIndex;
     println("Words used: " + numWordsUsed);
     nextWordIndex = 0; //must be int
     bitBuf = 0;       //must be long
@@ -114,13 +114,13 @@ public class CpcCompressionTest {
 
   @Test
   public void checkWriteReadBytes() {
-    int[] compressedWords = new int[128];
-    byte[] byteArray = new byte[256];
-    byte[] byteArray2 = new byte[256]; //output
+    final int[] compressedWords = new int[128];
+    final byte[] byteArray = new byte[256];
+    final byte[] byteArray2 = new byte[256]; //output
     for (int i = 0; i < 256; i++) { byteArray[i] = (byte) i; }
 
     for (int j = 0; j < 22; j++) {
-      long numWordsWritten = lowLevelCompressBytes(
+      final long numWordsWritten = lowLevelCompressBytes(
           byteArray, 256, encodingTablesForHighEntropyByte[j], compressedWords);
 
       lowLevelUncompressBytes(byteArray2, 256, decodingTablesForHighEntropyByte[j],
@@ -133,13 +133,13 @@ public class CpcCompressionTest {
 
   @Test
   public void checkWriteReadBytes65() {
-    int size = 65;
-    int[] compressedWords = new int[128];
-    byte[] byteArray = new byte[size];
-    byte[] byteArray2 = new byte[size]; //output
+    final int size = 65;
+    final int[] compressedWords = new int[128];
+    final byte[] byteArray = new byte[size];
+    final byte[] byteArray2 = new byte[size]; //output
     for (int i = 0; i < size; i++) { byteArray[i] = (byte) i; }
 
-    long numWordsWritten = lowLevelCompressBytes(
+    final long numWordsWritten = lowLevelCompressBytes(
         byteArray, size, lengthLimitedUnaryEncodingTable65, compressedWords);
 
     lowLevelUncompressBytes(byteArray2, size, lengthLimitedUnaryDecodingTable65,
@@ -152,15 +152,15 @@ public class CpcCompressionTest {
 
   @Test
   public void checkWriteReadPairs() {
-    Random rgen = new Random(1);
-    int lgK = 14;
-    int N = 3000;
+    final Random rgen = new Random(1);
+    final int lgK = 14;
+    final int N = 3000;
     final int MAX_WORDS = 4000;
-    int[] pairArray  = new int[N];
-    int[] pairArray2 = new int[N];
+    final int[] pairArray  = new int[N];
+    final int[] pairArray2 = new int[N];
     int i;
     for (i = 0; i < N; i++) {
-      int rand = rgen.nextInt(1 << (lgK + 6));
+      final int rand = rgen.nextInt(1 << (lgK + 6));
       pairArray[i] = rand;
     }
     Arrays.sort(pairArray);   //must be unsigned sort! So keep lgK < 26
@@ -172,14 +172,14 @@ public class CpcCompressionTest {
         pairArray[nxt++] = pairArray[i];
       }
     }
-    int numPairs = nxt;
+    final int numPairs = nxt;
     println("numCsv = " + numPairs);
 
-    int[] compressedWords = new int[MAX_WORDS];
+    final int[] compressedWords = new int[MAX_WORDS];
     int bb; // numBaseBits
 
     for (bb = 0; bb <= 11; bb++) {
-      Long numWordsWritten =
+      final Long numWordsWritten =
         lowLevelCompressPairs(pairArray, numPairs, bb, compressedWords);
         println("numWordsWritten = " + numWordsWritten + ", bb = " + bb);
 
@@ -199,7 +199,7 @@ public class CpcCompressionTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

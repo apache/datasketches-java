@@ -27,6 +27,11 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
+ * This code is used both by unit tests, for short running tests,
+ * and by the characterization repository for longer running, more exhaustive testing. To be
+ * accessible for both, this code is part of the main hierarchy. It is not used during normal
+ * production runtime.
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -50,8 +55,8 @@ public class StreamingValidation {
   private CpcSketch sketch = null;
   private BitMatrix matrix = null;
 
-  public StreamingValidation(int lgMinK, int lgMaxK, int trials, int ppoN, PrintStream pS,
-      PrintWriter pW) {
+  public StreamingValidation(final int lgMinK, final int lgMaxK, final int trials, final int ppoN,
+      final PrintStream pS, final PrintWriter pW) {
     this.lgMinK = lgMinK;
     this.lgMaxK = lgMaxK;
     this.trials = trials;
@@ -72,9 +77,9 @@ public class StreamingValidation {
     }
   }
 
-  private void doRangeOfNAtLgK(int lgK) {
+  private void doRangeOfNAtLgK(final int lgK) {
     long n = 1;
-    long maxN = 64L * (1L << lgK); //1200
+    final long maxN = 64L * (1L << lgK); //1200
     while (n < maxN) {
       doTrialsAtLgKAtN(lgK, n);
       n = Math.round(pwrLawNextDouble(ppoN, n, true, 2.0));
@@ -86,7 +91,7 @@ public class StreamingValidation {
    * @param lgK the configured lgK
    * @param n the current value of n
    */
-  private void doTrialsAtLgKAtN(int lgK, long n) {
+  private void doTrialsAtLgKAtN(final int lgK, final long n) {
     double sumC = 0.0;
     double sumIconEst = 0.0;
     double sumHipEst = 0.0;
@@ -105,25 +110,25 @@ public class StreamingValidation {
       sumIconEst += IconEstimator.getIconEstimate(lgK, sketch.numCoupons);
       sumHipEst  += sketch.hipEstAccum;
       rtAssertEquals(sketch.numCoupons, matrix.getNumCoupons());
-      long[] bitMatrix = CpcUtil.bitMatrixOfSketch (sketch);
+      final long[] bitMatrix = CpcUtil.bitMatrixOfSketch(sketch);
       rtAssertEquals(bitMatrix, matrix.getMatrix());
     }
-    long finC = sketch.numCoupons;
-    Flavor finFlavor = sketch.getFlavor();
-    int finOff = sketch.windowOffset;
-    double avgC = sumC / trials;
-    double avgIconEst = sumIconEst / trials;
-    double avgHipEst = sumHipEst / trials;
+    final long finC = sketch.numCoupons;
+    final Flavor finFlavor = sketch.getFlavor();
+    final int finOff = sketch.windowOffset;
+    final double avgC = sumC / trials;
+    final double avgIconEst = sumIconEst / trials;
+    final double avgHipEst = sumHipEst / trials;
     printf(dfmt, lgK, trials, n, finC, finFlavor, finOff, avgC, avgIconEst, avgHipEst);
   }
 
-  private void printf(String format, Object ... args) {
+  private void printf(final String format, final Object ... args) {
     if (printStream != null) { printStream.printf(format, args); }
     if (printWriter != null) { printWriter.printf(format, args); }
   }
 
   private void assembleStrings() {
-    String[][] assy = {
+    final String[][] assy = {
         {"lgK",       "%3s",  "%3d"},
         {"Trials",    "%7s",  "%7d"},
         {"n",         "%8s",  "%8d"},
@@ -134,13 +139,13 @@ public class StreamingValidation {
         {"AvgICON",   "%12s", "%12.3f"},
         {"AvgHIP",    "%12s", "%12.3f"}
     };
-    int cols = assy.length;
+    final int cols = assy.length;
     hStrArr = new String[cols];
-    StringBuilder headerFmt = new StringBuilder();
-    StringBuilder dataFmt = new StringBuilder();
+    final StringBuilder headerFmt = new StringBuilder();
+    final StringBuilder dataFmt = new StringBuilder();
     headerFmt.append("\nStreaming Validation\n");
     for (int i = 0; i < cols; i++) {
-      hStrArr[i] =assy[i][0];
+      hStrArr[i] = assy[i][0];
       headerFmt.append(assy[i][1]);
       headerFmt.append((i < (cols - 1)) ? "\t" : "\n");
       dataFmt.append(assy[i][2]);

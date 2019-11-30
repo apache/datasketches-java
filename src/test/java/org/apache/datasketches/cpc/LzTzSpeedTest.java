@@ -29,12 +29,13 @@ import java.util.Random;
  * intrinsic CPU instructions instead of the documented code. The java built=in functions are much
  * faster than even choosing most probable bytes algorithms that were derived from C.
  *
- * <p>These tests are for experimental testing only and are not enabled for normal unit testing.
+ * <p>These tests are for experimental characterization testing only and are not enabled for
+ * normal unit testing.
  *
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class LzTzSpeedTesting {
+public class LzTzSpeedTest {
   static final byte[] byteTrailingZerosTable = new byte[256];
   static final byte[] byteLeadingZerosTable = new byte[256];
 

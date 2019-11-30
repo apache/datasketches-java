@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.theta;
 
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class converts current compact sketches into prior SerVer 1 and SerVer 2 format for testing.
@@ -77,16 +77,16 @@ public class BackwardConversions {
    * @param skV3 a SerVer3, ordered CompactSketch
    * @return a SerVer1 SetSketch as Memory object.
    */
-  public static Memory convertSerVer3toSerVer1(CompactSketch skV3) {
+  public static Memory convertSerVer3toSerVer1(final CompactSketch skV3) {
     //Check input sketch
-    boolean validIn = skV3.isCompact() && skV3.isOrdered() && !skV3.hasMemory();
+    final boolean validIn = skV3.isCompact() && skV3.isOrdered() && !skV3.hasMemory();
     if (!validIn) {
       throw new SketchesArgumentException("Invalid input sketch.");
     }
 
     //Build V1 SetSketch in memory
-    int curCount = skV3.getRetainedEntries(true);
-    WritableMemory wmem = WritableMemory.allocate((3 + curCount) << 3);
+    final int curCount = skV3.getRetainedEntries(true);
+    final WritableMemory wmem = WritableMemory.allocate((3 + curCount) << 3);
     //Pre0
     wmem.putByte(0, (byte) 3); //preLongs
     wmem.putByte(1, (byte) 1); //SerVer
@@ -181,8 +181,8 @@ public class BackwardConversions {
    * @param seed used for checking the seed hash (if one exists).
    * @return a SerVer2 SetSketch as Memory object.
    */
-  public static Memory convertSerVer3toSerVer2(CompactSketch skV3, long seed) {
-    short seedHash = Util.computeSeedHash(seed);
+  public static Memory convertSerVer3toSerVer2(final CompactSketch skV3, final long seed) {
+    final short seedHash = Util.computeSeedHash(seed);
     WritableMemory wmem = null;
 
     if (skV3 instanceof EmptyCompactSketch) {
@@ -190,30 +190,30 @@ public class BackwardConversions {
       wmem.putByte(0, (byte) 1); //preLongs
       wmem.putByte(1, (byte) 2); //SerVer
       wmem.putByte(2, (byte) 3); //SetSketch
-      byte flags = (byte) 0xE;  //NoRebuild, Empty, ReadOnly, LE
+      final byte flags = (byte) 0xE;  //NoRebuild, Empty, ReadOnly, LE
       wmem.putByte(5, flags);
       wmem.putShort(6, seedHash);
       return wmem;
     }
     if (skV3 instanceof SingleItemSketch) {
-      SingleItemSketch sis = (SingleItemSketch) skV3;
+      final SingleItemSketch sis = (SingleItemSketch) skV3;
       wmem = WritableMemory.allocate(24);
       wmem.putByte(0, (byte) 2); //preLongs
       wmem.putByte(1, (byte) 2); //SerVer
       wmem.putByte(2, (byte) 3); //SetSketch
-      byte flags = (byte) 0xA;  //NoRebuild, notEmpty, ReadOnly, LE
+      final byte flags = (byte) 0xA;  //NoRebuild, notEmpty, ReadOnly, LE
       wmem.putByte(5, flags);
       wmem.putShort(6, seedHash);
       wmem.putInt(8, 1);
-      long[] arr = sis.getCache();
+      final long[] arr = sis.getCache();
       wmem.putLong(16,  arr[0]);
       return wmem;
     }
     //General CompactSketch
-    int preLongs = skV3.getCurrentPreambleLongs(true);
-    int entries = skV3.getRetainedEntries();
-    boolean unordered = !(skV3.isOrdered());
-    byte flags = (byte) (0xA | (unordered ? 16 : 0));  //Unordered, NoRebuild, notEmpty, ReadOnly, LE
+    final int preLongs = skV3.getCurrentPreambleLongs(true);
+    final int entries = skV3.getRetainedEntries();
+    final boolean unordered = !(skV3.isOrdered());
+    final byte flags = (byte) (0xA | (unordered ? 16 : 0)); //Unordered, NoRebuild, notEmpty, ReadOnly, LE
     wmem = WritableMemory.allocate((preLongs + entries) << 3);
     wmem.putByte(0, (byte) preLongs); //preLongs
     wmem.putByte(1, (byte) 2); //SerVer
@@ -225,8 +225,8 @@ public class BackwardConversions {
     if (preLongs == 3) {
       wmem.putLong(16, skV3.getThetaLong());
     }
-    long[] arr = skV3.getCache();
-    wmem.putLongArray(preLongs*8, arr, 0, entries);
+    final long[] arr = skV3.getCache();
+    wmem.putLongArray(preLongs * 8, arr, 0, entries);
     return wmem;
   }
 }

@@ -26,7 +26,7 @@ under the License.
   SketchesCheckstyle.xml
 
   Checkstyle is very configurable. Be sure to read the documentation at
-  http://checkstyle.sourceforge.net (or in your downloaded distribution). Note: Does not work with https.
+  http://checkstyle.sourceforge.net (or in your downloaded distribution).
 
   To completely disable a check, just comment it out or delete it from the file.
 
@@ -37,6 +37,10 @@ under the License.
   <property name="charset" value="UTF-8"/>
   <property name="severity" value="warning"/>
   <property name="fileExtensions" value="java"/>
+
+  <module name="BeforeExecutionExclusionFileFilter">
+    <property name="fileNamePattern" value=".*Test\.java$"/>
+  </module>
 
   <module name="FileTabCharacter">
     <property name="eachLine" value="true"/>
