@@ -95,7 +95,7 @@ under the License.
   <properties>
     
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
-    <datasketches-memory.version>1.1.0-incubating</datasketches-memory.version>
+    <datasketches-memory.version>1.2.0-incubating</datasketches-memory.version>
     <slf4j-simple.version>1.7.27</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
     
