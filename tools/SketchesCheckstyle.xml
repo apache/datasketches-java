@@ -205,7 +205,6 @@ under the License.
       <property name="allowMissingParamTags" value="false"/>
       <property name="allowMissingThrowsTags" value="true"/>
       <property name="allowMissingReturnTag" value="false"/>
-      <!-- <property name="minLineCount" value="2"/> -->
       <property name="allowedAnnotations" value="Override, Test"/>
       <property name="allowThrowsTagsForSubclasses" value="true"/>
     </module>
