@@ -166,6 +166,7 @@ class HllEstimators {
   }
 
   //In C: again-two-registers.c hhb_get_raw_estimate L1167
+  //This algorithm is from Flajolet's, et al, 2007 HLL paper, Fig 3.
   private static final double getHllRawEstimate(final int lgConfigK, final double kxqSum) {
     final int configK = 1 << lgConfigK;
     final double correctionFactor;
