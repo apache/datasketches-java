@@ -27,11 +27,10 @@ import static org.testng.Assert.fail;
 
 import java.io.PrintStream;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -42,7 +41,7 @@ public class CpcSketchTest {
 
   @Test
   public void checkUpdatesEstimate() {
-    CpcSketch sk = new CpcSketch(10, 0);
+    final CpcSketch sk = new CpcSketch(10, 0);
     println(sk.toString(true));
     assertEquals(sk.getFormat(), Format.EMPTY_HIP);
     sk.update(1L);
@@ -52,9 +51,9 @@ public class CpcSketchTest {
     sk.update(new char[] { 5 });
     sk.update(new int[] { 6 });
     sk.update(new long[] { 7 });
-    double est = sk.getEstimate();
-    double lb = sk.getLowerBound(2);
-    double ub = sk.getUpperBound(2);
+    final double est = sk.getEstimate();
+    final double lb = sk.getLowerBound(2);
+    final double ub = sk.getUpperBound(2);
     assertTrue(lb >= 0);
     assertTrue(lb <= est);
     assertTrue(est <= ub);
@@ -66,21 +65,21 @@ public class CpcSketchTest {
 
   @Test
   public void checkEstimatesWithMerge() {
-    int lgK = 4;
-    CpcSketch sk1 = new CpcSketch(lgK);
-    CpcSketch sk2 = new CpcSketch(lgK);
-    int n = 1 << lgK;
+    final int lgK = 4;
+    final CpcSketch sk1 = new CpcSketch(lgK);
+    final CpcSketch sk2 = new CpcSketch(lgK);
+    final int n = 1 << lgK;
     for (int i = 0; i < n; i++ ) {
       sk1.update(i);
       sk2.update(i + n);
     }
-    CpcUnion union = new CpcUnion(lgK);
+    final CpcUnion union = new CpcUnion(lgK);
     union.update(sk1);
     union.update(sk2);
-    CpcSketch result = union.getResult();
-    double est = result.getEstimate();
-    double lb = result.getLowerBound(2);
-    double ub = result.getUpperBound(2);
+    final CpcSketch result = union.getResult();
+    final double est = result.getEstimate();
+    final double lb = result.getLowerBound(2);
+    final double ub = result.getUpperBound(2);
     assertTrue(lb >= 0);
     assertTrue(lb <= est);
     assertTrue(est <= ub);
@@ -90,8 +89,8 @@ public class CpcSketchTest {
 
   @Test
   public void checkCornerCaseUpdates() {
-    int lgK = 4;
-    CpcSketch sk = new CpcSketch(lgK);
+    final int lgK = 4;
+    final CpcSketch sk = new CpcSketch(lgK);
     sk.update(0.0);
     sk.update(-0.0);
     int est = (int) Math.round(sk.getEstimate());
@@ -138,25 +137,25 @@ public class CpcSketchTest {
 
   @Test
   public void checkCornerHashUpdates() {
-    CpcSketch sk = new CpcSketch(26);
-    long hash1 = 0;
-    long hash0 = -1L;
+    final CpcSketch sk = new CpcSketch(26);
+    final long hash1 = 0;
+    final long hash0 = -1L;
     sk.hashUpdate(hash0, hash1);
-    PairTable table = sk.pairTable;
+    final PairTable table = sk.pairTable;
     println(table.toString(true));
   }
 
   @SuppressWarnings("unused")
   @Test
   public void checkCopyWithWindow() {
-    int lgK = 4;
-    CpcSketch sk = new CpcSketch(lgK);
+    final int lgK = 4;
+    final CpcSketch sk = new CpcSketch(lgK);
     CpcSketch sk2 = sk.copy();
     for (int i = 0; i < (1 << lgK); i++) { //pinned
       sk.update(i);
     }
     sk2 = sk.copy();
-    long[] bitMatrix = CpcUtil.bitMatrixOfSketch(sk);
+    final long[] bitMatrix = CpcUtil.bitMatrixOfSketch(sk);
     CpcSketch.refreshKXP(sk, bitMatrix);
   }
 
@@ -172,7 +171,7 @@ public class CpcSketchTest {
     try {
       sk = new CpcSketch(3);
       fail();
-    } catch (SketchesArgumentException e) {}
+    } catch (final SketchesArgumentException e) { }
   }
 
   @Test

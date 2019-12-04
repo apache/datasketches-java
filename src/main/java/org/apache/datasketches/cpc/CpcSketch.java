@@ -32,6 +32,8 @@ import static org.apache.datasketches.cpc.CpcUtil.checkLgK;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
+import java.util.Arrays;
+
 import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -498,7 +500,7 @@ public final class CpcSketch {
     // for improved numerical accuracy, we separately sum the bytes of the U64's
     final double[] byteSums = new double[8];
 
-    for (int j = 0; j < 8; j++) { byteSums[j] = 0.0; }
+    Arrays.fill(byteSums, 0.0);
 
     for (int i = 0; i < k; i++) {
       long row = bitMatrix[i];

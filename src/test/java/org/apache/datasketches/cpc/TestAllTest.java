@@ -31,17 +31,18 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class TestAllTest {
+  // Enable these as desired for all tests.
+  private PrintStream ps = null; //System.out; //prints to console
+  private PrintWriter pw = null; //prints to file (optional)
 
   //STREAMING
 
-  @Test
+  @Test //scope = Test
   public void streamingCheck() {
     int lgMinK = 10;
     int lgMaxK = 10;
     int trials = 10;
     int ppoN = 1;
-    PrintStream ps = null;//System.out;
-    PrintWriter pw = null;
 
     StreamingValidation sVal = new StreamingValidation(
         lgMinK, lgMaxK, trials, ppoN, ps, pw);
@@ -50,7 +51,7 @@ public class TestAllTest {
 
   //COMPRESSION
 
-  @Test
+  @Test //scope = Test
   public void compressionCharacterizationCheck() {
     int lgMinK = 10;
     int lgMaxK = 10;
@@ -59,8 +60,6 @@ public class TestAllTest {
     int lgMulK = 7;
     int uPPO = 1;
     int incLgK = 1;
-    PrintStream ps = null; //System.out;
-    PrintWriter pw = null;
 
     CompressionCharacterization cc = new CompressionCharacterization(
         lgMinK, lgMaxK, lgMinT, lgMaxT, lgMulK, uPPO, incLgK, ps, pw);
@@ -69,7 +68,6 @@ public class TestAllTest {
 
   //@Test //used for troubleshooting a specific rowCol problems
   public void singleRowColCheck() {
-    PrintStream ps = System.out;
     int lgK = 20;
     CpcSketch srcSketch = new CpcSketch(lgK);
     int rowCol = 54746379;
@@ -84,28 +82,24 @@ public class TestAllTest {
 
   //MERGING
 
-  //@Test //long test. use for characterization
+  //@Test //longer test. use for characterization
   public void mergingValidationCheck() {
     int lgMinK = 10;
     int lgMaxK = 10; //inclusive
     int lgMulK = 5;  //5
     int uPPO = 1; //16
     int incLgK = 1;
-    PrintStream ps = null;//System.out;
-    PrintWriter pw = null;
 
     MergingValidation mv = new MergingValidation(
         lgMinK, lgMaxK, lgMulK, uPPO, incLgK, ps, pw);
     mv.start();
   }
 
-  @Test
+  @Test //scope = Test
   public void quickMergingValidationCheck() {
     int lgMinK = 10;
     int lgMaxK = 10;
     int incLgK = 1;
-    PrintStream ps = null;//System.out;
-    PrintWriter pw = null;
 
     QuickMergingValidation qmv = new QuickMergingValidation(
         lgMinK, lgMaxK, incLgK, ps, pw);

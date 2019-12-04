@@ -22,28 +22,27 @@ package org.apache.datasketches;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
 import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.UpdateSketch;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class BoundsOnRatiosInThetaSketchedSetsTest {
 
   @Test
   public void checkNormalReturns() {
-    UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
-    UpdateSketch skC = Sketches.updateSketchBuilder().build();
-    int uA = 10000;
-    int uC = 100000;
-    for (int i=0; i<uA; i++) { skA.update(i); }
-    for (int i=0; i<uC; i++) { skC.update(i+(uA/2)); }
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
+    final UpdateSketch skC = Sketches.updateSketchBuilder().build();
+    final int uA = 10000;
+    final int uC = 100000;
+    for (int i = 0; i < uA; i++) { skA.update(i); }
+    for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2)); }
+    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.update(skA);
     inter.update(skC);
-    CompactSketch skB = inter.getResult();
+    final CompactSketch skB = inter.getResult();
 
     double est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skB);
     double lb = BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(skA, skB);
@@ -51,45 +50,45 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
     assertTrue(ub > est);
     assertTrue(est > lb);
     assertEquals(est, 0.5, .03);
-    println("ub : "+ ub);
-    println("est: "+est);
-    println("lb : "+lb);
+    println("ub : " + ub);
+    println("est: " + est);
+    println("lb : " + lb);
     skA.reset(); //skA is now empty
     est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skB);
     lb = BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(skA, skB);
     ub = BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA(skA, skB);
-    println("ub : "+ ub);
-    println("est: "+est);
-    println("lb : "+lb);
+    println("ub : " + ub);
+    println("est: " + est);
+    println("lb : " + lb);
     skC.reset(); //Now both are empty
     est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skC);
     lb = BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA(skA, skC);
     ub = BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA(skA, skC);
-    println("ub : "+ ub);
-    println("est: "+est);
-    println("lb : "+lb);
+    println("ub : " + ub);
+    println("est: " + est);
+    println("lb : " + lb);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAbnormalReturns() {
-    UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
-    UpdateSketch skC = Sketches.updateSketchBuilder().build();
-    int uA = 100000;
-    int uC = 10000;
-    for (int i=0; i<uA; i++) { skA.update(i); }
-    for (int i=0; i<uC; i++) { skC.update(i+(uA/2)); }
+    final UpdateSketch skA = Sketches.updateSketchBuilder().build(); //4K
+    final UpdateSketch skC = Sketches.updateSketchBuilder().build();
+    final int uA = 100000;
+    final int uC = 10000;
+    for (int i = 0; i < uA; i++) { skA.update(i); }
+    for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2)); }
     BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skC);
   }
 
   @Test
   public void printlnTest() {
-    println("PRINTING: "+this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 }

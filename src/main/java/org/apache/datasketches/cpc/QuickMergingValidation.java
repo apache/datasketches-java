@@ -26,8 +26,13 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
- * This test of merging is the equal K case and is less exhaustive than TestAlltest
- * but is more practical for large values of K.
+ * This code is used both by unit tests, for short running tests,
+ * and by the characterization repository for longer running, more exhaustive testing. To be
+ * accessible for both, this code is part of the main hierarchy. It is not used during normal
+ * production runtime.
+ *
+ * <p>This test of merging is the equal K case and is less exhaustive than TestAlltest
+ * but is more practical for large values of K.</p>
  *
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -67,10 +72,10 @@ public class QuickMergingValidation {
     }
   }
 
-  private void multiQuickTest(int lgK) {
-    int k = 1 << lgK;
-    int[] targetC = new int[] { 0, 1, ((3 * k) / 32) - 1, k / 3, k, (7 * k) / 2 };
-    int len = targetC.length;
+  private void multiQuickTest(final int lgK) {
+    final int k = 1 << lgK;
+    final int[] targetC = new int[] { 0, 1, ((3 * k) / 32) - 1, k / 3, k, (7 * k) / 2 };
+    final int len = targetC.length;
     for (int i = 0; i < len; i++) {
       for (int j = 0; j < len; j++) {
         quickTest(lgK, targetC[i], targetC[j]);
@@ -79,11 +84,11 @@ public class QuickMergingValidation {
   }
 
   void quickTest(final int lgK, final long cA, final long cB) {
-    CpcSketch skA = new CpcSketch(lgK);
-    CpcSketch skB = new CpcSketch(lgK);
-    CpcSketch skD = new CpcSketch(lgK); // direct sketch
+    final CpcSketch skA = new CpcSketch(lgK);
+    final CpcSketch skB = new CpcSketch(lgK);
+    final CpcSketch skD = new CpcSketch(lgK); // direct sketch
 
-    long t0, t1, t2, t3, t4, t5;
+    final long t0, t1, t2, t3, t4, t5;
 
     t0 = System.nanoTime();
     while (skA.numCoupons < cA) {
@@ -99,44 +104,44 @@ public class QuickMergingValidation {
     }
     t2 = System.nanoTime();
 
-    CpcUnion ugM = new CpcUnion(lgK);
+    final CpcUnion ugM = new CpcUnion(lgK);
     ugM.update(skA);
     t3 = System.nanoTime();
 
     ugM.update(skB);
     t4 = System.nanoTime();
 
-    CpcSketch skR = ugM.getResult();
+    final CpcSketch skR = ugM.getResult();
     t5 = System.nanoTime();
 
     rtAssert(TestUtil.specialEquals(skD, skR, false, true));
-    Flavor fA = skA.getFlavor();
-    Flavor fB = skB.getFlavor();
-    Flavor fR = skR.getFlavor();
-    String aOff = Integer.toString(skA.windowOffset);
-    String bOff = Integer.toString(skB.windowOffset);
-    String rOff = Integer.toString(skR.windowOffset);
-    String fAoff = fA + String.format("%2s",aOff);
-    String fBoff = fB + String.format("%2s",bOff);
-    String fRoff = fR + String.format("%2s",rOff);
-    double updA_mS = (t1 - t0) / 2E6;  //update A,D to cA
-    double updB_mS = (t2 - t1) / 2E6;  //update B,D to cB
-    double mrgA_mS = (t3 - t2) / 1E6;  //merge A
-    double mrgB_mS = (t4 - t3) / 1E6;  //merge B
-    double rslt_mS = (t5 - t4) / 1E6;  //get Result
+    final Flavor fA = skA.getFlavor();
+    final Flavor fB = skB.getFlavor();
+    final Flavor fR = skR.getFlavor();
+    final String aOff = Integer.toString(skA.windowOffset);
+    final String bOff = Integer.toString(skB.windowOffset);
+    final String rOff = Integer.toString(skR.windowOffset);
+    final String fAoff = fA + String.format("%2s",aOff);
+    final String fBoff = fB + String.format("%2s",bOff);
+    final String fRoff = fR + String.format("%2s",rOff);
+    final double updA_mS = (t1 - t0) / 2E6;  //update A,D to cA
+    final double updB_mS = (t2 - t1) / 2E6;  //update B,D to cB
+    final double mrgA_mS = (t3 - t2) / 1E6;  //merge A
+    final double mrgB_mS = (t4 - t3) / 1E6;  //merge B
+    final double rslt_mS = (t5 - t4) / 1E6;  //get Result
 
     printf(dfmt, lgK, cA, cB, fAoff, fBoff, fRoff,
         updA_mS, updB_mS, mrgA_mS, mrgB_mS, rslt_mS);
   }
 
 
-  private void printf(String format, Object ... args) {
+  private void printf(final String format, final Object ... args) {
     if (printStream != null) { printStream.printf(format, args); }
     if (printWriter != null) { printWriter.printf(format, args); }
   }
 
   private void assembleFormats() {
-    String[][] assy = {
+    final String[][] assy = {
         {"lgK",         "%3s",  "%3d"},
         {"Ca",          "%10s", "%10d"},
         {"Cb",          "%10s", "%10d"},
@@ -149,13 +154,13 @@ public class QuickMergingValidation {
         {"mrgB_mS",     "%9s",  "%9.3f"},
         {"rslt_mS",     "%9s",  "%9.3f"}
     };
-    int cols = assy.length;
+    final int cols = assy.length;
     hStrArr = new String[cols];
-    StringBuilder headerFmt = new StringBuilder();
-    StringBuilder dataFmt = new StringBuilder();
+    final StringBuilder headerFmt = new StringBuilder();
+    final StringBuilder dataFmt = new StringBuilder();
     headerFmt.append("\nQuick Merging Validation\n");
     for (int i = 0; i < cols; i++) {
-      hStrArr[i] =assy[i][0];
+      hStrArr[i] = assy[i][0];
       headerFmt.append(assy[i][1]);
       headerFmt.append((i < (cols - 1)) ? "\t" : "\n");
       dataFmt.append(assy[i][2]);

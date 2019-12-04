@@ -24,10 +24,9 @@ import static org.testng.Assert.fail;
 
 import java.io.PrintStream;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -40,7 +39,7 @@ public class CompressedStateTest {
 
 
   @SuppressWarnings("unused")
-  private void updateStateUnion(CpcSketch sk) {
+  private void updateStateUnion(final CpcSketch sk) {
     Format skFmt = sk.getFormat();
     CompressedState state = CompressedState.compress(sk);
     Flavor f = state.getFlavor();
@@ -52,9 +51,9 @@ public class CompressedStateTest {
     printf("%8d %8d %10s %35s\n", vIn, c, f.toString(), fmt.toString());
     CompressedState state2 = CompressedState.importFromMemory(wmem);
 
-    CpcUnion union = new CpcUnion(lgK);
+    final CpcUnion union = new CpcUnion(lgK);
     union.update(sk);
-    CpcSketch sk2 = union.getResult();
+    final CpcSketch sk2 = union.getResult();
     skFmt = sk2.getFormat();
     state = CompressedState.compress(sk2);
     f = state.getFlavor();
@@ -70,8 +69,8 @@ public class CompressedStateTest {
   @Test
   public void checkLoadMemory() {
     printf("%8s %8s %10s %35s\n", "vIn", "c", "Flavor", "Format");
-    CpcSketch sk = new CpcSketch(lgK);
-    int k = 1 << lgK;
+    final CpcSketch sk = new CpcSketch(lgK);
+    final int k = 1 << lgK;
 
     //EMPTY_MERGED
     updateStateUnion(sk);
@@ -96,7 +95,7 @@ public class CompressedStateTest {
 
   @Test
   public void checkToString() {
-    CpcSketch sketch = new CpcSketch(10);
+    final CpcSketch sketch = new CpcSketch(10);
     CompressedState state = CompressedState.compress(sketch);
     println(state.toString());
     sketch.update(0);
@@ -109,27 +108,27 @@ public class CompressedStateTest {
 
   @Test
   public void checkIsCompressed() {
-    CpcSketch sk = new CpcSketch(10);
-    byte[] byteArr = sk.toByteArray();
+    final CpcSketch sk = new CpcSketch(10);
+    final byte[] byteArr = sk.toByteArray();
     byteArr[5] &= (byte) -3;
     try {
       CompressedState.importFromMemory(Memory.wrap(byteArr));
       fail();
-    } catch (AssertionError e) {}
+    } catch (final AssertionError e) { }
   }
 
   /**
    * @param format the string to print
    * @param args the arguments
    */
-  private static void printf(String format, Object... args) {
+  private static void printf(final String format, final Object... args) {
     //ps.printf(format, args);
   }
 
   /**
    * @param s the string to print
    */
-  private static void println(String s) {
+  private static void println(final String s) {
     //ps.println(s);  //disable here
   }
 

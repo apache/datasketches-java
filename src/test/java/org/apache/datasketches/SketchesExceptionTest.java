@@ -43,10 +43,10 @@ public class SketchesExceptionTest {
   public void checkSketchesExceptionWithThrowable() {
     try {
       throw new SketchesException("First Exception.");
-    } catch (SketchesException se) {
+    } catch (final SketchesException se) {
       try {
         throw new SketchesException("Second Exception. ", se);
-      } catch (SketchesException se2) {
+      } catch (final SketchesException se2) {
         //success
       }
     }

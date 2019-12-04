@@ -18,7 +18,7 @@
  */
 
 /**
- * <p>The hllmap package contains a space efficient HLL mapping sketch of keys to approximate unique
+ * The hllmap package contains a space efficient HLL mapping sketch of keys to approximate unique
  * count of identifiers. For example, counting the number of unique users (identifiers) per IP
  * address.
  *

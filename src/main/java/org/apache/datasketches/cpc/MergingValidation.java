@@ -29,6 +29,11 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 /**
+ * This code is used both by unit tests, for short running tests,
+ * and by the characterization repository for longer running, more exhaustive testing. To be
+ * accessible for both, this code is part of the main hierarchy. It is not used during normal
+ * production runtime.
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
@@ -48,8 +53,8 @@ public class MergingValidation {
   private PrintStream printStream;
   private PrintWriter printWriter;
 
-  public MergingValidation(int lgMinK, int lgMaxK, int lgMulK, int uPPO, int incLgK,
-      PrintStream pS, PrintWriter pW) {
+  public MergingValidation(final int lgMinK, final int lgMaxK, final int lgMulK, final int uPPO,
+      final int incLgK, final PrintStream pS, final PrintWriter pW) {
     this.lgMinK = lgMinK;
     this.lgMaxK = lgMaxK;
     this.lgMulK = lgMulK;
@@ -97,18 +102,18 @@ public class MergingValidation {
 
   private void testMerging(final int lgKm, final int lgKa, final int lgKb, final long nA,
       final long nB) {
-    CpcUnion ugM = new CpcUnion(lgKm);
+    final CpcUnion ugM = new CpcUnion(lgKm);
 
-//    int lgKd = ((nA != 0) && (lgKa < lgKm)) ? lgKa : lgKm;
-//    lgKd =     ((nB != 0) && (lgKb < lgKd)) ? lgKb : lgKd;
+    // int lgKd = ((nA != 0) && (lgKa < lgKm)) ? lgKa : lgKm;
+    // lgKd =     ((nB != 0) && (lgKb < lgKd)) ? lgKb : lgKd;
     int lgKd = lgKm;
     if ((lgKa < lgKd) && (nA != 0)) { lgKd = lgKa; } //d = min(a,m) : m
     if ((lgKb < lgKd) && (nB != 0)) { lgKd = lgKb; } //d = min(b,d) : d
 
-    CpcSketch skD = new CpcSketch(lgKd); // direct sketch, updated with both streams
+    final CpcSketch skD = new CpcSketch(lgKd); // direct sketch, updated with both streams
 
-    CpcSketch skA = new CpcSketch(lgKa);
-    CpcSketch skB = new CpcSketch(lgKb);
+    final CpcSketch skA = new CpcSketch(lgKa);
+    final CpcSketch skB = new CpcSketch(lgKb);
 
     for (long i = 0; i < nA; i++) {
       final long in = (vIn += iGoldenU64);
@@ -129,16 +134,16 @@ public class MergingValidation {
 
     final long cM = ugM.getNumCoupons();//countBitsSetInMatrix(matrixM);
     final long cD = skD.numCoupons;
-    Flavor flavorD = skD.getFlavor();
-    Flavor flavorA = skA.getFlavor();
-    Flavor flavorB = skB.getFlavor();
-    String dOff = Integer.toString(skD.windowOffset);
-    String aOff = Integer.toString(skA.windowOffset);
-    String bOff = Integer.toString(skB.windowOffset);
-    String flavorDoff = flavorD + String.format("%2s",dOff);
-    String flavorAoff = flavorA + String.format("%2s",aOff);
-    String flavorBoff = flavorB + String.format("%2s",bOff);
-    double iconEstD = getIconEstimate(lgKd, cD);
+    final Flavor flavorD = skD.getFlavor();
+    final Flavor flavorA = skA.getFlavor();
+    final Flavor flavorB = skB.getFlavor();
+    final String dOff = Integer.toString(skD.windowOffset);
+    final String aOff = Integer.toString(skA.windowOffset);
+    final String bOff = Integer.toString(skB.windowOffset);
+    final String flavorDoff = flavorD + String.format("%2s",dOff);
+    final String flavorAoff = flavorA + String.format("%2s",aOff);
+    final String flavorBoff = flavorB + String.format("%2s",bOff);
+    final double iconEstD = getIconEstimate(lgKd, cD);
 
     rtAssert(finalLgKm <= lgKm);
     rtAssert(cM <= (skA.numCoupons + skB.numCoupons));
@@ -148,8 +153,8 @@ public class MergingValidation {
     final long[] matrixD = CpcUtil.bitMatrixOfSketch(skD);
     rtAssertEquals(matrixM, matrixD);
 
-    CpcSketch skR = ugM.getResult();
-    double iconEstR = getIconEstimate(skR.lgK, skR.numCoupons);
+    final CpcSketch skR = ugM.getResult();
+    final double iconEstR = getIconEstimate(skR.lgK, skR.numCoupons);
     rtAssertEquals(iconEstD, iconEstR, 0.0);
     rtAssert(TestUtil.specialEquals(skD, skR, false, true));
 
@@ -158,13 +163,13 @@ public class MergingValidation {
         skA.numCoupons, skB.numCoupons, cD, iconEstR);
   }
 
-  private void printf(String format, Object ... args) {
+  private void printf(final String format, final Object ... args) {
     if (printStream != null) { printStream.printf(format, args); }
     if (printWriter != null) { printWriter.printf(format, args); }
   }
 
   private void assembleFormats() {
-    String[][] assy = {
+    final String[][] assy = {
         {"lgKm",        "%4s",  "%4d"},
         {"lgKa",        "%4s",  "%4d"},
         {"lgKb",        "%4s",  "%4d"},
@@ -180,13 +185,13 @@ public class MergingValidation {
         {"Coupons_fd",  "%9s",  "%9d"},
         {"IconEst_dr",  "%12s", "%,12.0f"}
     };
-    int cols = assy.length;
+    final int cols = assy.length;
     hStrArr = new String[cols];
-    StringBuilder headerFmt = new StringBuilder();
-    StringBuilder dataFmt = new StringBuilder();
+    final StringBuilder headerFmt = new StringBuilder();
+    final StringBuilder dataFmt = new StringBuilder();
     headerFmt.append("\nMerging Validation\n");
     for (int i = 0; i < cols; i++) {
-      hStrArr[i] =assy[i][0];
+      hStrArr[i] = assy[i][0];
       headerFmt.append(assy[i][1]);
       headerFmt.append((i < (cols - 1)) ? "\t" : "\n");
       dataFmt.append(assy[i][2]);
