@@ -23,10 +23,10 @@ under the License.
 -->
 
 <!--
-  SketchesCheckstyle.xml for datasketches-java
+  SketchesCheckstyle.xml
 
   Checkstyle is very configurable. Be sure to read the documentation at
-  http://checkstyle.sourceforge.net (or in your downloaded distribution). Note: Does not work with https.
+  http://checkstyle.sourceforge.net (or in your downloaded distribution).
 
   To completely disable a check, just comment it out or delete it from the file.
 
@@ -36,7 +36,11 @@ under the License.
 <module name = "Checker">
   <property name="charset" value="UTF-8"/>
   <property name="severity" value="warning"/>
-  <property name="fileExtensions" value="java, properties, xml"/>
+  <property name="fileExtensions" value="java"/>
+
+  <module name="BeforeExecutionExclusionFileFilter">
+    <property name="fileNamePattern" value=".*Test\.java$"/>
+  </module>
 
   <module name="FileTabCharacter">
     <property name="eachLine" value="true"/>
@@ -50,22 +54,19 @@ under the License.
   
   <!-- Size Violations -->
   <module name="LineLength">
-    <property name="fileExtensions" value="java"/>
     <property name="severity" value="warning"/>
     <property name="max" value="110"/>
     <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
-    <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
+    <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
   </module>
   
-  <!-- Filters -->
-  <!-- Enable suppression using comments: // CHECKSTYLE:OFF "RULE" and // CHECKSTYLE:ON "RULE"
-   You must specify the specific rule, as in: // CHECKSTYLE.OFF: LineLength -->
   <module name="SuppressWithPlainTextCommentFilter">
-    <property name="offCommentFormat" value="// *CHECKSTYLE:OFF ([\w\|]+)"/>
-    <property name="onCommentFormat" value="// *CHECKSTYLE:ON ([\w\|]+)"/>
+    <property name="offCommentFormat" value="//CHECKSTYLE.OFF\: ([\w\|]+)"/>
+    <property name="onCommentFormat" value="//CHECKSTYLE.ON\: ([\w\|]+)"/>
     <property name="checkFormat" value="$1"/>
   </module>
   
+  <!-- ******************************************************** -->
   
   <module name="TreeWalker">
     
@@ -168,16 +169,6 @@ under the License.
     
     <module name="FinalClass"/>
     
-    <!-- Filters -->
-    <!-- Enable suppression using comments: //CHECKSTYLE.OFF: "RULE" and //CHECKSTYLE.ON: "RULE"
-     You must specify the specific rule, as in: //CHECKSTYLE.OFF: LineLength -->
-    <module name="SuppressionCommentFilter">
-      <property name="offCommentFormat" value="// *CHECKSTYLE:OFF ([\w\|]+)"/>
-      <property name="onCommentFormat" value="// *CHECKSTYLE:ON ([\w\|]+)"/>
-      <property name="checkFormat" value="$1"/>
-    </module>
-    
-    
     <!-- Imports -->
     <module name="AvoidStarImport"/>
     
@@ -192,6 +183,16 @@ under the License.
     <module name="RedundantImport"/>
     
     <module name="UnusedImports"/>
+    
+
+    <!-- Filters -->
+    <!-- Enable suppression using comments: //CHECKSTYLE.OFF: "RULE" and //CHECKSTYLE.ON: "RULE"
+     You must specify the specific rule, as in: //CHECKSTYLE.OFF: LineLength -->
+    <module name="SuppressionCommentFilter">
+      <property name="offCommentFormat" value="//CHECKSTYLE.OFF\: ([\w\|]+)"/>
+      <property name="onCommentFormat" value="//CHECKSTYLE.ON\: ([\w\|]+)"/>
+      <property name="checkFormat" value="$1"/>
+    </module>
     
     <!-- Javadoc Comments -->
     <!-- JavadocPackage under Checker -->

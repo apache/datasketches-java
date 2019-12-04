@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
-import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
+import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
+import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 /**
  * @author Lee Rhodes
@@ -72,21 +72,21 @@ public class TestUtil {
     return true;
   }
 
-  static int calculateFirstInterestingColumn(CpcSketch sketch) {
-    int offset = sketch.windowOffset;
+  static int calculateFirstInterestingColumn(final CpcSketch sketch) {
+    final int offset = sketch.windowOffset;
     if (offset == 0) {
       return 0;
     }
-    PairTable table = sketch.pairTable;
+    final PairTable table = sketch.pairTable;
     assert (table != null);
-    int[] slots = table.getSlotsArr();
-    int numSlots = 1 << table.getLgSizeInts();
+    final int[] slots = table.getSlotsArr();
+    final int numSlots = 1 << table.getLgSizeInts();
     int i;
     int result = offset;
     for (i = 0; i < numSlots; i++) {
-      int rowCol = slots[i];
+      final int rowCol = slots[i];
       if (rowCol != -1) {
-        int col = rowCol & 63;
+        final int col = rowCol & 63;
         if (col < result) { result = col; }
       }
     }

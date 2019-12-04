@@ -27,31 +27,31 @@ import java.util.List;
 
 @SuppressWarnings("javadoc")
 public class TestUtil {
-  public static List<Double> asList(double[] array) {
-    List<Double> list = new ArrayList<>(array.length);
+  public static List<Double> asList(final double[] array) {
+    final List<Double> list = new ArrayList<>(array.length);
     for (int i = 0; i < array.length; i++) {
       list.add(array[i]);
     }
     return list;
   }
 
-  public static List<Float> asList(float[] array) {
-    List<Float> list = new ArrayList<>(array.length);
+  public static List<Float> asList(final float[] array) {
+    final List<Float> list = new ArrayList<>(array.length);
     for (int i = 0; i < array.length; i++) {
       list.add(array[i]);
     }
     return list;
   }
 
-  public static List<Long> asList(long[] array) {
-    List<Long> list = new ArrayList<>(array.length);
+  public static List<Long> asList(final long[] array) {
+    final List<Long> list = new ArrayList<>(array.length);
     for (int i = 0; i < array.length; i++) {
       list.add(array[i]);
     }
     return list;
   }
 
-  public static void writeBytesToFile(byte[] bytes, String fileName) throws IOException {
+  public static void writeBytesToFile(final byte[] bytes, final String fileName) throws IOException {
     try (FileOutputStream out = new FileOutputStream(new File(fileName))) {
       out.write(bytes);
     }
