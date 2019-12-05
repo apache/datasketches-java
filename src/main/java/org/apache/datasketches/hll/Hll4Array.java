@@ -116,8 +116,7 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  HllSketchImpl mergeTo(final HllSketchImpl impl) {
-    HllSketchImpl out = impl;
+  void mergeTo(final HllSketchImpl that) {
     final int slots = 1 << lgConfigK;
     for (int slotNo = 0; slotNo < slots; slotNo++) {
       int value = hllByteArr[slotNo >>> 1] & 0xFF;
@@ -129,9 +128,8 @@ class Hll4Array extends HllArray {
         value = nib;
       }
       if (value == 0) { continue; }
-      out = out.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
     }
-    return out;
   }
 
   @Override

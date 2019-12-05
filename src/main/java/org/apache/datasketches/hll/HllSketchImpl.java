@@ -98,7 +98,7 @@ abstract class HllSketchImpl {
 
   abstract PairIterator iterator();
 
-  abstract HllSketchImpl mergeTo(HllSketchImpl impl);
+  abstract void mergeTo(HllSketchImpl impl);
 
   abstract void putEmptyFlag(boolean empty);
 

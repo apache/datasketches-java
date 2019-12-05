@@ -97,6 +97,7 @@ class HllEstimators {
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
   static final double hllCompositeEstimate(final AbstractHllArray absHllArr) {
     final int lgConfigK = absHllArr.getLgConfigK();
+    //TODO Rebuild KxQ registers.
     final double rawEst = getHllRawEstimate(lgConfigK, absHllArr.getKxQ0() + absHllArr.getKxQ1());
 
     final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];

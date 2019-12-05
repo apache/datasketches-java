@@ -31,7 +31,7 @@ final class IconPolynomialCoefficients {
   static final int iconPolynomialNumCoefficients = 1 + iconPolynomialDegree;
   static final int iconTableSize = iconPolynomialNumCoefficients * ((1 + maxLgK) - minLgK);
 
-  // CHECKSTYLE:OFF LineLength
+  //CHECKSTYLE.OFF: LineLength
   static final double[] iconPolynomialCoefficents = new double[] {
     // log K = 4
     0.9895027971889700513, 0.3319496644645180128, 0.1242818722715769986, -0.03324149686026930256, -0.2985637298081619817,
@@ -171,5 +171,5 @@ final class IconPolynomialCoefficients {
     -18.29035093605569884, 15.28892246224570073, -9.724916375991760731, 4.6978877652334603, -1.707974125916829955,
     0.4588937864564729963, -0.08824617586088029375, 0.01147732114826570046, -0.00090384524860747295, 3.253252703695579795e-05,
   };
-  // CHECKSTYLE:ON LineLength
+  //CHECKSTYLE.ON: LineLength
 }

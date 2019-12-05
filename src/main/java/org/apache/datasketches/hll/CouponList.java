@@ -206,15 +206,13 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  HllSketchImpl mergeTo(final HllSketchImpl impl) {
-    HllSketchImpl out = impl;
+  void mergeTo(final HllSketchImpl that) {
     final int arrLen = couponIntArr.length;
     for (int i = 0; i < arrLen; i++) {
       final int pair = couponIntArr[i];
       if (pair == 0) { continue; }
-      out = out.couponUpdate(pair);
+      that.couponUpdate(pair);
     }
-    return out;
   }
 
   @Override

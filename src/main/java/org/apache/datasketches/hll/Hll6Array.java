@@ -95,17 +95,15 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  HllSketchImpl mergeTo(final HllSketchImpl impl) {
-    HllSketchImpl out = impl;
+  void mergeTo(final HllSketchImpl that) {
     final int slots = 1 << lgConfigK;
     for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
       final int tmp = mem.getShort(bitOffset / 8);
       final int shift = (bitOffset % 8) & 0X7;
       final int value = (tmp >>> shift) & VAL_MASK_6;
       if (value == 0) { continue; }
-      out = out.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
     }
-    return out;
   }
 
   @Override

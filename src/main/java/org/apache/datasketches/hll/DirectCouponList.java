@@ -224,16 +224,14 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
-  HllSketchImpl mergeTo(final HllSketchImpl impl) {
-    HllSketchImpl out = impl;
+  void mergeTo(final HllSketchImpl that) {
     final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
     final int dataStart = getMemDataStart();
     for (int i = 0; i < lenInts; i++) {
       final int pair = mem.getInt(dataStart + (i << 2));
       if (pair == 0) { continue; }
-      out = out.couponUpdate(pair);
+      that.couponUpdate(pair);
     }
-    return out;
   }
 
   @Override //not used on the direct side

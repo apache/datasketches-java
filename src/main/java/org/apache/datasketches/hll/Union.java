@@ -298,18 +298,17 @@ public class Union extends BaseHllSketch {
    * perform the union. This may involve swapping, down-sampling, transforming, and / or
    * copying one of the arguments and may completely replace the internals of the union.
    *
-   * <p>Copies or downsamples the given HLLmode sketch to tgtLgK, HLL_8.</p>
-   *
    * <p>A swap in update direction is required:</p>
-   * <ul><li>If Gadget is in LIST, SET or EMPTY mode, AND </li>
-   * <li>(The incoming source sketch is in HLL mode and not empty,</li>
-   * <li>OR, if both source and Gadget are in HLL mode and src LgK &lt; Gadget LgK.)</li>
+   * <ul><li>If the Gadget is in LIST, SET or EMPTY mode, AND
+   * The source sketch is in HLL mode.
+   * The source sketch will need to be copied or downsampled to the heap in HLL_8 mode if it is
+   * larger than maxLgK, and then replace the Gadget. If the Gadget was Memory, the resulting
+   * heap object will need to be converted to Memory form.</li>
    * </ul>
    *
-   * <p>A downsample or copy is required:</p>
-   * <ul><li>If swap is required, AND</li>
-   * <li>(If source lgK &gt; destination LgK OR if source sketch is not type HLL_8),</li>
-   * <li>OR, if source lgK &gt maxLgK.</li>
+   * <p>A downsample of gadget is required:</p>
+   * <ul><li>If both source and Gadget are in HLL mode AND source LgK <b>less than</b> Gadget LgK.
+   * Downsample Gadget, convert back to memory form if required, update gadget from source.</li>
    * </ul>
    *
    * @param incoming the given incoming sketch, which may not be modified.
@@ -324,7 +323,7 @@ public class Union extends BaseHllSketch {
     assert gadget.getTgtHllType() == HLL_8;
     if ((incoming == null) || incoming.isEmpty()) { return gadget.hllSketchImpl; }
     final HllSketchImpl srcImpl = incoming.hllSketchImpl;
-    HllSketchImpl dstImpl = gadget.hllSketchImpl;
+    HllSketchImpl gdtImpl = gadget.hllSketchImpl;
     final int inLgK = incoming.getLgConfigK();
     final int gadgetLgK = gadget.getLgConfigK();
 
@@ -333,139 +332,136 @@ public class Union extends BaseHllSketch {
     final int sw = (hi2bits << 2) | lo2bits;
     switch (sw) {
       case 0: { //src: LIST, gadget: LIST
-        dstImpl = srcImpl.mergeTo(dstImpl);
+        srcImpl.mergeTo(gdtImpl);
         //whichever is True wins:
-        dstImpl.putOutOfOrderFlag(dstImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
+        gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
         break;
       }
       case 1: { //src: SET, gadget: LIST
-        dstImpl = srcImpl.mergeTo(dstImpl);
-        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        srcImpl.mergeTo(gdtImpl);
+        gdtImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 2: { //src: HLL, gadget: LIST; Swap, Downsample if srcLgK > maxLgK
-        final HllSketchImpl heapSrcHll8 = srcImpl.copyAs(HLL_8); //to heap, whether HLL8 or not
-        HllSketchImpl dstImplTmp = dstImpl.mergeTo(heapSrcHll8); //reverse merge
+        final HllSketchImpl srcHll8HeapCopy = srcImpl.copyAs(HLL_8); //to heap HLL8
+        final boolean gdtIsMem = gdtImpl.isMemory();
+        gdtImpl.mergeTo(srcHll8HeapCopy); //reverse merge
+        //srcHll8HeapCopy now has the right merged data.
+
+        HllSketchImpl gdtImplTmp = gdtImpl;
 
         if (inLgK > lgMaxK) { //downsample
-          dstImplTmp = copyOrDownsampleHll(dstImplTmp, lgMaxK);
+          gdtImplTmp = copyOrDownsampleHll(gdtImplTmp, lgMaxK);
         }
-        if (dstImpl.isMemory()) {
-          final byte[] byteArr = dstImplTmp.toUpdatableByteArray();
-          final WritableMemory wmem = dstImpl.getWritableMemory(); //use the original wmem
+        if (gdtIsMem) {
+          final byte[] byteArr = gdtImplTmp.toUpdatableByteArray();
+          final WritableMemory wmem = gdtImpl.getWritableMemory(); //use the original wmem
           wmem.putByteArray(0, byteArr, 0, byteArr.length); //replace old data with new
-          dstImplTmp = HllSketch.writableWrap(wmem).hllSketchImpl;
+          gdtImplTmp = HllSketch.writableWrap(wmem).hllSketchImpl;
         }
-        dstImpl = dstImplTmp;
+        gdtImpl = gdtImplTmp;
         //whichever is True wins:
-        dstImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag() | dstImpl.isOutOfOrderFlag());
+        gdtImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag() | gdtImpl.isOutOfOrderFlag());
         break;
       }
       case 4: { //src: LIST, gadget: SET
-        dstImpl = srcImpl.mergeTo(dstImpl);
-        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        srcImpl.mergeTo(gdtImpl);
+        gdtImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 5: { //src: SET, gadget: SET
-        dstImpl = srcImpl.mergeTo(dstImpl);
-        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        srcImpl.mergeTo(gdtImpl);
+        gdtImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 6: { //src: HLL, gadget: SET
         final HllSketchImpl heapSrcHll8 = srcImpl.copyAs(HLL_8); //to heap, whether HLL8 or not
-        HllSketchImpl dstImplTmp = dstImpl.mergeTo(heapSrcHll8); //reverse merge
+        final boolean memory = gdtImpl.isMemory();
+        gdtImpl.mergeTo(heapSrcHll8); //reverse merge
+        HllSketchImpl dstImplTmp = gdtImpl;
 
         if (inLgK > lgMaxK) { //downsample
-          dstImplTmp = copyOrDownsampleHll(dstImplTmp, lgMaxK);
+          dstImplTmp = copyOrDownsampleHll(gdtImpl, lgMaxK);
         }
-        if (dstImpl.isMemory()) {
+        if (memory) {
           final byte[] byteArr = dstImplTmp.toUpdatableByteArray();
-          final WritableMemory wmem = dstImpl.getWritableMemory(); //use the original wmem
+          final WritableMemory wmem = gdtImpl.getWritableMemory(); //use the original wmem
           wmem.putByteArray(0, byteArr, 0, byteArr.length); //replace old data with new
           dstImplTmp = HllSketch.writableWrap(wmem).hllSketchImpl;
         }
-        dstImpl = dstImplTmp;
-        dstImpl.putOutOfOrderFlag(true); //merging SET into non-empty HLL -> true
+        gdtImpl = dstImplTmp;
+        gdtImpl.putOutOfOrderFlag(true); //merging SET into non-empty HLL -> true
         break;
       }
       case 8: { //src: LIST, gadget: HLL
-        dstImpl = srcImpl.mergeTo(dstImpl);
+        srcImpl.mergeTo(gdtImpl);
         //whichever is True wins:
-        dstImpl.putOutOfOrderFlag(dstImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
+        gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
         break;
       }
       case 9: { //src: SET, gadget: HLL
-        dstImpl = srcImpl.mergeTo(dstImpl);
-        dstImpl.putOutOfOrderFlag(true); //merging SET into existing HLL -> true
+        srcImpl.mergeTo(gdtImpl);
+        gdtImpl.putOutOfOrderFlag(true); //merging SET into existing HLL -> true
         break;
       }
       case 10: { //src: HLL, gadget: HLL
         if (inLgK >= gadgetLgK) {
-          dstImpl = srcImpl.mergeTo(dstImpl); //normal merge direction
-          dstImpl.putOutOfOrderFlag(true); //union of two HLL modes is always true
+          srcImpl.mergeTo(gdtImpl); //normal merge direction
+          gdtImpl.putOutOfOrderFlag(true); //union of two HLL modes is always true
           break; //done
         }
+        final boolean memory = gdtImpl.isMemory();
         //inLgK < gadgetLgK, must reverse merge to src copy, then downsample gadget to inLgK
         final HllSketchImpl heapSrcHll8 = srcImpl.copyAs(HLL_8); //to heap, whether HLL8 or not
-        HllSketchImpl dstImplTmp = dstImpl.mergeTo(heapSrcHll8); //swap merge direction
-        dstImplTmp = copyOrDownsampleHll(dstImplTmp, inLgK); //heap, HLL8, inLgK
+        gdtImpl.mergeTo(heapSrcHll8); //swap merge direction
+        HllSketchImpl dstImplTmp = copyOrDownsampleHll(heapSrcHll8, inLgK); //heap, HLL8, inLgK
 
-        if (dstImpl.isMemory()) {
+        if (memory) {
           final byte[] byteArr = dstImplTmp.toUpdatableByteArray();
-          final WritableMemory wmem = dstImpl.getWritableMemory(); //need to use the original wmem
+          final WritableMemory wmem = gdtImpl.getWritableMemory(); //need to use the original wmem
           wmem.putByteArray(0, byteArr, 0, byteArr.length); //replace old data with new
           dstImplTmp = HllSketch.writableWrap(wmem).hllSketchImpl;
         }
-        dstImpl = dstImplTmp;
-        dstImpl.putOutOfOrderFlag(true); //union of two HLL modes is always true
+        gdtImpl = dstImplTmp;
+        gdtImpl.putOutOfOrderFlag(true); //union of two HLL modes is always true
         break;
       }
       case 12: { //src: LIST, gadget: empty
-        dstImpl = srcImpl.mergeTo(dstImpl);
-        dstImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is
+        srcImpl.mergeTo(gdtImpl);
+        gdtImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is
         break;
       }
       case 13: { //src: SET, gadget: empty
-        dstImpl = srcImpl.mergeTo(dstImpl);
-        dstImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
+        srcImpl.mergeTo(gdtImpl);
+        gdtImpl.putOutOfOrderFlag(true); //SET oooFlag is always true
         break;
       }
       case 14: { //src: HLL, gadget: empty; Downsample if srcLgK > maxLgK
         final HllSketchImpl heapSrcHll8 = srcImpl.copyAs(HLL_8); //to heap, whether HLL8 or not
+        final boolean memory = gdtImpl.isMemory();
         HllSketchImpl dstImplTmp = heapSrcHll8; //no merge
 
         if (inLgK > lgMaxK) { //downsample
           dstImplTmp = copyOrDownsampleHll(dstImplTmp, lgMaxK);
         }
-        if (dstImpl.isMemory()) {
+        if (memory) {
           final byte[] byteArr = dstImplTmp.toUpdatableByteArray();
-          final WritableMemory wmem = dstImpl.getWritableMemory(); //use the original wmem
+          final WritableMemory wmem = gdtImpl.getWritableMemory(); //use the original wmem
           wmem.putByteArray(0, byteArr, 0, byteArr.length); //replace old data with new
           dstImplTmp = HllSketch.writableWrap(wmem).hllSketchImpl;
         }
-        dstImpl = dstImplTmp;
-        dstImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is.
+        gdtImpl = dstImplTmp;
+        gdtImpl.putOutOfOrderFlag(srcImpl.isOutOfOrderFlag()); //whatever source is.
         break;
       }
     }
-    return dstImpl;
+    return gdtImpl;
   }
 
   //Used by union operator.  Always copies or downsamples to Heap HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more context.
   /**
-   * Copies or downsamples the given HLLmode sketch to tgtLgK, HLL_8.
-   *
-   * <p>A swap in update direction is required:</p>
-   * <ul><li>If Gadget is in LIST, SET or EMPTY mode, AND </li>
-   * <li>The incoming source sketch is in HLL mode and not empty.</li>
-   * <li>Or, if both source and Gadget are in HLL mode and src LgK &lt; Gadget LgK.</li>
-   * </ul>
-   *
-   * <p>A downsample is required:</p>
-   * <ul><li>If swap is required, AND</li>
-   * <li>If source lgK &gt; Gadget LgK OR if source sketch is not type HLL_8.</li>
-   * </ul>
+   * Copies or downsamples the given HLLmode sketch to tgtLgK, HLL_8, on the heap.
    *
    * @param srcImpl the HllSketchImpl to possibly downsample
    * @param tgtLgK the LgK to downsample to.
@@ -473,11 +469,11 @@ public class Union extends BaseHllSketch {
    */
   private static final HllSketchImpl copyOrDownsampleHll(
       final HllSketchImpl srcImpl, final int tgtLgK) {
-    assert srcImpl.getCurMode() == HLL;
+    assert (srcImpl.getCurMode() == HLL) && (!srcImpl.isEmpty());
     final AbstractHllArray src = (AbstractHllArray) srcImpl;
     final int srcLgK = src.getLgConfigK();
     if ((srcLgK <= tgtLgK) && (src.getTgtHllType() == TgtHllType.HLL_8)) {
-      return src.copy();
+      return src.copy(); //on heap
     }
     final int minLgK = Math.min(srcLgK, tgtLgK);
     final HllArray tgtHllArr = HllArray.newHeapHll(minLgK, TgtHllType.HLL_8);
@@ -488,7 +484,7 @@ public class Union extends BaseHllSketch {
     //both of these are required for isomorphism
     tgtHllArr.putHipAccum(src.getHipAccum());
     tgtHllArr.putOutOfOrderFlag(src.isOutOfOrderFlag());
-    return tgtHllArr;
+    return tgtHllArr; //on heap
   }
 
 }

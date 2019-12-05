@@ -88,15 +88,13 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
-  HllSketchImpl mergeTo(final HllSketchImpl impl) {
-    HllSketchImpl out = impl;
+  void mergeTo(final HllSketchImpl that) {
     final int slots = 1 << lgConfigK;
     for (int i = 0; i < slots; i++ ) {
       final int value = mem.getByte(HLL_BYTE_ARR_START + i) & VAL_MASK_6;
       if (value == 0) { continue; }
-      out = out.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
+      that.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
     }
-    return out;
   }
 
   @Override

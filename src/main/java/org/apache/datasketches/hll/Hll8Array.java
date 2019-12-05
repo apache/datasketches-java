@@ -92,15 +92,21 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  HllSketchImpl mergeTo(final HllSketchImpl impl) {
-    HllSketchImpl out = impl;
-    final int slots = 1 << lgConfigK;
-    for (int i = 0; i < slots; i++ ) {
+  void mergeTo(final HllSketchImpl that) {
+    final int thisK = 1 << lgConfigK;
+    if ((thisK == that.getLgConfigK()) && (that instanceof Hll8Array)) {
+      final byte[] thisArr = hllByteArr;
+      final byte[] thatArr = ((Hll8Array) that).hllByteArr;
+      for (int i = 0; i < thisK; i++) {
+        thatArr[i] = (thisArr[i] > thatArr[i]) ? thisArr[i] : thatArr[i];
+      }
+      return;
+    }
+    for (int i = 0; i < thisK; i++ ) {
       final int value = hllByteArr[i] & VAL_MASK_6;
       if (value == 0) { continue; }
-      out = out.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
+      that.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
     }
-    return out;
   }
 
   @Override
