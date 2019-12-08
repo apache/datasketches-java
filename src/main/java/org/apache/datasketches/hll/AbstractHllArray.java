@@ -78,7 +78,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
   @Override
   double getCompositeEstimate() {
-    return HllEstimators.hllCompositeEstimate(this);
+    return HllEstimators.hllCompositeEstimate(this, false);
   }
 
   abstract int getCurMin();
@@ -91,12 +91,43 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return getHipAccum();
   }
 
+  /**
+   * For each actual update of the sketch, where the state of the sketch is changed, this register
+   * tracks the Historical Inverse Probability or HIP. Before the update is recorded this register
+   * is incremented by adding 1/Q (defined below). Since KxQ is scaled by K, the actual increment
+   * is K/KxQ as can be seen in the hipAndKxQIncrementalUpdate(...) routine below.
+   * @return the HIP Accumulator
+   */
   abstract double getHipAccum();
 
   abstract int getHllByteArrBytes();
 
+  /**
+   * Q = KxQ/K is the probability that an incoming event can modify the state of the sketch.
+   * KxQ is literally K times Q. The HIP estimator is based on tracking this probability as the
+   * sketch gets populated. It is tracked in the hipAccum register.
+   *
+   * <p>The KxQ registers serve dual purposes: They are used in the HIP estimator and in
+   * the "raw" HLL estimator defined in the Flajolet, et al, 2007 HLL paper. In order to do this,
+   * the way the KxQ registers are computed here differ from how they are defined in the paper.
+   *
+   * <p>The paper Fig 2 defines
+   * <pre>Z := ( sum[j=1,m](2^(-M[j])) )^(-1).</pre>
+   * But the HIP estimator requires a computation of the probability defined above.
+   * We accomplish both by redefing Z as
+   * <pre>Z := ( m + sum[j=1,m](2^(-M[j] - 1)) )^(-1).</pre>
+   * They are mathematically equivalent since:
+   * <pre>m + sum[j=1,m](2^(-M[j] - 1)) == m + sum[j=1,m](2^(-M[j])) - m == sum[j=1,m](2^(-M[j])).</pre>
+   *
+   * @return KxQ0
+   */
   abstract double getKxQ0();
 
+  /**
+   * This second KxQ register is shifted by 32 bits to give us more than 90 bits of mantissa
+   * precision, which produces more accurate results for very large counts.
+   * @return KxQ1
+   */
   abstract double getKxQ1();
 
   @Override
@@ -177,8 +208,8 @@ abstract class AbstractHllArray extends HllSketchImpl {
    */
   //In C: again-two-registers.c Lines 851 to 871
   //Called here and by Heap and Direct 6 and 8 bit implementations
-  static final void hipAndKxQIncrementalUpdate(final AbstractHllArray host, final int oldValue,
-      final int newValue) {
+  static final void hipAndKxQIncrementalUpdate(final AbstractHllArray host,
+      final int oldValue, final int newValue) {
     assert newValue > oldValue;
     final int configK = 1 << host.getLgConfigK();
     //update hipAccum BEFORE updating kxq0 and kxq1

@@ -47,7 +47,7 @@ class Conversions {
     while (itr.nextValid()) {
       final int slotNo = itr.getIndex();
       final int actualValue = itr.getValue();
-      AbstractHllArray.hipAndKxQIncrementalUpdate(hll4Array, 0, actualValue); //was srcHllArr
+      AbstractHllArray.hipAndKxQIncrementalUpdate(hll4Array, 0, actualValue);
       if (actualValue >= (curMin + 15)) {
         hll4Array.putSlot(slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
@@ -62,7 +62,7 @@ class Conversions {
 
     hll4Array.putCurMin(curMin);
     hll4Array.putNumAtCurMin(numAtCurMin);
-    hll4Array.putHipAccum(srcHllArr.getHipAccum());
+    hll4Array.putHipAccum(srcHllArr.getHipAccum()); //intentional overwrite
     return hll4Array;
   }
 
@@ -95,7 +95,7 @@ class Conversions {
       }
     }
     hll6Array.putNumAtCurMin(numZeros);
-    hll6Array.putHipAccum(srcHllArr.getHipAccum());
+    hll6Array.putHipAccum(srcHllArr.getHipAccum()); //intentional overwrite
     return hll6Array;
   }
 
@@ -108,11 +108,11 @@ class Conversions {
     while (itr.nextAll()) {
       if (itr.getValue() != EMPTY) {
         numZeros--;
-        hll8Array.couponUpdate(itr.getPair());
+        hll8Array.couponUpdate(itr.getPair()); //creates KxQ registers
       }
     }
     hll8Array.putNumAtCurMin(numZeros);
-    hll8Array.putHipAccum(srcHllArr.getHipAccum());
+    hll8Array.putHipAccum(srcHllArr.getHipAccum()); //intentional overwrite
     return hll8Array;
   }
 
