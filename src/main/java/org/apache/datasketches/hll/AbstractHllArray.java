@@ -94,8 +94,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
   /**
    * For each actual update of the sketch, where the state of the sketch is changed, this register
    * tracks the Historical Inverse Probability or HIP. Before the update is recorded this register
-   * is incremented by adding 1/Q (defined below). Since KxQ is scaled by K, the actual increment
-   * is K/KxQ as can be seen in the hipAndKxQIncrementalUpdate(...) routine below.
+   * is incremented by adding the inverse probability 1/Q (defined below). Since KxQ is scaled by K,
+   * the actual increment is K/KxQ as can be seen in the hipAndKxQIncrementalUpdate(...) method
+   * below.
    * @return the HIP Accumulator
    */
   abstract double getHipAccum();
@@ -109,9 +110,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
    *
    * <p>The KxQ registers serve dual purposes: They are used in the HIP estimator and in
    * the "raw" HLL estimator defined in the Flajolet, et al, 2007 HLL paper. In order to do this,
-   * the way the KxQ registers are computed here differ from how they are defined in the paper.
+   * the way the KxQ registers are computed here differ from how they are defined in the paper.</p>
    *
-   * <p>The paper Fig 2 defines
+   * <p>The paper Fig 2 defines</p>
    * <pre>Z := ( sum[j=1,m](2^(-M[j])) )^(-1).</pre>
    * But the HIP estimator requires a computation of the probability defined above.
    * We accomplish both by redefing Z as
