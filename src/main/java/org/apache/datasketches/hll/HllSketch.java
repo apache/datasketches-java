@@ -34,9 +34,10 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
  * significantly improved error behavior.  If the ONLY use case for sketching is counting
- * uniques and merging, the HLL sketch is the highest performing in terms of accuracy for
- * storage space consumed. For large enough counts, this HLL version (with HLL_4) can be 2 to
- * 16 times smaller than the Theta sketch family for the same accuracy.
+ * uniques and merging, the HLL sketch the HLL sketch is a reasonable choice, although the highest
+ * performing in terms of accuracy for storage space consumed is CPC (Compressed Probabilistic Counting).
+ * For large enough counts, this HLL version (with HLL_4) can be 2 to 16 times smaller than the
+ * Theta sketch family for the same accuracy.
  *
  * <p>This implementation offers three different types of HLL sketch, each with different
  * trade-offs with accuracy, space and performance. These types are specified with the
