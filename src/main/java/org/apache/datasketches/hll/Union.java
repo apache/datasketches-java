@@ -302,7 +302,7 @@ public class Union extends BaseHllSketch {
    * The source sketch is in HLL mode.
    * The source sketch will need to be copied or downsampled to the heap in HLL_8 mode if it is
    * larger than maxLgK, and then replace the Gadget. If the Gadget was Memory, the resulting
-   * heap object will need to be converted to Memory form.</li>
+   * heap object will need to be converted to Memory form using the Gadget Memory.</li>
    * </ul>
    *
    * <p>A downsample of gadget is required:</p>
@@ -310,31 +310,29 @@ public class Union extends BaseHllSketch {
    * Downsample Gadget, convert back to memory form if required, update gadget from source.</li>
    * </ul>
    *
-   * @param incoming the given incoming sketch, which may not be modified.
+   * @param source the given incoming sketch, which must not be modified.
    * @param gadget the given gadget sketch, which must have a target of HLL_8 and may be
    * modified.
    * @param lgMaxK the maximum value of log2 K for this union.
    * @return the union of the two sketches in the form of the internal HllSketchImpl, which for
    * the union is always in HLL_8 form.
    */
-  private static final HllSketchImpl unionImpl(final HllSketch incoming,
-      final HllSketch gadget, final int lgMaxK) {
+  private static HllSketchImpl unionImpl(final HllSketch source, final HllSketch gadget,
+      final int lgMaxK) {
     assert gadget.getTgtHllType() == HLL_8;
-    if ((incoming == null) || incoming.isEmpty()) { return gadget.hllSketchImpl; }
-    final HllSketchImpl srcImpl = incoming.hllSketchImpl;
-    HllSketchImpl gdtImpl = gadget.hllSketchImpl;
-    if (srcImpl.getCurMode() == CurMode.LIST ) {
-      srcImpl.mergeTo(gdtImpl);
-      gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
-      return gdtImpl;
+    if ((source == null) || source.isEmpty()) { return gadget.hllSketchImpl; }
+    if (source.getCurMode() == CurMode.LIST ) {
+      source.mergeTo(gadget);
+      gadget.putOutOfOrderFlag(gadget.isOutOfOrderFlag() | source.isOutOfOrderFlag());
+      return gadget.hllSketchImpl;
     }
-    if (srcImpl.getCurMode() == CurMode.SET ) {
-      srcImpl.mergeTo(gdtImpl);
-      gdtImpl.putOutOfOrderFlag(true);
-      return gdtImpl;
+    if (source.getCurMode() == CurMode.SET ) {
+      source.mergeTo(gadget);
+      gadget.putOutOfOrderFlag(true);
+      return gadget.hllSketchImpl;
     }
     //Hereafter, the srcImpl is in HLL mode.
-    final int srcLgK = incoming.getLgConfigK();
+    final int srcLgK = source.getLgConfigK();
     final int gadgetLgK = gadget.getLgConfigK();
     final int bit0 = gadget.isMemory() ? 1 : 0;
     final int bits1_2 = (gadget.isEmpty() ? 3 : gadget.getCurMode().ordinal()) << 1;
@@ -342,168 +340,164 @@ public class Union extends BaseHllSketch {
     final int bit4 = (srcLgK > lgMaxK) ? 16 : 0;
     final int sw = bit4 | bit3 | bits1_2 | bit0;
     switch (sw) {
-      case 0: //src <= max, src >= gdt, gdtLIST, gdtHeap, swap, no downsample, ooof=OR
-      case 8: //src <= max, src <  gdt, gdtLIST, gdtHeap, swap, no downsample, ooof=OR
-      { final HllSketchImpl srcHll8Heap = srcImpl.copyAs(HLL_8);   //copy src to Heap
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        gdtImpl = srcHll8Heap;                                     //replace gdt
-        gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
-        break;
+      case 0: //src <= max, src >= gdt, gdtLIST, gdtHeap, reverse merge, no downsample, ooof=OR
+      case 8: //src <= max, src <  gdt, gdtLIST, gdtHeap, reverse merge, no downsample, ooof=OR
+      { final HllSketch srcHll8Heap = source.copyAs(HLL_8);       //copy src to Heap
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final HllSketch gdtTmp = srcHll8Heap;                     //replace gdt
+        gdtTmp.putOutOfOrderFlag(gdtTmp.isOutOfOrderFlag() | source.isOutOfOrderFlag());
+        return gdtTmp.hllSketchImpl;
       }
-      case 1: //src <= max, src >= gdt, gdtLIST, gdtDirect, swap, no downsample, ooof=OR
-      case 9: //src <= max, src <  gdt, gdtLIST, gdtDirect, swap, no downsample, ooof=OR
-      { final HllSketchImpl srcHll8Heap = srcImpl.copyAs(HLL_8);   //copy src to Heap
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray(); //serialize srcCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
-        gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
-        break;
+      case 1: //src <= max, src >= gdt, gdtLIST, gdtDirect, reverse merge, no downsample, ooof=OR
+      case 9: //src <= max, src <  gdt, gdtLIST, gdtDirect, reverse merge, no downsample, ooof=OR
+      { final HllSketch srcHll8Heap = source.copyAs(HLL_8);       //copy src to Heap
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray();//serialize srcCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        final HllSketch gdtTmp = HllSketch.writableWrap(wmem);    //wrap & replace gdt
+        gdtTmp.putOutOfOrderFlag(gdtTmp.isOutOfOrderFlag() | source.isOutOfOrderFlag());
+        return gdtTmp.hllSketchImpl;
       }
-      case 2:  //src <= max, src >= gdt, gdtSET, gdtHeap, swap, no downsample, ooof=True
-      case 10: //src <= max, src <  gdt, gdtSET, gdtHeap, swap, no downsample, ooof=True
-      { final HllSketchImpl srcHll8Heap = srcImpl.copyAs(HLL_8);   //copy src to Heap
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        gdtImpl = srcHll8Heap;                                     //replace gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+      case 2:  //src <= max, src >= gdt, gdtSET, gdtHeap, reverse merge, no downsample, ooof=True
+      case 10: //src <= max, src <  gdt, gdtSET, gdtHeap, reverse merge, no downsample, ooof=True
+      { final HllSketch srcHll8Heap = source.copyAs(HLL_8);       //copy src to Heap
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final HllSketch gdtTmp = srcHll8Heap;                     //replace gdt
+        gdtTmp.putOutOfOrderFlag(true);
+        return gdtTmp.hllSketchImpl;
       }
-      case 3:  //src <= max, src >= gdt, gdtSET, gdtDirect, swap, no downsample, ooof=True
-      case 11: //src <= max, src <  gdt, gdtSET, gdtDirect, swap, no downsample, ooof=True
-      { final HllSketchImpl srcHll8Heap = srcImpl.copyAs(HLL_8);   //copy src to Heap
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray(); //serialize srcCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+      case 3:  //src <= max, src >= gdt, gdtSET, gdtDirect, reverse merge, no downsample, ooof=True
+      case 11: //src <= max, src <  gdt, gdtSET, gdtDirect, reverse merge, no downsample, ooof=True
+      { final HllSketch srcHll8Heap = source.copyAs(HLL_8);       //copy src to Heap
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray();//serialize srcCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        final HllSketch gdtTmp = HllSketch.writableWrap(wmem);    //wrap & replace gdt
+        gdtTmp.putOutOfOrderFlag(true);
+        return gdtTmp.hllSketchImpl;
       }
-      case 4:  //src <= max, src >= gdt, gdtHLL, gdtHeap,   no swap, no downsample, ooof=True
-      case 5:  //src <= max, src >= gdt, gdtHLL, gdtDirect, no swap, no downsample, ooof=True
-      case 20: //src >  max, src >= gdt, gdtHLL, gdtHeap,   no swap, no downsample, ooof=True
-      case 21: //src >  max, src >= gdt, gdtHLL, gdtDirect, no swap, no downsample, ooof=True
+      case 4:  //src <= max, src >= gdt, gdtHLL, gdtHeap,   forward merge, no downsample, ooof=True
+      case 5:  //src <= max, src >= gdt, gdtHLL, gdtDirect, forward merge, no downsample, ooof=True
+      case 20: //src >  max, src >= gdt, gdtHLL, gdtHeap,   forward merge, no downsample, ooof=True
+      case 21: //src >  max, src >= gdt, gdtHLL, gdtDirect, forward merge, no downsample, ooof=True
       { //Possible Optimization if srcLgK = gdtLgK && src is HLL_8
-        srcImpl.mergeTo(gdtImpl);                                  //merge src -> gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+        source.mergeTo(gadget);                                   //merge src -> gdt
+        gadget.putOutOfOrderFlag(true);
+        return gadget.hllSketchImpl;
       }
-      case 6:  //src <= max, src >= gdt, gdtEmpty, gdtHeap, no swap, no downsample, ooof=Src
-      case 14: //src <= max, src <  gdt, gdtEmpty, gdtHeap, no swap, no downsample, ooof=Src
-      { final HllSketchImpl srcHll8Heap = srcImpl.copyAs(HLL_8);   //copy src to Heap
-        gdtImpl = srcHll8Heap;
+      case 6:  //src <= max, src >= gdt, gdtEmpty, gdtHeap, replace, no downsample, ooof=Src
+      case 14: //src <= max, src <  gdt, gdtEmpty, gdtHeap, replace, no downsample, ooof=Src
+      { final HllSketch srcHll8Heap = source.copyAs(HLL_8);       //copy src to Heap
         //ooof is already what source is.
-        break;
+        return srcHll8Heap.hllSketchImpl;
       }
-      case 7:  //src <= max, src >= gdt, gdtEmpty, gdtDirect, no swap, no downsample, ooof=Src
-      case 15: //src <= max, src <  gdt, gdtEmpty, gdtDirect, no swap, no downsample, ooof=Src
-      { final HllSketchImpl srcHll8Heap = srcImpl.copyAs(HLL_8);   //copy src to Heap
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray(); //serialize srcCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
+      case 7:  //src <= max, src >= gdt, gdtEmpty, gdtDirect, replace mem, no downsample, ooof=Src
+      case 15: //src <= max, src <  gdt, gdtEmpty, gdtDirect, replace mem, no downsample, ooof=Src
+      { final HllSketch srcHll8Heap = source.copyAs(HLL_8);       //copy src to Heap
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray();//serialize srcCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        final HllSketch gdtTmp = HllSketch.writableWrap(wmem);    //wrap & replace gdt
         //ooof is already what source is.
-        break;
+        return gdtTmp.hllSketchImpl;
       }
-      case 12: //src <= max, src <  gdt, gdtHLL,   gdtHeap,   no swap, downsample Gdt, ooof=True
+      case 12: //src <= max, src <  gdt, gdtHLL, gdtHeap, fwd Merge/replace, downsample Gdt, ooof=True
       {
-        final HllSketchImpl gdtHll8Heap = downsample(gdtImpl, srcLgK); //downsample gdt to srcLgK
-        srcImpl.mergeTo(gdtHll8Heap);                              //merge src -> gdtCopy
-        gdtImpl = gdtHll8Heap;                                     //replace gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+        final HllSketch gdtHll8Heap = downsample(gadget, srcLgK); //downsample gdt to srcLgK
+        source.mergeTo(gdtHll8Heap);                              //merge src -> gdtCopy
+        gdtHll8Heap.putOutOfOrderFlag(true);
+        return gdtHll8Heap.hllSketchImpl;
       }
-      case 13: //src <= max, src <  gdt, gdtHLL,   gdtDirect, no swap, downsample Gdt, ooof=True
+      case 13: //src <= max, src < gdt, gdtHLL, gdtDirect, fwd merge/repl mem, downsample Gdt, ooof=True
       {
-        final HllSketchImpl gdtHll8Heap = downsample(gdtImpl, srcLgK); //downsample gdt to srcLgK
-        srcImpl.mergeTo(gdtHll8Heap);                              //merge src -> gdtCopy
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = gdtHll8Heap.toUpdatableByteArray(); //serialize gdtCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+        final HllSketch gdtHll8Heap = downsample(gadget, srcLgK); //downsample gdt to srcLgK
+        source.mergeTo(gdtHll8Heap);                              //merge src -> gdtCopy
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = gdtHll8Heap.toUpdatableByteArray();//serialize gdtCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        final HllSketch gdtTmp = HllSketch.writableWrap(wmem);    //wrap & replace gdt
+        gdtTmp.putOutOfOrderFlag(true);
+        return gdtTmp.hllSketchImpl;
       }
-      case 16: //src >  max, src >= gdt, gdtList,  gdtHeap,   swap,    downsample Src, ooof=OR
+      case 16: //src >  max, src >= gdt, gdtList,  gdtHeap, reverse merge, downsample Src, ooof=OR
       {
-        final HllSketchImpl srcHll8Heap = downsample(srcImpl, lgMaxK); //downsample src to Max
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        gdtImpl = srcHll8Heap;                                     //replace gdt
-        gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
-        break;
+        final HllSketch srcHll8Heap = downsample(source, lgMaxK); //downsample src to Max
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final HllSketch gdtTmp = srcHll8Heap;                                     //replace gdt
+        gdtTmp.putOutOfOrderFlag(gdtTmp.isOutOfOrderFlag() | source.isOutOfOrderFlag());
+        return gdtTmp.hllSketchImpl;
       }
-      case 17: //src >  max, src >= gdt, gdtList,  gdtDirect, swap,    downsample Src, ooof=OR
+      case 17: //src > max, src >= gdt, gdtList, gdtDirect, rev merge/repl mem, downsample Src, ooof=OR
       {
-        final HllSketchImpl srcHll8Heap = downsample(srcImpl, lgMaxK); //downsample src to Max
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray(); //serialize srcCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
-        gdtImpl.putOutOfOrderFlag(gdtImpl.isOutOfOrderFlag() | srcImpl.isOutOfOrderFlag());
-        break;
+        final HllSketch srcHll8Heap = downsample(source, lgMaxK); //downsample src to Max
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray();//serialize srcCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        final HllSketch gdtTmp = HllSketch.writableWrap(wmem);    //wrap & replace gdt
+        gdtTmp.putOutOfOrderFlag(gdtTmp.isOutOfOrderFlag() | source.isOutOfOrderFlag());
+        return gdtTmp.hllSketchImpl;
       }
-      case 18: //src >  max, src >= gdt, gdtSet,   gdtHeap,   swap,    downsample Src, ooof=True
+      case 18: //src > max, src >= gdt, gdtSet, gdtHeap, rev merge, downsample Src, ooof=True
       {
-        final HllSketchImpl srcHll8Heap = downsample(srcImpl, lgMaxK); //downsample src to Max
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        gdtImpl = srcHll8Heap;                                     //replace gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+        final HllSketch srcHll8Heap = downsample(source, lgMaxK); //downsample src to Max
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final HllSketch gdtTmp = srcHll8Heap;                     //replace gdt
+        gdtTmp.putOutOfOrderFlag(true);
+        return gdtTmp.hllSketchImpl;
       }
-      case 19: //src >  max, src >= gdt, gdtSet,   gdtDirect, swap,    downsample Src, ooof=True
+      case 19: //src > max, src >= gdt, gdtSet, gdtDirect, rev merge/rep mem, downsample Src, ooof=True
       {
-        final HllSketchImpl srcHll8Heap = downsample(srcImpl, lgMaxK); //downsample src to Max
-        gdtImpl.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray(); //serialize srcCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
-        gdtImpl.putOutOfOrderFlag(true);
-        break;
+        final HllSketch srcHll8Heap = downsample(source, lgMaxK); //downsample src to Max
+        gadget.mergeTo(srcHll8Heap);                              //merge gdt -> srcCopy
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray();//serialize srcCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        final HllSketch gdtTmp = HllSketch.writableWrap(wmem);    //wrap & replace gdt
+        gdtTmp.putOutOfOrderFlag(true);
+        return gdtTmp.hllSketchImpl;
       }
-      case 22: //src >  max, src >= gdt, gdtEmpty, gdtHeap,   no swap, downsample Src, ooof=Src
+      case 22: //src >  max, src >= gdt, gdtEmpty, gdtHeap, replace, downsample Src, ooof=Src
       {
-        final HllSketchImpl srcHll8Heap = downsample(srcImpl, lgMaxK); //downsample src to Max
-        gdtImpl = srcHll8Heap;                                     //replace gdt
+        final HllSketch srcHll8Heap = downsample(source, lgMaxK); //downsample src to Max
+        return srcHll8Heap.hllSketchImpl;                                     //replace gdt
         //ooof is already what source is.
-        break;
       }
-      case 23: //src >  max, src >= gdt, gdtEmpty, gdtDirect, no swap, downsample Src, ooof=Src
+      case 23: //src >  max, src >= gdt, gdtEmpty, gdtDirect, replace mem, downsample Src, ooof=Src
       {
-        final HllSketchImpl srcHll8Heap = downsample(srcImpl, lgMaxK);  //downsample src to Max
-        final WritableMemory wmem = gdtImpl.getWritableMemory();   //use the gdt wmem
-        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray(); //serialize srcCopy
-        wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
-        gdtImpl = HllSketch.writableWrap(wmem).hllSketchImpl;      //wrap & replace gdt
+        final HllSketch srcHll8Heap = downsample(source, lgMaxK); //downsample src to Max
+        final WritableMemory wmem = gadget.getWritableMemory();   //use the gdt wmem
+        final byte[] byteArr = srcHll8Heap.toUpdatableByteArray();//serialize srcCopy
+        wmem.putByteArray(0, byteArr, 0, byteArr.length);         //replace old data with new
+        return HllSketch.writableWrap(wmem).hllSketchImpl;        //wrap & replace gdt
         //ooof is already what source is.
-        break;
       }
+      default: return gadget.hllSketchImpl;
     }
-    return gdtImpl;
   }
 
   //Used by union operator.  Always copies or downsamples to Heap HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more context.
   /**
-   * Copies or downsamples the given HLLmode sketch to tgtLgK, HLL_8, on the heap.
+   * Copies or downsamples the given candidate HLLmode sketch to tgtLgK, HLL_8, on the heap.
    *
-   * @param candidate the HllSketchImpl to downsample
+   * @param candidate the HllSketch to downsample, must be in HLL mode.
    * @param tgtLgK the LgK to downsample to.
-   * @return the downsampled HllSketchImpl.
+   * @return the downsampled HllSketch.
    */
-  private static final HllSketchImpl downsample(final HllSketchImpl candidate, final int tgtLgK) {
-    final AbstractHllArray candArr = (AbstractHllArray) candidate;
+  private static final HllSketch downsample(final HllSketch candidate, final int tgtLgK) {
+    final AbstractHllArray candArr = (AbstractHllArray) candidate.hllSketchImpl;
     final HllArray tgtHllArr = HllArray.newHeapHll(tgtLgK, TgtHllType.HLL_8);
-    final PairIterator srcItr = candArr.iterator();
-    while (srcItr.nextValid()) {
-      tgtHllArr.couponUpdate(srcItr.getPair());
+    final PairIterator candItr = candArr.iterator();
+    while (candItr.nextValid()) {
+      tgtHllArr.couponUpdate(candItr.getPair());
     }
     //both of these are required for isomorphism
     tgtHllArr.putHipAccum(candArr.getHipAccum());
-    tgtHllArr.putOutOfOrderFlag(candArr.isOutOfOrderFlag());
-    return tgtHllArr;
+    tgtHllArr.putOutOfOrderFlag(candidate.isOutOfOrderFlag());
+    return new HllSketch(tgtHllArr);
   }
 
 }

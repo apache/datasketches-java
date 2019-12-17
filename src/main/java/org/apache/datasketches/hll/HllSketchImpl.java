@@ -64,6 +64,8 @@ abstract class HllSketchImpl {
 
   abstract double getEstimate();
 
+  abstract double getHipEstimate();
+
   int getLgConfigK() {
     return lgConfigK;
   }
@@ -98,7 +100,7 @@ abstract class HllSketchImpl {
 
   abstract PairIterator iterator();
 
-  abstract void mergeTo(HllSketchImpl impl);
+  abstract void mergeTo(HllSketch that);
 
   abstract void putEmptyFlag(boolean empty);
 

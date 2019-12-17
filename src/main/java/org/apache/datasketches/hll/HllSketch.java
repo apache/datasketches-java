@@ -278,6 +278,10 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.getEstimate();
   }
 
+  double getHipEstimate() {
+    return hllSketchImpl.getHipEstimate();
+  }
+
   @Override
   public int getLgConfigK() {
     return hllSketchImpl.getLgConfigK();
@@ -329,6 +333,10 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.getUpdatableSerializationBytes();
   }
 
+  WritableMemory getWritableMemory() {
+    return hllSketchImpl.getWritableMemory();
+  }
+
   @Override
   public double getUpperBound(final int numStdDev) {
     return hllSketchImpl.getUpperBound(numStdDev);
@@ -364,6 +372,14 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.isSameResource(mem);
   }
 
+  void mergeTo(final HllSketch that) {
+    hllSketchImpl.mergeTo(that);
+  }
+
+  void putOutOfOrderFlag(final boolean oooFlag) {
+    hllSketchImpl.putOutOfOrderFlag(oooFlag);
+  }
+
   @Override
   public void reset() {
     hllSketchImpl = hllSketchImpl.reset();
@@ -388,6 +404,7 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
       sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
       sb.append("  Current Mode   : ").append(getCurMode()).append(LS);
+      sb.append("  Memory         : ").append(isMemory()).append(LS);
       sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);

@@ -224,7 +224,7 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
-  void mergeTo(final HllSketchImpl that) {
+  void mergeTo(final HllSketch that) {
     final int lenInts = (compact) ? getCouponCount() : 1 << getLgCouponArrInts();
     final int dataStart = getMemDataStart();
     for (int i = 0; i < lenInts; i++) {

@@ -86,7 +86,7 @@ class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
-  void mergeTo(final HllSketchImpl that) {
+  void mergeTo(final HllSketch that) {
     final int slots = 1 << lgConfigK;
     for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
       final int tmp = mem.getShort(HLL_BYTE_ARR_START + (bitOffset / 8));

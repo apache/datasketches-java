@@ -65,6 +65,11 @@ abstract class AbstractCoupons extends HllSketchImpl {
     return max(est, couponCount);
   }
 
+  @Override
+  double getHipEstimate() {
+    return getEstimate();
+  }
+
   abstract int getLgCouponArrInts();
 
   @Override

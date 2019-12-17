@@ -101,6 +101,11 @@ abstract class AbstractHllArray extends HllSketchImpl {
    */
   abstract double getHipAccum();
 
+  @Override
+  double getHipEstimate() {
+    return getHipAccum();
+  }
+
   abstract int getHllByteArrBytes();
 
   /**

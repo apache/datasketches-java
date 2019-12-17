@@ -116,7 +116,7 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  void mergeTo(final HllSketchImpl that) {
+  void mergeTo(final HllSketch that) {
     final int slots = 1 << lgConfigK;
     for (int slotNo = 0; slotNo < slots; slotNo++) {
       int value = hllByteArr[slotNo >>> 1] & 0xFF;

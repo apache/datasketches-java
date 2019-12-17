@@ -92,7 +92,7 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  void mergeTo(final HllSketchImpl that) {
+  void mergeTo(final HllSketch that) {
     final int thisK = 1 << lgConfigK;
     //    if ((thisK == that.getLgConfigK()) && (that instanceof Hll8Array)) {
     //      //does not update KxQ
