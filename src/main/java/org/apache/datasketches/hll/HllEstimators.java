@@ -191,8 +191,8 @@ class HllEstimators {
     double kxq1 = 0;
     while (itr.nextValid()) {
       final int actualValue = itr.getValue();
-      if (actualValue < 32) { kxq0 += invPow2(actualValue) - 1; }
-      else                  { kxq1 += invPow2(actualValue) - 1; }
+      if (actualValue < 32) { kxq0 += invPow2(actualValue) - 1.0; }
+      else                  { kxq1 += invPow2(actualValue) - 1.0; }
     }
     return kxq0 + kxq1;
   }

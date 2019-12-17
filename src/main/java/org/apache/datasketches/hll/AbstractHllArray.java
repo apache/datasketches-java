@@ -78,7 +78,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
   @Override
   double getCompositeEstimate() {
-    return HllEstimators.hllCompositeEstimate(this, false);
+    return HllEstimators.hllCompositeEstimate(this, isOutOfOrderFlag());
   }
 
   abstract int getCurMin();

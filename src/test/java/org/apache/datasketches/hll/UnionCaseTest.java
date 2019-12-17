@@ -101,7 +101,6 @@ public class UnionCaseTest {
     boolean uooof = union.isOutOfOrderFlag();
     double rseFactor = (uooof) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
     double rse = (rseFactor * 3) / Math.sqrt(1 << gdtLgK); //99.7% conf
-    assertTrue(err < rse);
 
     //output other parameters
     String caseNumStr = Integer.toString(caseNum);
@@ -117,6 +116,7 @@ public class UnionCaseTest {
     String gdtOoof = Boolean.toString(union.isOutOfOrderFlag());
     printf(hfmt, caseNumStr, srcLgKStr, gdtLgKStr, srcType, gdtType, srcMem, gdtMem,
         srcMode, gdtMode, srcOoof, gdtOoof);
+    assertTrue(err < rse);
   }
 
 
