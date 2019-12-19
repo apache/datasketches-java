@@ -28,6 +28,7 @@ import static org.apache.datasketches.hll.PreambleUtil.extractKxQ0;
 import static org.apache.datasketches.hll.PreambleUtil.extractKxQ1;
 import static org.apache.datasketches.hll.PreambleUtil.extractNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.extractOooFlag;
+import static org.apache.datasketches.hll.PreambleUtil.extractRebuildCurMinNumKxQFlag;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 
@@ -255,6 +256,7 @@ abstract class HllArray extends AbstractHllArray {
     hllArray.putKxQ0(extractKxQ0(srcMem));
     hllArray.putKxQ1(extractKxQ1(srcMem));
     hllArray.putNumAtCurMin(extractNumAtCurMin(srcMem));
+    hllArray.putRebuildCurMinNumKxQFlag(extractRebuildCurMinNumKxQFlag(srcMem));
 
     //load Hll array
     srcMem.getByteArray(HLL_BYTE_ARR_START, hllArray.hllByteArr, 0, hllArray.hllByteArr.length);

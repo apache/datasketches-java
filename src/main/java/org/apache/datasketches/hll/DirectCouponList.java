@@ -339,6 +339,4 @@ class DirectCouponList extends AbstractCoupons {
     return dirHllArr;
   }
 
-
-
 }

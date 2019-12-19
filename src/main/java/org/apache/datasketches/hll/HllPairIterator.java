@@ -96,6 +96,4 @@ abstract class HllPairIterator extends PairIterator {
 
   abstract int value();
 
-
-
 }
