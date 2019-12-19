@@ -24,10 +24,9 @@ import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 import static org.testng.Assert.assertEquals;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -74,6 +73,11 @@ public class ToFromByteArrayTest {
     HllSketch dst3 = HllSketch.heapify(mem3); //using WritableMemory interface
     //printSketch(dst, "DST");
     assertEquals(dst3.getEstimate(), src.getEstimate(), 0.0);
+  }
+
+  @Test
+  public void detailCheck() {
+    toFrom2(10, HLL_4, 24322); //24322 fails
   }
 
   @Test
@@ -138,8 +142,8 @@ public class ToFromByteArrayTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    System.out.println(o.toString()); //disable here
   }
 
 }

@@ -105,7 +105,15 @@ abstract class AbstractCoupons extends HllSketchImpl {
   }
 
   @Override
+  boolean isRebuildCurMinNumKxQFlag() {
+    return false;
+  }
+
+  @Override
   void putEmptyFlag(final boolean empty) {} //no-op for coupons
+
+  @Override
+  void putRebuildCurMinNumKxQFlag(final boolean rebuild) {} //no-op for coupons
 
   @Override
   byte[] toCompactByteArray() {

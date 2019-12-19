@@ -78,7 +78,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
   @Override
   double getCompositeEstimate() {
-    return HllEstimators.hllCompositeEstimate(this, isOutOfOrderFlag());
+    return HllEstimators.hllCompositeEstimate(this);
   }
 
   abstract int getCurMin();
@@ -208,6 +208,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   /**
    * Common HIP and KxQ incremental update for all heap and direct Hll.
+   * This is used when incrementally updating an existing array with non-zero values.
    * @param host the origin implementation
    * @param oldValue old value
    * @param newValue new value

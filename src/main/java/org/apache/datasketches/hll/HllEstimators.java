@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.Util.invPow2;
 import static org.apache.datasketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.HllUtil.MIN_LOG_K;
@@ -96,14 +95,9 @@ class HllEstimators {
    * @return the composite estimate
    */
   //In C: again-two-registers.c hhb_get_composite_estimate L1489
-  static final double hllCompositeEstimate(final AbstractHllArray absHllArr,
-      final boolean rebuildKxQ) {
+  static final double hllCompositeEstimate(final AbstractHllArray absHllArr) {
     final int lgConfigK = absHllArr.getLgConfigK();
-    final double kxqSum;
-    if (rebuildKxQ) { kxqSum = computeKxQSum(absHllArr); }
-    else { kxqSum = absHllArr.getKxQ0() + absHllArr.getKxQ1(); }
-
-    final double rawEst = getHllRawEstimate(lgConfigK, kxqSum);
+    final double rawEst = getHllRawEstimate(lgConfigK, absHllArr.getKxQ0() + absHllArr.getKxQ1());
 
     final double[] xArr = CompositeInterpolationXTable.xArrs[lgConfigK - MIN_LOG_K];
     final double yStride = CompositeInterpolationXTable.yStrides[lgConfigK - MIN_LOG_K];
@@ -153,7 +147,7 @@ class HllEstimators {
    * Refer to Wikipedia: Coupon Collector Problem
    * @param lgConfigK the current configured lgK of the sketch
    * @param curMin the current minimum value of the HLL window
-   * @param numAtCurMin the current number of rows with the value curMin
+   * @param numAtCurMin the current number of slots with the value curMin
    * @return the very low range estimate
    */
   //In C: again-two-registers.c hhb_get_improved_linear_counting_estimate L1274
@@ -182,19 +176,6 @@ class HllEstimators {
     else { correctionFactor = 0.7213 / (1.0 + (1.079 / configK)); }
     final double hyperEst = (correctionFactor * configK * configK) / kxqSum;
     return hyperEst;
-  }
-
-  static final double computeKxQSum(final AbstractHllArray host) {
-    final int configK = 1 << host.getLgConfigK();
-    final PairIterator itr = host.iterator();
-    double kxq0 = configK;
-    double kxq1 = 0;
-    while (itr.nextValid()) {
-      final int actualValue = itr.getValue();
-      if (actualValue < 32) { kxq0 += invPow2(actualValue) - 1.0; }
-      else                  { kxq1 += invPow2(actualValue) - 1.0; }
-    }
-    return kxq0 + kxq1;
   }
 
 }

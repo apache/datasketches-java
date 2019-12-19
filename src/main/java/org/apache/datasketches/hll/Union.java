@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.Util.invPow2;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
@@ -93,7 +94,10 @@ public class Union extends BaseHllSketch {
     lgMaxK = sketch.getLgConfigK();
     final TgtHllType tgtHllType = sketch.getTgtHllType();
     if (tgtHllType != TgtHllType.HLL_8) {
-      throw new SketchesArgumentException("Union can only wrap HLL_8 sketches.");
+      throw new SketchesArgumentException("Union can only wrap writable HLL_8 sketches.");
+    }
+    if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(sketch.hllSketchImpl));
     }
     gadget = sketch;
   }
@@ -137,6 +141,9 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getCompositeEstimate() {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.hllSketchImpl.getCompositeEstimate();
   }
 
@@ -152,6 +159,9 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getEstimate() {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.getEstimate();
   }
 
@@ -178,6 +188,9 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getLowerBound(final int numStdDev) {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.getLowerBound(numStdDev);
   }
 
@@ -186,6 +199,9 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator as an HLL_4 sketch.
    */
   public HllSketch getResult() {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.copyAs(HllSketch.DEFAULT_HLL_TYPE);
   }
 
@@ -195,6 +211,9 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator with the specified TgtHllType
    */
   public HllSketch getResult(final TgtHllType tgtHllType) {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.copyAs(tgtHllType);
   }
 
@@ -210,6 +229,9 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getUpperBound(final int numStdDev) {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.getUpperBound(numStdDev);
   }
 
@@ -241,6 +263,14 @@ public class Union extends BaseHllSketch {
   @Override
   public boolean isSameResource(final Memory mem) {
     return gadget.isSameResource(mem);
+  }
+
+  boolean isRebuildCurMinNumKxQFlag() {
+    return gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag();
+  }
+
+  void putRebuildCurMinNumKxQFlag(final boolean rebuild) {
+    gadget.hllSketchImpl.putRebuildCurMinNumKxQFlag(rebuild);
   }
 
   /**
@@ -385,7 +415,8 @@ public class Union extends BaseHllSketch {
       case 4:  //src <= max, src >= gdt, gdtHLL, gdtHeap,   forward merge, no downsample, ooof=True
       {
         if ((srcLgK == gadgetLgK) && (source.getTgtHllType() == HLL_8) && (!source.isMemory())) {
-          specialMerge(source, gadget);
+          source.mergeTo(gadget);
+          //specialMerge(source, gadget);
         } else {
           source.mergeTo(gadget);    //merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         }
@@ -427,7 +458,8 @@ public class Union extends BaseHllSketch {
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK); //downsample gdt to srcLgK
         if ((source.getTgtHllType() == HLL_8) && (!source.isMemory())) {
-          specialMerge(source, gdtHll8Heap);
+          source.mergeTo(gdtHll8Heap);
+          //specialMerge(source, gdtHll8Heap);
         } else {
           source.mergeTo(gdtHll8Heap);//merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         }
@@ -505,20 +537,17 @@ public class Union extends BaseHllSketch {
   /**
    * Source and target must both be type HLL_8, mode HLL, and with equal LgK.
    * @param source merge source
-   * @param target merge target
+   * @param target merge target, must be writable
    */
   private static void specialMerge(final HllSketch source, final HllSketch target) {
     final int k = 1 << target.getLgConfigK();
     final byte[] srcArr = ((Hll8Array) source.hllSketchImpl).hllByteArr;
     final Hll8Array tgtHll8Arr = (Hll8Array) target.hllSketchImpl;
     final byte[] tgtArr = tgtHll8Arr.hllByteArr;
-    int numZeros = 0;
     for (int i = 0; i < k; i++) {
-      final byte out = (srcArr[i] > tgtArr[i]) ? srcArr[i] : tgtArr[i];
-      tgtArr[i] = out;
-      if (out == 0) { numZeros++; }
+      tgtArr[i] = (srcArr[i] > tgtArr[i]) ? srcArr[i] : tgtArr[i];
     }
-    tgtHll8Arr.putNumAtCurMin(numZeros);
+    target.hllSketchImpl.putRebuildCurMinNumKxQFlag(true);
   }
 
   //Used by union operator.  Always copies or downsamples to Heap HLL_8.
@@ -541,6 +570,34 @@ public class Union extends BaseHllSketch {
     tgtHllArr.putHipAccum(candArr.getHipAccum());
     tgtHllArr.putOutOfOrderFlag(candidate.isOutOfOrderFlag());
     return new HllSketch(tgtHllArr);
+  }
+
+  static final void curMinAndNumAndKxQ(final AbstractHllArray absHllArr) {
+    int curMin = 64;
+    int numAtCurMin = 0;
+    double kxq0 = 1 << absHllArr.getLgConfigK();
+    double kxq1 = 0;
+    final PairIterator itr = absHllArr.iterator();
+    while (itr.nextAll()) {
+      final int v = itr.getValue();
+      if (v > 0) {
+        if (v < 32) { kxq0 += invPow2(v) - 1.0; }
+        else        { kxq1 += invPow2(v) - 1.0; }
+      }
+      if (v > curMin) { continue; }
+      if (v < curMin) {
+        curMin = v;
+        numAtCurMin = 1;
+      } else {
+        numAtCurMin++;
+      }
+    }
+    absHllArr.putKxQ0(kxq0);
+    absHllArr.putKxQ1(kxq1);
+    absHllArr.putCurMin(curMin);
+    absHllArr.putNumAtCurMin(numAtCurMin);
+    absHllArr.putRebuildCurMinNumKxQFlag(false);
+    //HipAccum is not affected
   }
 
 }

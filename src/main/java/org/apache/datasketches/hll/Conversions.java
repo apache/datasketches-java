@@ -41,7 +41,8 @@ class Conversions {
     final int curMin = HllUtil.getValue(pair);
     final int numAtCurMin = HllUtil.getLow26(pair);
 
-    //2nd pass: Must know curMin. Populate KxQ registers, build AuxHashMap if needed
+    //2nd pass: Must know curMin to create AuxHashMap.
+    //Populate KxQ registers, build AuxHashMap if needed
     final PairIterator itr = srcHllArr.iterator();
     AuxHashMap auxHashMap = hll4Array.getAuxHashMap(); //may be null
     while (itr.nextValid()) {
@@ -66,16 +67,23 @@ class Conversions {
     return hll4Array;
   }
 
-  static final int curMinAndNum(final AbstractHllArray hllArr) {
+  /**
+   * If the given absHllArr is type HLL_4, this returns the correct curMin and numAtCurMin.
+   * For HLL_6 and HLL_8, curMin is always 0, and numAtCurMin is the number of zero slots.
+   * @param absHllArr an instance of AbstractHllArray
+   * @return pair values representing numAtCurMin and curMin
+   */
+  private static final int curMinAndNum(final AbstractHllArray absHllArr) {
     int curMin = 64;
     int numAtCurMin = 0;
-    final PairIterator itr = hllArr.iterator();
+    final PairIterator itr = absHllArr.iterator();
     while (itr.nextAll()) {
       final int v = itr.getValue();
+      if (v > curMin) { continue; }
       if (v < curMin) {
         curMin = v;
         numAtCurMin = 1;
-      } else if (v == curMin) { //missing else
+      } else {
         numAtCurMin++;
       }
     }

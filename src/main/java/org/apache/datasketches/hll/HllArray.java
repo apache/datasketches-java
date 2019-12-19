@@ -40,6 +40,7 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 abstract class HllArray extends AbstractHllArray {
   boolean oooFlag = false; //Out-Of-Order Flag
+  boolean rebuildCurMinNumKxQ = false;
   int curMin; //always zero for Hll6 and Hll8, only used by Hll4Array
   int numAtCurMin; //# of values at curMin. If curMin = 0, it is # of zeros
   double hipAccum;
@@ -182,6 +183,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  boolean isRebuildCurMinNumKxQFlag() {
+    return rebuildCurMinNumKxQ;
+  }
+
+  @Override
   void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
     this.auxHashMap = auxHashMap;
   }
@@ -217,6 +223,11 @@ abstract class HllArray extends AbstractHllArray {
   @Override
   void putOutOfOrderFlag(final boolean oooFlag) {
     this.oooFlag = oooFlag;
+  }
+
+  @Override
+  void putRebuildCurMinNumKxQFlag(final boolean rebuild) {
+    rebuildCurMinNumKxQ = rebuild;
   }
 
   @Override

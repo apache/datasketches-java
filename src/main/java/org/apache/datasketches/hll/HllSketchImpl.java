@@ -96,6 +96,8 @@ abstract class HllSketchImpl {
 
   abstract boolean isOutOfOrderFlag();
 
+  abstract boolean isRebuildCurMinNumKxQFlag();
+
   abstract boolean isSameResource(Memory mem);
 
   abstract PairIterator iterator();
@@ -105,6 +107,8 @@ abstract class HllSketchImpl {
   abstract void putEmptyFlag(boolean empty);
 
   abstract void putOutOfOrderFlag(boolean oooFlag);
+
+  abstract void putRebuildCurMinNumKxQFlag(boolean rebuild);
 
   abstract HllSketchImpl reset();
 
