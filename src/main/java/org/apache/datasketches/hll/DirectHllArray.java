@@ -189,7 +189,6 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
-    checkReadOnly(wmem);
     if (auxHashMap instanceof HeapAuxHashMap) {
       if (compact) {
         this.auxHashMap = auxHashMap; //heap and compact
@@ -202,7 +201,7 @@ abstract class DirectHllArray extends AbstractHllArray {
       }
     } else { //DirectAuxHashMap
       assert !compact; //must not be compact
-      this.auxHashMap = auxHashMap;
+      this.auxHashMap = auxHashMap; //In case of read-only this works.
     }
   }
 
