@@ -36,7 +36,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 class DirectAuxHashMap implements AuxHashMap {
-  private final DirectHllArray host; //hosts the Updatable Memory
+  private final DirectHllArray host; //hosts the WritableMemory and read-only Memory
 
   DirectAuxHashMap(final DirectHllArray host, final boolean initialize) {
     this.host = host;
@@ -47,7 +47,7 @@ class DirectAuxHashMap implements AuxHashMap {
     } else {
       if (extractLgArr(host.mem) < initLgArrInts) {
         final int lgArr =
-            PreambleUtil.computeLgArr(host.wmem, host.auxHashMap.getAuxCount(), host.lgConfigK);
+            PreambleUtil.computeLgArr(host.mem, host.auxHashMap.getAuxCount(), host.lgConfigK);
         insertLgArr(host.wmem, lgArr);
       }
     }
