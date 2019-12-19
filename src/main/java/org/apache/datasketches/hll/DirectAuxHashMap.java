@@ -41,13 +41,18 @@ class DirectAuxHashMap implements AuxHashMap {
   DirectAuxHashMap(final DirectHllArray host, final boolean initialize) {
     this.host = host;
     final int initLgArrInts = HllUtil.LG_AUX_ARR_INTS[host.lgConfigK];
-    if (initialize) {
+    if (initialize) { //must be writable
       insertLgArr(host.wmem, initLgArrInts);
       host.wmem.clear(host.auxStart, 4 << initLgArrInts);
     } else {
       if (extractLgArr(host.mem) < initLgArrInts) {
+        if (host.wmem == null) { //read-only
+          throw new SketchesArgumentException(
+              "Possible Memory image corruption, missing LgArr field in preamble.");
+        }
+        //insert the correct LgArr value
         final int lgArr =
-            PreambleUtil.computeLgArr(host.mem, host.auxHashMap.getAuxCount(), host.lgConfigK);
+            PreambleUtil.computeLgArr(host.wmem, host.auxHashMap.getAuxCount(), host.lgConfigK);
         insertLgArr(host.wmem, lgArr);
       }
     }

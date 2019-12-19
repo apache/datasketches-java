@@ -415,8 +415,8 @@ public class Union extends BaseHllSketch {
       case 4:  //src <= max, src >= gdt, gdtHLL, gdtHeap,   forward merge, no downsample, ooof=True
       {
         if ((srcLgK == gadgetLgK) && (source.getTgtHllType() == HLL_8) && (!source.isMemory())) {
-          source.mergeTo(gadget);
-          //specialMerge(source, gadget);
+          //source.mergeTo(gadget);
+          specialMerge(source, gadget);
         } else {
           source.mergeTo(gadget);    //merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         }
@@ -458,8 +458,8 @@ public class Union extends BaseHllSketch {
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK); //downsample gdt to srcLgK
         if ((source.getTgtHllType() == HLL_8) && (!source.isMemory())) {
-          source.mergeTo(gdtHll8Heap);
-          //specialMerge(source, gdtHll8Heap);
+          //source.mergeTo(gdtHll8Heap);
+          specialMerge(source, gdtHll8Heap);
         } else {
           source.mergeTo(gdtHll8Heap);//merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         }

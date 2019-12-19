@@ -73,7 +73,7 @@ class Conversions {
    * @param absHllArr an instance of AbstractHllArray
    * @return pair values representing numAtCurMin and curMin
    */
-  private static final int curMinAndNum(final AbstractHllArray absHllArr) {
+  static final int curMinAndNum(final AbstractHllArray absHllArr) {
     int curMin = 64;
     int numAtCurMin = 0;
     final PairIterator itr = absHllArr.iterator();
