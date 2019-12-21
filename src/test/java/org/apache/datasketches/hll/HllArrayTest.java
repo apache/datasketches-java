@@ -99,7 +99,9 @@ public class HllArrayTest {
     if (sk1.hllSketchImpl instanceof HllArray) {
       assertFalse(sk1.hllSketchImpl.isMemory());
       assertFalse(sk1.isSameResource(wmem));
-    } else {
+      int v = ((AbstractHllArray)sk1.hllSketchImpl).getSlot(0);
+      ((AbstractHllArray)sk1.hllSketchImpl).putSlot(0, v);
+    } else { //DirectHllArray
       assertTrue(sk1.hllSketchImpl.isMemory());
       assertTrue(sk1.isSameResource(wmem));
     }
@@ -107,6 +109,12 @@ public class HllArrayTest {
     //sk1.update(u);
     double est1 = sk1.getEstimate();
     assertEquals(est1, u, u * .03);
+    assertEquals(sk1.getHipEstimate(), est1, 0.0);
+
+    //misc calls
+    sk1.hllSketchImpl.putEmptyFlag(false);
+    sk1.hllSketchImpl.putRebuildCurMinNumKxQFlag(true);
+    sk1.hllSketchImpl.putRebuildCurMinNumKxQFlag(false);
 
     byte[] byteArray = sk1.toCompactByteArray();
     HllSketch sk2 = HllSketch.heapify(byteArray);

@@ -119,7 +119,6 @@ public class UnionCaseTest {
     assertTrue(err < rse);
   }
 
-
   private HllSketch getSource(int caseNum, TgtHllType tgtHllType, boolean memory) {
     int srcLgK = getSrcLgK(caseNum, maxLgK);
     int srcU = getSrcCount(caseNum, maxLgK);
@@ -197,7 +196,7 @@ public class UnionCaseTest {
   }
 
   @Test
-  public void checkSrcListSet() { //src: SET, gadget: LIST, cases 0, 1
+  public void checkSrcListSet() { //src: SET, gadget: LIST
     int n1 = 5;
     int n2 = 2;
     int n3 = 16;
@@ -219,7 +218,7 @@ public class UnionCaseTest {
   }
 
   @Test
-  public void checkSrcSetList() { //src: LIST, gadget: SET, cases 0, 4
+  public void checkSrcSetList() { //src: LIST, gadget: SET
     int n1 = 6;
     int n2 = 10;
     int n3 = 6;
@@ -241,7 +240,7 @@ public class UnionCaseTest {
   }
 
   @Test
-  public void checkSrcSetSet() { //src: SET, gadget: SET, cases 0, 5
+  public void checkSrcSetSet() { //src: SET, gadget: SET
     int n1 = 6;
     int n2 = 10;
     int n3 = 16;
@@ -263,7 +262,7 @@ public class UnionCaseTest {
   }
 
   @Test
-  public void checkSrcEmptyList() { //src: LIST, gadget: empty, case 12
+  public void checkSrcEmptyList() { //src: LIST, gadget: empty
     int n1 = 0;
     int n2 = 0;
     int n3 = 7;
@@ -304,6 +303,48 @@ public class UnionCaseTest {
     double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkSpecialMergeCase4() {
+    Union u = buildHeapUnion(12, 1 << 9);
+    HllSketch sk = buildHeapSketch(12, HLL_8, 1 << 9);
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getCompositeEstimate();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getLowerBound(2);
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getUpperBound(2);
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getResult();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    byte[] ba = u.toCompactByteArray();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    ba = u.toUpdatableByteArray();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.putRebuildCurMinNumKxQFlag(true);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.putRebuildCurMinNumKxQFlag(false);
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
   }
 
   private static double errorFactor(int lgK, boolean oooFlag, double numStdDev) {

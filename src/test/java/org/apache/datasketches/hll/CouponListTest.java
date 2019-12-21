@@ -24,9 +24,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -77,6 +76,9 @@ public class CouponListTest {
     }
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertEquals(sk.getCompositeEstimate(), 7.0, 7 * .01);
+    assertEquals(sk.getHipEstimate(), 7.0, 7 * .01);
+    sk.hllSketchImpl.putEmptyFlag(false); //dummy
+    sk.hllSketchImpl.putRebuildCurMinNumKxQFlag(false); //dummy
     if (direct) {
       assertNotNull(sk.hllSketchImpl.getWritableMemory());
     } else {
@@ -87,6 +89,7 @@ public class CouponListTest {
     sk.update(8);
     assertEquals(sk.getCurMode(), CurMode.SET);
     assertEquals(sk.getCompositeEstimate(), 8.0, 8 * .01);
+    assertEquals(sk.getHipEstimate(), 8.0, 8 * .01);
     if (direct) {
       assertNotNull(sk.hllSketchImpl.getWritableMemory());
     } else {
@@ -107,6 +110,8 @@ public class CouponListTest {
 
     double re = sk.getRelErr(true, true, 4, 1);
     assertTrue(re < 0.0);
+
+
   }
 
   @Test

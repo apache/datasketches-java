@@ -96,8 +96,9 @@ public class Union extends BaseHllSketch {
     if (tgtHllType != TgtHllType.HLL_8) {
       throw new SketchesArgumentException("Union can only wrap writable HLL_8 sketches.");
     }
+    //This should never happen
     if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(sketch.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(sketch.hllSketchImpl));
     }
     gadget = sketch;
   }
@@ -142,7 +143,7 @@ public class Union extends BaseHllSketch {
   @Override
   public double getCompositeEstimate() {
     if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
     }
     return gadget.hllSketchImpl.getCompositeEstimate();
   }
@@ -160,7 +161,7 @@ public class Union extends BaseHllSketch {
   @Override
   public double getEstimate() {
     if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
     }
     return gadget.getEstimate();
   }
@@ -189,7 +190,7 @@ public class Union extends BaseHllSketch {
   @Override
   public double getLowerBound(final int numStdDev) {
     if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
     }
     return gadget.getLowerBound(numStdDev);
   }
@@ -200,7 +201,7 @@ public class Union extends BaseHllSketch {
    */
   public HllSketch getResult() {
     if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
     }
     return gadget.copyAs(HllSketch.DEFAULT_HLL_TYPE);
   }
@@ -212,7 +213,7 @@ public class Union extends BaseHllSketch {
    */
   public HllSketch getResult(final TgtHllType tgtHllType) {
     if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
     }
     return gadget.copyAs(tgtHllType);
   }
@@ -230,7 +231,7 @@ public class Union extends BaseHllSketch {
   @Override
   public double getUpperBound(final int numStdDev) {
     if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      curMinAndNumAndKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
     }
     return gadget.getUpperBound(numStdDev);
   }
@@ -291,11 +292,17 @@ public class Union extends BaseHllSketch {
    */
   @Override
   public byte[] toCompactByteArray() {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.toCompactByteArray();
   }
 
   @Override
   public byte[] toUpdatableByteArray() {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.toUpdatableByteArray();
   }
 
@@ -351,19 +358,24 @@ public class Union extends BaseHllSketch {
       final int lgMaxK) {
     assert gadget.getTgtHllType() == HLL_8;
     if ((source == null) || source.isEmpty()) { return gadget.hllSketchImpl; }
+    final int srcLgK = source.getLgConfigK();
+    final int gadgetLgK = gadget.getLgConfigK();
+    //Source is either LIST or SET mode
     if (source.getCurMode() == CurMode.LIST ) {
       source.mergeTo(gadget);
       gadget.putOutOfOrderFlag(gadget.isOutOfOrderFlag() | source.isOutOfOrderFlag());
       return gadget.hllSketchImpl;
     }
     if (source.getCurMode() == CurMode.SET ) {
+      if (gadget.isEmpty() && (!source.isMemory()) && (!gadget.isMemory()) && (srcLgK == gadgetLgK)) {
+        gadget.hllSketchImpl = source.copyAs(HLL_8).hllSketchImpl;
+        return gadget.hllSketchImpl;
+      }
       source.mergeTo(gadget);
       gadget.putOutOfOrderFlag(true);
       return gadget.hllSketchImpl;
     }
     //Hereafter, the srcImpl is in HLL mode.
-    final int srcLgK = source.getLgConfigK();
-    final int gadgetLgK = gadget.getLgConfigK();
     final int bit0 = gadget.isMemory() ? 1 : 0;
     final int bits1_2 = (gadget.isEmpty() ? 3 : gadget.getCurMode().ordinal()) << 1;
     final int bit3 = (srcLgK < gadgetLgK) ? 8 : 0;
@@ -572,7 +584,8 @@ public class Union extends BaseHllSketch {
     return new HllSketch(tgtHllArr);
   }
 
-  static final void curMinAndNumAndKxQ(final AbstractHllArray absHllArr) {
+  //
+  private static final void rebuildCurMinNumKxQ(final AbstractHllArray absHllArr) {
     int curMin = 64;
     int numAtCurMin = 0;
     double kxq0 = 1 << absHllArr.getLgConfigK();
