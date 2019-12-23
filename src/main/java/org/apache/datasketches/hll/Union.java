@@ -257,7 +257,7 @@ public class Union extends BaseHllSketch {
   }
 
   @Override
-  public boolean isOutOfOrderFlag() { //TODO return to pkg private
+  boolean isOutOfOrderFlag() {
     return gadget.isOutOfOrderFlag();
   }
 
@@ -331,28 +331,25 @@ public class Union extends BaseHllSketch {
   /**
    * Union the given source and destination sketches. This static method examines the state of
    * the current internal gadget and the incoming sketch and determines the optimum way to
-   * perform the union. This may involve swapping, down-sampling, transforming, and / or
+   * perform the union. This may involve swapping, downsampling, transforming, and / or
    * copying one of the arguments and may completely replace the internals of the union.
    *
-   * <p>A swap in update direction is required:</p>
-   * <ul><li>If the Gadget is in LIST, SET or EMPTY mode, AND
-   * The source sketch is in HLL mode.
-   * The source sketch will need to be copied or downsampled to the heap in HLL_8 mode if it is
-   * larger than maxLgK, and then replace the Gadget. If the Gadget was Memory, the resulting
-   * heap object will need to be converted to Memory form using the Gadget Memory.</li>
-   * </ul>
+   * <p>If the union gadget is empty, the source sketch is effectively copied to the union gadget
+   * after any required transformations.
    *
-   * <p>A downsample of gadget is required:</p>
-   * <ul><li>If both source and Gadget are in HLL mode AND source LgK <b>less than</b> Gadget LgK.
-   * Downsample Gadget, convert back to memory form if required, update gadget from source.</li>
-   * </ul>
+   * <p>The direction of the update is required if the union gadget is in LIST or SET mode, and the
+   * source sketch is in HLL mode. This is done to maintain maximum accuracy of the union process.
    *
-   * @param source the given incoming sketch, which must not be modified.
-   * @param gadget the given gadget sketch, which must have a target of HLL_8 and may be
-   * modified.
+   * <p>The source sketch is downsampled if the source LgK is larger than maxLgK and in HLL mode.
+   *
+   * <p>The union gadget is downsampled if both source and union gadget are in HLL mode
+   * and the source LgK <b>less than</b> the union gadget LgK.
+   *
+   * @param source the given incoming sketch, which is not be modified.
+   * @param gadget the given gadget sketch, which has a target of HLL_8 and may be modified.
    * @param lgMaxK the maximum value of log2 K for this union.
-   * @return the union of the two sketches in the form of the internal HllSketchImpl, which for
-   * the union is always in HLL_8 form.
+   * @return the union of the two sketches in the form of the internal HllSketchImpl, which is
+   * always in HLL_8 form.
    */
   private static HllSketchImpl unionImpl(final HllSketch source, final HllSketch gadget,
       final int lgMaxK) {
@@ -547,9 +544,9 @@ public class Union extends BaseHllSketch {
   }
 
   /**
-   * Source and target must both be type HLL_8, mode HLL, and with equal LgK.
-   * @param source merge source
-   * @param target merge target, must be writable
+   * Source and target must have the same LgK.
+   * @param source merge source on heap, type HLL_8, in HLL mode.
+   * @param target merge target. Must be writable, on heap, type HLL_8, in HLL mode.
    */
   private static void specialMerge(final HllSketch source, final HllSketch target) {
     final int k = 1 << target.getLgConfigK();
