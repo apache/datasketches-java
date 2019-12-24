@@ -133,11 +133,10 @@ public final class Util {
    * @return an int extracted from a Little-Endian byte array.
    */
   public static int bytesToInt(final byte[] arr) {
-    int v = 0;
-    for (int i = 0; i < 4; i++) {
-      v |= (arr[i] & 0XFF) << (i * 8);
-    }
-    return v;
+    return (((arr[3]       ) << 24)
+          | ((arr[2] & 0xff) << 16)
+          | ((arr[1] & 0xff) <<  8)
+          | ((arr[0] & 0xff)      ));
   }
 
   /**
@@ -146,11 +145,14 @@ public final class Util {
    * @return a long extracted from a Little-Endian byte array.
    */
   public static long bytesToLong(final byte[] arr) {
-    long v = 0;
-    for (int i = 0; i < 8; i++) {
-      v |= (arr[i] & 0XFFL) << (i * 8);
-    }
-    return v;
+    return ((((long)arr[7]       ) << 56)
+          | (((long)arr[6] & 0xff) << 48)
+          | (((long)arr[5] & 0xff) << 40)
+          | (((long)arr[4] & 0xff) << 32)
+          | (((long)arr[3] & 0xff) << 24)
+          | (((long)arr[2] & 0xff) << 16)
+          | (((long)arr[1] & 0xff) <<  8)
+          | (((long)arr[0] & 0xff)      ));
   }
 
   /**
@@ -159,11 +161,11 @@ public final class Util {
    * @param arr a given array of 4 bytes that will be returned with the data
    * @return a Little-Endian byte array extracted from the given int.
    */
-  public static byte[] intToBytes(int v, final byte[] arr) {
-    for (int i = 0; i < 4; i++) {
-      arr[i] = (byte) (v & 0XFF);
-      v >>>= 8;
-    }
+  public static byte[] intToBytes(final int v, final byte[] arr) {
+    arr[3] = (byte) (v >>> 24);
+    arr[2] = (byte) (v >>> 16);
+    arr[1] = (byte) (v >>>  8);
+    arr[0] = (byte) (v       );
     return arr;
   }
 
@@ -173,11 +175,15 @@ public final class Util {
    * @param arr a given array of 8 bytes that will be returned with the data
    * @return a Little-Endian byte array extracted from the given long.
    */
-  public static byte[] longToBytes(long v, final byte[] arr) {
-    for (int i = 0; i < 8; i++) {
-      arr[i] = (byte) (v & 0XFFL);
-      v >>>= 8;
-    }
+  public static byte[] longToBytes(final long v, final byte[] arr) {
+    arr[7] = (byte) (v >>> 56);
+    arr[6] = (byte) (v >>> 48);
+    arr[5] = (byte) (v >>> 40);
+    arr[4] = (byte) (v >>> 32);
+    arr[3] = (byte) (v >>> 24);
+    arr[2] = (byte) (v >>> 16);
+    arr[1] = (byte) (v >>>  8);
+    arr[0] = (byte) (v       );
     return arr;
   }
 
