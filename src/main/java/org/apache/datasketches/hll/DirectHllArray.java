@@ -133,6 +133,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  Memory getMemory() {
+    return mem;
+  }
+
+  @Override
   AuxHashMap getNewAuxHashMap() {
     return new DirectAuxHashMap(this, true);
   }

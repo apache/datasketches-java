@@ -26,7 +26,6 @@ import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.ToByteArrayImpl.toCouponByteArray;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
 
 /**
  * @author Lee Rhodes
@@ -81,8 +80,6 @@ abstract class AbstractCoupons extends HllSketchImpl {
     final double tmp = est / (1.0 + (numStdDev * COUPON_RSE));
     return max(tmp, couponCount);
   }
-
-  abstract Memory getMemory();
 
   @Override
   double getUpperBound(final int numStdDev) {

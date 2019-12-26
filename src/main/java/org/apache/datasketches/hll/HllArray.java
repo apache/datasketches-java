@@ -139,6 +139,11 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
+  Memory getMemory() {
+    return null;
+  }
+
+  @Override
   AuxHashMap getNewAuxHashMap() {
     return new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
   }

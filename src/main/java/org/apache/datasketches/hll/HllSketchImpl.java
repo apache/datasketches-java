@@ -74,6 +74,8 @@ abstract class HllSketchImpl {
 
   abstract int getMemDataStart();
 
+  abstract Memory getMemory();
+
   abstract int getPreInts();
 
   TgtHllType getTgtHllType() {

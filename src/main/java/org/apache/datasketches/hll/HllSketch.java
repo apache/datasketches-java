@@ -324,6 +324,10 @@ public class HllSketch extends BaseHllSketch {
     return HLL_BYTE_ARR_START + arrBytes;
   }
 
+  Memory getMemory() {
+    return hllSketchImpl.getMemory();
+  }
+
   @Override
   public TgtHllType getTgtHllType() {
     return hllSketchImpl.getTgtHllType();

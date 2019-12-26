@@ -28,25 +28,23 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This performs union operations for HLL sketches. This union operator is configured with a
- * <i>lgMaxK</i> instead of the normal <i>lgConfigK</i>.
- *
- * <p>This union operator does permit the unioning of sketches with different values of
- * <i>lgConfigK</i>.  The user should be aware that the resulting accuracy of a sketch returned
- * at the end of the unioning process will be a function of the smallest of <i>lgMaxK</i> and
- * <i>lgConfigK</i> that the union operator has seen.
- *
- * <p>This union operator also permits unioning of any of the three different target HllSketch
- * types.
+ * This performs union operations for all HllSketches. This union operator can be configured to be
+ * on or off heap.  The source sketch given to this union using the {@link #update(HllSketch)} can
+ * be configured with any precision value <i>lgConfigK</i> (from 4 to 21), any <i>TgtHllType</i>
+ * (HLL_4, HLL_6, HLL_8), and either on or off-heap; and it can be in either of the sparse modes
+ * (<i>LIST</i> or <i>SET</i>), or the dense mode (<i>HLL</i>).
  *
  * <p>Although the API for this union operator parallels many of the methods of the
- * <i>HllSketch</i>, the behavior of the union operator has some fundamental differences.
+ * <i>HllSketch</i>, the behavior of the union operator has some fundamental differences.</p>
  *
- * <p>First, the user cannot specify the {@link TgtHllType} as an input parameter.
+ * <p>First, this union operator is configured with a <i>lgMaxK</i> instead of the normal
+ * <i>lgConfigK</i>.  Generally, this union operator will inherit the lowest <i>lgConfigK</i>
+ * less than <i>lgMaxK</i> that it has seen. However, the <i>lgConfigK</i> of incoming sketches that
+ * are still in sparse are ignored. The <i>lgMaxK</i> provides the user the ability to specify the
+ * largest maximum size for the union operation.
+ *
+ * <p>Second, the user cannot specify the {@link TgtHllType} as an input parameter to the union.
  * Instead, it is specified for the sketch returned with {@link #getResult(TgtHllType)}.
- *
- * <p>Second, the internal effective value of log-base-2 of <i>K</i> for the union operation can
- * change dynamically based on the smallest <i>lgConfigK</i> that the union operation has seen.
  *
  * @author Lee Rhodes
  * @author Kevin Lang
@@ -176,6 +174,14 @@ public class Union extends BaseHllSketch {
     return gadget.getLgConfigK();
   }
 
+  @Override
+  public double getLowerBound(final int numStdDev) {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
+    return gadget.getLowerBound(numStdDev);
+  }
+
   /**
    * Returns the maximum size in bytes that this union operator can grow to given a lgK.
    *
@@ -185,14 +191,6 @@ public class Union extends BaseHllSketch {
    */
   public static int getMaxSerializationBytes(final int lgK) {
     return HllSketch.getMaxUpdatableSerializationBytes(lgK, TgtHllType.HLL_8);
-  }
-
-  @Override
-  public double getLowerBound(final int numStdDev) {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
-    return gadget.getLowerBound(numStdDev);
   }
 
   /**
@@ -421,18 +419,18 @@ public class Union extends BaseHllSketch {
         gdtTmp.putOutOfOrderFlag(true);
         return gdtTmp.hllSketchImpl;
       }
-      case 4:  //src <= max, src >= gdt, gdtHLL, gdtHeap,   forward merge, no downsample, ooof=True
+      case 4:  //src <= max, src >= gdt, gdtHLL, gdtHeap, forward merge, no downsample, ooof=True
       {
         if ((srcLgK == gadgetLgK) && (source.getTgtHllType() == HLL_8) && (!source.isMemory())) {
-          //source.mergeTo(gadget);
-          specialMerge(source, gadget);
+          //source.mergeTo(gadget); //much slower
+          mergeEqKHeapHll8(source, gadget);
         } else {
           source.mergeTo(gadget);    //merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         }
         gadget.putOutOfOrderFlag(true);
         return gadget.hllSketchImpl;
       }
-      case 20: //src >  max, src >= gdt, gdtHLL, gdtHeap,   forward merge, no downsample, ooof=True
+      case 20: //src >  max, src >= gdt, gdtHLL, gdtHeap, forward merge, no downsample, ooof=True
       {
         source.mergeTo(gadget);      //merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         gadget.putOutOfOrderFlag(true);
@@ -467,8 +465,8 @@ public class Union extends BaseHllSketch {
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK); //downsample gdt to srcLgK
         if ((source.getTgtHllType() == HLL_8) && (!source.isMemory())) {
-          //source.mergeTo(gdtHll8Heap);
-          specialMerge(source, gdtHll8Heap);
+          //source.mergeTo(gdtHll8Heap); //much slower
+          mergeEqKHeapHll8(source, gdtHll8Heap); //now eq lgK
         } else {
           source.mergeTo(gdtHll8Heap);//merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
         }
@@ -539,22 +537,24 @@ public class Union extends BaseHllSketch {
         return HllSketch.writableWrap(wmem).hllSketchImpl;        //wrap & replace gdt
         //ooof is already what source is.
       }
-      default: return gadget.hllSketchImpl;
+      default: return gadget.hllSketchImpl; //not possible
     }
   }
 
   /**
+   * High performance merge operation.
    * Source and target must have the same LgK.
-   * @param source merge source on heap, type HLL_8, in HLL mode.
-   * @param target merge target. Must be writable, on heap, type HLL_8, in HLL mode.
+   * @param source must be on heap, type HLL_8, and in HLL mode.
+   * @param target must be writable, on heap, type HLL_8, and in HLL mode.
    */
-  private static void specialMerge(final HllSketch source, final HllSketch target) {
-    final int k = 1 << target.getLgConfigK();
+  private static void mergeEqKHeapHll8(final HllSketch source, final HllSketch target) {
+    final int srcK = 1 << source.getLgConfigK();
     final byte[] srcArr = ((Hll8Array) source.hllSketchImpl).hllByteArr;
-    final Hll8Array tgtHll8Arr = (Hll8Array) target.hllSketchImpl;
-    final byte[] tgtArr = tgtHll8Arr.hllByteArr;
-    for (int i = 0; i < k; i++) {
-      tgtArr[i] = (srcArr[i] > tgtArr[i]) ? srcArr[i] : tgtArr[i];
+    final byte[] tgtArr = ((Hll8Array) target.hllSketchImpl).hllByteArr;
+    for (int i = 0; i < srcK; i++) {
+      final byte srcV = srcArr[i];
+      final byte tgtV = tgtArr[i];
+      tgtArr[i] = (srcV > tgtV) ? srcV : tgtV;
     }
     target.hllSketchImpl.putRebuildCurMinNumKxQFlag(true);
   }
@@ -581,7 +581,8 @@ public class Union extends BaseHllSketch {
     return new HllSketch(tgtHllArr);
   }
 
-  //
+  //Used to rebuild curMin, numAtCurMin and KxQ registers, due to high performance merge operation
+  //performed in cases 4 and 12.
   private static final void rebuildCurMinNumKxQ(final AbstractHllArray absHllArr) {
     int curMin = 64;
     int numAtCurMin = 0;
