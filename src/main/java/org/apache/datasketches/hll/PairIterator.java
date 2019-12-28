@@ -33,13 +33,16 @@ abstract class PairIterator {
   }
 
   /**
-   * Gets the index into the array
-   * @return the index into the array
+   * In LIST and SET modes, this gets the iterating index into the integer array of HLL key/value
+   * pairs.
+   * In HLL mode, this is the iterating index into the hypothetical array of HLL values, which may
+   * be physically contructed differently based on the compaction scheme (HLL_4, HLL_6, HLL_8).
+   * @return the index.
    */
   abstract int getIndex();
 
   /**
-   * Gets the key
+   * Gets the key, the low 26 bits of an pair, and can be up to 26 bits in length.
    * @return the key
    */
   abstract int getKey();
@@ -52,9 +55,10 @@ abstract class PairIterator {
   abstract int getPair();
 
   /**
-   * Gets the target or actual HLL slot number, which is derived from the key.
-   * If in LIST or SET mode this will be the target slot number.
-   * In HLL mode, this will be the actual slot number and equal to the key.
+   * Gets the target or actual HLL slot number, which is derived from the key and LgConfigK.
+   * The slot number is the index into a hypothetical array of length K and has LgConfigK bits.
+   * If in LIST or SET mode this is the index into the hypothetical target HLL array of size K.
+   * In HLL mode, this will be the actual index into the hypothetical target HLL array of size K.
    * @return the target or actual HLL slot number.
    */
   abstract int getSlot();
@@ -72,8 +76,8 @@ abstract class PairIterator {
   }
 
   /**
-   * Gets the value
-   * @return the value
+   * Gets the HLL value of a particular slot or pair.
+   * @return the HLL value of a particular slot or pair.
    */
   abstract int getValue();
 

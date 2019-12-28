@@ -99,8 +99,8 @@ public class HllArrayTest {
     if (sk1.hllSketchImpl instanceof HllArray) {
       assertFalse(sk1.hllSketchImpl.isMemory());
       assertFalse(sk1.isSameResource(wmem));
-      int v = ((AbstractHllArray)sk1.hllSketchImpl).getSlot(0);
-      ((AbstractHllArray)sk1.hllSketchImpl).putSlot(0, v);
+      int v = ((AbstractHllArray)sk1.hllSketchImpl).getSlotValue(0);
+      ((AbstractHllArray)sk1.hllSketchImpl).putSlotValue(0, v);
     } else { //DirectHllArray
       assertTrue(sk1.hllSketchImpl.isMemory());
       assertTrue(sk1.isSameResource(wmem));

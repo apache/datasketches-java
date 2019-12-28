@@ -50,14 +50,14 @@ class Conversions {
       final int actualValue = itr.getValue();
       AbstractHllArray.hipAndKxQIncrementalUpdate(hll4Array, 0, actualValue);
       if (actualValue >= (curMin + 15)) {
-        hll4Array.putSlot(slotNo, AUX_TOKEN);
+        hll4Array.putSlotValue(slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
           auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
           hll4Array.putAuxHashMap(auxHashMap, false);
         }
         auxHashMap.mustAdd(slotNo, actualValue);
       } else {
-        hll4Array.putSlot(slotNo, actualValue - curMin);
+        hll4Array.putSlotValue(slotNo, actualValue - curMin);
       }
     }
 

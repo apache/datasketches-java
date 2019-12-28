@@ -90,7 +90,7 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  int getSlot(final int slotNo) {
+  int getSlotValue(final int slotNo) {
     int theByte = hllByteArr[slotNo >>> 1];
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
@@ -133,7 +133,7 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  void putSlot(final int slotNo, final int newValue) {
+  void putSlotValue(final int slotNo, final int newValue) {
     final int byteno = slotNo >>> 1;
     final int oldValue = hllByteArr[byteno];
     if ((slotNo & 1) == 0) { // set low nibble
@@ -158,7 +158,7 @@ class Hll4Array extends HllArray {
 
     @Override
     int value() {
-      final int nib = Hll4Array.this.getSlot(index);
+      final int nib = Hll4Array.this.getSlotValue(index);
       if (nib == AUX_TOKEN) {
         final AuxHashMap auxHashMap = getAuxHashMap();
         return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here

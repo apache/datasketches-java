@@ -29,18 +29,19 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes
  */
 public class IntMemoryPairIterator extends PairIterator {
-  final Memory mem;
-  final long offsetBytes;
-  final int lengthPairs;
-  final int slotMask;
-  int index;
-  int pair;
+  private final Memory mem;
+  private final long offsetBytes;
+  private final int arrLen;
+  private final int slotMask;
+  private int index;
+  private int pair;
 
-  IntMemoryPairIterator(final Memory mem, final long offsetBytes, final int lengthPairs,
-      final int lgConfigK) {
+  //Used by DirectAuxHashMap, DirectCouponList
+  IntMemoryPairIterator(
+      final Memory mem, final long offsetBytes, final int arrayLength, final int lgConfigK) {
     this.mem = mem;
     this.offsetBytes = offsetBytes;
-    this.lengthPairs = lengthPairs;
+    this.arrLen = arrayLength;
     slotMask = (1 << lgConfigK) - 1;
     index = -1;
   }
@@ -77,7 +78,7 @@ public class IntMemoryPairIterator extends PairIterator {
 
   @Override
   public boolean nextAll() {
-    if (++index < lengthPairs) {
+    if (++index < arrLen) {
       pair = pair();
       return true;
     }
@@ -86,7 +87,7 @@ public class IntMemoryPairIterator extends PairIterator {
 
   @Override
   public boolean nextValid() {
-    while (++index < lengthPairs) {
+    while (++index < arrLen) {
       final int pair = pair();
       if (pair != EMPTY) {
         this.pair = pair;

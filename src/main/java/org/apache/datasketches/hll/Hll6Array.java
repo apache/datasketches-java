@@ -32,7 +32,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 class Hll6Array extends HllArray {
-  final WritableMemory mem;
+  final WritableMemory wmem;
 
   /**
    * Standard constructor for new instance
@@ -41,7 +41,7 @@ class Hll6Array extends HllArray {
   Hll6Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_6);
     hllByteArr = new byte[hll6ArrBytes(lgConfigK)];
-    mem = WritableMemory.wrap(hllByteArr);
+    wmem = WritableMemory.wrap(hllByteArr);
   }
 
   /**
@@ -50,7 +50,7 @@ class Hll6Array extends HllArray {
    */
   Hll6Array(final Hll6Array that) {
     super(that);
-    mem = WritableMemory.wrap(hllByteArr); //hllByteArr already cloned.
+    wmem = WritableMemory.wrap(hllByteArr); //hllByteArr already cloned.
   }
 
   static final Hll6Array heapify(final Memory mem) {
@@ -72,9 +72,9 @@ class Hll6Array extends HllArray {
     final int newVal = coupon >>> KEY_BITS_26;
     assert newVal > 0;
 
-    final int curVal = get6Bit(mem, 0, slotNo);
+    final int curVal = get6Bit(wmem, 0, slotNo);
     if (newVal > curVal) {
-      put6Bit(mem, 0, slotNo, newVal);
+      put6Bit(wmem, 0, slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         numAtCurMin--; //interpret numAtCurMin as num Zeros
@@ -85,8 +85,8 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  final int getSlot(final int slotNo) {
-    return Hll6Array.get6Bit(mem, 0, slotNo);
+  final int getSlotValue(final int slotNo) {
+    return Hll6Array.get6Bit(wmem, 0, slotNo);
   }
 
   @Override
@@ -98,7 +98,7 @@ class Hll6Array extends HllArray {
   void mergeTo(final HllSketch that) {
     final int slots = 1 << lgConfigK;
     for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
-      final int tmp = mem.getShort(bitOffset / 8);
+      final int tmp = wmem.getShort(bitOffset / 8);
       final int shift = (bitOffset % 8) & 0X7;
       final int value = (tmp >>> shift) & VAL_MASK_6;
       if (value == 0) { continue; }
@@ -107,8 +107,8 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  final void putSlot(final int slotNo, final int value) {
-    Hll6Array.put6Bit(mem, 0, slotNo, value);
+  final void putSlotValue(final int slotNo, final int value) {
+    Hll6Array.put6Bit(wmem, 0, slotNo, value);
   }
 
   //works for both heap and direct
@@ -133,7 +133,7 @@ class Hll6Array extends HllArray {
 
   //ITERATOR
 
-  final class HeapHll6Iterator extends HllPairIterator {
+  private final class HeapHll6Iterator extends HllPairIterator {
     int bitOffset;
 
     HeapHll6Iterator(final int lengthPairs) {
@@ -144,7 +144,7 @@ class Hll6Array extends HllArray {
     @Override
     int value() {
       bitOffset += 6;
-      final int tmp = mem.getShort(bitOffset / 8);
+      final int tmp = wmem.getShort(bitOffset / 8);
       final int shift = (bitOffset % 8) & 0X7;
       return (tmp >>> shift) & VAL_MASK_6;
     }

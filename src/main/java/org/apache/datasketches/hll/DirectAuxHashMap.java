@@ -80,8 +80,8 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public PairIterator getIterator() {
-    return new IntMemoryPairIterator(host.mem, host.auxStart, 1 << getLgAuxArrInts(),
-        host.lgConfigK);
+    return new IntMemoryPairIterator(
+        host.mem, host.auxStart, 1 << getLgAuxArrInts(), host.lgConfigK);
   }
 
   @Override

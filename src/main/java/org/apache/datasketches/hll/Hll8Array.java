@@ -82,7 +82,7 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  final int getSlot(final int slotNo) {
+  final int getSlotValue(final int slotNo) {
     return hllByteArr[slotNo] & VAL_MASK_6;
   }
 
@@ -102,7 +102,7 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  final void putSlot(final int slotNo, final int value) {
+  final void putSlotValue(final int slotNo, final int value) {
     hllByteArr[slotNo] = (byte) (value & VAL_MASK_6);
   }
 

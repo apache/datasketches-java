@@ -161,7 +161,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_PREINTS;
   }
 
-  abstract int getSlot(int slotNo);
+  abstract int getSlotValue(int slotNo);
 
   @Override //used by HLL6 and HLL8, Overridden by HLL4
   int getUpdatableSerializationBytes() {
@@ -189,9 +189,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void putNumAtCurMin(int numAtCurMin);
 
-  abstract void putSlot(final int slotNo, final int value);
+  abstract void putSlotValue(final int slotNo, final int value);
 
-  //COMPUTING HLL BYTE ARRAY LENGTHS
+  //Compute HLL byte array lengths, used by both heap and direct.
 
   static final int hll4ArrBytes(final int lgConfigK) {
     return 1 << (lgConfigK - 1);

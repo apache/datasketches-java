@@ -40,7 +40,7 @@ class Hll4Update {
     final int curMin = host.getCurMin();
 
     AuxHashMap auxHashMap = host.getAuxHashMap(); //may be null
-    final int rawStoredOldValue = host.getSlot(slotNo);  //could be 0
+    final int rawStoredOldValue = host.getSlotValue(slotNo);  //could be 0
     //This is provably a LB:
     final int lbOnOldValue =  rawStoredOldValue + curMin; //lower bound, could be 0
 
@@ -88,7 +88,7 @@ class Hll4Update {
             //This is the case where the old value is not an exception and the new value is.
             //Therefore the AUX_TOKEN must be stored in the 4-bit array and the new value
             // added to the exception table.
-            host.putSlot(slotNo, AUX_TOKEN);
+            host.putSlotValue(slotNo, AUX_TOKEN);
             if (auxHashMap == null) {
               auxHashMap = host.getNewAuxHashMap();
               host.putAuxHashMap(auxHashMap, false);
@@ -98,7 +98,7 @@ class Hll4Update {
           else {                             // CASE 4: //897
             //This is the case where neither the old value nor the new value is an exception.
             //Therefore we just overwrite the 4-bit array with the shifted new value.
-            host.putSlot(slotNo, shiftedNewValue);
+            host.putSlotValue(slotNo, shiftedNewValue);
           }
         }
 
@@ -137,12 +137,12 @@ class Hll4Update {
     // If the decremented value is 0, we increment numAtNewCurMin.
     // Because getNibble is masked to 4 bits oldStoredValue can never be > 15 or negative
     for (int i = 0; i < configK; i++) { //724
-      int oldStoredValue = host.getSlot(i);
+      int oldStoredValue = host.getSlotValue(i);
       if (oldStoredValue == 0) {
         throw new SketchesStateException("Array slots cannot be 0 at this point.");
       }
       if (oldStoredValue < AUX_TOKEN) {
-        host.putSlot(i, --oldStoredValue);
+        host.putSlotValue(i, --oldStoredValue);
         if (oldStoredValue == 0) { numAtNewCurMin++; }
       } else { //oldStoredValue == AUX_TOKEN
         numAuxTokens++;
@@ -166,13 +166,13 @@ class Hll4Update {
         newShiftedVal = oldActualVal - newCurMin;
         assert newShiftedVal >= 0;
 
-        assert host.getSlot(slotNum) == AUX_TOKEN
-            : "Array slot != AUX_TOKEN: " + host.getSlot(slotNum);
+        assert host.getSlotValue(slotNum) == AUX_TOKEN
+            : "Array slot != AUX_TOKEN: " + host.getSlotValue(slotNum);
         if (newShiftedVal < AUX_TOKEN) { //756
           assert (newShiftedVal == 14);
           // The former exception value isn't one anymore, so it stays out of new AuxHashMap.
           // Correct the AUX_TOKEN value in the HLL array to the newShiftedVal (14).
-          host.putSlot(slotNum, newShiftedVal);
+          host.putSlotValue(slotNum, newShiftedVal);
           numAuxTokens--;
         }
         else { //newShiftedVal >= AUX_TOKEN

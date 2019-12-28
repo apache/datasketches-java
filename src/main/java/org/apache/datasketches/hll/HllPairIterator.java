@@ -32,6 +32,7 @@ abstract class HllPairIterator extends PairIterator {
   int index;
   int value;
 
+  //Used by Direct<4,6,8>Array, Heap<4,6,8>Array
   HllPairIterator(final int lengthPairs) {
     this.lengthPairs = lengthPairs;
     index = - 1;

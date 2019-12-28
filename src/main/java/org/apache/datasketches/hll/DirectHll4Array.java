@@ -92,7 +92,7 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  final int getSlot(final int slotNo) {
+  final int getSlotValue(final int slotNo) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
     int theByte = mem.getByte(offset);
     if ((slotNo & 1) > 0) { //odd?
@@ -136,7 +136,7 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  final void putSlot(final int slotNo, final int newValue) {
+  final void putSlotValue(final int slotNo, final int newValue) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
     final int oldValue = mem.getByte(offset);
     final byte value = ((slotNo & 1) == 0) //even?
@@ -198,7 +198,7 @@ class DirectHll4Array extends DirectHllArray {
 
     @Override
     int value() {
-      final int nib = DirectHll4Array.this.getSlot(index);
+      final int nib = DirectHll4Array.this.getSlotValue(index);
       if (nib == AUX_TOKEN) {
         final AuxHashMap auxHashMap = getAuxHashMap();
         return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
