@@ -22,6 +22,8 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.hll.CurMode.HLL;
 import static org.apache.datasketches.hll.CurMode.LIST;
 import static org.apache.datasketches.hll.CurMode.SET;
+import static org.apache.datasketches.hll.TgtHllType.HLL_4;
+import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 import static org.testng.Assert.fail;
 
@@ -40,7 +42,7 @@ public class IsomorphicTest {
 
   @Test
   //Merges a type1 to an empty union (heap, HLL_8), and gets result as type1, checks binary equivalence
-  public void isomorphsUnionUpdatableHeap() {
+  public void isomorphicUnionUpdatableHeap() {
     for (int lgK = 4; lgK <= 21; lgK++) { //All LgK
       for (int cm = 0; cm <= 2; cm++) { //List, Set, Hll
         if ((lgK < 8) && (cm == 1)) { continue; } //lgk < 8 list transistions directly to HLL
@@ -62,7 +64,7 @@ public class IsomorphicTest {
 
   @Test
   //Merges a type1 to an empty union (heap, HLL_8), and gets result as type1, checks binary equivalence
-  public void isomorphsUnionCompactHeap() {
+  public void isomorphicUnionCompactHeap() {
     for (int lgK = 4; lgK <= 21; lgK++) { //All LgK
       for (int cm = 0; cm <= 2; cm++) { //List, Set, Hll
         if ((lgK < 8) && (cm == 1)) { continue; } //lgk < 8 list transistions directly to HLL
@@ -84,7 +86,7 @@ public class IsomorphicTest {
 
   @Test
   //Converts a type1 to a different type and converts back to type1 to check binary equivalence.
-  public void isomorphsCopyAsUpdatableHeap() {
+  public void isomorphicCopyAsUpdatableHeap() {
     for (int lgK = 4; lgK <= 21; lgK++) { //All LgK
       for (int cm = 0; cm <= 2; cm++) { //List, Set, Hll
         if ((lgK < 8) && (cm == 1)) { continue; } //lgk < 8 list transistions directly to HLL
@@ -110,7 +112,7 @@ public class IsomorphicTest {
 
   @Test
   //Converts a type1 to a different type and converts back to type1 to check binary equivalence.
-  public void isomorphsCopyAsCompactHeap() {
+  public void isomorphicCopyAsCompactHeap() {
     for (int lgK = 4; lgK <= 21; lgK++) { //All LgK
       for (int cm = 0; cm <= 2; cm++) { //List, Set, Hll
         if ((lgK < 8) && (cm == 1)) { continue; } //lgk < 8 list transistions directly to HLL
@@ -135,55 +137,105 @@ public class IsomorphicTest {
   }
 
   @Test
-  //Compares two HLL to HLL merges, combinations of heap, memory for binary equivalence.
-  public void isomorphsHllMerges() {
-    for (int lgK = 4; lgK <= 21; lgK++) { //All LgK
+  //Compares two HLL to HLL merges. The input sketch varies by tgtHllType.
+  //The LgKs can be equal or the source sketch is one larger.
+  //The result of the union is converted to HLL_8 and checked between different combinations of
+  //heap, memory for binary equivalence.
+  public void isomorphicHllMerges() {
+    for (int uLgK = 4; uLgK <= 20; uLgK++) { //All LgK
+      int skLgK = uLgK;
       for (int t1 = 0; t1 <= 2; t1++) { //HLL_4, HLL_6, HLL_8
         TgtHllType tgtHllType = TgtHllType.fromOrdinal(t1);
-        Union u;
-        HllSketch sk, skOut;
-
-        //CASE 1 Heap Union, Heap sketch
-        // (this uses the special merge, so HipAccum (8 bytes) will differ for HLL8)
-        u = buildHeapUnionHllMode(lgK, 0);
-        sk = buildHeapSketchHllMode(lgK, tgtHllType, 1 << lgK);
-        u.update(sk);
-        byte[] bytesOut1 = u.getResult(HLL_8).toUpdatableByteArray();
-
-        //CASE 2 Heap Union, Memory sketch
-        u = buildHeapUnionHllMode(lgK, 0);
-        sk = buildMemorySketchHllMode(lgK, tgtHllType, 1 << lgK);
-        u.update(sk);
-        byte[] bytesOut2 = u.getResult(HLL_8).toUpdatableByteArray();
-
-        //println("Uheap/SkHeap   HIP: " + bytesToDouble(bytesOut1, 8)); //HipAccum
-        //println("Uheap/SkMemory HIP: " + bytesToDouble(bytesOut2, 8)); //HipAccum
-        String comb = "LgK: " + lgK + ", SkType: " + tgtHllType.toString()
-        + ", Case1: Heap Union, Heap sketch; Case2: /Heap Union, Memory sketch";
-        checkArrays(bytesOut1, bytesOut2, comb, true);
-
-        //CASE 3 Offheap Union, Heap sketch
-        u = buildMemoryUnionHllMode(lgK, 0);
-        sk = buildHeapSketchHllMode(lgK, tgtHllType, 1 << lgK);
-        u.update(sk);
-        byte[] bytesOut3 = u.getResult(HLL_8).toUpdatableByteArray();
-
-        //println("Uheap/SkMemory HIP: " + bytesToDouble(bytesOut2, 8)); //HipAccum
-        //println("Umemory/SkHeap HIP: " + bytesToDouble(bytesOut3, 8)); //HipAccum
-        comb = "LgK: " + lgK + ", SkType: " + tgtHllType.toString()
-        + ", Case2: Heap Union, Memory sketch; Case3: /Memory Union, Heap sketch";
-        checkArrays(bytesOut2, bytesOut3, comb, false);
-
-        //Case 4 Memory Union, Memory sketch
-        u = buildMemoryUnionHllMode(lgK, 0);
-        sk = buildMemorySketchHllMode(lgK, tgtHllType, 1 << lgK);
-        u.update(sk);
-        byte[] bytesOut4 = u.getResult(HLL_8).toUpdatableByteArray();
-
-        comb = "LgK: " + lgK + ", SkType: " + tgtHllType.toString()
-        + ", Case2: Heap Union, Memory sketch; Case4: /Memory Union, Memory sketch";
-        checkArrays(bytesOut2, bytesOut4, comb, false);
+        innerLoop(uLgK, skLgK, tgtHllType);
       }
+      skLgK = uLgK + 1;
+      for (int t1 = 0; t1 <= 2; t1++) { //HLL_4, HLL_6, HLL_8
+        TgtHllType tgtHllType = TgtHllType.fromOrdinal(t1);
+        innerLoop(uLgK, skLgK, tgtHllType);
+      }
+    }
+  }
+
+  private static void innerLoop(int uLgK, int skLgK, TgtHllType tgtHllType) {
+    Union u;
+    HllSketch sk, skOut;
+
+    //CASE 1 Heap Union, Heap sketch
+    u = buildHeapUnionHllMode(uLgK, 0);
+    sk = buildHeapSketchHllMode(skLgK, tgtHllType, 1 << uLgK);
+    u.update(sk);
+    byte[] bytesOut1 = u.getResult(HLL_8).toUpdatableByteArray();
+
+    //CASE 2 Heap Union, Memory sketch
+    u = buildHeapUnionHllMode(uLgK, 0);
+    sk = buildMemorySketchHllMode(skLgK, tgtHllType, 1 << uLgK);
+    u.update(sk);
+    byte[] bytesOut2 = u.getResult(HLL_8).toUpdatableByteArray();
+
+    //println("Uheap/SkHeap   HIP: " + bytesToDouble(bytesOut1, 8)); //HipAccum
+    //println("Uheap/SkMemory HIP: " + bytesToDouble(bytesOut2, 8)); //HipAccum
+    String comb = "uLgK: " + uLgK + ", skLgK: " + skLgK
+        + ", SkType: " + tgtHllType.toString()
+        + ", Case1: Heap Union, Heap sketch; Case2: /Heap Union, Memory sketch";
+    checkArrays(bytesOut1, bytesOut2, comb, false);
+
+    //CASE 3 Offheap Union, Heap sketch
+    u = buildMemoryUnionHllMode(uLgK, 0);
+    sk = buildHeapSketchHllMode(skLgK, tgtHllType, 1 << uLgK);
+    u.update(sk);
+    byte[] bytesOut3 = u.getResult(HLL_8).toUpdatableByteArray();
+
+    //println("Uheap/SkMemory HIP: " + bytesToDouble(bytesOut2, 8)); //HipAccum
+    //println("Umemory/SkHeap HIP: " + bytesToDouble(bytesOut3, 8)); //HipAccum
+    comb = "LgK: " + uLgK + ", skLgK: " + skLgK
+        + ", SkType: " + tgtHllType.toString()
+        + ", Case2: Heap Union, Memory sketch; Case3: /Memory Union, Heap sketch";
+    checkArrays(bytesOut2, bytesOut3, comb, false);
+
+    //Case 4 Memory Union, Memory sketch
+    u = buildMemoryUnionHllMode(uLgK, 0);
+    sk = buildMemorySketchHllMode(skLgK, tgtHllType, 1 << uLgK);
+    u.update(sk);
+    byte[] bytesOut4 = u.getResult(HLL_8).toUpdatableByteArray();
+
+    comb = "LgK: " + uLgK + ", skLgK: " + skLgK
+        + ", SkType: " + tgtHllType.toString()
+        + ", Case2: Heap Union, Memory sketch; Case4: /Memory Union, Memory sketch";
+    checkArrays(bytesOut2, bytesOut4, comb, false);
+  }
+
+  @Test
+  //Creates a binary reference: HLL_8 merged with union, HLL_8 result binary.
+  //Case 1: HLL_6 merged with a union, HLL_8 result binary compared with the reference.
+  //Case 2: HLL_4 merged with a union, Hll_8 result binary compared with the reference.
+  //Both Case 1 and 2 should differ in the binary output compared with the reference only for the
+  //HllAccum register.
+  public void isomorphicHllMerges2() {
+    byte[] bytesOut8, bytesOut6, bytesOut4;
+    String comb;
+    Union u;
+    HllSketch sk;
+    for (int lgK = 4; lgK <= 4; lgK++) { //All LgK
+      u = buildHeapUnionHllMode(lgK, 0);
+      sk = buildHeapSketchHllMode(lgK, HLL_8, 1 << lgK);
+      u.update(sk);
+      bytesOut8 = u.getResult(HLL_8).toUpdatableByteArray(); //The reference
+
+      u = buildHeapUnionHllMode(lgK, 0);
+      sk = buildHeapSketchHllMode(lgK, HLL_6, 1 << lgK);
+      u.update(sk);
+      bytesOut6 = u.getResult(HLL_8).toUpdatableByteArray();//should be identical except for HllAccum
+
+      comb = "LgK: " + lgK + ", SkType: HLL_6, Compared with SkType HLL_8";
+      checkArrays(bytesOut8, bytesOut6, comb, true);
+
+      u = buildHeapUnionHllMode(lgK, 0);
+      sk = buildHeapSketchHllMode(lgK, HLL_4, 1 << lgK);
+      u.update(sk);
+      bytesOut4 = u.getResult(HLL_8).toUpdatableByteArray();//should be identical except for HllAccum
+
+      comb = "LgK: " + lgK + ", SkType: HLL_4, Compared with SkType HLL_8";
+      checkArrays(bytesOut8, bytesOut4, comb, true);
     }
   }
 
@@ -202,7 +254,6 @@ public class IsomorphicTest {
     }
     println("");
   }
-
 
   //BUILDERS
   private Union buildHeapUnion(int lgMaxK, CurMode curMode) {
