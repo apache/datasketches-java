@@ -58,7 +58,7 @@ public class IntMemoryPairIterator extends PairIterator {
 
   @Override
   public int getKey() {
-    return HllUtil.getLow26(pair);
+    return HllUtil.getPairLow26(pair);
   }
 
   @Override
@@ -73,7 +73,7 @@ public class IntMemoryPairIterator extends PairIterator {
 
   @Override
   public int getValue() {
-    return HllUtil.getValue(pair);
+    return HllUtil.getPairValue(pair);
   }
 
   @Override

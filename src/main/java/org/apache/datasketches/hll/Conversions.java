@@ -38,8 +38,8 @@ class Conversions {
 
     //1st pass: compute starting curMin and numAtCurMin:
     final int pair = curMinAndNum(srcHllArr);
-    final int curMin = HllUtil.getValue(pair);
-    final int numAtCurMin = HllUtil.getLow26(pair);
+    final int curMin = HllUtil.getPairValue(pair);
+    final int numAtCurMin = HllUtil.getPairLow26(pair);
 
     //2nd pass: Must know curMin to create AuxHashMap.
     //Populate KxQ registers, build AuxHashMap if needed
@@ -50,14 +50,14 @@ class Conversions {
       final int actualValue = itr.getValue();
       AbstractHllArray.hipAndKxQIncrementalUpdate(hll4Array, 0, actualValue);
       if (actualValue >= (curMin + 15)) {
-        hll4Array.putSlotValue(slotNo, AUX_TOKEN);
+        hll4Array.putNibble(slotNo, AUX_TOKEN);
         if (auxHashMap == null) {
           auxHashMap = new HeapAuxHashMap(LG_AUX_ARR_INTS[lgConfigK], lgConfigK);
           hll4Array.putAuxHashMap(auxHashMap, false);
         }
         auxHashMap.mustAdd(slotNo, actualValue);
       } else {
-        hll4Array.putSlotValue(slotNo, actualValue - curMin);
+        hll4Array.putNibble(slotNo, actualValue - curMin);
       }
     }
 

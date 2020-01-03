@@ -41,7 +41,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
-class DirectHll4Array extends DirectHllArray {
+final class DirectHll4Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
@@ -76,13 +76,13 @@ class DirectHll4Array extends DirectHllArray {
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
     insertEmptyFlag(wmem, false);
-    final int newValue = HllUtil.getValue(coupon);
+    final int newValue = coupon >>> KEY_BITS_26;
     if (newValue <= getCurMin()) {
       return this; // super quick rejection; only works for large N, HLL4
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    Hll4Update.internalHll4Update(this, slotNo, newValue);
+    final int slotNo = coupon & configKmask;
+    putSlotValue(slotNo, newValue);
     return this;
   }
 
@@ -92,13 +92,24 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  final int getSlotValue(final int slotNo) {
+  int getNibble(final int slotNo) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
     int theByte = mem.getByte(offset);
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
     return theByte & loNibbleMask;
+  }
+
+  @Override
+  int getSlotValue(final int slotNo) {
+    final int nib = getNibble(slotNo);
+    if (nib == AUX_TOKEN) {
+      final AuxHashMap auxHashMap = getAuxHashMap();
+      return auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
+    } else {
+      return nib + getCurMin();
+    }
   }
 
   @Override
@@ -136,13 +147,18 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  final void putSlotValue(final int slotNo, final int newValue) {
+  void putNibble(final int slotNo, final int nibValue) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
     final int oldValue = mem.getByte(offset);
     final byte value = ((slotNo & 1) == 0) //even?
-        ? (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask)) //set low nibble
-        : (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask)); //set high nibble
+        ? (byte) ((oldValue & hiNibbleMask) | (nibValue & loNibbleMask)) //set low nibble
+        : (byte) ((oldValue & loNibbleMask) | ((nibValue << 4) & hiNibbleMask)); //set high nibble
     wmem.putByte(offset, value);
+  }
+
+  @Override
+  void putSlotValue(final int slotNo, final int newValue) {
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 
   @Override
@@ -198,13 +214,7 @@ class DirectHll4Array extends DirectHllArray {
 
     @Override
     int value() {
-      final int nib = DirectHll4Array.this.getSlotValue(index);
-      if (nib == AUX_TOKEN) {
-        final AuxHashMap auxHashMap = getAuxHashMap();
-        return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
-      } else {
-        return nib + getCurMin();
-      }
+      return getSlotValue(index);
     }
   }
 

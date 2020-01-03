@@ -36,7 +36,7 @@ import org.apache.datasketches.memory.Memory;
  * Uses 4 bits per slot in a packed byte array.
  * @author Lee Rhodes
  */
-class Hll4Array extends HllArray {
+final class Hll4Array extends HllArray {
 
   /**
    * Standard constructor for new instance
@@ -79,23 +79,34 @@ class Hll4Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int newValue = HllUtil.getValue(coupon);
+    final int newValue = coupon >>> KEY_BITS_26;
     if (newValue <= getCurMin()) {
       return this; // super quick rejection; only works for large N
     }
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    Hll4Update.internalHll4Update(this, slotNo, newValue);
+    final int slotNo = coupon & configKmask;
+    putSlotValue(slotNo, newValue);
     return this;
   }
 
   @Override
-  int getSlotValue(final int slotNo) {
+  int getNibble(final int slotNo) {
     int theByte = hllByteArr[slotNo >>> 1];
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
     return theByte & loNibbleMask;
+  }
+
+  @Override
+  int getSlotValue(final int slotNo) {
+    final int nib = getNibble(slotNo);
+    if (nib == AUX_TOKEN) {
+      final AuxHashMap auxHashMap = getAuxHashMap();
+      return auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
+    } else {
+      return nib + getCurMin();
+    }
   }
 
   @Override
@@ -133,14 +144,19 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  void putSlotValue(final int slotNo, final int newValue) {
+  void putNibble(final int slotNo, final int nibValue) {
     final int byteno = slotNo >>> 1;
     final int oldValue = hllByteArr[byteno];
     if ((slotNo & 1) == 0) { // set low nibble
-      hllByteArr[byteno] = (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask));
+      hllByteArr[byteno] = (byte) ((oldValue & hiNibbleMask) | (nibValue & loNibbleMask));
     } else { //set high nibble
-      hllByteArr[byteno] = (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask));
+      hllByteArr[byteno] = (byte) ((oldValue & loNibbleMask) | ((nibValue << 4) & hiNibbleMask));
     }
+  }
+
+  @Override
+  void putSlotValue(final int slotNo, final int newValue) {
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 
   @Override
@@ -158,13 +174,7 @@ class Hll4Array extends HllArray {
 
     @Override
     int value() {
-      final int nib = Hll4Array.this.getSlotValue(index);
-      if (nib == AUX_TOKEN) {
-        final AuxHashMap auxHashMap = getAuxHashMap();
-        return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
-      } else {
-        return nib + getCurMin();
-      }
+     return getSlotValue(index);
     }
   }
 

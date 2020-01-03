@@ -24,6 +24,7 @@ import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -72,9 +73,9 @@ class Hll6Array extends HllArray {
     final int newVal = coupon >>> KEY_BITS_26;
     assert newVal > 0;
 
-    final int curVal = get6Bit(wmem, 0, slotNo);
+    final int curVal = getSlotValue(slotNo);
     if (newVal > curVal) {
-      put6Bit(wmem, 0, slotNo, newVal);
+      putSlotValue(slotNo, newVal);
       hipAndKxQIncrementalUpdate(this, curVal, newVal);
       if (curVal == 0) {
         numAtCurMin--; //interpret numAtCurMin as num Zeros
@@ -82,6 +83,11 @@ class Hll6Array extends HllArray {
       }
     }
     return this;
+  }
+
+  @Override
+  int getNibble(final int slotNo) {
+    throw new SketchesStateException("Improper access.");
   }
 
   @Override
@@ -104,6 +110,11 @@ class Hll6Array extends HllArray {
       if (value == 0) { continue; }
       that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
     }
+  }
+
+  @Override
+  void putNibble(final int slotNo, final int nibValue) {
+    throw new SketchesStateException("Improper access.");
   }
 
   @Override

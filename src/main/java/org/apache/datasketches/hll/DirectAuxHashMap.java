@@ -127,7 +127,7 @@ class DirectAuxHashMap implements AuxHashMap {
     final int index = find(host, slotNo);
     if (index >= 0) {
       final int pair = host.mem.getInt(host.auxStart + (index << 2));
-      return HllUtil.getValue(pair);
+      return HllUtil.getPairValue(pair);
     }
     throw new SketchesStateException("SlotNo not found: " + slotNo);
   }

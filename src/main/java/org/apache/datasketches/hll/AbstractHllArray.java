@@ -161,6 +161,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_PREINTS;
   }
 
+  //overridden by Hll4Array and DirectHll4Array
+  abstract int getNibble(int slotNo);
+
   abstract int getSlotValue(int slotNo);
 
   @Override //used by HLL6 and HLL8, Overridden by HLL4
@@ -186,6 +189,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
   abstract void putKxQ0(double kxq0);
 
   abstract void putKxQ1(double kxq1);
+
+  //overridden by Hll4Array and DirectHll4Array
+  abstract void putNibble(int slotNo, int nibValue);
 
   abstract void putNumAtCurMin(int numAtCurMin);
 

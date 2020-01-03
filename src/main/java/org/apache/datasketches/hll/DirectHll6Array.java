@@ -26,13 +26,14 @@ import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
-class DirectHll6Array extends DirectHllArray {
+final class DirectHll6Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll6Array(final int lgConfigK, final WritableMemory wmem) {
@@ -54,8 +55,8 @@ class DirectHll6Array extends DirectHllArray {
     if (wmem == null) { noWriteAccess(); }
     insertEmptyFlag(wmem, false);
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    final int newVal = HllUtil.getValue(coupon);
+    final int slotNo = HllUtil.getPairLow26(coupon) & configKmask;
+    final int newVal = HllUtil.getPairValue(coupon);
     assert newVal > 0;
 
     final int curVal = getSlotValue(slotNo);
@@ -73,6 +74,11 @@ class DirectHll6Array extends DirectHllArray {
   @Override
   int getHllByteArrBytes() {
     return hll6ArrBytes(lgConfigK);
+  }
+
+  @Override
+  int getNibble(final int slotNo) {
+    throw new SketchesStateException("Improper access.");
   }
 
   @Override
@@ -95,6 +101,11 @@ class DirectHll6Array extends DirectHllArray {
       if (value == 0) { continue; }
       that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
     }
+  }
+
+  @Override
+  void putNibble(final int slotNo, final int nibValue) {
+    throw new SketchesStateException("Improper access.");
   }
 
   @Override

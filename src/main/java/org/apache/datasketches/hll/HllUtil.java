@@ -124,8 +124,8 @@ final class HllUtil {
 
   //Used for thrown exceptions
   static String pairString(final int pair) {
-    return "SlotNo: " + getLow26(pair) + ", Value: "
-        + getValue(pair);
+    return "SlotNo: " + getPairLow26(pair) + ", Value: "
+        + getPairValue(pair);
   }
 
   //Pairs
@@ -133,11 +133,11 @@ final class HllUtil {
     return (value << KEY_BITS_26) | (slotNo & KEY_MASK_26);
   }
 
-  static final int getLow26(final int coupon) {
+  static final int getPairLow26(final int coupon) {
     return coupon & KEY_MASK_26;
   }
 
-  static final int getValue(final int coupon) {
+  static final int getPairValue(final int coupon) {
     return coupon >>> KEY_BITS_26;
   }
 
