@@ -462,7 +462,7 @@ public class Union extends BaseHllSketch {
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK);  //downsample gdt to srcLgK
         //merge src(Hll4,6,8;heap/mem,Mode=HLL) -> gdt(Hll8,heap,hll)
-        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
+        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
         gdtHll8Heap.putOutOfOrderFlag(true);
         hllSketchImpl = gdtHll8Heap.hllSketchImpl;
         break;
@@ -471,7 +471,7 @@ public class Union extends BaseHllSketch {
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK);  //downsample gdt to srcLgK
         //merge src(Hll4,6,8;heap/mem;Mode=HLL) -> gdt(Hll8,heap,Mode=HLL)
-        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
+        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
         final WritableMemory wmem = gadget.getWritableMemory();    //use the gdt wmem
         final byte[] byteArr = gdtHll8Heap.toUpdatableByteArray(); //serialize gdtCopy
         wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
