@@ -21,7 +21,6 @@ package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
-import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
@@ -87,15 +86,15 @@ class Hll8Array extends HllArray {
     return new HeapHll8Iterator(1 << lgConfigK);
   }
 
-  @Override
-  void mergeTo(final HllSketch that) {
-    final int thisK = 1 << lgConfigK;
-    for (int i = 0; i < thisK; i++ ) {
-      final int value = hllByteArr[i] & VAL_MASK_6;
-      if (value == 0) { continue; }
-      that.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
-    }
-  }
+  //  @Override
+  //  void mergeTo(final HllSketch that) {
+  //    final int thisK = 1 << lgConfigK;
+  //    for (int i = 0; i < thisK; i++ ) {
+  //      final int value = hllByteArr[i] & VAL_MASK_6;
+  //      if (value == 0) { continue; }
+  //      that.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
+  //    }
+  //  }
 
   @Override
   void putNibble(final int slotNo, final int nibValue) {

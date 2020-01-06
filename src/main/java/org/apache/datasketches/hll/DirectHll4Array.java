@@ -21,7 +21,6 @@ package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
-import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.hiNibbleMask;
 import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
@@ -34,6 +33,7 @@ import static org.apache.datasketches.hll.PreambleUtil.insertCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -124,22 +124,22 @@ final class DirectHll4Array extends DirectHllArray {
     return new DirectHll4Iterator(1 << lgConfigK);
   }
 
-  @Override
-  void mergeTo(final HllSketch that) {
-    final int slots = 1 << lgConfigK;
-    for (int slotNo = 0; slotNo < slots; slotNo++) {
-      int value = mem.getByte(HLL_BYTE_ARR_START + (slotNo >>> 1)) & 0xFF;
-      final int nib = ((slotNo & 1) > 0) ? value >>> 4 : value & loNibbleMask;
-      if (nib == AUX_TOKEN) {
-        final AuxHashMap auxHashMap = getAuxHashMap();
-        value = auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
-      } else {
-        value = nib;
-      }
-      if (value == 0) { continue; }
-      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
-    }
-  }
+  //  @Override
+  //  void mergeTo(final HllSketch that) {
+  //    final int slots = 1 << lgConfigK;
+  //    for (int slotNo = 0; slotNo < slots; slotNo++) {
+  //      int value = mem.getByte(HLL_BYTE_ARR_START + (slotNo >>> 1)) & 0xFF;
+  //      final int nib = ((slotNo & 1) > 0) ? value >>> 4 : value & loNibbleMask;
+  //      if (nib == AUX_TOKEN) {
+  //        final AuxHashMap auxHashMap = getAuxHashMap();
+  //        value = auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
+  //      } else {
+  //        value = nib;
+  //      }
+  //      if (value == 0) { continue; }
+  //      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+  //    }
+  //  }
 
   @Override
   void putNibble(final int slotNo, final int nibValue) {
@@ -154,14 +154,13 @@ final class DirectHll4Array extends DirectHllArray {
   @Override
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
   void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
-    Hll4Update.internalHll4Update(this, slotNo, newValue);
+    throw new SketchesStateException("Improper access.");
+    //Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 
   @Override
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
   void updateSlotWithKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 

@@ -85,9 +85,6 @@ public class UnionCaseTest {
     println("");
   }
 
-  @Test
-  public void checkOne() { checkCase(13, HLL_8, false); }
-
   private void checkCase(int caseNum, TgtHllType srcType, boolean srcMem) {
     source = getSource(caseNum, srcType, srcMem);
     boolean gdtMem = (caseNum & 1) > 0;

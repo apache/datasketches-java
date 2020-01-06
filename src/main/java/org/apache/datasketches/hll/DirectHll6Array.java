@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
-import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -79,17 +77,17 @@ final class DirectHll6Array extends DirectHllArray {
     return new DirectHll6Iterator(1 << lgConfigK);
   }
 
-  @Override
-  void mergeTo(final HllSketch that) {
-    final int slots = 1 << lgConfigK;
-    for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
-      final int tmp = mem.getShort(HLL_BYTE_ARR_START + (bitOffset / 8));
-      final int shift = (bitOffset % 8) & 0X7;
-      final int value = (tmp >>> shift) & VAL_MASK_6;
-      if (value == 0) { continue; }
-      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
-    }
-  }
+  //  @Override
+  //  void mergeTo(final HllSketch that) {
+  //    final int slots = 1 << lgConfigK;
+  //    for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
+  //      final int tmp = mem.getShort(HLL_BYTE_ARR_START + (bitOffset / 8));
+  //      final int shift = (bitOffset % 8) & 0X7;
+  //      final int value = (tmp >>> shift) & VAL_MASK_6;
+  //      if (value == 0) { continue; }
+  //      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+  //    }
+  //  }
 
   @Override
   void putNibble(final int slotNo, final int nibValue) {
@@ -98,16 +96,15 @@ final class DirectHll6Array extends DirectHllArray {
 
   @Override
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
-    final int oldValue = getSlotValue(slotNo);
-    if (newValue > oldValue) {
-      put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
-    }
+    throw new SketchesStateException("Improper access.");
+    //    final int oldValue = getSlotValue(slotNo);
+    //    if (newValue > oldValue) {
+    //      put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+    //    }
   }
 
   @Override
   final void updateSlotWithKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);

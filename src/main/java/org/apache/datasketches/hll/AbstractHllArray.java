@@ -25,6 +25,8 @@ import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 
+import org.apache.datasketches.SketchesStateException;
+
 /**
  * @author Lee Rhodes
  */
@@ -179,6 +181,11 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   @Override
   abstract PairIterator iterator();
+
+  @Override
+  void mergeTo(final HllSketch that) {
+    throw new SketchesStateException("Possible Corruption, improper access.");
+  }
 
   abstract void putAuxHashMap(AuxHashMap auxHashMap, boolean compact);
 

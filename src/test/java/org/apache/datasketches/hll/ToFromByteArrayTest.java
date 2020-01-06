@@ -124,9 +124,9 @@ public class ToFromByteArrayTest {
     assertEquals(dst4.getEstimate(), src.getEstimate(), 0.0);
   }
 
-  static void printSketch(HllSketch sketch, String name) {
-    println(name +":\n" + sketch.toString(true, true, true, false));
-  }
+  //  static void printSketch(HllSketch sketch, String name) {
+  //    println(name +":\n" + sketch.toString(true, true, true, false));
+  //  }
 
   @Test
   public void printlnTest() {

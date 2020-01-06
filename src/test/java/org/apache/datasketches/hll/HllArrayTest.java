@@ -134,6 +134,35 @@ public class HllArrayTest {
   }
 
   @Test
+  public void checkHll4Exceptions() {
+    int lgK = 4;
+    int k = 1 << lgK;
+    HllSketch skH4 = new HllSketch(lgK, HLL_4);
+    for (int i = 0; i < k; i++) { skH4.update(i); }
+    AbstractHllArray absHllArr = (AbstractHllArray)skH4.hllSketchImpl;
+    try {
+      absHllArr.updateSlotNoKxQ(0,0);
+      fail();
+    }
+    catch (SketchesStateException e) { } //OK
+  }
+
+  @Test
+  public void checkDHll4Exceptions() {
+    int lgK = 4;
+    int k = 1 << lgK;
+    int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, HLL_4);
+    HllSketch skD4 = new HllSketch(lgK, HLL_4, WritableMemory.allocate(bytes));
+    for (int i = 0; i < k; i++) { skD4.update(i); }
+    AbstractHllArray absHllArr = (AbstractHllArray)skD4.hllSketchImpl;
+    try {
+      absHllArr.updateSlotNoKxQ(0,0);
+      fail();
+    }
+    catch (SketchesStateException e) { } //OK
+  }
+
+  @Test
   public void checkHll6Exceptions() {
     int lgK = 4;
     int k = 1 << lgK;
@@ -150,22 +179,8 @@ public class HllArrayTest {
       fail();
     }
     catch (SketchesStateException e) { } //OK
-  }
-
-  @Test
-  public void checkHll8Exceptions() {
-    int lgK = 4;
-    int k = 1 << lgK;
-    HllSketch skH6 = new HllSketch(lgK, HLL_8);
-    for (int i = 0; i < k; i++) { skH6.update(i); }
-    AbstractHllArray absHllArr = (AbstractHllArray)skH6.hllSketchImpl;
     try {
-      absHllArr.getNibble(0);
-      fail();
-    }
-    catch (SketchesStateException e) { } //OK
-    try {
-      absHllArr.putNibble(0,0);
+      absHllArr.updateSlotNoKxQ(0,0);
       fail();
     }
     catch (SketchesStateException e) { } //OK
@@ -179,6 +194,30 @@ public class HllArrayTest {
     HllSketch skD6 = new HllSketch(lgK, HLL_6, WritableMemory.allocate(bytes));
     for (int i = 0; i < k; i++) { skD6.update(i); }
     AbstractHllArray absHllArr = (AbstractHllArray)skD6.hllSketchImpl;
+    try {
+      absHllArr.getNibble(0);
+      fail();
+    }
+    catch (SketchesStateException e) { } //OK
+    try {
+      absHllArr.putNibble(0,0);
+      fail();
+    }
+    catch (SketchesStateException e) { } //OK
+    try {
+      absHllArr.updateSlotNoKxQ(0,0);
+      fail();
+    }
+    catch (SketchesStateException e) { } //OK
+  }
+
+  @Test
+  public void checkHll8Exceptions() {
+    int lgK = 4;
+    int k = 1 << lgK;
+    HllSketch skH6 = new HllSketch(lgK, HLL_8);
+    for (int i = 0; i < k; i++) { skH6.update(i); }
+    AbstractHllArray absHllArr = (AbstractHllArray)skH6.hllSketchImpl;
     try {
       absHllArr.getNibble(0);
       fail();

@@ -22,7 +22,6 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.ByteArrayUtil.getShortLE;
 import static org.apache.datasketches.ByteArrayUtil.putShortLE;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
-import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
@@ -89,17 +88,17 @@ class Hll6Array extends HllArray {
     return new HeapHll6Iterator(1 << lgConfigK);
   }
 
-  @Override
-  void mergeTo(final HllSketch that) {
-    final int slots = 1 << lgConfigK;
-    for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
-      final int tmp = getShortLE(hllByteArr, bitOffset / 8);
-      final int shift = (bitOffset % 8) & 0X7;
-      final int value = (tmp >>> shift) & VAL_MASK_6;
-      if (value == 0) { continue; }
-      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
-    }
-  }
+  //  @Override
+  //  void mergeTo(final HllSketch that) {
+  //    final int slots = 1 << lgConfigK;
+  //    for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
+  //      final int tmp = getShortLE(hllByteArr, bitOffset / 8);
+  //      final int shift = (bitOffset % 8) & 0X7;
+  //      final int value = (tmp >>> shift) & VAL_MASK_6;
+  //      if (value == 0) { continue; }
+  //      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
+  //    }
+  //  }
 
   @Override
   void putNibble(final int slotNo, final int nibValue) {
@@ -108,10 +107,11 @@ class Hll6Array extends HllArray {
 
   @Override
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    final int oldValue = getSlotValue(slotNo);
-    if (newValue > oldValue) {
-      put6Bit(hllByteArr, 0, slotNo, newValue);
-    }
+    throw new SketchesStateException("Improper access.");
+    //    final int oldValue = getSlotValue(slotNo);
+    //    if (newValue > oldValue) {
+    //      put6Bit(hllByteArr, 0, slotNo, newValue);
+    //    }
   }
 
   @Override

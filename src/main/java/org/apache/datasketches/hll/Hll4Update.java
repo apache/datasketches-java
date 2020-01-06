@@ -66,7 +66,7 @@ class Hll4Update {
     //    This is the case where neither the old value nor the new value is an exception.
     //    Therefore we just overwrite the 4-bit array with the shifted new value.
 
-    if (rawStoredOldNibble == AUX_TOKEN) { //846
+    if (rawStoredOldNibble == AUX_TOKEN) { //846 Note: This is rare and really hard to test!
       auxHashMap = host.getAuxHashMap(); //auxHashMap must already exist.
       assert auxHashMap != null;
       actualOldValue = auxHashMap.mustFindValueFor(slotNo);//lgtm [java/dereferenced-value-may-be-null]
