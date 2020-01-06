@@ -65,21 +65,10 @@ class Hll8Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
+    final int newValue = coupon >>> KEY_BITS_26;
     final int configKmask = (1 << lgConfigK) - 1;
     final int slotNo = coupon & configKmask;
-    final int newVal = coupon >>> KEY_BITS_26;
-    assert newVal > 0;
-
-    final int curVal = getSlotValue(slotNo);
-    if (newVal > curVal) {
-      putSlotValue(slotNo, newVal);
-      hllByteArr[slotNo] = (byte) newVal;
-      hipAndKxQIncrementalUpdate(this, curVal, newVal);
-      if (curVal == 0) {
-        numAtCurMin--; //interpret numAtCurMin as num Zeros
-        assert getNumAtCurMin() >= 0;
-      }
-    }
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -114,8 +103,26 @@ class Hll8Array extends HllArray {
   }
 
   @Override
-  final void putSlotValue(final int slotNo, final int value) {
-    hllByteArr[slotNo] = (byte) (value & VAL_MASK_6);
+  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
+    }
+  }
+
+  @Override
+  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
+      hipAndKxQIncrementalUpdate(this, oldValue, newValue);
+      if (oldValue == 0) {
+        numAtCurMin--; //interpret numAtCurMin as num Zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
   }
 
   //ITERATOR

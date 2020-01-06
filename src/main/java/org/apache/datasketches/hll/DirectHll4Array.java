@@ -31,7 +31,6 @@ import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertCompactFlag;
-import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
@@ -75,14 +74,10 @@ final class DirectHll4Array extends DirectHllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
-    insertEmptyFlag(wmem, false);
     final int newValue = coupon >>> KEY_BITS_26;
-    if (newValue <= getCurMin()) {
-      return this; // super quick rejection; only works for large N, HLL4
-    }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = coupon & configKmask;
-    putSlotValue(slotNo, newValue);
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -157,7 +152,16 @@ final class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  void putSlotValue(final int slotNo, final int newValue) {
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
+  }
+
+  @Override
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
     Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 

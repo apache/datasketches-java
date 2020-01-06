@@ -195,7 +195,9 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void putNumAtCurMin(int numAtCurMin);
 
-  abstract void putSlotValue(final int slotNo, final int value);
+  abstract void updateSlotWithKxQ(final int slotNo, final int value);
+
+  abstract void updateSlotNoKxQ(final int slotNo, final int value);
 
   //Compute HLL byte array lengths, used by both heap and direct.
 
@@ -219,21 +221,25 @@ abstract class AbstractHllArray extends HllSketchImpl {
    * @param oldValue old value
    * @param newValue new value
    */
-  //In C: again-two-registers.c Lines 851 to 871
   //Called here and by Heap and Direct 6 and 8 bit implementations
+  //In C: again-two-registers.c Lines 851 to 871
   static final void hipAndKxQIncrementalUpdate(final AbstractHllArray host,
       final int oldValue, final int newValue) {
     assert newValue > oldValue;
-    final int configK = 1 << host.getLgConfigK();
+    final double kxq0 = host.getKxQ0();
+    final double kxq1 = host.getKxQ1();
     //update hipAccum BEFORE updating kxq0 and kxq1
-    double kxq0 = host.getKxQ0();
-    double kxq1 = host.getKxQ1();
-    host.addToHipAccum(configK / (kxq0 + kxq1));
+    host.addToHipAccum((1 << host.getLgConfigK()) / (kxq0 + kxq1));
+    incrementalUpdateKxQ(host, oldValue, newValue, kxq0, kxq1);
+  }
+
+  //separate KxQ updates
+  static final void incrementalUpdateKxQ(final AbstractHllArray host,
+      final int oldValue, final int newValue, double kxq0, double kxq1) {
     //update kxq0 and kxq1; subtract first, then add.
     if (oldValue < 32) { host.putKxQ0(kxq0 -= invPow2(oldValue)); }
     else               { host.putKxQ1(kxq1 -= invPow2(oldValue)); }
     if (newValue < 32) { host.putKxQ0(kxq0 += invPow2(newValue)); }
     else               { host.putKxQ1(kxq1 += invPow2(newValue)); }
   }
-
 }

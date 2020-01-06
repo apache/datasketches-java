@@ -80,12 +80,9 @@ final class Hll4Array extends HllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     final int newValue = coupon >>> KEY_BITS_26;
-    if (newValue <= getCurMin()) {
-      return this; // super quick rejection; only works for large N
-    }
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = coupon & configKmask;
-    putSlotValue(slotNo, newValue);
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -155,7 +152,16 @@ final class Hll4Array extends HllArray {
   }
 
   @Override
-  void putSlotValue(final int slotNo, final int newValue) {
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
+  }
+
+  @Override
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
     Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 

@@ -68,20 +68,10 @@ class Hll6Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
+    final int newValue = coupon >>> KEY_BITS_26;
     final int configKmask = (1 << lgConfigK) - 1;
     final int slotNo = coupon & configKmask;
-    final int newVal = coupon >>> KEY_BITS_26;
-    assert newVal > 0;
-
-    final int curVal = getSlotValue(slotNo);
-    if (newVal > curVal) {
-      putSlotValue(slotNo, newVal);
-      hipAndKxQIncrementalUpdate(this, curVal, newVal);
-      if (curVal == 0) {
-        numAtCurMin--; //interpret numAtCurMin as num Zeros
-        assert getNumAtCurMin() >= 0;
-      }
-    }
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -118,8 +108,26 @@ class Hll6Array extends HllArray {
   }
 
   @Override
-  final void putSlotValue(final int slotNo, final int value) {
-    Hll6Array.put6Bit(wmem, 0, slotNo, value);
+  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      Hll6Array.put6Bit(wmem, 0, slotNo, newValue);
+    }
+  }
+
+  @Override
+  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      Hll6Array.put6Bit(wmem, 0, slotNo, newValue);
+      hipAndKxQIncrementalUpdate(this, oldValue, newValue);
+      if (oldValue == 0) {
+        numAtCurMin--; //interpret numAtCurMin as num Zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
   }
 
   //works for both heap and direct

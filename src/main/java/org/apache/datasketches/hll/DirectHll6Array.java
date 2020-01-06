@@ -24,7 +24,6 @@ import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
-import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
 
 import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
@@ -53,21 +52,10 @@ final class DirectHll6Array extends DirectHllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
-    insertEmptyFlag(wmem, false);
+    final int newValue = HllUtil.getPairValue(coupon);
     final int configKmask = (1 << getLgConfigK()) - 1;
     final int slotNo = HllUtil.getPairLow26(coupon) & configKmask;
-    final int newVal = HllUtil.getPairValue(coupon);
-    assert newVal > 0;
-
-    final int curVal = getSlotValue(slotNo);
-    if (newVal > curVal) {
-      putSlotValue(slotNo, newVal);
-      hipAndKxQIncrementalUpdate(this, curVal, newVal);
-      if (curVal == 0) {
-        decNumAtCurMin(); //overloaded as num zeros
-        assert getNumAtCurMin() >= 0;
-      }
-    }
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -109,8 +97,26 @@ final class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
-  final void putSlotValue(final int slotNo, final int value) {
-    Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, value);
+  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+    }
+  }
+
+  @Override
+  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    assert newValue > 0;
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+      hipAndKxQIncrementalUpdate(this, oldValue, newValue);
+      if (oldValue == 0) {
+        decNumAtCurMin(); //overloaded as num zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
   }
 
   //ITERATOR

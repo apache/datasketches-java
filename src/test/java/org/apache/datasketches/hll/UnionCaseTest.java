@@ -116,7 +116,7 @@ public class UnionCaseTest {
     String gdtOoof = Boolean.toString(union.isOutOfOrderFlag());
     printf(hfmt, caseNumStr, srcLgKStr, gdtLgKStr, srcType, gdtType, srcMem, gdtMem,
         srcMode, gdtMode, srcOoof, gdtOoof);
-    assertTrue(err < rse);
+    assertTrue(err < rse, "Err: " + err + ", RSE: " + rse);
   }
 
   private HllSketch getSource(int caseNum, TgtHllType tgtHllType, boolean memory) {
