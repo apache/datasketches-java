@@ -432,12 +432,8 @@ public class Union extends BaseHllSketch {
       case 5:  //src <= max, src >= gdt, gdtHLL, gdtMemory, forward merge, no downsample, ooof=True
       case 21: //src >  max, src >= gdt, gdtHLL, gdtMemory, forward merge, no downsample, ooof=True
       {
-        if (source.getTgtHllType() == HLL_8) {
-          mergeHlltoHLLmode(source, gadget, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
-        } else {
-          mergeHlltoHLLmode(source, gadget, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
-          //source.mergeTo(gadget);    //merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
-        }
+        //merge src(Hll4,6,8,heap/mem,Mode=HLL) -> gdt(Hll8,heap,Mode=HLL), may autofold
+        mergeHlltoHLLmode(source, gadget, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
         gadget.putOutOfOrderFlag(true);
         hllSketchImpl = gadget.hllSketchImpl;
         break;
@@ -465,12 +461,8 @@ public class Union extends BaseHllSketch {
       case 12: //src <= max, src <  gdt, gdtHLL, gdtHeap, fwd merge/repl, downsample Gdt, ooof=True
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK);  //downsample gdt to srcLgK
-        if (source.getTgtHllType() == HLL_8) {
-          mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
-        } else {
-          mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
-          //source.mergeTo(gdtHll8Heap);//merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
-        }
+        //merge src(Hll4,6,8;heap/mem,Mode=HLL) -> gdt(Hll8,heap,hll)
+        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
         gdtHll8Heap.putOutOfOrderFlag(true);
         hllSketchImpl = gdtHll8Heap.hllSketchImpl;
         break;
@@ -478,12 +470,8 @@ public class Union extends BaseHllSketch {
       case 13: //src <= max, src < gdt, gdtHLL, gdtMemory, fwd merge/repl mem, downsample Gdt, ooof=True
       {
         final HllSketch gdtHll8Heap = downsample(gadget, srcLgK);  //downsample gdt to srcLgK
-        if (source.getTgtHllType() == HLL_8) {
-          mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
-        } else {
-          mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, false);
-          //source.mergeTo(gdtHll8Heap);//merge src(Hll?,heap/mem,hll) -> gdt(Hll8,heap,hll), autofold
-        }
+        //merge src(Hll4,6,8;heap/mem;Mode=HLL) -> gdt(Hll8,heap,Mode=HLL)
+        mergeHlltoHLLmode(source, gdtHll8Heap, srcLgK, gadgetLgK, srcIsMem, gdtIsMem);
         final WritableMemory wmem = gadget.getWritableMemory();    //use the gdt wmem
         final byte[] byteArr = gdtHll8Heap.toUpdatableByteArray(); //serialize gdtCopy
         wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
@@ -665,7 +653,6 @@ public class Union extends BaseHllSketch {
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
           for (int i = 0; i < srcK; i++) {
             final int srcV = srcAbsHllArr.getSlotValue(i);
-            if (srcV <= 0) { continue; }
             tgtAbsHllArr.updateSlotNoKxQ(i, srcV);
           }
           break;
@@ -679,7 +666,6 @@ public class Union extends BaseHllSketch {
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
           for (int i = 0; i < srcK; i++) {
             final int srcV = srcAbsHllArr.getSlotValue(i);
-            if (srcV <= 0) { continue; }
             final int j = i & tgtKmask;
             tgtAbsHllArr.updateSlotNoKxQ(j, srcV);
           }
@@ -703,16 +689,17 @@ public class Union extends BaseHllSketch {
     final HllArray tgtHllArr = HllArray.newHeapHll(tgtLgK, TgtHllType.HLL_8);
     final PairIterator candItr = candArr.iterator();
     while (candItr.nextValid()) {
-      tgtHllArr.couponUpdate(candItr.getPair());
+      tgtHllArr.couponUpdate(candItr.getPair()); //rebuilds KxQ, etc.
     }
     //both of these are required for isomorphism
     tgtHllArr.putHipAccum(candArr.getHipAccum());
     tgtHllArr.putOutOfOrderFlag(candidate.isOutOfOrderFlag());
+    tgtHllArr.putRebuildCurMinNumKxQFlag(false);
     return new HllSketch(tgtHllArr);
   }
 
   //Used to rebuild curMin, numAtCurMin and KxQ registers, due to high performance merge operation
-  //performed in cases 4 and 12.
+  //performed in 1st switch cases 4, 5, 12, 13, 20, 21
   private static final void rebuildCurMinNumKxQ(final AbstractHllArray absHllArr) {
     int curMin = 64;
     int numAtCurMin = 0;

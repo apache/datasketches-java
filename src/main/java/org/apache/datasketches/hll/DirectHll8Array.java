@@ -99,7 +99,6 @@ class DirectHll8Array extends DirectHllArray {
 
   @Override
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       wmem.putByte(HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));
@@ -108,7 +107,6 @@ class DirectHll8Array extends DirectHllArray {
 
   @Override
   final void updateSlotWithKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       wmem.putByte(HLL_BYTE_ARR_START + slotNo, (byte) (newValue & VAL_MASK_6));

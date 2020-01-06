@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.ByteArrayUtil.getShortLE;
+import static org.apache.datasketches.ByteArrayUtil.putShortLE;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
@@ -26,14 +28,13 @@ import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
 import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Uses 6 bits per slot in a packed byte array.
  * @author Lee Rhodes
  */
 class Hll6Array extends HllArray {
-  final WritableMemory wmem;
+
 
   /**
    * Standard constructor for new instance
@@ -42,7 +43,6 @@ class Hll6Array extends HllArray {
   Hll6Array(final int lgConfigK) {
     super(lgConfigK, TgtHllType.HLL_6);
     hllByteArr = new byte[hll6ArrBytes(lgConfigK)];
-    wmem = WritableMemory.wrap(hllByteArr);
   }
 
   /**
@@ -51,7 +51,6 @@ class Hll6Array extends HllArray {
    */
   Hll6Array(final Hll6Array that) {
     super(that);
-    wmem = WritableMemory.wrap(hllByteArr); //hllByteArr already cloned.
   }
 
   static final Hll6Array heapify(final Memory mem) {
@@ -82,7 +81,7 @@ class Hll6Array extends HllArray {
 
   @Override
   final int getSlotValue(final int slotNo) {
-    return Hll6Array.get6Bit(wmem, 0, slotNo);
+    return get6Bit(hllByteArr, 0, slotNo);
   }
 
   @Override
@@ -94,7 +93,7 @@ class Hll6Array extends HllArray {
   void mergeTo(final HllSketch that) {
     final int slots = 1 << lgConfigK;
     for (int slotNo = 0, bitOffset = 0; slotNo < slots; slotNo++, bitOffset += 6) {
-      final int tmp = wmem.getShort(bitOffset / 8);
+      final int tmp = getShortLE(hllByteArr, bitOffset / 8);
       final int shift = (bitOffset % 8) & 0X7;
       final int value = (tmp >>> shift) & VAL_MASK_6;
       if (value == 0) { continue; }
@@ -109,19 +108,17 @@ class Hll6Array extends HllArray {
 
   @Override
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      Hll6Array.put6Bit(wmem, 0, slotNo, newValue);
+      put6Bit(hllByteArr, 0, slotNo, newValue);
     }
   }
 
   @Override
   final void updateSlotWithKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      Hll6Array.put6Bit(wmem, 0, slotNo, newValue);
+      put6Bit(hllByteArr, 0, slotNo, newValue);
       hipAndKxQIncrementalUpdate(this, oldValue, newValue);
       if (oldValue == 0) {
         numAtCurMin--; //interpret numAtCurMin as num Zeros
@@ -130,25 +127,27 @@ class Hll6Array extends HllArray {
     }
   }
 
-  //works for both heap and direct
-  static final void put6Bit(final WritableMemory wmem, final int offsetBytes, final int slotNo,
+  //on-heap
+  private static final void put6Bit(final byte[] arr, final int offsetBytes, final int slotNo,
       final int newValue) {
     final int startBit = slotNo * 6;
     final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
     final int valShifted = (newValue & 0X3F) << shift;
-    final int curMasked = wmem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
+    final int curMasked = getShortLE(arr, byteIdx) & (~(VAL_MASK_6 << shift));
     final short insert = (short) (curMasked | valShifted);
-    wmem.putShort(byteIdx, insert);
+    putShortLE(arr, byteIdx, insert);
   }
 
-  //works for both heap and direct
-  static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
+  //on-heap
+  private static final int get6Bit(final byte[] arr, final int offsetBytes, final int slotNo) {
     final int startBit = slotNo * 6;
     final int shift = startBit & 0X7;
     final int byteIdx = (startBit >>> 3) + offsetBytes;
-    return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
+    return (byte) ((getShortLE(arr, byteIdx) >>> shift) & 0X3F);
   }
+
+
 
   //ITERATOR
 
@@ -163,7 +162,7 @@ class Hll6Array extends HllArray {
     @Override
     int value() {
       bitOffset += 6;
-      final int tmp = wmem.getShort(bitOffset / 8);
+      final int tmp = getShortLE(hllByteArr, bitOffset / 8);
       final int shift = (bitOffset % 8) & 0X7;
       return (tmp >>> shift) & VAL_MASK_6;
     }

@@ -37,7 +37,6 @@ class Hll4Update {
   static final void internalHll4Update(final AbstractHllArray host, final int slotNo,
       final int newValue) {
     assert ((0 <= slotNo) && (slotNo < (1 << host.getLgConfigK())));
-    assert (newValue > 0);
 
     final int curMin = host.getCurMin();
     final int rawStoredOldNibble = host.getNibble(slotNo);  //could be 0

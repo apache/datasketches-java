@@ -24,26 +24,26 @@ import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 
 /**
- * Converters for one TgtHllType to another.  The source can be heap or direct, but the output is
+ * Converters for one TgtHllType to another.  The source can be heap or direct, but the result is
  * always on heap.
  *
  * @author Lee Rhodes
  */
 class Conversions {
 
-  static final Hll4Array convertToHll4(final AbstractHllArray srcHllArr) {
-    final int lgConfigK = srcHllArr.getLgConfigK();
+  static final Hll4Array convertToHll4(final AbstractHllArray srcAbsHllArr) {
+    final int lgConfigK = srcAbsHllArr.getLgConfigK();
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
-    hll4Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
+    hll4Array.putOutOfOrderFlag(srcAbsHllArr.isOutOfOrderFlag());
 
     //1st pass: compute starting curMin and numAtCurMin:
-    final int pair = curMinAndNum(srcHllArr);
+    final int pair = curMinAndNum(srcAbsHllArr);
     final int curMin = HllUtil.getPairValue(pair);
     final int numAtCurMin = HllUtil.getPairLow26(pair);
 
     //2nd pass: Must know curMin to create AuxHashMap.
     //Populate KxQ registers, build AuxHashMap if needed
-    final PairIterator itr = srcHllArr.iterator();
+    final PairIterator itr = srcAbsHllArr.iterator();
     AuxHashMap auxHashMap = hll4Array.getAuxHashMap(); //may be null
     while (itr.nextValid()) {
       final int slotNo = itr.getIndex();
@@ -63,7 +63,8 @@ class Conversions {
 
     hll4Array.putCurMin(curMin);
     hll4Array.putNumAtCurMin(numAtCurMin);
-    hll4Array.putHipAccum(srcHllArr.getHipAccum()); //intentional overwrite
+    hll4Array.putHipAccum(srcAbsHllArr.getHipAccum()); //intentional overwrite
+    hll4Array.putRebuildCurMinNumKxQFlag(false);
     return hll4Array;
   }
 
@@ -90,29 +91,30 @@ class Conversions {
     return HllUtil.pair(numAtCurMin, curMin);
   }
 
-  static final Hll6Array convertToHll6(final AbstractHllArray srcHllArr) {
-    final int lgConfigK = srcHllArr.lgConfigK;
+  static final Hll6Array convertToHll6(final AbstractHllArray srcAbsHllArr) {
+    final int lgConfigK = srcAbsHllArr.lgConfigK;
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-    hll6Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
+    hll6Array.putOutOfOrderFlag(srcAbsHllArr.isOutOfOrderFlag());
     int numZeros = 1 << lgConfigK;
-    final PairIterator itr = srcHllArr.iterator();
+    final PairIterator itr = srcAbsHllArr.iterator();
     while (itr.nextAll()) {
       if (itr.getValue() != EMPTY) {
         numZeros--;
-        hll6Array.couponUpdate(itr.getPair()); //creates KxQ registers
+        hll6Array.couponUpdate(itr.getPair()); //couponUpdate creates KxQ registers
       }
     }
     hll6Array.putNumAtCurMin(numZeros);
-    hll6Array.putHipAccum(srcHllArr.getHipAccum()); //intentional overwrite
+    hll6Array.putHipAccum(srcAbsHllArr.getHipAccum()); //intentional overwrite
+    hll6Array.putRebuildCurMinNumKxQFlag(false);
     return hll6Array;
   }
 
-  static final Hll8Array convertToHll8(final AbstractHllArray srcHllArr) {
-    final int lgConfigK = srcHllArr.lgConfigK;
+  static final Hll8Array convertToHll8(final AbstractHllArray srcAbsHllArr) {
+    final int lgConfigK = srcAbsHllArr.lgConfigK;
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
-    hll8Array.putOutOfOrderFlag(srcHllArr.isOutOfOrderFlag());
+    hll8Array.putOutOfOrderFlag(srcAbsHllArr.isOutOfOrderFlag());
     int numZeros = 1 << lgConfigK;
-    final PairIterator itr = srcHllArr.iterator();
+    final PairIterator itr = srcAbsHllArr.iterator();
     while (itr.nextAll()) {
       if (itr.getValue() != EMPTY) {
         numZeros--;
@@ -120,7 +122,8 @@ class Conversions {
       }
     }
     hll8Array.putNumAtCurMin(numZeros);
-    hll8Array.putHipAccum(srcHllArr.getHipAccum()); //intentional overwrite
+    hll8Array.putHipAccum(srcAbsHllArr.getHipAccum()); //intentional overwrite
+    hll8Array.putRebuildCurMinNumKxQFlag(false);
     return hll8Array;
   }
 

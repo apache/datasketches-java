@@ -71,7 +71,7 @@ final class DirectHll6Array extends DirectHllArray {
 
   @Override
   final int getSlotValue(final int slotNo) {
-    return Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+    return get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
   }
 
   @Override
@@ -101,7 +101,7 @@ final class DirectHll6Array extends DirectHllArray {
     assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+      put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
     }
   }
 
@@ -110,13 +110,33 @@ final class DirectHll6Array extends DirectHllArray {
     assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
-      Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+      put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
       hipAndKxQIncrementalUpdate(this, oldValue, newValue);
       if (oldValue == 0) {
         decNumAtCurMin(); //overloaded as num zeros
         assert getNumAtCurMin() >= 0;
       }
     }
+  }
+
+  //off-heap / direct
+  private static final void put6Bit(final WritableMemory wmem, final int offsetBytes, final int slotNo,
+      final int newValue) {
+    final int startBit = slotNo * 6;
+    final int shift = startBit & 0X7;
+    final int byteIdx = (startBit >>> 3) + offsetBytes;
+    final int valShifted = (newValue & 0X3F) << shift;
+    final int curMasked = wmem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
+    final short insert = (short) (curMasked | valShifted);
+    wmem.putShort(byteIdx, insert);
+  }
+
+  //off-heap / direct
+  private static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
+    final int startBit = slotNo * 6;
+    final int shift = startBit & 0X7;
+    final int byteIdx = (startBit >>> 3) + offsetBytes;
+    return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
   }
 
   //ITERATOR

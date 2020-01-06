@@ -154,14 +154,12 @@ final class Hll4Array extends HllArray {
   @Override
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
   void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 
   @Override
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
   void updateSlotWithKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 

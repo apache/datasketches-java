@@ -104,7 +104,6 @@ class Hll8Array extends HllArray {
 
   @Override
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
@@ -113,7 +112,6 @@ class Hll8Array extends HllArray {
 
   @Override
   final void updateSlotWithKxQ(final int slotNo, final int newValue) {
-    assert newValue > 0;
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
       hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
