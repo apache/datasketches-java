@@ -83,7 +83,6 @@ class Hll4Update {
 
     } else { //rawStoredOldNibble < AUX_TOKEN
       actualOldValue = lbOnOldValue;
-      if (newValue <= actualOldValue) { return; }
       //We know that the array will be changed, but we haven't actually updated yet.
       AbstractHllArray.hipAndKxQIncrementalUpdate(host, actualOldValue, newValue);
       shiftedNewValue = newValue - curMin;

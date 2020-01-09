@@ -22,6 +22,7 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_DENOM;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_NUMER;
+import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.insertAuxCount;
@@ -37,18 +38,22 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 class DirectAuxHashMap implements AuxHashMap {
   private final DirectHllArray host; //hosts the WritableMemory and read-only Memory
+  private final boolean readOnly;
 
   DirectAuxHashMap(final DirectHllArray host, final boolean initialize) {
     this.host = host;
+    readOnly = (host.wmem == null);
     final int initLgArrInts = HllUtil.LG_AUX_ARR_INTS[host.lgConfigK];
+
     if (initialize) { //must be writable
+      if (readOnly) { noWriteAccess(); }
       insertLgArr(host.wmem, initLgArrInts);
       host.wmem.clear(host.auxStart, 4 << initLgArrInts);
     } else {
       if (extractLgArr(host.mem) < initLgArrInts) {
-        if (host.wmem == null) { //read-only
+        if (readOnly) {
           throw new SketchesArgumentException(
-              "Possible Memory image corruption, missing LgArr field in preamble.");
+              "Possible Memory image corruption, incorrect LgArr field in preamble.");
         }
         //insert the correct LgArr value
         final int lgArr =
@@ -106,6 +111,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public void mustAdd(final int slotNo, final int value) {
+    if (readOnly) { noWriteAccess(); }
     final int index = find(host, slotNo);
     final int pair = HllUtil.pair(slotNo, value);
     if (index >= 0) {
@@ -134,6 +140,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
   @Override
   public void mustReplace(final int slotNo, final int value) {
+    if (readOnly) { noWriteAccess(); }
     final int index = find(host, slotNo);
     if (index >= 0) {
       host.wmem.putInt(host.auxStart + (index << 2), HllUtil.pair(slotNo, value));
@@ -172,6 +179,7 @@ class DirectAuxHashMap implements AuxHashMap {
   }
 
   private static final void grow(final DirectHllArray host, final int oldLgAuxArrInts) {
+    if (host.wmem == null) { noWriteAccess(); }
     final int oldAuxArrInts = 1 << oldLgAuxArrInts;
     final int[] oldIntArray = new int[oldAuxArrInts]; //buffer old aux data
     host.wmem.getIntArray(host.auxStart, oldIntArray, 0, oldAuxArrInts);
