@@ -95,9 +95,10 @@ public class Union extends BaseHllSketch {
     if (tgtHllType != TgtHllType.HLL_8) {
       throw new SketchesArgumentException("Union can only wrap writable HLL_8 sketches.");
     }
-    //This should never happen
+    //This should not happen, this is in case it does.
     if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(sketch.hllSketchImpl));
+      throw new SketchesArgumentException
+      ("Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
     }
     gadget = sketch;
   }
@@ -316,6 +317,11 @@ public class Union extends BaseHllSketch {
    * @param sketch the given sketch.
    */
   public void update(final HllSketch sketch) {
+    //This should not happen, this is in case it does.
+    if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      throw new SketchesArgumentException
+      ("Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
+    }
     gadget.hllSketchImpl = unionImpl(sketch, gadget, lgMaxK);
   }
 

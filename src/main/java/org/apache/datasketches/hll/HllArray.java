@@ -72,6 +72,7 @@ abstract class HllArray extends AbstractHllArray {
   HllArray(final HllArray that) {
     super(that.getLgConfigK(), that.getTgtHllType(), CurMode.HLL);
     oooFlag = that.isOutOfOrderFlag();
+    rebuildCurMinNumKxQ = that.isRebuildCurMinNumKxQFlag();
     curMin = that.getCurMin();
     numAtCurMin = that.getNumAtCurMin();
     hipAccum = that.getHipAccum();

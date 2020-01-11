@@ -123,23 +123,6 @@ final class Hll4Array extends HllArray {
     return new HeapHll4Iterator(1 << lgConfigK);
   }
 
-  //  @Override
-  //  void mergeTo(final HllSketch that) {
-  //    final int slots = 1 << lgConfigK;
-  //    for (int slotNo = 0; slotNo < slots; slotNo++) {
-  //      int value = hllByteArr[slotNo >>> 1] & 0xFF;
-  //      final int nib = ((slotNo & 1) > 0) ? value >>> 4 : value & loNibbleMask;
-  //      if (nib == AUX_TOKEN) {
-  //        final AuxHashMap auxHashMap = getAuxHashMap();
-  //        value = auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
-  //      } else {
-  //        value = nib;
-  //      }
-  //      if (value == 0) { continue; }
-  //      that.couponUpdate((value << KEY_BITS_26) | (slotNo & KEY_MASK_26));
-  //    }
-  //  }
-
   @Override
   void putNibble(final int slotNo, final int nibValue) {
     final int byteno = slotNo >>> 1;
@@ -152,13 +135,13 @@ final class Hll4Array extends HllArray {
   }
 
   @Override
-  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  //Would be used by Union, but not used because the gadget is always HLL8 type
   void updateSlotNoKxQ(final int slotNo, final int newValue) {
     throw new SketchesStateException("Improper access.");
-    //Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 
   @Override
+  //Used by this couponUpdate()
   //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
   void updateSlotWithKxQ(final int slotNo, final int newValue) {
     Hll4Update.internalHll4Update(this, slotNo, newValue);

@@ -80,22 +80,13 @@ class DirectHll8Array extends DirectHllArray {
     return new DirectHll8Iterator(1 << lgConfigK);
   }
 
-  //  @Override
-  //  void mergeTo(final HllSketch that) {
-  //    final int slots = 1 << lgConfigK;
-  //    for (int i = 0; i < slots; i++ ) {
-  //      final int value = mem.getByte(HLL_BYTE_ARR_START + i) & VAL_MASK_6;
-  //      if (value == 0) { continue; }
-  //      that.couponUpdate((value << KEY_BITS_26) | (i & KEY_MASK_26));
-  //    }
-  //  }
-
   @Override
   void putNibble(final int slotNo, final int nibValue) {
     throw new SketchesStateException("Improper access.");
   }
 
   @Override
+  //Used by Union when source is not HLL8
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
@@ -104,6 +95,8 @@ class DirectHll8Array extends DirectHllArray {
   }
 
   @Override
+  //Used by this couponUpdate()
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
   final void updateSlotWithKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
     if (newValue > oldValue) {
