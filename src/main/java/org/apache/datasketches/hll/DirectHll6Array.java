@@ -23,13 +23,14 @@ import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
-class DirectHll6Array extends DirectHllArray {
+final class DirectHll6Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll6Array(final int lgConfigK, final WritableMemory wmem) {
@@ -49,20 +50,10 @@ class DirectHll6Array extends DirectHllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
+    final int newValue = HllUtil.getPairValue(coupon);
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    final int newVal = HllUtil.getValue(coupon);
-    assert newVal > 0;
-
-    final int curVal = getSlot(slotNo);
-    if (newVal > curVal) {
-      putSlot(slotNo, newVal);
-      hipAndKxQIncrementalUpdate(this, curVal, newVal);
-      if (curVal == 0) {
-        decNumAtCurMin(); //overloaded as num zeros
-        assert getNumAtCurMin() >= 0;
-      }
-    }
+    final int slotNo = HllUtil.getPairLow26(coupon) & configKmask;
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -72,18 +63,64 @@ class DirectHll6Array extends DirectHllArray {
   }
 
   @Override
+  int getNibble(final int slotNo) {
+    throw new SketchesStateException("Improper access.");
+  }
+
+  @Override
+  final int getSlotValue(final int slotNo) {
+    return get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+  }
+
+  @Override
   PairIterator iterator() {
     return new DirectHll6Iterator(1 << lgConfigK);
   }
 
   @Override
-  final int getSlot(final int slotNo) {
-    return Hll6Array.get6Bit(mem, HLL_BYTE_ARR_START, slotNo);
+  void putNibble(final int slotNo, final int nibValue) {
+    throw new SketchesStateException("Improper access.");
   }
 
   @Override
-  final void putSlot(final int slotNo, final int value) {
-    Hll6Array.put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, value);
+  //Would be used by Union, but not used because the gadget is always HLL8 type
+  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    throw new SketchesStateException("Improper access.");
+  }
+
+  @Override
+  //Used by this couponUpdate()
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      put6Bit(wmem, HLL_BYTE_ARR_START, slotNo, newValue);
+      hipAndKxQIncrementalUpdate(this, oldValue, newValue);
+      if (oldValue == 0) {
+        decNumAtCurMin(); //overloaded as num zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
+  }
+
+  //off-heap / direct
+  private static final void put6Bit(final WritableMemory wmem, final int offsetBytes, final int slotNo,
+      final int newValue) {
+    final int startBit = slotNo * 6;
+    final int shift = startBit & 0X7;
+    final int byteIdx = (startBit >>> 3) + offsetBytes;
+    final int valShifted = (newValue & 0X3F) << shift;
+    final int curMasked = wmem.getShort(byteIdx) & (~(VAL_MASK_6 << shift));
+    final short insert = (short) (curMasked | valShifted);
+    wmem.putShort(byteIdx, insert);
+  }
+
+  //off-heap / direct
+  private static final int get6Bit(final Memory mem, final int offsetBytes, final int slotNo) {
+    final int startBit = slotNo * 6;
+    final int shift = startBit & 0X7;
+    final int byteIdx = (startBit >>> 3) + offsetBytes;
+    return (byte) ((mem.getShort(byteIdx) >>> shift) & 0X3F);
   }
 
   //ITERATOR

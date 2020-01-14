@@ -20,6 +20,7 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.checkPreamble;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
@@ -278,6 +279,10 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.getEstimate();
   }
 
+  double getHipEstimate() {
+    return hllSketchImpl.getHipEstimate();
+  }
+
   @Override
   public int getLgConfigK() {
     return hllSketchImpl.getLgConfigK();
@@ -319,6 +324,10 @@ public class HllSketch extends BaseHllSketch {
     return HLL_BYTE_ARR_START + arrBytes;
   }
 
+  Memory getMemory() {
+    return hllSketchImpl.getMemory();
+  }
+
   @Override
   public TgtHllType getTgtHllType() {
     return hllSketchImpl.getTgtHllType();
@@ -327,6 +336,10 @@ public class HllSketch extends BaseHllSketch {
   @Override
   public int getUpdatableSerializationBytes() {
     return hllSketchImpl.getUpdatableSerializationBytes();
+  }
+
+  WritableMemory getWritableMemory() {
+    return hllSketchImpl.getWritableMemory();
   }
 
   @Override
@@ -364,6 +377,14 @@ public class HllSketch extends BaseHllSketch {
     return hllSketchImpl.isSameResource(mem);
   }
 
+  void mergeTo(final HllSketch that) {
+    hllSketchImpl.mergeTo(that);
+  }
+
+  void putOutOfOrderFlag(final boolean oooFlag) {
+    hllSketchImpl.putOutOfOrderFlag(oooFlag);
+  }
+
   @Override
   public void reset() {
     hllSketchImpl = hllSketchImpl.reset();
@@ -388,6 +409,7 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  Log Config K   : ").append(getLgConfigK()).append(LS);
       sb.append("  Hll Target     : ").append(getTgtHllType()).append(LS);
       sb.append("  Current Mode   : ").append(getCurMode()).append(LS);
+      sb.append("  Memory         : ").append(isMemory()).append(LS);
       sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
@@ -399,6 +421,7 @@ public class HllSketch extends BaseHllSketch {
         sb.append("  HipAccum       : ").append(absHll.getHipAccum()).append(LS);
         sb.append("  KxQ0           : ").append(absHll.getKxQ0()).append(LS);
         sb.append("  KxQ1           : ").append(absHll.getKxQ1()).append(LS);
+        sb.append("  Rebuild HIP Flg: ").append(absHll.isRebuildCurMinNumKxQFlag()).append(LS);
       } else {
         sb.append("  Coupon Count   : ")
           .append(((AbstractCoupons)hllSketchImpl).getCouponCount()).append(LS);
@@ -475,7 +498,7 @@ public class HllSketch extends BaseHllSketch {
 
   @Override
   void couponUpdate(final int coupon) {
-    if (coupon == EMPTY) { return; }
+    if ((coupon >>> KEY_BITS_26 ) == EMPTY) { return; }
     hllSketchImpl = hllSketchImpl.couponUpdate(coupon);
   }
 

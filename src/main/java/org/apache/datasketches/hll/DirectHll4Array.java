@@ -20,6 +20,7 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.hiNibbleMask;
 import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
@@ -32,13 +33,14 @@ import static org.apache.datasketches.hll.PreambleUtil.insertCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * @author Lee Rhodes
  */
-class DirectHll4Array extends DirectHllArray {
+final class DirectHll4Array extends DirectHllArray {
 
   //Called by HllSketch.writableWrap(), DirectCouponList.promoteListOrSetToHll
   DirectHll4Array(final int lgConfigK, final WritableMemory wmem) {
@@ -72,13 +74,10 @@ class DirectHll4Array extends DirectHllArray {
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
     if (wmem == null) { noWriteAccess(); }
-    final int newValue = HllUtil.getValue(coupon);
-    if (newValue <= getCurMin()) {
-      return this; // super quick rejection; only works for large N, HLL4
-    }
+    final int newValue = coupon >>> KEY_BITS_26;
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    Hll4Update.internalHll4Update(this, slotNo, newValue);
+    final int slotNo = coupon & configKmask;
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
@@ -88,18 +87,24 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  PairIterator iterator() {
-    return new DirectHll4Iterator(1 << lgConfigK);
-  }
-
-  @Override
-  final int getSlot(final int slotNo) {
+  int getNibble(final int slotNo) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
     int theByte = mem.getByte(offset);
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
     return theByte & loNibbleMask;
+  }
+
+  @Override
+  int getSlotValue(final int slotNo) {
+    final int nib = getNibble(slotNo);
+    if (nib == AUX_TOKEN) {
+      final AuxHashMap auxHashMap = getAuxHashMap();
+      return auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
+    } else {
+      return nib + getCurMin();
+    }
   }
 
   @Override
@@ -115,15 +120,32 @@ class DirectHll4Array extends DirectHllArray {
   }
 
   @Override
-  final void putSlot(final int slotNo, final int newValue) {
+  PairIterator iterator() {
+    return new DirectHll4Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  void putNibble(final int slotNo, final int nibValue) {
     final long offset = HLL_BYTE_ARR_START + (slotNo >>> 1);
     final int oldValue = mem.getByte(offset);
     final byte value = ((slotNo & 1) == 0) //even?
-        ? (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask)) //set low nibble
-        : (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask)); //set high nibble
+        ? (byte) ((oldValue & hiNibbleMask) | (nibValue & loNibbleMask)) //set low nibble
+        : (byte) ((oldValue & loNibbleMask) | ((nibValue << 4) & hiNibbleMask)); //set high nibble
     wmem.putByte(offset, value);
   }
 
+  @Override
+  //Would be used by Union, but not used because the gadget is always HLL8 type
+  void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    throw new SketchesStateException("Improper access.");
+  }
+
+  @Override
+  //Used by this couponUpdate()
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
+  }
 
   @Override
   byte[] toCompactByteArray() {
@@ -178,13 +200,7 @@ class DirectHll4Array extends DirectHllArray {
 
     @Override
     int value() {
-      final int nib = DirectHll4Array.this.getSlot(index);
-      if (nib == AUX_TOKEN) {
-        final AuxHashMap auxHashMap = getAuxHashMap();
-        return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
-      } else {
-        return nib + getCurMin();
-      }
+      return getSlotValue(index);
     }
   }
 

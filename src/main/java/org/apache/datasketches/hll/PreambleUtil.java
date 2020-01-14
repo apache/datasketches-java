@@ -137,6 +137,7 @@ final class PreambleUtil {
   static final int EMPTY_FLAG_MASK          = 4;
   static final int COMPACT_FLAG_MASK        = 8;
   static final int OUT_OF_ORDER_FLAG_MASK   = 16;
+  static final int REBUILD_CURMIN_NUM_KXQ_MASK = 32; //used only by Union
 
   //Mode byte masks
   static final int CUR_MODE_MASK            = 3;
@@ -422,6 +423,18 @@ final class PreambleUtil {
   static boolean extractOooFlag(final Memory mem) {
     final int flags = mem.getByte(FLAGS_BYTE);
     return (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
+  }
+
+  static void insertRebuildCurMinNumKxQFlag(final WritableMemory wmem, final boolean rebuild) {
+    int flags = wmem.getByte(FLAGS_BYTE);
+    if (rebuild) { flags |= REBUILD_CURMIN_NUM_KXQ_MASK; }
+    else { flags &= ~REBUILD_CURMIN_NUM_KXQ_MASK; }
+    wmem.putByte(FLAGS_BYTE, (byte) flags);
+  }
+
+  static boolean extractRebuildCurMinNumKxQFlag(final Memory mem) {
+    final int flags = mem.getByte(FLAGS_BYTE);
+    return (flags & REBUILD_CURMIN_NUM_KXQ_MASK) > 0;
   }
 
   static void insertFlags(final WritableMemory wmem, final int flags) {

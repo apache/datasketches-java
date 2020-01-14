@@ -20,6 +20,7 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.hiNibbleMask;
 import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
@@ -28,13 +29,14 @@ import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**
  * Uses 4 bits per slot in a packed byte array.
  * @author Lee Rhodes
  */
-class Hll4Array extends HllArray {
+final class Hll4Array extends HllArray {
 
   /**
    * Standard constructor for new instance
@@ -77,28 +79,31 @@ class Hll4Array extends HllArray {
 
   @Override
   HllSketchImpl couponUpdate(final int coupon) {
-    final int newValue = HllUtil.getValue(coupon);
-    if (newValue <= getCurMin()) {
-      return this; // super quick rejection; only works for large N
-    }
+    final int newValue = coupon >>> KEY_BITS_26;
     final int configKmask = (1 << getLgConfigK()) - 1;
-    final int slotNo = HllUtil.getLow26(coupon) & configKmask;
-    Hll4Update.internalHll4Update(this, slotNo, newValue);
+    final int slotNo = coupon & configKmask;
+    updateSlotWithKxQ(slotNo, newValue);
     return this;
   }
 
   @Override
-  PairIterator iterator() {
-    return new HeapHll4Iterator(1 << lgConfigK);
-  }
-
-  @Override
-  int getSlot(final int slotNo) {
+  int getNibble(final int slotNo) {
     int theByte = hllByteArr[slotNo >>> 1];
     if ((slotNo & 1) > 0) { //odd?
       theByte >>>= 4;
     }
     return theByte & loNibbleMask;
+  }
+
+  @Override
+  int getSlotValue(final int slotNo) {
+    final int nib = getNibble(slotNo);
+    if (nib == AUX_TOKEN) {
+      final AuxHashMap auxHashMap = getAuxHashMap();
+      return auxHashMap.mustFindValueFor(slotNo); //auxHashMap cannot be null here
+    } else {
+      return nib + getCurMin();
+    }
   }
 
   @Override
@@ -114,14 +119,32 @@ class Hll4Array extends HllArray {
   }
 
   @Override
-  void putSlot(final int slotNo, final int newValue) {
+  PairIterator iterator() {
+    return new HeapHll4Iterator(1 << lgConfigK);
+  }
+
+  @Override
+  void putNibble(final int slotNo, final int nibValue) {
     final int byteno = slotNo >>> 1;
     final int oldValue = hllByteArr[byteno];
     if ((slotNo & 1) == 0) { // set low nibble
-      hllByteArr[byteno] = (byte) ((oldValue & hiNibbleMask) | (newValue & loNibbleMask));
+      hllByteArr[byteno] = (byte) ((oldValue & hiNibbleMask) | (nibValue & loNibbleMask));
     } else { //set high nibble
-      hllByteArr[byteno] = (byte) ((oldValue & loNibbleMask) | ((newValue << 4) & hiNibbleMask));
+      hllByteArr[byteno] = (byte) ((oldValue & loNibbleMask) | ((nibValue << 4) & hiNibbleMask));
     }
+  }
+
+  @Override
+  //Would be used by Union, but not used because the gadget is always HLL8 type
+  void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    throw new SketchesStateException("Improper access.");
+  }
+
+  @Override
+  //Used by this couponUpdate()
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    Hll4Update.internalHll4Update(this, slotNo, newValue);
   }
 
   @Override
@@ -139,13 +162,7 @@ class Hll4Array extends HllArray {
 
     @Override
     int value() {
-      final int nib = Hll4Array.this.getSlot(index);
-      if (nib == AUX_TOKEN) {
-        final AuxHashMap auxHashMap = getAuxHashMap();
-        return auxHashMap.mustFindValueFor(index); //auxHashMap cannot be null here
-      } else {
-        return nib + getCurMin();
-      }
+     return getSlotValue(index);
     }
   }
 

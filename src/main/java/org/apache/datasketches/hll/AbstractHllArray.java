@@ -25,6 +25,8 @@ import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 
+import org.apache.datasketches.SketchesStateException;
+
 /**
  * @author Lee Rhodes
  */
@@ -91,15 +93,49 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return getHipAccum();
   }
 
+  /**
+   * For each actual update of the sketch, where the state of the sketch is changed, this register
+   * tracks the Historical Inverse Probability or HIP. Before the update is recorded this register
+   * is incremented by adding the inverse probability 1/Q (defined below). Since KxQ is scaled by K,
+   * the actual increment is K/KxQ as can be seen in the hipAndKxQIncrementalUpdate(...) method
+   * below.
+   * @return the HIP Accumulator
+   */
   abstract double getHipAccum();
+
+  @Override
+  double getHipEstimate() {
+    return getHipAccum();
+  }
 
   abstract int getHllByteArrBytes();
 
-  @Override
-  abstract PairIterator iterator();
-
+  /**
+   * Q = KxQ/K is the probability that an incoming event can modify the state of the sketch.
+   * KxQ is literally K times Q. The HIP estimator is based on tracking this probability as the
+   * sketch gets populated. It is tracked in the hipAccum register.
+   *
+   * <p>The KxQ registers serve dual purposes: They are used in the HIP estimator and in
+   * the "raw" HLL estimator defined in the Flajolet, et al, 2007 HLL paper. In order to do this,
+   * the way the KxQ registers are computed here differ from how they are defined in the paper.</p>
+   *
+   * <p>The paper Fig 2 defines</p>
+   * <pre>Z := ( sum[j=1,m](2^(-M[j])) )^(-1).</pre>
+   * But the HIP estimator requires a computation of the probability defined above.
+   * We accomplish both by redefing Z as
+   * <pre>Z := ( m + sum[j=1,m](2^(-M[j] - 1)) )^(-1).</pre>
+   * They are mathematically equivalent since:
+   * <pre>m + sum[j=1,m](2^(-M[j] - 1)) == m + sum[j=1,m](2^(-M[j])) - m == sum[j=1,m](2^(-M[j])).</pre>
+   *
+   * @return KxQ0
+   */
   abstract double getKxQ0();
 
+  /**
+   * This second KxQ register is shifted by 32 bits to give us more than 90 bits of mantissa
+   * precision, which produces more accurate results for very large counts.
+   * @return KxQ1
+   */
   abstract double getKxQ1();
 
   @Override
@@ -115,6 +151,11 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract AuxHashMap getNewAuxHashMap();
 
+  /**
+   * Returns the number of slots that have the value CurMin.
+   * If CurMin is 0, then it returns the number of zeros in the array.
+   * @return the number of slots that have the value CurMin.
+   */
   abstract int getNumAtCurMin();
 
   @Override
@@ -122,7 +163,10 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HLL_PREINTS;
   }
 
-  abstract int getSlot(int slotNo);
+  //overridden by Hll4Array and DirectHll4Array
+  abstract int getNibble(int slotNo);
+
+  abstract int getSlotValue(int slotNo);
 
   @Override //used by HLL6 and HLL8, Overridden by HLL4
   int getUpdatableSerializationBytes() {
@@ -135,6 +179,14 @@ abstract class AbstractHllArray extends HllSketchImpl {
     return HllEstimators.hllUpperBound(this, numStdDev);
   }
 
+  @Override
+  abstract PairIterator iterator();
+
+  @Override
+  void mergeTo(final HllSketch that) {
+    throw new SketchesStateException("Possible Corruption, improper access.");
+  }
+
   abstract void putAuxHashMap(AuxHashMap auxHashMap, boolean compact);
 
   abstract void putCurMin(int curMin);
@@ -145,11 +197,16 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   abstract void putKxQ1(double kxq1);
 
+  //overridden by Hll4Array and DirectHll4Array
+  abstract void putNibble(int slotNo, int nibValue);
+
   abstract void putNumAtCurMin(int numAtCurMin);
 
-  abstract void putSlot(final int slotNo, final int value);
+  abstract void updateSlotWithKxQ(final int slotNo, final int value);
 
-  //COMPUTING HLL BYTE ARRAY LENGTHS
+  abstract void updateSlotNoKxQ(final int slotNo, final int value);
+
+  //Compute HLL byte array lengths, used by both heap and direct.
 
   static final int hll4ArrBytes(final int lgConfigK) {
     return 1 << (lgConfigK - 1);
@@ -166,25 +223,30 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   /**
    * Common HIP and KxQ incremental update for all heap and direct Hll.
+   * This is used when incrementally updating an existing array with non-zero values.
    * @param host the origin implementation
    * @param oldValue old value
    * @param newValue new value
    */
-  //In C: again-two-registers.c Lines 851 to 871
   //Called here and by Heap and Direct 6 and 8 bit implementations
-  static final void hipAndKxQIncrementalUpdate(final AbstractHllArray host, final int oldValue,
-      final int newValue) {
+  //In C: again-two-registers.c Lines 851 to 871
+  static final void hipAndKxQIncrementalUpdate(final AbstractHllArray host,
+      final int oldValue, final int newValue) {
     assert newValue > oldValue;
-    final int configK = 1 << host.getLgConfigK();
+    final double kxq0 = host.getKxQ0();
+    final double kxq1 = host.getKxQ1();
     //update hipAccum BEFORE updating kxq0 and kxq1
-    double kxq0 = host.getKxQ0();
-    double kxq1 = host.getKxQ1();
-    host.addToHipAccum(configK / (kxq0 + kxq1));
+    host.addToHipAccum((1 << host.getLgConfigK()) / (kxq0 + kxq1));
+    incrementalUpdateKxQ(host, oldValue, newValue, kxq0, kxq1);
+  }
+
+  //separate KxQ updates
+  static final void incrementalUpdateKxQ(final AbstractHllArray host,
+      final int oldValue, final int newValue, double kxq0, double kxq1) {
     //update kxq0 and kxq1; subtract first, then add.
     if (oldValue < 32) { host.putKxQ0(kxq0 -= invPow2(oldValue)); }
     else               { host.putKxQ1(kxq1 -= invPow2(oldValue)); }
     if (newValue < 32) { host.putKxQ0(kxq0 += invPow2(newValue)); }
     else               { host.putKxQ1(kxq1 += invPow2(newValue)); }
   }
-
 }

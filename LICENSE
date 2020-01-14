@@ -225,7 +225,7 @@ APPENDIX B: Additional licenses relevant to this product:
     Code locations:
     -------------------------------------------------------------
     This product contains code to implement the xxHash function:
-      * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/XxHash.java
+      * src/main/java/org/apache/datasketches/hash/XxHash.java
     and adapted from Java source code located at:
       * https://github.com/OpenHFT/Zero-Allocation-Hashing/blob/master/src/main/java/net/openhft/hashing/XxHash.java
 
@@ -264,8 +264,8 @@ APPENDIX B: Additional licenses relevant to this product:
     Code locations:
     -------------------------------------------------------------
     This product contains code to implement the xxHash function:
-      * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/XxHash.java
-      * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/XxHashTest.java
+      * src/main/java/org/apache/datasketches/hash/XxHash.java
+      * src/test/java/org/apache/datasketches/hash/XxHashTest.java
     and adapted from C++ source code located at:
       * https://github.com/Cyan4973/xxHash/blob/dev/xxhash.c
       * https://github.com/Cyan4973/xxHash/blob/dev/xxhash.h
@@ -277,12 +277,12 @@ APPENDIX B: Additional licenses relevant to this product:
     =============================================================
     This product contains code to implement and test Austin Appleby's C++ public domain implementation of the 
     MurmurHash3 algorithm:
-    * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3.java
-    * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3Adaptor.java
-    * https://github.com/apache/incubator-datasketches-java/blob/master/src/main/java/org/apache/datasketches/hash/MurmurHash3v2.java
-    * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/MurmurHash3AdaptorTest.java
-    * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/MurmurHash3Test.java
-    * https://github.com/apache/incubator-datasketches-java/blob/master/src/test/java/org/apache/datasketches/hash/MurmurHash3v2Test.java
+    * src/main/java/org/apache/datasketches/hash/MurmurHash3.java
+    * src/main/java/org/apache/datasketches/hash/MurmurHash3Adaptor.java
+    * src/main/java/org/apache/datasketches/hash/MurmurHash3v2.java
+    * src/test/java/org/apache/datasketches/hash/MurmurHash3AdaptorTest.java
+    * src/test/java/org/apache/datasketches/hash/MurmurHash3Test.java
+    * src/test/java/org/apache/datasketches/hash/MurmurHash3v2Test.java
     and adapted from C++ source code located at:
     * https://github.com/aappleby/smhasher/blob/master/src/MurmurHash3.cpp
 

@@ -35,6 +35,8 @@ import org.apache.datasketches.memory.Memory;
  */
 abstract class BaseHllSketch {
 
+  abstract void couponUpdate(int coupon);
+
   /**
    * Gets the size in bytes of the current sketch when serialized using
    * <i>toCompactByteArray()</i>.
@@ -375,6 +377,6 @@ abstract class BaseHllSketch {
     return (value << KEY_BITS_26) | addr26;
   }
 
-  abstract void couponUpdate(int coupon);
+
 
 }

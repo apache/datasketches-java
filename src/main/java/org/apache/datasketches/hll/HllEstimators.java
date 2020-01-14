@@ -147,7 +147,7 @@ class HllEstimators {
    * Refer to Wikipedia: Coupon Collector Problem
    * @param lgConfigK the current configured lgK of the sketch
    * @param curMin the current minimum value of the HLL window
-   * @param numAtCurMin the current number of rows with the value curMin
+   * @param numAtCurMin the current number of slots with the value curMin
    * @return the very low range estimate
    */
   //In C: again-two-registers.c hhb_get_improved_linear_counting_estimate L1274

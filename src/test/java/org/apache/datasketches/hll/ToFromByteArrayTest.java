@@ -24,10 +24,9 @@ import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 import static org.testng.Assert.assertEquals;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -36,7 +35,6 @@ import org.apache.datasketches.memory.WritableMemory;
 public class ToFromByteArrayTest {
 
   static final int[] nArr = new int[] {1, 3, 10, 30, 100, 300, 1000, 3000, 10000, 30000};
-
 
   @Test
   public void checkToFromSketch1() {
@@ -126,9 +124,9 @@ public class ToFromByteArrayTest {
     assertEquals(dst4.getEstimate(), src.getEstimate(), 0.0);
   }
 
-  static void printSketch(HllSketch sketch, String name) {
-    println(name +":\n" + sketch.toString(true, true, true, false));
-  }
+  //  static void printSketch(HllSketch sketch, String name) {
+  //    println(name +":\n" + sketch.toString(true, true, true, false));
+  //  }
 
   @Test
   public void printlnTest() {
@@ -136,10 +134,10 @@ public class ToFromByteArrayTest {
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }
