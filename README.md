@@ -60,11 +60,12 @@ This is required by the Oracle Java Specification in order to ensure location-in
 
 ## Build Instructions
 
-### JDK8 is Required to compile
+### JDK8 is required to compile
+
 This DataSketches component is pure Java and you must compile using JDK 8.
 
 ### Recommended Build Tool
-The DataSketches-java component structured as a Maven project and Maven is the recommended Build Tool.
+This DataSketches component is structured as a Maven project and Maven is the recommended Build Tool.
 
 There are two types of tests: normal unit tests and tests run by the strict profile.  
 
