@@ -28,18 +28,18 @@
 # DataSketches Core Java Component
 This is the core Java component of the DataSketches library.  It contains all of the sketching algorithms and can be accessed directly from user applications. 
 This component is also is a dependency of other components of the library that create adaptors for target systems, such as Hadoop Pig and Hadoop Hive.
-Please refer to our [website](https://datasketches.github.io) for more comprehensive information about the various sketching algorithms and how to use them.
+Please refer to our [website](https://datasketches.apache.org) for more comprehensive information about the various sketching algorithms and how to use them.
 
 Note that we have a parallel core component for C++ and Python implementations of the same sketch algorithms, 
 [incubator-datasketches-cpp](https://github.com/apache/incubator-datasketches-cpp).
 
 ## Documentation
 
-### [DataSketches Library Website](https://datasketches.github.io/)
+### [DataSketches Library Website](https://datasketches.apache.org/)
 
-### [Java Core Overview](https://datasketches.github.io/docs/TheChallenge.html)
+### [Java Core Overview](https://datasketches.apache.org/docs/TheChallenge.html)
 
-### [Java Core Javadocs](https://datasketches.github.io/api/core/snapshot/apidocs/index.html)
+### [Java Core Javadocs](https://datasketches.apache.org/api/java/snapshot/apidocs/index.html)
 
 ## Downloading Latest Release
 __NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory 
@@ -61,7 +61,6 @@ This is required by the Oracle Java Specification in order to ensure location-in
 ## Build Instructions
 
 ### JDK8 is required to compile
-
 This DataSketches component is pure Java and you must compile using JDK 8.
 
 ### Recommended Build Tool
