@@ -61,6 +61,7 @@ This is required by the Oracle Java Specification in order to ensure location-in
 ## Build Instructions
 
 ### JDK8 is required to compile
+
 This DataSketches component is pure Java and you must compile using JDK 8.
 
 ### Recommended Build Tool

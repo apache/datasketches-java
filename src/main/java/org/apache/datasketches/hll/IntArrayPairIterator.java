@@ -22,21 +22,23 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 
 /**
- * Iterates over an on-heap integer array extracting pairs.
+ * Iterates over an on-heap integer array of pairs extracting
+ * the components of the pair at a given index.
  *
  * @author Lee Rhodes
  */
-class IntArrayPairIterator implements PairIterator {
+class IntArrayPairIterator extends PairIterator {
   private final int[] array;
+  private final int arrLen;
   private final int slotMask;
-  private final int lengthPairs;
   private int index;
   private int pair;
 
+  //used by CouponList, HeapAuxHashMap
   IntArrayPairIterator(final int[] array, final int lgConfigK) {
     this.array = array;
     slotMask = (1 << lgConfigK) - 1;
-    lengthPairs = array.length;
+    arrLen = array.length;
     index = - 1;
   }
 
@@ -47,7 +49,7 @@ class IntArrayPairIterator implements PairIterator {
 
   @Override
   public int getKey() {
-    return HllUtil.getLow26(pair);
+    return HllUtil.getPairLow26(pair);
   }
 
   @Override
@@ -62,12 +64,12 @@ class IntArrayPairIterator implements PairIterator {
 
   @Override
   public int getValue() {
-    return HllUtil.getValue(pair);
+    return HllUtil.getPairValue(pair);
   }
 
   @Override
   public boolean nextAll() {
-    if (++index < lengthPairs) {
+    if (++index < arrLen) {
       pair = array[index];
       return true;
     }
@@ -76,7 +78,7 @@ class IntArrayPairIterator implements PairIterator {
 
   @Override
   public boolean nextValid() {
-    while (++index < lengthPairs) {
+    while (++index < arrLen) {
       final int pair = array[index];
       if (pair != EMPTY) {
         this.pair = pair;

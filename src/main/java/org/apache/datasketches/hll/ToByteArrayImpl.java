@@ -40,6 +40,7 @@ import static org.apache.datasketches.hll.PreambleUtil.insertListCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.insertOooFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertPreInts;
+import static org.apache.datasketches.hll.PreambleUtil.insertRebuildCurMinNumKxQFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.hll.PreambleUtil.insertTgtHllType;
 
@@ -52,7 +53,7 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 class ToByteArrayImpl {
 
-  // To byte array used by the heap HLL types.
+  // To byte array used by the heap HLL modes.
   static final byte[] toHllByteArray(final AbstractHllArray impl, final boolean compact) {
     int auxBytes = 0;
     if (impl.tgtHllType == TgtHllType.HLL_4) {
@@ -100,6 +101,7 @@ class ToByteArrayImpl {
     insertKxQ0(tgtWmem, srcImpl.getKxQ0());
     insertKxQ1(tgtWmem, srcImpl.getKxQ1());
     insertNumAtCurMin(tgtWmem, srcImpl.getNumAtCurMin());
+    insertRebuildCurMinNumKxQFlag(tgtWmem, srcImpl.isRebuildCurMinNumKxQFlag());
   }
 
   private static final void insertAux(final AbstractHllArray srcImpl, final WritableMemory tgtWmem,

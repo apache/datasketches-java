@@ -19,9 +19,10 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.hll.CurMode.HLL;
 import static org.apache.datasketches.hll.CurMode.LIST;
 import static org.apache.datasketches.hll.CurMode.SET;
+import static org.apache.datasketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
+import static org.apache.datasketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
@@ -29,6 +30,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 /**
@@ -37,363 +41,122 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class UnionCaseTest {
   long v = 0;
+  final int maxLgK = 12;
+  HllSketch source;
+  Union union;
+  String hfmt = "%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s\n";
+  String hdr = String.format(hfmt, "caseNum","srcLgKStr","gdtLgKStr","srcType","gdtType",
+      "srcMem","gdtMem","srcMode","gdtMode","srcOoof","gdtOoof");
 
   @Test
-  public void checkCase0() { //src: LIST, gadget: LIST, cases 0, 0
-    int n1 = 2;
-    int n2 = 3;
-    int n3 = 2;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_6, n2);
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    assertEquals(u.getLgConfigK(), 12);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  public void checkAllCases() {
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_4, false);
+    }
+    println("");
+
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_6, false);
+    }
+    println("");
+
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_8, false);
+    }
+    println("");
+
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_4, true);
+    }
+    println("");
+
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_6, true);
+    }
+    println("");
+
+    print(hdr);
+    for (int i = 0; i < 24; i++) {
+      checkCase(i, HLL_8, true);
+    }
+    println("");
   }
 
-  @Test
-  public void checkCase1() { //src: SET, gadget: LIST, cases 0, 1
-    int n1 = 5;
-    int n2 = 2;
-    int n3 = 16;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);        //LIST, 5
-    HllSketch h2 = build(11, HLL_6, n2); //LIST, 2
-    HllSketch h3 = build(10, HLL_8, n3); //SET
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-
+  private void checkCase(int caseNum, TgtHllType srcType, boolean srcMem) {
+    source = getSource(caseNum, srcType, srcMem);
+    boolean gdtMem = (caseNum & 1) > 0;
+    Union union = getUnion(caseNum, gdtMem);
+    union.update(source);
+    int totalU = getSrcCount(caseNum, maxLgK) + getUnionCount(caseNum);
+    output(caseNum, source, union, totalU);
   }
 
-  @Test
-  public void checkCase2() { //src: HLL, gadget: LIST, swap, cases 0, 2
-    int n1 = 5;
-    int n2 = 2;
-    int n3 = 97;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_8, n2);
-    HllSketch h3 = build(10, HLL_4, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 10);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  private void output(int caseNum, HllSketch source, Union union, int totalU) {
+    double estU = union.getEstimate();
+    double err = Math.abs((estU / totalU) - 1.0);
+    int gdtLgK = union.getLgConfigK();
+    boolean uooof = union.isOutOfOrderFlag();
+    double rseFactor = (uooof) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
+    double rse = (rseFactor * 3) / Math.sqrt(1 << gdtLgK); //99.7% conf
+
+    //output other parameters
+    String caseNumStr = Integer.toString(caseNum);
+    String srcLgKStr = Integer.toString(source.getLgConfigK());
+    String gdtLgKStr = Integer.toString(union.getLgConfigK());
+    String srcType = source.getTgtHllType().toString();
+    String gdtType = union.getTgtHllType().toString();
+    String srcMem = Boolean.toString(source.isMemory());
+    String gdtMem = Boolean.toString(union.isMemory());
+    String srcMode = source.getCurMode().toString();
+    String gdtMode = union.getCurMode().toString();
+    String srcOoof = Boolean.toString(source.isOutOfOrderFlag());
+    String gdtOoof = Boolean.toString(union.isOutOfOrderFlag());
+    printf(hfmt, caseNumStr, srcLgKStr, gdtLgKStr, srcType, gdtType, srcMem, gdtMem,
+        srcMode, gdtMode, srcOoof, gdtOoof);
+    assertTrue(err < rse, "Err: " + err + ", RSE: " + rse);
   }
 
-  @Test
-  public void checkCase2B() { //src: HLL, gadget: LIST, swap, cases 0, 2; different lgKs
-    int n1 = 5;
-    int n2 = 2;
-    int n3 = 769;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_8, n2);
-    HllSketch h3 = build(13, HLL_4, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 12);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  private HllSketch getSource(int caseNum, TgtHllType tgtHllType, boolean memory) {
+    int srcLgK = getSrcLgK(caseNum, maxLgK);
+    int srcU = getSrcCount(caseNum, maxLgK);
+    if (memory) {
+      return buildMemorySketch(srcLgK, tgtHllType, srcU);
+    } else {
+      return buildHeapSketch(srcLgK, tgtHllType, srcU);
+    }
   }
 
-  @Test
-  public void checkCase4() { //src: LIST, gadget: SET, cases 0, 4
-    int n1 = 6;
-    int n2 = 10;
-    int n3 = 6;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_6, n2); //SET
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  private Union getUnion(int caseNum, boolean memory) {
+    int unionU = getUnionCount(caseNum);
+    return (memory) ? buildMemoryUnion(maxLgK, unionU) : buildHeapUnion(maxLgK, unionU);
   }
 
-  @Test
-  public void checkCase5() { //src: SET, gadget: SET, cases 0, 5
-    int n1 = 6;
-    int n2 = 10;
-    int n3 = 16;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_6, n2);
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  private static int getUnionCount(int caseNum) {
+    int gdtMode = (caseNum >> 1) & 3; //list, set, hll, empty
+    return (gdtMode == 0) ? 4 : (gdtMode == 1) ? 380 : (gdtMode == 2) ? 400 : 0;
   }
 
-  @Test
-  public void checkCase6() { //src: HLL, gadget: SET, swap, cases 1, 6
-    int n1 = 2;
-    int n2 = 192;
-    int n3 = 97;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_8, n2);
-    HllSketch h3 = build(10, HLL_4, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 10);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  private static int getSrcCount(int caseNum, int maxLgK) {
+    int srcLgK = getSrcLgK(caseNum, maxLgK);
+    return (((1 << srcLgK) * 3) / 4) + 100; //always HLL
   }
 
-  @Test
-  public void checkCase6B() { //src: HLL, gadget: SET, swap, downsize, cases 1, 6
-    int n1 = 6;
-    int n2 = 20;
-    int n3 = 769;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);
-    HllSketch h2 = build(11, HLL_8, n2);
-    HllSketch h3 = build(13, HLL_4, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase8() { //src: LIST, gadget: HLL, cases 2 (swap), 8
-    int n1 = 6;
-    int n2 = 193;
-    int n3 = 7;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1); //LIST
-    HllSketch h2 = build(11, HLL_6, n2); //HLL
-    HllSketch h3 = build(10, HLL_8, n3); //LIST
-    u.update(h2); //SET
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 11);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase9() { //src: SET, gadget: HLL, cases 2 (swap), 9
-    int n1 = 6;
-    int n2 = 193;
-    int n3 = 16;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1); //LIST
-    HllSketch h2 = build(11, HLL_6, n2); //HLL
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 11);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase10() { //src: HLL, gadget: HLL, cases 2 (swap), 10, downsample
-    int n1 = 6;
-    int n2 = 193;
-    int n3 = 97;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1); //LIST
-    HllSketch h2 = build(11, HLL_6, n2); //HLL
-    HllSketch h3 = build(10, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 10);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase10B() { //src: HLL, gadget: HLL, cases 2 (swap), 10, copy to HLL_8
-    int n1 = 6;
-    int n2 = 193;
-    int n3 = 193;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1); //LIST
-    HllSketch h2 = build(11, HLL_6, n2); //HLL_6
-    HllSketch h3 = build(11, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 11);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase12() { //src: LIST, gadget: empty, case 12
-    int n1 = 0;
-    int n2 = 0;
-    int n3 = 7;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);   //LIST empty
-    HllSketch h2 = build(11, HLL_6, n2);   //LIST empty, ignored
-    HllSketch h3 = build(10, HLL_8, n3);   //Src LIST
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    assertEquals(u.getLgConfigK(), 12);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase13() { //src: SET, gadget: empty, case 13
-    int n1 = 0;
-    int n2 = 0;
-    int n3 = 16;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);        //LIST empty
-    HllSketch h2 = build(11, HLL_6, n2);   //LIST empty, ignored
-    HllSketch h3 = build(10, HLL_8, n3);   // Src Set
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), SET);
-    assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase14() { //src: HLL, gadget: empty, case 14
-    int n1 = 0;
-    int n2 = 0;
-    int n3 = 97;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);        //LIST empty
-    HllSketch h2 = build(11, HLL_6, n2);   //LIST empty
-    HllSketch h3 = build(10, HLL_8, n3);   // Src HLL
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 10);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
-  }
-
-  @Test
-  public void checkCase14B() { //src: HLL, gadget: empty, case 14, downsize
-    int n1 = 0;
-    int n2 = 0;
-    int n3 = 385;
-    int sum = n1 + n2 + n3;
-    Union u = buildUnion(12, n1);        //LIST empty
-    HllSketch h2 = build(11, HLL_6, n2);   //LIST empty
-    HllSketch h3 = build(12, HLL_8, n3);
-    u.update(h2);
-    println(u.toString());
-    assertEquals(u.getCurMode(), LIST);
-    u.update(h3);
-    println(u.toString());
-    assertEquals(u.getCurMode(), HLL);
-    assertEquals(u.getLgConfigK(), 12);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 2.0);
-    println("ErrToll: " + err);
-    assertEquals(u.getEstimate(), sum, err);
+  private static int getSrcLgK(int caseNum, int maxLgK) {
+    int srcLgK = maxLgK;
+    int bits34 = (caseNum >> 3) & 3;
+    if (bits34 == 1) { srcLgK = maxLgK - 1;}
+    if (bits34 == 2) { srcLgK = maxLgK + 1;}
+    return srcLgK;
   }
 
   @Test
   public void checkMisc() {
-    Union u = buildUnion(12, 0);
+    Union u = buildHeapUnion(12, 0);
     int bytes = u.getCompactSerializationBytes();
     assertEquals(bytes, 8);
     bytes = Union.getMaxSerializationBytes(7);
@@ -412,29 +175,250 @@ public class UnionCaseTest {
     assertEquals(bArr.length, 8);
   }
 
+  @Test
+  public void checkSrcListList() { //src: LIST, gadget: LIST
+    int n1 = 2;
+    int n2 = 3;
+    int n3 = 2;
+    int sum = n1 + n2 + n3;
+    Union u = buildHeapUnion(12, n1); //gdt = list
+    HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //src = list
+    HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //src = list
+    u.update(h2);
+    println(u.toString());
+    assertEquals(u.getCurMode(), LIST);
+    u.update(h3);
+    println(u.toString());
+    assertEquals(u.getCurMode(), LIST);
+    assertEquals(u.getLgConfigK(), 12);
+    assertFalse(u.isOutOfOrderFlag());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    println("ErrToll: " + err);
+    assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @Test
+  public void checkSrcListSet() { //src: SET, gadget: LIST
+    int n1 = 5;
+    int n2 = 2;
+    int n3 = 16;
+    int sum = n1 + n2 + n3;
+    Union u = buildHeapUnion(12, n1);        //LIST, 5
+    HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //LIST, 2
+    HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //SET, 16
+    u.update(h2);
+    println(u.toString());
+    assertEquals(u.getCurMode(), LIST);
+    u.update(h3);
+    println(u.toString());
+    assertEquals(u.getCurMode(), SET);
+    assertEquals(u.getLgConfigK(), 12);
+    assertTrue(u.isOutOfOrderFlag());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    println("ErrToll: " + err);
+    assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @Test
+  public void checkSrcSetList() { //src: LIST, gadget: SET
+    int n1 = 6;
+    int n2 = 10;
+    int n3 = 6;
+    int sum = n1 + n2 + n3;
+    Union u = buildHeapUnion(12, n1);
+    HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //SET
+    HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //LIST
+    u.update(h2);
+    println(u.toString());
+    assertEquals(u.getCurMode(), SET);
+    u.update(h3);
+    println(u.toString());
+    assertEquals(u.getCurMode(), SET);
+    assertEquals(u.getLgConfigK(), 12);
+    assertTrue(u.isOutOfOrderFlag());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    println("ErrToll: " + err);
+    assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @Test
+  public void checkSrcSetSet() { //src: SET, gadget: SET
+    int n1 = 6;
+    int n2 = 10;
+    int n3 = 16;
+    int sum = n1 + n2 + n3;
+    Union u = buildHeapUnion(12, n1);
+    HllSketch h2 = buildHeapSketch(11, HLL_6, n2); //src: SET
+    HllSketch h3 = buildHeapSketch(10, HLL_8, n3); //src: SET
+    u.update(h2);
+    println(u.toString());
+    assertEquals(u.getCurMode(), SET);
+    u.update(h3);
+    println(u.toString());
+    assertEquals(u.getCurMode(), SET);
+    assertEquals(u.getLgConfigK(), 12);
+    assertTrue(u.isOutOfOrderFlag());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    println("ErrToll: " + err);
+    assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @Test
+  public void checkSrcEmptyList() { //src: LIST, gadget: empty
+    int n1 = 0;
+    int n2 = 0;
+    int n3 = 7;
+    int sum = n1 + n2 + n3;
+    Union u = buildHeapUnion(12, n1);   //LIST empty
+    HllSketch h2 = buildHeapSketch(11, HLL_6, n2);   //src: LIST empty, ignored
+    HllSketch h3 = buildHeapSketch(10, HLL_8, n3);   //src: LIST
+    u.update(h2);
+    println(u.toString());
+    assertEquals(u.getCurMode(), LIST);
+    u.update(h3);
+    println(u.toString());
+    assertEquals(u.getCurMode(), LIST);
+    assertEquals(u.getLgConfigK(), 12);
+    assertFalse(u.isOutOfOrderFlag());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    println("ErrToll: " + err);
+    assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @Test
+  public void checkSrcEmptySet() {
+    int n1 = 0;
+    int n2 = 0;
+    int n3 = 16;
+    int sum = n1 + n2 + n3;
+    Union u = buildHeapUnion(12, n1);        //LIST empty
+    HllSketch h2 = buildHeapSketch(11, HLL_6, n2);   //LIST empty, ignored
+    HllSketch h3 = buildHeapSketch(10, HLL_8, n3);   // Src Set
+    u.update(h2);
+    println(u.toString());
+    assertEquals(u.getCurMode(), LIST);
+    u.update(h3);
+    println(u.toString());
+    assertEquals(u.getCurMode(), SET);
+    assertEquals(u.getLgConfigK(), 12);
+    assertTrue(u.isOutOfOrderFlag());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    println("ErrToll: " + err);
+    assertEquals(u.getEstimate(), sum, err);
+  }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkSpecialMergeCase4() {
+    Union u = buildHeapUnion(12, 1 << 9);
+    HllSketch sk = buildHeapSketch(12, HLL_8, 1 << 9);
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getCompositeEstimate();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getLowerBound(2);
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getUpperBound(2);
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.getResult();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    byte[] ba = u.toCompactByteArray();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.update(sk);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    ba = u.toUpdatableByteArray();
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+
+    u.putRebuildCurMinNumKxQFlag(true);
+    assertTrue(u.isRebuildCurMinNumKxQFlag());
+    u.putRebuildCurMinNumKxQFlag(false);
+    assertFalse(u.isRebuildCurMinNumKxQFlag());
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkRebuildCurMinNumKxQFlag1() {
+    HllSketch sk = buildHeapSketch(4, HLL_8, 16);
+    HllArray hllArr = (HllArray)(sk.hllSketchImpl);
+    hllArr.putRebuildCurMinNumKxQFlag(true); //corrupt the flag
+    Union union = buildHeapUnion(4, 0);
+    union.update(sk); //throws
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkRebuildCurMinNumKxQFlag2() {
+    HllSketch sk = buildMemorySketch(4, HLL_8, 16);
+    DirectHllArray hllArr = (DirectHllArray)(sk.hllSketchImpl);
+    hllArr.putRebuildCurMinNumKxQFlag(true); //corrupt the flag
+    WritableMemory wmem = sk.getWritableMemory();
+    Union.writableWrap(wmem); //throws
+  }
+
+  @Test(expectedExceptions = SketchesStateException.class)
+  public void checkHllMergeToException() {
+    HllSketch src = buildHeapSketch(4, HLL_8, 16);
+    HllSketch tgt = buildHeapSketch(4, HLL_8, 16);
+    AbstractHllArray absHllArr = (AbstractHllArray)(src.hllSketchImpl);
+    absHllArr.mergeTo(tgt);
+  }
+
+
   private static double errorFactor(int lgK, boolean oooFlag, double numStdDev) {
     double f;
     if (oooFlag) {
-      f = (1.2 * numStdDev) / Math.sqrt(1 << lgK);
+      f = (1.04 * numStdDev) / Math.sqrt(1 << lgK);
     } else {
       f = (0.9 * numStdDev) / Math.sqrt(1 << lgK);
     }
     return f;
   }
 
-  private Union buildUnion(int lgMaxK, int n) {
+  //BUILDERS
+  private Union buildHeapUnion(int lgMaxK, int n) {
     Union u = new Union(lgMaxK);
     for (int i = 0; i < n; i++) { u.update(i + v); }
     v += n;
     return u;
   }
 
-  private HllSketch build(int lgK, TgtHllType tgtHllType, int n) {
+  private Union buildMemoryUnion(int lgMaxK, int n) {
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgMaxK, TgtHllType.HLL_8);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    Union u = new Union(lgMaxK, wmem);
+    for (int i = 0; i < n; i++) { u.update(i + v); }
+    v += n;
+    return u;
+  }
+
+  private HllSketch buildHeapSketch(int lgK, TgtHllType tgtHllType, int n) {
     HllSketch sk = new HllSketch(lgK, tgtHllType);
     for (int i = 0; i < n; i++) { sk.update(i + v); }
     v += n;
     return sk;
   }
+
+  private HllSketch buildMemorySketch(int lgK, TgtHllType tgtHllType, int n) {
+    final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK,tgtHllType);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    HllSketch sk = new HllSketch(lgK, tgtHllType, wmem);
+    for (int i = 0; i < n; i++) { sk.update(i + v); }
+    v += n;
+    return sk;
+  }
+
 
   @Test
   public void printlnTest() {
@@ -442,10 +426,25 @@ public class UnionCaseTest {
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    print(o.toString() + "\n");
+  }
+
+  /**
+   * @param o value to print
+   */
+  static void print(Object o) {
+    //System.out.print(o.toString()); //disable here
+  }
+
+  /**
+   * @param fmt format
+   * @param args arguments
+   */
+  static void printf(String fmt, Object...args) {
+    //System.out.printf(fmt, args); //disable here
   }
 
 }

@@ -19,9 +19,12 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.hll.HllUtil.EMPTY;
+import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -60,18 +63,56 @@ class Hll8Array extends HllArray {
   }
 
   @Override
+  HllSketchImpl couponUpdate(final int coupon) {
+    final int newValue = coupon >>> KEY_BITS_26;
+    final int configKmask = (1 << lgConfigK) - 1;
+    final int slotNo = coupon & configKmask;
+    updateSlotWithKxQ(slotNo, newValue);
+    return this;
+  }
+
+  @Override
+  int getNibble(final int slotNo) {
+    throw new SketchesStateException("Improper access.");
+  }
+
+  @Override
+  final int getSlotValue(final int slotNo) {
+    return hllByteArr[slotNo] & VAL_MASK_6;
+  }
+
+  @Override
   PairIterator iterator() {
     return new HeapHll8Iterator(1 << lgConfigK);
   }
 
   @Override
-  final int getSlot(final int slotNo) {
-    return hllByteArr[slotNo] & VAL_MASK_6;
+  void putNibble(final int slotNo, final int nibValue) {
+    throw new SketchesStateException("Improper access.");
   }
 
   @Override
-  final void putSlot(final int slotNo, final int value) {
-    hllByteArr[slotNo] = (byte) (value & VAL_MASK_6);
+  //Used by Union when source is not HLL8
+  final void updateSlotNoKxQ(final int slotNo, final int newValue) {
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
+    }
+  }
+
+  @Override
+  //Used by this couponUpdate()
+  //updates HipAccum, CurMin, NumAtCurMin, KxQs and checks newValue > oldValue
+  final void updateSlotWithKxQ(final int slotNo, final int newValue) {
+    final int oldValue = getSlotValue(slotNo);
+    if (newValue > oldValue) {
+      hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
+      hipAndKxQIncrementalUpdate(this, oldValue, newValue);
+      if (oldValue == 0) {
+        numAtCurMin--; //interpret numAtCurMin as num Zeros
+        assert getNumAtCurMin() >= 0;
+      }
+    }
   }
 
   //ITERATOR
@@ -86,6 +127,18 @@ class Hll8Array extends HllArray {
     int value() {
       return hllByteArr[index] & VAL_MASK_6;
     }
+
+    @Override
+    public boolean nextValid() {
+      while (++index < lengthPairs) {
+        value = hllByteArr[index] & VAL_MASK_6;
+        if (value != EMPTY) {
+          return true;
+        }
+      }
+      return false;
+    }
+
   }
 
 }

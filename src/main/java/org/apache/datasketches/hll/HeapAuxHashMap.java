@@ -77,8 +77,8 @@ class HeapAuxHashMap implements AuxHashMap {
     if (srcCompact) {
       for (int i = 0; i < auxCount; i++) {
         final int pair = extractInt(mem, offset + (i << 2));
-        final int slotNo = HllUtil.getLow26(pair) & configKmask;
-        final int value = HllUtil.getValue(pair);
+        final int slotNo = HllUtil.getPairLow26(pair) & configKmask;
+        final int value = HllUtil.getPairValue(pair);
         auxMap.mustAdd(slotNo, value); //increments count
       }
     } else { //updatable
@@ -86,8 +86,8 @@ class HeapAuxHashMap implements AuxHashMap {
       for (int i = 0; i < auxArrInts; i++) {
         final int pair = extractInt(mem, offset + (i << 2));
         if (pair == EMPTY) { continue; }
-        final int slotNo = HllUtil.getLow26(pair) & configKmask;
-        final int value = HllUtil.getValue(pair);
+        final int slotNo = HllUtil.getPairLow26(pair) & configKmask;
+        final int value = HllUtil.getPairValue(pair);
         auxMap.mustAdd(slotNo, value); //increments count
       }
     }
@@ -159,7 +159,7 @@ class HeapAuxHashMap implements AuxHashMap {
   public int mustFindValueFor(final int slotNo) {
     final int index = find(auxIntArr, lgAuxArrInts, lgConfigK, slotNo);
     if (index >= 0) {
-      return HllUtil.getValue(auxIntArr[index]);
+      return HllUtil.getPairValue(auxIntArr[index]);
     }
     throw new SketchesStateException("SlotNo not found: " + slotNo);
   }

@@ -31,16 +31,19 @@ import static org.apache.datasketches.hll.PreambleUtil.extractKxQ1;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.extractOooFlag;
+import static org.apache.datasketches.hll.PreambleUtil.extractRebuildCurMinNumKxQFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 import static org.apache.datasketches.hll.PreambleUtil.insertAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertCurMin;
+import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertHipAccum;
 import static org.apache.datasketches.hll.PreambleUtil.insertKxQ0;
 import static org.apache.datasketches.hll.PreambleUtil.insertKxQ1;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.insertNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.insertOooFlag;
+import static org.apache.datasketches.hll.PreambleUtil.insertRebuildCurMinNumKxQFlag;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -65,6 +68,7 @@ abstract class DirectHllArray extends AbstractHllArray {
     memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(mem);
     assert !compact;
+    insertEmptyFlag(wmem, false);
   }
 
   //Memory must already be initialized and should have data
@@ -87,12 +91,14 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   void addToHipAccum(final double delta) {
+    checkReadOnly(wmem);
     final double hipAccum = mem.getDouble(HIP_ACCUM_DOUBLE);
     wmem.putDouble(HIP_ACCUM_DOUBLE, hipAccum + delta);
   }
 
   @Override
   void decNumAtCurMin() {
+    checkReadOnly(wmem);
     int numAtCurMin = mem.getInt(CUR_MIN_COUNT_INT);
     wmem.putInt(CUR_MIN_COUNT_INT, --numAtCurMin);
   }
@@ -125,6 +131,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   @Override
   int getLgConfigK() {
     return extractLgK(mem);
+  }
+
+  @Override
+  Memory getMemory() {
+    return mem;
   }
 
   @Override
@@ -178,6 +189,11 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
+  boolean isRebuildCurMinNumKxQFlag() {
+    return extractRebuildCurMinNumKxQFlag(mem);
+  }
+
+  @Override
   void putAuxHashMap(final AuxHashMap auxHashMap, final boolean compact) {
     if (auxHashMap instanceof HeapAuxHashMap) {
       if (compact) {
@@ -191,38 +207,56 @@ abstract class DirectHllArray extends AbstractHllArray {
       }
     } else { //DirectAuxHashMap
       assert !compact; //must not be compact
-      this.auxHashMap = auxHashMap;
+      this.auxHashMap = auxHashMap; //In case of read-only this works.
     }
   }
 
   @Override
   void putCurMin(final int curMin) {
+    checkReadOnly(wmem);
     insertCurMin(wmem, curMin);
   }
 
   @Override
+  void putEmptyFlag(final boolean empty) {
+    checkReadOnly(wmem);
+    insertEmptyFlag(wmem, empty);
+  }
+
+  @Override
   void putHipAccum(final double hipAccum) {
+    checkReadOnly(wmem);
     insertHipAccum(wmem, hipAccum);
   }
 
   @Override
   void putKxQ0(final double kxq0) {
+    checkReadOnly(wmem);
     insertKxQ0(wmem, kxq0);
   }
 
   @Override //called very very very rarely
   void putKxQ1(final double kxq1) {
+    checkReadOnly(wmem);
     insertKxQ1(wmem, kxq1);
   }
 
   @Override
   void putNumAtCurMin(final int numAtCurMin) {
+    checkReadOnly(wmem);
     insertNumAtCurMin(wmem, numAtCurMin);
   }
 
   @Override //not used on the direct side
   void putOutOfOrderFlag(final boolean oooFlag) {
+    checkReadOnly(wmem);
     insertOooFlag(wmem, oooFlag);
+  }
+
+  @Override
+  void putRebuildCurMinNumKxQFlag(final boolean rebuild) {
+    checkReadOnly(wmem);
+    insertRebuildCurMinNumKxQFlag(wmem, rebuild);
   }
 
   @Override //used by HLL6 and HLL8, overridden by HLL4
@@ -242,11 +276,16 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override
   HllSketchImpl reset() {
-    if (wmem == null) {
-      throw new SketchesArgumentException("Cannot reset a read-only sketch");
-    }
+    checkReadOnly(wmem);
+    insertEmptyFlag(wmem, true);
     final int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     wmem.clear(0, bytes);
     return DirectCouponList.newInstance(lgConfigK, tgtHllType, wmem);
+  }
+
+  private static final void checkReadOnly(final WritableMemory wmem) {
+    if (wmem == null) {
+      throw new SketchesArgumentException("Cannot modify a read-only sketch");
+    }
   }
 }

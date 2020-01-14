@@ -283,11 +283,13 @@ public class HllSketchTest {
   }
 
   @Test
-  public void exerciseToString() {
+  public void exerciseToStringDetails() {
     HllSketch sk = new HllSketch(15, TgtHllType.HLL_4);
     for (int i = 0; i < 25; i++) { sk.update(i); }
-    println(sk.toString(false, true, true, true));
-    for (int i = 25; i < (1 << 20); i++) { sk.update(i); }
+    println(sk.toString(false, true, true, true)); //SET mode
+    for (int i = 25; i < (1 << 12); i++) { sk.update(i); }
+    println(sk.toString(false, true, true, true)); //HLL mode no Aux
+    for (int i = (1 << 12); i < (1 << 15); i++) { sk.update(i); } //Aux with exceptions
     println(sk.toString(false, true, true, true));
     println(sk.toString(false, true, true, false));
     println(sk.toString(false, true, true));
