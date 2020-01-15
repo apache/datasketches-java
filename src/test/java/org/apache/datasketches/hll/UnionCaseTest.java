@@ -40,11 +40,12 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class UnionCaseTest {
+  private static final String LS = System.getProperty("line.separator");
   long v = 0;
-  final int maxLgK = 12;
+  final static int maxLgK = 12;
   HllSketch source;
-  Union union;
-  String hfmt = "%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s\n";
+  //Union union;
+  String hfmt = "%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s%10s" + LS;
   String hdr = String.format(hfmt, "caseNum","srcLgKStr","gdtLgKStr","srcType","gdtType",
       "srcMem","gdtMem","srcMode","gdtMode","srcOoof","gdtOoof");
 

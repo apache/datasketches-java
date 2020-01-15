@@ -54,7 +54,7 @@ package org.apache.datasketches.hll;
 @SuppressWarnings("javadoc")
 public enum TgtHllType { HLL_4, HLL_6, HLL_8;
 
-  public static final TgtHllType values[] = values();
+  private static final TgtHllType values[] = values();
 
   public static final TgtHllType fromOrdinal(final int typeId) {
     return values[typeId];

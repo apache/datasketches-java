@@ -44,6 +44,20 @@ under the License.
     <Class name="~.*\.*Test" />
   </Match>
   
+  <Match>
+    <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS" />
+    <Class name="~.*\.Group" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="VO_VOLATILE_INCREMENT" />
+    <Class name="~.*\.Concurrent.+QuickSelectSketch" />
+  </Match>
+  
+  <Match> 
+    <Class name="~.*\.TestAllTest" />
+  </Match>
+  
   <Match>   <!-- Exclude for test classes; too many False Positives. -->
     <Bug pattern="RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT" />
     <Class name="~.*\.*Test" />

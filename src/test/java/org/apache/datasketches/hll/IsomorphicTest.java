@@ -36,9 +36,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings({"javadoc", "unused"})
 public class IsomorphicTest {
   long v = 0;
-  final int maxLgK = 12;
-  HllSketch source;
-  Union union;
 
   @Test
   //Merges a type1 to an empty union (heap, HLL_8), and gets result as type1, checks binary equivalence
@@ -227,7 +224,7 @@ public class IsomorphicTest {
       bytesOut6 = u.getResult(HLL_8).toUpdatableByteArray();//should be identical except for HllAccum
 
       comb = "LgK: " + lgK + ", SkType: HLL_6, Compared with SkType HLL_8";
-      checkArrays(bytesOut8, bytesOut6, comb, true);
+      checkArrays(bytesOut8, bytesOut6, comb, false);
 
       u = buildHeapUnionHllMode(lgK, 0);
       sk = buildHeapSketchHllMode(lgK, HLL_4, 1 << lgK);
@@ -235,7 +232,7 @@ public class IsomorphicTest {
       bytesOut4 = u.getResult(HLL_8).toUpdatableByteArray();//should be identical except for HllAccum
 
       comb = "LgK: " + lgK + ", SkType: HLL_4, Compared with SkType HLL_8";
-      checkArrays(bytesOut8, bytesOut4, comb, true);
+      checkArrays(bytesOut8, bytesOut4, comb, false);
     }
   }
 
