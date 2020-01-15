@@ -30,7 +30,7 @@ under the License.
   
   <!-- UNIQUE FOR THIS JAVA COMPONENT -->
   <artifactId>datasketches-java</artifactId>
-  <version>1.2.0-incubating-SNAPSHOT</version>
+  <version>1.2.0-incubating</version>
   <description>Core sketch algorithms used alone 
     and by other Java repositories in the DataSketches library.</description>
   <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
