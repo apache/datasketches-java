@@ -172,11 +172,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       count = mem.getInt(offset);
       offset += Integer.BYTES;
     }
-    //    if (version == serialVersionWithSummaryFactoryUID) {
-    //      final DeserializeResult<SummaryFactory<S>> factoryResult =
-    //          SerializerDeserializer.deserializeFromMemory(mem, offset);
-    //      offset += factoryResult.getSize();
-    //    }
     final int currentCapacity = 1 << lgCurrentCapacity_;
     keys_ = new long[currentCapacity];
     for (int i = 0; i < count; i++) {
