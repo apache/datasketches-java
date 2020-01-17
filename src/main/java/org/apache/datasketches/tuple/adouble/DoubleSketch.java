@@ -35,7 +35,7 @@ public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
    * @param mode The DoubleSummary mode to be used
    */
   public DoubleSketch(final int lgK, final DoubleSummary.Mode mode) {
-    super(1 << lgK, ResizeFactor.X8.ordinal(), 1.0F, new DoubleSummaryFactory(mode));
+    this(1 << lgK, ResizeFactor.X8.ordinal(), 1.0F, mode);
   }
 
   /**
