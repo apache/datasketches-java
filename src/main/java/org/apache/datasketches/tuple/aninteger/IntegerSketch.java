@@ -35,7 +35,7 @@ public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {
    * @param mode The IntegerSummary mode to be used
    */
   public IntegerSketch(final int lgK, final IntegerSummary.Mode mode) {
-    this(1 << lgK, ResizeFactor.X8.ordinal(), 1.0F, mode);
+    this(lgK, ResizeFactor.X8.ordinal(), 1.0F, mode);
   }
 
   /**
