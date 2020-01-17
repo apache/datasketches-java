@@ -39,6 +39,25 @@ public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
   }
 
   /**
+   * Creates this sketch with the following parameters:
+   * @param lgK Log_base2 of <i>Nominal Entries</i>.
+   * @param lgResizeFactor log2(resizeFactor) - value from 0 to 3:
+   * <pre>
+   * 0 - no resizing (max size allocated),
+   * 1 - double internal hash table each time it reaches a threshold
+   * 2 - grow four times
+   * 3 - grow eight times (default)
+   * </pre>
+   * @param samplingProbability
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
+   * @param mode The DoubleSummary mode to be used
+   */
+  public DoubleSketch(final int lgK, final int lgResizeFactor, final float samplingProbability,
+      final DoubleSummary.Mode mode) {
+    super(1 << lgK, lgResizeFactor, samplingProbability, new DoubleSummaryFactory(mode));
+  }
+
+  /**
    * Constructs this sketch from a Memory image, which must be from an DoubleSketch, and
    * usually with data.
    * @param mem the given Memory

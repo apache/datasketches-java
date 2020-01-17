@@ -51,7 +51,7 @@ public class Union<S extends Summary> {
   public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     nomEntries_ = nomEntries;
     summarySetOps_ = summarySetOps;
-    sketch_ = new QuickSelectSketch<S>(nomEntries, null);
+    sketch_ = new QuickSelectSketch<>(nomEntries, null);
     theta_ = sketch_.getThetaLong();
   }
 
@@ -60,7 +60,7 @@ public class Union<S extends Summary> {
    * @param sketchIn input sketch to add to the internal set
    */
   public void update(final Sketch<S> sketchIn) {
-    if (sketchIn == null || sketchIn.isEmpty()) { return; }
+    if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
     if (sketchIn.theta_ < theta_) { theta_ = sketchIn.theta_; }
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
@@ -85,6 +85,6 @@ public class Union<S extends Summary> {
    * Resets the internal set to the initial state, which represents an empty set
    */
   public void reset() {
-    sketch_ = new QuickSelectSketch<S>(nomEntries_, null);
+    sketch_ = new QuickSelectSketch<>(nomEntries_, null);
   }
 }
