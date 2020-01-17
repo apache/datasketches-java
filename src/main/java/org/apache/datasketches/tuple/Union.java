@@ -34,7 +34,6 @@ import org.apache.datasketches.QuickSelect;
  * @param <S> Type of Summary
  */
 public class Union<S extends Summary> {
-  private final int nomEntries_;
   private final SummarySetOperations<S> summarySetOps_;
   private QuickSelectSketch<S> sketch_;
   private long theta_; // need to maintain outside of the sketch
@@ -55,7 +54,6 @@ public class Union<S extends Summary> {
    * @param summarySetOps instance of SummarySetOperations
    */
   public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
-    nomEntries_ = nomEntries;
     summarySetOps_ = summarySetOps;
     sketch_ = new QuickSelectSketch<S>(nomEntries, null);
     theta_ = sketch_.getThetaLong();
