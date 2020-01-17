@@ -55,8 +55,8 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability</a>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  public UpdatableSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
-      final SummaryFactory<S> summaryFactory) {
+  public UpdatableSketch(final int nomEntries, final int lgResizeFactor,
+      final float samplingProbability, final SummaryFactory<S> summaryFactory) {
     super(nomEntries, lgResizeFactor, samplingProbability, summaryFactory);
   }
 

@@ -230,13 +230,6 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 6.0);
   }
 
-//  @Test
-//  public void updateDoubleSummary() {
-//    DoubleSummary ds = new DoubleSummary();
-//    ds.update(1.0);
-//    Assert.assertEquals(ds.getValue(), 1.0);
-//  }
-
   @Test
   public void doubleSummaryDefaultSumMode() {
     UpdatableSketch<Double, DoubleSummary> sketch =
@@ -400,6 +393,22 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch2.getEstimate() / numberOfUniques, 1.0, 0.01);
     Assert.assertEquals(sketch2.getRetainedEntries() / (double) numberOfUniques, 0.5, 0.01);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
+  }
+
+  @Test
+  public void unionEmptySampling() {
+    UpdatableSketch<Double, DoubleSummary> sketch =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
+    sketch.update(1, 1.0);
+    Assert.assertEquals(sketch.getRetainedEntries(), 0); // not retained due to low sampling probability
+
+    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode));
+    union.update(sketch);
+    CompactSketch<DoubleSummary> result = union.getResult();
+    Assert.assertEquals(result.getRetainedEntries(), 0);
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertTrue(result.isEstimationMode());
+    Assert.assertEquals(result.getEstimate(), 0.0);
   }
 
   @Test
