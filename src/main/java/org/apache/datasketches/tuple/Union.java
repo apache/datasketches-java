@@ -55,7 +55,7 @@ public class Union<S extends Summary> {
    */
   public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     summarySetOps_ = summarySetOps;
-    sketch_ = new QuickSelectSketch<S>(nomEntries, null);
+    sketch_ = new QuickSelectSketch<>(nomEntries, null);
     theta_ = sketch_.getThetaLong();
     isEmpty_ = true;
   }
@@ -65,14 +65,16 @@ public class Union<S extends Summary> {
    * @param sketchIn input sketch to add to the internal set
    */
   public void update(final Sketch<S> sketchIn) {
-    if (sketchIn == null || sketchIn.isEmpty()) { return; }
+    if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
     isEmpty_ = false;
     if (sketchIn.theta_ < theta_) { theta_ = sketchIn.theta_; }
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.getKey(), it.getSummary(), summarySetOps_);
     }
-    if (sketch_.theta_ < theta_) theta_ = sketch_.theta_;
+    if (sketch_.theta_ < theta_) {
+      theta_ = sketch_.theta_;
+    }
   }
 
   /**
@@ -81,8 +83,10 @@ public class Union<S extends Summary> {
    */
   @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
-    if (isEmpty_) return sketch_.compact();
-    if (theta_ >= sketch_.theta_ && sketch_.getRetainedEntries() <= sketch_.getNominalEntries()) {
+    if (isEmpty_) {
+      return sketch_.compact();
+    }
+    if ((theta_ >= sketch_.theta_) && (sketch_.getRetainedEntries() <= sketch_.getNominalEntries())) {
       return sketch_.compact();
     }
     long theta = min(theta_, sketch_.theta_);
@@ -94,7 +98,9 @@ public class Union<S extends Summary> {
         if (it.getKey() < theta) { num++; }
       }
     }
-    if (num == 0) return new CompactSketch<>(null, null, theta, isEmpty_);
+    if (num == 0) {
+      return new CompactSketch<>(null, null, theta, isEmpty_);
+    }
     if (num > sketch_.getNominalEntries()) {
       final long[] keys = new long[num]; // temporary since the order will be destroyed by quick select
       final SketchIterator<S> it = sketch_.iterator();
