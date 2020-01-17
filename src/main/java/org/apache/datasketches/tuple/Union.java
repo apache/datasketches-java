@@ -19,7 +19,12 @@
 
 package org.apache.datasketches.tuple;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
+
+import java.lang.reflect.Array;
+
+import org.apache.datasketches.QuickSelect;
 
 /**
  * Compute a union of two or more tuple sketches.
@@ -33,6 +38,7 @@ public class Union<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
   private QuickSelectSketch<S> sketch_;
   private long theta_; // need to maintain outside of the sketch
+  private boolean isEmpty_;
 
   /**
    * Creates new instance with default nominal entries
@@ -53,6 +59,7 @@ public class Union<S extends Summary> {
     summarySetOps_ = summarySetOps;
     sketch_ = new QuickSelectSketch<S>(nomEntries, null);
     theta_ = sketch_.getThetaLong();
+    isEmpty_ = true;
   }
 
   /**
@@ -61,30 +68,65 @@ public class Union<S extends Summary> {
    */
   public void update(final Sketch<S> sketchIn) {
     if (sketchIn == null || sketchIn.isEmpty()) { return; }
+    isEmpty_ = false;
     if (sketchIn.theta_ < theta_) { theta_ = sketchIn.theta_; }
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.getKey(), it.getSummary(), summarySetOps_);
     }
+    if (sketch_.theta_ < theta_) theta_ = sketch_.theta_;
   }
 
   /**
    * Gets the internal set as a CompactSketch
    * @return result of the unions so far
    */
+  @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
-    sketch_.trim();
-    if (theta_ < sketch_.theta_) {
-      sketch_.setThetaLong(theta_);
-      sketch_.rebuild();
+    if (isEmpty_) return sketch_.compact();
+    if (theta_ >= sketch_.theta_ && sketch_.getRetainedEntries() <= sketch_.getNominalEntries()) {
+      return sketch_.compact();
     }
-    return sketch_.compact();
+    long theta = min(theta_, sketch_.theta_);
+
+    int num = 0;
+    {
+      final SketchIterator<S> it = sketch_.iterator();
+      while (it.next()) {
+        if (it.getKey() < theta) { num++; }
+      }
+    }
+    if (num == 0) return new CompactSketch<>(null, null, theta, isEmpty_);
+    if (num > sketch_.getNominalEntries()) {
+      final long[] keys = new long[num]; // temporary since the order will be destroyed by quick select
+      final SketchIterator<S> it = sketch_.iterator();
+      int i = 0;
+      while (it.next()) {
+        if (it.getKey() < theta) { keys[i++] = it.getKey(); }
+      }
+      theta = QuickSelect.select(keys, 0, num - 1, sketch_.getNominalEntries());
+      num = sketch_.getNominalEntries();
+    }
+    final long[] keys = new long[num];
+    final S[] summaries = (S[]) Array.newInstance(sketch_.summaries_.getClass().getComponentType(), num);
+    final SketchIterator<S> it = sketch_.iterator();
+    int i = 0;
+    while (it.next()) {
+      if (it.getKey() < theta) {
+        keys[i] = it.getKey();
+        summaries[i] = (S) it.getSummary().copy();
+        i++;
+      }
+    }
+    return new CompactSketch<>(keys, summaries, theta, isEmpty_);
   }
 
   /**
    * Resets the internal set to the initial state, which represents an empty set
    */
   public void reset() {
-    sketch_ = new QuickSelectSketch<S>(nomEntries_, null);
+    sketch_.reset();
+    theta_ = sketch_.getThetaLong();
+    isEmpty_ = true;
   }
 }
