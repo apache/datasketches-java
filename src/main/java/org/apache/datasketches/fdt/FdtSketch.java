@@ -41,8 +41,8 @@ import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
  * the <i>N-M</i> non-primary dimensions.
  *
  * <p>Please refer to the web page
- * <a href="https://datasketches.github.io/docs/Frequency/FrequentDistinctTuplesSketch.html">
- * https://datasketches.github.io/docs/Frequency/FrequentDistinctTuplesSketch.html</a> for a more
+ * <a href="https://datasketches.apache.org/docs/Frequency/FrequentDistinctTuplesSketch.html">
+ * https://datasketches.apache.org/docs/Frequency/FrequentDistinctTuplesSketch.html</a> for a more
  * complete discussion about this sketch.
  *
  * @author Lee Rhodes
