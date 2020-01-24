@@ -53,7 +53,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * for the DoublesSketch.
  *
  * <p>There is more documentation available on
- * <a href="https://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
+ * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
  *
  * @param <T> type of item
  *

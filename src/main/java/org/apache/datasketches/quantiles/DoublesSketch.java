@@ -113,7 +113,7 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * </pre>
 
  * <p>There is more documentation available on
- * <a href="https://datasketches.github.io">DataSketches.GitHub.io</a>.</p>
+ * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
  *
  * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double
  * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries"
