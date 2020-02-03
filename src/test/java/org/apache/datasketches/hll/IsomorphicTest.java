@@ -378,7 +378,7 @@ public class IsomorphicTest {
    * @param o value to print
    */
   static void print(Object o) {
-    System.out.print(o.toString()); //disable here
+    //System.out.print(o.toString()); //disable here
   }
 
   /**
