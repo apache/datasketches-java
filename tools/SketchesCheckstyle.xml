@@ -207,7 +207,7 @@ under the License.
       <!-- <property name="allowMissingThrowsTags" value="true"/> now not allowed ?!? -->
       <property name="allowMissingReturnTag" value="false"/>
       <property name="allowedAnnotations" value="Override, Test"/>
-      <property name="allowThrowsTagsForSubclasses" value="true"/>
+      <!-- <property name="allowThrowsTagsForSubclasses" value="true"/> now not allowed ?!? -->
     </module>
     
     <module name="JavadocParagraph"/>
