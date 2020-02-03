@@ -733,7 +733,7 @@ public final class Util {
     try {
       final URL url = Util.class.getClassLoader().getResource(shortFileName);
       final URI uri = url.toURI();
-      final String path = uri.getPath(); //decodes any special characters
+      final String path = uri.isAbsolute() ? Paths.get(uri).toAbsolutePath().toString() : uri.getPath();  //decodes any special characters
       return path;
     } catch (final NullPointerException | URISyntaxException e) {
       throw new SketchesArgumentException("Cannot find resource: " + shortFileName + LS + e);
