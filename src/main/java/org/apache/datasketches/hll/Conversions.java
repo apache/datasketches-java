@@ -69,8 +69,13 @@ class Conversions {
   }
 
   /**
-   * If the given absHllArr is type HLL_4, this returns the correct curMin and numAtCurMin.
-   * For HLL_6 and HLL_8, curMin is always 0, and numAtCurMin is the number of zero slots.
+   * This returns curMin and numAtCurMin as a pair and will be correct independent of the TgtHllType
+   * of the input AbstractHllArray.
+   *
+   * <p>In general, it is always true that for HLL_6 and HLL_8, curMin is always 0, and numAtCurMin
+   * is the number of zero slots. For these two types there is no need to track curMin nor to track
+   * numAtCurMin once all the slots are filled.
+   *
    * @param absHllArr an instance of AbstractHllArray
    * @return pair values representing numAtCurMin and curMin
    */
