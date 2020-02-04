@@ -25,6 +25,7 @@ import static org.apache.datasketches.hll.CurMode.SET;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.memory.WritableMemory;
@@ -326,6 +327,31 @@ public class IsomorphicTest {
     if (curMode == LIST) { return 4; }
     if (curMode == SET) { return 1 << (lgK - 4); }
     return ((lgK < 8) && (curMode == HLL)) ? (1 << lgK) : 1 << (lgK - 3);
+  }
+
+  @Test
+  public void checkCurMinConversion() {
+    TgtHllType hll8 = HLL_8;
+    TgtHllType hll4 = HLL_4;
+    for (int lgK = 4; lgK <= 21; lgK++) {
+      HllSketch sk8 = new HllSketch(lgK, hll8);
+      //The Coupon Collector Problem predicts that all slots will be filled by k Log(k).
+      int n = (1 << lgK) * lgK;
+      for (int i = 0; i < n; i++) { sk8.update(i); }
+      double est8 = sk8.getEstimate();
+      AbstractHllArray aharr8 = (AbstractHllArray)sk8.hllSketchImpl;
+      int curMin8 = aharr8.getCurMin();
+      int numAtCurMin8 = aharr8.getNumAtCurMin();
+      HllSketch sk4 = sk8.copyAs(hll4);
+      AbstractHllArray aharr4 = (AbstractHllArray)sk4.hllSketchImpl;
+      int curMin4 = ((AbstractHllArray)sk4.hllSketchImpl).getCurMin();
+      int numAtCurMin4 =aharr4.getNumAtCurMin();
+      double est4 = sk4.getEstimate();
+      assertEquals(est4, est8, 0.0);
+      assertEquals(curMin4, 1);
+      //println("Est 8 = " + est8 + ", CurMin = " + curMin8 + ", #CurMin + " + numAtCurMin8);
+      //println("Est 4 = " + est4 + ", CurMin = " + curMin4 + ", #CurMin + " + numAtCurMin4);
+    }
   }
 
   private static double bytesToDouble(byte[] arr, int offset) {

@@ -97,8 +97,8 @@ public class Union extends BaseHllSketch {
     }
     //This should not happen, this is in case it does.
     if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      throw new SketchesArgumentException
-      ("Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
+      throw new SketchesArgumentException(
+          "Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
     }
     gadget = sketch;
   }
@@ -200,10 +200,7 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator as an HLL_4 sketch.
    */
   public HllSketch getResult() {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
-    return gadget.copyAs(HllSketch.DEFAULT_HLL_TYPE);
+    return getResult(HllSketch.DEFAULT_HLL_TYPE);
   }
 
   /**
@@ -309,6 +306,9 @@ public class Union extends BaseHllSketch {
   @Override
   public String toString(final boolean summary, final boolean hllDetail,
       final boolean auxDetail, final boolean all) {
+    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
+      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
+    }
     return gadget.toString(summary, hllDetail, auxDetail, all);
   }
 
@@ -319,8 +319,8 @@ public class Union extends BaseHllSketch {
   public void update(final HllSketch sketch) {
     //This should not happen, this is in case it does.
     if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      throw new SketchesArgumentException
-      ("Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
+      throw new SketchesArgumentException(
+          "Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
     }
     gadget.hllSketchImpl = unionImpl(sketch, gadget, lgMaxK);
   }
