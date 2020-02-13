@@ -49,8 +49,11 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  public HashIterator iterator() {
-    return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
+  public double getEstimate() {
+    final int curCount = extractCurCount(mem_);
+    final int preLongs = extractPreLongs(mem_);
+    final long thetaLong = (preLongs > 2) ? extractThetaLong(mem_) : Long.MAX_VALUE;
+    return Sketch.estimate(thetaLong, curCount);
   }
 
   //overidden by EmptyCompactSketch and SingleItemSketch
@@ -84,6 +87,11 @@ abstract class DirectCompactSketch extends CompactSketch {
   @Override
   public boolean isSameResource(final Memory that) {
     return mem_.isSameResource(that);
+  }
+
+  @Override
+  public HashIterator iterator() {
+    return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
   }
 
   @Override

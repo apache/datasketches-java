@@ -66,9 +66,7 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   @Override
-  public HashIterator iterator() {
-    return new HeapHashIterator(new long[0], 0, Long.MAX_VALUE);
-  }
+  public double getEstimate() { return 0; }
 
   @Override
   public int getRetainedEntries(final boolean valid) {
@@ -98,6 +96,11 @@ final class EmptyCompactSketch extends CompactSketch {
   @Override
   public boolean isOrdered() {
     return true;
+  }
+
+  @Override
+  public HashIterator iterator() {
+    return new HeapHashIterator(new long[0], 0, Long.MAX_VALUE);
   }
 
   /**

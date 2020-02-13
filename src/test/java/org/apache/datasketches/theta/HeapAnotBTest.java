@@ -25,11 +25,10 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes

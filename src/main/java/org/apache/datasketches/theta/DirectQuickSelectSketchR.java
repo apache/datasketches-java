@@ -28,9 +28,11 @@ import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.P_FLOAT;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
+import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
+import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
@@ -116,6 +118,13 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final int curCount = getRetainedEntries(true);
 
     return (preLongs + curCount) << 3;
+  }
+
+  @Override
+  public double getEstimate() {
+    final int curCount = extractCurCount(mem_);
+    final long thetaLong = extractThetaLong(mem_);
+    return Sketch.estimate(thetaLong, curCount);
   }
 
   @Override
