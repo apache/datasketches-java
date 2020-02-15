@@ -66,14 +66,14 @@ public final class SingleItemSketch extends CompactSketch {
     arr[1] = hash;
   }
 
-  //Internal Constructor.All checking has been done, give the relevant seed
+  //Internal Constructor.All checking has been done, given the relevant seed
   SingleItemSketch(final long hash, final long seed) {
     final long seedHash = computeSeedHash(seed) & 0xFFFFL;
     arr[0] = (seedHash << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
     arr[1] = hash;
   }
 
-  //All checking has been done, give the relevant seed
+  //All checking has been done, given the relevant seedHash
   SingleItemSketch(final long hash, final short seedHash) {
     final long seedH = seedHash & 0xFFFFL;
     arr[0] = (seedH << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);

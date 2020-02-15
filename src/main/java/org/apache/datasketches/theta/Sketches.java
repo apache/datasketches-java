@@ -293,7 +293,7 @@ public final class Sketches {
    */
   public static double getEstimate(final Memory srcMem) {
     checkIfValidThetaSketch(srcMem);
-    return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem), getEmpty(srcMem));
+    return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem));
   }
 
   /**

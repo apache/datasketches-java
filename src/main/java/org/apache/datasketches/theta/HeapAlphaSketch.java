@@ -166,12 +166,9 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
   @Override
   public double getEstimate() {
-    if (isEstimationMode()) {
-      final int curCount = getRetainedEntries(true);
-      final double theta = getTheta();
-      return (thetaLong_ > split1_) ? curCount / theta : (1 << lgNomLongs_) / theta;
-    }
-    return curCount_;
+    return (thetaLong_ > split1_)
+        ? Sketch.estimate(thetaLong_, curCount_)
+        : (1 << lgNomLongs_) * (MAX_THETA_LONG_AS_DOUBLE / thetaLong_);
   }
 
   @Override

@@ -229,9 +229,7 @@ public abstract class Sketch {
    * Gets the unique count estimate.
    * @return the sketch's best estimate of the cardinality of the input stream.
    */
-  public double getEstimate() {
-    return estimate(getThetaLong(), getRetainedEntries(true), isEmpty());
-  }
+  public abstract double getEstimate();
 
   /**
    * Returns the Family that this sketch belongs to
@@ -618,12 +616,8 @@ public abstract class Sketch {
     return ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
   }
 
-  static final double estimate(final long thetaLong, final int curCount, final boolean empty) {
-    if (estMode(thetaLong, empty)) {
-      final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
-      return curCount / theta;
-    }
-    return curCount;
+  static final double estimate(final long thetaLong, final int curCount) {
+    return curCount * (MAX_THETA_LONG_AS_DOUBLE / thetaLong);
   }
 
   static final double lowerBound(final int curCount, final long thetaLong, final int numStdDev,

@@ -142,13 +142,13 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   //Sketch
 
   @Override
-  public Family getFamily() {
-    return MY_FAMILY;
+  public double getEstimate() {
+    return Sketch.estimate(thetaLong_, curCount_);
   }
 
   @Override
-  public HashIterator iterator() {
-    return new HeapHashIterator(cache_, 1 << lgArrLongs_, thetaLong_);
+  public Family getFamily() {
+    return MY_FAMILY;
   }
 
   @Override
@@ -164,6 +164,11 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   public boolean isEmpty() {
     return empty_;
+  }
+
+  @Override
+  public HashIterator iterator() {
+    return new HeapHashIterator(cache_, 1 << lgArrLongs_, thetaLong_);
   }
 
   @Override

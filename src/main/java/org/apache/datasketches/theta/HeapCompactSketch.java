@@ -68,8 +68,8 @@ abstract class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  public HashIterator iterator() {
-    return new HeapHashIterator(cache_, cache_.length, thetaLong_);
+  public double getEstimate() {
+    return Sketch.estimate(thetaLong_, curCount_);
   }
 
   @Override
@@ -95,6 +95,11 @@ abstract class HeapCompactSketch extends CompactSketch {
   @Override
   public boolean isEmpty() {
     return empty_;
+  }
+
+  @Override
+  public HashIterator iterator() {
+    return new HeapHashIterator(cache_, cache_.length, thetaLong_);
   }
 
   //restricted methods
