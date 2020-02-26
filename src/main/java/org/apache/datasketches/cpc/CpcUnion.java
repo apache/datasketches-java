@@ -301,6 +301,7 @@ public class CpcUnion {
         if ((union.accumulator.getFlavor() == EMPTY) //lgtm [java/dereferenced-value-may-be-null]
             && (union.lgK == source.lgK)) {
           union.accumulator = source.copy();
+          break;
         }
         walkTableUpdatingSketch(union.accumulator, source.pairTable);
         // if the accumulator has graduated beyond sparse, switch union to a bitMatrix
