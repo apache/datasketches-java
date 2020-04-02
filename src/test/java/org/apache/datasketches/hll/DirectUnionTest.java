@@ -19,20 +19,19 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
-import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -434,7 +433,7 @@ public class DirectUnionTest {
 
   private static double getBound(int lgK, boolean ub, boolean oooFlag, int numStdDev, double est) {
     double re = RelativeErrorTables.getRelErr(ub, oooFlag, lgK, numStdDev);
-    return est / (1.0 + re);
+    return est * (1.0 + re);
   }
 
   @Test

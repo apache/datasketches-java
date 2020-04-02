@@ -113,7 +113,7 @@ public class CouponListTest {
     }
 
     double re = sk.getRelErr(true, true, 4, 1);
-    assertTrue(re < 0.0);
+    assertTrue(re > 0.0);
 
 
   }

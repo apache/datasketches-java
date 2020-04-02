@@ -59,8 +59,8 @@ final class RelativeErrorTables {
     return f;
   }
 
-  //case 0
-  private static double[] HIP_LB = //sd 1, 2, 3
+  //case 1
+  private static double[] HIP_UB = //sd 1, 2, 3
     { //Q(.84134), Q(.97725), Q(.99865) respectively
       0.207316195, 0.502865572, 0.882303765, //4
       0.146981579, 0.335426881, 0.557052,    //5
@@ -73,8 +73,8 @@ final class RelativeErrorTables {
       0.012936253, 0.02613829,  0.039387631, //12
     };
 
-  //case 1
-  private static double[] HIP_UB = //sd 1, 2, 3
+  //case 0
+  private static double[] HIP_LB = //sd 1, 2, 3
     { //Q(.15866), Q(.02275), Q(.00135) respectively
       -0.207805347, -0.355574279, -0.475535095, //4
       -0.146988328, -0.262390832, -0.360864026, //5
@@ -87,8 +87,8 @@ final class RelativeErrorTables {
       -0.012920332, -0.025572893, -0.037896952, //12
     };
 
-  //case 2
-  private static double[] NON_HIP_LB = //sd 1, 2, 3
+  //case 3
+  private static double[] NON_HIP_UB = //sd 1, 2, 3
     { //Q(.84134), Q(.97725), Q(.99865) respectively
       0.254409839, 0.682266712, 1.304022158, //4
       0.181817353, 0.443389054, 0.778776219, //5
@@ -101,8 +101,8 @@ final class RelativeErrorTables {
       0.016155679, 0.032825719, 0.049677541  //12
     };
 
-  //case 3
-  private static double[] NON_HIP_UB = //sd 1, 2, 3
+  //case 2
+  private static double[] NON_HIP_LB = //sd 1, 2, 3
     { //Q(.15866), Q(.02275), Q(.00135) respectively
       -0.256980172, -0.411905944, -0.52651057,  //4
       -0.182332109, -0.310275547, -0.412660505, //5

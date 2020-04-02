@@ -55,15 +55,17 @@ class HllEstimators {
     final boolean oooFlag = absHllArr.isOutOfOrderFlag();
     if (oooFlag) {
       estimate = absHllArr.getCompositeEstimate();
-      rseFactor = HLL_NON_HIP_RSE_FACTOR;
+      rseFactor = HLL_NON_HIP_RSE_FACTOR; //1.03896
     } else {
       estimate = absHllArr.getHipAccum();
-      rseFactor = HLL_HIP_RSE_FACTOR;
+      rseFactor = HLL_HIP_RSE_FACTOR; //.8325546
     }
+
     final double relErr = (lgConfigK > 12)
-        ? (numStdDev * rseFactor) / Math.sqrt(configK)
+        ? -(numStdDev * rseFactor) / Math.sqrt(configK)
         : RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
-    return Math.max(estimate / (1.0 + relErr), numNonZeros);
+    final double lb = Math.max(estimate * (1.0 + relErr), numNonZeros);
+    return lb;
   }
 
   static final double hllUpperBound(final AbstractHllArray absHllArr, final int numStdDev) {
@@ -81,9 +83,10 @@ class HllEstimators {
     }
 
     final double relErr = (lgConfigK > 12)
-        ? ((-1.0) * (numStdDev * rseFactor)) / Math.sqrt(configK)
+        ? (numStdDev * rseFactor) / Math.sqrt(configK)
         : RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    return estimate / (1.0 + relErr);
+    final double ub = estimate * (1.0 + relErr);
+    return ub;
   }
 
   //THE HLL COMPOSITE ESTIMATOR
