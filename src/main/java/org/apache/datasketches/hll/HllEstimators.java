@@ -45,6 +45,27 @@ class HllEstimators {
    * the very small values <= k where curMin = 0 still apply.
    */
 
+  static final double hllUpperBound(final AbstractHllArray absHllArr, final int numStdDev) {
+    final int lgConfigK = absHllArr.lgConfigK;
+    final int configK = 1 << lgConfigK;
+    final double estimate;
+    final double rseFactor;
+    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
+    if (oooFlag) {
+      estimate = absHllArr.getCompositeEstimate();
+      rseFactor = HLL_NON_HIP_RSE_FACTOR;
+    } else {
+      estimate = absHllArr.getHipAccum();
+      rseFactor = HLL_HIP_RSE_FACTOR;
+    }
+
+    final double relErr = (lgConfigK > 12)
+        ? (numStdDev * rseFactor) / Math.sqrt(configK)
+        : RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
+    final double ub = estimate * (1.0 + relErr);
+    return ub;
+  }
+
   static final double hllLowerBound(final AbstractHllArray absHllArr, final int numStdDev) {
     final int lgConfigK = absHllArr.lgConfigK;
     final int configK = 1 << lgConfigK;
@@ -66,27 +87,6 @@ class HllEstimators {
         : RelativeErrorTables.getRelErr(false, oooFlag, lgConfigK, numStdDev);
     final double lb = Math.max(estimate * (1.0 + relErr), numNonZeros);
     return lb;
-  }
-
-  static final double hllUpperBound(final AbstractHllArray absHllArr, final int numStdDev) {
-    final int lgConfigK = absHllArr.lgConfigK;
-    final int configK = 1 << lgConfigK;
-    final double estimate;
-    final double rseFactor;
-    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
-    if (oooFlag) {
-      estimate = absHllArr.getCompositeEstimate();
-      rseFactor = HLL_NON_HIP_RSE_FACTOR;
-    } else {
-      estimate = absHllArr.getHipAccum();
-      rseFactor = HLL_HIP_RSE_FACTOR;
-    }
-
-    final double relErr = (lgConfigK > 12)
-        ? (numStdDev * rseFactor) / Math.sqrt(configK)
-        : RelativeErrorTables.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    final double ub = estimate * (1.0 + relErr);
-    return ub;
   }
 
   //THE HLL COMPOSITE ESTIMATOR
