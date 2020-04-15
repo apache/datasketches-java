@@ -175,7 +175,7 @@ abstract class BaseHllSketch {
    * @return true if the current estimator is the non-HIP estimator, which is slightly less
    * accurate than the HIP estimator.
    */
-  abstract boolean isOutOfOrderFlag();
+  abstract boolean isOutOfOrder();
 
   /**
    * Returns true if the given Memory refers to the same underlying resource as this sketch.

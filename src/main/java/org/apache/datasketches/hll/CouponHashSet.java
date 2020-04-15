@@ -79,7 +79,6 @@ class CouponHashSet extends CouponList {
     final CurMode curMode = extractCurMode(mem);
     final int memArrStart = (curMode == CurMode.LIST) ? LIST_INT_ARR_START : HASH_SET_INT_ARR_START;
     final CouponHashSet set = new CouponHashSet(lgConfigK, tgtHllType);
-    set.putOutOfOrderFlag(true);
     final boolean memIsCompact = extractCompactFlag(mem);
     final int couponCount = extractHashSetCount(mem);
     int lgCouponArrInts = extractLgArr(mem);

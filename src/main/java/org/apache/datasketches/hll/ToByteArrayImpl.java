@@ -93,7 +93,7 @@ class ToByteArrayImpl {
     insertLgK(tgtWmem, srcImpl.getLgConfigK());
     insertEmptyFlag(tgtWmem, srcImpl.isEmpty());
     insertCompactFlag(tgtWmem, compact);
-    insertOooFlag(tgtWmem, srcImpl.isOutOfOrderFlag());
+    insertOooFlag(tgtWmem, srcImpl.isOutOfOrder());
     insertCurMin(tgtWmem, srcImpl.getCurMin());
     insertCurMode(tgtWmem, srcImpl.getCurMode());
     insertTgtHllType(tgtWmem, srcImpl.getTgtHllType());
@@ -245,7 +245,7 @@ class ToByteArrayImpl {
     insertLgK(wmem, impl.getLgConfigK());
     insertLgArr(wmem, impl.getLgCouponArrInts());
     insertEmptyFlag(wmem, impl.isEmpty());
-    insertOooFlag(wmem, impl.isOutOfOrderFlag());
+    insertOooFlag(wmem, impl.isOutOfOrder());
     insertCurMode(wmem, impl.getCurMode());
     insertTgtHllType(wmem, impl.getTgtHllType());
   }

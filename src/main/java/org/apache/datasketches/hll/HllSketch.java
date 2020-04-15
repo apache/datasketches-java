@@ -368,8 +368,8 @@ public class HllSketch extends BaseHllSketch {
   }
 
   @Override
-  boolean isOutOfOrderFlag() {
-    return hllSketchImpl.isOutOfOrderFlag();
+  boolean isOutOfOrder() {
+    return hllSketchImpl.isOutOfOrder();
   }
 
   @Override
@@ -381,8 +381,9 @@ public class HllSketch extends BaseHllSketch {
     hllSketchImpl.mergeTo(that);
   }
 
-  void putOutOfOrderFlag(final boolean oooFlag) {
-    hllSketchImpl.putOutOfOrderFlag(oooFlag);
+  HllSketch putOutOfOrderFlag(final boolean oooFlag) {
+    hllSketchImpl.putOutOfOrder(oooFlag);
+    return this;
   }
 
   @Override
@@ -413,7 +414,7 @@ public class HllSketch extends BaseHllSketch {
       sb.append("  LB             : ").append(getLowerBound(1)).append(LS);
       sb.append("  Estimate       : ").append(getEstimate()).append(LS);
       sb.append("  UB             : ").append(getUpperBound(1)).append(LS);
-      sb.append("  OutOfOrder Flag: ").append(isOutOfOrderFlag()).append(LS);
+      sb.append("  OutOfOrder Flag: ").append(isOutOfOrder()).append(LS);
       if (getCurMode() == CurMode.HLL) {
         final AbstractHllArray absHll = (AbstractHllArray) hllSketchImpl;
         sb.append("  CurMin         : ").append(absHll.getCurMin()).append(LS);

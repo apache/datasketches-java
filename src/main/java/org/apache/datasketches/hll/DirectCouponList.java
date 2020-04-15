@@ -28,13 +28,11 @@ import static org.apache.datasketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.LIST_PREINTS;
-import static org.apache.datasketches.hll.PreambleUtil.OUT_OF_ORDER_FLAG_MASK;
 import static org.apache.datasketches.hll.PreambleUtil.computeLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractInt;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.extractListCount;
-import static org.apache.datasketches.hll.PreambleUtil.extractOooFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.insertCurMode;
 import static org.apache.datasketches.hll.PreambleUtil.insertEmptyFlag;
@@ -47,7 +45,6 @@ import static org.apache.datasketches.hll.PreambleUtil.insertLgK;
 import static org.apache.datasketches.hll.PreambleUtil.insertListCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertModes;
 import static org.apache.datasketches.hll.PreambleUtil.insertNumAtCurMin;
-import static org.apache.datasketches.hll.PreambleUtil.insertOooFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertPreInts;
 import static org.apache.datasketches.hll.PreambleUtil.insertSerVer;
 
@@ -207,11 +204,6 @@ class DirectCouponList extends AbstractCoupons {
   }
 
   @Override
-  boolean isOutOfOrderFlag() {
-    return extractOooFlag(mem);
-  }
-
-  @Override
   boolean isSameResource(final Memory mem) {
     return this.mem.isSameResource(mem);
   }
@@ -232,12 +224,6 @@ class DirectCouponList extends AbstractCoupons {
       if (pair == 0) { continue; }
       that.couponUpdate(pair);
     }
-  }
-
-  @Override //not used on the direct side
-  void putOutOfOrderFlag(final boolean oooFlag) {
-    assert wmem != null;
-    insertOooFlag(wmem, oooFlag);
   }
 
   @Override
@@ -269,7 +255,6 @@ class DirectCouponList extends AbstractCoupons {
     insertPreInts(wmem, HASH_SET_PREINTS);
     //SerVer, FamID, LgK  should be OK
     insertLgArr(wmem, LG_INIT_SET_SIZE);
-    insertFlags(wmem, (byte) OUT_OF_ORDER_FLAG_MASK); //set oooFlag
     insertCurMin(wmem, 0); //was list count
     insertCurMode(wmem, CurMode.SET);
     //tgtHllType should already be ok

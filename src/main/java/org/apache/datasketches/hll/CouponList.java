@@ -26,7 +26,6 @@ import static org.apache.datasketches.hll.PreambleUtil.LIST_INT_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.LIST_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractListCount;
-import static org.apache.datasketches.hll.PreambleUtil.extractOooFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 
 import org.apache.datasketches.SketchesStateException;
@@ -38,7 +37,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Kevin Lang
  */
 class CouponList extends AbstractCoupons {
-  boolean oooFlag = false; //Out-Of-Order Flag
   int lgCouponArrInts;
   int couponCount;
   int[] couponIntArr;
@@ -53,11 +51,9 @@ class CouponList extends AbstractCoupons {
     super(lgConfigK, tgtHllType, curMode);
     if (curMode == CurMode.LIST) {
       lgCouponArrInts = LG_INIT_LIST_SIZE;
-      oooFlag = false;
     } else { //SET
       lgCouponArrInts = LG_INIT_SET_SIZE;
       assert lgConfigK > 7;
-      oooFlag = true;
     }
     couponIntArr = new int[1 << lgCouponArrInts];
     couponCount = 0;
@@ -69,7 +65,6 @@ class CouponList extends AbstractCoupons {
    */
   CouponList(final CouponList that) {
     super(that.lgConfigK, that.tgtHllType, that.curMode);
-    oooFlag = that.oooFlag;
     lgCouponArrInts = that.lgCouponArrInts;
     couponCount = that.couponCount;
     couponIntArr = that.couponIntArr.clone();
@@ -82,7 +77,6 @@ class CouponList extends AbstractCoupons {
    */ //also used by CouponHashSet
   CouponList(final CouponList that, final TgtHllType tgtHllType) {
     super(that.lgConfigK, tgtHllType, that.curMode);
-    oooFlag = that.oooFlag;
     lgCouponArrInts = that.lgCouponArrInts;
     couponCount = that.couponCount;
     couponIntArr = that.couponIntArr.clone();
@@ -96,7 +90,6 @@ class CouponList extends AbstractCoupons {
     final int couponCount = extractListCount(mem);
     mem.getIntArray(LIST_INT_ARR_START, list.couponIntArr, 0, couponCount);
     list.couponCount = couponCount;
-    list.putOutOfOrderFlag(extractOooFlag(mem));
     return list;
   }
 
@@ -191,11 +184,6 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  boolean isOutOfOrderFlag() {
-    return oooFlag;
-  }
-
-  @Override
   boolean isSameResource(final Memory mem) {
     return false;
   }
@@ -216,11 +204,6 @@ class CouponList extends AbstractCoupons {
   }
 
   @Override
-  void putOutOfOrderFlag(final boolean oooFlag) {
-    this.oooFlag = oooFlag;
-  }
-
-  @Override
   CouponList reset() {
     return new CouponList(lgConfigK, tgtHllType, CurMode.LIST);
   }
@@ -232,7 +215,6 @@ class CouponList extends AbstractCoupons {
     for (int i = 0; i < couponCount; i++) {
       chSet.couponUpdate(arr[i]);
     }
-    chSet.putOutOfOrderFlag(true);
     return chSet;
   }
 
@@ -248,7 +230,7 @@ class CouponList extends AbstractCoupons {
     }
     tgtHllArr.putHipAccum(src.getEstimate());
 
-    tgtHllArr.putOutOfOrderFlag(false);
+    tgtHllArr.putOutOfOrder(false);
     return tgtHllArr;
   }
 

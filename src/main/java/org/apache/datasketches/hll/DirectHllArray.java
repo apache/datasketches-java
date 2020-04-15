@@ -179,7 +179,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override
-  boolean isOutOfOrderFlag() {
+  boolean isOutOfOrder() {
     return extractOooFlag(mem);
   }
 
@@ -248,7 +248,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   }
 
   @Override //not used on the direct side
-  void putOutOfOrderFlag(final boolean oooFlag) {
+  void putOutOfOrder(final boolean oooFlag) {
     checkReadOnly(wmem);
     insertOooFlag(wmem, oooFlag);
   }

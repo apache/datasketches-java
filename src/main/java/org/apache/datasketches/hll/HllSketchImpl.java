@@ -96,7 +96,7 @@ abstract class HllSketchImpl {
 
   abstract boolean isOffHeap();
 
-  abstract boolean isOutOfOrderFlag();
+  abstract boolean isOutOfOrder();
 
   abstract boolean isRebuildCurMinNumKxQFlag();
 
@@ -108,7 +108,7 @@ abstract class HllSketchImpl {
 
   abstract void putEmptyFlag(boolean empty);
 
-  abstract void putOutOfOrderFlag(boolean oooFlag);
+  abstract void putOutOfOrder(boolean oooFlag);
 
   abstract void putRebuildCurMinNumKxQFlag(boolean rebuild);
 
