@@ -422,7 +422,7 @@ public class HllSketch extends BaseHllSketch {
         sb.append("  HipAccum       : ").append(absHll.getHipAccum()).append(LS);
         sb.append("  KxQ0           : ").append(absHll.getKxQ0()).append(LS);
         sb.append("  KxQ1           : ").append(absHll.getKxQ1()).append(LS);
-        sb.append("  Rebuild HIP Flg: ").append(absHll.isRebuildCurMinNumKxQFlag()).append(LS);
+        sb.append("  Rebuild KxQ Flg: ").append(absHll.isRebuildCurMinNumKxQFlag()).append(LS);
       } else {
         sb.append("  Coupon Count   : ")
           .append(((AbstractCoupons)hllSketchImpl).getCouponCount()).append(LS);
