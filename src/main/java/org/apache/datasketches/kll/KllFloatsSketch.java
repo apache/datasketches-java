@@ -520,7 +520,7 @@ public class KllFloatsSketch {
    * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1,
    * inclusive.
    *
-   * <p>The resulting approximation has a probabilistic guarantee that be obtained from the
+   * <p>The resulting approximation has a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(false) function.
    *
    * <p>If the sketch is empty this returns NaN.</p>
@@ -553,7 +553,7 @@ public class KllFloatsSketch {
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
    * given a set of splitPoints (values).
    *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(true) function.
    *
    * <p>If the sketch is empty this returns null.</p>
@@ -563,7 +563,7 @@ public class KllFloatsSketch {
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
    * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
+   * It is not necessary to include either the min or max values in these split points.
    *
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values (the mass) that fall into one of those intervals.
@@ -578,7 +578,7 @@ public class KllFloatsSketch {
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
    * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
    *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(false) function.
    *
    * <p>If the sketch is empty this returns null.</p>
@@ -588,7 +588,7 @@ public class KllFloatsSketch {
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
    * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
+   * It is not necessary to include either the min or max values in these split points.
    *
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned

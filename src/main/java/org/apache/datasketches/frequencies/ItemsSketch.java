@@ -135,7 +135,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * </ul>
  *
  * <sup>1</sup> For speed we do employ some randomization that introduces a small probability that
- * our proof of the worst-case bound might not apply to a given run.  However, we have ensured
+ * our proof of the worst-case bound might not apply to a given run. However, we have ensured
  * that this probability is extremely small. For example, if the stream causes one table purge
  * (rebuild), our proof of the worst case bound applies with probability at least 1 - 1E-14.
  * If the stream causes 1E9 purges, our proof applies with probability at least 1 - 1E-5.
@@ -183,21 +183,21 @@ public class ItemsSketch<T> {
    * Construct this sketch with the parameter maxMapSize and the default initialMapSize (8).
    *
    * @param maxMapSize Determines the physical size of the internal hash map managed by this
-   * sketch and must be a power of 2.  The maximum capacity of this internal hash map is
-   * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are a
-   * function of maxMapSize.
+   * sketch and must be a power of 2. The maximum capacity of this internal hash map is
+   * 0.75 times * maxMapSize. Both the ultimate accuracy and size of this sketch are
+   * functions of maxMapSize.
    */
   public ItemsSketch(final int maxMapSize) {
     this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
 
   /**
-   * Construct this sketch with parameter lgMapMapSize and lgCurMapSize. This internal
+   * Construct this sketch with parameter lgMaxMapSize and lgCurMapSize. This internal
    * constructor is used when deserializing the sketch.
    *
    * @param lgMaxMapSize Log2 of the physical size of the internal hash map managed by this
    * sketch. The maximum capacity of this internal hash map is 0.75 times 2^lgMaxMapSize.
-   * Both the ultimate accuracy and size of this sketch are a function of lgMaxMapSize.
+   * Both the ultimate accuracy and size of this sketch are functions of lgMaxMapSize.
    *
    * @param lgCurMapSize Log2 of the starting (current) physical size of the internal hash
    * map managed by this sketch.
@@ -567,11 +567,11 @@ public class ItemsSketch<T> {
   }
 
   /**
-   * Update this sketch with a item and a positive frequency count.
-   * @param item for which the frequency should be increased. The item can be any long value and is
-   * only used by the sketch to determine uniqueness.
+   * Update this sketch with an item and a positive frequency count.
+   * @param item for which the frequency should be increased. The sketch uses
+   * hashCode() and equals() methods of the type T.
    * @param count the amount by which the frequency of the item should be increased.
-   * An count of zero is a no-op, and a negative count will throw an exception.
+   * A count of zero is a no-op, and a negative count will throw an exception.
    */
   public void update(final T item, final long count) {
     if ((item == null) || (count == 0)) {
