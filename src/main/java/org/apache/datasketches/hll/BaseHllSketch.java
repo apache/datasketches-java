@@ -175,7 +175,7 @@ abstract class BaseHllSketch {
    * @return true if the current estimator is the non-HIP estimator, which is slightly less
    * accurate than the HIP estimator.
    */
-  abstract boolean isOutOfOrderFlag();
+  abstract boolean isOutOfOrder();
 
   /**
    * Returns true if the given Memory refers to the same underlying resource as this sketch.
@@ -223,7 +223,11 @@ abstract class BaseHllSketch {
    * }</pre>
    *
    * <p>The sketch "wrapping" operation skips actual deserialization thus is quite fast. However,
-   * any attempt to update the derived HllSketch will result in a Read-only exception.
+   * any attempt to update the derived HllSketch will result in a Read-only exception.</p>
+   *
+   * <p>Note that in some cases, based on the state of the sketch, the compact form is
+   * indistiguishable from the updatable form.  In these cases the updatable form is returned
+   * and the compact flag bit will not be set.</p>
    * @return this sketch as a compact byte array.
    */
   public abstract byte[] toCompactByteArray();

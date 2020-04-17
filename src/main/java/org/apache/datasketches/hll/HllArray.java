@@ -71,7 +71,7 @@ abstract class HllArray extends AbstractHllArray {
    */
   HllArray(final HllArray that) {
     super(that.getLgConfigK(), that.getTgtHllType(), CurMode.HLL);
-    oooFlag = that.isOutOfOrderFlag();
+    oooFlag = that.isOutOfOrder();
     rebuildCurMinNumKxQ = that.isRebuildCurMinNumKxQFlag();
     curMin = that.getCurMin();
     numAtCurMin = that.getNumAtCurMin();
@@ -180,7 +180,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  boolean isOutOfOrderFlag() {
+  boolean isOutOfOrder() {
     return oooFlag;
   }
 
@@ -228,7 +228,7 @@ abstract class HllArray extends AbstractHllArray {
   }
 
   @Override
-  void putOutOfOrderFlag(final boolean oooFlag) {
+  void putOutOfOrder(final boolean oooFlag) {
     this.oooFlag = oooFlag;
   }
 
@@ -255,7 +255,7 @@ abstract class HllArray extends AbstractHllArray {
 
   //used by heapify by all Heap HLL
   static final void extractCommonHll(final Memory srcMem, final HllArray hllArray) {
-    hllArray.putOutOfOrderFlag(extractOooFlag(srcMem));
+    hllArray.putOutOfOrder(extractOooFlag(srcMem));
     hllArray.putEmptyFlag(extractEmptyFlag(srcMem));
     hllArray.putCurMin(extractCurMin(srcMem));
     hllArray.putHipAccum(extractHipAccum(srcMem));

@@ -219,9 +219,9 @@ public class UnionTest {
     double controlEst = control.getEstimate();
     double controlUb = control.getUpperBound(2);
     double controlLb = control.getLowerBound(2);
-    String h1ooo = h1.isOutOfOrderFlag() ? "T" : "F";
-    String h2ooo = h2.isOutOfOrderFlag() ? "T" : "F";
-    String resultooo = result.isOutOfOrderFlag() ?  "T" : "F";
+    String h1ooo = h1.isOutOfOrder() ? "T" : "F";
+    String h2ooo = h2.isOutOfOrder() ? "T" : "F";
+    String resultooo = result.isOutOfOrder() ?  "T" : "F";
     String row = String.format(dataFmt,
         n1, n2, tot,
         lgMaxK, lgK1, lgK2, lgKR,

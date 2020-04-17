@@ -34,7 +34,7 @@ class Conversions {
   static final Hll4Array convertToHll4(final AbstractHllArray srcAbsHllArr) {
     final int lgConfigK = srcAbsHllArr.getLgConfigK();
     final Hll4Array hll4Array = new Hll4Array(lgConfigK);
-    hll4Array.putOutOfOrderFlag(srcAbsHllArr.isOutOfOrderFlag());
+    hll4Array.putOutOfOrder(srcAbsHllArr.isOutOfOrder());
 
     //1st pass: compute starting curMin and numAtCurMin:
     final int pair = curMinAndNum(srcAbsHllArr);
@@ -99,7 +99,7 @@ class Conversions {
   static final Hll6Array convertToHll6(final AbstractHllArray srcAbsHllArr) {
     final int lgConfigK = srcAbsHllArr.lgConfigK;
     final Hll6Array hll6Array = new Hll6Array(lgConfigK);
-    hll6Array.putOutOfOrderFlag(srcAbsHllArr.isOutOfOrderFlag());
+    hll6Array.putOutOfOrder(srcAbsHllArr.isOutOfOrder());
     int numZeros = 1 << lgConfigK;
     final PairIterator itr = srcAbsHllArr.iterator();
     while (itr.nextAll()) {
@@ -117,7 +117,7 @@ class Conversions {
   static final Hll8Array convertToHll8(final AbstractHllArray srcAbsHllArr) {
     final int lgConfigK = srcAbsHllArr.lgConfigK;
     final Hll8Array hll8Array = new Hll8Array(lgConfigK);
-    hll8Array.putOutOfOrderFlag(srcAbsHllArr.isOutOfOrderFlag());
+    hll8Array.putOutOfOrder(srcAbsHllArr.isOutOfOrder());
     int numZeros = 1 << lgConfigK;
     final PairIterator itr = srcAbsHllArr.iterator();
     while (itr.nextAll()) {

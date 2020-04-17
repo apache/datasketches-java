@@ -87,7 +87,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
 
   @Override
   double getEstimate() {
-    if (isOutOfOrderFlag()) {
+    if (isOutOfOrder()) {
       return getCompositeEstimate();
     }
     return getHipAccum();

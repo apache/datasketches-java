@@ -101,7 +101,7 @@ public class UnionCaseTest {
     double estU = union.getEstimate();
     double err = Math.abs((estU / totalU) - 1.0);
     int gdtLgK = union.getLgConfigK();
-    boolean uooof = union.isOutOfOrderFlag();
+    boolean uooof = union.isOutOfOrder();
     double rseFactor = (uooof) ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
     double rse = (rseFactor * 3) / Math.sqrt(1 << gdtLgK); //99.7% conf
 
@@ -115,8 +115,8 @@ public class UnionCaseTest {
     String gdtMem = Boolean.toString(union.isMemory());
     String srcMode = source.getCurMode().toString();
     String gdtMode = union.getCurMode().toString();
-    String srcOoof = Boolean.toString(source.isOutOfOrderFlag());
-    String gdtOoof = Boolean.toString(union.isOutOfOrderFlag());
+    String srcOoof = Boolean.toString(source.isOutOfOrder());
+    String gdtOoof = Boolean.toString(union.isOutOfOrder());
     printf(hfmt, caseNumStr, srcLgKStr, gdtLgKStr, srcType, gdtType, srcMem, gdtMem,
         srcMode, gdtMode, srcOoof, gdtOoof);
     assertTrue(err < rse, "Err: " + err + ", RSE: " + rse);
@@ -192,8 +192,8 @@ public class UnionCaseTest {
     println(u.toString());
     assertEquals(u.getCurMode(), LIST);
     assertEquals(u.getLgConfigK(), 12);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    assertFalse(u.isOutOfOrder());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrder(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
   }
@@ -214,8 +214,8 @@ public class UnionCaseTest {
     println(u.toString());
     assertEquals(u.getCurMode(), SET);
     assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    assertFalse(u.isOutOfOrder());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrder(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
   }
@@ -236,8 +236,8 @@ public class UnionCaseTest {
     println(u.toString());
     assertEquals(u.getCurMode(), SET);
     assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    assertFalse(u.isOutOfOrder());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrder(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
   }
@@ -258,8 +258,8 @@ public class UnionCaseTest {
     println(u.toString());
     assertEquals(u.getCurMode(), SET);
     assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    assertFalse(u.isOutOfOrder());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrder(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
   }
@@ -280,8 +280,8 @@ public class UnionCaseTest {
     println(u.toString());
     assertEquals(u.getCurMode(), LIST);
     assertEquals(u.getLgConfigK(), 12);
-    assertFalse(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    assertFalse(u.isOutOfOrder());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrder(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
   }
@@ -302,8 +302,8 @@ public class UnionCaseTest {
     println(u.toString());
     assertEquals(u.getCurMode(), SET);
     assertEquals(u.getLgConfigK(), 12);
-    assertTrue(u.isOutOfOrderFlag());
-    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrderFlag(), 3.0);
+    assertFalse(u.isOutOfOrder());
+    double err = sum * errorFactor(u.getLgConfigK(), u.isOutOfOrder(), 3.0);
     println("ErrToll: " + err);
     assertEquals(u.getEstimate(), sum, err);
   }
@@ -437,7 +437,7 @@ public class UnionCaseTest {
    * @param o value to print
    */
   static void print(Object o) {
-    //System.out.print(o.toString()); //disable here
+    System.out.print(o.toString()); //disable here
   }
 
   /**
@@ -445,7 +445,7 @@ public class UnionCaseTest {
    * @param args arguments
    */
   static void printf(String fmt, Object...args) {
-    //System.out.printf(fmt, args); //disable here
+    System.out.printf(fmt, args); //disable here
   }
 
 }

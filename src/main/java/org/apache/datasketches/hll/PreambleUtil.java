@@ -173,6 +173,7 @@ final class PreambleUtil {
     final boolean oooFlag = (flags & OUT_OF_ORDER_FLAG_MASK) > 0;
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
+    final boolean rebuildKxQ = (flags & REBUILD_CURMIN_NUM_KXQ_MASK) > 0;
 
     final int hllCurMin = mem.getByte(HLL_CUR_MIN_BYTE);
     final int listCount = hllCurMin;
@@ -223,6 +224,7 @@ final class PreambleUtil {
     sb.append("  EMPTY                       : ").append(empty).append(LS);
     sb.append("  COMPACT                     : ").append(compact).append(LS);
     sb.append("  OUT_OF_ORDER                : ").append(oooFlag).append(LS);
+    sb.append("  REBUILD_KXQ                 : ").append(rebuildKxQ).append(LS);
     //expand byte 6: ListCount, CurMin
     if (curMode == CurMode.LIST) {
       sb.append("Byte 6: List Count/CurMin     : ").append(listCount).append(LS);
@@ -231,7 +233,7 @@ final class PreambleUtil {
       sb.append("Byte 6: (not used)            : ").append(LS);
     }
     if (curMode == CurMode.HLL) {
-      sb.append("Byte 6: Cur Min               : ").append(curMinCount).append(LS);
+      sb.append("Byte 6: Cur Min               : ").append(hllCurMin).append(LS);
     }
     final String modes = curMode.toString() + ", " + tgtHllType.toString();
     sb.append("Byte 7: Mode                  : ").append(modes).append(LS);

@@ -52,7 +52,7 @@ class HllEstimators {
         (absHllArr.getCurMin() == 0) ? configK - absHllArr.getNumAtCurMin() : configK;
     final double estimate;
     final double rseFactor;
-    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
+    final boolean oooFlag = absHllArr.isOutOfOrder();
     if (oooFlag) {
       estimate = absHllArr.getCompositeEstimate();
       rseFactor = HLL_NON_HIP_RSE_FACTOR;
@@ -71,7 +71,7 @@ class HllEstimators {
     final int configK = 1 << lgConfigK;
     final double estimate;
     final double rseFactor;
-    final boolean oooFlag = absHllArr.isOutOfOrderFlag();
+    final boolean oooFlag = absHllArr.isOutOfOrder();
     if (oooFlag) {
       estimate = absHllArr.getCompositeEstimate();
       rseFactor = HLL_NON_HIP_RSE_FACTOR;
