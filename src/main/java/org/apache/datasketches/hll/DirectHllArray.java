@@ -249,6 +249,7 @@ abstract class DirectHllArray extends AbstractHllArray {
 
   @Override //not used on the direct side
   void putOutOfOrder(final boolean oooFlag) {
+    if (oooFlag) { putHipAccum(0); }
     checkReadOnly(wmem);
     insertOooFlag(wmem, oooFlag);
   }
