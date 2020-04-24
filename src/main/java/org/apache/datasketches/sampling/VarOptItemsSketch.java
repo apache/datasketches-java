@@ -20,20 +20,7 @@
 package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
-import static org.apache.datasketches.sampling.PreambleUtil.SER_VER;
-import static org.apache.datasketches.sampling.PreambleUtil.TOTAL_WEIGHT_R_DOUBLE;
-import static org.apache.datasketches.sampling.PreambleUtil.extractFamilyID;
-import static org.apache.datasketches.sampling.PreambleUtil.extractFlags;
-import static org.apache.datasketches.sampling.PreambleUtil.extractHRegionItemCount;
-import static org.apache.datasketches.sampling.PreambleUtil.extractK;
-import static org.apache.datasketches.sampling.PreambleUtil.extractN;
-import static org.apache.datasketches.sampling.PreambleUtil.extractRRegionItemCount;
-import static org.apache.datasketches.sampling.PreambleUtil.extractResizeFactor;
-import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.sampling.PreambleUtil.extractTotalRWeight;
-import static org.apache.datasketches.sampling.PreambleUtil.getAndCheckPreLongs;
+import static org.apache.datasketches.sampling.PreambleUtil.*;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
@@ -118,8 +105,9 @@ public final class VarOptItemsSketch<T> {
 
   private VarOptItemsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
-    if (k < 1) {
-      throw new SketchesArgumentException("k must be at least 1");
+    if (k < 1 || k > (Integer.MAX_VALUE - 1)) {
+      throw new SketchesArgumentException("k must be at least 1 and less than " + Integer.MAX_VALUE
+        + ". Found: " + k);
     }
 
     k_ = k;
@@ -198,7 +186,7 @@ public final class VarOptItemsSketch<T> {
    *
    * @param k   Maximum size of sampling. Allocated size may be smaller until sketch fills.
    *            Unlike many sketches in this package, this value does <em>not</em> need to be a
-   *            power of 2.
+   *            power of 2. The maximum size is Integer.MAX_VALUE-1.
    * @param rf  <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param <T> The type of object held in the sketch.
    * @return A VarOptItemsSketch initialized with maximum size k and resize factor rf.
@@ -277,13 +265,17 @@ public final class VarOptItemsSketch<T> {
     final boolean isGadget = (flags & GADGET_FLAG_MASK) != 0;
 
     // Check values
-    if ((numPreLongs != Family.VAROPT.getMinPreLongs())
-            && (numPreLongs != Family.VAROPT.getMaxPreLongs())
-            && (numPreLongs != PreambleUtil.VO_WARMUP_PRELONGS)) {
-      throw new SketchesArgumentException(
-              "Possible corruption: Must have " + Family.VAROPT.getMinPreLongs()
-                      + ", " + PreambleUtil.VO_WARMUP_PRELONGS + ", or "
-                      + Family.VAROPT.getMaxPreLongs() + " preLongs. Found: " + numPreLongs);
+    if (isEmpty) {
+      if (numPreLongs != VO_PRELONGS_EMPTY) {
+        throw new SketchesArgumentException("Possible corruption: Must be " + VO_PRELONGS_EMPTY
+                + " for an empty sketch. Found: " + numPreLongs);
+      }
+    } else {
+      if (numPreLongs != VO_PRELONGS_WARMUP
+          && numPreLongs != VO_PRELONGS_FULL) {
+        throw new SketchesArgumentException("Possible corruption: Must be " + VO_PRELONGS_WARMUP
+                + " or " + VO_PRELONGS_FULL + " for a non-empty sketch. Found: " + numPreLongs);
+      }
     }
     if (serVer != SER_VER) {
         throw new SketchesArgumentException(
@@ -473,6 +465,10 @@ public final class VarOptItemsSketch<T> {
             SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
 
     currItemsAlloc_ = SamplingUtil.getAdjustedSize(k_, 1 << initialLgSize);
+    if (currItemsAlloc_ == k_) {
+      ++currItemsAlloc_;
+    }
+
     data_    = new ArrayList<>(currItemsAlloc_);
     weights_ = new ArrayList<>(currItemsAlloc_);
     if (marks_ != null) {
@@ -566,7 +562,7 @@ public final class VarOptItemsSketch<T> {
       outBytes = Family.VAROPT.getMinPreLongs() << 3; // only contains the minimum header info
       flags |= EMPTY_FLAG_MASK;
     } else {
-      preLongs = (r_ == 0 ? PreambleUtil.VO_WARMUP_PRELONGS : Family.VAROPT.getMaxPreLongs());
+      preLongs = (r_ == 0 ? PreambleUtil.VO_PRELONGS_WARMUP : Family.VAROPT.getMaxPreLongs());
       itemBytes = serDe.serializeToByteArray(getDataSamples(clazz));
       numMarkBytes = marks_ == null ? 0 : ArrayOfBooleansSerDe.computeBytesNeeded(h_);
       outBytes = (preLongs << 3) + (h_ * Double.BYTES) + numMarkBytes + itemBytes.length;

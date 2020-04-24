@@ -150,7 +150,9 @@ final class PreambleUtil {
   static final int ITEM_COUNT_H_INT      = 16;
   static final int ITEM_COUNT_R_INT      = 20;
   static final int TOTAL_WEIGHT_R_DOUBLE = 24;
-  static final int VO_WARMUP_PRELONGS    = 3;   // Doesn't match min or max prelongs in Family
+  static final int VO_PRELONGS_EMPTY     = Family.VAROPT.getMinPreLongs();
+  static final int VO_PRELONGS_WARMUP    = 3;   // Doesn't match min or max prelongs in Family
+  static final int VO_PRELONGS_FULL      = Family.VAROPT.getMaxPreLongs();
 
   // flag bit masks
   //static final int BIG_ENDIAN_FLAG_MASK = 1;
