@@ -138,7 +138,7 @@ public class VarOptItemsSketchTest {
 
     // copy the bytes
     srcMem.copyTo(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_PRELONGS_WARMUP);
 
     // no items in R but max preLongs
     try {
@@ -152,7 +152,7 @@ public class VarOptItemsSketchTest {
 
     // refresh the copy
     srcMem.copyTo(0, mem, 0, sketchBytes.length);
-    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_PRELONGS_WARMUP);
 
     // negative H region count
     try {
@@ -228,7 +228,7 @@ public class VarOptItemsSketchTest {
     println(vis.toString());
   }
 
-  @Test
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkNonEmptyDegenerateSketch() {
     // make an empty serialized sketch, then copy the items into a
     // PreambleUtil.VO_WARMUP_PRELONGS-sized byte array
@@ -236,7 +236,7 @@ public class VarOptItemsSketchTest {
     // the rest.
     final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(12, ResizeFactor.X2);
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe());
-    final byte[] dstByteArr = new byte[PreambleUtil.VO_WARMUP_PRELONGS << 3];
+    final byte[] dstByteArr = new byte[PreambleUtil.VO_PRELONGS_WARMUP << 3];
     final WritableMemory mem = WritableMemory.wrap(dstByteArr);
     mem.putByteArray(0, sketchBytes, 0, sketchBytes.length);
 
@@ -245,10 +245,7 @@ public class VarOptItemsSketchTest {
     PreambleUtil.insertHRegionItemCount(mem, 0);
     PreambleUtil.insertRRegionItemCount(mem, 0);
 
-    final VarOptItemsSketch<String> rebuilt
-            = VarOptItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
-    assertNotNull(rebuilt);
-    assertEquals(rebuilt.getNumSamples(), 0);
+    VarOptItemsSketch.heapify(mem, new ArrayOfStringsSerDe());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -324,7 +321,7 @@ public class VarOptItemsSketchTest {
     final Memory mem = Memory.wrap(bytes);
 
     // ensure correct number of preLongs
-    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_PRELONGS_WARMUP);
 
     final VarOptItemsSketch<Long> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
@@ -340,7 +337,7 @@ public class VarOptItemsSketchTest {
     final Memory mem = Memory.wrap(bytes);
 
     // ensure still only 2 preLongs
-    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_WARMUP_PRELONGS);
+    assertEquals(PreambleUtil.extractPreLongs(mem), PreambleUtil.VO_PRELONGS_WARMUP);
 
     final VarOptItemsSketch<Long> rebuilt
             = VarOptItemsSketch.heapify(mem, new ArrayOfLongsSerDe());
