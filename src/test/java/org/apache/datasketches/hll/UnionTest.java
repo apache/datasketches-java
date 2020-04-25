@@ -19,19 +19,19 @@
 
 package org.apache.datasketches.hll;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
-import static java.lang.Math.min;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -434,6 +434,65 @@ public class UnionTest {
     assertEquals(est3, est1, 0.0);
   }
 
+  @Test
+  public void checkUnionHeapifyRebuildAfterMerge() {
+    int lgK = 12;
+    //Build 2 sketches in HLL (dense) mode.
+    int u = (lgK < 8) ? 16 : 1 << (lgK - 3);
+    HllSketch sk1 = new HllSketch(lgK);
+    HllSketch sk2 = new HllSketch(lgK);
+    for (int i = 0; i < u; i++) {
+      sk1.update(i);
+      sk2.update(i + u);
+    }
+    final int bytes = Union.getMaxSerializationBytes(lgK);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
+    Union union1 = new Union(lgK, wmem); //Create original union off-heap
+    union1.update(sk1);
+    union1.update(sk2); //oooFlag = Rebuild_KxQ = TRUE
+    boolean rebuild = PreambleUtil.extractRebuildCurMinNumKxQFlag(wmem);
+    double hipAccum = PreambleUtil.extractHipAccum(wmem);
+    assertTrue(rebuild);
+    assertTrue(hipAccum == 0.0);
+    //Heapify byteArr as if it were a sketch, but it is actually a union!
+    HllSketch sk3 = HllSketch.heapify(wmem); //rebuilds sk3
+    rebuild = sk3.hllSketchImpl.isRebuildCurMinNumKxQFlag();
+    assertFalse(rebuild);
+  }
+
+  @SuppressWarnings("unused")
+  @Test //similar to above except uses wrap instead of heapify
+  public void druidUseCase() {
+   final int lgK = 12;
+   final int bytes = Union.getMaxSerializationBytes(lgK);
+   WritableMemory wmem = WritableMemory.allocate(bytes);
+   new Union(lgK, wmem); // result is unused, relying on side effect
+   int trueCount = 0;
+   int delta = (lgK < 8) ? 16 : 1 << (lgK - 3);
+   for (int i = 0; i < 3; i++) {
+    Union.writableWrap(wmem).update(buildSketch(trueCount, delta));
+    trueCount += delta;
+   }
+   boolean rebuild = PreambleUtil.extractRebuildCurMinNumKxQFlag(wmem);
+   assertTrue(rebuild);
+   HllSketch result = Union.writableWrap(wmem).getResult(); //rebuilds result
+   rebuild = result.hllSketchImpl.isRebuildCurMinNumKxQFlag();
+   assertFalse(rebuild);
+   double est = result.getEstimate();
+   double err = (est / trueCount) - 1.0;
+   double rse3 = (3 * 1.04)/Math.sqrt(1 << lgK);
+   println(err + " < " + rse3);
+   assertTrue(err < rse3);
+  }
+
+  private static HllSketch buildSketch(final int start, final int count) {
+   HllSketch sketch = new HllSketch(10);
+   for (int i = start; i < (start + count); i++) {
+    sketch.update(i);
+   }
+   return sketch;
+  }
+
   private static Union newUnion(int lgK) {
     return new Union(lgK);
   }
@@ -451,15 +510,15 @@ public class UnionTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
-    print(s + LS);
+  static void println(Object s) {
+    print(s.toString() + LS);
   }
 
   /**
    * @param s value to print
    */
-  static void print(String s) {
-    //System.out.print(s); //disable here
+  static void print(Object s) {
+    System.out.print(s.toString()); //disable here
   }
 
 }

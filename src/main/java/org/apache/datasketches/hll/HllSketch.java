@@ -158,6 +158,11 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch on the java heap.
    */
   public static final HllSketch heapify(final Memory srcMem) {
+    return heapify(srcMem, true);
+  }
+
+  //used by union and above
+  static final HllSketch heapify(final Memory srcMem, final boolean checkRebuild) {
     final CurMode curMode = checkPreamble(srcMem);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
@@ -168,6 +173,9 @@ public class HllSketch extends BaseHllSketch {
         heapSketch = new HllSketch(Hll6Array.heapify(srcMem));
       } else { //Hll_8
         heapSketch = new HllSketch(Hll8Array.heapify(srcMem));
+        if (checkRebuild) {
+          Union.checkRebuildCurMinNumKxQ(heapSketch);
+        }
       }
     } else if (curMode == CurMode.LIST) {
       heapSketch = new HllSketch(CouponList.heapifyList(srcMem));
@@ -185,46 +193,52 @@ public class HllSketch extends BaseHllSketch {
    *
    * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
-   * @param wmem an writable image of a valid sketch with data.
+   * @param srcWmem an writable image of a valid source sketch with data.
    * @return an HllSketch where the sketch data is in the given dstMem.
    */
-  public static final HllSketch writableWrap(final WritableMemory wmem) {
-    final boolean compact = extractCompactFlag(wmem);
-    if (compact) {
+  public static final HllSketch writableWrap(final WritableMemory srcWmem) {
+    if (extractCompactFlag(srcWmem)) {
       throw new SketchesArgumentException(
           "Cannot perform a writableWrap of a writable sketch image that is in compact form.");
     }
-    final int lgConfigK = extractLgK(wmem);
-    final TgtHllType tgtHllType = extractTgtHllType(wmem);
-    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
-    final long capBytes = wmem.getCapacity();
-    HllUtil.checkMemSize(minBytes, capBytes);
+    return writableWrap(srcWmem, true);
+  }
 
-    final CurMode curMode = checkPreamble(wmem);
+  //used by union and above
+  static final HllSketch writableWrap( final WritableMemory srcWmem, final boolean checkRebuild) {
+    final int lgConfigK = extractLgK(srcWmem);
+    final TgtHllType tgtHllType = extractTgtHllType(srcWmem);
+    final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
+    final long capBytes = srcWmem.getCapacity();
+    HllUtil.checkMemSize(minBytes, capBytes);
+    final CurMode curMode = checkPreamble(srcWmem);
     final HllSketch directSketch;
     if (curMode == CurMode.HLL) {
       if (tgtHllType == TgtHllType.HLL_4) {
-        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, wmem));
+        directSketch = new HllSketch(new DirectHll4Array(lgConfigK, srcWmem));
       } else if (tgtHllType == TgtHllType.HLL_6) {
-        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, wmem));
+        directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcWmem));
       } else { //Hll_8
-        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, wmem));
+        directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcWmem));
+        if (checkRebuild) { //union only uses HLL_8, we allow non-finalized from a union call.
+          Union.checkRebuildCurMinNumKxQ(directSketch);
+        }
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
-          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, wmem));
-    } else {
+          new HllSketch(new DirectCouponList(lgConfigK, tgtHllType, curMode, srcWmem));
+    } else { //SET
       directSketch =
-          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, wmem));
+          new HllSketch(new DirectCouponHashSet(lgConfigK, tgtHllType, srcWmem));
     }
     return directSketch;
   }
 
   /**
    * Wraps the given read-only Memory that must be a image of a valid sketch,
-   * which may be in compact or updatable form, and should have data. Any attempt to update this
-   * sketch will throw an exception.
-   * @param srcMem a read-only image of a valid sketch.
+   * which may be in compact or updatable form, and should have data. Any attempt to update the
+   * given source Memory will throw an exception.
+   * @param srcMem a read-only image of a valid source sketch.
    * @return an HllSketch, where the read-only data of the sketch is in the given srcMem.
    *
    */
@@ -241,6 +255,8 @@ public class HllSketch extends BaseHllSketch {
         directSketch = new HllSketch(new DirectHll6Array(lgConfigK, srcMem));
       } else { //Hll_8
         directSketch = new HllSketch(new DirectHll8Array(lgConfigK, srcMem));
+        //rebuild if srcMem came from a union and was not finalized, rather than throw exception.
+        Union.checkRebuildCurMinNumKxQ(directSketch);
       }
     } else if (curMode == CurMode.LIST) {
       directSketch =
@@ -251,6 +267,8 @@ public class HllSketch extends BaseHllSketch {
     }
     return directSketch;
   }
+
+
 
   /**
    * Return a copy of this sketch onto the Java heap.
