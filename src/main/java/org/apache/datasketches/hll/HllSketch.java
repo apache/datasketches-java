@@ -199,7 +199,8 @@ public class HllSketch extends BaseHllSketch {
   public static final HllSketch writableWrap(final WritableMemory srcWmem) {
     if (extractCompactFlag(srcWmem)) {
       throw new SketchesArgumentException(
-          "Cannot perform a writableWrap of a writable sketch image that is in compact form.");
+          "Cannot perform a writableWrap of a writable sketch image that is in compact form. "
+          + "Compact sketches are by definition immutable.");
     }
     return writableWrap(srcWmem, true);
   }
