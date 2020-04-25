@@ -30,7 +30,6 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -350,22 +349,22 @@ public class UnionCaseTest {
     assertFalse(u.isRebuildCurMinNumKxQFlag());
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkRebuildCurMinNumKxQFlag1() {
     HllSketch sk = buildHeapSketch(4, HLL_8, 16);
     HllArray hllArr = (HllArray)(sk.hllSketchImpl);
     hllArr.putRebuildCurMinNumKxQFlag(true); //corrupt the flag
     Union union = buildHeapUnion(4, 0);
-    union.update(sk); //throws
+    union.update(sk);
   }
 
-  //@Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkRebuildCurMinNumKxQFlag2() {
     HllSketch sk = buildMemorySketch(4, HLL_8, 16);
     DirectHllArray hllArr = (DirectHllArray)(sk.hllSketchImpl);
     hllArr.putRebuildCurMinNumKxQFlag(true); //corrupt the flag
     WritableMemory wmem = sk.getWritableMemory();
-    Union.writableWrap(wmem); //throws
+    Union.writableWrap(wmem);
   }
 
   @Test(expectedExceptions = SketchesStateException.class)

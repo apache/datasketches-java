@@ -474,7 +474,9 @@ public class UnionTest {
     trueCount += delta;
    }
    boolean rebuild = PreambleUtil.extractRebuildCurMinNumKxQFlag(wmem);
+   double hipAccum = PreambleUtil.extractHipAccum(wmem);
    assertTrue(rebuild);
+   assertTrue(hipAccum == 0.0);
    HllSketch result = Union.writableWrap(wmem).getResult(); //rebuilds result
    rebuild = result.hllSketchImpl.isRebuildCurMinNumKxQFlag();
    assertFalse(rebuild);
@@ -518,7 +520,7 @@ public class UnionTest {
    * @param s value to print
    */
   static void print(Object s) {
-    System.out.print(s.toString()); //disable here
+    //System.out.print(s.toString()); //disable here
   }
 
 }
