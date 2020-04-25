@@ -473,8 +473,8 @@ public class Union extends BaseHllSketch {
     final byte[] byteArr = hll8Heap.toUpdatableByteArray();    //serialize srcCopy
     wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
     return (setOooFlag)
-        ? HllSketch.writableWrap(wmem).putOutOfOrderFlag(true) //wrap, set oooflag, return
-        : HllSketch.writableWrap(wmem);                        //wrap & return
+        ? HllSketch.writableWrap(wmem, false).putOutOfOrderFlag(true) //wrap, set oooflag, return
+        : HllSketch.writableWrap(wmem, false);                        //wrap & return
   }
 
   private static final void mergeHlltoHLLmode(final HllSketch src, final HllSketch tgt,
