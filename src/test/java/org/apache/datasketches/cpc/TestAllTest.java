@@ -20,9 +20,11 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.testng.Assert.assertEquals;
 
 import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.util.Arrays;
 
 import org.testng.annotations.Test;
 
@@ -47,6 +49,18 @@ public class TestAllTest {
     StreamingValidation sVal = new StreamingValidation(
         lgMinK, lgMaxK, trials, ppoN, ps, pw);
     sVal.start();
+  }
+
+  //Matrix
+  @Test
+  public void matrixCouponCountCheck() {
+    long pat = 0xA5A5A5A5_5A5A5A5AL;
+    int len = 16;
+    long[] arr = new long[len];
+    Arrays.fill(arr, pat);
+    long trueCount = len * Long.bitCount(pat);
+    long testCount = BitMatrix.countCoupons(arr);
+    assertEquals(testCount, trueCount);
   }
 
   //COMPRESSION
@@ -82,7 +96,7 @@ public class TestAllTest {
 
   //MERGING
 
-  //@Test //longer test. use for characterization
+  @Test //longer test. use for characterization
   public void mergingValidationCheck() {
     int lgMinK = 10;
     int lgMaxK = 10; //inclusive
@@ -104,6 +118,12 @@ public class TestAllTest {
     QuickMergingValidation qmv = new QuickMergingValidation(
         lgMinK, lgMaxK, incLgK, ps, pw);
     qmv.start();
+  }
+
+  @Test
+  public void checkPwrLaw10NextDouble() {
+    double next = TestUtil.pwrLaw10NextDouble(1, 10.0);
+    assertEquals(next, 100.0);
   }
 
 }

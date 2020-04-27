@@ -57,7 +57,8 @@ class BitMatrix {
 
   long getNumCoupons() {
     if (numCouponsInvalid) {
-      numCoupons = countCoupons();
+      numCoupons = countCoupons(bitMatrix);
+      numCouponsInvalid = false;
     }
     return numCoupons;
   }
@@ -98,11 +99,10 @@ class BitMatrix {
     }
   }
 
-  private long countCoupons() {
+  static long countCoupons(final long[] bitMatrix) {
     long count = 0;
     final int len = bitMatrix.length;
     for (int i = 0; i < len; i++) { count += Long.bitCount(bitMatrix[i]); }
-    numCouponsInvalid = false;
     return count;
   }
 
