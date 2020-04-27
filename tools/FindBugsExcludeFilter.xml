@@ -66,6 +66,11 @@ under the License.
   <Match>   <!-- Too many False Positives. -->
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
   </Match>
+
+  <Match>   <!-- Harmless in the Builder -->
+    <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+    <Class name="org.apache.datasketches.theta.UpdateSketchBuilder" />
+  </Match>
   
 </FindBugsFilter>
 
