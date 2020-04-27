@@ -22,6 +22,7 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.Util.invPow2;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
+import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -82,24 +83,16 @@ public class Union extends BaseHllSketch {
    * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgMaxK the desired maximum log-base-2 of <i>K</i>.  This value must be
    * between 4 and 21 inclusively.
-   * @param dstMem the destination memory for the sketch.
+   * @param dstWmem the destination writable memory for the sketch.
    */
-  public Union(final int lgMaxK, final WritableMemory dstMem) {
+  public Union(final int lgMaxK, final WritableMemory dstWmem) {
     this.lgMaxK = HllUtil.checkLgK(lgMaxK);
-    gadget = new HllSketch(lgMaxK, HLL_8, dstMem);
+    gadget = new HllSketch(lgMaxK, HLL_8, dstWmem);
   }
 
-  Union(final HllSketch sketch) {
+  //used only by writableWrap
+  private Union(final HllSketch sketch) {
     lgMaxK = sketch.getLgConfigK();
-    final TgtHllType tgtHllType = sketch.getTgtHllType();
-    if (tgtHllType != TgtHllType.HLL_8) {
-      throw new SketchesArgumentException("Union can only wrap writable HLL_8 sketches.");
-    }
-    //This should not happen, this is in case it does.
-    if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      throw new SketchesArgumentException(
-          "Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
-    }
     gadget = sketch;
   }
 
@@ -119,7 +112,7 @@ public class Union extends BaseHllSketch {
    */
   public static final Union heapify(final Memory mem) {
     final int lgK = HllUtil.checkLgK(mem.getByte(PreambleUtil.LG_K_BYTE));
-    final HllSketch sk = HllSketch.heapify(mem);
+    final HllSketch sk = HllSketch.heapify(mem, false); //allows non-finalized image
     final Union union = new Union(lgK);
     union.update(sk);
     return union;
@@ -133,18 +126,22 @@ public class Union extends BaseHllSketch {
    *
    * <p>The given <i>dstMem</i> is checked for the required capacity as determined by
    * {@link HllSketch#getMaxUpdatableSerializationBytes(int, TgtHllType)}, and for the correct type.
-   * @param wmem an writable image of a valid sketch with data.
+   * @param srcWmem an writable image of a valid sketch with data.
    * @return a Union operator where the sketch data is in the given dstMem.
    */
-  public static final Union writableWrap(final WritableMemory wmem) {
-    return new Union(HllSketch.writableWrap(wmem));
+  public static final Union writableWrap(final WritableMemory srcWmem) {
+    final TgtHllType tgtHllType = extractTgtHllType(srcWmem);
+    if (tgtHllType != TgtHllType.HLL_8) {
+      throw new SketchesArgumentException(
+          "Union can only wrap writable HLL_8 sketches that were the Gadget of a Union.");
+    }
+    //allows writableWrap of non-finalized image
+    return new Union(HllSketch.writableWrap(srcWmem, false));
   }
 
   @Override
   public double getCompositeEstimate() {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.hllSketchImpl.getCompositeEstimate();
   }
 
@@ -160,9 +157,7 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getEstimate() {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.getEstimate();
   }
 
@@ -178,9 +173,7 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getLowerBound(final int numStdDev) {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.getLowerBound(numStdDev);
   }
 
@@ -209,9 +202,7 @@ public class Union extends BaseHllSketch {
    * @return the result of this union operator with the specified TgtHllType
    */
   public HllSketch getResult(final TgtHllType tgtHllType) {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.copyAs(tgtHllType);
   }
 
@@ -227,9 +218,7 @@ public class Union extends BaseHllSketch {
 
   @Override
   public double getUpperBound(final int numStdDev) {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.getUpperBound(numStdDev);
   }
 
@@ -289,26 +278,20 @@ public class Union extends BaseHllSketch {
    */
   @Override
   public byte[] toCompactByteArray() {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.toCompactByteArray();
   }
 
   @Override
   public byte[] toUpdatableByteArray() {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.toUpdatableByteArray();
   }
 
   @Override
   public String toString(final boolean summary, final boolean hllDetail,
       final boolean auxDetail, final boolean all) {
-    if (gadget.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      rebuildCurMinNumKxQ((AbstractHllArray)(gadget.hllSketchImpl));
-    }
+    checkRebuildCurMinNumKxQ(gadget);
     return gadget.toString(summary, hllDetail, auxDetail, all);
   }
 
@@ -317,11 +300,6 @@ public class Union extends BaseHllSketch {
    * @param sketch the given sketch.
    */
   public void update(final HllSketch sketch) {
-    //This should not happen, this is in case it does.
-    if (sketch.hllSketchImpl.isRebuildCurMinNumKxQFlag()) {
-      throw new SketchesArgumentException(
-          "Incomming sketch is corrupted, Rebuild_CurMin_Num_KxQ flag is set.");
-    }
     gadget.hllSketchImpl = unionImpl(sketch, gadget, lgMaxK);
   }
 
@@ -495,8 +473,8 @@ public class Union extends BaseHllSketch {
     final byte[] byteArr = hll8Heap.toUpdatableByteArray();    //serialize srcCopy
     wmem.putByteArray(0, byteArr, 0, byteArr.length);          //replace old data with new
     return (setOooFlag)
-        ? HllSketch.writableWrap(wmem).putOutOfOrderFlag(true) //wrap, set oooflag, return
-        : HllSketch.writableWrap(wmem);                        //wrap & return
+        ? HllSketch.writableWrap(wmem, false).putOutOfOrderFlag(true) //wrap, set oooflag, return
+        : HllSketch.writableWrap(wmem, false);                        //wrap & return
   }
 
   private static final void mergeHlltoHLLmode(final HllSketch src, final HllSketch tgt,
@@ -654,8 +632,13 @@ public class Union extends BaseHllSketch {
   }
 
   //Used to rebuild curMin, numAtCurMin and KxQ registers, due to high performance merge operation
-  //performed in 1st switch cases 4, 5, 12, 13, 20, 21
-  private static final void rebuildCurMinNumKxQ(final AbstractHllArray absHllArr) {
+  static final void checkRebuildCurMinNumKxQ(final HllSketch sketch) {
+    final HllSketchImpl hllSketchImpl = sketch.hllSketchImpl;
+    final CurMode curMode = sketch.getCurMode();
+    final TgtHllType tgtHllType = sketch.getTgtHllType();
+    final boolean rebuild = hllSketchImpl.isRebuildCurMinNumKxQFlag();
+    if ( !rebuild || (curMode != CurMode.HLL) || (tgtHllType != HLL_8) ) { return; }
+    final AbstractHllArray absHllArr = (AbstractHllArray)(hllSketchImpl);
     int curMin = 64;
     int numAtCurMin = 0;
     double kxq0 = 1 << absHllArr.getLgConfigK();

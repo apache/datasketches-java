@@ -25,7 +25,7 @@ import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 
 /**
  * Converters for one TgtHllType to another.  The source can be heap or direct, but the result is
- * always on heap.
+ * always on heap. These conversions only apply to sketches in HLL (dense) mode.
  *
  * @author Lee Rhodes
  */

@@ -229,6 +229,7 @@ abstract class HllArray extends AbstractHllArray {
 
   @Override
   void putOutOfOrder(final boolean oooFlag) {
+    if (oooFlag) { putHipAccum(0); }
     this.oooFlag = oooFlag;
   }
 

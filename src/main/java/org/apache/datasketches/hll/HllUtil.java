@@ -106,7 +106,8 @@ final class HllUtil {
       || ((curMode == CurMode.SET) && (preInts != HASH_SET_PREINTS))
       || ((curMode == CurMode.HLL) && (preInts != HLL_PREINTS))
     ) {
-      HllUtil.badPreambleState(mem);
+      throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
+          + PreambleUtil.toString(mem));
     }
     return curMode;
   }
@@ -115,11 +116,6 @@ final class HllUtil {
   static final void noWriteAccess() {
     throw new SketchesReadOnlyException(
         "This sketch is compact or does not have write access to the underlying resource.");
-  }
-
-  static final void badPreambleState(final Memory mem) {
-    throw new SketchesArgumentException("Possible Corruption, Invalid Preamble:"
-        + PreambleUtil.toString(mem));
   }
 
   //Used for thrown exceptions
