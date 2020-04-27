@@ -20,7 +20,23 @@
 package org.apache.datasketches.sampling;
 
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.sampling.PreambleUtil.*;
+import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
+import static org.apache.datasketches.sampling.PreambleUtil.SER_VER;
+import static org.apache.datasketches.sampling.PreambleUtil.TOTAL_WEIGHT_R_DOUBLE;
+import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_EMPTY;
+import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_FULL;
+import static org.apache.datasketches.sampling.PreambleUtil.VO_PRELONGS_WARMUP;
+import static org.apache.datasketches.sampling.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.sampling.PreambleUtil.extractFlags;
+import static org.apache.datasketches.sampling.PreambleUtil.extractHRegionItemCount;
+import static org.apache.datasketches.sampling.PreambleUtil.extractK;
+import static org.apache.datasketches.sampling.PreambleUtil.extractN;
+import static org.apache.datasketches.sampling.PreambleUtil.extractRRegionItemCount;
+import static org.apache.datasketches.sampling.PreambleUtil.extractResizeFactor;
+import static org.apache.datasketches.sampling.PreambleUtil.extractSerVer;
+import static org.apache.datasketches.sampling.PreambleUtil.extractTotalRWeight;
+import static org.apache.datasketches.sampling.PreambleUtil.getAndCheckPreLongs;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricLBonP;
 import static org.apache.datasketches.sampling.SamplingUtil.pseudoHypergeometricUBonP;
 
@@ -105,7 +121,7 @@ public final class VarOptItemsSketch<T> {
 
   private VarOptItemsSketch(final int k, final ResizeFactor rf) {
     // required due to a theorem about lightness during merging
-    if (k < 1 || k > (Integer.MAX_VALUE - 1)) {
+    if ((k < 1) || (k > (Integer.MAX_VALUE - 1))) {
       throw new SketchesArgumentException("k must be at least 1 and less than " + Integer.MAX_VALUE
         + ". Found: " + k);
     }
@@ -271,8 +287,8 @@ public final class VarOptItemsSketch<T> {
                 + " for an empty sketch. Found: " + numPreLongs);
       }
     } else {
-      if (numPreLongs != VO_PRELONGS_WARMUP
-          && numPreLongs != VO_PRELONGS_FULL) {
+      if ((numPreLongs != VO_PRELONGS_WARMUP)
+          && (numPreLongs != VO_PRELONGS_FULL)) {
         throw new SketchesArgumentException("Possible corruption: Must be " + VO_PRELONGS_WARMUP
                 + " or " + VO_PRELONGS_FULL + " for a non-empty sketch. Found: " + numPreLongs);
       }

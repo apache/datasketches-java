@@ -23,21 +23,19 @@ import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class VarOptItemsSketchTest {
