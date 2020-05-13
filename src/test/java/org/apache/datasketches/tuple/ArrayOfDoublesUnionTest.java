@@ -204,13 +204,13 @@ public class ArrayOfDoublesUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void noSupportHeapifyV0_9_1() throws Exception {
-    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.bin");
+    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.heapify(Memory.wrap(bytes));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void noSupportWrapV0_9_1() throws Exception {
-    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.bin");
+    final byte[] bytes = getResourceBytes("ArrayOfDoublesUnion_v0.9.1.sk");
     ArrayOfDoublesUnion.wrap(WritableMemory.wrap(bytes));
   }
 

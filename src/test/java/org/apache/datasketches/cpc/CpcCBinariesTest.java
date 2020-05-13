@@ -41,7 +41,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkEmptyBin() {
-    final String fileName = "cpc-empty.bin";
+    final String fileName = "cpc-empty.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory wmem = mh.get();
@@ -55,7 +55,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkSparseBin() {
-    final String fileName = "cpc-sparse.bin";
+    final String fileName = "cpc-sparse.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -81,7 +81,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkHybridBin() {
-    final String fileName = "cpc-hybrid.bin";
+    final String fileName = "cpc-hybrid.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -107,7 +107,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkPinnedBin() {
-    final String fileName = "cpc-pinned.bin";
+    final String fileName = "cpc-pinned.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -133,7 +133,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkSlidingBin() {
-    final String fileName = "cpc-sliding.bin";
+    final String fileName = "cpc-sliding.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -161,7 +161,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkEmptyImages() {
-    final String fileName = "cpc-empty.bin";
+    final String fileName = "cpc-empty.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -181,7 +181,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkSparseImages() {
-    final String fileName = "cpc-sparse.bin";
+    final String fileName = "cpc-sparse.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -202,7 +202,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkHybridImages() {
-    final String fileName = "cpc-hybrid.bin";
+    final String fileName = "cpc-hybrid.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -223,7 +223,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkPinnedImages() {
-    final String fileName = "cpc-pinned.bin";
+    final String fileName = "cpc-pinned.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();
@@ -244,7 +244,7 @@ public class CpcCBinariesTest {
 
   @Test
   public void checkSlidingImages() {
-    final String fileName = "cpc-sliding.bin";
+    final String fileName = "cpc-sliding.sk";
     final File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       final Memory mem = mh.get();

@@ -23,12 +23,12 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ReservoirSizeTest {
+
   @Test
   public void checkComputeSize() {
     short enc;
