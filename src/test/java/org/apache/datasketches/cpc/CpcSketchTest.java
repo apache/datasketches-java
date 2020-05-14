@@ -232,7 +232,7 @@ public class CpcSketchTest {
     sketch.update(v4);
     assertEquals(sketch.getEstimate(), 1, 0.01);
     // to compare with C++
-    //org.apache.datasketches.tuple.TestUtil.writeBytesToFile(sketch.toByteArray(), "cpc-negative-one.bin");
+    //org.apache.datasketches.tuple.TestUtil.writeBytesToFile(sketch.toByteArray(), "cpc-negative-one.sk");
   }
 
   /**

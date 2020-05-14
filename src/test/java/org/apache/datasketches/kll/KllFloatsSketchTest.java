@@ -352,7 +352,7 @@ public class KllFloatsSketchTest {
 
   @Test
   public void deserializeOneItemV1() throws Exception {
-    byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.bin");
+    byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
     KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertFalse(sketch.isEmpty());
     assertFalse(sketch.isEstimationMode());

@@ -46,7 +46,7 @@ public class SpecialCBinariesTest {
   @Test
   @SuppressWarnings("unused")
   public void checkCpc10mBin() {
-    String fileName = "cpc-10m.bin";
+    String fileName = "cpc-10m.sk";
     File file = getResourceFile(fileName);
     try (MapHandle mh = Memory.map(file)) {
       Memory mem = mh.get();
@@ -74,7 +74,7 @@ public class SpecialCBinariesTest {
     println(sk.toString(true));
     println("Est: " + sk.getEstimate());
     try {
-      //byteArrToFile(byteArr, "FranksFile.bin");
+      //byteArrToFile(byteArr, "FranksFile.sk");
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

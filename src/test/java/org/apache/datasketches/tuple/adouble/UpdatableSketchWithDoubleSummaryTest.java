@@ -360,8 +360,8 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch1.trim();
     byte[] bytes = sketch1.toByteArray();
 
-    //for visual testing
-    //TestUtil.writeBytesToFile(bytes, "UpdatableSketchWithDoubleSummary4K.bin");
+    //for binary testing
+    //TestUtil.writeBytesToFile(bytes, "UpdatableSketchWithDoubleSummary4K.sk");
 
     Sketch<DoubleSummary> sketch2 =
         Sketches.heapifySketch(Memory.wrap(bytes), new DoubleSummaryDeserializer());

@@ -30,7 +30,7 @@ public class ForwardCompatibilityTest {
   private static final String LS = System.getProperty("line.separator");
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n50_v0.3.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.3.0.sk
   //Median2: 26.0
   public void check030_50() {
     int n = 50;
@@ -40,7 +40,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.3.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.3.0.sk
   //Median2: 501.0
   public void check030_1000() {
     int n = 1000;
@@ -50,7 +50,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n50_v0.6.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.6.0.sk
   //Median2: 26.0
   public void check060_50() {
     int n = 50;
@@ -60,7 +60,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.6.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.6.0.sk
   //Median2: 501.0
   public void check060_1000() {
     int n = 1000;
@@ -70,7 +70,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.0.sk
   //Median2: 26.0
   public void check080_50() {
     int n = 50;
@@ -80,7 +80,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
   //Median2: 501.0
   public void check080_1000() {
     int n = 1000;
@@ -90,7 +90,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.3.bin
+  //fullPath: sketches/src/test/resources/Qk128_n50_v0.8.3.sk
   //Median2: 26.0
   public void check083_50() {
     int n = 50;
@@ -100,7 +100,7 @@ public class ForwardCompatibilityTest {
   }
 
   @Test
-  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.bin
+  //fullPath: sketches/src/test/resources/Qk128_n1000_v0.8.0.sk
   //Median2: 501.0
   public void check083_1000() {
     int n = 1000;
@@ -114,7 +114,7 @@ public class ForwardCompatibilityTest {
     //create fileName
     int k = 128;
     double nf = 0.5;
-    String fileName = String.format("Qk%d_n%d_v%s.bin", k, n, ver);
+    String fileName = String.format("Qk%d_n%d_v%s.sk", k, n, ver);
     println("fullName: "+ fileName);
     println("Old Median: " + quantile);
     //Read File bytes

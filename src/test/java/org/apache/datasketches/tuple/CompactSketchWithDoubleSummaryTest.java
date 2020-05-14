@@ -156,8 +156,8 @@ public class CompactSketchWithDoubleSummaryTest {
     CompactSketch<DoubleSummary> sketch1 = us.compact();
     byte[] bytes = sketch1.toByteArray();
 
-    // for visual testing
-    //TestUtil.writeBytesToFile(bytes, "CompactSketchWithDoubleSummary4K.bin");
+    // for binary testing
+    //TestUtil.writeBytesToFile(bytes, "CompactSketchWithDoubleSummary4K.sk");
 
     Sketch<DoubleSummary> sketch2 =
         Sketches.heapifySketch(Memory.wrap(bytes), new DoubleSummaryDeserializer());
@@ -189,7 +189,7 @@ public class CompactSketchWithDoubleSummaryTest {
 
   @Test
   public void serialVersion1Compatibility() throws Exception {
-    byte[] bytes = getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.bin");
+    byte[] bytes = getResourceBytes("CompactSketchWithDoubleSummary4K_serialVersion1.sk");
     Sketch<DoubleSummary> sketch = Sketches.heapifySketch(Memory.wrap(bytes),
         new DoubleSummaryDeserializer());
     Assert.assertTrue(sketch.isEstimationMode());

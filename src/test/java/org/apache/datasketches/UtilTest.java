@@ -331,27 +331,27 @@ public class UtilTest {
 
   @Test
   public void resourcefileExists() {
-    final String shortFileName = "cpc-empty.bin";
+    final String shortFileName = "cpc-empty.sk";
     final File file = getResourceFile(shortFileName);
     assertTrue(file.exists());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void resourceFileNotFound() {
-    final String shortFileName = "cpc-empty.bin";
+    final String shortFileName = "cpc-empty.sk";
     getResourceFile(shortFileName + "123");
   }
 
   @Test
   public void resourceBytesCorrect() {
-    final String shortFileName = "cpc-empty.bin";
+    final String shortFileName = "cpc-empty.sk";
     final byte[] bytes = getResourceBytes(shortFileName);
     assertTrue(bytes.length == 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void resourceBytesFileNotFound() {
-    final String shortFileName = "cpc-empty.bin";
+    final String shortFileName = "cpc-empty.sk";
     getResourceBytes(shortFileName + "123");
   }
 
