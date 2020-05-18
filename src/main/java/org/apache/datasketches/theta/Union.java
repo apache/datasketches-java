@@ -70,47 +70,48 @@ public abstract class Union extends SetOperation {
   public abstract byte[] toByteArray();
 
   /**
-   * Union the given on-heap sketch.
-   * Valid for the all of the Open Source, Theta Sketches.
-   * Not valid for older (prior to Open Source) Theta Sketches.
-   * This method can be repeatedly called.
-   * If the given sketch is null it is interpreted as an empty sketch.
+   * Perform a Union operation with <i>this</i> union and the given on-heap sketch of the Theta Family.
+   * This method is not valid for the older SetSketch, which was prior to Open Source (August, 2015).
+   *
+   * <p>This method can be repeatedly called.
+   * If the given sketch is null it is interpreted as an empty sketch.</p>
    *
    * @param sketchIn The incoming sketch.
    */
   public abstract void update(Sketch sketchIn);
 
   /**
-   * Union the given Memory image of the OpenSource Theta Sketch,
-   * which may be ordered or unordered, or the earlier versions of SetSketch,
-   * which must be compact and ordered.
+   * Perform a Union operation with <i>this</i> union and the given Memory image of any sketch of the
+   * Theta Family. The input image may be from earlier versions of the Theta Compact Sketch,
+   * called the SetSketch (circa 2012), which was prior to Open Source and are compact and ordered.
    *
    * <p>This method can be repeatedly called.
-   * If the given sketch is null it is interpreted as an empty sketch.
+   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
    * @param mem Memory image of sketch to be merged
    */
   public abstract void update(Memory mem);
 
   /**
-   * Present this union with a long.
+   * Update <i>this</i> union with the given long data item.
    *
    * @param datum The given long datum.
    */
   public abstract void update(long datum);
 
   /**
-   * Present this union with the given double (or float) datum.
+   * Update <i>this</i> union with the given double (or float) data item.
    * The double will be converted to a long using Double.doubleToLongBits(datum),
    * which normalizes all NaN values to a single NaN representation.
    * Plus and minus zero will be normalized to plus zero.
-   * The special floating-point values NaN and +/- Infinity are treated as distinct.
+   * Each of the special floating-point values NaN and +/- Infinity are treated as distinct.
    *
    * @param datum The given double datum.
    */
   public abstract void update(double datum);
 
   /**
-   * Present this union with the given String.
+   * Update <i>this</i> union with the with the given String data item.
    * The string is converted to a byte array using UTF8 encoding.
    * If the string is null or empty no update attempt is made and the method returns.
    *
@@ -118,40 +119,54 @@ public abstract class Union extends SetOperation {
    * method and will generally be a little slower depending on the complexity of the UTF8 encoding.
    * </p>
    *
-   * @param datum The given String.
+   * <p>Note: this is not a Sketch Union operation. This treats the given string as a data item.</p>
+   *
+   * @param datum The given String.</p>
    */
   public abstract void update(String datum);
 
   /**
-   * Present this union with the given byte array.
+   * Update <i>this</i> union with the given byte array item.
    * If the byte array is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this is not a Sketch Union operation. This treats the given byte array as a data
+   * item.</p>
    *
    * @param data The given byte array.
    */
   public abstract void update(byte[] data);
 
   /**
-   * Present this union with the given integer array.
+   * Update <i>this</i> union with the given integer array item.
    * If the integer array is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this is not a Sketch Union operation. This treats the given integer array as a data
+   * item.</p>
    *
    * @param data The given int array.
    */
   public abstract void update(int[] data);
 
   /**
-   * Present this union with the given char array.
+   * Update <i>this</i> union with the given char array item.
    * If the char array is null or empty no update attempt is made and the method returns.
    *
    * <p>Note: this will not produce the same output hash values as the {@link #update(String)}
    * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
+   *
+   * <p>Note: this is not a Sketch Union operation. This treats the given char array as a data
+   * item.</p>
    *
    * @param data The given char array.
    */
   public abstract void update(char[] data);
 
   /**
-   * Present this union with the given long array.
+   * Update <i>this</i> union with the given long array item.
    * If the long array is null or empty no update attempt is made and the method returns.
+   *
+   * <p>Note: this is not a Sketch Union operation. This treats the given char array as a data
+   * item.</p>
    *
    * @param data The given long array.
    */
