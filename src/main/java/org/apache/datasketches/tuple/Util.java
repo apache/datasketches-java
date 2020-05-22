@@ -28,16 +28,32 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 
-final class Util {
+/**
+ * Common utility functions for Tuples
+ *
+ * @author Lee Rhodes
+ */
+public final class Util {
 
-  static final long[] doubleToLongArray(final double value) {
+  /**
+   * Converts a <i>double</i> to a <i>long[]</i>.
+   * @param value the given double value
+   * @return the long array
+   */
+  public static final long[] doubleToLongArray(final double value) {
     final double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0
     final long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN forms
     return array;
   }
 
-  static final byte[] stringToByteArray(final String value) {
-    if (value == null || value.isEmpty()) { return null; }
+  /**
+   * Converts a String to a UTF_8 byte array. If the given value is either null or empty this
+   * method returns null.
+   * @param value the given String value
+   * @return the UTF_8 byte array
+   */
+  public static final byte[] stringToByteArray(final String value) {
+    if ((value == null) || value.isEmpty()) { return null; }
     return value.getBytes(UTF_8);
   }
 
@@ -48,7 +64,7 @@ final class Util {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
    * @return the seed hash.
    */
-  static short computeSeedHash(final long seed) {
+  public static short computeSeedHash(final long seed) {
     final long[] seedArr = {seed};
     final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
     if (seedHash == 0) {
@@ -59,7 +75,12 @@ final class Util {
     return seedHash;
   }
 
-  static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
+  /**
+   * Checks the two given seed hashes. If they are not equal, this method throws an Exception.
+   * @param seedHashA given seed hash A
+   * @param seedHashB given seed hash B
+   */
+  public static final void checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) {
       throw new SketchesArgumentException("Incompatible Seed Hashes. " + seedHashA + ", "
           + seedHashB);
@@ -67,7 +88,13 @@ final class Util {
 
   }
 
-  static int getStartingCapacity(final int nomEntries, final int lgResizeFactor) {
+  /**
+   * Gets the starting capacity of a new sketch given the Nominal Entries and the log Resize Factor.
+   * @param nomEntries the given Nominal Entries
+   * @param lgResizeFactor the given log Resize Factor
+   * @return the starting capacity
+   */
+  public static int getStartingCapacity(final int nomEntries, final int lgResizeFactor) {
     return 1 << startingSubMultiple(
       // target table size is twice the number of nominal entries
       Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),

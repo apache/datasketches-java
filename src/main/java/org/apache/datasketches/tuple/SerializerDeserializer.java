@@ -23,13 +23,28 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
-final class SerializerDeserializer {
-  static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch,
+/**
+ * Multipurpose serializer-deserializer for a collection of sketches defined by the enum.
+ *
+ * @author Lee Rhodes
+ */
+public final class SerializerDeserializer {
+
+  /**
+   * Defines the sketch classes that this SerializerDeserializer can handle.
+   */
+  @SuppressWarnings("javadoc")
+  public static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch,
     ArrayOfDoublesCompactSketch, ArrayOfDoublesUnion }
 
   static final int TYPE_BYTE_OFFSET = 3;
 
-  static void validateFamily(final byte familyId, final byte preambleLongs) {
+  /**
+   * Validates the preamble-Longs value given the family ID
+   * @param familyId the given family ID
+   * @param preambleLongs the given preambleLongs value
+   */
+  public static void validateFamily(final byte familyId, final byte preambleLongs) {
     final Family family = Family.idToFamily(familyId);
     if (family.equals(Family.TUPLE)) {
       if (preambleLongs != Family.TUPLE.getMinPreLongs()) {
@@ -42,7 +57,12 @@ final class SerializerDeserializer {
     }
   }
 
-  static void validateType(final byte sketchTypeByte, final SketchType expectedType) {
+  /**
+   * Validates the sketch type byte versus the expected value
+   * @param sketchTypeByte the given sketch type byte
+   * @param expectedType the expected value
+   */
+  public static void validateType(final byte sketchTypeByte, final SketchType expectedType) {
     final SketchType sketchType = getSketchType(sketchTypeByte);
     if (!sketchType.equals(expectedType)) {
       throw new SketchesArgumentException("Sketch Type mismatch. Expected " + expectedType.name()
@@ -50,7 +70,12 @@ final class SerializerDeserializer {
     }
   }
 
-  static SketchType getSketchType(final Memory mem) {
+  /**
+   * Gets the sketch type byte from the given Memory image
+   * @param mem the given Memory image
+   * @return the SketchType
+   */
+  public static SketchType getSketchType(final Memory mem) {
     final byte sketchTypeByte = mem.getByte(TYPE_BYTE_OFFSET);
     return getSketchType(sketchTypeByte);
   }
