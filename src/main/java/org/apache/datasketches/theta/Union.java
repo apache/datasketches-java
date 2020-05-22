@@ -121,7 +121,7 @@ public abstract class Union extends SetOperation {
    *
    * <p>Note: this is not a Sketch Union operation. This treats the given string as a data item.</p>
    *
-   * @param datum The given String.</p>
+   * @param datum The given String.
    */
   public abstract void update(String datum);
 
