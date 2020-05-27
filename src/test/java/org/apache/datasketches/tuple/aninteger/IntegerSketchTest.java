@@ -22,6 +22,7 @@ package org.apache.datasketches.tuple.aninteger;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
 import org.testng.annotations.Test;
@@ -39,8 +40,8 @@ public class IntegerSketchTest {
     IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
     IntegerSketch a1Sk = new IntegerSketch(lgK, a1Mode);
     int m = 2 * K;
-    for (int key = 0; key < m; key++) {
-      a1Sk.update(key, 1);
+    for (int i = 0; i < m; i++) {
+      a1Sk.update(i, 1);
     }
     double est1 = a1Sk.getEstimate();
     Memory mem = Memory.wrap(a1Sk.toByteArray());
@@ -57,9 +58,9 @@ public class IntegerSketchTest {
     IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
     IntegerSketch a1Sk2 = new IntegerSketch(lgK, a1Mode);
     int m = 2 * K;
-    for (int key = 0; key < m; key++) {
-      a1Sk1.update(key, 1);
-      a1Sk2.update(key + (m/2), 1);
+    for (int i = 0; i < m; i++) {
+      a1Sk1.update(i, 1);
+      a1Sk2.update(i + (m/2), 1);
     }
     Intersection<IntegerSummary> inter =
         new Intersection<>(new IntegerSummarySetOperations(a1Mode, a1Mode));
@@ -67,6 +68,21 @@ public class IntegerSketchTest {
     inter.update(a1Sk2);
     CompactSketch<IntegerSummary> csk = inter.getResult();
     assertEquals(csk.getEstimate(), K * 1.0, K * .03);
+  }
+
+  @Test
+  public void aNotBTest() {
+    int lgK = 4;
+    //int m = 2 * K;
+    IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
+    IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
+    IntegerSketch a1Sk2 = null;//new IntegerSketch(lgK, a1Mode);
+    AnotB<IntegerSummary> anotb = new AnotB<>();
+    for (int i = 0; i < 5; i++) {
+      a1Sk1.update(i, 1);
+    }
+    anotb.update(a1Sk1, a1Sk2);
+    CompactSketch<IntegerSummary> cSk = anotb.getResult();
   }
 
   @Test
@@ -108,7 +124,7 @@ public class IntegerSketchTest {
    * @param o object to print
    */
   static void println(Object o) {
-    //System.out.println(o.toString()); //Disable
+    System.out.println(o.toString()); //Disable
   }
 
   /**
@@ -116,6 +132,6 @@ public class IntegerSketchTest {
    * @param args arguments
    */
   static void printf(String fmt, Object ... args) {
-    //System.out.printf(fmt, args); //Disable
+    System.out.printf(fmt, args); //Disable
   }
 }

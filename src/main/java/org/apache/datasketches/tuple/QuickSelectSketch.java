@@ -375,7 +375,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (key < theta_) {
       final int index = findOrInsert(key);
       if (index < 0) {
-        insertSummary(~index, (S)summary.copy());
+        insertSummary(~index, (S)summary.copy()); //did not find so insert
       } else {
         insertSummary(index, summarySetOps.union(summaries_[index], summary));
       }

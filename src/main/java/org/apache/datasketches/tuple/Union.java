@@ -25,6 +25,7 @@ import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import java.lang.reflect.Array;
 
 import org.apache.datasketches.QuickSelect;
+import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * Compute a union of two or more tuple sketches.
@@ -71,6 +72,29 @@ public class Union<S extends Summary> {
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.getKey(), it.getSummary(), summarySetOps_);
+    }
+    if (sketch_.theta_ < theta_) {
+      theta_ = sketch_.theta_;
+    }
+  }
+
+  /**
+   * Updates the internal set by combining entries using the hash keys from the Theta Sketch and
+   * summary values from the given summary and rules from the summarySetOps defined by the
+   * Union constructor.
+   * @param sketchIn the given Theta Sketch input.
+   * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
+   */
+  @SuppressWarnings("unchecked")
+  public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
+    if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
+    if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
+    isEmpty_ = false;
+    final long thetaIn = sketchIn.getThetaLong();
+    if (thetaIn < theta_) { theta_ = thetaIn; }
+    final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
+    while (it.next()) {
+      sketch_.merge(it.get(), (S)summary.copy(), summarySetOps_);
     }
     if (sketch_.theta_ < theta_) {
       theta_ = sketch_.theta_;

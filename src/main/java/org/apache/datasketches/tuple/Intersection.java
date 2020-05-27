@@ -71,7 +71,6 @@ public class Intersection<S extends Summary> {
       sketch_ = null;
       return;
     }
-    // assumes that constructor of QuickSelectSketch bumps the requested size up to the nearest power of 2
     if (isFirstCall) {
       sketch_ = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
       final SketchIterator<S> it = sketchIn.iterator();
@@ -89,19 +88,21 @@ public class Intersection<S extends Summary> {
       int matchCount = 0;
       final SketchIterator<S> it = sketchIn.iterator();
       while (it.next()) {
-        final S summary = sketch_.find(it.getKey());
-        if (summary != null) {
-          matchKeys[matchCount] = it.getKey();
+        final long key = it.getKey();
+        final S summary = sketch_.find(key);
+        if (summary != null) { //key found
+          matchKeys[matchCount] = key;
           if (matchSummaries == null) {
             matchSummaries = (S[]) Array.newInstance(summary.getClass(), matchSize);
           }
-          matchSummaries[matchCount] =
-              summarySetOps_.intersection(summary, it.getSummary());
+          matchSummaries[matchCount] = summarySetOps_.intersection(summary, it.getSummary());
           matchCount++;
         }
       }
       sketch_ = null;
-      if (matchCount > 0) {
+      if (matchCount > 0) { //therefore matchSummaries != null.
+        // assumes that constructor of QuickSelectSketch bumps the requested size
+        // up to the nearest power of 2
         sketch_ = new QuickSelectSketch<>(matchCount, ResizeFactor.X1.lg(), null);
         for (int i = 0; i < matchCount; i++) {
           sketch_.insert(matchKeys[i], matchSummaries[i]);
@@ -113,6 +114,70 @@ public class Intersection<S extends Summary> {
       sketch_.setNotEmpty();
     }
   }
+
+  /**
+   * Updates the internal set by intersecting it with the given Theta sketch
+   * @param sketchIn input Theta Sketch to intersect with the internal set
+   * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
+   */
+  @SuppressWarnings({ "unchecked", "null" })
+  public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
+    final boolean isFirstCall = isFirstCall_;
+    isFirstCall_ = false;
+    if (sketchIn == null) {
+      isEmpty_ = true;
+      sketch_ = null;
+      return;
+    }
+    theta_ = min(theta_, sketchIn.getThetaLong());
+    isEmpty_ |= sketchIn.isEmpty();
+    if (isEmpty_ || (sketchIn.getRetainedEntries() == 0)) {
+      sketch_ = null;
+      return;
+    }
+    if (isFirstCall) {
+      sketch_ = new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
+      final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
+      while (it.next()) {
+        sketch_.insert(it.get(), (S)summary.copy());
+      }
+    } else {
+      if (sketch_ == null) {
+        return;
+      }
+      final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
+      final long[] matchKeys = new long[matchSize];
+      S[] matchSummaries = null;
+      int matchCount = 0;
+      final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
+      while (it.next()) {
+        final long key = it.get();
+        final S mySummary = sketch_.find(key);
+        if (mySummary != null) { //key found
+          matchKeys[matchCount] = key;
+          if (matchSummaries == null) {
+            matchSummaries = (S[]) Array.newInstance(mySummary.getClass(), matchSize);
+          }
+          matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, (S)summary.copy());
+          matchCount++;
+        }
+      }
+      sketch_ = null;
+      if (matchCount > 0) { //therefore matchSummaries != null.
+        // assumes that constructor of QuickSelectSketch bumps the requested size
+        // up to the nearest power of 2
+        sketch_ = new QuickSelectSketch<>(matchCount, ResizeFactor.X1.lg(), null);
+        for (int i = 0; i < matchCount; i++) {
+          sketch_.insert(matchKeys[i], matchSummaries[i]);
+        }
+      }
+    }
+    if (sketch_ != null) {
+      sketch_.setThetaLong(theta_);
+      sketch_.setNotEmpty();
+    }
+  }
+
 
   /**
    * Gets the internal set as a CompactSketch
