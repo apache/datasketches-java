@@ -401,7 +401,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch.update(1, 1.0);
     Assert.assertEquals(sketch.getRetainedEntries(), 0); // not retained due to low sampling probability
 
-    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode));
+    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
     union.update(sketch);
     CompactSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -427,7 +427,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch2.update(3, 1.0);
     sketch2.update(3, 1.0);
 
-    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode));
+    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
@@ -469,7 +469,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
       sketch2.update(key++, 1.0);
     }
 
-    Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode));
+    Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode, mode));
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
@@ -497,7 +497,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
       //System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
     }
 
-    Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode));
+    Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode, mode));
     union.update(sketch1);
     union.update(sketch2);
     CompactSketch<DoubleSummary> result = union.getResult();
@@ -511,7 +511,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     UpdatableSketch<Double, DoubleSummary> sketch =
         new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch);
     CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -528,7 +528,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
           (new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
     sketch1.update("a", 1.0); // this happens to get rejected because of sampling with low probability
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch1);
     CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 0);
@@ -547,7 +547,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch1.update(3, 1.0);
 
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch1);
     intersection.update(null);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -569,7 +569,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     Sketch<DoubleSummary> sketch2 = Sketches.createEmptySketch();
 
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -597,7 +597,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     sketch2.update(3, 1.0);
 
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -638,7 +638,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     }
 
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();
@@ -675,7 +675,7 @@ public class UpdatableSketchWithDoubleSummaryTest {
     }
 
     Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode));
+        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
     intersection.update(sketch1);
     intersection.update(sketch2);
     CompactSketch<DoubleSummary> result = intersection.getResult();

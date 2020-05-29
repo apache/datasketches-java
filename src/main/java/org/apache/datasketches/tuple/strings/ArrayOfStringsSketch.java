@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.strings;
 
-import static org.apache.datasketches.tuple.strings.ArrayOfStringsSummary.stringArrHash;
+import static org.apache.datasketches.tuple.Util.stringArrHash;
 
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.memory.Memory;

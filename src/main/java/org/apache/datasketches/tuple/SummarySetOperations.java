@@ -26,7 +26,7 @@ package org.apache.datasketches.tuple;
 public interface SummarySetOperations<S extends Summary> {
 
   /**
-   * This is called when a union of two sketches is produced, and both sketches have the same key.
+   * This is called by the union operator when both sketches have the same key.
    *
    * <p><b>Caution:</b> Do not modify the input Summary objects. Also do not return them directly,
    * unless they are immutable (most Summary objects are not). For mutable Summary objects, it is
@@ -40,8 +40,7 @@ public interface SummarySetOperations<S extends Summary> {
   public S union(S a, S b);
 
   /**
-   * This is called when an intersection of two sketches is produced, and both sketches have the
-   * same key.
+   * This is called by the intersection operator when both sketches have the same key.
    *
    * <p><b>Caution:</b> Do not modify the input Summary objects. Also do not return them directly,
    * unless they are immutable (most Summary objects are not). For mutable Summary objects, it is

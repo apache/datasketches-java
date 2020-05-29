@@ -19,13 +19,12 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
-import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode;
-
 import org.apache.datasketches.tuple.SummarySetOperations;
+import org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode;
 
 /**
  * Methods for defining how unions and intersections of two objects of type IntegerSummary
- * are performed. These methods are not called directly by a user.
+ * are performed.
  *
  * @author Lee Rhodes
  */

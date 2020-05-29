@@ -24,47 +24,41 @@ import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 
 /**
  * Methods for defining how unions and intersections of two objects of type DoubleSummary
- * are performed. These methods are not called directly by a user.
+ * are performed.
  */
 public final class DoubleSummarySetOperations implements SummarySetOperations<DoubleSummary> {
 
-  private final Mode summaryMode_;
-
-  //TODO see IntegerSummarySetOperations for better model
+  private final Mode unionSummaryMode_;
 
   /**
-   * Creates an instance with default mode.
+   * Intersection is not well defined or even meaningful between numeric values.
+   * Nevertheless, this can be defined to be a different type of aggregation for intersecting keys.
    */
-  @Deprecated
-  public DoubleSummarySetOperations() {
-    summaryMode_ = DoubleSummary.Mode.Sum;
-  }
+  private final Mode intersectionSummaryMode_;
 
   /**
-   * Creates an instance given a DoubleSummary update mode.
-   * @param summaryMode DoubleSummary update mode.
+   * Creates a new instance with two modes
+   * @param unionSummaryMode for unions
+   * @param intersectionSummaryMode for intersections
    */
-  public DoubleSummarySetOperations(final Mode summaryMode) {
-    summaryMode_ = summaryMode;
+  public DoubleSummarySetOperations(final Mode unionSummaryMode, final Mode intersectionSummaryMode) {
+    unionSummaryMode_ = unionSummaryMode;
+    intersectionSummaryMode_ = intersectionSummaryMode;
   }
 
   @Override
   public DoubleSummary union(final DoubleSummary a, final DoubleSummary b) {
-    final DoubleSummary result = new DoubleSummary(summaryMode_);
+    final DoubleSummary result = new DoubleSummary(unionSummaryMode_);
     result.update(a.getValue());
     result.update(b.getValue());
     return result;
   }
 
-
-  /**
-   * Intersection is not well defined or even meaningful between numeric values.
-   * Nevertheless, this can be defined to be just a different type of aggregation.
-   * In this case it is defined to be the same as union. It can be overridden to
-   * be a more meaningful operation.
-   */
   @Override
   public DoubleSummary intersection(final DoubleSummary a, final DoubleSummary b) {
-    return union(a, b);
+    final DoubleSummary result = new DoubleSummary(intersectionSummaryMode_);
+    result.update(a.getValue());
+    result.update(b.getValue());
+    return result;
   }
 }
