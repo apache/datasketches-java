@@ -64,6 +64,8 @@ public class AdoubleAnotBTest {
     //Stateful w B = Theta
     aNotB.setA(sketchA);
     aNotB.notB(skThetaB);
+    result = aNotB.getResult(false);
+    results.check(result);
     result = aNotB.getResult(true);
     results.check(result);
   }

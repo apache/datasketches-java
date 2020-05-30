@@ -24,12 +24,9 @@ import static org.testng.Assert.assertEquals;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.Intersection;
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.SketchIterator;
 import org.apache.datasketches.tuple.Sketches;
-import org.apache.datasketches.tuple.Union;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
@@ -37,7 +34,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
-public class UpdatableSketchWithDoubleSummaryTest {
+public class AdoubleTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
 
   @Test
@@ -395,299 +392,17 @@ public class UpdatableSketchWithDoubleSummaryTest {
   }
 
   @Test
-  public void unionEmptySampling() {
-    UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
-    sketch.update(1, 1.0);
-    Assert.assertEquals(sketch.getRetainedEntries(), 0); // not retained due to low sampling probability
-
-    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
-    union.update(sketch);
-    CompactSketch<DoubleSummary> result = union.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertFalse(result.isEmpty());
-    Assert.assertTrue(result.isEstimationMode());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-  }
-
-  @Test
-  public void unionExactMode() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch1.update(1, 1.0);
-    sketch1.update(1, 1.0);
-    sketch1.update(1, 1.0);
-    sketch1.update(2, 1.0);
-
-    UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch2.update(2, 1.0);
-    sketch2.update(2, 1.0);
-    sketch2.update(3, 1.0);
-    sketch2.update(3, 1.0);
-    sketch2.update(3, 1.0);
-
-    Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
-    union.update(sketch1);
-    union.update(sketch2);
-    CompactSketch<DoubleSummary> result = union.getResult();
-    Assert.assertEquals(result.getEstimate(), 3.0);
-
-    SketchIterator<DoubleSummary> it = result.iterator();
-    Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getSummary().getValue(), 3.0);
-    Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getSummary().getValue(), 3.0);
-    Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getSummary().getValue(), 3.0);
-    Assert.assertFalse(it.next());
-
-    union.reset();
-    result = union.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertFalse(result.isEstimationMode());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertEquals(result.getTheta(), 1.0);
-  }
-
-  @Test
-  public void unionEstimationMode() {
-    int key = 0;
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 8192; i++) {
-      sketch1.update(key++, 1.0);
-    }
-
-    key -= 4096; // overlap half of the entries
-    UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 8192; i++) {
-      sketch2.update(key++, 1.0);
-    }
-
-    Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode, mode));
-    union.update(sketch1);
-    union.update(sketch2);
-    CompactSketch<DoubleSummary> result = union.getResult();
-    Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
-    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
-    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-  }
-
-  @Test
-  public void unionMixedMode() {
-    int key = 0;
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 1000; i++) {
-      sketch1.update(key++, 1.0);
-      //System.out.println("theta1=" + sketch1.getTheta() + " " + sketch1.getThetaLong());
-    }
-
-    key -= 500; // overlap half of the entries
-    UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>
-          (new DoubleSummaryFactory(mode)).setSamplingProbability(0.2f).build();
-    for (int i = 0; i < 20000; i++) {
-      sketch2.update(key++, 1.0);
-      //System.out.println("theta2=" + sketch2.getTheta() + " " + sketch2.getThetaLong());
-    }
-
-    Union<DoubleSummary> union = new Union<>(4096, new DoubleSummarySetOperations(mode, mode));
-    union.update(sketch1);
-    union.update(sketch2);
-    CompactSketch<DoubleSummary> result = union.getResult();
-    Assert.assertEquals(result.getEstimate(), 20500.0, 20500 * 0.01);
-    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
-    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-  }
-
-  @Test
-  public void intersectionEmpty() {
-    UpdatableSketch<Double, DoubleSummary> sketch =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-  }
-
-  @Test
-  public void intersectionNotEmptyNoEntries() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>
-          (new DoubleSummaryFactory(mode)).setSamplingProbability(0.01f).build();
-    sketch1.update("a", 1.0); // this happens to get rejected because of sampling with low probability
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertFalse(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0, 0.0001);
-    Assert.assertTrue(result.getUpperBound(1) > 0);
-  }
-
-  @Test
-  public void intersectionExactWithNull() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch1.update(1, 1.0);
-    sketch1.update(2, 1.0);
-    sketch1.update(3, 1.0);
-
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(null);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-  }
-
-  @Test
-  public void intersectionExactWithEmpty() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch1.update(1, 1.0);
-    sketch1.update(2, 1.0);
-    sketch1.update(3, 1.0);
-
-    Sketch<DoubleSummary> sketch2 = Sketches.createEmptySketch();
-
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(sketch2);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-  }
-
-  @Test
-  public void intersectionExactMode() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch1.update(1, 1.0);
-    sketch1.update(1, 1.0);
-    sketch1.update(2, 1.0);
-    sketch1.update(2, 1.0);
-
-    UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch2.update(2, 1.0);
-    sketch2.update(2, 1.0);
-    sketch2.update(3, 1.0);
-    sketch2.update(3, 1.0);
-
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(sketch2);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 1);
-    Assert.assertFalse(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 1.0);
-    Assert.assertEquals(result.getLowerBound(1), 1.0);
-    Assert.assertEquals(result.getUpperBound(1), 1.0);
-    SketchIterator<DoubleSummary> it = result.iterator();
-    Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getSummary().getValue(), 4.0);
-    Assert.assertFalse(it.next());
-
-    intersection.reset();
-    intersection.update(null);
-    result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertFalse(result.isEstimationMode());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getTheta(), 1.0);
-}
-
-  @Test
-  public void intersectionDisjointEstimationMode() {
-    int key = 0;
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 8192; i++) {
-      sketch1.update(key++, 1.0);
-    }
-
-    UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 8192; i++) {
-      sketch2.update(key++, 1.0);
-    }
-
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(sketch2);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertFalse(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertTrue(result.getUpperBound(1) > 0);
-
-    // an intersection with no entries must survive more updates
-    intersection.update(sketch1);
-    result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertFalse(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertTrue(result.getUpperBound(1) > 0);
-  }
-
-  @Test
-  public void intersectionEstimationMode() {
-    int key = 0;
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 8192; i++) {
-      sketch1.update(key++, 1.0);
-    }
-
-    key -= 4096; // overlap half of the entries
-    UpdatableSketch<Double, DoubleSummary> sketch2 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    for (int i = 0; i < 8192; i++) {
-      sketch2.update(key++, 1.0);
-    }
-
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(sketch2);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertFalse(result.isEmpty());
- // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
-    Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03);
-    Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
-    Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-    SketchIterator<DoubleSummary> it = result.iterator();
-    while (it.next()) {
-      Assert.assertEquals(it.getSummary().getValue(), 2.0);
-    }
+  public void checkUpdatableSketch() {
+    DoubleSummaryFactory dsumFact = new DoubleSummaryFactory(mode);
+    //DoubleSummary dsum = dsumFact.newSummary();
+    UpdatableSketchBuilder<Double, DoubleSummary> bldr = new UpdatableSketchBuilder<>(dsumFact);
+    UpdatableSketch<Double, DoubleSummary> usk = bldr.build();
+    final byte[] byteArr = new byte[0];
+    usk.update(byteArr, new Double(0));
+    final int[] intArr = new int[0];
+    usk.update(intArr, new Double(1));
+    final long[] longArr = new long[0];
+    usk.update(longArr, new Double(2));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

@@ -391,8 +391,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     theta_ = theta;
   }
 
-  void setNotEmpty() {
-    isEmpty_ = false;
+  void setEmpty(final boolean value) {
+    isEmpty_ = value;
   }
 
   SummaryFactory<S> getSummaryFactory() {
@@ -434,6 +434,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final int index = HashOperations.hashInsertOnly(keys_, lgCurrentCapacity_, key);
     insertSummary(index, summary);
     count_++;
+    isEmpty_ = false;
   }
 
   private void updateTheta() {
