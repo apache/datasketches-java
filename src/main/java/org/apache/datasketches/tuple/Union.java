@@ -37,8 +37,8 @@ import org.apache.datasketches.SketchesArgumentException;
 public class Union<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
   private QuickSelectSketch<S> sketch_;
-  private long theta_; // need to maintain outside of the sketch
-  private boolean isEmpty_;
+  private long thetaLong_; // need to maintain outside of the sketch
+  private boolean empty_;
 
   /**
    * Creates new instance with default nominal entries
@@ -57,8 +57,8 @@ public class Union<S extends Summary> {
   public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     summarySetOps_ = summarySetOps;
     sketch_ = new QuickSelectSketch<>(nomEntries, null);
-    theta_ = sketch_.getThetaLong();
-    isEmpty_ = true;
+    thetaLong_ = sketch_.getThetaLong();
+    empty_ = true;
   }
 
   /**
@@ -67,14 +67,14 @@ public class Union<S extends Summary> {
    */
   public void update(final Sketch<S> sketchIn) {
     if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
-    isEmpty_ = false;
-    if (sketchIn.theta_ < theta_) { theta_ = sketchIn.theta_; }
+    empty_ = false;
+    if (sketchIn.theta_ < thetaLong_) { thetaLong_ = sketchIn.theta_; }
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.getKey(), it.getSummary(), summarySetOps_);
     }
-    if (sketch_.theta_ < theta_) {
-      theta_ = sketch_.theta_;
+    if (sketch_.theta_ < thetaLong_) {
+      thetaLong_ = sketch_.theta_;
     }
   }
 
@@ -89,15 +89,15 @@ public class Union<S extends Summary> {
   public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
     if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
-    isEmpty_ = false;
+    empty_ = false;
     final long thetaIn = sketchIn.getThetaLong();
-    if (thetaIn < theta_) { theta_ = thetaIn; }
+    if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
     final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
     while (it.next()) {
       sketch_.merge(it.get(), (S)summary.copy(), summarySetOps_);
     }
-    if (sketch_.theta_ < theta_) {
-      theta_ = sketch_.theta_;
+    if (sketch_.theta_ < thetaLong_) {
+      thetaLong_ = sketch_.theta_;
     }
   }
 
@@ -107,13 +107,13 @@ public class Union<S extends Summary> {
    */
   @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
-    if (isEmpty_) {
+    if (empty_) {
       return sketch_.compact();
     }
-    if ((theta_ >= sketch_.theta_) && (sketch_.getRetainedEntries() <= sketch_.getNominalEntries())) {
+    if ((thetaLong_ >= sketch_.theta_) && (sketch_.getRetainedEntries() <= sketch_.getNominalEntries())) {
       return sketch_.compact();
     }
-    long theta = min(theta_, sketch_.theta_);
+    long theta = min(thetaLong_, sketch_.theta_);
 
     int num = 0;
     {
@@ -123,7 +123,7 @@ public class Union<S extends Summary> {
       }
     }
     if (num == 0) {
-      return new CompactSketch<>(null, null, theta, isEmpty_);
+      return new CompactSketch<>(null, null, theta, empty_);
     }
     if (num > sketch_.getNominalEntries()) {
       final long[] keys = new long[num]; // temporary since the order will be destroyed by quick select
@@ -146,7 +146,7 @@ public class Union<S extends Summary> {
         i++;
       }
     }
-    return new CompactSketch<>(keys, summaries, theta, isEmpty_);
+    return new CompactSketch<>(keys, summaries, theta, empty_);
   }
 
   /**
@@ -154,7 +154,7 @@ public class Union<S extends Summary> {
    */
   public void reset() {
     sketch_.reset();
-    theta_ = sketch_.getThetaLong();
-    isEmpty_ = true;
+    thetaLong_ = sketch_.getThetaLong();
+    empty_ = true;
   }
 }
