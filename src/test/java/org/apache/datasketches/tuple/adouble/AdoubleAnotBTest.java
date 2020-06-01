@@ -56,6 +56,7 @@ public class AdoubleAnotBTest {
     result = AnotB.aNotB(sketchA, sketchB);
     results.check(result);
     result = AnotB.aNotB(sketchA, skThetaB);
+    results.check(result);
     //Stateful w B = Tuple
     aNotB.setA(sketchA);
     aNotB.notB(sketchB);
@@ -84,7 +85,7 @@ public class AdoubleAnotBTest {
       this.retEnt = retEnt;
       this.empty = empty;
       this.expect = expect;
-      this.tol = toll;
+      tol = toll;
       this.sum = sum;
       return this;
     }
