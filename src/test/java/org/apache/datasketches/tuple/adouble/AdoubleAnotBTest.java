@@ -74,7 +74,7 @@ public class AdoubleAnotBTest {
     private int retEnt = 0;
     private boolean empty = true;
     private double expect = 0.0;
-    private double toll = 0.0;
+    private double tol = 0.0;
     private double sum = 0.0;
 
     Results() {}
@@ -84,7 +84,7 @@ public class AdoubleAnotBTest {
       this.retEnt = retEnt;
       this.empty = empty;
       this.expect = expect;
-      this.toll = toll;
+      this.tol = toll;
       this.sum = sum;
       return this;
     }
@@ -94,7 +94,7 @@ public class AdoubleAnotBTest {
       assertEquals(result.isEmpty(), empty);
       if (result.getTheta() < 1.0) {
         double est = result.getEstimate();
-        assertEquals(est, expect, expect * toll);
+        assertEquals(est, expect, expect * tol);
         assertTrue(result.getUpperBound(1) > est);
         assertTrue(result.getLowerBound(1) <= est);
       } else {

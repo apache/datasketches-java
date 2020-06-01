@@ -124,7 +124,7 @@ public final class AnotB<S extends Summary> {
     int nonMatches = 0;
     for (int i = 0; i < count_; i++) {
       final long key = keys_[i];
-      if ((key != 0) && (key < thetaLong_)) { //skips keys of A >= theta
+      if ((key > 0) && (key < thetaLong_)) { //skips keys of A >= theta
         final int index =
             HashOperations.hashSearch(hashTableKeysB, simpleIntLog2(hashTableKeysB.length), key);
         if (index == -1) {

@@ -29,6 +29,7 @@ import static org.apache.datasketches.Util.ceilingPowerOf2;
 
 import java.lang.reflect.Array;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 
 
@@ -44,7 +45,6 @@ import org.apache.datasketches.SketchesStateException;
 @SuppressWarnings("unchecked")
 public class Intersection<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
-  //private QuickSelectSketch<S> sketch_;
   private boolean empty_;
   private long thetaLong_;
   private HashTables hashTables_;
@@ -133,6 +133,7 @@ public class Intersection<S extends Summary> {
    * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
    */
   public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
+    if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
     if (sketchIn == null) {
