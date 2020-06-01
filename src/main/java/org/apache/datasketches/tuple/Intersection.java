@@ -247,7 +247,7 @@ public class Intersection<S extends Summary> {
 
     HashTables() { }
 
-    public void fromSketch(final Sketch<S> sketch) {
+    void fromSketch(final Sketch<S> sketch) {
       count_ = sketch.getRetainedEntries();
       lgTableSize_ = getLgTableSize(count_);
       S mySummary = null;
@@ -266,7 +266,7 @@ public class Intersection<S extends Summary> {
       }
     }
 
-    public void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
+    void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
       count_ = sketch.getRetainedEntries();
       lgTableSize_ = getLgTableSize(count_);
       S mySummary = null;
@@ -286,7 +286,7 @@ public class Intersection<S extends Summary> {
     }
 
 
-    public void fromArrays(final long[] keys, final S[] summaries, final int count) {
+    void fromArrays(final long[] keys, final S[] summaries, final int count) {
       count_ = count;
       lgTableSize_ = getLgTableSize(count);
 
@@ -305,7 +305,7 @@ public class Intersection<S extends Summary> {
       }
     }
 
-    public void clear() {
+    void clear() {
       keys_ = null;
       summaries_ = null;
       lgTableSize_ = 0;
