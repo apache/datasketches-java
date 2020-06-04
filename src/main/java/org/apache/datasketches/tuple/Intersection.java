@@ -63,19 +63,15 @@ public class Intersection<S extends Summary> {
   }
 
   /**
-   * Updates the internal state by intersecting it with the given sketch
-   * @param sketchIn input sketch to intersect with the internal state
+   * Updates the internal state by intersecting it with the given sketch.
+   * @param sketchIn input sketch to intersect with the internal state. It may not be null.
    */
   public void update(final Sketch<S> sketchIn) {
+    if (sketchIn == null) { throw new SketchesArgumentException("Sketch may not be null"); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
-    if (sketchIn == null) {
-      empty_ = true;
-      thetaLong_ = Long.MAX_VALUE;
-      hashTables_.clear();
-      return;
-    }
-    // input sketch is not null, could be first or next call
+
+    // input sketch could be first or next call
     final long thetaLongIn = sketchIn.getThetaLong();
     final int countIn = sketchIn.getRetainedEntries();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
@@ -128,20 +124,16 @@ public class Intersection<S extends Summary> {
   }
 
   /**
-   * Updates the internal set by intersecting it with the given Theta sketch
-   * @param sketchIn input Theta Sketch to intersect with the internal state.
+   * Updates the internal set by intersecting it with the given Theta sketch.
+   * @param sketchIn input Theta Sketch to intersect with the internal state. It may not be null.
    * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
+   * It may not be null.
    */
   public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
+    if (sketchIn == null) { throw new SketchesArgumentException("Sketch may not be null"); }
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
-    if (sketchIn == null) {
-      empty_ = true;
-      thetaLong_ = Long.MAX_VALUE;
-      hashTables_.clear();
-      return;
-    }
     // input sketch is not null, could be first or next call
     final long thetaLongIn = sketchIn.getThetaLong();
     final int countIn = sketchIn.getRetainedEntries();

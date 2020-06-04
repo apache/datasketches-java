@@ -28,6 +28,7 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import org.apache.datasketches.HashOperations;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.theta.HashIterator;
 
 /**
@@ -45,10 +46,16 @@ public final class AnotB<S extends Summary> {
    * Sets the given Tuple sketch as the first argument <i>A</i>. This overwrites the internal state of
    * this AnotB operator with the contents of the given sketch. This sets the stage for multiple
    * following <i>notB</i> operations.
+   *
+   * <p>An input argument of null will throw an exception.</p>
+   *
    * @param skA The incoming sketch for the first argument, <i>A</i>.
    */
   public void setA(final Sketch<S> skA) {
-    if ((skA == null) || skA.isEmpty()) { return; }
+    if (skA == null) {
+      throw new SketchesArgumentException("The input argument may not be null");
+    }
+    if (skA.isEmpty()) { return; }
     //skA is not empty
     empty_ = false;
     thetaLong_ = skA.getThetaLong();
@@ -62,12 +69,14 @@ public final class AnotB<S extends Summary> {
 
   /**
    * Performs an <i>AND NOT</i> operation with the existing internal state of this AnoB operator.
+   *
+   * <p>An input argument of null or empty is ignored.</p>
+   *
    * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
   @SuppressWarnings("unchecked")
   public void notB(final Sketch<S> skB) {
-    if (empty_) { return; }
-    if ((skB == null) || skB.isEmpty()) { return; }
+    if (empty_ || (skB == null) || skB.isEmpty()) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
@@ -101,12 +110,14 @@ public final class AnotB<S extends Summary> {
 
   /**
    * Performs an <i>AND NOT</i> operation with the existing internal state of this AnoB operator.
+   *
+   * <p>An input argument of null or empty is ignored.</p>
+   *
    * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
   @SuppressWarnings("unchecked")
   public void notB(final org.apache.datasketches.theta.Sketch skB) {
-    if (empty_) { return; }
-    if ((skB == null) || skB.isEmpty()) { return; }
+    if (empty_ || (skB == null) || skB.isEmpty()) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
@@ -139,21 +150,27 @@ public final class AnotB<S extends Summary> {
     count_ = nonMatches;
   }
 
-
   /**
-   * Returns the A-and-not-B set operation on the two given sketches.
-   * A null sketch argument is interpreted as an empty sketch.
-   * This is not an accumulating update.
+   * Returns the A-and-not-B set operation on the two given Tuple sketches.
    *
-   * @param skA The incoming sketch for the first argument
-   * @param skB The incoming sketch for the second argument
+   * <p>This a stateless operation and has no impact on the internal state of this operator.
+   * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)}
+   * or {@link #notB(Sketch)} or {@link #notB(org.apache.datasketches.theta.Sketch)} methods.</p>
+   *
+   * <p>If either argument is null an exception is thrown.</p>
+   *
+   * @param skA The incoming Tuple sketch for the first argument
+   * @param skB The incoming Tuple sketch for the second argument
    * @param <S> Type of Summary
    * @return the result as a compact sketch
    */
   @SuppressWarnings("unchecked")
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final Sketch<S> skB) {
-    if ((skA == null) || skA.isEmpty()) {
+    if ((skA == null) || (skB == null)) {
+      throw new SketchesArgumentException("Neither argument may be null");
+    }
+    if (skA.isEmpty()) {
       return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
     }
     //skA is not empty
@@ -166,7 +183,7 @@ public final class AnotB<S extends Summary> {
     final S[] summariesA = cskA.summaries_;
     final int countA = cskA.getRetainedEntries();
 
-    if ((skB == null) || skB.isEmpty()) {
+    if (skB.isEmpty()) {
       return new CompactSketch<>(keysA, summariesA, thetaLongA, empty);
     }
     //skB is not empty
@@ -205,8 +222,12 @@ public final class AnotB<S extends Summary> {
 
   /**
    * Returns the A-and-not-B set operation on a Tuple sketch and a Theta sketch.
-   * A null sketch argument is interpreted as an empty sketch.
-   * This is not an accumulating update.
+   *
+   * <p>This a stateless operation and has no impact on the internal state of this operator.
+   * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)}
+   * or {@link #notB(Sketch)} or {@link #notB(org.apache.datasketches.theta.Sketch)} methods.</p>
+   *
+   * <p>If either argument is null an exception is thrown.</p>
    *
    * @param skA The incoming Tuple sketch for the first argument
    * @param skB The incoming Theta sketch for the second argument
@@ -216,7 +237,10 @@ public final class AnotB<S extends Summary> {
   @SuppressWarnings("unchecked")
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final org.apache.datasketches.theta.Sketch skB) {
-    if ((skA == null) || skA.isEmpty()) {
+    if ((skA == null) || (skB == null)) {
+      throw new SketchesArgumentException("Neither argument may be null");
+    }
+    if (skA.isEmpty()) {
       return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
     }
     //skA is not empty
@@ -229,7 +253,7 @@ public final class AnotB<S extends Summary> {
     final S[] summariesA = cskA.summaries_;
     final int countA = cskA.getRetainedEntries();
 
-    if ((skB == null) || skB.isEmpty()) {
+    if (skB.isEmpty()) {
       return new CompactSketch<>(keysA, summariesA, thetaLongA, empty);
     }
     //skB is not empty

@@ -21,6 +21,7 @@ package org.apache.datasketches.tuple.adouble;
 
 import static org.testng.Assert.fail;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
@@ -57,26 +58,6 @@ public class AdoubleIntersectionTest {
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0, 0.0001);
     Assert.assertTrue(result.getUpperBound(1) > 0);
-  }
-
-  @Test
-  public void intersectionExactWithNull() {
-    UpdatableSketch<Double, DoubleSummary> sketch1 =
-        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
-    sketch1.update(1, 1.0);
-    sketch1.update(2, 1.0);
-    sketch1.update(3, 1.0);
-
-    Intersection<DoubleSummary> intersection =
-        new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(null);
-    CompactSketch<DoubleSummary> result = intersection.getResult();
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
   }
 
   @Test
@@ -133,14 +114,10 @@ public class AdoubleIntersectionTest {
     Assert.assertFalse(it.next());
 
     intersection.reset();
-    intersection.update(null);
-    result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertFalse(result.isEstimationMode());
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getTheta(), 1.0);
+    sketch1 = null;
+    try { intersection.update(sketch1); fail();}
+    catch (SketchesArgumentException e) { }
+
 }
 
   @Test
@@ -228,10 +205,8 @@ public class AdoubleIntersectionTest {
     try { intersection.getResult(); fail(); }
     catch (SketchesStateException e ) { } //OK.
 
-    intersection.update(thSkNull, dsum);
-    result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty()); //Empty after null first call
-    intersection.reset();
+    try { intersection.update(thSkNull, dsum); fail(); }
+    catch (SketchesArgumentException e) { } //OK
 
     intersection.update(thSkEmpty, dsum);
     result = intersection.getResult();
@@ -241,12 +216,6 @@ public class AdoubleIntersectionTest {
     intersection.update(thSk10, dsum);
     result = intersection.getResult();
     Assert.assertEquals(result.getEstimate(), 10.0); //Returns valid first call
-    intersection.reset();
-
-    intersection.update(thSk10, dsum);  // Valid first call
-    intersection.update(thSkNull, dsum);
-    result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty()); //Returns Empty after null second call
     intersection.reset();
 
     intersection.update(thSk10, dsum);  // Valid first call
@@ -260,6 +229,10 @@ public class AdoubleIntersectionTest {
     result = intersection.getResult();
     Assert.assertEquals(result.getEstimate(), 5.0); //Returns intersection
     intersection.reset();
+
+    dsum = null;
+    try { intersection.update(thSk10, dsum); fail(); }
+    catch (SketchesArgumentException e) { }
   }
 
   @Test

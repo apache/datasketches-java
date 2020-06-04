@@ -21,7 +21,9 @@ package org.apache.datasketches.tuple.adouble;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.AnotB;
@@ -44,31 +46,56 @@ public class AdoubleAnotBTest {
 
   private static void threeMethodsWithTheta(
       final AnotB<DoubleSummary> aNotB,
-      final Sketch<DoubleSummary> sketchA,
-      final Sketch<DoubleSummary> sketchB,
+      final Sketch<DoubleSummary> skA,
+      final Sketch<DoubleSummary> skB,
       final org.apache.datasketches.theta.Sketch skThetaB,
       final Results results) {
-    //deprecated
-    aNotB.update(sketchA, sketchB);
+    //Deprecated, no Theta
+    aNotB.update(skA, skB);
     CompactSketch<DoubleSummary> result = aNotB.getResult();
     results.check(result);
-    //Stateless
-    result = AnotB.aNotB(sketchA, sketchB);
-    results.check(result);
-    result = AnotB.aNotB(sketchA, skThetaB);
-    results.check(result);
+
+    //Stateless A = Tuple, B = Tuple
+    if ((skA == null) || (skB == null)) {
+      try { result = AnotB.aNotB(skA, skB); fail(); }
+      catch (final SketchesArgumentException e) { }
+    } else {
+      result = AnotB.aNotB(skA, skB);
+      results.check(result);
+    }
+
+    //Stateless A = Tuple, B = Theta
+    if ((skA == null) || (skThetaB == null)) {
+      try { result = AnotB.aNotB(skA, skThetaB); fail(); }
+      catch (final SketchesArgumentException e) { }
+    } else {
+      result = AnotB.aNotB(skA, skThetaB);
+      results.check(result);
+    }
+
     //Stateful w B = Tuple
-    aNotB.setA(sketchA);
-    aNotB.notB(sketchB);
-    result = aNotB.getResult(true);
-    results.check(result);
+    if (skA == null) {
+      try { aNotB.setA(skA); fail(); }
+      catch (final SketchesArgumentException e) { }
+    } else {
+      aNotB.setA(skA);
+      aNotB.notB(skB);
+      result = aNotB.getResult(true);
+      results.check(result);
+    }
+
     //Stateful w B = Theta
-    aNotB.setA(sketchA);
-    aNotB.notB(skThetaB);
-    result = aNotB.getResult(false);
-    results.check(result);
-    result = aNotB.getResult(true);
-    results.check(result);
+    if (skA == null) {
+      try { aNotB.setA(skA); fail(); }
+      catch (final SketchesArgumentException e) { }
+    } else {
+      aNotB.setA(skA);
+      aNotB.notB(skThetaB);
+      result = aNotB.getResult(false);
+      results.check(result);
+      result = aNotB.getResult(true);
+      results.check(result);
+    }
   }
 
   private static class Results {

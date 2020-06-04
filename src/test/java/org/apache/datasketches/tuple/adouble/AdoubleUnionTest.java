@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.adouble;
 
+import static org.testng.Assert.fail;
+
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
@@ -150,12 +153,22 @@ public class AdoubleUnionTest {
   }
 
   @Test
-  public void checkUnionUpdate() {
+  public void checkUnionUpdateWithTheta() {
     Union<DoubleSummary> union = new Union<>(new DoubleSummarySetOperations(mode, mode));
-    DoubleSummary dsum = new DoubleSummaryFactory(mode).newSummary();
-    UpdateSketch usk = new UpdateSketchBuilder().build();
+    UpdateSketch usk = null;
+    DoubleSummary dsum = null;
+
+    try { union.update(usk, dsum); fail(); }
+    catch (SketchesArgumentException e) { }
+
+    usk = new UpdateSketchBuilder().build();
+    try { union.update(usk, dsum); fail(); }
+    catch (SketchesArgumentException e) { }
+
+    dsum = new DoubleSummaryFactory(mode).newSummary();
     for (int i = 0; i < 10; i++) { usk.update(i); }
     union.update(usk, dsum);
+    Assert.assertEquals(union.getResult().getEstimate(), 10.0);
   }
 
 }

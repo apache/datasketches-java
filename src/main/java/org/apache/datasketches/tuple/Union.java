@@ -63,7 +63,8 @@ public class Union<S extends Summary> {
 
   /**
    * Updates the internal set by adding entries from the given sketch
-   * @param sketchIn input sketch to add to the internal set
+   * @param sketchIn input sketch to add to the internal set.
+   * If null or empty, it is ignored.
    */
   public void update(final Sketch<S> sketchIn) {
     if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
@@ -82,13 +83,15 @@ public class Union<S extends Summary> {
    * Updates the internal set by combining entries using the hash keys from the Theta Sketch and
    * summary values from the given summary and rules from the summarySetOps defined by the
    * Union constructor.
-   * @param sketchIn the given Theta Sketch input.
-   * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
+   * @param sketchIn the given Theta Sketch input. If null or empty, it is ignored.
+   * @param summary the given proxy summary for the Theta Sketch, which doesn't have one. This may
+   * not be null.
    */
   @SuppressWarnings("unchecked")
   public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
+    if (summary == null) {
+      throw new SketchesArgumentException("Summary cannot be null."); }
     if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
-    if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
     empty_ = false;
     final long thetaIn = sketchIn.getThetaLong();
     if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
