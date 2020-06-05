@@ -168,6 +168,19 @@ public class AdoubleAnotBTest {
   }
 
   @Test
+  public void aNotBCheckDoubleSetAs() {
+    UpdatableSketch<Double, DoubleSummary> skA = buildUpdatableTuple();
+    skA.update(1, 1.0);
+    skA.update(2, 1.0);
+    UpdatableSketch<Double, DoubleSummary> skA2 = buildUpdatableTuple();
+    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    aNotB.setA(skA);
+    assertEquals(aNotB.getResult(false).isEmpty(), false);
+    aNotB.setA(skA2);
+    assertEquals(aNotB.getResult(false).isEmpty(), true);
+  }
+
+  @Test
   public void aNotBEmptyExact() {
     UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
     UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
