@@ -55,7 +55,10 @@ public final class AnotB<S extends Summary> {
     if (skA == null) {
       throw new SketchesArgumentException("The input argument may not be null");
     }
-    if (skA.isEmpty()) { return; }
+    if (skA.isEmpty()) {
+      reset();
+      return;
+    }
     //skA is not empty
     empty_ = false;
     thetaLong_ = skA.getThetaLong();
@@ -68,7 +71,7 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnoB operator.
+   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -109,7 +112,7 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnoB operator.
+   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -306,6 +309,17 @@ public final class AnotB<S extends Summary> {
     return result;
   }
 
+  /**
+   * Resets this sketch back to the empty state.
+   */
+  public void reset() {
+    empty_ = true;
+    thetaLong_ = Long.MAX_VALUE;
+    keys_ = null;
+    summaries_ = null;
+    count_ = 0;
+  }
+
   private static long[] extractThetaHashArray(
       final org.apache.datasketches.theta.Sketch sketch,
       final int count) {
@@ -328,14 +342,6 @@ public final class AnotB<S extends Summary> {
     HashOperations.hashArrayInsert(
         keysArr, hashTable, Integer.numberOfTrailingZeros(size), thetaLong);
     return hashTable;
-  }
-
-  private void reset() {
-    empty_ = true;
-    thetaLong_ = Long.MAX_VALUE;
-    keys_ = null;
-    summaries_ = null;
-    count_ = 0;
   }
 
   //Deprecated methods
