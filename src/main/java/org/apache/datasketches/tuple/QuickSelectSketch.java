@@ -375,7 +375,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (key < theta_) {
       final int index = findOrInsert(key);
       if (index < 0) {
-        insertSummary(~index, (S)summary.copy());
+        insertSummary(~index, (S)summary.copy()); //did not find so insert
       } else {
         insertSummary(index, summarySetOps.union(summaries_[index], summary));
       }
@@ -391,8 +391,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     theta_ = theta;
   }
 
-  void setNotEmpty() {
-    isEmpty_ = false;
+  void setEmpty(final boolean value) {
+    isEmpty_ = value;
   }
 
   SummaryFactory<S> getSummaryFactory() {
@@ -434,6 +434,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     final int index = HashOperations.hashInsertOnly(keys_, lgCurrentCapacity_, key);
     insertSummary(index, summary);
     count_++;
+    isEmpty_ = false;
   }
 
   private void updateTheta() {

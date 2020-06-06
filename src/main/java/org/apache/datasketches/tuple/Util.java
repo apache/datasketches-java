@@ -27,6 +27,7 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.XxHash64;
 
 /**
  * Common utility functions for Tuples
@@ -34,6 +35,7 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public final class Util {
+  private static final int PRIME = 0x7A3C_CA71;
 
   /**
    * Converts a <i>double</i> to a <i>long[]</i>.
@@ -85,7 +87,6 @@ public final class Util {
       throw new SketchesArgumentException("Incompatible Seed Hashes. " + seedHashA + ", "
           + seedHashB);
     }
-
   }
 
   /**
@@ -101,6 +102,38 @@ public final class Util {
       ResizeFactor.getRF(lgResizeFactor),
       MIN_LG_ARR_LONGS
     );
+  }
+
+  /**
+   * Concatenate array of Strings to a single String.
+   * @param strArr the given String array
+   * @return the concatenated String
+   */
+  public static String stringConcat(final String[] strArr) {
+    final int len = strArr.length;
+    final StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < len; i++) {
+      sb.append(strArr[i]);
+      if ((i + 1) < len) { sb.append(','); }
+    }
+    return sb.toString();
+  }
+
+  /**
+   * @param s the string to hash
+   * @return the hash of the string
+   */
+  public static long stringHash(final String s) {
+    return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
+  }
+
+  /**
+   * @param strArray array of Strings
+   * @return long hash of concatenated strings.
+   */
+  public static long stringArrHash(final String[] strArray) {
+    final String s = stringConcat(strArray);
+    return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
   }
 
 }

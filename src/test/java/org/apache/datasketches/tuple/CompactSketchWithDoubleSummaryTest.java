@@ -49,6 +49,7 @@ public class CompactSketchWithDoubleSummaryTest {
     SketchIterator<DoubleSummary> it = sketch.iterator();
     Assert.assertNotNull(it);
     Assert.assertFalse(it.next());
+    sketch.toString();
   }
 
   @Test

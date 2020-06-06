@@ -30,7 +30,18 @@ public class ArrayOfStringsSummaryDeserializer implements SummaryDeserializer<Ar
 
   @Override
   public DeserializeResult<ArrayOfStringsSummary> heapifySummary(final Memory mem) {
-    return ArrayOfStringsSummary.fromMemory(mem);
+    return ArrayOfStringsSummaryDeserializer.fromMemory(mem);
+  }
+
+  /**
+   * Also used in test.
+   * @param mem the given memory
+   * @return the DeserializeResult
+   */
+  static DeserializeResult<ArrayOfStringsSummary> fromMemory(final Memory mem) {
+    final ArrayOfStringsSummary nsum = new ArrayOfStringsSummary(mem);
+    final int totBytes = mem.getInt(0);
+    return new DeserializeResult<>(nsum, totBytes);
   }
 
 }

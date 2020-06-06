@@ -65,7 +65,7 @@ public class Filter<T extends Summary> {
 
         sketch.setThetaLong(sketchIn.getThetaLong());
         if (!sketchIn.isEmpty()) {
-            sketch.setNotEmpty();
+            sketch.setEmpty(false);
         }
 
         return sketch.compact();

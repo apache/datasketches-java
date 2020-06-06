@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.tuple;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SerializerDeserializerTest {
@@ -57,5 +56,10 @@ public class SerializerDeserializerTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void validateFamilyWrongPreambleLength() {
     SerializerDeserializer.validateFamily((byte) Family.TUPLE.getID(), (byte) 0);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBadSeedHash() {
+    org.apache.datasketches.tuple.Util.computeSeedHash(50541);
   }
 }

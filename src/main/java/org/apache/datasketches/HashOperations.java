@@ -125,7 +125,6 @@ public final class HashOperations {
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    * Returns the index of insertion, which is always positive or zero. Throws an exception if the
    * table is full with no empty slot.
-   * Throws an exception if table has no empty slot.
    *
    * @param hashTable the hash table to insert into.
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.

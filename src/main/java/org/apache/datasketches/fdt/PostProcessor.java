@@ -21,7 +21,7 @@ package org.apache.datasketches.fdt;
 
 import static org.apache.datasketches.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.tuple.strings.ArrayOfStringsSummary.stringHash;
+import static org.apache.datasketches.tuple.Util.stringHash;
 
 import java.util.ArrayList;
 import java.util.Arrays;

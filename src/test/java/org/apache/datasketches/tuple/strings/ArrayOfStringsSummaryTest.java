@@ -51,7 +51,7 @@ public class ArrayOfStringsSummaryTest {
     }
 
     println("\nfromMemory(mem)");
-    DeserializeResult<ArrayOfStringsSummary> dres = ArrayOfStringsSummary.fromMemory(mem);
+    DeserializeResult<ArrayOfStringsSummary> dres = ArrayOfStringsSummaryDeserializer.fromMemory(mem);
     ArrayOfStringsSummary nsum3 = dres.getObject();
     nodesArr = nsum3.getValue();
     for (String s : nodesArr) {
