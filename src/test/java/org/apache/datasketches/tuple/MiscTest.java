@@ -17,8 +17,37 @@
  * under the License.
  */
 
+package org.apache.datasketches.tuple;
+
+import org.apache.datasketches.tuple.adouble.DoubleSummary;
+import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
+import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
+public class MiscTest {
 
-package org.apache.datasketches.tuple.arrayofdoubles;
+  @Test
+  public void checkUpdatableSketchBuilderReset() {
+    final DoubleSummary.Mode mode = Mode.Sum;
+    UpdatableSketchBuilder<Double, DoubleSummary> bldr =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode));
+    bldr.reset();
+  }
+
+  @Test
+  public void checkStringToByteArray() {
+    Util.stringToByteArray("");
+  }
+
+  @Test
+  public void checkDoubleToLongArray() {
+    final long[] v = Util.doubleToLongArray(-0.0);
+    Assert.assertEquals(v[0], 0);
+  }
+
+}
