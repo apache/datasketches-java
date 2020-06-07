@@ -50,7 +50,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param hashArr compacted hash array
    * @param summaryArr compacted summary array
    * @param thetaLong long value of theta
-   * @param isEmpty empty flag
+   * @param empty empty flag
    */
   CompactSketch(final long[] hashArr, final S[] summaryArr, final long thetaLong, final boolean empty) {
     hashArr_ = hashArr;
