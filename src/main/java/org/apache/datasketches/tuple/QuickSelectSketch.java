@@ -54,6 +54,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private final SummaryFactory<S> summaryFactory_;
   private final float samplingProbability_;
   private int rebuildThreshold_;
+  private long[] hashTable_;
+  S[] summaryTable_;
 
   /**
    * This is to create an instance of a QuickSelectSketch with default resize factor.
@@ -115,10 +117,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     summaryFactory_ = summaryFactory;
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingSize);
-    keys_ = new long[startingSize];
-    summaries_ = null; // wait for the first summary to call Array.newInstance()
+    hashTable_ = new long[startingSize];
+    summaryTable_ = null; // wait for the first summary to call Array.newInstance()
     setRebuildThreshold();
   }
 
@@ -160,10 +162,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
     final boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
     if (isThetaIncluded) {
-      theta_ = mem.getLong(offset);
+      thetaLong_ = mem.getLong(offset);
       offset += Long.BYTES;
     } else {
-      theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
+      thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
     }
 
     int count = 0;
@@ -173,24 +175,33 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       offset += Integer.BYTES;
     }
     final int currentCapacity = 1 << lgCurrentCapacity_;
-    keys_ = new long[currentCapacity];
+    hashTable_ = new long[currentCapacity];
     for (int i = 0; i < count; i++) {
-      final long key = mem.getLong(offset);
+      final long hash = mem.getLong(offset);
       offset += Long.BYTES;
       final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
       final DeserializeResult<S> summaryResult = deserializer.heapifySummary(memRegion);
       final S summary = summaryResult.getObject();
       offset += summaryResult.getSize();
-      insert(key, summary);
+      insert(hash, summary);
     }
-    isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     setRebuildThreshold();
+  }
+
+  long[] getHashTable() {
+    return hashTable_;
   }
 
   @Override
   public int getRetainedEntries() {
     return count_;
   }
+
+  S[] getSummaryTable() {
+    return summaryTable_;
+  }
+
 
   /**
    * Get configured nominal number of entries
@@ -238,7 +249,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   public void trim() {
     if (count_ > nomEntries_) {
       updateTheta();
-      rebuild(keys_.length);
+      rebuild(hashTable_.length);
     }
   }
 
@@ -246,13 +257,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * Resets this sketch an empty state.
    */
   public void reset() {
-    isEmpty_ = true;
+    empty_ = true;
     count_ = 0;
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
     final int startingCapacity = Util.getStartingCapacity(nomEntries_, lgResizeFactor_);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);
-    keys_ = new long[startingCapacity];
-    summaries_ = null; // wait for the first summary to call Array.newInstance()
+    hashTable_ = new long[startingCapacity];
+    summaryTable_ = null; // wait for the first summary to call Array.newInstance()
     setRebuildThreshold();
   }
 
@@ -263,20 +274,20 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @SuppressWarnings("unchecked")
   public CompactSketch<S> compact() {
     if (getRetainedEntries() == 0) {
-      return new CompactSketch<>(null, null, theta_, isEmpty_);
+      return new CompactSketch<>(null, null, thetaLong_, empty_);
     }
-    final long[] keys = new long[getRetainedEntries()];
-    final S[] summaries = (S[])
-      Array.newInstance(summaries_.getClass().getComponentType(), getRetainedEntries());
+    final long[] hashArr = new long[getRetainedEntries()];
+    final S[] summaryArr = (S[])
+      Array.newInstance(summaryTable_.getClass().getComponentType(), getRetainedEntries());
     int i = 0;
-    for (int j = 0; j < keys_.length; j++) {
-      if (summaries_[j] != null) {
-        keys[i] = keys_[j];
-        summaries[i] = (S)summaries_[j].copy();
+    for (int j = 0; j < hashTable_.length; j++) {
+      if (summaryTable_[j] != null) {
+        hashArr[i] = hashTable_[j];
+        summaryArr[i] = (S)summaryTable_[j].copy();
         i++;
       }
     }
-    return new CompactSketch<>(keys, summaries, theta_, isEmpty_);
+    return new CompactSketch<>(hashArr, summaryArr, thetaLong_, empty_);
   }
 
   // Layout of first 8 bytes:
@@ -292,9 +303,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     if (count_ > 0) {
       summariesBytes = new byte[count_][];
       int i = 0;
-      for (int j = 0; j < summaries_.length; j++) {
-        if (summaries_[j] != null) {
-          summariesBytes[i] = summaries_[j].toByteArray();
+      for (int j = 0; j < summaryTable_.length; j++) {
+        if (summaryTable_[j] != null) {
+          summariesBytes[i] = summaryTable_[j].toByteArray();
           summariesBytesLength += summariesBytes[i].length;
           i++;
         }
@@ -313,7 +324,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       sizeBytes += Float.BYTES; // samplingProbability
     }
     final boolean isThetaIncluded = isInSamplingMode()
-        ? theta_ < samplingProbability_ : theta_ < Long.MAX_VALUE;
+        ? thetaLong_ < samplingProbability_ : thetaLong_ < Long.MAX_VALUE;
     if (isThetaIncluded) {
       sizeBytes += Long.BYTES;
     }
@@ -331,7 +342,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     bytes[offset++] = (byte) (
       (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
       | (isInSamplingMode() ? 1 << Flags.IS_IN_SAMPLING_MODE.ordinal() : 0)
-      | (isEmpty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+      | (empty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (count_ > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
       | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
     );
@@ -343,7 +354,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       offset += Float.BYTES;
     }
     if (isThetaIncluded) {
-      ByteArrayUtil.putLongLE(bytes, offset, theta_);
+      ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
       offset += Long.BYTES;
     }
     if (count_ > 0) {
@@ -352,9 +363,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     }
     if (count_ > 0) {
       int i = 0;
-      for (int j = 0; j < keys_.length; j++) {
-        if (summaries_[j] != null) {
-          ByteArrayUtil.putLongLE(bytes, offset, keys_[j]);
+      for (int j = 0; j < hashTable_.length; j++) {
+        if (summaryTable_[j] != null) {
+          ByteArrayUtil.putLongLE(bytes, offset, hashTable_[j]);
           offset += Long.BYTES;
           System.arraycopy(summariesBytes[i], 0, bytes, offset, summariesBytes[i].length);
           offset += summariesBytes[i].length;
@@ -370,14 +381,14 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   // this is a special back door insert for merging
   // not sufficient by itself without keeping track of theta of another sketch
   @SuppressWarnings("unchecked")
-  void merge(final long key, final S summary, final SummarySetOperations<S> summarySetOps) {
-    isEmpty_ = false;
-    if (key < theta_) {
-      final int index = findOrInsert(key);
+  void merge(final long hash, final S summary, final SummarySetOperations<S> summarySetOps) {
+    empty_ = false;
+    if ((hash > 0) && (hash < thetaLong_)) {
+      final int index = findOrInsert(hash);
       if (index < 0) {
-        insertSummary(~index, (S)summary.copy()); //did not find so insert
+        insertSummary(~index, (S)summary.copy()); //did not find, so insert
       } else {
-        insertSummary(index, summarySetOps.union(summaries_[index], summary));
+        insertSummary(index, summarySetOps.union(summaryTable_[index], summary));
       }
       rebuildIfNeeded();
     }
@@ -388,96 +399,102 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   void setThetaLong(final long theta) {
-    theta_ = theta;
+    thetaLong_ = theta;
   }
 
   void setEmpty(final boolean value) {
-    isEmpty_ = value;
+    empty_ = value;
   }
 
   SummaryFactory<S> getSummaryFactory() {
     return summaryFactory_;
   }
 
-  int findOrInsert(final long key) {
-    final int index = HashOperations.hashSearchOrInsert(keys_, lgCurrentCapacity_, key);
+  int findOrInsert(final long hash) {
+    final int index = HashOperations.hashSearchOrInsert(hashTable_, lgCurrentCapacity_, hash);
     if (index < 0) {
       count_++;
     }
     return index;
   }
 
-  S find(final long key) {
-    final int index = HashOperations.hashSearch(keys_, lgCurrentCapacity_, key);
-    if (index == -1) { return null; }
-    return summaries_[index];
-  }
+  //  S find(final long hash) {
+  //    final int index = HashOperations.hashSearch(hashTable_, lgCurrentCapacity_, hash);
+  //    if (index == -1) { return null; }
+  //    return summaryTable_[index];
+  //  }
 
   boolean rebuildIfNeeded() {
     if (count_ < rebuildThreshold_) {
       return false;
     }
-    if (keys_.length > nomEntries_) {
+    if (hashTable_.length > nomEntries_) {
       updateTheta();
       rebuild();
     } else {
-      rebuild(keys_.length * (1 << lgResizeFactor_));
+      rebuild(hashTable_.length * (1 << lgResizeFactor_));
     }
     return true;
   }
 
   void rebuild() {
-    rebuild(keys_.length);
+    rebuild(hashTable_.length);
   }
 
-  void insert(final long key, final S summary) {
-    final int index = HashOperations.hashInsertOnly(keys_, lgCurrentCapacity_, key);
+  void insert(final long hash, final S summary) {
+    final int index = HashOperations.hashInsertOnly(hashTable_, lgCurrentCapacity_, hash);
     insertSummary(index, summary);
     count_++;
-    isEmpty_ = false;
+    empty_ = false;
   }
 
   private void updateTheta() {
-    final long[] keys = new long[count_];
+    final long[] hashArr = new long[count_];
     int i = 0;
-    for (int j = 0; j < keys_.length; j++) {
-      if (summaries_[j] != null) {
-        keys[i++] = keys_[j];
+    for (int j = 0; j < hashTable_.length; j++) {
+      if (summaryTable_[j] != null) {
+        hashArr[i++] = hashTable_[j];
       }
     }
-    theta_ = QuickSelect.select(keys, 0, count_ - 1, nomEntries_);
+    thetaLong_ = QuickSelect.select(hashArr, 0, count_ - 1, nomEntries_);
   }
 
   @SuppressWarnings({"unchecked"})
   private void rebuild(final int newSize) {
-    final long[] oldKeys = keys_;
-    final S[] oldSummaries = summaries_;
-    keys_ = new long[newSize];
-    summaries_ = (S[]) Array.newInstance(oldSummaries.getClass().getComponentType(), newSize);
+    final long[] oldHashTable = hashTable_;
+    final S[] oldSummaryTable = summaryTable_;
+    final Class<S> summaryType = (Class<S>) summaryTable_.getClass().getComponentType();
+    hashTable_ = new long[newSize];
+    summaryTable_ = (S[]) Array.newInstance(summaryType, newSize);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newSize);
     count_ = 0;
-    for (int i = 0; i < oldKeys.length; i++) {
-      if ((oldSummaries[i] != null) && (oldKeys[i] < theta_)) {
-        insert(oldKeys[i], oldSummaries[i]);
+    for (int i = 0; i < oldHashTable.length; i++) {
+      if ((oldSummaryTable[i] != null) && (oldHashTable[i] < thetaLong_)) {
+        insert(oldHashTable[i], oldSummaryTable[i]);
       }
     }
     setRebuildThreshold();
   }
 
   private void setRebuildThreshold() {
-    if (keys_.length > nomEntries_) {
-      rebuildThreshold_ = (int) (keys_.length * REBUILD_THRESHOLD);
+    if (hashTable_.length > nomEntries_) {
+      rebuildThreshold_ = (int) (hashTable_.length * REBUILD_THRESHOLD);
     } else {
-      rebuildThreshold_ = (int) (keys_.length * RESIZE_THRESHOLD);
+      rebuildThreshold_ = (int) (hashTable_.length * RESIZE_THRESHOLD);
     }
   }
 
   @SuppressWarnings("unchecked")
   protected void insertSummary(final int index, final S summary) {
-    if (summaries_ == null) {
-      summaries_ = (S[]) Array.newInstance(summary.getClass(), keys_.length);
+    if (summaryTable_ == null) {
+      summaryTable_ = (S[]) Array.newInstance(summary.getClass(), hashTable_.length);
     }
-    summaries_[index] = summary;
+    summaryTable_[index] = summary;
+  }
+
+  @Override
+  public SketchIterator<S> iterator() {
+    return new SketchIterator<>(hashTable_, summaryTable_);
   }
 
 }

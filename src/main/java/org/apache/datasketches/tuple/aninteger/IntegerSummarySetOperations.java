@@ -34,7 +34,7 @@ public class IntegerSummarySetOperations implements SummarySetOperations<Integer
 
   /**
    * Intersection is not well defined or even meaningful between numeric values.
-   * Nevertheless, this can be defined to be a different type of aggregation for intersecting keys.
+   * Nevertheless, this can be defined to be a different type of aggregation for intersecting hashes.
    */
   private final Mode intersectionSummaryMode_;
 

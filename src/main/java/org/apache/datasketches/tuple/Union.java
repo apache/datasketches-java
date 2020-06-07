@@ -36,7 +36,7 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 public class Union<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
-  private QuickSelectSketch<S> sketch_;
+  private QuickSelectSketch<S> qsk_;
   private long thetaLong_; // need to maintain outside of the sketch
   private boolean empty_;
 
@@ -56,8 +56,8 @@ public class Union<S extends Summary> {
    */
   public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     summarySetOps_ = summarySetOps;
-    sketch_ = new QuickSelectSketch<>(nomEntries, null);
-    thetaLong_ = sketch_.getThetaLong();
+    qsk_ = new QuickSelectSketch<>(nomEntries, null);
+    thetaLong_ = qsk_.getThetaLong();
     empty_ = true;
   }
 
@@ -69,18 +69,18 @@ public class Union<S extends Summary> {
   public void update(final Sketch<S> sketchIn) {
     if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
     empty_ = false;
-    if (sketchIn.theta_ < thetaLong_) { thetaLong_ = sketchIn.theta_; }
+    if (sketchIn.thetaLong_ < thetaLong_) { thetaLong_ = sketchIn.thetaLong_; }
     final SketchIterator<S> it = sketchIn.iterator();
     while (it.next()) {
-      sketch_.merge(it.getKey(), it.getSummary(), summarySetOps_);
+      qsk_.merge(it.getHash(), it.getSummary(), summarySetOps_);
     }
-    if (sketch_.theta_ < thetaLong_) {
-      thetaLong_ = sketch_.theta_;
+    if (qsk_.thetaLong_ < thetaLong_) {
+      thetaLong_ = qsk_.thetaLong_;
     }
   }
 
   /**
-   * Updates the internal set by combining entries using the hash keys from the Theta Sketch and
+   * Updates the internal set by combining entries using the hashes from the Theta Sketch and
    * summary values from the given summary and rules from the summarySetOps defined by the
    * Union constructor.
    * @param sketchIn the given Theta Sketch input. If null or empty, it is ignored.
@@ -97,10 +97,10 @@ public class Union<S extends Summary> {
     if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
     final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
     while (it.next()) {
-      sketch_.merge(it.get(), (S)summary.copy(), summarySetOps_);
+      qsk_.merge(it.get(), (S)summary.copy(), summarySetOps_);
     }
-    if (sketch_.theta_ < thetaLong_) {
-      thetaLong_ = sketch_.theta_;
+    if (qsk_.thetaLong_ < thetaLong_) {
+      thetaLong_ = qsk_.thetaLong_;
     }
   }
 
@@ -111,53 +111,56 @@ public class Union<S extends Summary> {
   @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
     if (empty_) {
-      return sketch_.compact();
+      return qsk_.compact();
     }
-    if ((thetaLong_ >= sketch_.theta_) && (sketch_.getRetainedEntries() <= sketch_.getNominalEntries())) {
-      return sketch_.compact();
+    if ((thetaLong_ >= qsk_.thetaLong_) && (qsk_.getRetainedEntries() <= qsk_.getNominalEntries())) {
+      return qsk_.compact();
     }
-    long theta = min(thetaLong_, sketch_.theta_);
+    long theta = min(thetaLong_, qsk_.thetaLong_);
 
-    int num = 0;
+    int numHashes = 0;
     {
-      final SketchIterator<S> it = sketch_.iterator();
+      final SketchIterator<S> it = qsk_.iterator();
       while (it.next()) {
-        if (it.getKey() < theta) { num++; }
+        if (it.getHash() < theta) { numHashes++; }
       }
     }
-    if (num == 0) {
+    if (numHashes == 0) {
       return new CompactSketch<>(null, null, theta, empty_);
     }
-    if (num > sketch_.getNominalEntries()) {
-      final long[] keys = new long[num]; // temporary since the order will be destroyed by quick select
-      final SketchIterator<S> it = sketch_.iterator();
+    if (numHashes > qsk_.getNominalEntries()) {
+      final long[] hashArr = new long[numHashes]; // temporary, order will be destroyed by quick select
+      final SketchIterator<S> it = qsk_.iterator();
       int i = 0;
       while (it.next()) {
-        if (it.getKey() < theta) { keys[i++] = it.getKey(); }
+        final long hash = it.getHash();
+        if (hash < theta) { hashArr[i++] = hash; }
       }
-      theta = QuickSelect.select(keys, 0, num - 1, sketch_.getNominalEntries());
-      num = sketch_.getNominalEntries();
+      theta = QuickSelect.select(hashArr, 0, numHashes - 1, qsk_.getNominalEntries());
+      numHashes = qsk_.getNominalEntries();
     }
-    final long[] keys = new long[num];
-    final S[] summaries = (S[]) Array.newInstance(sketch_.summaries_.getClass().getComponentType(), num);
-    final SketchIterator<S> it = sketch_.iterator();
+    final Class<S> summaryType = (Class<S>) qsk_.getSummaryTable().getClass().getComponentType();
+    final long[] hashArr = new long[numHashes];
+    final S[] summaries = (S[]) Array.newInstance(summaryType, numHashes);
+    final SketchIterator<S> it = qsk_.iterator();
     int i = 0;
     while (it.next()) {
-      if (it.getKey() < theta) {
-        keys[i] = it.getKey();
+      final long hash = it.getHash();
+      if (hash < theta) {
+        hashArr[i] = hash;
         summaries[i] = (S) it.getSummary().copy();
         i++;
       }
     }
-    return new CompactSketch<>(keys, summaries, theta, empty_);
+    return new CompactSketch<>(hashArr, summaries, theta, empty_);
   }
 
   /**
    * Resets the internal set to the initial state, which represents an empty set
    */
   public void reset() {
-    sketch_.reset();
-    thetaLong_ = sketch_.getThetaLong();
+    qsk_.reset();
+    thetaLong_ = qsk_.getThetaLong();
     empty_ = true;
   }
 }

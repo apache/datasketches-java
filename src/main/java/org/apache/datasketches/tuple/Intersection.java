@@ -98,28 +98,29 @@ public class Intersection<S extends Summary> {
       //Match nextSketch data with local instance data, filtering by theta
       final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries());
 
-      final long[] matchKeys = new long[maxMatchSize];
+      final long[] matchHashArr = new long[maxMatchSize];
       S[] matchSummaries = null;
       int matchCount = 0;
 
       final SketchIterator<S> it = nextSketch.iterator();
+      final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
       while (it.next()) {
-        final long key = it.getKey();
-        if (key >= thetaLong_) { continue; }
-        final int index = hashSearch(hashTables_.keys_, hashTables_.lgTableSize_, key);
+        final long hash = it.getHash();
+        if (hash >= thetaLong_) { continue; }
+        final int index = hashSearch(hashTables_.hashTable_, hashTables_.lgTableSize_, hash);
         if (index < 0) { continue; }
         //Copy the intersecting items from local hashTables_
-        // sequentially into local matchKeys_ and matchSummaries_
-        final S mySummary = hashTables_.summaries_[index];
+        // sequentially into local matchHashArr_ and matchSummaries_
+        final S mySummary = hashTables_.summaryTable_[index];
 
         if (matchSummaries == null) {
-          matchSummaries = (S[]) Array.newInstance(mySummary.getClass(), maxMatchSize);
+          matchSummaries = (S[]) Array.newInstance(summaryType, maxMatchSize);
         }
-        matchKeys[matchCount] = key;
+        matchHashArr[matchCount] = hash;
         matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, it.getSummary());
         matchCount++;
       }
-      hashTables_.fromArrays(matchKeys, matchSummaries, matchCount);
+      hashTables_.fromArrays(matchHashArr, matchSummaries, matchCount);
     }
   }
 
@@ -160,28 +161,29 @@ public class Intersection<S extends Summary> {
       //Match nextSketch data with local instance data, filtering by theta
       final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries());
 
-      final long[] matchKeys = new long[maxMatchSize];
+      final long[] matchHashArr = new long[maxMatchSize];
       S[] matchSummaries = null;
       int matchCount = 0;
 
       final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
+      final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
       while (it.next()) {
-        final long key = it.get();
-        if (key >= thetaLong_) { continue; }
-        final int index = hashSearch(hashTables_.keys_, hashTables_.lgTableSize_, key);
+        final long hash = it.get();
+        if (hash >= thetaLong_) { continue; }
+        final int index = hashSearch(hashTables_.hashTable_, hashTables_.lgTableSize_, hash);
         if (index < 0) { continue; }
         //Copy the intersecting items from local hashTables_
-        // sequentially into local matchKeys_ and matchSummaries_
-        final S mySummary = hashTables_.summaries_[index];
+        // sequentially into local matchHashArr and matchSummaries
+        final S mySummary = hashTables_.summaryTable_[index];
 
         if (matchSummaries == null) {
-          matchSummaries = (S[]) Array.newInstance(mySummary.getClass(), maxMatchSize);
+          matchSummaries = (S[]) Array.newInstance(summaryType, maxMatchSize);
         }
-        matchKeys[matchCount] = key;
+        matchHashArr[matchCount] = hash;
         matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, (S)mySummary.copy());
         matchCount++;
       }
-      hashTables_.fromArrays(matchKeys, matchSummaries, matchCount);
+      hashTables_.fromArrays(matchHashArr, matchSummaries, matchCount);
     }
   }
 
@@ -198,23 +200,24 @@ public class Intersection<S extends Summary> {
       return new CompactSketch<>(null, null, thetaLong_, empty_);
     }
     //Compact the hash tables
-    final int tableSize = hashTables_.keys_.length;
-    final long[] keys = new long[hashTables_.count_];
+    final int tableSize = hashTables_.hashTable_.length;
+    final long[] hashArr = new long[hashTables_.count_];
     S[] summaries = null;
+    final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
     int cnt = 0;
     for (int i = 0; i < tableSize; i++) {
-      final long key = hashTables_.keys_[i];
-      if ((key == 0) || (key > thetaLong_)) { continue; }
-      final S summary = hashTables_.summaries_[i];
+      final long hash = hashTables_.hashTable_[i];
+      if ((hash == 0) || (hash > thetaLong_)) { continue; }
+      final S summary = hashTables_.summaryTable_[i];
       if (summaries == null) {
-        summaries = (S[]) Array.newInstance(summary.getClass(), hashTables_.count_);
+        summaries = (S[]) Array.newInstance(summaryType, hashTables_.count_);
       }
-      keys[cnt] = key;
+      hashArr[cnt] = hash;
       summaries[cnt] = summary;
       cnt++;
     }
     assert cnt == hashTables_.count_;
-    return new CompactSketch<>(keys, summaries, thetaLong_, empty_);
+    return new CompactSketch<>(hashArr, summaries, thetaLong_, empty_);
   }
 
   /**
@@ -233,8 +236,8 @@ public class Intersection<S extends Summary> {
   }
 
   private class HashTables {
-    long[] keys_ = null;
-    S[] summaries_ = null;
+    long[] hashTable_ = null;
+    S[] summaryTable_ = null;
     int lgTableSize_ = 0;
     int count_ = 0;
 
@@ -245,17 +248,17 @@ public class Intersection<S extends Summary> {
       lgTableSize_ = getLgTableSize(count_);
       S mySummary = null;
 
-      keys_ = new long[1 << lgTableSize_];
+      hashTable_ = new long[1 << lgTableSize_];
       final SketchIterator<S> it = sketch.iterator();
       while (it.next()) {
-        final long key = it.getKey();
-        final int index = hashInsertOnly(keys_, lgTableSize_, key);
+        final long hash = it.getHash();
+        final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
         mySummary = (S)it.getSummary().copy();
-        if (summaries_ == null) {
-          summaries_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
+        if (summaryTable_ == null) {
+          summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
         }
-        keys_[index] = key;
-        summaries_[index] = mySummary;
+        hashTable_[index] = hash;
+        summaryTable_[index] = mySummary;
       }
     }
 
@@ -264,43 +267,43 @@ public class Intersection<S extends Summary> {
       lgTableSize_ = getLgTableSize(count_);
       S mySummary = null;
 
-      keys_ = new long[1 << lgTableSize_];
+      hashTable_ = new long[1 << lgTableSize_];
       final org.apache.datasketches.theta.HashIterator it = sketch.iterator();
       while (it.next()) {
-        final long key = it.get();
-        final int index = hashInsertOnly(keys_, lgTableSize_, key);
+        final long hash = it.get();
+        final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
         mySummary = summary;
-        if (summaries_ == null) {
-          summaries_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
+        if (summaryTable_ == null) {
+          summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
         }
-        keys_[index] = key;
-        summaries_[index] = mySummary;
+        hashTable_[index] = hash;
+        summaryTable_[index] = mySummary;
       }
     }
 
 
-    void fromArrays(final long[] keys, final S[] summaries, final int count) {
+    void fromArrays(final long[] hashArr, final S[] summaryArr, final int count) {
       count_ = count;
       lgTableSize_ = getLgTableSize(count);
 
       S mySummary = null;
-      summaries_ = null;
-      keys_ = new long[1 << lgTableSize_];
+      summaryTable_ = null;
+      hashTable_ = new long[1 << lgTableSize_];
       for (int i = 0; i < count; i++) {
-        final long key = keys[i];
-        final int index = hashInsertOnly(keys_, lgTableSize_, key);
-        mySummary = summaries[i];
-        if (summaries_ == null) {
-          summaries_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
+        final long hash = hashArr[i];
+        final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
+        mySummary = summaryArr[i];
+        if (summaryTable_ == null) {
+          summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
         }
-        keys_[index] = key;
-        summaries_[index] = summaries[i];
+        hashTable_[index] = hash;
+        summaryTable_[index] = summaryArr[i];
       }
     }
 
     void clear() {
-      keys_ = null;
-      summaries_ = null;
+      hashTable_ = null;
+      summaryTable_ = null;
       lgTableSize_ = 0;
       count_ = 0;
     }

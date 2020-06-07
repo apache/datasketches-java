@@ -59,7 +59,7 @@ public class Filter<T extends Summary> {
         while (it.next()) {
             final T summary = it.getSummary();
             if (predicate.test(summary)) {
-                sketch.insert(it.getKey(), (T)summary.copy());
+                sketch.insert(it.getHash(), (T)summary.copy());
             }
         }
 
