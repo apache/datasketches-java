@@ -418,12 +418,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     return index;
   }
 
-  //  S find(final long hash) {
-  //    final int index = HashOperations.hashSearch(hashTable_, lgCurrentCapacity_, hash);
-  //    if (index == -1) { return null; }
-  //    return summaryTable_[index];
-  //  }
-
   boolean rebuildIfNeeded() {
     if (count_ < rebuildThreshold_) {
       return false;

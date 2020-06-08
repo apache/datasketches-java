@@ -94,7 +94,9 @@ public final class AnotB<S extends Summary> {
       hashTableB = convertToHashTable(cskB.getHashArr(), countB, thetaLong_);
     } else {
       qskB = (QuickSelectSketch<S>) skB;
-      hashTableB = convertToHashTable(qskB.getHashTable(), countB, thetaLong_);
+      hashTableB = (thetaLong_ < thetaLongB)
+          ? convertToHashTable(qskB.getHashTable(), countB, thetaLong_)
+          : qskB.getHashTable();
     }
 
     //build temporary arrays of skA
@@ -286,7 +288,7 @@ public final class AnotB<S extends Summary> {
     final int countB = skB.getRetainedEntries();
 
     //Build/rebuild hashtable and removes hashes of skB >= thetaLong
-    final long[] hashTableB = //this works for all theta sketches
+    final long[] hashTableB = //the following convert works for all theta sketches
         convertToHashTable(extractThetaHashArray(skB, countB), countB, thetaLong);
 
     //build temporary arrays of skA for matching

@@ -33,8 +33,6 @@ public abstract class Sketch<S extends Summary> {
 
   protected static final byte PREAMBLE_LONGS = 1;
 
-  //long[] hashArr_;
-  //S[] summaryArr_;
   long thetaLong_;
   boolean empty_ = true;
 
