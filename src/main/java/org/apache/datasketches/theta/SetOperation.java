@@ -250,6 +250,7 @@ public abstract class SetOperation {
       }
       return sk;
     }
+    //Not Empty
     if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
       final SingleItemSketch sis = new SingleItemSketch(compactCache[0], seedHash);
       if ((dstMem != null) && (dstMem.getCapacity() >= 16)) {

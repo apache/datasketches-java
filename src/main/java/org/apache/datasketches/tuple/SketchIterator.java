@@ -25,13 +25,13 @@ package org.apache.datasketches.tuple;
  */
 public class SketchIterator<S extends Summary> {
 
-  private long[] keys_;
-  private S[] summaries_;
+  private long[] hashArrTbl_; //could be either hashArr or hashTable
+  private S[] summaryArrTbl_; //could be either summaryArr or summaryTable
   private int i_;
 
-  SketchIterator(final long[] keys, final S[] summaries) {
-    keys_ = keys;
-    summaries_ =  summaries;
+  SketchIterator(final long[] hashes, final S[] summaries) {
+    hashArrTbl_ = hashes;
+    summaryArrTbl_ =  summaries;
     i_ = -1;
   }
 
@@ -42,24 +42,37 @@ public class SketchIterator<S extends Summary> {
    * @return true if the next element exists
    */
   public boolean next() {
-    if (keys_ == null) { return false; }
+    if (hashArrTbl_ == null) { return false; }
     i_++;
-    while (i_ < keys_.length) {
-      if (keys_[i_] != 0) { return true; }
+    while (i_ < hashArrTbl_.length) {
+      if (hashArrTbl_[i_] > 0) { return true; }
       i_++;
     }
     return false;
   }
 
   /**
-   * Gets a key from the current entry in the sketch, which is a hash
+   * Gets the hash from the current entry in the sketch, which is a hash
    * of the original key passed to update(). The original keys are not
    * retained. Don't call this before calling next() for the first time
    * or after getting false from next().
-   * @return hash key from the current entry
+   * @return hash from the current entry
+   * @deprecated Please use {@link #getHash()}
    */
+  @Deprecated
   public long getKey() {
-    return keys_[i_];
+    return hashArrTbl_[i_];
+  }
+
+  /**
+   * Gets the hash from the current entry in the sketch, which is a hash
+   * of the original key passed to update(). The original keys are not
+   * retained. Don't call this before calling next() for the first time
+   * or after getting false from next().
+   * @return hash from the current entry
+   */
+  public long getHash() {
+    return hashArrTbl_[i_];
   }
 
   /**
@@ -69,7 +82,7 @@ public class SketchIterator<S extends Summary> {
    * @return Summary object for the current entry (this is not a copy!)
    */
   public S getSummary() {
-    return summaries_[i_];
+    return summaryArrTbl_[i_];
   }
 
 }

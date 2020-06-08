@@ -80,9 +80,10 @@ See <a href="#validHash">Valid Hash</a>.
 <h3><a name="empty">isEmpty()</a></h3>
 In Theta Sketches, the state <i>isEmpty()</i> for a sketch means that the sketch cache has zero hash values and that none of the
 update methods have been called with valid data.  In other words, the sketch has never seen any data.  
-This state is equivalent to "null" in the sense that it is safe to exclude empty sketches from set operations.
+This state is equivalent to "null" in the sense that it is safe to exclude empty sketches from union operations. However, an empty sketch
+will impact intersections and difference set operations.
 
-<p>Note that <i>isEmpty()</i> does not mean that theta is 1.0 because if <i>p</i> &lt; 1.0, theta will be set 
+<p>Note that <i>isEmpty()</i> does not always mean that theta is 1.0 because if <i>p</i> &lt; 1.0, theta will be set 
 equal to <i>p</i> during construction. 
 Also, a cache of zero values (<i>getRetainedEntries(true) = 0</i>) does not mean that the sketch is <i>Empty</i> since 
 set intersection or difference operations can result in a sketch with zero values. 

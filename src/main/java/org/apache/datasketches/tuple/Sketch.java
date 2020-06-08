@@ -33,10 +33,8 @@ public abstract class Sketch<S extends Summary> {
 
   protected static final byte PREAMBLE_LONGS = 1;
 
-  long[] keys_;
-  S[] summaries_;
-  long theta_;
-  boolean isEmpty_ = true;
+  long thetaLong_;
+  boolean empty_ = true;
 
   Sketch() {}
 
@@ -59,7 +57,7 @@ public abstract class Sketch<S extends Summary> {
    */
   public double getUpperBound(final int numStdDev) {
     if (!isEstimationMode()) { return getRetainedEntries(); }
-    return BinomialBoundsN.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
+    return BinomialBoundsN.getUpperBound(getRetainedEntries(), getTheta(), numStdDev, empty_);
   }
 
   /**
@@ -72,7 +70,7 @@ public abstract class Sketch<S extends Summary> {
    */
   public double getLowerBound(final int numStdDev) {
     if (!isEstimationMode()) { return getRetainedEntries(); }
-    return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
+    return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, empty_);
   }
 
   /**
@@ -120,7 +118,7 @@ public abstract class Sketch<S extends Summary> {
    * @return true if empty.
    */
   public boolean isEmpty() {
-    return isEmpty_;
+    return empty_;
   }
 
   /**
@@ -129,7 +127,7 @@ public abstract class Sketch<S extends Summary> {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return ((theta_ < Long.MAX_VALUE) && !isEmpty());
+    return ((thetaLong_ < Long.MAX_VALUE) && !isEmpty());
   }
 
   /**
@@ -142,7 +140,7 @@ public abstract class Sketch<S extends Summary> {
    * @return the value of theta as a double
    */
   public double getTheta() {
-    return theta_ / (double) Long.MAX_VALUE;
+    return thetaLong_ / (double) Long.MAX_VALUE;
   }
 
   /**
@@ -155,16 +153,14 @@ public abstract class Sketch<S extends Summary> {
    * Returns a SketchIterator
    * @return a SketchIterator
    */
-  public SketchIterator<S> iterator() {
-    return new SketchIterator<>(keys_, summaries_);
-  }
+  public abstract SketchIterator<S> iterator();
 
   /**
    * Returns Theta as a long
    * @return Theta as a long
    */
   public long getThetaLong() {
-    return theta_;
+    return thetaLong_;
   }
 
   @Override

@@ -153,10 +153,10 @@ final class HeapAnotB extends AnotB {
     //    A sketch in stored form can be in one of 5 states.
     //    Null is not actually a state, but is included for completeness.
     //    Null is interpreted as {Theta = 1.0, count = 0, empty = true}.
-    //    The empty state may have Theta < 1.0 but it is ignored; count must be zero.
+    //    In some cases the empty state may have Theta < 1.0 but it is ignored; count must be zero.
     //    State:
-    //      0 N Null
-    //      1 E Empty
+    //      0 N Null or instance of EmptyCompactSketch
+    //      1 E Empty bit set
     //      2 C Compact, not ordered
     //      3 O Compact Ordered
     //      4 H Hash-Table

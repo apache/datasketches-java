@@ -140,15 +140,15 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
     insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
-  private void insertOrIgnore(final long key, final U value) {
+  void insertOrIgnore(final long hash, final U value) {
     setEmpty(false);
-    if (key >= getThetaLong()) { return; }
-    int index = findOrInsert(key);
+    if (hash >= getThetaLong()) { return; }
+    int index = findOrInsert(hash);
     if (index < 0) {
       index = ~index;
       insertSummary(index, getSummaryFactory().newSummary());
     }
-    summaries_[index].update(value);
+    summaryTable_[index].update(value);
     rebuildIfNeeded();
   }
 

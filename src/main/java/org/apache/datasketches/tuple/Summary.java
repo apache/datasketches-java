@@ -20,7 +20,7 @@
 package org.apache.datasketches.tuple;
 
 /**
- * Interface for user-defined Summary, which is associated with every key in a tuple sketch
+ * Interface for user-defined Summary, which is associated with every hash in a tuple sketch
  */
 public interface Summary {
 
