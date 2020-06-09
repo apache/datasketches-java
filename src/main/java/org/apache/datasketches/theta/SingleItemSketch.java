@@ -20,64 +20,57 @@
 package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
+import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 
 /**
+ * A CompactSketch that holds only one item hash.
+ *
  * @author Lee Rhodes
  */
 public final class SingleItemSketch extends CompactSketch {
   private static final long DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED) & 0xFFFFL;
-  private static final String LS = System.getProperty("line.separator");
 
-  //For backward compatibility, a candidate pre0 long must have Flags= compact, read-only, ordered,
-  //  empty=0; COMPACT-Family=3, SerVer=3, PreLongs=1, plus the relevant seedHash.
-  private static final long PRE0_LO6 =  0X00_00_1A_00_00_03_03_01L; //no SI flag, requires not empty
-  private static final long PRE0_MASK = 0XFF_FF_DF_FF_FF_FF_FF_FFL; //removes SI flag
+  // For backward compatibility, a candidate pre0_ long must have:
+  // Flags byte 5 must be Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
+  // Flags mask will be 0x1F.
+  // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
+  // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
+  // and the hash seed matches, it is virtually guaranteed that we have a SingleItem Sketch.
 
-  private final long[] arr = new long[2];
+  private static final long PRE0_LO6_SI   = 0X00_00_3A_00_00_03_03_01L; //with SI flag
 
-  //use to test a candidate pre0 given a seed
-  static boolean testPre0Seed(final long candidate, final long seed) {
-    final long seedHash = computeSeedHash(seed) & 0xFFFFL;
-    return testPre0SeedHash(candidate, seedHash);
-  }
+  private long pre0_ = 0;
+  private long hash_ = 0;
 
-  //use to test a candidate pre0 given a seedHash
-  static boolean testPre0SeedHash(final long candidate, final long seedHash) {
-    final long test1 = (seedHash << 48) | PRE0_LO6; //no SI bit
-    final long test2 = test1 | ((long)SINGLEITEM_FLAG_MASK << 40); //adds the SI bit
-    final long mask = PRE0_MASK; //ignores the SI flag
-    final long masked = candidate & mask;
-    return (masked == test1) || (candidate == test2);
-  }
 
-  //Internal Constructor. All checking has been done, assumes default seed
+  //Internal Constructor. All checking & hashing has been done, assumes default seed
   private SingleItemSketch(final long hash) {
-    arr[0] = (DEFAULT_SEED_HASH << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
-    arr[1] = hash;
+    pre0_ = (DEFAULT_SEED_HASH << 48) | PRE0_LO6_SI;
+    hash_ = hash;
   }
 
-  //Internal Constructor.All checking has been done, given the relevant seed
+  //All checking & hashing has been done, given the relevant seed
   SingleItemSketch(final long hash, final long seed) {
     final long seedHash = computeSeedHash(seed) & 0xFFFFL;
-    arr[0] = (seedHash << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
-    arr[1] = hash;
+    pre0_ = (seedHash << 48) | PRE0_LO6_SI;
+    hash_ = hash;
   }
 
-  //All checking has been done, given the relevant seedHash
+  //All checking & hashing has been done, given the relevant seedHash
   SingleItemSketch(final long hash, final short seedHash) {
     final long seedH = seedHash & 0xFFFFL;
-    arr[0] = (seedH << 48) | PRE0_LO6 | ((long)SINGLEITEM_FLAG_MASK << 40);
-    arr[1] = hash;
+    pre0_ = (seedH << 48) | PRE0_LO6_SI;
+    hash_ = hash;
   }
 
   /**
@@ -93,22 +86,16 @@ public final class SingleItemSketch extends CompactSketch {
   /**
    * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and a seed.
    * Checks the seed hash of the given Memory against a hash of the given seed.
-   * @param srcMem the Memory to be heapified
+   * @param srcMem the Memory to be heapified.
    * @param seed a given hash seed
    * @return a SingleItemSketch
    */
   public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
-    final long memPre0 = srcMem.getLong(0);
-    final short seedHashMem = srcMem.getShort(6);
-    final short seedHashCk = computeSeedHash(seed);
-    checkSeedHashes(seedHashMem, seedHashCk);
-    if (testPre0SeedHash(memPre0, seedHashCk)) {
-      return new SingleItemSketch(srcMem.getLong(8), seedHashCk);
+    final short seedHashMem = checkMemorySeedHash(srcMem, seed);
+    if (isSingleItem(srcMem)) {
+      return new SingleItemSketch(srcMem.getLong(8), seedHashMem);
     }
-    final long def = (((long)seedHashCk << 48) | PRE0_LO6);
-    throw new SketchesArgumentException("Input Memory does not match required Preamble. " + LS
-        + "Memory    Pre0 : " + Long.toHexString(memPre0) + LS
-        + "Should be Pre0 : " + Long.toHexString(def));
+    throw new SketchesArgumentException("Input Memory Preamble is not a SingleItemSketch.");
   }
 
   //Create methods using the default seed
@@ -302,7 +289,7 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   /**
-   * Create this sketch with the given long array and a seed.
+   * Create this sketch with the given long array (as an item) and a seed.
    * If the long array is null or empty no create attempt is made and the method returns null.
    *
    * @param data The given long array.
@@ -318,7 +305,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   @Override
   public int getCountLessThanTheta(final double theta) {
-    return (arr[1] < (theta * MAX_THETA_LONG_AS_DOUBLE)) ? 1 : 0;
+    return (hash_ < (theta * MAX_THETA_LONG_AS_DOUBLE)) ? 1 : 0;
   }
 
   @Override
@@ -333,7 +320,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new HeapHashIterator(new long[] { arr[1] }, 1, Long.MAX_VALUE);
+    return new HeapHashIterator(new long[] { hash_ }, 1, Long.MAX_VALUE);
   }
 
   @Override
@@ -379,10 +366,8 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   public byte[] toByteArray() {
     final byte[] out = new byte[16];
-    for (int i = 0; i < 8; i++) {
-      out[i]     = (byte) (arr[0] >>> (i * 8));
-      out[i + 8] = (byte) (arr[1] >>> (i * 8));
-    }
+    putLongLE(out, 0, pre0_);
+    putLongLE(out, 8, hash_);
     return out;
   }
 
@@ -390,7 +375,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   @Override
   long[] getCache() {
-    return new long[] { arr[1] };
+    return new long[] { hash_ };
   }
 
   @Override
@@ -405,7 +390,7 @@ public final class SingleItemSketch extends CompactSketch {
 
   @Override
   short getSeedHash() {
-    return (short) (arr[0] >>> 48);
+    return (short) (pre0_ >>> 48);
   }
 
 }

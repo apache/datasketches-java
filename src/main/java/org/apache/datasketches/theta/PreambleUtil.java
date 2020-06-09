@@ -20,6 +20,8 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.Util.checkSeedHashes;
+import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.Util.zeroPad;
 
 import java.nio.ByteOrder;
@@ -227,22 +229,24 @@ final class PreambleUtil {
    */
   static String preambleToString(final Memory mem) {
     final int preLongs = getAndCheckPreLongs(mem);
-    final ResizeFactor rf = ResizeFactor.getRF(extractLgResizeFactor(mem));
+    final int rfId = extractLgResizeFactor(mem);
+    final ResizeFactor rf = ResizeFactor.getRF(rfId);
     final int serVer = extractSerVer(mem);
-    final Family family = Family.idToFamily(extractFamilyID(mem));
+    final int familyId = extractFamilyID(mem);
+    final Family family = Family.idToFamily(familyId);
     final int lgNomLongs = extractLgNomLongs(mem);
     final int lgArrLongs = extractLgArrLongs(mem);
 
     //Flags
     final int flags = extractFlags(mem);
-    final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
+    final String flagsStr = (flags) + ", " + zeroPad(Integer.toBinaryString(flags), 8);
     final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
     final boolean compact = (flags & COMPACT_FLAG_MASK) > 0;
     final boolean ordered = (flags & ORDERED_FLAG_MASK) > 0;
-    final boolean singleItem = !empty && (preLongs == 1);
+    final boolean singleItem = (flags & SINGLEITEM_FLAG_MASK) > 0; //!empty && (preLongs == 1);
 
     final int seedHash = extractSeedHash(mem);
 
@@ -278,23 +282,24 @@ final class PreambleUtil {
     final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("### SKETCH PREAMBLE SUMMARY:").append(LS);
+    sb.append("Native Byte Order             : ").append(nativeOrder).append(LS);
     sb.append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS);
-    sb.append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS);
+    sb.append("Byte  0: ResizeFactor         : ").append(rfId + ", " + rf.toString()).append(LS);
     sb.append("Byte  1: Serialization Version: ").append(serVer).append(LS);
-    sb.append("Byte  2: Family               : ").append(family.toString()).append(LS);
+    sb.append("Byte  2: Family               : ").append(familyId + ", " + family.toString()).append(LS);
     sb.append("Byte  3: LgNomLongs           : ").append(lgNomLongs).append(LS);
     sb.append("Byte  4: LgArrLongs           : ").append(lgArrLongs).append(LS);
     sb.append("Byte  5: Flags Field          : ").append(flagsStr).append(LS);
-    sb.append("  (Native Byte Order)         : ").append(nativeOrder).append(LS);
-    sb.append("  BIG_ENDIAN_STORAGE          : ").append(bigEndian).append(LS);
-    sb.append("  READ_ONLY                   : ").append(readOnly).append(LS);
-    sb.append("  EMPTY                       : ").append(empty).append(LS);
-    sb.append("  COMPACT                     : ").append(compact).append(LS);
-    sb.append("  ORDERED                     : ").append(ordered).append(LS);
-    sb.append("  SINGLEITEM  (derived)       : ").append(singleItem).append(LS);
-    sb.append("Bytes 6-7  : Seed Hash        : ").append(Integer.toHexString(seedHash)).append(LS);
+    sb.append("  Bit Flag Name               : State:").append(LS);
+    sb.append("    0 BIG_ENDIAN_STORAGE      : ").append(bigEndian).append(LS);
+    sb.append("    1 READ_ONLY               : ").append(readOnly).append(LS);
+    sb.append("    2 EMPTY                   : ").append(empty).append(LS);
+    sb.append("    3 COMPACT                 : ").append(compact).append(LS);
+    sb.append("    4 ORDERED                 : ").append(ordered).append(LS);
+    sb.append("    5 SINGLE_ITEM             : ").append(singleItem).append(LS);
+    sb.append("Bytes 6-7  : Seed Hash Hex    : ").append(Integer.toHexString(seedHash)).append(LS);
     if (preLongs == 1) {
-      sb.append(" --ABSENT, ASSUMED:").append(LS);
+      sb.append(" --ABSENT FIELDS, ASSUMED:").append(LS);
       sb.append("Bytes 8-11 : CurrentCount     : ").append(curCount).append(LS);
       sb.append("Bytes 12-15: P                : ").append(p).append(LS);
       sb.append("Bytes 16-23: Theta (double)   : ").append(thetaDbl).append(LS);
@@ -328,7 +333,8 @@ final class PreambleUtil {
     }
     sb.append(  "Preamble Bytes                : ").append(preLongs * 8).append(LS);
     sb.append(  "Data Bytes                    : ").append(curCount * 8).append(LS);
-    sb.append(  "TOTAL Sketch Bytes            : ").append(mem.getCapacity()).append(LS);
+    sb.append(  "TOTAL Sketch Bytes            : ").append((preLongs + curCount) * 8).append(LS);
+    sb.append(  "TOTAL Capacity Bytes          : ").append(mem.getCapacity()).append(LS);
     sb.append("### END SKETCH PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
@@ -462,6 +468,20 @@ final class PreambleUtil {
     return emptyFlag || emptyCap;
   }
 
+  static boolean isSingleItem(final Memory mem) {
+    // Flags byte must be LittleEndian, ReadOnly, Not Empty, Compact, Ordered = 11010 = 0x1A.
+    // Flags mask will be 0x1F.
+    // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
+    // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
+    // and the hash seed matches (not done here), it is virtually guaranteed that we have a
+    // SingleItem Sketch.
+    final boolean preLongs = extractPreLongs(mem) == 1;
+    final boolean serVer = extractSerVer(mem) >= 3;
+    final boolean famId = extractFamilyID(mem) == 3; //compact
+    final boolean flags =  (extractFlags(mem) & 0x1F) == 0x1A; //no SI, yet
+    return preLongs && serVer && famId && flags;
+  }
+
   /**
    * Checks Memory for capacity to hold the preamble and returns the extracted preLongs.
    * @param mem the given Memory
@@ -478,6 +498,12 @@ final class PreambleUtil {
       throwNotBigEnough(cap, required);
     }
     return preLongs;
+  }
+
+  static final short checkMemorySeedHash(final Memory mem, final long seed) {
+    final short seedHashMem = (short) extractSeedHash(mem);
+    checkSeedHashes(seedHashMem, computeSeedHash(seed)); //throws if bad seedHash
+    return seedHashMem;
   }
 
   private static void throwNotBigEnough(final long cap, final int required) {

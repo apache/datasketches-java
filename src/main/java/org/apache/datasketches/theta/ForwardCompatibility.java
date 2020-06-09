@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -38,7 +38,7 @@ import org.apache.datasketches.memory.Memory;
 final class ForwardCompatibility {
 
   /**
-   * Convert a serialization version (SerVer) 1 sketch to a SerVer 3 sketch.
+   * Convert a serialization version (SerVer) 1 sketch (~Feb 2014) to a SerVer 3 sketch.
    * Note: SerVer 1 sketches always have metadata-longs of 3 and are always stored
    * in a compact ordered form, but with 3 different sketch types.  All SerVer 1 sketches will
    * be converted to a SerVer 3 sketches. There is no concept of p-sampling, no empty bit.
@@ -91,10 +91,7 @@ final class ForwardCompatibility {
    * @return a SerVer 3 HeapCompactOrderedSketch
    */
   static final CompactSketch heapify2to3(final Memory srcMem, final long seed) {
-    final short seedHash = Util.computeSeedHash(seed);
-    final short memSeedHash = (short)extractSeedHash(srcMem);
-    Util.checkSeedHashes(seedHash, memSeedHash);
-
+    final short seedHash = checkMemorySeedHash(srcMem, seed);
     final int memCap = (int) srcMem.getCapacity();
     final int preLongs = extractPreLongs(srcMem); //1,2 or 3
     int reqBytesIn = 8;

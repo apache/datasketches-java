@@ -25,13 +25,12 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.Family;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableDirectHandle;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -256,10 +255,10 @@ public class CompactSketchTest {
   public void checkHeapifyEmptySketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     WritableMemory wmem = WritableMemory.allocate(16); //extra bytes
-    sk.compact(false, wmem);
-    PreambleUtil.clearEmpty(wmem); //corrupt to simulate missing empty flag
-    Sketch csk = Sketch.heapify(wmem);
+    CompactSketch csk = sk.compact(false, wmem);
     assertTrue(csk instanceof EmptyCompactSketch);
+    Sketch csk2 = Sketch.heapify(wmem);
+    assertTrue(csk2 instanceof EmptyCompactSketch);
   }
 
   @Test

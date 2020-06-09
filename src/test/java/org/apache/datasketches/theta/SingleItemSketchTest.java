@@ -23,18 +23,16 @@ import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
-import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -171,16 +169,6 @@ public class SingleItemSketchTest {
     SingleItemSketch sis = SingleItemSketch.create(1);
     assertNull(sis.getMemory());
     assertEquals(sis.getCurrentPreambleLongs(true), 1);
-  }
-
-  @Test//(expectedExceptions = SketchesArgumentException.class)
-  public void testPre0Seed() {
-    long pre0_lo6 = 0X00_00_1A_00_00_03_03_01L; //no SI flag, requires not empty
-    long pre0 = ((long)DEFAULT_SEED_HASH << 48) | pre0_lo6;
-    assertTrue(SingleItemSketch.testPre0Seed(pre0, DEFAULT_UPDATE_SEED));
-    //add SI flag
-    pre0 |= ((long)SINGLEITEM_FLAG_MASK << 40);
-    assertTrue(SingleItemSketch.testPre0Seed(pre0, DEFAULT_UPDATE_SEED));
   }
 
   @Test
@@ -325,6 +313,36 @@ public class SingleItemSketchTest {
       SingleItemSketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkDirectUnionSingleItem2() {
+    Sketch sk = Sketch.wrap(siSkWoutSiFlag24Bytes());
+    assertEquals(sk.getEstimate(), 1.0, 0.0);
+    //println(sk.toString());
+    sk = Sketch.wrap(siSkWithSiFlag24Bytes());
+    assertEquals(sk.getEstimate(), 1.0, 0.0);
+    //println(sk.toString());
+  }
+
+  static final long SiSkPre0WithSiFlag = 0x93cc3a0000030301L;
+  static final long SiSkPre0WoutSiFlag = 0x93cc1a0000030301L;
+  static final long Hash = 0x05a186bdcb7df915L;
+
+  static Memory siSkWithSiFlag24Bytes() {
+    int cap = 24;
+    WritableMemory wmem = WritableMemory.allocate(cap);
+    wmem.putLong(0, SiSkPre0WithSiFlag);
+    wmem.putLong(8, Hash);
+    return wmem;
+  }
+
+  static Memory siSkWoutSiFlag24Bytes() {
+    int cap = 24;
+    WritableMemory wmem = WritableMemory.allocate(cap);
+    wmem.putLong(0, SiSkPre0WoutSiFlag);
+    wmem.putLong(8, Hash);
+    return wmem;
   }
 
   @Test

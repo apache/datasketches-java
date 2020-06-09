@@ -24,7 +24,6 @@ import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -34,7 +33,8 @@ import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
+import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
 
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
@@ -136,14 +136,14 @@ public abstract class Sketch {
       }
       case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
         if (serVer == 3) {
-          final long cap = srcMem.getCapacity();
-          if (cap < 16) { //EMPTY?
+          if (srcMem.getCapacity() < 16) { //EMPTY
             return EmptyCompactSketch.getInstance(srcMem);
           }
-          if (cap == 16) { //SINGLEITEM?
+
+          if (isSingleItem(srcMem)) { //SINGLEITEM?
             return SingleItemSketch.heapify(srcMem, seed);
           }
-          //not empty & not singleItem, assume cap > 16
+          //not empty & not singleItem
           final int flags = srcMem.getByte(FLAGS_BYTE);
           final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) > 0;
           final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
@@ -677,15 +677,14 @@ public abstract class Sketch {
           throw new SketchesArgumentException(
               "Corrupted: COMPACT family sketch image must have Read-Only flag set");
         }
-        final boolean empty = PreambleUtil.isEmpty(srcMem); //also checks memCap < 16
-        if (empty) { //empty flag or < 16 bytes
+        final boolean empty = PreambleUtil.isEmpty(srcMem);
+        if (empty) { //TODO
           return EmptyCompactSketch.getInstance(srcMem);
         }
-        //cap >= 16 and not emptyFlag. Note older sketches may have missing empty flag.
+        checkMemorySeedHash(srcMem, seed);
+        //cap >= 16 and not emptyFlag. Note very old sketches (<2014) may have missing empty flag.
         if (preLongs == 1) {
-          final short memSeedHash = (short) extractSeedHash(srcMem);
-          final short computedSeedHash = computeSeedHash(seed);
-          if ((memSeedHash == computedSeedHash) && orderedFlag) { //SINGLE ITEM
+          if (isSingleItem(srcMem)) { //SINGLE ITEM
             return SingleItemSketch.heapify(srcMem, seed);
           } else { //EMPTY
             return EmptyCompactSketch.getInstance(srcMem);

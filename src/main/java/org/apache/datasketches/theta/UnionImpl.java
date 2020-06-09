@@ -38,6 +38,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.extractUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
+import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
@@ -276,6 +277,10 @@ final class UnionImpl extends Union {
     }
     //sketchIn is valid and not empty
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    if (sketchIn instanceof SingleItemSketch) {
+      gadget_.hashUpdate(sketchIn.getCache()[0]);
+      return;
+    }
     Sketch.checkSketchAndMemoryFlags(sketchIn);
 
     unionThetaLong_ = min(min(unionThetaLong_, sketchIn.getThetaLong()), gadget_.getThetaLong()); //Theta rule
@@ -330,18 +335,13 @@ final class UnionImpl extends Union {
     final int serVer = extractSerVer(skMem);
     final int fam = extractFamilyID(skMem);
 
-    if (serVer == 3) { //The OpenSource sketches (Aug 4, 2015)
+    if (serVer >= 3) { //The OpenSource sketches (Aug 4, 2015) starts with serVer = 3
       if ((fam < 1) || (fam > 3)) {
         throw new SketchesArgumentException(
             "Family must be Alpha, QuickSelect, or Compact: " + Family.idToFamily(fam));
       }
       processVer3(skMem);
       return;
-    }
-
-    if (fam != 3) { //In older sketches this family was called the SetSketch
-      throw new SketchesArgumentException(
-          "Family must be old SET_SKETCH (now COMPACT) = 3: " + Family.idToFamily(fam));
     }
 
     if (serVer == 2) { //older Sketch, which is compact and ordered
@@ -359,31 +359,26 @@ final class UnionImpl extends Union {
   }
 
   //Has seedHash, p, could have 0 entries & theta < 1.0,
-  //could be unordered, ordered, compact, or not compact, size >= 16,
+  //could be unordered, ordered, compact, or not compact,
   //could be Alpha, QuickSelect, or Compact.
   private void processVer3(final Memory skMem) {
     final int preLongs = extractPreLongs(skMem);
 
-    if (preLongs == 1) { //we know cap >= 16
-      //This test requires compact, ordered, notEmpty, ReadOnly, LE, seedHash is OK;
-      // OR the above and the SI bit is set
-      if (SingleItemSketch.testPre0SeedHash(skMem.getLong(0), seedHash_)) {
+    if (preLongs == 1) {
+      if (isSingleItem(skMem)) {
         final long hash = skMem.getLong(8);
-        //backdoor update, hash function is bypassed. A hash < 1 will be rejected later
         gadget_.hashUpdate(hash);
         return;
       }
       return; //empty
     }
-
     Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
-
     final int curCountIn;
     final long thetaLongIn;
 
     if (preLongs == 2) { //exact mode
       curCountIn = extractCurCount(skMem);
-      if (curCountIn == 0) { return; } //should be > 0, but if it is return empty anyway.
+      if (curCountIn == 0) { return; } //should be > 0, but if it is 0 return empty anyway.
       thetaLongIn = Long.MAX_VALUE;
     }
 
@@ -431,6 +426,10 @@ final class UnionImpl extends Union {
   //has seedHash and p, could have 0 entries & theta,
   // can only be compact, ordered, size >= 8
   private void processVer2(final Memory skMem) {
+    final int famId = extractFamilyID(skMem);
+    if (famId != 3) {
+      throw new SketchesArgumentException("Invalid Family ID: " + famId + ". It should be 3");
+    }
     final int preLongs = extractPreLongs(skMem);
 
     if (preLongs == 1) { //does not change anything, return empty
@@ -476,6 +475,10 @@ final class UnionImpl extends Union {
   //no seedHash, assumes given seed is correct. No p, no empty flag, no concept of direct
   // can only be compact, ordered, size > 24
   private void processVer1(final Memory skMem, final int cap) {
+    final int famId = extractFamilyID(skMem);
+    if (famId != 3) {
+      throw new SketchesArgumentException("Invalid Family ID: " + famId + ". It should be 3");
+    }
     final long thetaLongIn = skMem.getLong(THETA_LONG);
     final int curCountIn = extractCurCount(skMem);
     if ((cap <= 24) || ((curCountIn == 0) && (unionThetaLong_ == Long.MAX_VALUE))) {
