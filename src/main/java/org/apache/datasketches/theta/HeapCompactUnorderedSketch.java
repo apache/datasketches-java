@@ -19,11 +19,9 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
 import org.apache.datasketches.memory.Memory;
@@ -56,13 +54,11 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a CompactSketch
    */
+  //Note Empty and SingleItemSketches should be filtered out before we get here.
   static CompactSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final short memSeedHash = (short) extractSeedHash(srcMem);
-    final short computedSeedHash = computeSeedHash(seed);
-    checkSeedHashes(memSeedHash, computedSeedHash);
-
+    final short memSeedHash = checkMemorySeedHash(srcMem, seed);
     final int preLongs = extractPreLongs(srcMem); //must be > 1
-    final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 8
+    final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 16
     int curCount = 0;
     long thetaLong = Long.MAX_VALUE;
     long[] cache = new long[0];

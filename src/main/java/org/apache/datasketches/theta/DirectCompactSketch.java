@@ -96,8 +96,13 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   public byte[] toByteArray() {
-    return
-        compactMemoryToByteArray(mem_, getCurrentPreambleLongs(true), getRetainedEntries(true));
+    final int curCount = getRetainedEntries(true);
+    Sketch.checkIllegalCurCountAndEmpty(isEmpty(), curCount);
+    final int preLongs = getCurrentPreambleLongs(true);
+    final int outBytes = (curCount + preLongs) << 3;
+    final byte[] byteArrOut = new byte[outBytes];
+    mem_.getByteArray(0, byteArrOut, 0, outBytes); //copies the whole thing
+    return byteArrOut;
   }
 
   //restricted methods
@@ -128,20 +133,4 @@ abstract class DirectCompactSketch extends CompactSketch {
   short getSeedHash() {
     return (short) extractSeedHash(mem_);
   }
-
-  /**
-   * Serializes a Memory based compact sketch to a byte array
-   * @param srcMem the source Memory
-   * @param preLongs current preamble longs
-   * @param curCount the current valid count
-   * @return this Direct, Compact sketch as a byte array
-   */
-  static byte[] compactMemoryToByteArray(final Memory srcMem, final int preLongs,
-      final int curCount) {
-    final int outBytes = (curCount + preLongs) << 3;
-    final byte[] byteArrOut = new byte[outBytes];
-    srcMem.getByteArray(0, byteArrOut, 0, outBytes); //copies the whole thing
-    return byteArrOut;
-  }
-
 }

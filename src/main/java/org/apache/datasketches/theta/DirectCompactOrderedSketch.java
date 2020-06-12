@@ -19,13 +19,11 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -54,9 +52,7 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
    * @return this sketch
    */
   static DirectCompactOrderedSketch wrapInstance(final Memory srcMem, final long seed) {
-    final short memSeedHash = srcMem.getShort(SEED_HASH_SHORT);
-    final short computedSeedHash = computeSeedHash(seed);
-    checkSeedHashes(memSeedHash, computedSeedHash);
+    checkMemorySeedHash(srcMem, seed);
     return new DirectCompactOrderedSketch(srcMem);
   }
 

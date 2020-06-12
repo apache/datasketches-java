@@ -26,10 +26,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 
 /**
@@ -149,6 +148,8 @@ public class EmptyTest {
     wmem.putLong(0, badEmptySk);
     return wmem;
   }
+
+
 
   /**
    * @param s value to print

@@ -34,10 +34,10 @@ import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
-import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.getMemBytes;
@@ -138,9 +138,10 @@ public abstract class UpdateSketch extends Sketch {
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     final int curCount = this.getRetainedEntries(true);
-    long thetaLong = getThetaLong();
-    thetaLong = Sketch.thetaOnCompact(isEmpty(), curCount, thetaLong);
-    final boolean empty = Sketch.emptyFromCountAndTheta(curCount, thetaLong);
+    final boolean empty = isEmpty();
+    checkIllegalCurCountAndEmpty(empty, curCount);
+    final long thetaLong = correctThetaOnCompact(empty, curCount, getThetaLong());
+
     if (empty) {
       final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
       if (dstMem != null) {
@@ -467,7 +468,7 @@ public abstract class UpdateSketch extends Sketch {
     }
 
     //Check seed hashes
-    final short seedHash = (short)extractSeedHash(srcMem);              //byte 6,7
+    final short seedHash = checkMemorySeedHash(srcMem, seed);              //byte 6,7
     Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
 
     //Check mem capacity, lgArrLongs

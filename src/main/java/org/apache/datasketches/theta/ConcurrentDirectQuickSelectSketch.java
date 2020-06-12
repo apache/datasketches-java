@@ -100,7 +100,7 @@ class ConcurrentDirectQuickSelectSketch extends DirectQuickSelectSketch
     for (final long hashIn : sketch.getCache()) {
       propagate(hashIn);
     }
-    mem_.putLong(THETA_LONG, sketch.getThetaLong());
+    wmem_.putLong(THETA_LONG, sketch.getThetaLong());
     updateVolatileTheta();
     updateEstimationSnapshot();
   }
