@@ -91,7 +91,7 @@ public class BackwardConversions {
     wmem.putByte(0, (byte) 3); //preLongs
     wmem.putByte(1, (byte) 1); //SerVer
     wmem.putByte(2, (byte) 3); //Compact (SetSketch)
-    wmem.putByte(6, (byte) 2); //Flags ReadOnly, LE
+    wmem.putByte(6, (byte) 2); //Flags ReadOnly, LittleEndian
     //Pre1
     wmem.putInt(8, curCount);
     //Pre2

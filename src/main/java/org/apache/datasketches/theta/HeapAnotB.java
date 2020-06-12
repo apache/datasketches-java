@@ -99,10 +99,9 @@ final class HeapAnotB extends AnotB {
       Arrays.sort(compactCache);
     }
     //Create the CompactSketch
-    final boolean empty = (curCount_ == 0) && (thetaLong_ == Long.MAX_VALUE);
     final CompactSketch comp = createCompactSketch(
-        compactCache, empty, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
-    reset();
+        compactCache, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
+    reset(); //TODO
     return comp;
   }
 

@@ -138,9 +138,10 @@ public abstract class UpdateSketch extends Sketch {
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     final int curCount = this.getRetainedEntries(true);
-    long thetaLong = getThetaLong();
-    thetaLong = Sketch.thetaOnCompact(isEmpty(), curCount, thetaLong);
-    final boolean empty = Sketch.emptyFromCountAndTheta(curCount, thetaLong);
+    final boolean empty = isEmpty();
+    checkIllegalCurCountAndEmpty(empty, curCount);
+    final long thetaLong = correctThetaOnCompact(empty, curCount, getThetaLong());
+
     if (empty) {
       final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
       if (dstMem != null) {

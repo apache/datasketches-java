@@ -27,8 +27,7 @@ import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.Sketch.emptyFromCountAndTheta;
-import static org.apache.datasketches.theta.Sketch.thetaOnCompact;
+import static org.apache.datasketches.theta.Sketch.checkIllegalCurCountAndEmpty;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -76,7 +75,7 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Heap-based SetOperation from the given Memory
-   */
+   */ //TODO Do we need to add a stateful AnotB here?
   public static SetOperation heapify(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
@@ -116,7 +115,7 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
-   */
+   */ //TODO Do we need to add a stateful AnotB here?
   public static SetOperation wrap(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
@@ -238,11 +237,16 @@ public abstract class SetOperation {
   abstract boolean isEmpty();
 
   //used only by the set operations
-  static final CompactSketch createCompactSketch(final long[] compactCache, boolean empty,
-      final short seedHash, final int curCount, long thetaLong, final boolean dstOrdered,
+  static final CompactSketch createCompactSketch(
+      final long[] compactCache,
+      boolean empty,
+      final short seedHash,
+      final int curCount,
+      final long thetaLong,
+      final boolean dstOrdered,
       final WritableMemory dstMem) {
-    thetaLong = thetaOnCompact(empty, curCount, thetaLong);
-    empty = emptyFromCountAndTheta(curCount, thetaLong);
+    checkIllegalCurCountAndEmpty(empty, curCount);
+    empty = correctEmptyOnSetResult(curCount, thetaLong);
     if (empty) {
       final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
       if (dstMem != null) {
@@ -301,4 +305,18 @@ public abstract class SetOperation {
         || (family == Family.A_NOT_B));
     return ret;
   }
+
+  /**
+   * This corrects a temporary anomalous condition from an intersection of two exact, disjoint sets,
+   * or AnotB of two exact, identical sets. Because there is no probability error distribuion,
+   * the result is exactly empty. The empty flag is changed to true before returning a result.
+   * This is used in the compaction step of SetOperation.
+   * @param curCount the given curCount
+   * @param thetaLong the given theta.
+   * @return the empty state
+   */
+  private static final boolean correctEmptyOnSetResult(final int curCount, final long thetaLong) {
+    return (curCount == 0) && (thetaLong == Long.MAX_VALUE);
+  }
+
 }

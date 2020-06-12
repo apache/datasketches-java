@@ -117,22 +117,6 @@ public class UnionImplTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkVer1FamilyException() {
-    int k = 16;
-    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) {
-      sketch.update(i);
-    }
-    CompactSketch csk = sketch.compact(true, null);
-    WritableMemory v1mem = (WritableMemory) convertSerVer3toSerVer1(csk);
-
-    v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte) 2); //corrupt family
-
-    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.update(v1mem);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkVer2FamilyException() {
     int k = 16;
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
@@ -142,10 +126,26 @@ public class UnionImplTest {
     CompactSketch csk = sketch.compact(true, null);
     WritableMemory v2mem = (WritableMemory) convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
 
-    v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)2); //corrupt family
+    v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(v2mem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkVer1FamilyException() {
+    int k = 16;
+    UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    for (int i=0; i<k; i++) {
+      sketch.update(i);
+    }
+    CompactSketch csk = sketch.compact(true, null);
+    WritableMemory v1mem = (WritableMemory) convertSerVer3toSerVer1(csk);
+
+    v1mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
+
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    union.update(v1mem);
   }
 
   @Test

@@ -330,7 +330,7 @@ public class SingleItemSketchTest {
   static final long Hash = 0x05a186bdcb7df915L;
 
   static Memory siSkWithSiFlag24Bytes() {
-    int cap = 24;
+    int cap = 24; //8 extra bytes
     WritableMemory wmem = WritableMemory.allocate(cap);
     wmem.putLong(0, SiSkPre0WithSiFlag);
     wmem.putLong(8, Hash);
@@ -338,7 +338,7 @@ public class SingleItemSketchTest {
   }
 
   static Memory siSkWoutSiFlag24Bytes() {
-    int cap = 24;
+    int cap = 24; //8 extra bytes
     WritableMemory wmem = WritableMemory.allocate(cap);
     wmem.putLong(0, SiSkPre0WoutSiFlag);
     wmem.putLong(8, Hash);

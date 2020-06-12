@@ -33,12 +33,12 @@ import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
 
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -118,7 +118,7 @@ public abstract class Sketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-   * @return a UpdateSketch backed by the given Memory
+   * @return a UpdateSketch backed by the given Memory except as above.
    */
   public static Sketch wrap(final Memory srcMem, final long seed) {
     final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
@@ -136,10 +136,9 @@ public abstract class Sketch {
       }
       case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
         if (serVer == 3) {
-          if (srcMem.getCapacity() < 16) { //EMPTY
+          if (PreambleUtil.isEmpty(srcMem)) { //empty flag OR cap < 16 bytes
             return EmptyCompactSketch.getInstance(srcMem);
           }
-
           if (isSingleItem(srcMem)) { //SINGLEITEM?
             return SingleItemSketch.heapify(srcMem, seed);
           }
@@ -173,7 +172,7 @@ public abstract class Sketch {
     }
   }
 
-  //Sketch interface, defined here with Javadocs
+  //Sketch interface
 
   /**
    * Converts this sketch to an ordered CompactSketch on the Java heap.
@@ -593,28 +592,55 @@ public abstract class Sketch {
   /*
    * The truth table for empty, curCount and theta when compacting is as follows:
    * <pre>
-   * Num Theta CurCount Empty State  Comments
-   *  0    1.0     0      T     OK   The Normal Empty State
-   *  1    1.0     0      F   Error  This conflicts with the normal empty state
-   *  2    1.0    !0      T   Error  Empty and curCount !0 should never co-exist
-   *  3    1.0    !0      F     OK   This corresponds to a sketch in exact mode
-   *  4   <1.0     0      T   Error  This can be an initial UpdateSketch state if p < 1.0,
-   *                                   but should compacted as {Th = 1.0, 0, T}.
-   *  5   <1.0     0      F     OK   This can result from set operations
-   *  6   <1.0    !0      T   Error  Empty and curCount !0 should never co-exist
-   *  7   <1.0    !0      F     OK   This corresponds to a sketch in estimation mode
+   * Num Theta CurCount Empty State    Comments
+   *  0    1.0     0      T     OK     The Normal Empty State
+   *  1    1.0     0      F   Internal This can result from an intersection of two exact, disjoint sets,
+   *                                   or AnotB of two exact, identical sets. There is no probability
+   *                                   distribution, so change to empty. Return {Th = 1.0, 0, T}.
+   *                                   This is handled in SetOperation.createCompactSketch().
+   *  2    1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
+   *                                   This is checked in all compacting operations.
+   *  3    1.0    !0      F     OK     This corresponds to a sketch in exact mode
+   *  4   <1.0     0      T   Internal This can be an initial UpdateSketch state if p < 1.0,
+   *                                   so change theta to 1.0. Return {Th = 1.0, 0, T}.
+   *                                   This is handled in UpdateSketch.compact() and toByteArray().
+   *  5   <1.0     0      F     OK     This can result from set operations
+   *  6   <1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
+   *                                   This is checked in all compacting operations.
+   *  7   <1.0    !0      F     OK     This corresponds to a sketch in estimation mode
    * </pre>
-   * <p>thetaOnCompact() checks for only #4 and corrects theta.
-   * <p>emptyFromCountAndTheta() corrects for #1, 2, 6 if they occur
-   * <p>First apply thetaOnCompact() then emptyFromCountAndTheta().
    */
-  static final long thetaOnCompact(final boolean empty, final int curCount, final long thetaLong) {
+
+  /**
+   * This checks for the illegal condition where curCount > 0 and the state of
+   * empty = true.  This check can be used anywhere a sketch is returned or a sketch is created
+   * from complete arguments.
+   * @param empty the given empty state
+   * @param curCount the given current count
+   */ //This handles #2 and #6 above
+  static final void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
+    if (empty && (curCount != 0)) { //this handles #2 and #6 above
+      throw new SketchesStateException("Illegal State: Empty=true and Current Count != 0.");
+    }
+  }
+
+  /**
+   * This corrects a temporary anomalous condition where compact() is called on an UpdateSketch
+   * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
+   * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
+   * returning sketch empty. This should only be used in the compaction or serialization of an
+   * UpdateSketch.
+   * @param empty the given empty state
+   * @param curCount the given curCount
+   * @param thetaLong the given thetaLong
+   * @return thetaLong
+   */
+  static final long correctThetaOnCompact(final boolean empty, final int curCount,
+      final long thetaLong) {
     return (empty && (curCount == 0) && (thetaLong < Long.MAX_VALUE)) ? Long.MAX_VALUE : thetaLong;
   }
 
-  static final boolean emptyFromCountAndTheta(final int curCount, final long thetaLong) {
-    return ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
-  }
+
 
   static final double estimate(final long thetaLong, final int curCount) {
     return curCount * (MAX_THETA_LONG_AS_DOUBLE / thetaLong);
@@ -677,16 +703,13 @@ public abstract class Sketch {
           throw new SketchesArgumentException(
               "Corrupted: COMPACT family sketch image must have Read-Only flag set");
         }
-        final boolean empty = PreambleUtil.isEmpty(srcMem);
-        if (empty) { //TODO
+        if (PreambleUtil.isEmpty(srcMem)) { //emptyFlag OR capacity < 16 bytes.
           return EmptyCompactSketch.getInstance(srcMem);
         }
-        checkMemorySeedHash(srcMem, seed);
-        //cap >= 16 and not emptyFlag. Note very old sketches (<2014) may have missing empty flag.
         if (preLongs == 1) {
           if (isSingleItem(srcMem)) { //SINGLE ITEM
             return SingleItemSketch.heapify(srcMem, seed);
-          } else { //EMPTY
+          } else { //EMPTY Note very old sketches (<2014) have no empty flag.
             return EmptyCompactSketch.getInstance(srcMem);
           }
         }

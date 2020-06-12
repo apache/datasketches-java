@@ -54,6 +54,7 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a CompactSketch
    */
+  //Note Empty and SingleItemSketches should be filtered out before we get here.
   static CompactSketch heapifyInstance(final Memory srcMem, final long seed) {
     final short memSeedHash = checkMemorySeedHash(srcMem, seed);
     final int preLongs = extractPreLongs(srcMem);

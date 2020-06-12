@@ -19,10 +19,15 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 
@@ -104,6 +109,47 @@ public class EmptyTest {
     // it will be stored as only 8 bytes.
     assertEquals(sk1.compact().toByteArray().length, 8);
   }
+
+  //These 3 tests reproduce a failure mode where an "old" empty sketch of 8 bytes without
+  // its empty-flag bit set is read.
+  @Test
+  public void checkBackwardCompatibility1() {
+    final int k = 16;
+    final int bytes = Sketches.getMaxUnionBytes(k); //288
+    Union union = SetOperation.builder().buildUnion(WritableMemory.allocate(bytes));
+    Memory mem = badEmptySk();
+    Sketch wsk = Sketches.wrapSketch(mem);
+    union.update(wsk); //union has memory
+  }
+
+  @Test
+  public void checkBackwardCompatibility2() {
+    Union union = SetOperation.builder().setNominalEntries(16).buildUnion();
+    Memory mem = badEmptySk();
+    Sketch wsk = Sketches.wrapSketch(mem);
+    union.update(wsk); //heap union
+  }
+
+  @Test
+  public void checkBackwardCompatibility3() {
+    Memory mem = badEmptySk();
+    Sketches.heapifySketch(mem);
+  }
+
+  private static Memory badEmptySk() { //missing the empty bit
+    final long preLongs = 1;
+    final long serVer = 3;
+    final long family = 3; //compact
+    final long flags = (ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK);
+    final long seedHash = 0x93CC;
+    final long badEmptySk = (seedHash << 48) | (flags << 40)
+        | (family << 16) | (serVer << 8) | preLongs;
+    WritableMemory wmem =  WritableMemory.allocate(8);
+    wmem.putLong(0, badEmptySk);
+    return wmem;
+  }
+
+
 
   /**
    * @param s value to print

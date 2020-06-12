@@ -477,7 +477,7 @@ final class PreambleUtil {
     // SingleItem Sketch.
     final boolean preLongs = extractPreLongs(mem) == 1;
     final boolean serVer = extractSerVer(mem) >= 3;
-    final boolean famId = extractFamilyID(mem) == 3; //compact
+    final boolean famId = extractFamilyID(mem) == Family.COMPACT.getID();
     final boolean flags =  (extractFlags(mem) & 0x1F) == 0x1A; //no SI, yet
     return preLongs && serVer && famId && flags;
   }

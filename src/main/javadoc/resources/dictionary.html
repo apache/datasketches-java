@@ -226,7 +226,7 @@ If it does produce zero, an error will be thrown and the user must provide a dif
 See also <a href="#defaultUpdateSeed">Default Update Seed</a>. 
 
 <h3><a name="seedHash">Seed Hash</a></h3>
-For Theta Sketches, a 16-bit hash of the <a href="#seed">Update Hash Seed</a> used internally to validate 
+For Theta and Tuple Sketches, a 16-bit hash of the <a href="#seed">Update Hash Seed</a> used internally to validate 
 (1) that two sketches undergoing set operations were, in fact, created using matching <a href="#seed">Update Hash Seeds</a>; 
 or (2) that when deserializing or wrapping a sketch image that the caller has the correct seed.
 

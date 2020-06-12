@@ -125,6 +125,7 @@ abstract class HeapCompactSketch extends CompactSketch {
   }
 
   byte[] toByteArray(final boolean ordered) {
+    Sketch.checkIllegalCurCountAndEmpty(empty_, curCount_);
     final int bytes = getCurrentBytes(true);
     final byte[] byteArray = new byte[bytes];
     final WritableMemory dstMem = WritableMemory.wrap(byteArray);

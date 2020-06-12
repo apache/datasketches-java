@@ -183,8 +183,7 @@ final class IntersectionImpl extends IntersectionImplR {
   @Override
   public void update(final Sketch sketchIn) {
     //Null/Empty cases: Note: null == empty := Th = 1.0, count = 0, empty = true
-    if (empty_ || (sketchIn == null) || sketchIn.isEmpty()
-        || (sketchIn instanceof EmptyCompactSketch)) { //empty rule
+    if (empty_ || (sketchIn == null) || sketchIn.isEmpty()) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make it empty.
       empty_ = true;
