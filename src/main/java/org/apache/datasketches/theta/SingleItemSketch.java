@@ -24,12 +24,10 @@ import static org.apache.datasketches.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
+import static org.apache.datasketches.theta.PreambleUtil.isSingleItemSketch;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -41,7 +39,7 @@ public final class SingleItemSketch extends CompactSketch {
   private static final long DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED) & 0xFFFFL;
 
   // For backward compatibility, a candidate pre0_ long must have:
-  // Flags byte 5 must be Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
+  // Flags (byte 5): Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
   // Flags mask will be 0x1F.
   // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
   // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
@@ -80,7 +78,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @return a SingleItemSketch
    */
   public static SingleItemSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -92,7 +90,7 @@ public final class SingleItemSketch extends CompactSketch {
    */
   public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
     final short seedHashMem = checkMemorySeedHash(srcMem, seed);
-    if (isSingleItem(srcMem)) {
+    if (isSingleItemSketch(srcMem)) {
       return new SingleItemSketch(srcMem.getLong(8), seedHashMem);
     }
     throw new SketchesArgumentException("Input Memory Preamble is not a SingleItemSketch.");
@@ -303,9 +301,9 @@ public final class SingleItemSketch extends CompactSketch {
 
   //Sketch
 
-  @Override
-  public int getCountLessThanTheta(final double theta) {
-    return (hash_ < (theta * MAX_THETA_LONG_AS_DOUBLE)) ? 1 : 0;
+  @Override //much faster
+  public int getCountLessThanThetaLong(final long thetaLong) {
+    return (hash_ < thetaLong) ? 1 : 0;
   }
 
   @Override

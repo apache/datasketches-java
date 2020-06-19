@@ -23,6 +23,7 @@ import static org.apache.datasketches.Util.LS;
 
 import org.apache.datasketches.BinomialBoundsN;
 
+
 /**
  * This is an equivalent to org.apache.datasketches.theta.Sketch with
  * addition of a user-defined Summary object associated with every unique entry
@@ -37,6 +38,15 @@ public abstract class Sketch<S extends Summary> {
   boolean empty_ = true;
 
   Sketch() {}
+
+  /**
+   * Converts this sketch to a CompactSketch on the Java heap.
+   *
+   * <p>If this sketch is already in compact form this operation returns <i>this</i>.
+   *
+   * @return this sketch as a CompactSketch on the Java heap.
+   */
+  public abstract CompactSketch<S> compact();
 
   /**
    * Estimates the cardinality of the set (number of unique values presented to the sketch)

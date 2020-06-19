@@ -260,7 +260,7 @@ final class IntersectionImpl extends IntersectionImplR {
         performIntersect(sketchIn);
         break;
       }
-      //default: not possible
+      default: assert false : "Should not happen";
     }
   }
 

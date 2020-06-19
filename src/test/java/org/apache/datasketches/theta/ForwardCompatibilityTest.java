@@ -113,7 +113,7 @@ public class ForwardCompatibilityTest {
     WritableMemory srcMemW = WritableMemory.allocate(16);
     srcMem.copyTo(0, srcMemW, 0, 16);
     PreambleUtil.setEmpty(srcMemW); //Force
-    assertTrue(PreambleUtil.isEmpty(srcMemW));
+    assertTrue(PreambleUtil.isEmptySketch(srcMemW));
     srcMemW.putInt(8, 0); //corrupt curCount = 0
 
     Sketch sketch = Sketch.heapify(srcMemW);
@@ -136,7 +136,7 @@ public class ForwardCompatibilityTest {
     WritableMemory srcMemW = WritableMemory.allocate(24);
     srcMem.copyTo(0, srcMemW, 0, 24);
     PreambleUtil.setEmpty(srcMemW); //Force
-    assertTrue(PreambleUtil.isEmpty(srcMemW));
+    assertTrue(PreambleUtil.isEmptySketch(srcMemW));
     srcMemW.putInt(8, 0); //corrupt curCount = 0
     srcMemW.putLong(16, Long.MAX_VALUE); //corrupt to make it look empty
 

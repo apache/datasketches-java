@@ -123,6 +123,11 @@ public final class Util {
    */
   public static final double iGolden = 0.6180339887498949025; // the inverse golden ratio
 
+  /**
+   * Long.MAX_VALUE as a double.
+   */
+  public static final double LONG_MAX_VALUE_AS_DOUBLE = Long.MAX_VALUE;
+
   private Util() {}
 
   //Byte Conversions

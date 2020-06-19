@@ -27,7 +27,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * An on-heap, compact, read-only sketch.
+ * An on-heap, compact, unordered, read-only sketch.
  *
  * @author Lee Rhodes
  */
@@ -57,13 +57,11 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
   //Note Empty and SingleItemSketches should be filtered out before we get here.
   static CompactSketch heapifyInstance(final Memory srcMem, final long seed) {
     final short memSeedHash = checkMemorySeedHash(srcMem, seed);
-    final int preLongs = extractPreLongs(srcMem); //must be > 1
-    final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 16
-    int curCount = 0;
+    final int preLongs = extractPreLongs(srcMem);
+    final boolean empty = PreambleUtil.isEmptySketch(srcMem);
     long thetaLong = Long.MAX_VALUE;
-    long[] cache = new long[0];
-    curCount = extractCurCount(srcMem);
-    cache = new long[curCount];
+    final int curCount = extractCurCount(srcMem);
+    final long[] cache = new long[curCount];
     if (preLongs == 2) {
       srcMem.getLongArray(16, cache, 0, curCount);
     } else { //preLongs == 3
@@ -73,30 +71,12 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
     return new HeapCompactUnorderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
   }
 
-  /**
-   * Constructs this sketch from correct, valid arguments.
-   * @param cache in compact form
-   * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
-   * @param seedHash The correct
-   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
-   * @param curCount correct value
-   * @param thetaLong The correct
-   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
-   * @return a CompactSketch
-   */
-  static CompactSketch compact(final long[] cache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong) {
-    return new HeapCompactUnorderedSketch(cache, empty, seedHash, curCount, thetaLong);
-  }
-
   //Sketch interface
 
   @Override
   public byte[] toByteArray() {
-    return toByteArray(false);
+    return toByteArray(false); //unordered
   }
-
-  //restricted methods
 
   @Override
   public boolean isOrdered() {

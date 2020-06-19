@@ -22,10 +22,11 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.QuickSelect.selectExcludingZeros;
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
@@ -41,7 +42,6 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -92,10 +92,10 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
       MY_FAMILY = Family.QUICKSELECT;
     }
 
-    lgArrLongs_ = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    lgArrLongs_ = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs_);
     curCount_ = 0;
-    thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    thetaLong_ = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
     empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
     cache_ = new long[1 << lgArrLongs_];
   }
@@ -123,7 +123,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     final Family family = Family.idToFamily(familyID);
 
     if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
+            && (lgArrLongs != startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       myRF = ResizeFactor.X2;
     }
 
@@ -133,7 +133,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = extractCurCount(srcMem);
     hqss.thetaLong_ = extractThetaLong(srcMem);
-    hqss.empty_ = PreambleUtil.isEmpty(srcMem);
+    hqss.empty_ = PreambleUtil.isEmptySketch(srcMem);
     hqss.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return hqss;
@@ -189,7 +189,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   public void reset() {
     final ResizeFactor rf = getResizeFactor();
-    final int lgArrLongsSM = Util.startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
+    final int lgArrLongsSM = startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
       final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;
@@ -202,7 +202,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true;
     curCount_ = 0;
-    thetaLong_ =  (long)(getP() * MAX_THETA_LONG_AS_DOUBLE);
+    thetaLong_ =  (long)(getP() * LONG_MAX_VALUE_AS_DOUBLE);
   }
 
   //restricted methods

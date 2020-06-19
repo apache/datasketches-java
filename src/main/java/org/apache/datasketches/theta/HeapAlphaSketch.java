@@ -23,10 +23,11 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
 import static org.apache.datasketches.HashOperations.STRIDE_MASK;
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
@@ -44,7 +45,6 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -98,15 +98,15 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
-    final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * LONG_MAX_VALUE_AS_DOUBLE);
 
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
 
-    final int lgArrLongs = Util.startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    final int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0;
-    has.thetaLong_ = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    has.thetaLong_ = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
     has.empty_ = true; //other flags: bigEndian = readOnly = compact = ordered = false;
     has.cache_ = new long[1 << lgArrLongs];
     return has;
@@ -133,10 +133,10 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
-    final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * MAX_THETA_LONG_AS_DOUBLE);
+    final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * LONG_MAX_VALUE_AS_DOUBLE);
 
     if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
+            && (lgArrLongs != startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
               + "array too small for sketch size");
     }
@@ -146,7 +146,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = extractCurCount(srcMem);
     has.thetaLong_ = extractThetaLong(srcMem);
-    has.empty_ = PreambleUtil.isEmpty(srcMem);
+    has.empty_ = PreambleUtil.isEmptySketch(srcMem);
     has.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return has;
@@ -168,7 +168,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   public double getEstimate() {
     return (thetaLong_ > split1_)
         ? Sketch.estimate(thetaLong_, curCount_)
-        : (1 << lgNomLongs_) * (MAX_THETA_LONG_AS_DOUBLE / thetaLong_);
+        : (1 << lgNomLongs_) * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong_);
   }
 
   @Override
@@ -247,7 +247,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public final void reset() {
     final int lgArrLongs =
-        Util.startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
+        startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;
@@ -260,7 +260,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs_, lgArrLongs_);
     empty_ = true;
     curCount_ = 0;
-    thetaLong_ =  (long)(getP() * MAX_THETA_LONG_AS_DOUBLE);
+    thetaLong_ =  (long)(getP() * LONG_MAX_VALUE_AS_DOUBLE);
     dirty_ = false;
   }
 

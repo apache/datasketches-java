@@ -135,7 +135,8 @@ public abstract class CompactSketch extends Sketch {
     return cacheOut;
   }
 
-  //compactCache and dstMem must be valid
+  //All arguments must be valid and correct.
+  // Used as helper to create byte arrays as well as loading Memory for direct compact sketches
   static final Memory loadCompactMemory(final long[] compactCache, final short seedHash,
       final int curCount, final long thetaLong, final WritableMemory dstMem,
       final byte flags, final int preLongs) {

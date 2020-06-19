@@ -83,6 +83,28 @@ public final class BoundsOnRatiosInSampledSets {
   }
 
   /**
+   * Return the estimate of A. See class javadoc.
+   * @param a See class javadoc
+   * @param f the inclusion probability used to produce the set with size <i>a</i>.
+   * @return the approximate lower bound
+   */
+  public static double getEstimateOfA(final long a, final double f) {
+    checkInputs(a, 1, f);
+    return a / f;
+  }
+
+  /**
+   * Return the estimate of B. See class javadoc.
+   * @param b See class javadoc
+   * @param f the inclusion probability used to produce the set with size <i>a</i>.
+   * @return the approximate lower bound
+   */
+  public static double getEstimateOfB(final long b, final double f) {
+    checkInputs(b + 1, b, f);
+    return b / f;
+  }
+
+  /**
    * This hackyAdjuster is tightly coupled with the width of the confidence interval normally
    * specified with number of standard deviations. To simplify this interface the number of
    * standard deviations has been fixed to 2.0, which corresponds to a confidence interval of
@@ -105,25 +127,4 @@ public final class BoundsOnRatiosInSampledSets {
     }
   }
 
-  /**
-   * Return the estimate of A. See class javadoc.
-   * @param a See class javadoc
-   * @param f the inclusion probability used to produce the set with size <i>a</i>.
-   * @return the approximate lower bound
-   */
-  public static double getEstimateOfA(final long a, final double f) {
-    checkInputs(a, 1, f);
-    return a / f;
-  }
-
-  /**
-   * Return the estimate of B. See class javadoc.
-   * @param b See class javadoc
-   * @param f the inclusion probability used to produce the set with size <i>a</i>.
-   * @return the approximate lower bound
-   */
-  public static double getEstimateOfB(final long b, final double f) {
-    checkInputs(b + 1, b, f);
-    return b / f;
-  }
 }

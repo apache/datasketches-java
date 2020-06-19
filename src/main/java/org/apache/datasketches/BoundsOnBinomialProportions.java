@@ -30,8 +30,7 @@ package org.apache.datasketches;
  * that are called <i>n</i> and <i>k</i> in our sketching library. There is also a third
  * parameter, numStdDev, that specifies the desired confidence level.</p>
  * <ul>
- * <li><i>n</i> is the number of independent randomized trials. It is given and therefore known.
- * </li>
+ * <li><i>n</i> is the number of independent randomized trials. It is given and therefore known.</li>
  * <li><i>p</i> is the probability of a trial being a success. It is unknown.</li>
  * <li><i>k</i> is the number of trials (out of <i>n</i>) that turn out to be successes. It is
  * a random variable governed by a binomial distribution. After any given
@@ -193,21 +192,15 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
   }
 
   //@formatter:off
-  // Abramowitz and Stegun formula 7.1.28, p. 88; Claims accuracy of about 7 decimal digits */
+  // Abramowitz and Stegun formula 7.1.28, p. 88; Claims accuracy of about 7 decimal digits
   private static double erf_of_nonneg(final double x) {
-    // The constants that appear below, formatted for easy checking against the book.
-    //    a1 = 0.07052 30784
-    //    a3 = 0.00927 05272
-    //    a5 = 0.00027 65672
-    //    a2 = 0.04228 20123
-    //    a4 = 0.00015 20143
-    //    a6 = 0.00004 30638
-    final double a1 = 0.0705230784;
-    final double a3 = 0.0092705272;
-    final double a5 = 0.0002765672;
-    final double a2 = 0.0422820123;
-    final double a4 = 0.0001520143;
-    final double a6 = 0.0000430638;
+    // The constants from the book
+    final double a1 = 0.07052_30784;
+    final double a3 = 0.00927_05272;
+    final double a5 = 0.00027_65672;
+    final double a2 = 0.04228_20123;
+    final double a4 = 0.00015_20143;
+    final double a6 = 0.00004_30638;
     final double x2 = x * x; // x squared, x cubed, etc.
     final double x3 = x2 * x;
     final double x4 = x2 * x2;
@@ -226,12 +219,12 @@ public final class BoundsOnBinomialProportions { // confidence intervals for bin
     final double sum16 = sum8 * sum8;
     return (1.0 - (1.0 / sum16));
   }
+  //@formatter:on
 
   private static double deltaOfNumStdevs(final double kappa) {
     return (normalCDF(-1.0 * kappa));
   }
 
-  //@formatter:on
   // Formula 26.5.22 on page 945 of Abramowitz & Stegun, which is an approximation
   // of the inverse of the incomplete beta function I_x(a,b) = delta
   // viewed as a scalar function of x.

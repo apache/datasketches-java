@@ -203,6 +203,17 @@ public abstract class SetOperation {
   }
 
   /**
+   * Returns the maximum number of bytes for the returned CompactSketch, given the maximum
+   * value of nomEntries of the first sketch A of AnotB.
+   * @param maxNomEntries the given value
+   * @return the maximum number of bytes.
+   */
+  public static int getMaxAnotBResultBytes(final int maxNomEntries) {
+    return 24 + (15 * maxNomEntries);
+  }
+
+
+  /**
    * Gets the Family of this SetOperation
    * @return the Family of this SetOperation
    */
@@ -264,19 +275,17 @@ public abstract class SetOperation {
     }
     if (dstMem == null) {
       if (dstOrdered) {
-        return HeapCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong); //converts to SingleItem format if curCount == 1
+        return new HeapCompactOrderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
       } else {
-        return HeapCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong); //converts to SingleItem if curCount == 1
+        return new HeapCompactUnorderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
       }
     } else {
       if (dstOrdered) {
         return DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
+            thetaLong, dstMem);
       } else {
         return DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
+            thetaLong, dstMem);
       }
     }
   }

@@ -23,14 +23,15 @@ import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * An off-heap (Direct), compact, ordered, read-only sketch. This sketch may be associated
- * with Serialization Version 3 format binary image.
+ * An off-heap (Direct), compact, ordered, read-only sketch.  This sketch can only be associated
+ * with a Serialization Version 3 format binary image.
  *
  * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
  * This Memory can be off-heap, which if managed properly will greatly reduce the need for
@@ -48,7 +49,8 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
    * Wraps the given Memory, which must be a SerVer 3, ordered, Compact Sketch image.
    * Must check the validity of the Memory before calling.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed the update seed
+   * @param seed The update seed.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return this sketch
    */
   static DirectCompactOrderedSketch wrapInstance(final Memory srcMem, final long seed) {
@@ -68,16 +70,20 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
    * @param dstMem the given destination Memory. This clears it before use.
    * @return a DirectCompactOrderedSketch
    */
-  static DirectCompactOrderedSketch compact(final long[] cache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong, final WritableMemory dstMem) {
+  static DirectCompactOrderedSketch compact(
+      final long[] cache,
+      final boolean empty,
+      final short seedHash,
+      final int curCount,
+      final long thetaLong,
+      final WritableMemory dstMem) {
     final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
-    final int requiredFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
-    final byte flags = (byte) (requiredFlags | (empty ? EMPTY_FLAG_MASK : 0));
-    loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+    int flags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
+    flags |= empty ? EMPTY_FLAG_MASK : 0;
+    flags |= (curCount == 1) ? SINGLEITEM_FLAG_MASK : 0;
+    loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
     return new DirectCompactOrderedSketch(dstMem);
   }
-
-  //restricted methods
 
   @Override
   public boolean isOrdered() {

@@ -70,6 +70,36 @@ public abstract class Union extends SetOperation {
   public abstract byte[] toByteArray();
 
   /**
+   * This implements a stateless, pair-wise union operation. The returned sketch will be cutback to
+   * k if required, similar to the regular Union operation.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @param sketchA The first argument
+   * @param sketchB The second argument
+   * @return the result ordered CompactSketch on the heap.
+   */
+  public CompactSketch union(final Sketch sketchA, final Sketch sketchB) {
+    return union(sketchA, sketchB, true, null);
+  }
+
+  /**
+   * This implements a stateless, pair-wise union operation. The returned sketch will be cutback to
+   * k if required, similar to the regular Union operation.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @param sketchA The first argument
+   * @param sketchB The second argument
+   * @param dstOrdered If true, the returned CompactSketch will be ordered.
+   * @param dstMem If not null, the returned CompactSketch will be placed in this WritableMemory.
+   * @return the result CompactSketch.
+   */
+  public abstract CompactSketch union(Sketch sketchA, Sketch sketchB, boolean dstOrdered,
+      WritableMemory dstMem);
+
+
+  /**
    * Perform a Union operation with <i>this</i> union and the given on-heap sketch of the Theta Family.
    * This method is not valid for the older SetSketch, which was prior to Open Source (August, 2015).
    *

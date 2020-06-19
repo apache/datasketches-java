@@ -271,6 +271,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * Converts the current state of the sketch into a compact sketch
    * @return compact sketch
    */
+  @Override
   @SuppressWarnings("unchecked")
   public CompactSketch<S> compact() {
     if (getRetainedEntries() == 0) {

@@ -155,7 +155,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public boolean isEmpty() {
-    return PreambleUtil.isEmpty(wmem_);
+    return PreambleUtil.isEmptySketch(wmem_);
   }
 
   @Override

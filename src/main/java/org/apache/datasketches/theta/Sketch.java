@@ -22,24 +22,23 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.Family.idToFamily;
 import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
+import static org.apache.datasketches.theta.PreambleUtil.isSingleItemSketch;
 
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -109,11 +108,20 @@ public abstract class Sketch {
   }
 
   /**
-   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
-   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicitly stored as direct objects can be wrapped.
-   * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
-   * Java Heap version of the sketch where all data will be copied to the heap.
+   * Wrap takes the sketch image in Memory and refers to it directly with just a reference.
+   * There is no data copying onto the java heap.  Only "Direct" Serialization Version 3
+   * (i.e, OpenSource) sketches that have been explicitly stored as direct objects can be wrapped.
+   *
+   * <p>The wrap operation enables fast read-only merging and access to all the public read-only API.</p>
+   *
+   * <p>Note: wrapping earlier serial version sketches will result in a on-heap form of the
+   * sketch where all data will be copied to the heap. These early versions were never designed to
+   * "wrap".</p>
+   *
+   * <p>Wrapping any subclass of this class that is empty or contains only a single item will
+   * result in on-heap equivalent forms of empty and single item sketch respectively.
+   * This is actually faster and consumes less overall memory.</p>
+   *
    * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -136,10 +144,10 @@ public abstract class Sketch {
       }
       case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
         if (serVer == 3) {
-          if (PreambleUtil.isEmpty(srcMem)) { //empty flag OR cap < 16 bytes
+          if (PreambleUtil.isEmptySketch(srcMem)) {
             return EmptyCompactSketch.getInstance(srcMem);
           }
-          if (isSingleItem(srcMem)) { //SINGLEITEM?
+          if (isSingleItemSketch(srcMem)) { //SINGLEITEM?
             return SingleItemSketch.heapify(srcMem, seed);
           }
           //not empty & not singleItem
@@ -175,7 +183,7 @@ public abstract class Sketch {
   //Sketch interface
 
   /**
-   * Converts this sketch to an ordered CompactSketch on the Java heap.
+   * Converts this sketch as an ordered CompactSketch on the Java heap.
    *
    * <p>If this sketch is already in compact form this operation returns <i>this</i>.
    *
@@ -210,9 +218,20 @@ public abstract class Sketch {
    * Gets the number of hash values less than the given theta.
    * @param theta the given theta as a double between zero and one.
    * @return the number of hash values less than the given theta.
+   * @deprecated Use {@link #getCountLessThanThetaLong(long)}. It is more accurate.
    */
+  @Deprecated
   public int getCountLessThanTheta(final double theta) {
-    final long thetaLong = (long) (MAX_THETA_LONG_AS_DOUBLE * theta);
+    final long thetaLong = (long) (LONG_MAX_VALUE_AS_DOUBLE * theta);
+    return count(getCache(), thetaLong);
+  }
+
+  /**
+   * Gets the number of hash values less than the given theta expressed as a long.
+   * @param thetaLong the given theta as a long between zero and <i>Long.MAX_VALUE</i>.
+   * @return the number of hash values less than the given thetaLong.
+   */
+  public int getCountLessThanThetaLong(final long thetaLong) {
     return count(getCache(), thetaLong);
   }
 
@@ -317,7 +336,7 @@ public abstract class Sketch {
    * @return the value of theta as a double
    */
   public double getTheta() {
-    return getThetaLong() / MAX_THETA_LONG_AS_DOUBLE;
+    return getThetaLong() / LONG_MAX_VALUE_AS_DOUBLE;
   }
 
   /**
@@ -469,7 +488,7 @@ public abstract class Sketch {
     }
 
     if (sketchSummary) {
-      final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+      final double thetaDbl = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
       final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
       final String thisSimpleName = this.getClass().getSimpleName();
       final int seedHash = Short.toUnsignedInt(getSeedHash());
@@ -524,7 +543,8 @@ public abstract class Sketch {
   //Restricted methods
 
   /**
-   * Gets the internal cache array.
+   * Gets the internal cache array. For on-heap sketches this will return a reference to the actual
+   * cache array. For off-heap sketches this returns a copy.
    * @return the internal cache array.
    */
   abstract long[] getCache();
@@ -643,18 +663,18 @@ public abstract class Sketch {
 
 
   static final double estimate(final long thetaLong, final int curCount) {
-    return curCount * (MAX_THETA_LONG_AS_DOUBLE / thetaLong);
+    return curCount * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong);
   }
 
   static final double lowerBound(final int curCount, final long thetaLong, final int numStdDev,
       final boolean empty) {
-    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     return BinomialBoundsN.getLowerBound(curCount, theta, numStdDev, empty);
   }
 
   static final double upperBound(final int curCount, final long thetaLong, final int numStdDev,
       final boolean empty) {
-    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     return BinomialBoundsN.getUpperBound(curCount, theta, numStdDev, empty);
   }
 
@@ -666,7 +686,6 @@ public abstract class Sketch {
    * Instantiates a Heap Sketch from Memory. SerVer 1 & 2 already handled.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * The seed required to instantiate a non-compact sketch.
    * @return a Sketch
    */
   private static final Sketch heapifyFromMemory(final Memory srcMem, final long seed) {
@@ -694,6 +713,7 @@ public abstract class Sketch {
         return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
       }
       case COMPACT: {
+
         if (!compactFlag) {
           throw new SketchesArgumentException(
               "Corrupted: COMPACT family sketch image must have compact flag set");
@@ -703,13 +723,13 @@ public abstract class Sketch {
           throw new SketchesArgumentException(
               "Corrupted: COMPACT family sketch image must have Read-Only flag set");
         }
-        if (PreambleUtil.isEmpty(srcMem)) { //emptyFlag OR capacity < 16 bytes.
+        if (PreambleUtil.isEmptySketch(srcMem)) { //emptyFlag OR capacity < 16 bytes.
           return EmptyCompactSketch.getInstance(srcMem);
         }
         if (preLongs == 1) {
-          if (isSingleItem(srcMem)) { //SINGLE ITEM
+          if (isSingleItemSketch(srcMem)) { //SINGLE ITEM
             return SingleItemSketch.heapify(srcMem, seed);
-          } else { //EMPTY Note very old sketches (<2014) have no empty flag.
+          } else { //EMPTY. Note very old sketches ( before 2014) have no empty flag.
             return EmptyCompactSketch.getInstance(srcMem);
           }
         }

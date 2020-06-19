@@ -171,7 +171,7 @@ public class PairwiseSetOperationsTest {
       CompactSketch csk2 = usk2.compact(true, null);
 
       Sketch rsk = PairwiseSetOperations.aNotB(csk1, csk2);
-      double result1 = rsk.getEstimate();
+      double result1 = rsk.getEstimate(); //null ptr
 
       aNotB.update(csk1, csk2);
       CompactSketch csk3 = aNotB.getResult(true, null);

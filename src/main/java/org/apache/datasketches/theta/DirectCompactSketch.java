@@ -39,6 +39,7 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   //Sketch
+
   //overidden by EmptyCompactSketch and SingleItemSketch
   @Override
   public int getCurrentBytes(final boolean compact) { //compact is ignored here
@@ -81,7 +82,7 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   @Override
   public boolean isEmpty() {
-    return PreambleUtil.isEmpty(mem_);
+    return PreambleUtil.isEmptySketch(mem_);
   }
 
   @Override
@@ -106,6 +107,9 @@ abstract class DirectCompactSketch extends CompactSketch {
   }
 
   //restricted methods
+
+
+
 
   @Override
   long[] getCache() {

@@ -58,9 +58,8 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
   static CompactSketch heapifyInstance(final Memory srcMem, final long seed) {
     final short memSeedHash = checkMemorySeedHash(srcMem, seed);
     final int preLongs = extractPreLongs(srcMem);
-    final boolean empty = PreambleUtil.isEmpty(srcMem); //checks for cap <= 8
+    final boolean empty = PreambleUtil.isEmptySketch(srcMem);
     long thetaLong = Long.MAX_VALUE;
-    //preLongs == 1 handled before this method, so preLongs > 1
     final int curCount = extractCurCount(srcMem);
     final long[] cache = new long[curCount];
     if (preLongs == 2) {
@@ -72,27 +71,11 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
     return new HeapCompactOrderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
   }
 
-  /**
-   * Constructs this sketch from correct, valid arguments.
-   * @param cache in compact, ordered form
-   * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
-   * @param seedHash The correct
-   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
-   * @param curCount correct value
-   * @param thetaLong The correct
-   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
-   * @return a CompactSketch
-   */
-  static CompactSketch compact(final long[] cache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong) {
-    return new HeapCompactOrderedSketch(cache, empty, seedHash, curCount, thetaLong);
-  }
-
   //Sketch interface
 
   @Override
   public byte[] toByteArray() {
-    return toByteArray(true);
+    return toByteArray(true); //ordered
   }
 
   @Override

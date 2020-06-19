@@ -19,6 +19,8 @@
 
 package org.apache.datasketches;
 
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
+
 import org.apache.datasketches.theta.Sketch;
 
 /**
@@ -53,17 +55,18 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @return the approximate lower bound for B over A
    */
   public static double getLowerBoundForBoverA(final Sketch sketchA, final Sketch sketchB) {
-    final double thetaA = sketchA.getTheta();
-    final double thetaB = sketchB.getTheta();
-    checkThetas(thetaA, thetaB);
+    final long thetaLongA = sketchA.getThetaLong();
+    final long thetaLongB = sketchB.getThetaLong();
+    checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries(true);
-    final int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
-        : sketchA.getCountLessThanTheta(thetaB);
+    final int countA = (thetaLongB == thetaLongA)
+        ? sketchA.getRetainedEntries(true)
+        : sketchA.getCountLessThanThetaLong(thetaLongB);
 
     if (countA <= 0) { return 0; }
-
-    return BoundsOnRatiosInSampledSets.getLowerBoundForBoverA(countA, countB, thetaB);
+    final double f = thetaLongB / LONG_MAX_VALUE_AS_DOUBLE;
+    return BoundsOnRatiosInSampledSets.getLowerBoundForBoverA(countA, countB, f);
   }
 
   /**
@@ -73,17 +76,18 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @return the approximate upper bound for B over A
    */
   public static double getUpperBoundForBoverA(final Sketch sketchA, final Sketch sketchB) {
-    final double thetaA = sketchA.getTheta();
-    final double thetaB = sketchB.getTheta();
-    checkThetas(thetaA, thetaB);
+    final long thetaLongA = sketchA.getThetaLong();
+    final long thetaLongB = sketchB.getThetaLong();
+    checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries(true);
-    final int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
-        : sketchA.getCountLessThanTheta(thetaB);
+    final int countA = (thetaLongB == thetaLongA)
+        ? sketchA.getRetainedEntries(true)
+        : sketchA.getCountLessThanThetaLong(thetaLongB);
 
     if (countA <= 0) { return 1.0; }
-
-    return BoundsOnRatiosInSampledSets.getUpperBoundForBoverA(countA, countB, thetaB);
+    final double f = thetaLongB / LONG_MAX_VALUE_AS_DOUBLE;
+    return BoundsOnRatiosInSampledSets.getUpperBoundForBoverA(countA, countB, f);
   }
 
   /**
@@ -93,22 +97,23 @@ public final class BoundsOnRatiosInThetaSketchedSets {
    * @return the estimate for B over A
    */
   public static double getEstimateOfBoverA(final Sketch sketchA, final Sketch sketchB) {
-    final double thetaA = sketchA.getTheta();
-    final double thetaB = sketchB.getTheta();
-    checkThetas(thetaA, thetaB);
+    final long thetaLongA = sketchA.getThetaLong();
+    final long thetaLongB = sketchB.getThetaLong();
+    checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries(true);
-    final int countA = (thetaB == thetaA) ? sketchA.getRetainedEntries(true)
-        : sketchA.getCountLessThanTheta(thetaB);
+    final int countA = (thetaLongB == thetaLongA)
+        ? sketchA.getRetainedEntries(true)
+        : sketchA.getCountLessThanThetaLong(thetaLongB);
 
     if (countA <= 0) { return 0.5; }
 
     return (double) countB / (double) countA;
   }
 
-  static void checkThetas(final double thetaA, final double thetaB) {
-    if (thetaB > thetaA) {
-      throw new SketchesArgumentException("ThetaB cannot be > ThetaA.");
+  static void checkThetas(final long thetaLongA, final long thetaLongB) {
+    if (thetaLongB > thetaLongA) {
+      throw new SketchesArgumentException("ThetaLongB cannot be > ThetaLongA.");
     }
   }
 }

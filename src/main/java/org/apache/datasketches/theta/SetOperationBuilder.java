@@ -207,11 +207,11 @@ public class SetOperationBuilder {
       }
       case A_NOT_B: {
         if (dstMem == null) {
-          setOp = new HeapAnotB(bSeed);
+          setOp = new AnotBimpl(bSeed);
         }
         else {
           throw new SketchesArgumentException(
-            "AnotB is a stateless operation and cannot be persisted.");
+            "AnotB is only on heap and cannot be persisted.");
         }
         break;
       }

@@ -46,7 +46,7 @@ import static org.apache.datasketches.theta.PreambleUtil.insertSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.isEmpty;
+import static org.apache.datasketches.theta.PreambleUtil.isEmptyFlag;
 import static org.apache.datasketches.theta.PreambleUtil.setEmpty;
 import static org.apache.datasketches.theta.SetOperation.getMaxUnionBytes;
 import static org.testng.Assert.assertEquals;
@@ -54,14 +54,13 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -158,52 +157,64 @@ public class PreambleUtilTest {
   @Test
   public void checkInsertsAndExtracts() {
     byte[] arr = new byte[32];
-    WritableMemory mem = WritableMemory.wrap(arr);
+    WritableMemory wmem = WritableMemory.wrap(arr);
 
     int v = 0;
-    insertPreLongs(mem, ++v);
-    assertEquals(extractPreLongs(mem), v);
+    insertPreLongs(wmem, ++v);
+    assertEquals(extractPreLongs(wmem), v);
+    insertPreLongs(wmem, 0);
 
-    insertLgResizeFactor(mem, 3); //limited to 2 bits
-    assertEquals(extractLgResizeFactor(mem), 3);
+    insertLgResizeFactor(wmem, 3); //limited to 2 bits
+    assertEquals(extractLgResizeFactor(wmem), 3);
+    insertLgResizeFactor(wmem, 0);
 
-    insertSerVer(mem, ++v);
-    assertEquals(extractSerVer(mem), v);
+    insertSerVer(wmem, ++v);
+    assertEquals(extractSerVer(wmem), v);
+    insertSerVer(wmem, 0);
 
-    insertFamilyID(mem, ++v);
-    assertEquals(extractFamilyID(mem), v);
+    insertFamilyID(wmem, ++v);
+    assertEquals(extractFamilyID(wmem), v);
+    insertFamilyID(wmem, 0);
 
-    insertLgNomLongs(mem, ++v);
-    assertEquals(extractLgNomLongs(mem), v);
+    insertLgNomLongs(wmem, ++v);
+    assertEquals(extractLgNomLongs(wmem), v);
+    insertLgNomLongs(wmem, 0);
 
-    insertLgArrLongs(mem, ++v);
-    assertEquals(extractLgArrLongs(mem), v);
+    insertLgArrLongs(wmem, ++v);
+    assertEquals(extractLgArrLongs(wmem), v);
+    insertLgArrLongs(wmem, 0);
 
-    insertFlags(mem, 3);
-    assertEquals(extractFlags(mem), 3);
-    assertEquals(extractLgResizeRatioV1(mem), 3); //also at byte 5, limited to 2 bits
+    insertFlags(wmem, 3);
+    assertEquals(extractFlags(wmem), 3);
+    assertEquals(extractLgResizeRatioV1(wmem), 3); //also at byte 5, limited to 2 bits
+    insertFlags(wmem, 0);
 
-    insertSeedHash(mem, ++v);
-    assertEquals(extractSeedHash(mem), v);
-    assertEquals(extractFlagsV1(mem), v); //also at byte 6
+    insertSeedHash(wmem, ++v);
+    assertEquals(extractSeedHash(wmem), v);
+    assertEquals(extractFlagsV1(wmem), v); //also at byte 6
+    insertSeedHash(wmem, 0);
 
-    insertCurCount(mem, ++v);
-    assertEquals(extractCurCount(mem), v);
+    insertCurCount(wmem, ++v);
+    assertEquals(extractCurCount(wmem), v);
+    insertCurCount(wmem, 0);
 
-    insertP(mem, (float) 1.0);
-    assertEquals(extractP(mem), (float) 1.0);
+    insertP(wmem, (float) 1.0);
+    assertEquals(extractP(wmem), (float) 1.0);
+    insertP(wmem, (float) 0.0);
 
-    insertThetaLong(mem, ++v);
-    assertEquals(extractThetaLong(mem), v);
+    insertThetaLong(wmem, ++v);
+    assertEquals(extractThetaLong(wmem), v);
+    insertThetaLong(wmem, 0L);
 
-    insertUnionThetaLong(mem, ++v);
-    assertEquals(extractUnionThetaLong(mem), v);
+    insertUnionThetaLong(wmem, ++v);
+    assertEquals(extractUnionThetaLong(wmem), v);
+    insertUnionThetaLong(wmem, 0L);
 
-    setEmpty(mem);
-    assertTrue(isEmpty(mem));
+    setEmpty(wmem);
+    assertTrue(isEmptyFlag(wmem));
 
-    clearEmpty(mem);
-    assertFalse(isEmpty(mem));
+    clearEmpty(wmem);
+    assertFalse(isEmptyFlag(wmem));
   }
 
   @Test

@@ -19,10 +19,12 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
+import static org.apache.datasketches.Util.computeSeedHash;
+import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.P_FLOAT;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -57,7 +59,6 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -142,10 +143,10 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertLgArrLongs(dstMem, lgArrLongs);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     insertFlags(dstMem, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(dstMem, Util.computeSeedHash(seed));    //bytes 6,7
+    insertSeedHash(dstMem, computeSeedHash(seed));    //bytes 6,7
     insertCurCount(dstMem, 0);                             //bytes 8-11
     insertP(dstMem, p);                                    //bytes 12-15
-    final long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    final long thetaLong = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
     insertThetaLong(dstMem, thetaLong);                    //bytes 16-23
     if (unionGadget) {
       insertUnionThetaLong(dstMem, thetaLong);
@@ -178,7 +179,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
     final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
     if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
+            && (lgArrLongs != startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
       insertLgResizeFactor(srcMem, ResizeFactor.X2.lg());
     }
 
@@ -234,7 +235,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     wmem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     wmem_.putInt(RETAINED_ENTRIES_INT, 0);
     final float p = wmem_.getFloat(P_FLOAT);
-    final long thetaLong = (long) (p * MAX_THETA_LONG_AS_DOUBLE);
+    final long thetaLong = (long) (p * LONG_MAX_VALUE_AS_DOUBLE);
     wmem_.putLong(THETA_LONG, thetaLong);
   }
 

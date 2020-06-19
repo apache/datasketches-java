@@ -19,15 +19,14 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static org.apache.datasketches.HashOperations.convertToHashTable;
+import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.simpleIntLog2;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.theta.HashIterator;
 
@@ -40,7 +39,7 @@ public final class AnotB<S extends Summary> {
   private long thetaLong_ = Long.MAX_VALUE;
   private long[] hashArr_ = null;   //always in compact form, not necessarily sorted
   private S[] summaryArr_ = null; //always in compact form, not necessarily sorted
-  private int count_ = 0;
+  private int curCount_ = 0;
 
   /**
    * Sets the given Tuple sketch as the first argument <i>A</i>. This overwrites the internal state of
@@ -65,13 +64,14 @@ public final class AnotB<S extends Summary> {
     final CompactSketch<S> cskA = (skA instanceof CompactSketch)
         ? (CompactSketch<S>)skA
         : ((QuickSelectSketch<S>)skA).compact();
-    hashArr_ = cskA.getHashArr();
-    summaryArr_ = cskA.getSummaryArr();
-    count_ = cskA.getRetainedEntries();
+    hashArr_ = cskA.getHashArr().clone();
+    summaryArr_ = cskA.getSummaryArr().clone(); //shallow
+    curCount_ = cskA.getRetainedEntries();
   }
 
   /**
    * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
+   * Use {@link #getResult(boolean)} to obtain the result.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -91,26 +91,27 @@ public final class AnotB<S extends Summary> {
     final long[] hashTableB;
     if (skB instanceof CompactSketch) {
       cskB = (CompactSketch<S>) skB;
-      hashTableB = convertToHashTable(cskB.getHashArr(), countB, thetaLong_);
+      hashTableB =
+          convertToHashTable(cskB.getHashArr(), countB, thetaLong_, REBUILD_THRESHOLD);
     } else {
       qskB = (QuickSelectSketch<S>) skB;
       hashTableB = (thetaLong_ < thetaLongB)
-          ? convertToHashTable(qskB.getHashTable(), countB, thetaLong_)
+          ? convertToHashTable(qskB.getHashTable(), countB, thetaLong_, REBUILD_THRESHOLD)
           : qskB.getHashTable();
     }
 
     //build temporary arrays of skA
-    final long[] tmpHashArrA = new long[count_];
+    final long[] tmpHashArrA = new long[curCount_];
     final Class<S> summaryType = (Class<S>) summaryArr_.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, count_);
+    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, curCount_);
 
     //search for non matches and build temp arrays
     int nonMatches = 0;
-    for (int i = 0; i < count_; i++) {
+    for (int i = 0; i < curCount_; i++) {
       final long hash = hashArr_[i];
       if ((hash != 0) && (hash < thetaLong_)) { //skips hashes of A >= theta
         final int index =
-            HashOperations.hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
+            hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
           tmpSummaryArrA[nonMatches] = summaryArr_[i];
@@ -120,11 +121,12 @@ public final class AnotB<S extends Summary> {
     }
     hashArr_ = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
     summaryArr_ = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    count_ = nonMatches;
+    curCount_ = nonMatches;
   }
 
   /**
    * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
+   * Use {@link #getResult(boolean)} to obtain the result.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
@@ -139,20 +141,21 @@ public final class AnotB<S extends Summary> {
     //Build hashtable and removes hashes of skB >= theta
     final int countB = skB.getRetainedEntries();
     final long[] hashTableB =
-        convertToHashTable(extractThetaHashArray(skB, countB), countB, thetaLong_);
+        convertToHashTable(extractThetaHashArray(skB, countB), countB,
+            thetaLong_, REBUILD_THRESHOLD);
 
     //build temporary arrays of skA
-    final long[] tmpHashArrA = new long[count_];
+    final long[] tmpHashArrA = new long[curCount_];
     final Class<S> summaryType = (Class<S>) summaryArr_.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, count_);
+    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, curCount_);
 
     //search for non matches and build temp arrays
+    final int lgHTBLen = simpleIntLog2(hashTableB.length);
     int nonMatches = 0;
-    for (int i = 0; i < count_; i++) {
+    for (int i = 0; i < curCount_; i++) {
       final long hash = hashArr_[i];
       if ((hash > 0) && (hash < thetaLong_)) { //skips hashes of A >= theta
-        final int index =
-            HashOperations.hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
+        final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
           tmpSummaryArrA[nonMatches] = summaryArr_[i];
@@ -162,7 +165,23 @@ public final class AnotB<S extends Summary> {
     }
     hashArr_ = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
     summaryArr_ = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    count_ = nonMatches;
+    curCount_ = nonMatches;
+  }
+
+  /**
+   * Gets the result of this stateful operation.
+   * @param reset If true, clears this operator to the empty state after result is returned.
+   * @return the result of this operation as a CompactSketch.
+   */
+  public CompactSketch<S> getResult(final boolean reset) {
+    if (curCount_ == 0) {
+      return new CompactSketch<>(null, null, thetaLong_, empty_);
+    }
+    final CompactSketch<S> result =
+        new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, curCount_),
+            Arrays.copyOfRange(summaryArr_, 0, curCount_), thetaLong_, empty_);
+    if (reset) { reset(); }
+    return result;
   }
 
   /**
@@ -185,42 +204,32 @@ public final class AnotB<S extends Summary> {
     if ((skA == null) || (skB == null)) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
-    if (skA.isEmpty()) {
-      return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
-    }
-    //skA is not empty
-    final boolean empty = false;
+    if (skA.isEmpty()) { return new CompactSketch<>(null, null, Long.MAX_VALUE, true); }
+    if (skB.isEmpty()) { return skA.compact(); }
+    //Both skA & skB are not empty
+    //Load skA into tmp registers
+    boolean empty = false;
     final long thetaLongA = skA.getThetaLong();
     final CompactSketch<S> cskA = (skA instanceof CompactSketch)
         ? (CompactSketch<S>)skA
         : ((QuickSelectSketch<S>)skA).compact();
-    final long[] hashArrA = cskA.getHashArr();
-    final S[] summaryArrA = cskA.getSummaryArr();
+    final long[] hashArrA = cskA.getHashArr().clone();
+    final S[] summaryArrA = cskA.getSummaryArr().clone();
     final int countA = cskA.getRetainedEntries();
 
-    if (skB.isEmpty()) {
-      return new CompactSketch<>(hashArrA, summaryArrA, thetaLongA, empty);
-    }
-    //skB is not empty
+    //Compare with skB
     final long thetaLongB = skB.getThetaLong();
     final long thetaLong = Math.min(thetaLongA, thetaLongB);
     final int countB = skB.getRetainedEntries();
-    //
-    CompactSketch<S> cskB = null;
-    QuickSelectSketch<S> qskB = null;
 
     //Build/rebuild hashtable and removes hashes of skB >= thetaLong
-    final long[] hashTableB;
-    if (skB instanceof CompactSketch) {
-      cskB = (CompactSketch<S>) skB;
-      hashTableB = convertToHashTable(cskB.getHashArr(), countB, thetaLong);
-    } else {
-      qskB = (QuickSelectSketch<S>) skB;
-      hashTableB = convertToHashTable(qskB.getHashTable(), countB, thetaLong);
-      cskB = qskB.compact();
-    }
+    final long[] hashes = (skB instanceof CompactSketch)
+        ? ((CompactSketch<S>) skB).getHashArr()
+        : ((QuickSelectSketch<S>) skB).getHashTable();
 
-    //build temporary arrays of skA
+    final long[] hashTableB = convertToHashTable(hashes, countB, thetaLong, REBUILD_THRESHOLD);
+
+    //build temporary hash array and summary array for values from skA
     final long[] tmpHashArrA = new long[countA];
     final Class<S> summaryType = (Class<S>) summaryArrA.getClass().getComponentType();
     final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
@@ -231,7 +240,7 @@ public final class AnotB<S extends Summary> {
       final long hash = hashArrA[i];
       if ((hash != 0) && (hash < thetaLong)) { //skips hashes of A >= theta
         final int index =
-            HashOperations.hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
+            hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
           tmpSummaryArrA[nonMatches] = summaryArrA[i];
@@ -239,6 +248,8 @@ public final class AnotB<S extends Summary> {
         }
       }
     }
+    //final compaction
+    empty = ((nonMatches == 0) && (thetaLong == Long.MAX_VALUE));
     final long[] hashArrOut = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
     final S[] summaryArrOut = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
     final CompactSketch<S> result =
@@ -289,7 +300,7 @@ public final class AnotB<S extends Summary> {
 
     //Build/rebuild hashtable and removes hashes of skB >= thetaLong
     final long[] hashTableB = //the following convert works for all theta sketches
-        convertToHashTable(extractThetaHashArray(skB, countB), countB, thetaLong);
+        convertToHashTable(extractThetaHashArray(skB, countB), countB, thetaLong, REBUILD_THRESHOLD);
 
     //build temporary arrays of skA for matching
     final long[] tmpHashArrA = new long[countA];
@@ -302,7 +313,7 @@ public final class AnotB<S extends Summary> {
       final long hash = hashArrA[i];
       if ((hash != 0) && (hash < thetaLong)) { //skips hashes of A >= theta
         final int index =
-            HashOperations.hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
+            hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
           tmpSummaryArrA[nonMatches] = summaryArrA[i];
@@ -318,22 +329,6 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * Gets the result of this operation.
-   * @param reset if true, clears this operator to the empty state after result is returned.
-   * @return the result of this operation as a CompactSketch.
-   */
-  public CompactSketch<S> getResult(final boolean reset) {
-    if (count_ == 0) {
-      return new CompactSketch<>(null, null, thetaLong_, empty_);
-    }
-    final CompactSketch<S> result =
-        new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, count_),
-            Arrays.copyOfRange(summaryArr_, 0, count_), thetaLong_, empty_);
-    if (reset) { reset(); }
-    return result;
-  }
-
-  /**
    * Resets this sketch back to the empty state.
    */
   public void reset() {
@@ -341,7 +336,7 @@ public final class AnotB<S extends Summary> {
     thetaLong_ = Long.MAX_VALUE;
     hashArr_ = null;
     summaryArr_ = null;
-    count_ = 0;
+    curCount_ = 0;
   }
 
   private static long[] extractThetaHashArray(
@@ -357,17 +352,6 @@ public final class AnotB<S extends Summary> {
     return hashArr;
   }
 
-  private static long[] convertToHashTable(final long[] hashArr, final int count, final long thetaLong) {
-    final int size = Math.max(
-      ceilingPowerOf2((int) Math.ceil(count / REBUILD_THRESHOLD)),
-      1 << MIN_LG_NOM_LONGS
-    );
-    final long[] hashTable = new long[size];
-    HashOperations.hashArrayInsert(
-        hashArr, hashTable, Integer.numberOfTrailingZeros(size), thetaLong);
-    return hashTable;
-  }
-
   //Deprecated methods
 
   /**
@@ -379,9 +363,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param skA The incoming sketch for the first argument
    * @param skB The incoming sketch for the second argument
-   * @deprecated After release 2.0.0. Instead please use {@link #aNotB(Sketch, Sketch)}
-   * or a combination of {@link #setA(Sketch)} and
-   * {@link #notB(Sketch)} with {@link #getResult(boolean)}.
+   * @deprecated Instead please use {@link #aNotB(Sketch, Sketch)}.
    */
   @SuppressWarnings("unchecked")
   @Deprecated
@@ -406,12 +388,12 @@ public final class AnotB<S extends Summary> {
 
       if (skB instanceof CompactSketch) {
         csk = (CompactSketch<S>) skB;
-        hashTableB = convertToHashTable(csk.getHashArr(), count, thetaLong_);
+        hashTableB = convertToHashTable(csk.getHashArr(), count, thetaLong_, REBUILD_THRESHOLD);
         summaryType = (Class<S>) csk.getSummaryArr().getClass().getComponentType();
         lgHashTableSize = Integer.numberOfTrailingZeros(hashTableB.length);
       } else {
         qsk = (QuickSelectSketch<S>) skB;
-        hashTableB = convertToHashTable(qsk.getHashTable(), count, thetaLong_);
+        hashTableB = convertToHashTable(qsk.getHashTable(), count, thetaLong_, REBUILD_THRESHOLD);
         summaryType = (Class<S>) qsk.getSummaryTable().getClass().getComponentType();
         lgHashTableSize = Integer.numberOfTrailingZeros(hashTableB.length);
       }
@@ -424,11 +406,11 @@ public final class AnotB<S extends Summary> {
         final long hash = itrA.getHash();
         final S summary = itrA.getSummary();
         if ((hash <= 0) || (hash >= thetaLong_)) { continue; }
-        final int index = HashOperations.hashSearch(hashTableB, lgHashTableSize, hash);
+        final int index = hashSearch(hashTableB, lgHashTableSize, hash);
         if (index == -1) {
-          hashArr_[count_] = hash;
-          summaryArr_[count_] = summary;
-          count_++;
+          hashArr_[curCount_] = hash;
+          summaryArr_[curCount_] = summary;
+          curCount_++;
         }
       }
     }
@@ -438,18 +420,16 @@ public final class AnotB<S extends Summary> {
    * Gets the result of this operation. This clears the state of this operator after the result is
    * returned.
    * @return the result of this operation as a CompactSketch
-   * @deprecated Only used with deprecated {@link #update(Sketch,Sketch)}.
-   * Instead use {@link #aNotB(Sketch, Sketch)} or a combination of {@link #setA(Sketch)} and
-   * {@link #notB(Sketch)} with {@link #getResult(boolean)}.
+   * @deprecated Instead use {@link #getResult(boolean)}.
    */
   @Deprecated
   public CompactSketch<S> getResult() {
-    if (count_ == 0) {
+    if (curCount_ == 0) {
       return new CompactSketch<>(null, null, thetaLong_, empty_);
     }
     final CompactSketch<S> result =
-        new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, count_),
-            Arrays.copyOfRange(summaryArr_, 0, count_), thetaLong_, empty_);
+        new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, curCount_),
+            Arrays.copyOfRange(summaryArr_, 0, curCount_), thetaLong_, empty_);
     reset();
     return result;
   }
@@ -461,16 +441,17 @@ public final class AnotB<S extends Summary> {
    */
   private void loadCompactedArrays(final Sketch<S> sketch) {
     final CompactSketch<S> csk;
+    // assuming only two types: CompactSketch and QuickSelectSketch
     if (sketch instanceof CompactSketch) {
       csk = (CompactSketch<S>)sketch;
       hashArr_ = csk.getHashArr().clone();
       summaryArr_ = csk.getSummaryArr().clone();
-    } else { // assuming only two types: CompactSketch and QuickSelectSketch
+    } else {
       csk = ((QuickSelectSketch<S>)sketch).compact();
       hashArr_ = csk.getHashArr();
       summaryArr_ = csk.getSummaryArr();
     }
-    count_ = sketch.getRetainedEntries();
+    curCount_ = sketch.getRetainedEntries();
   }
 
 }

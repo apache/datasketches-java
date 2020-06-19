@@ -21,14 +21,16 @@ package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static org.apache.datasketches.Util.checkSeedHashes;
+import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactSketch.compactCache;
 import static org.apache.datasketches.theta.CompactSketch.loadCompactMemory;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
@@ -46,7 +48,6 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpt
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -137,10 +138,14 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    final int curCount = this.getRetainedEntries(true);
-    final boolean empty = isEmpty();
+    return compact(this, dstOrdered, dstMem);
+  }
+
+  static CompactSketch compact(final UpdateSketch usk, final boolean dstOrdered,
+      final WritableMemory dstMem) {
+    final int curCount = usk.getRetainedEntries(true);
+    final boolean empty = usk.isEmpty();
     checkIllegalCurCountAndEmpty(empty, curCount);
-    final long thetaLong = correctThetaOnCompact(empty, curCount, getThetaLong());
 
     if (empty) {
       final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
@@ -150,20 +155,29 @@ public abstract class UpdateSketch extends Sketch {
       return sk;
     }
     //not empty
+    final long thetaLong = correctThetaOnCompact(empty, curCount, usk.getThetaLong());
+    final short seedHash = usk.getSeedHash();
+    final long[] cache = usk.getCache();
     if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
-      final long[] cache = getCache();
+
       final long[] cacheOut = compactCache(cache, curCount, thetaLong, dstOrdered);
       final long hash = cacheOut[0];
-      final SingleItemSketch sis = new SingleItemSketch(hash, getSeedHash());
+      final SingleItemSketch sis = new SingleItemSketch(hash, usk.getSeedHash());
       if (dstMem != null) {
         dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
       }
-      return new SingleItemSketch(hash, getSeedHash());
+      return sis;
     }
     if (dstMem == null) {
-      return compactHeap(this, dstOrdered, curCount, thetaLong);
+      final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, dstOrdered);
+      if (dstOrdered) {
+        return new HeapCompactOrderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
+      } else {
+        return new HeapCompactUnorderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
+      }
+      //return compactHeap(usk, dstOrdered, curCount, thetaLong);
     } else {
-      return compactDirect(this, dstMem, dstOrdered, curCount, thetaLong);
+      return compactDirect(usk, dstMem, dstOrdered, curCount, thetaLong);
     }
   }
 
@@ -198,19 +212,19 @@ public abstract class UpdateSketch extends Sketch {
    * @param thetaLong the value of theta.
    * @return a CompactSketch.
    */
-  static CompactSketch compactDirect(final UpdateSketch sketch,
+  private static CompactSketch compactDirect(final UpdateSketch sketch,
       final WritableMemory dstMem, final boolean ordered, final int curCount, final long thetaLong) {
     final int preLongs = computeCompactPreLongs(thetaLong, false, curCount);
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
-    final long[] compactCache = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
     if (ordered) {
       final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
-      loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+      loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
       return new DirectCompactOrderedSketch(dstMem);
     } else {
       final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
-      loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+      loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
       return new DirectCompactUnorderedSketch(dstMem);
     }
   }
@@ -469,7 +483,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seed hashes
     final short seedHash = checkMemorySeedHash(srcMem, seed);              //byte 6,7
-    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
+    checkSeedHashes(seedHash, computeSeedHash(seed));
 
     //Check mem capacity, lgArrLongs
     final long curCapBytes = srcMem.getCapacity();
@@ -482,7 +496,7 @@ public abstract class UpdateSketch extends Sketch {
     //check Theta, p
     final float p = extractP(srcMem);                                   //bytes 12-15
     final long thetaLong = extractThetaLong(srcMem);                    //bytes 16-23
-    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "

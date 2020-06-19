@@ -19,6 +19,9 @@
 
 package org.apache.datasketches;
 
+import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static org.apache.datasketches.Util.ceilingPowerOf2;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -350,6 +353,29 @@ public final class HashOperations {
   public static boolean continueCondition(final long thetaLong, final long hash) {
     //if any one of the groups go negative it returns true
     return (( (hash - 1L) | (thetaLong - hash - 1L)) < 0L );
+  }
+
+  /**
+   * Converts the given array to a hash table.
+   * @param hashArr The given array of hashes. Gaps are OK.
+   * @param count The number of valid hashes in the array
+   * @param thetaLong Any hashes equal to or greater than thetaLong will be ignored
+   * @param rebuildThreshold The fill fraction for the hash table forcing a rebuild or resize.
+   * @return a HashTable
+   */
+  public static long[] convertToHashTable(
+      final long[] hashArr,
+      final int count,
+      final long thetaLong,
+      final double rebuildThreshold) {
+    final int size = Math.max(
+      ceilingPowerOf2((int) Math.ceil(count / rebuildThreshold)),
+      1 << MIN_LG_NOM_LONGS
+    );
+    final long[] hashTable = new long[size];
+    hashArrayInsert(
+        hashArr, hashTable, Integer.numberOfTrailingZeros(size), thetaLong);
+    return hashTable;
   }
 
 }

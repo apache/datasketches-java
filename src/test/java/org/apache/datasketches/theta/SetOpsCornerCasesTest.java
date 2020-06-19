@@ -19,186 +19,224 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.PairwiseCornerCasesTest.State.EMPTY;
-import static org.apache.datasketches.theta.PairwiseCornerCasesTest.State.EST_HEAP;
-import static org.apache.datasketches.theta.PairwiseCornerCasesTest.State.EST_MEMORY_UNORDERED;
-import static org.apache.datasketches.theta.PairwiseCornerCasesTest.State.EXACT;
-import static org.apache.datasketches.theta.PairwiseCornerCasesTest.State.NULL;
+import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EMPTY;
+import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EST_HEAP;
+import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EST_MEMORY_UNORDERED;
+import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.EXACT;
+import static org.apache.datasketches.theta.SetOpsCornerCasesTest.State.NULL;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 
 import java.util.Random;
 
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.WritableMemory;
+@SuppressWarnings({"javadoc","deprecation"})
+public class SetOpsCornerCasesTest {
 
-@SuppressWarnings("javadoc")
-public class PairwiseCornerCasesTest {
-
+  /*******************************************/
   Random rand = new Random(9001); //deterministic
 
   @Test
-  public void checkSetOps() {
+  public void checkSetOpsRandom() {
     int hiA = 0, loB = 0, hiB = 0;
     for (int i = 0; i < 1000; i++) {
-      hiA = 0 + rand.nextInt(128);
+      hiA = rand.nextInt(128);      //skA fed values between 0 and 127
       loB = rand.nextInt(64);
-      hiB = 0 + loB + rand.nextInt(64);
-      compareSetOps(64, 0, hiA, loB, hiB);
+      hiB = loB + rand.nextInt(64); //skB fed up to 63 values starting at loB
+      compareSetOpsRandom(64, 0, hiA, loB, hiB);
     }
   }
 
-  private static void compareSetOps(int k, int loA, int hiA, int loB, int hiB) {
-    UpdateSketch skA = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    UpdateSketch skB = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+  private static void compareSetOpsRandom(int k, int loA, int hiA, int loB, int hiB) {
+    UpdateSketch tskA = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    UpdateSketch tskB = Sketches.updateSketchBuilder().setNominalEntries(k).build();
 
-    for (int i = loA; i < hiA; i++) {
-      skA.update(i);
-    }
+    for (int i = loA; i < hiA; i++) { tskA.update(i); }
+    for (int i = loB; i < hiB; i++) { tskB.update(i); }
 
-    for (int i = loB; i < hiB; i++) {
-      skB.update(i);
-    }
+    CompactSketch rcskStdU = doStdUnion(tskA, tskB, k, null);
+    CompactSketch rcskPwU = doPwUnion(tskA, tskB, k);
+    checkCornerCase(rcskPwU, rcskStdU);
 
-    union.update(skA);
-    union.update(skB);
-    CompactSketch comp = union.getResult(true, null);
-    double unionEst = comp.getEstimate();
+    CompactSketch rcskStdPairU = doStdPairUnion(tskA, tskB, k, null);
+    checkCornerCase(rcskStdPairU, rcskStdU);
 
-    CompactSketch cskA = skA.compact();
-    CompactSketch cskB = skB.compact();
-    CompactSketch pwComp = PairwiseSetOperations.union(cskA, cskB, k);
-    double pwUnionEst = pwComp.getEstimate();
-    Assert.assertEquals(pwUnionEst, unionEst, 0.0);
+    CompactSketch rcskStdI = doStdIntersection(tskA, tskB, null);
+    CompactSketch rcskPwI = doPwIntersection(tskA, tskB);
+    checkCornerCase(rcskPwI, rcskStdI);
 
-    inter.update(skA);
-    inter.update(skB);
-    comp = inter.getResult(true, null);
-    double interEst = comp.getEstimate();
-    cskA = skA.compact();
-    cskB = skB.compact();
-    pwComp = PairwiseSetOperations.intersect(cskA, cskB);
-    double pwInterEst = pwComp.getEstimate();
-    Assert.assertEquals(pwInterEst, interEst, 0.0);
+    CompactSketch rcskStdPairI = doStdPairIntersection(tskA, tskB, null);
+    checkCornerCase(rcskStdPairI, rcskStdI);
 
-    aNotB.update(skA, skB);
-    comp = aNotB.getResult(true, null);
-    double aNbEst = comp.getEstimate();
-    cskA = skA.compact();
-    cskB = skB.compact();
-    pwComp = PairwiseSetOperations.aNotB(cskA, cskB);
-    double pwAnBEst = pwComp.getEstimate();
-    Assert.assertEquals(pwAnBEst, aNbEst);
+    CompactSketch rcskStdAnotB = doStdAnotB(tskA, tskB, null);
+    CompactSketch rcskPwAnotB = doPwAnotB(tskA, tskB);
+    checkCornerCase(rcskPwAnotB, rcskStdAnotB);
+
+    CompactSketch rcskStdStatefulAnotB = doStdStatefulAnotB(tskA, tskB, null);
+    checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB);
   }
+
+  /*******************************************/
 
   @Test
-  //Check all corner cases against standard Union, except unordered, which is not allowed
+  //Check all corner cases against standard Union, Intersection, and AnotB.
+  //The unordered case is not tested
   public void compareCornerCases() {
     int k = 64;
     for (State stateA : State.values()) {
       for (State stateB : State.values()) {
         if ((stateA == EST_MEMORY_UNORDERED) || (stateB == EST_MEMORY_UNORDERED)) { continue; }
         cornerCaseChecks(stateA, stateB, k);
+        //cornerCaseChecksMemory(stateA, stateB, k);
       }
     }
   }
 
   @Test
-  public void checkNull_THLT1_CNT0_FALSE() {
-    cornerCaseChecks(State.NULL, State.THLT1_CNT0_FALSE, 64);
+  public void checkExactNull() {
+    cornerCaseChecksMemory(State.EXACT, State.NULL, 64);
+  }
+
+  private static void cornerCaseChecksMemory(State stateA, State stateB, int k) {
+    println("StateA: " + stateA + ", StateB: " + stateB);
+    CompactSketch tcskA = generate(stateA, k);
+    CompactSketch tcskB = generate(stateB, k);
+
+    WritableMemory wmem = WritableMemory.allocate(SetOperation.getMaxUnionBytes(k));
+
+    CompactSketch rcskStdU = doStdUnion(tcskA, tcskB, k, null);
+    CompactSketch rcskPwU = doPwUnion(tcskA, tcskB, k);
+    checkCornerCase(rcskPwU, rcskStdU);
+
+    rcskStdU = doStdUnion(tcskA, tcskB, k, wmem);
+    CompactSketch rcskStdPairU = doStdPairUnion(tcskA, tcskB, k, wmem);
+    checkCornerCase(rcskStdPairU, rcskStdU);
+
+    wmem = WritableMemory.allocate(SetOperation.getMaxIntersectionBytes(k));
+
+    CompactSketch rcskStdI = doStdIntersection(tcskA, tcskB, null);
+    CompactSketch rcskPwI = doPwIntersection(tcskA, tcskB);
+    checkCornerCase(rcskPwI, rcskStdI);
+
+    rcskStdI = doStdIntersection(tcskA, tcskB, wmem);
+    CompactSketch rcskStdPairI = doStdPairIntersection(tcskA, tcskB, wmem);
+    checkCornerCase(rcskStdPairI, rcskStdI);
+
+    wmem = WritableMemory.allocate(SetOperation.getMaxAnotBResultBytes(k));
+
+    CompactSketch rcskStdAnotB = doStdAnotB(tcskA, tcskB, null);
+    CompactSketch rcskPwAnotB = doPwAnotB(tcskA, tcskB);
+    checkCornerCase(rcskPwAnotB, rcskStdAnotB);
+
+    rcskStdAnotB = doStdAnotB(tcskA, tcskB, wmem);
+    CompactSketch rcskStdStatefulAnotB = doStdStatefulAnotB(tcskA, tcskB, wmem);
+    checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB);
   }
 
   private static void cornerCaseChecks(State stateA, State stateB, int k) {
     println("StateA: " + stateA + ", StateB: " + stateB);
-    CompactSketch cskA = generate(stateA, k);
-    CompactSketch cskB = generate(stateB, k);
-    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    CompactSketch tcskA = generate(stateA, k);
+    CompactSketch tcskB = generate(stateB, k);
 
-    //UNION
-    union.update(cskA);
-    union.update(cskB);
-    CompactSketch comp = union.getResult(true, null);
-    double stdEst = comp.getEstimate();
-    boolean stdEmpty = comp.isEmpty();
-    double stdTheta = comp.getTheta();
-    int stdEnt = comp.getRetainedEntries(true);
+    CompactSketch rcskStdU = doStdUnion(tcskA, tcskB, k, null);
+    CompactSketch rcskPwU = doPwUnion(tcskA, tcskB, k);
+    checkCornerCase(rcskPwU, rcskStdU);
 
-    CompactSketch pwComp = PairwiseSetOperations.union(cskA, cskB, k);
-    double pwEst = pwComp.getEstimate();
-    boolean pwEmpty = pwComp.isEmpty();
-    double pwTheta = pwComp.getTheta();
-    int pwEnt = pwComp.getRetainedEntries(true);
+    CompactSketch rcskStdPairU = doStdPairUnion(tcskA, tcskB, k, null);
+    checkCornerCase(rcskStdPairU, rcskStdU);
 
-    if ((stateA == NULL) && (stateB == NULL)) {
-      Assert.assertEquals(pwEst,  0.0, 0.0);
-      Assert.assertEquals(stdEst, 0.0, 0.0);
-    } else {
-      Assert.assertEquals(pwEst, stdEst, 0.0);
-    }
-    assert pwEmpty == stdEmpty;
-    Assert.assertEquals(pwEmpty, stdEmpty);
-    Assert.assertEquals(pwTheta, stdTheta, 0.0);
-    Assert.assertEquals(pwEnt, stdEnt);
+    CompactSketch rcskStdI = doStdIntersection(tcskA, tcskB, null);
+    CompactSketch rcskPwI = doPwIntersection(tcskA, tcskB);
+    checkCornerCase(rcskPwI, rcskStdI);
 
-    //INTERSECT
-    inter.update(cskA);
-    inter.update(cskB);
-    comp = inter.getResult(true, null);
-    stdEst = comp.getEstimate();
-    stdEmpty = comp.isEmpty();
-    stdTheta = comp.getTheta();
-    stdEnt = comp.getRetainedEntries(true);
+    CompactSketch rcskStdPairI = doStdPairIntersection(tcskA, tcskB, null);
+    checkCornerCase(rcskStdPairI, rcskStdI);
 
-    pwComp = PairwiseSetOperations.intersect(cskA, cskB);
-    pwEst = pwComp.getEstimate();
-    pwEmpty = pwComp.isEmpty();
-    pwTheta = pwComp.getTheta();
-    pwEnt = pwComp.getRetainedEntries(true);
+    CompactSketch rcskStdAnotB = doStdAnotB(tcskA, tcskB, null);
+    CompactSketch rcskPwAnotB = doPwAnotB(tcskA, tcskB);
+    checkCornerCase(rcskPwAnotB, rcskStdAnotB);
 
-    if ((stateA == NULL) && (stateB == NULL)) {
-      Assert.assertEquals(pwEst,  0.0, 0.0);
-      Assert.assertEquals(stdEst, 0.0, 0.0);
-    } else {
-      Assert.assertEquals(pwEst, stdEst, 0.0);
-    }
-    Assert.assertEquals(pwEmpty, stdEmpty);
-    Assert.assertEquals(pwTheta, stdTheta, 0.0);
-    Assert.assertEquals(pwEnt, stdEnt);
-
-    //A NOT B
-    aNotB.update(cskA, cskB);
-    comp = aNotB.getResult(true, null);
-    stdEst =comp.getEstimate();
-    stdEmpty = comp.isEmpty();
-    stdTheta = comp.getTheta();
-    stdEnt = comp.getRetainedEntries(true);
-
-    pwComp = PairwiseSetOperations.aNotB(cskA, cskB);
-    pwEst = pwComp.getEstimate();
-    pwEmpty = pwComp.isEmpty();
-    pwTheta = pwComp.getTheta();
-    pwEnt = pwComp.getRetainedEntries(true);
-
-    if ((stateA == NULL) && (stateB == NULL)) {
-      Assert.assertEquals(pwEst,  0.0, 0.0);
-      Assert.assertEquals(stdEst, 0.0, 0.0);
-    } else {
-      Assert.assertEquals(pwEst, stdEst, 0.0);
-    }
-    Assert.assertEquals(pwEmpty, stdEmpty);
-    Assert.assertEquals(pwTheta, stdTheta, 0.0);
-    Assert.assertEquals(pwEnt, stdEnt);
+    CompactSketch rcskStdStatefulAnotB = doStdStatefulAnotB(tcskA, tcskB, null);
+    checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB);
   }
 
+  private static CompactSketch doStdUnion(Sketch tskA, Sketch tskB, int k, WritableMemory wmem) {
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    union.update(tskA);
+    union.update(tskB);
+    return union.getResult(true, wmem);
+  }
+
+  private static CompactSketch doStdPairUnion(Sketch tskA, Sketch tskB, int k, WritableMemory wmem) {
+    Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
+    return union.union(tskA, tskB, true, wmem);
+  }
+
+  private static CompactSketch doStdIntersection(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    inter.update(tskA);
+    inter.update(tskB);
+    return inter.getResult(true, wmem);
+  }
+
+  private static CompactSketch doStdPairIntersection(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    return inter.intersect(tskA, tskB, true, wmem);
+  }
+
+  private static CompactSketch doStdAnotB(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+    AnotB anotb = Sketches.setOperationBuilder().buildANotB();
+    return anotb.aNotB(tskA, tskB, true, wmem);
+  }
+
+  private static CompactSketch doStdStatefulAnotB(Sketch tskA, Sketch tskB, WritableMemory wmem) {
+    AnotB anotb = Sketches.setOperationBuilder().buildANotB();
+    anotb.setA(tskA);
+    anotb.notB(tskB);
+    anotb.getResult(false);
+    return anotb.getResult(true, wmem, true);
+  }
+
+  private static CompactSketch doPwUnion(Sketch tskA, Sketch tskB, int k) {
+    CompactSketch tcskA, tcskB;
+    if (tskA == null) { tcskA = null; }
+    else { tcskA = (tskA instanceof CompactSketch) ? (CompactSketch) tskA : tskA.compact(); }
+    if (tskB == null) { tcskB = null; }
+    else { tcskB = (tskB instanceof CompactSketch) ? (CompactSketch) tskB : tskB.compact(); }
+    return PairwiseSetOperations.union(tcskA, tcskB, k);
+  }
+
+  private static CompactSketch doPwIntersection(Sketch tskA, Sketch tskB) {
+    return PairwiseSetOperations.intersect(tskA, tskB);
+  }
+
+  private static CompactSketch doPwAnotB(Sketch tskA, Sketch tskB) {
+    return PairwiseSetOperations.aNotB(tskA, tskB);
+  }
+
+  private static void checkCornerCase(Sketch rskA, Sketch rskB) {
+    double estA = rskA.getEstimate();
+    double estB = rskB.getEstimate();
+    boolean emptyA = rskA.isEmpty();
+    boolean emptyB = rskB.isEmpty();
+    long thetaLongA = rskA.getThetaLong();
+    long thetaLongB = rskB.getThetaLong();
+    int countA = rskA.getRetainedEntries(true);
+    int countB = rskB.getRetainedEntries(true);
+    Assert.assertEquals(estB, estA, 0.0);
+    Assert.assertEquals(emptyB, emptyA);
+    Assert.assertEquals(thetaLongB, thetaLongA);
+    Assert.assertEquals(countB, countA);
+    Assert.assertEquals(rskA.getClass().getSimpleName(), rskB.getClass().getSimpleName());
+  }
+
+  /*******************************************/
+
   @Test
-  public void checkNotOrdered() {
+  public void checkUnionNotOrdered() {
     int k = 64;
     CompactSketch skNull = generate(NULL, k);
     CompactSketch skEmpty = generate(EMPTY, k);
@@ -237,18 +275,20 @@ public class PairwiseCornerCasesTest {
   public void checkSeedHash() {
     int k = 64;
     UpdateSketch tmp1 = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
-    tmp1.update(1); tmp1.update(3);
-    CompactSketch skSmallSeed2 = tmp1.compact(true, null);
+    tmp1.update(1);
+    tmp1.update(3);
+    CompactSketch skSmallSeed2A = tmp1.compact(true, null);
 
     UpdateSketch tmp2 = Sketches.updateSketchBuilder().setNominalEntries(k).setSeed(123).build();
-    tmp2.update(1); tmp2.update(2);
+    tmp2.update(1);
+    tmp2.update(2);
     CompactSketch skSmallSeed2B = tmp2.compact(true, null);
 
     CompactSketch skExact = generate(EXACT, k);
     CompactSketch skHeap = generate(EST_HEAP, 2 * k);
     //Intersect
     try {
-      PairwiseSetOperations.intersect(skExact, skSmallSeed2);
+      PairwiseSetOperations.intersect(skExact, skSmallSeed2A);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
@@ -265,7 +305,7 @@ public class PairwiseCornerCasesTest {
     } catch (Exception e) { } //pass
     //A NOT B
     try {
-      PairwiseSetOperations.aNotB(skExact, skSmallSeed2);
+      PairwiseSetOperations.aNotB(skExact, skSmallSeed2A);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
@@ -282,7 +322,7 @@ public class PairwiseCornerCasesTest {
     } catch (Exception e) { } //pass
     //Union
     try {
-      PairwiseSetOperations.union(skExact, skSmallSeed2);
+      PairwiseSetOperations.union(skExact, skSmallSeed2A);
       Assert.fail();
     } catch (Exception e) { } //pass
     try {
@@ -297,11 +337,10 @@ public class PairwiseCornerCasesTest {
       PairwiseSetOperations.union(skHeap, skSmallSeed2B);
       Assert.fail();
     } catch (Exception e) { } //pass
-
   }
 
   @Test
-  public void checkReduceToK() {
+  public void checkPwUnionReduceToK() {
     int k = 16;
     CompactSketch skNull = generate(NULL, k);
     CompactSketch skEmpty = generate(EMPTY, k);
@@ -320,6 +359,9 @@ public class PairwiseCornerCasesTest {
     Assert.assertEquals(csk.getRetainedEntries(), k);
   }
 
+
+
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
@@ -333,7 +375,7 @@ public class PairwiseCornerCasesTest {
   }
 
   @Test
-  public void checkGenerate() {
+  public void checkGenerator() {
     int k = 16;
     CompactSketch csk;
 
@@ -344,6 +386,15 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.isEmpty(), true);
     assertEquals(csk.isEstimationMode(), false);
     assertEquals(csk.getRetainedEntries(), 0);
+    assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
+    assertEquals(csk.isDirect(), false);
+    assertEquals(csk.hasMemory(), false);
+    assertEquals(csk.isOrdered(), true);
+
+    csk = generate(State.SINGLE, k);
+    assertEquals(csk.isEmpty(), false);
+    assertEquals(csk.isEstimationMode(), false);
+    assertEquals(csk.getRetainedEntries(), 1);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -395,7 +446,7 @@ public class PairwiseCornerCasesTest {
     assertEquals(csk.isOrdered(), false);
   }
 
-  enum State {NULL, EMPTY, EXACT, EST_HEAP, THLT1_CNT0_FALSE, THEQ1_CNT0_TRUE, EST_MEMORY_UNORDERED}
+  enum State {NULL, EMPTY, SINGLE, EXACT, EST_HEAP, THLT1_CNT0_FALSE, THEQ1_CNT0_TRUE, EST_MEMORY_UNORDERED}
 
   private static CompactSketch generate(State state, int k) {
     UpdateSketch sk = null;
@@ -408,6 +459,12 @@ public class PairwiseCornerCasesTest {
       }
       case EMPTY : { //results in EmptyCompactSketch
         csk = Sketches.updateSketchBuilder().setNominalEntries(k).build().compact(true, null);
+        break;
+      }
+      case SINGLE : { //results in SingleItemSketches most of the time
+        sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+        sk.update(1);
+        csk = sk.compact(true, null);
         break;
       }
       case EXACT : {

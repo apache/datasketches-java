@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -123,7 +122,6 @@ public class SingleItemSketchTest {
   @Test
   public void checkSketchInterface() {
     SingleItemSketch sis = SingleItemSketch.create(1);
-    assertEquals(sis.getCountLessThanTheta(1.0), 1);
     assertEquals(sis.getCurrentBytes(true), 16);
     assertEquals(sis.getEstimate(), 1.0);
     assertEquals(sis.getLowerBound(1), 1.0);
@@ -136,13 +134,14 @@ public class SingleItemSketchTest {
   }
 
   @Test
-  public void checkLessThanTheta() {
+  public void checkLessThanThetaLong() {
     for (int i = 0; i < 10; i++) {
       long[] data = { i };
       long h = hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1;
-      double theta = h / MAX_THETA_LONG_AS_DOUBLE;
       SingleItemSketch sis = SingleItemSketch.create(i);
-      assertEquals(sis.getCountLessThanTheta(0.5), (theta < 0.5) ? 1 : 0);
+      long halfMax = Long.MAX_VALUE >> 1;
+      int count = sis.getCountLessThanThetaLong(halfMax);
+      assertEquals(count, (h < halfMax) ? 1 : 0);
     }
   }
 

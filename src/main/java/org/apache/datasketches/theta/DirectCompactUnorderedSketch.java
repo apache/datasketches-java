@@ -22,6 +22,7 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 
 import org.apache.datasketches.memory.Memory;
@@ -47,7 +48,8 @@ final class DirectCompactUnorderedSketch extends DirectCompactSketch {
    * Wraps the given Memory, which must be a SerVer 3, unordered, Compact Sketch image.
    * Must check the validity of the Memory before calling.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param seed The update seed.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return this sketch
    */
   static DirectCompactUnorderedSketch wrapInstance(final Memory srcMem, final long seed) {
@@ -67,12 +69,18 @@ final class DirectCompactUnorderedSketch extends DirectCompactSketch {
    * @param dstMem the given destination Memory. This clears it before use.
    * @return a DirectCompactUnorderedSketch
    */
-  static DirectCompactUnorderedSketch compact(final long[] cache, final boolean empty,
-      final short seedHash, final int curCount, final long thetaLong, final WritableMemory dstMem) {
+  static DirectCompactUnorderedSketch compact(
+      final long[] cache,
+      final boolean empty,
+      final short seedHash,
+      final int curCount,
+      final long thetaLong,
+      final WritableMemory dstMem) {
     final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
-    final int requiredFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
-    final byte flags = (byte) (requiredFlags | (empty ? EMPTY_FLAG_MASK : 0));
-    loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+    int flags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
+    flags |= empty ? EMPTY_FLAG_MASK : 0;
+    flags |= (curCount == 1) ? SINGLEITEM_FLAG_MASK : 0;
+    loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
     return new DirectCompactUnorderedSketch(dstMem);
   }
 

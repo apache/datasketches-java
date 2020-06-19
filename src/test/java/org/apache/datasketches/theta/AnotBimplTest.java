@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class HeapAnotBTest {
+public class AnotBimplTest {
 
   @Test
   public void checkExactAnotB_AvalidNoOverlap() {
@@ -372,7 +372,7 @@ public class HeapAnotBTest {
   @Test
   public void checkGetFamily() {
     //cheap trick
-    HeapAnotB anotb = new HeapAnotB(Util.DEFAULT_UPDATE_SEED);
+    AnotBimpl anotb = new AnotBimpl(Util.DEFAULT_UPDATE_SEED);
     assertEquals(anotb.getFamily(), Family.A_NOT_B);
   }
 

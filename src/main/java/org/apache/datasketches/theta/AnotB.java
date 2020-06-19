@@ -47,55 +47,125 @@ public abstract class AnotB extends SetOperation {
   }
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   * This is a stateful input operation. This method sets the given Sketch as the first
+   * argument <i>A</i> of a stateful <i>AnotB</i> operation. This overwrites the internal state of
+   * this AnotB operator with the contents of the given sketch. This sets the stage for multiple
+   * stateful subsequent {@link #notB(Sketch)} operations. The ultimate result is obtained using
+   * the {@link #getResult(boolean)} or {@link #getResult(boolean, WritableMemory, boolean)}.
+   *
+   * <p>An input argument of null will throw an exception.</p>
+   *
+   * @param skA The incoming sketch for the first argument, <i>A</i>.
    */
-  public abstract CompactSketch getResult();
+  public abstract void setA(Sketch skA);
 
   /**
-   * Gets the result of this set operation as a CompactSketch of the chosen form
+   * Performs a stateful <i>AND NOT</i> operation with the existing internal state of this AnotB
+   * operator. Use {@link #getResult(boolean)} or {@link #getResult(boolean, WritableMemory, boolean)}
+   * to obtain the result.
+   *
+   * <p>An input argument of null or empty is ignored.</p>
+   *
+   * @param skB The incoming sketch for the second (or following) argument <i>B</i>.
+   */
+  public abstract void notB(Sketch skB);
+
+  /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * @param reset If true, clears this operator to the empty state after result is returned.
+   * @return the result of this operation as a CompactSketch.
+   */
+  public abstract CompactSketch getResult(boolean reset);
+
+  /**
+   * Gets the result of this stateful set operation as a CompactSketch of the chosen form. The
+   * stateful input operations are {@link #setA(Sketch)} and {@link #notB(Sketch)}.
+   *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    *
    * @param dstMem
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    *
+   * @param reset If true, clears this operator to the empty state after result is returned.
+   *
    * @return the result of this set operation as a CompactSketch of the chosen form
    */
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
-
-  /**
-   * Perform A-and-not-B set operation on the two given sketches.
-   * A null sketch is interpreted as an empty sketch.
-   *
-   * @param a The incoming sketch for the first argument
-   * @param b The incoming sketch for the second argument
-   */
-  public abstract void update(Sketch a, Sketch b);
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem, boolean reset);
 
   /**
    * Perform A-and-not-B set operation on the two given sketches and return the result as an
    * ordered CompactSketch on the heap.
-   * @param a The incoming sketch for the first argument
-   * @param b The incoming sketch for the second argument
+   *
+   * <p>This a stateless operation and has no impact on the internal state of this operator.
+   * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)},
+   * {@link #notB(Sketch)}, {@link #getResult(boolean)}, or
+   * {@link #getResult(boolean, WritableMemory, boolean)} methods.</p>
+   *
+   * @param skA The incoming sketch for the first argument
+   * @param skB The incoming sketch for the second argument
    * @return an ordered CompactSketch on the heap
    */
-  public CompactSketch aNotB(final Sketch a, final Sketch b) {
-    return aNotB(a, b, true, null);
+  public CompactSketch aNotB(final Sketch skA, final Sketch skB) {
+    return aNotB(skA, skB, true, null);
   }
 
   /**
    * Perform A-and-not-B set operation on the two given sketches and return the result as a
    * CompactSketch.
-   * @param a The incoming sketch for the first argument
-   * @param b The incoming sketch for the second argument
+   *
+   * <p>This a stateless operation and has no impact on the internal state of this operator.
+   * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)}
+   * or {@link #notB(Sketch)} methods.</p>
+   *
+   * @param skA The incoming sketch for the first argument
+   * @param skB The incoming sketch for the second argument
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    * @param dstMem
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    * @return the result as a CompactSketch.
    */
-  public abstract CompactSketch aNotB(Sketch a, Sketch b, boolean dstOrdered,
+  public abstract CompactSketch aNotB(Sketch skA, Sketch skB, boolean dstOrdered,
       WritableMemory dstMem);
+
+  //Deprecated methods
+
+  /**
+   * Perform A-and-not-B set operation on the two given sketches.
+   * A null sketch is interpreted as an empty sketch.
+   *
+   * @param skA The incoming sketch for the first argument
+   * @param skB The incoming sketch for the second argument
+   * @deprecated Instead use {@link #aNotB(Sketch, Sketch)}.
+   */
+  @Deprecated
+  public abstract void update(Sketch skA, Sketch skB);
+
+  /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * This clears the state of this operator after the result is returned.
+   * @return the result of this operation as an ordered CompactSketch on the Java heap.
+   * @deprecated Instead use {@link #getResult(boolean)} or
+   * {@link #getResult(boolean, WritableMemory, boolean)}.
+   */
+  @Deprecated
+  public abstract CompactSketch getResult();
+
+  /**
+   * Gets the result of this set operation as a CompactSketch of the chosen form.
+   * This clears the state of this operator after the result is returned.
+   * @param dstOrdered
+   * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
+   *
+   * @param dstMem
+   * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
+   *
+   * @return the result of this set operation as a CompactSketch of the chosen form.
+   * @deprecated Instead use {@link #getResult(boolean)} or
+   * {@link #getResult(boolean, WritableMemory, boolean)}.
+   */
+  @Deprecated
+  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
 }

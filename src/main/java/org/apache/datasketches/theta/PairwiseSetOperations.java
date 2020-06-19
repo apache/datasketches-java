@@ -34,24 +34,30 @@ import org.apache.datasketches.Util;
  * Heap-based or Direct.
  *
  * @author Lee Rhodes
+ * @deprecated  This class has been deprecated as equivalent functionality has been added to the
+ * SetOperation classes: Union, Intersection and AnotB.
  */
+@Deprecated
 public class PairwiseSetOperations {
 
   /**
    * This implements a stateless, pair-wise <i>Intersect</i> operation on sketches
    * that are either Heap-based or Direct.
-   * If both inputs are null an EmptyCompactSketch is returned.
+   * If either inputs are null or empty an EmptyCompactSketch is returned.
    *
    * @param skA The first Sketch argument.
    * @param skB The second Sketch argument.
    * @return the result as an ordered CompactSketch on the heap.
+   * @deprecated Use {@link Intersection#intersect(Sketch, Sketch)} instead, which has more
+   * complete seed handling.
    */
+  @Deprecated
   public static CompactSketch intersect(final Sketch skA, final Sketch skB) {
     if (((skA == null) || (skA instanceof EmptyCompactSketch))
-        && ((skB == null) || (skB instanceof EmptyCompactSketch))) {
+        || ((skB == null) || (skB instanceof EmptyCompactSketch))) {
       return EmptyCompactSketch.getInstance();
     }
-    final short seedHash = (skA == null) ? skB.getSeedHash() : skA.getSeedHash();
+    final short seedHash = skA.getSeedHash();
     final Intersection inter = new IntersectionImpl(seedHash);
     return inter.intersect(skA, skB, true, null);
   }
@@ -64,7 +70,10 @@ public class PairwiseSetOperations {
    * @param skA The first Sketch argument.
    * @param skB The second Sketch argument.
    * @return the result as an ordered CompactSketch on the heap.
+   * @deprecated Use {@link AnotB#aNotB(Sketch, Sketch)} instead, which has more
+   * complete seed handling.
    */
+  @Deprecated
   public static CompactSketch aNotB(final Sketch skA, final Sketch skB) {
     if (((skA == null) || (skA instanceof EmptyCompactSketch))
         && ((skB == null) || (skB instanceof EmptyCompactSketch))) {
@@ -72,13 +81,14 @@ public class PairwiseSetOperations {
     }
     final short seedHash = ((skA == null) || (skA instanceof EmptyCompactSketch))
         ? skB.getSeedHash() : skA.getSeedHash(); // lgtm [java/dereferenced-value-may-be-null]
-    final HeapAnotB anotb = new HeapAnotB(seedHash);
-    return anotb.aNotB(skA, skB, true, null); //handles null arguments just fine.
+    final AnotBimpl anotb = new AnotBimpl(seedHash);
+    return anotb.aNotB(skA, skB, true, null);
   }
 
   /**
    * This implements a stateless, pair-wise union operation on ordered,
    * CompactSketches that are either Heap-based or Direct.
+   * Having the input sketches be compact and ordered enables extremely fast union operation.
    * If both inputs are null an EmptyCompactSketch is returned.
    * If one is null the other is returned, which can be either Heap-based or Direct.
    * This is equivalent to union(skA, skB, k) where k is the default of 4096.
@@ -86,7 +96,10 @@ public class PairwiseSetOperations {
    * @param skA The first ordered, CompactSketch argument.
    * @param skB The second ordered, CompactSketch argument
    * @return the result as an ordered CompactSketch.
+   * @deprecated Please use {@link Union#union(Sketch, Sketch)} instead, which has more
+   * complete seed handling.
    */
+  @Deprecated
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB) {
     return union(skA, skB, Util.DEFAULT_NOMINAL_ENTRIES);
   }
@@ -104,7 +117,10 @@ public class PairwiseSetOperations {
    * @param skB The second ordered, CompactSketch argument
    * @param k The upper bound of the number of entries to be retained by the sketch
    * @return the result as an ordered CompactSketch.
+   * @deprecated Please use {@link Union#union(Sketch, Sketch)} instead, which has more
+   * complete seed handling.
    */
+  @Deprecated
   @SuppressWarnings("null")
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB, final int k) {
     //Handle all corner cases with null or empty arguments
