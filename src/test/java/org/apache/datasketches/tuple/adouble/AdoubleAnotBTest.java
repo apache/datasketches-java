@@ -252,7 +252,7 @@ public class AdoubleAnotBTest {
     }
 
     AnotB<DoubleSummary> aNotB = new AnotB<>();
-    results.set(2124, false, 4096.0, 0.03, 1.0);
+    results.set(2123, false, 4096.0, 0.03, 1.0);
     threeMethodsWithTheta(aNotB, sketchA, sketchB, skThetaB, results);
 
     // same thing, but compact sketches

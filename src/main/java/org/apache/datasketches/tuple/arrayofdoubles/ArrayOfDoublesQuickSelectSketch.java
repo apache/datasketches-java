@@ -104,7 +104,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
    */
   static int getMaxBytes(final int nomEntries, final int numValues) {
     return ENTRIES_START
-        + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
+        + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * ceilingPowerOf2(nomEntries) * 2);
   }
 
   // non-public methods below
@@ -126,7 +126,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   void rebuildIfNeeded() {
-    if (getRetainedEntries() < rebuildThreshold_) { return; }
+    if (getRetainedEntries() <= rebuildThreshold_) { return; }
     if (getCurrentCapacity() > getNominalEntries()) {
       setThetaLong(getNewTheta());
       rebuild();
@@ -160,7 +160,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
         + " elements, but has " + values.length);
     }
     setNotEmpty();
-    if (key == 0 || key >= theta_) { return; }
+    if ((key == 0) || (key >= theta_)) { return; }
     final int index = findOrInsertKey(key);
     if (index < 0) {
       incrementCount();
