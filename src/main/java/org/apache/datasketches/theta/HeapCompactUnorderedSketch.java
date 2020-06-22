@@ -25,6 +25,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * An on-heap, compact, unordered, read-only sketch.
@@ -72,6 +73,18 @@ final class HeapCompactUnorderedSketch extends HeapCompactSketch {
   }
 
   //Sketch interface
+
+  @Override //ordered, on-heap
+  public CompactSketch compact() {
+    //TODO
+    return null;
+  }
+
+  @Override
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+    //TODO
+    return null;
+  }
 
   @Override
   public byte[] toByteArray() {

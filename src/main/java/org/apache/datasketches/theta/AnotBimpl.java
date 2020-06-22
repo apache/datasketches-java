@@ -26,8 +26,6 @@ import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.Util.simpleIntLog2;
-import static org.apache.datasketches.theta.CompactSketch.compactCache;
-import static org.apache.datasketches.theta.CompactSketch.loadCompactMemory;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
@@ -184,15 +182,15 @@ final class AnotBimpl extends AnotB {
         final SingleItemSketch sis = new SingleItemSketch(hashArr[0], seedHash);
         dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
       }
-      final int preLongs = Sketch.computeCompactPreLongs(thetaLong, false, curCount);
+      final int preLongs = CompactOperations.computeCompactPreLongs(thetaLong, false, curCount);
       if (dstOrdered) {
         final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
         Arrays.sort(hashArr);
-        loadCompactMemory(hashArr, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+        CompactOperations.loadCompactMemory(hashArr, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
         result = new DirectCompactOrderedSketch(dstMem);
       } else {
         final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
-        loadCompactMemory(hashArr, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+        CompactOperations.loadCompactMemory(hashArr, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
         result = new DirectCompactUnorderedSketch(dstMem);
       }
     }
@@ -411,7 +409,7 @@ final class AnotBimpl extends AnotB {
         thetaLongR_ = skA_.getThetaLong();
         emptyR_ = false;
         curCountR_ = skA_.getRetainedEntries(true);
-        hashArrR_ = compactCache(skA_.getCache(), curCountR_, thetaLongR_, false);
+        hashArrR_ = CompactOperations.compactCache(skA_.getCache(), curCountR_, thetaLongR_, false);
         break;
 
       case 18:   //A Compact, B Compact; CheckAB, B -> H; => C,H; scanAllAsearchB()

@@ -77,13 +77,26 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
       final int curCount,
       final long thetaLong,
       final WritableMemory dstMem) {
-    final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
+    final int preLongs = CompactOperations.computeCompactPreLongs(thetaLong, empty, curCount);
     int flags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
     flags |= empty ? EMPTY_FLAG_MASK : 0;
     flags |= (curCount == 1) ? SINGLEITEM_FLAG_MASK : 0;
-    loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
+    CompactOperations.loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
     return new DirectCompactOrderedSketch(dstMem);
   }
+
+  @Override //ordered, on-heap
+  public CompactSketch compact() {
+    //TODO
+    return null;
+  }
+
+  @Override
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+    //TODO
+    return null;
+  }
+
 
   @Override
   public boolean isOrdered() {

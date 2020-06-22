@@ -57,7 +57,7 @@ abstract class HeapCompactSketch extends CompactSketch {
     curCount_ = empty ? 0 : curCount;
     thetaLong_ = empty ? Long.MAX_VALUE : thetaLong;
     cache_ = cache;
-    preLongs_ = computeCompactPreLongs(thetaLong, empty, curCount);
+    preLongs_ = CompactOperations.computeCompactPreLongs(thetaLong, empty, curCount);
   }
 
   //Sketch
@@ -133,7 +133,7 @@ abstract class HeapCompactSketch extends CompactSketch {
     final int orderedBit = ordered ? (byte) ORDERED_FLAG_MASK : 0;
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | orderedBit);
     final int preLongs = getCurrentPreambleLongs(true);
-    loadCompactMemory(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
+    CompactOperations.loadCompactMemory(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
         dstMem, flags, preLongs);
     return byteArray;
   }

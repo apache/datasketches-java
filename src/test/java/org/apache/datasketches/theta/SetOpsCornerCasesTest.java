@@ -96,7 +96,7 @@ public class SetOpsCornerCasesTest {
   }
 
   @Test
-  public void checkExactNull() {
+  public void checkExactNullSpecificCase() {
     cornerCaseChecksMemory(State.EXACT, State.NULL, 64);
   }
 
@@ -109,31 +109,31 @@ public class SetOpsCornerCasesTest {
 
     CompactSketch rcskStdU = doStdUnion(tcskA, tcskB, k, null);
     CompactSketch rcskPwU = doPwUnion(tcskA, tcskB, k);
-    checkCornerCase(rcskPwU, rcskStdU);
+    checkCornerCase(rcskPwU, rcskStdU); //heap, heap
 
     rcskStdU = doStdUnion(tcskA, tcskB, k, wmem);
     CompactSketch rcskStdPairU = doStdPairUnion(tcskA, tcskB, k, wmem);
-    checkCornerCase(rcskStdPairU, rcskStdU);
+    checkCornerCase(rcskStdPairU, rcskStdU); //direct, direct
 
     wmem = WritableMemory.allocate(SetOperation.getMaxIntersectionBytes(k));
 
     CompactSketch rcskStdI = doStdIntersection(tcskA, tcskB, null);
     CompactSketch rcskPwI = doPwIntersection(tcskA, tcskB);
-    checkCornerCase(rcskPwI, rcskStdI);
+    checkCornerCase(rcskPwI, rcskStdI); //empty, empty
 
     rcskStdI = doStdIntersection(tcskA, tcskB, wmem);
     CompactSketch rcskStdPairI = doStdPairIntersection(tcskA, tcskB, wmem);
-    checkCornerCase(rcskStdPairI, rcskStdI);
+    checkCornerCase(rcskStdPairI, rcskStdI); //empty, empty //direct, direct???
 
     wmem = WritableMemory.allocate(SetOperation.getMaxAnotBResultBytes(k));
 
     CompactSketch rcskStdAnotB = doStdAnotB(tcskA, tcskB, null);
     CompactSketch rcskPwAnotB = doPwAnotB(tcskA, tcskB);
-    checkCornerCase(rcskPwAnotB, rcskStdAnotB);
+    checkCornerCase(rcskPwAnotB, rcskStdAnotB); //heap, heap
 
     rcskStdAnotB = doStdAnotB(tcskA, tcskB, wmem);
     CompactSketch rcskStdStatefulAnotB = doStdStatefulAnotB(tcskA, tcskB, wmem);
-    checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB);
+    checkCornerCase(rcskStdStatefulAnotB, rcskStdAnotB); //direct, heap
   }
 
   private static void cornerCaseChecks(State stateA, State stateB, int k) {
@@ -230,6 +230,8 @@ public class SetOpsCornerCasesTest {
     Assert.assertEquals(emptyB, emptyA);
     Assert.assertEquals(thetaLongB, thetaLongA);
     Assert.assertEquals(countB, countA);
+    String A = rskA.getClass().getSimpleName();
+    String B = rskB.getClass().getSimpleName();
     Assert.assertEquals(rskA.getClass().getSimpleName(), rskB.getClass().getSimpleName());
   }
 

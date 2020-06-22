@@ -40,6 +40,60 @@ abstract class DirectCompactSketch extends CompactSketch {
 
   //Sketch
 
+//  @Override //ordered, on-heap
+//  public CompactSketch compact() {
+//    //TODO
+//    return null;
+//  }
+//
+//  @Override
+//  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+//    final int srcFlags = extractFlags(mem_);
+//    final boolean srcOrdered = (srcFlags & ORDERED_FLAG_MASK) > 0;
+//    final int srcPreLongs = extractPreLongs(mem_);
+//    final int srcCurCount = (srcPreLongs == 1) ? 0 : extractCurCount(mem_);
+//    final long srcThetaLong = (srcPreLongs <= 2) ? Long.MAX_VALUE : extractThetaLong(mem_);
+//    final int bytes = (srcPreLongs + srcCurCount) << 3;
+//    if (srcCurCount == 0) {
+//      if (srcThetaLong == Long.MAX_VALUE) {
+//        //this sets the ordered to true independent of the dstOrdered request
+//        return EmptyCompactSketch.getInstance().compact(true, wmem);
+//      } else {
+//        assert srcPreLongs == 3 : "Theta < 1.0, thus PreLong must be 3: " + srcPreLongs;
+//        mem_.copyTo(0, wmem, 0, srcPreLongs << 3);
+//        if (dstOrdered) {
+//          return new DirectCompactOrderedSketch(wmem);
+//        } else {
+//          return new DirectCompactUnorderedSketch(wmem);
+//        }
+//      }
+//    }
+//    if (srcCurCount == 1) {
+//      if (srcThetaLong == Long.MAX_VALUE) {
+//        //TODO
+//      }
+//    }
+//    if (!srcOrdered && dstOrdered) { //sort this src mem and place in wmem
+//      if (srcCurCount == 0) {
+//        final long thetaLong = extractThetaLong(mem_);
+//        if (thetaLong == Long.MAX_VALUE) {
+//          //TODO
+//        }
+//      } else {
+//        final byte[] srcBytes = new byte[bytes];
+//        mem_.getByteArray(0, srcBytes, 0, bytes);
+//        wmem.putByteArray(0, srcBytes, 0, bytes);
+//        final byte dstFlags = (byte) (srcFlags & ORDERED_FLAG_MASK);
+//        wmem.putByte(FLAGS_BYTE, dstFlags);
+//      }
+//
+//    } else {
+//      mem_.copyTo(0, wmem, 0, bytes);
+//    }
+//
+//    return null;  //TODO
+//  }
+
   //overidden by EmptyCompactSketch and SingleItemSketch
   @Override
   public int getCurrentBytes(final boolean compact) { //compact is ignored here
@@ -95,7 +149,7 @@ abstract class DirectCompactSketch extends CompactSketch {
     return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
   }
 
-  @Override
+  @Override //order is already determined.
   public byte[] toByteArray() {
     final int curCount = getRetainedEntries(true);
     Sketch.checkIllegalCurCountAndEmpty(isEmpty(), curCount);

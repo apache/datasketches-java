@@ -220,7 +220,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return PreambleUtil.extractPreLongs(wmem_); }
-    return computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
+    return CompactOperations.computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
   }
 
   @Override

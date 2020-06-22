@@ -19,12 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
-import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * An on-heap, compact, ordered, read-only sketch.
@@ -48,30 +43,19 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
     super(cache, empty, seedHash, curCount, thetaLong);
   }
 
-  /**
-   * Heapifies the given source Memory with seed
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a CompactSketch
-   */
-  //Note Empty and SingleItemSketches should be filtered out before we get here.
-  static CompactSketch heapifyInstance(final Memory srcMem, final long seed) {
-    final short memSeedHash = checkMemorySeedHash(srcMem, seed);
-    final int preLongs = extractPreLongs(srcMem);
-    final boolean empty = PreambleUtil.isEmptySketch(srcMem);
-    long thetaLong = Long.MAX_VALUE;
-    final int curCount = extractCurCount(srcMem);
-    final long[] cache = new long[curCount];
-    if (preLongs == 2) {
-      srcMem.getLongArray(16, cache, 0, curCount);
-    } else { //preLongs == 3
-      srcMem.getLongArray(24, cache, 0, curCount);
-      thetaLong = extractThetaLong(srcMem);
-    }
-    return new HeapCompactOrderedSketch(cache, empty, memSeedHash, curCount, thetaLong);
+  //Sketch interface
+
+  @Override //ordered, on-heap
+  public CompactSketch compact() {
+    //TODO
+    return null;
   }
 
-  //Sketch interface
+  @Override
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+    //TODO
+    return null;
+  }
 
   @Override
   public byte[] toByteArray() {

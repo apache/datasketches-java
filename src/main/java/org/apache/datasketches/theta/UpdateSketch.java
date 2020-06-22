@@ -26,8 +26,6 @@ import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.theta.CompactSketch.compactCache;
-import static org.apache.datasketches.theta.CompactSketch.loadCompactMemory;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -160,7 +158,7 @@ public abstract class UpdateSketch extends Sketch {
     final long[] cache = usk.getCache();
     if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
 
-      final long[] cacheOut = compactCache(cache, curCount, thetaLong, dstOrdered);
+      final long[] cacheOut = CompactOperations.compactCache(cache, curCount, thetaLong, dstOrdered);
       final long hash = cacheOut[0];
       final SingleItemSketch sis = new SingleItemSketch(hash, usk.getSeedHash());
       if (dstMem != null) {
@@ -169,7 +167,7 @@ public abstract class UpdateSketch extends Sketch {
       return sis;
     }
     if (dstMem == null) {
-      final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, dstOrdered);
+      final long[] cacheOut = CompactOperations.compactCache(cache, curCount, thetaLong, dstOrdered);
       if (dstOrdered) {
         return new HeapCompactOrderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
       } else {
@@ -190,11 +188,11 @@ public abstract class UpdateSketch extends Sketch {
    * @param thetaLong the value of theta.
    * @return a CompactSketch
    */
-  private static CompactSketch compactHeap(final UpdateSketch sketch, final boolean ordered,
+  static CompactSketch compactHeap(final UpdateSketch sketch, final boolean ordered,
       final int curCount, final long thetaLong) {
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
-    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    final long[] cacheOut = CompactOperations.compactCache(cache, curCount, thetaLong, ordered);
     if (ordered) {
       return new HeapCompactOrderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
     } else {
@@ -212,19 +210,19 @@ public abstract class UpdateSketch extends Sketch {
    * @param thetaLong the value of theta.
    * @return a CompactSketch.
    */
-  private static CompactSketch compactDirect(final UpdateSketch sketch,
+  static CompactSketch compactDirect(final UpdateSketch sketch,
       final WritableMemory dstMem, final boolean ordered, final int curCount, final long thetaLong) {
-    final int preLongs = computeCompactPreLongs(thetaLong, false, curCount);
+    final int preLongs = CompactOperations.computeCompactPreLongs(thetaLong, false, curCount);
     final short seedHash = sketch.getSeedHash();
     final long[] cache = sketch.getCache();
-    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
+    final long[] cacheOut = CompactOperations.compactCache(cache, curCount, thetaLong, ordered);
     if (ordered) {
       final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
-      loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+      CompactOperations.loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
       return new DirectCompactOrderedSketch(dstMem);
     } else {
       final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
-      loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
+      CompactOperations.loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
       return new DirectCompactUnorderedSketch(dstMem);
     }
   }

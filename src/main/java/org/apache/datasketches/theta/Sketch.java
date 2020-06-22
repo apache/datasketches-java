@@ -163,8 +163,9 @@ public abstract class Sketch {
             throw new SketchesArgumentException(
                 "Corrupted: COMPACT family sketch image must have Read-Only flag set");
           }
-          return orderedFlag ? DirectCompactOrderedSketch.wrapInstance(srcMem, seed)
-                : DirectCompactUnorderedSketch.wrapInstance(srcMem, seed);
+          return orderedFlag
+              ? DirectCompactOrderedSketch.wrapInstance(srcMem, seed)
+              : DirectCompactUnorderedSketch.wrapInstance(srcMem, seed);
         } //end of serVer 3
         else if (serVer == 1) {
           return ForwardCompatibility.heapify1to3(srcMem, seed);
@@ -563,11 +564,6 @@ public abstract class Sketch {
    */
   abstract int getCurrentPreambleLongs(boolean compact);
 
-  static final int computeCompactPreLongs(final long thetaLong, final boolean empty,
-      final int curCount) {
-    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : (curCount > 1) ? 2 : 1;
-  }
-
   /**
    * Returns the Memory object if it exists, otherwise null.
    * @return the Memory object if it exists, otherwise null.
@@ -696,9 +692,7 @@ public abstract class Sketch {
     }
     final byte familyID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(familyID);
-    final int preLongs = PreambleUtil.extractPreLongs(srcMem);
     final int flags = PreambleUtil.extractFlags(srcMem);
-    final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) != 0;
     final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
 
     switch (family) {
@@ -713,7 +707,7 @@ public abstract class Sketch {
         return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
       }
       case COMPACT: {
-
+        final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
         if (!compactFlag) {
           throw new SketchesArgumentException(
               "Corrupted: COMPACT family sketch image must have compact flag set");
@@ -723,18 +717,8 @@ public abstract class Sketch {
           throw new SketchesArgumentException(
               "Corrupted: COMPACT family sketch image must have Read-Only flag set");
         }
-        if (PreambleUtil.isEmptySketch(srcMem)) { //emptyFlag OR capacity < 16 bytes.
-          return EmptyCompactSketch.getInstance(srcMem);
-        }
-        if (preLongs == 1) {
-          if (isSingleItemSketch(srcMem)) { //SINGLE ITEM
-            return SingleItemSketch.heapify(srcMem, seed);
-          } else { //EMPTY. Note very old sketches ( before 2014) have no empty flag.
-            return EmptyCompactSketch.getInstance(srcMem);
-          }
-        }
-        return orderedFlag ? HeapCompactOrderedSketch.heapifyInstance(srcMem, seed)
-                       : HeapCompactUnorderedSketch.heapifyInstance(srcMem, seed);
+        final short memSeedHash = PreambleUtil.checkMemorySeedHash(srcMem, seed);
+        return CompactSketch.anyMemoryToCompactHeap(srcMem, memSeedHash, srcOrdered);
       } //end of Compact
       default: {
         throw new SketchesArgumentException(

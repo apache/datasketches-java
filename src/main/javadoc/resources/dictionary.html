@@ -217,7 +217,7 @@ some security and protection against "dictionary attacks".
 of sketches that were generated with different seeds a short, 16-bit, 
 <a href="#seedHash">Seed Hash</a> is stored with the sketch image.
 When heapifying or wrapping an UpdateSketch image, which can be either a byte array or a Memory object, 
-the user must provide the original seed either directly or indirectly by assuming the <i>DEFAULT_UPDATE_SEED</i>. 
+the user must provide the original seed either directly or indirectly by assuming the <a href="#defaultUpdateSeed">DEFAULT_UPDATE_SEED</a>. 
 The provided seed will be hashed and validated against the internal short Seed Hash and an error will be thrown if the seed hashes do not match.
 The Set Operations classes, Union, Intersection and AnotB also require the user to provide the seed either directly or indirectly.
 <p>An internal check will be made to make sure that the provided seed does not hash to a 16-bit value of zero. 

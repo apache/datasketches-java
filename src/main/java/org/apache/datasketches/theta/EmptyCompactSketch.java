@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Singleton empty CompactSketch.
@@ -44,6 +45,7 @@ final class EmptyCompactSketch extends CompactSketch {
     return EMPTY_COMPACT_SKETCH;
   }
 
+  //This should be a heapify
   static EmptyCompactSketch getInstance(final Memory srcMem) {
     final long pre0 = srcMem.getLong(0);
     if (testCandidatePre0(pre0)) {
@@ -52,6 +54,23 @@ final class EmptyCompactSketch extends CompactSketch {
     final long maskedPre0 = pre0 & EMPTY_SKETCH_MASK;
     throw new SketchesArgumentException("Input Memory does not match required Preamble. "
         + "Memory Pre0: " + maskedPre0 + ", required Pre0: " +  EMPTY_SKETCH_MASK);
+  }
+
+  @Override
+  // This returns with ordered flag = true independent of dstOrdered.
+  // This is required for fast detection.
+  // The hashSeed is ignored and set == 0.
+  public CompactSketch compact() {
+    return EmptyCompactSketch.getInstance();
+  }
+
+  @Override
+  // This returns with ordered flag = true independent of dstOrdered.
+  // This is required for fast detection.
+  // The hashSeed is ignored and set == 0.
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+    wmem.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
+    return new DirectCompactOrderedSketch(wmem);
   }
 
   //static
