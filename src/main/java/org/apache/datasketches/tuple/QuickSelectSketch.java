@@ -419,7 +419,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   boolean rebuildIfNeeded() {
-    if (count_ < rebuildThreshold_) {
+    if (count_ <= rebuildThreshold_) {
       return false;
     }
     if (hashTable_.length > nomEntries_) {
