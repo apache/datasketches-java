@@ -41,16 +41,15 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -389,7 +388,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk2.getUpperBound(2), uskUB);
       assertEquals(csk2.isEmpty(), true);
       assertEquals(csk2.isEstimationMode(), false);
-      assertEquals(csk2.getClass().getSimpleName(), "EmptyCompactSketch");
+      assertEquals(csk2.getClass().getSimpleName(), "DirectCompactOrderedSketch");
 
       CompactSketch csk3 = usk.compact(true, mem2);
       csk3.toString(false, true, 0, false);
@@ -399,7 +398,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk3.getUpperBound(2), uskUB);
       assertEquals(csk3.isEmpty(), true);
       assertEquals(csk3.isEstimationMode(), false);
-      assertEquals(csk3.getClass().getSimpleName(), "EmptyCompactSketch");
+      assertEquals(csk3.getClass().getSimpleName(), "DirectCompactOrderedSketch");
     }
   }
 

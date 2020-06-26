@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  *
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc","deprecation"})
 public class EmptyTest {
 
   @Test
@@ -136,9 +136,10 @@ public class EmptyTest {
     Sketches.heapifySketch(mem);
   }
 
-  private static Memory badEmptySk() { //missing the empty bit
+  //SerVer 2 had an empty sketch where preLongs = 1, but empty bit was not set.
+  private static Memory badEmptySk() {
     final long preLongs = 1;
-    final long serVer = 3;
+    final long serVer = 2;
     final long family = 3; //compact
     final long flags = (ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK);
     final long seedHash = 0x93CC;

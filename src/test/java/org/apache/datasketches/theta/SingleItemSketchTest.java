@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc","deprecation"})
 public class SingleItemSketchTest {
   final static short DEFAULT_SEED_HASH = (short) (computeSeedHash(DEFAULT_UPDATE_SEED) & 0XFFFFL);
 
@@ -202,13 +202,12 @@ public class SingleItemSketchTest {
     csk = sk1.compact(false, null);
     assertTrue(csk instanceof SingleItemSketch);
 
-    //SingleItemSketch has no off-heap form.
     bytes = Sketches.getMaxCompactSketchBytes(1);
     wmem = WritableMemory.wrap(new byte[bytes]);
     csk = sk1.compact(true, wmem);
-    assertTrue(csk instanceof SingleItemSketch);
+    assertTrue(csk instanceof DirectCompactOrderedSketch);
     csk = sk1.compact(false, wmem);
-    assertTrue(csk instanceof SingleItemSketch);
+    assertTrue(csk instanceof DirectCompactOrderedSketch);
   }
 
   @Test
@@ -295,7 +294,7 @@ public class SingleItemSketchTest {
     inter.update(sk2);
     WritableMemory wmem = WritableMemory.wrap(new byte[16]);
     CompactSketch csk = inter.getResult(false, wmem);
-    assertTrue(csk instanceof SingleItemSketch);
+    assertTrue(csk instanceof DirectCompactOrderedSketch);
     Sketch csk2 = Sketches.heapifySketch(wmem);
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));

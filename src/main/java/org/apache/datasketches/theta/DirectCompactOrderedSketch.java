@@ -19,15 +19,9 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * An off-heap (Direct), compact, ordered, read-only sketch.  This sketch can only be associated
@@ -57,46 +51,6 @@ final class DirectCompactOrderedSketch extends DirectCompactSketch {
     checkMemorySeedHash(srcMem, seed);
     return new DirectCompactOrderedSketch(srcMem);
   }
-
-  /**
-   * Constructs this sketch from correct, valid components.
-   * @param cache in compact, ordered form
-   * @param empty The correct <a href="{@docRoot}/resources/dictionary.html#empty">Empty</a>.
-   * @param seedHash The correct
-   * <a href="{@docRoot}/resources/dictionary.html#seedHash">Seed Hash</a>.
-   * @param curCount correct value
-   * @param thetaLong The correct
-   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
-   * @param dstMem the given destination Memory. This clears it before use.
-   * @return a DirectCompactOrderedSketch
-   */
-  static DirectCompactOrderedSketch compact(
-      final long[] cache,
-      final boolean empty,
-      final short seedHash,
-      final int curCount,
-      final long thetaLong,
-      final WritableMemory dstMem) {
-    final int preLongs = CompactOperations.computeCompactPreLongs(thetaLong, empty, curCount);
-    int flags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK;
-    flags |= empty ? EMPTY_FLAG_MASK : 0;
-    flags |= (curCount == 1) ? SINGLEITEM_FLAG_MASK : 0;
-    CompactOperations.loadCompactMemory(cache, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
-    return new DirectCompactOrderedSketch(dstMem);
-  }
-
-  @Override //ordered, on-heap
-  public CompactSketch compact() {
-    //TODO
-    return null;
-  }
-
-  @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
-    //TODO
-    return null;
-  }
-
 
   @Override
   public boolean isOrdered() {

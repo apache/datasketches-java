@@ -44,6 +44,7 @@ public class AdoubleAnotBTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
   private final Results results = new Results();
 
+  @SuppressWarnings("deprecation")
   private static void threeMethodsWithTheta(
       final AnotB<DoubleSummary> aNotB,
       final Sketch<DoubleSummary> skA,
@@ -147,6 +148,7 @@ public class AdoubleAnotBTest {
 
   /*****************************************/
 
+  @SuppressWarnings("deprecation")
   @Test
   public void aNotBNullEmptyCombinations() {
     AnotB<DoubleSummary> aNotB = new AnotB<>();

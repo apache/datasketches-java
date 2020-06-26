@@ -124,6 +124,7 @@ abstract class HeapCompactSketch extends CompactSketch {
     return seedHash_;
   }
 
+  //only called from sub classes
   byte[] toByteArray(final boolean ordered) {
     Sketch.checkIllegalCurCountAndEmpty(empty_, curCount_);
     final int bytes = getCurrentBytes(true);

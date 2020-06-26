@@ -133,7 +133,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     hqss.curCount_ = extractCurCount(srcMem);
     hqss.thetaLong_ = extractThetaLong(srcMem);
-    hqss.empty_ = PreambleUtil.isEmptySketch(srcMem);
+    hqss.empty_ = PreambleUtil.isEmptyFlag(srcMem);
     hqss.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, hqss.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return hqss;

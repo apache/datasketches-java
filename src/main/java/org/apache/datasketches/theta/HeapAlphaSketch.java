@@ -146,7 +146,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = extractCurCount(srcMem);
     has.thetaLong_ = extractThetaLong(srcMem);
-    has.empty_ = PreambleUtil.isEmptySketch(srcMem);
+    has.empty_ = PreambleUtil.isEmptyFlag(srcMem);
     has.cache_ = new long[1 << lgArrLongs];
     srcMem.getLongArray(preambleLongs << 3, has.cache_, 0, 1 << lgArrLongs); //read in as hash table
     return has;

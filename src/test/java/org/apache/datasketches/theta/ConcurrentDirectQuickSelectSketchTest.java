@@ -27,14 +27,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author eshcar
@@ -439,8 +438,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk2.getUpperBound(2), localUB);
       assertTrue(csk2.isEmpty());
       assertFalse(csk2.isEstimationMode());
-      assertTrue(csk2 instanceof EmptyCompactSketch);
-
+      assertTrue(csk2 instanceof DirectCompactOrderedSketch);
       CompactSketch csk3 = shared.compact(true, mem2);
       csk3.toString(false, true, 0, false);
       csk3.toString();
@@ -449,7 +447,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk3.getUpperBound(2), localUB);
       assertTrue(csk3.isEmpty());
       assertFalse(csk3.isEstimationMode());
-      assertTrue(csk2 instanceof EmptyCompactSketch);
+      assertTrue(csk2 instanceof DirectCompactOrderedSketch);
     }
   }
 

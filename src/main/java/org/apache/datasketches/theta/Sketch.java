@@ -27,13 +27,14 @@ import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItemSketch;
+import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
@@ -142,12 +143,12 @@ public abstract class Sketch {
               "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
         }
       }
-      case COMPACT: { //serVer 1, 2, or 3, preLongs = 1, 2, or 3
+      case COMPACT: { //serVer 1, 2, 3; preLongs = 1, 2, or 3
         if (serVer == 3) {
-          if (PreambleUtil.isEmptySketch(srcMem)) {
+          if (PreambleUtil.isEmptyFlag(srcMem)) {
             return EmptyCompactSketch.getInstance(srcMem);
           }
-          if (isSingleItemSketch(srcMem)) { //SINGLEITEM?
+          if (otherCheckForSingleItem(srcMem)) { //SINGLEITEM?
             return SingleItemSketch.heapify(srcMem, seed);
           }
           //not empty & not singleItem
@@ -184,26 +185,33 @@ public abstract class Sketch {
   //Sketch interface
 
   /**
-   * Converts this sketch as an ordered CompactSketch on the Java heap.
+   * Converts this sketch to a ordered CompactSketch on the Java heap.
    *
-   * <p>If this sketch is already in compact form this operation returns <i>this</i>.
+   * <p>If this sketch is already in the proper form, this method returns <i>this</i>,
+   * otherwise, this method returns a new CompactSketch of the proper form.
+   *
+   * <p>A CompactSketch is always immutable.</p>
    *
    * @return this sketch as an ordered CompactSketch on the Java heap.
    */
   public abstract CompactSketch compact();
 
   /**
-   * Convert this sketch to a CompactSketch in the chosen form.
+   * Convert this sketch to a new CompactSketch of the chosen order and direct or on the heap.
    *
-   * <p>If this sketch is already in compact form this operation returns <i>this</i>.
+   * <p>If this sketch is already in the proper form, this operation returns <i>this</i>,
+   * otherwise, this method returns a new CompactSketch of the proper form.
    *
-   * <p>Otherwise, this compacting process converts the hash table form of an UpdateSketch to
-   * a simple list of the valid hash values from the hash table.  Any hash values equal to or
-   * greater than theta will be discarded.  The number of valid values remaining in the
-   * Compact Sketch depends on a number of factors, but may be larger or smaller than
-   * <i>Nominal Entries</i> (or <i>k</i>). It will never exceed 2<i>k</i>.  If it is critical
-   * to always limit the size to no more than <i>k</i>, then <i>rebuild()</i> should be called
-   * on the UpdateSketch prior to this.
+   * <p>If this sketch is a type of UpdateSketch, the compacting process converts the hash table
+   * of the UpdateSketch to a simple list of the valid hash values.
+   * Any hash values of zero or equal-to or greater than theta will be discarded.
+   * The number of valid values remaining in the CompactSketch depends on a number of factors,
+   * but may be larger or smaller than <i>Nominal Entries</i> (or <i>k</i>).
+   * It will never exceed 2<i>k</i>.
+   * If it is critical to always limit the size to no more than <i>k</i>,
+   * then <i>rebuild()</i> should be called on the UpdateSketch prior to calling this method.</p>
+   *
+   * <p>A CompactSketch is always immutable.</p>
    *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
@@ -650,7 +658,7 @@ public abstract class Sketch {
    * @param curCount the given curCount
    * @param thetaLong the given thetaLong
    * @return thetaLong
-   */
+   */ //This handles #4 above
   static final long correctThetaOnCompact(final boolean empty, final int curCount,
       final long thetaLong) {
     return (empty && (curCount == 0) && (thetaLong < Long.MAX_VALUE)) ? Long.MAX_VALUE : thetaLong;
@@ -707,19 +715,12 @@ public abstract class Sketch {
         return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
       }
       case COMPACT: {
+        final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
+        if (!empty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
         final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
-        if (!compactFlag) {
-          throw new SketchesArgumentException(
-              "Corrupted: COMPACT family sketch image must have compact flag set");
-        }
-        final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) != 0;
-        if (!readOnly) {
-          throw new SketchesArgumentException(
-              "Corrupted: COMPACT family sketch image must have Read-Only flag set");
-        }
-        final short memSeedHash = PreambleUtil.checkMemorySeedHash(srcMem, seed);
-        return CompactSketch.anyMemoryToCompactHeap(srcMem, memSeedHash, srcOrdered);
+        return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
       } //end of Compact
+
       default: {
         throw new SketchesArgumentException(
             "Sketch cannot heapify family: " + family + " as a Sketch");

@@ -37,7 +37,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.extractUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItemSketch;
+import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
@@ -243,8 +243,10 @@ final class UnionImpl extends Union {
     final long[] compactCacheOut =
         CompactOperations.compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
     final boolean empty = gadget_.isEmpty() && unionEmpty_;
-    return createCompactSketch(
-        compactCacheOut, empty, seedHash_, curCountOut, minThetaLong, dstOrdered, dstMem);
+    final short seedHash = gadget_.getSeedHash();
+    return CompactOperations.componentsToCompact(
+        minThetaLong, curCountOut, seedHash, empty, true, dstOrdered, dstOrdered, dstMem,
+        compactCacheOut);
   }
 
   @Override
@@ -374,7 +376,7 @@ final class UnionImpl extends Union {
     final int preLongs = extractPreLongs(skMem);
 
     if (preLongs == 1) {
-      if (isSingleItemSketch(skMem)) {
+      if (otherCheckForSingleItem(skMem)) {
         final long hash = skMem.getLong(8);
         gadget_.hashUpdate(hash);
         return;

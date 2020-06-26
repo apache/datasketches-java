@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc","deprecation"})
 public class AnotBimplTest {
 
   @Test

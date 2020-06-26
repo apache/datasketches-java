@@ -159,8 +159,8 @@ class IntersectionImplR extends Intersection {
 
     if (curCount_ == 0) {
       compactCacheR = new long[0];
-      return createCompactSketch(
-          compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
+      return CompactOperations.componentsToCompact(
+          thetaLong_, curCount_, seedHash_, empty_, true, false, dstOrdered, dstMem, compactCacheR);
     }
     //else curCount > 0
     final long[] hashTable;
@@ -174,8 +174,8 @@ class IntersectionImplR extends Intersection {
     compactCacheR = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
 
     //Create the CompactSketch
-    return createCompactSketch(
-        compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
+    return CompactOperations.componentsToCompact(
+        thetaLong_, curCount_, seedHash_, empty_, true, dstOrdered, dstOrdered, dstMem, compactCacheR);
   }
 
   @Override

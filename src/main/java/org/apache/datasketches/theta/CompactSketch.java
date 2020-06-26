@@ -19,19 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
-import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
-import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
-
-import java.util.Arrays;
-
 import org.apache.datasketches.Family;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -65,57 +53,6 @@ public abstract class CompactSketch extends Sketch {
   @Override
   public boolean isCompact() {
     return true;
-  }
-
-  //restricted methods
-
-  /**
-   * Heapifies the given source Memory with seedHash. We assume that the destination sketch type has
-   * been determined to be Compact and that the memory image is valid and the seedHash is correct.
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seedHash <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
-   * @return a CompactSketch
-   */
-  static CompactSketch You(final Memory srcMem, final short seedHash,
-      final boolean dstOrdered) {
-    final int flags = extractFlags(srcMem);
-    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    if (empty) { return EmptyCompactSketch.getInstance(); }
-    //EMPTY FLAG is FALSE
-    final int preLongs = extractPreLongs(srcMem);
-    final boolean single = (flags & SINGLEITEM_FLAG_MASK) > 0;
-
-    if (preLongs == 1) {
-      if (single) {
-        return new SingleItemSketch(srcMem.getLong(8), seedHash);
-      } else {
-        return EmptyCompactSketch.getInstance();
-      }
-    }
-    //preLongs > 1
-    final int curCount = extractCurCount(srcMem);
-    final long thetaLong = (preLongs > 2) ? extractThetaLong(srcMem) : Long.MAX_VALUE;
-    final boolean srcCompact = (flags & COMPACT_FLAG_MASK) > 0;
-    final long[] hashArrOut;
-    if (srcCompact) {
-      if ((curCount == 0) && (thetaLong == Long.MAX_VALUE)) {
-        return EmptyCompactSketch.getInstance();
-      }
-      if ((curCount == 1) && (thetaLong == Long.MAX_VALUE)) {
-        //TODO
-      }
-      hashArrOut = new long[curCount];
-      srcMem.getLongArray(8 * preLongs, hashArrOut, 0, curCount);
-      if (dstOrdered) { Arrays.sort(hashArrOut); }
-    } else { //src is hashTable
-      final int lgArrLongs = extractLgArrLongs(srcMem);
-      final long[] hashArr = new long[1 << lgArrLongs];
-      srcMem.getLongArray(8 * preLongs, hashArr, 0, 1 << lgArrLongs);
-      hashArrOut = CompactOperations.compactCache(hashArr, curCount, thetaLong, dstOrdered);
-    }
-    return dstOrdered
-        ? new HeapCompactOrderedSketch(hashArrOut, empty, seedHash, curCount, thetaLong)
-        : new HeapCompactUnorderedSketch(hashArrOut, empty, seedHash, curCount, thetaLong);
   }
 
 }

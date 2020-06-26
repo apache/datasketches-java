@@ -41,11 +41,11 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Kevin Lang
  */
 final class AnotBimpl extends AnotB {
-  private final short seedHashR_;
-  private boolean emptyR_;
-  private long thetaLongR_;
-  private long[] hashArrR_; //compact array w curCountR_ entries
-  private int curCountR_;
+  private final short seedHash_;
+  private boolean empty_;
+  private long thetaLong_;
+  private long[] hashArr_; //compact array w curCount_ entries
+  private int curCount_;
 
   //Remove all 4 of these with deprecated
   private Sketch skA_;
@@ -68,7 +68,7 @@ final class AnotBimpl extends AnotB {
    * @param seedHash 16 bit hash of the chosen update seed.
    */
   AnotBimpl(final short seedHash) {
-    seedHashR_ = seedHash;
+    seedHash_ = seedHash;
     reset();
   }
 
@@ -84,23 +84,23 @@ final class AnotBimpl extends AnotB {
       return;
     }
     //skA is not empty
-    checkSeedHashes(seedHashR_, skA.getSeedHash());
-    emptyR_ = false;
-    thetaLongR_ = skA.getThetaLong();
+    checkSeedHashes(seedHash_, skA.getSeedHash());
+    empty_ = false;
+    thetaLong_ = skA.getThetaLong();
     final CompactSketch cskA = (skA instanceof CompactSketch)
         ? (CompactSketch) skA
         : ((UpdateSketch) skA).compact();
-    hashArrR_ = skA.isDirect() ? cskA.getCache() : cskA.getCache().clone();
-    curCountR_ = cskA.getRetainedEntries(true);
+    hashArr_ = skA.isDirect() ? cskA.getCache() : cskA.getCache().clone();
+    curCount_ = cskA.getRetainedEntries(true);
   }
 
   @Override
   public void notB(final Sketch skB) {
-    if (emptyR_ || (skB == null) || skB.isEmpty()) { return; }
+    if (empty_ || (skB == null) || skB.isEmpty()) { return; }
     //skB is not empty
-    checkSeedHashes(seedHashR_, skB.getSeedHash());
+    checkSeedHashes(seedHash_, skB.getSeedHash());
     final long thetaLongB = skB.getThetaLong();
-    thetaLongR_ = Math.min(thetaLongR_, thetaLongB);
+    thetaLong_ = Math.min(thetaLong_, thetaLongB);
 
     //Build hashtable and removes hashes of skB >= theta
     final int countB = skB.getRetainedEntries();
@@ -109,24 +109,24 @@ final class AnotBimpl extends AnotB {
     final long[] hashTableB;
     if (skB instanceof CompactSketch) {
       cskB = (CompactSketch) skB;
-      hashTableB = convertToHashTable(cskB.getCache(), countB, thetaLongR_, REBUILD_THRESHOLD);
+      hashTableB = convertToHashTable(cskB.getCache(), countB, thetaLong_, REBUILD_THRESHOLD);
     } else {
       uskB = (UpdateSketch) skB;
-      hashTableB = (thetaLongR_ < thetaLongB)
-          ? convertToHashTable(uskB.getCache(), countB, thetaLongR_, REBUILD_THRESHOLD)
+      hashTableB = (thetaLong_ < thetaLongB)
+          ? convertToHashTable(uskB.getCache(), countB, thetaLong_, REBUILD_THRESHOLD)
           : uskB.getCache();
       cskB = uskB.compact();
     }
 
     //build temporary arrays of skA
-    final long[] tmpHashArrA = new long[curCountR_];
+    final long[] tmpHashArrA = new long[curCount_];
 
     //search for non matches and build temp arrays
     final int lgHTBLen = simpleIntLog2(hashTableB.length);
     int nonMatches = 0;
-    for (int i = 0; i < curCountR_; i++) {
-      final long hash = hashArrR_[i];
-      if ((hash != 0) && (hash < thetaLongR_)) { //skips hashes of A >= theta
+    for (int i = 0; i < curCount_; i++) {
+      final long hash = hashArr_[i];
+      if ((hash != 0) && (hash < thetaLong_)) { //skips hashes of A >= theta
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
@@ -134,9 +134,9 @@ final class AnotBimpl extends AnotB {
         }
       }
     }
-    hashArrR_ = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    curCountR_ = nonMatches;
-    emptyR_ = (nonMatches == 0) && (thetaLongR_ == Long.MAX_VALUE);
+    hashArr_ = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
+    curCount_ = nonMatches;
+    empty_ = (nonMatches == 0) && (thetaLong_ == Long.MAX_VALUE);
   }
 
   @Override
@@ -148,7 +148,7 @@ final class AnotBimpl extends AnotB {
   public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem,
       final boolean reset) {
     final CompactSketch result =
-        getResult(hashArrR_, emptyR_, seedHashR_, curCountR_, thetaLongR_, dstOrdered, dstMem);
+        getResult(hashArr_, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
     if (reset) { reset(); }
     return result;
   }
@@ -204,8 +204,8 @@ final class AnotBimpl extends AnotB {
     if ((skB == null) || skB.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
     final short seedHashA = skA.getSeedHash();
     final short seedHashB = skB.getSeedHash();
-    checkSeedHashes(seedHashA, seedHashR_);
-    checkSeedHashes(seedHashB, seedHashR_);
+    checkSeedHashes(seedHashA, seedHash_);
+    checkSeedHashes(seedHashB, seedHash_);
 
     //Both skA & skB are not empty
     //Load skA into local tmp registers
@@ -245,18 +245,18 @@ final class AnotBimpl extends AnotB {
     empty = ((nonMatches == 0) && (thetaLong == Long.MAX_VALUE));
     final long[] hashArrOut = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
     final CompactSketch result =
-        AnotBimpl.getResult(hashArrOut, empty, seedHashR_, nonMatches, thetaLong, dstOrdered, dstMem);
+        AnotBimpl.getResult(hashArrOut, empty, seedHash_, nonMatches, thetaLong, dstOrdered, dstMem);
     return result;
   }
 
   @Override
   int getRetainedEntries(final boolean valid) {
-    return curCountR_;
+    return curCount_;
   }
 
   @Override
   boolean isEmpty() {
-    return emptyR_;
+    return empty_;
   }
 
   @Override
@@ -266,40 +266,41 @@ final class AnotBimpl extends AnotB {
 
   //Deprecated methods
 
+  @Deprecated
   @Override
   public void update(final Sketch a, final Sketch b) {
     skA_ = a;
     skB_ = b;
-    thetaLongR_ = Long.MAX_VALUE;
-    emptyR_ = true;
-    hashArrR_ = null;
-    curCountR_ = 0;
+    thetaLong_ = Long.MAX_VALUE; //*
+    empty_ = true; //*
+    hashArr_ = null; //*
+    curCount_ = 0; //*
     lgArrLongsHT_ = 5;
     bHashTable_ = null;
     compute();
   }
 
+  @Deprecated
   @Override
   public CompactSketch getResult() {
     return getResult(true, null);
   }
 
+  @Deprecated
   @Override
   public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
-    final long[] compactCache = (curCountR_ <= 0)
+    final long[] compactCache = (curCount_ <= 0)
         ? new long[0]
-        : Arrays.copyOfRange(hashArrR_, 0, curCountR_);
-    if (dstOrdered && (curCountR_ > 1)) {
+        : Arrays.copyOfRange(hashArr_, 0, curCount_);
+    if (dstOrdered && (curCount_ > 1)) {
       Arrays.sort(compactCache);
     }
     //Create the CompactSketch
-    final CompactSketch comp = createCompactSketch(
-        compactCache, emptyR_, seedHashR_, curCountR_, thetaLongR_, dstOrdered, dstMem);
-    reset(); //TODO
-    return comp;
+    final CompactSketch csk = CompactOperations.componentsToCompact(
+        thetaLong_, curCount_, seedHash_, empty_, true, dstOrdered, dstOrdered, dstMem, compactCache);
+    reset();
+    return csk;
   }
-
-
 
   //restricted
 
@@ -370,86 +371,86 @@ final class AnotBimpl extends AnotB {
 
     switch (sw) {
       case 0 :  //A Null, B Null;    Return (1.0, 0, T)
-        thetaLongR_ = Long.MAX_VALUE;
-        emptyR_ = true;
+        thetaLong_ = Long.MAX_VALUE;
+        empty_ = true;
         break;
 
       case 10:   //A Empty, B Compact; CheckAB, Return (1.0, 0, T)
       case 11:   //A Empty, B Ordered; CheckAB, Return (1.0, 0, T)
       case 12:   //A Empty, B HashTbl; CheckAB, Return (1.0, 0, T)
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         //$FALL-THROUGH$
       case 1:    //A Null, B Empty;   CheckB,  Return (1.0, 0, T)
       case 2:    //A Null, B Compact; CheckB,  Return (1.0, 0, T)
       case 3:    //A Null, B Ordered; CheckB,  Return (1.0, 0, T)
       case 4:    //A Null, B HashTbl; CheckB,  Return (1.0, 0, T)
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = Long.MAX_VALUE;
-        emptyR_ = true;
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = Long.MAX_VALUE;
+        empty_ = true;
         break;
 
       case 9:   //A Empty, B Empty;   CheckAB, Return (1.0, 0, T)
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         //$FALL-THROUGH$
       case 8:   //A Empty, B Null;    CheckA,  Return (1.0, 0, T)
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = Long.MAX_VALUE;
-        emptyR_ = true;
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = Long.MAX_VALUE;
+        empty_ = true;
         break;
 
       case 17:   //A Compact, B Empty; CheckAB, Return (ThA, |A|, F), copyA
       case 25:   //A Ordered, B Empty; CheckAB, Return (ThA, |A|, F), copyA
       case 33:  //A HashTbl, B Empty; CheckAB, Return (ThA, |A|, F), copyA
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
         //$FALL-THROUGH$
       case 16:   //A Compact, B Null;  CheckA,  Return (ThA, |A|, F), copyA
       case 24:   //A Ordered, B Null;  CheckA,  Return (ThA, |A|, F), copyA
       case 32:  //A HashTbl, B Null;  CheckA,  Return (ThA, |A|, F), copyA
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = skA_.getThetaLong();
-        emptyR_ = false;
-        curCountR_ = skA_.getRetainedEntries(true);
-        hashArrR_ = CompactOperations.compactCache(skA_.getCache(), curCountR_, thetaLongR_, false);
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = skA_.getThetaLong();
+        empty_ = false;
+        curCount_ = skA_.getRetainedEntries(true);
+        hashArr_ = CompactOperations.compactCache(skA_.getCache(), curCount_, thetaLong_, false);
         break;
 
       case 18:   //A Compact, B Compact; CheckAB, B -> H; => C,H; scanAllAsearchB()
       case 19:   //A Compact, B Ordered; CheckAB, B -> H; => C,H; scanAllAsearchB()
       case 34:   //A HashTbl, B Compact; CheckAB, B -> H; => H,H; scanAllAsearchB()
       case 35:  //A HashTbl, B Ordered; CheckAB, B -> H; => H,H; scanAllAsearchB()
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = min(skA_.getThetaLong(), skB_.getThetaLong());
-        emptyR_ = false;
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = min(skA_.getThetaLong(), skB_.getThetaLong());
+        empty_ = false;
         convertBtoHT();
         scanAllAsearchB();
         break;
 
       case 26:   //A Ordered, B Compact; CheckAB, B -> H; => O,H; scanEarlyStopAsearchB()
       case 27:  //A Ordered, B Ordered; CheckAB, B -> H; => O,H; scanEarlyStopAsearchB()
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = min(skA_.getThetaLong(), skB_.getThetaLong());
-        emptyR_ = false;
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = min(skA_.getThetaLong(), skB_.getThetaLong());
+        empty_ = false;
         convertBtoHT();
         scanEarlyStopAsearchB();
         break;
 
       case 20:   //A Compact, B HashTbl; CheckAB, scanAllAsearchB()
       case 36:  //A HashTbl, B HashTbl; CheckAB, scanAllAsearchB()
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = min(skA_.getThetaLong(), skB_.getThetaLong());
-        emptyR_ = false;
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = min(skA_.getThetaLong(), skB_.getThetaLong());
+        empty_ = false;
         lgArrLongsHT_ = ((UpdateSketch)skB_).getLgArrLongs();
         bHashTable_ = skB_.getCache();
         scanAllAsearchB();
         break;
 
       case 28:  //A Ordered, B HashTbl; CheckAB, scanEarlyStopAsearchB()
-        checkSeedHashes(seedHashR_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        checkSeedHashes(seedHashR_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
-        thetaLongR_ = min(skA_.getThetaLong(), skB_.getThetaLong());
-        emptyR_ = false;
+        checkSeedHashes(seedHash_, skA_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        checkSeedHashes(seedHash_, skB_.getSeedHash());//lgtm [java/dereferenced-value-may-be-null]
+        thetaLong_ = min(skA_.getThetaLong(), skB_.getThetaLong());
+        empty_ = false;
         lgArrLongsHT_ = ((UpdateSketch)skB_).getLgArrLongs();
         bHashTable_ = skB_.getCache();
         scanEarlyStopAsearchB();
@@ -463,20 +464,20 @@ final class AnotBimpl extends AnotB {
     final int curCountB = skB_.getRetainedEntries(true);
     lgArrLongsHT_ = computeMinLgArrLongsFromCount(curCountB);
     bHashTable_ = new long[1 << lgArrLongsHT_];
-    hashArrayInsert(skB_.getCache(), bHashTable_, lgArrLongsHT_, thetaLongR_);
+    hashArrayInsert(skB_.getCache(), bHashTable_, lgArrLongsHT_, thetaLong_);
   }
 
   //Sketch A is either unordered compact or hash table
   private void scanAllAsearchB() {
     final long[] scanAArr = skA_.getCache();
     final int arrLongsIn = scanAArr.length;
-    hashArrR_ = new long[arrLongsIn];
+    hashArr_ = new long[arrLongsIn];
     for (int i = 0; i < arrLongsIn; i++ ) {
       final long hashIn = scanAArr[i];
-      if ((hashIn <= 0L) || (hashIn >= thetaLongR_)) { continue; }
+      if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
       final int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
       if (foundIdx > -1) { continue; }
-      hashArrR_[curCountR_++] = hashIn;
+      hashArr_[curCount_++] = hashIn;
     }
   }
 
@@ -484,26 +485,26 @@ final class AnotBimpl extends AnotB {
   private void scanEarlyStopAsearchB() {
     final long[] scanAArr = skA_.getCache();
     final int arrLongsIn = scanAArr.length;
-    hashArrR_ = new long[arrLongsIn]; //maybe 2x what is needed, but getRetainedEntries can be slow.
+    hashArr_ = new long[arrLongsIn]; //maybe 2x what is needed, but getRetainedEntries can be slow.
     for (int i = 0; i < arrLongsIn; i++ ) {
       final long hashIn = scanAArr[i];
       if (hashIn <= 0L) { continue; }
-      if (hashIn >= thetaLongR_) {
+      if (hashIn >= thetaLong_) {
         break; //early stop assumes that hashes in input sketch are ordered!
       }
       final int foundIdx = hashSearch(bHashTable_, lgArrLongsHT_, hashIn);
       if (foundIdx > -1) { continue; }
-      hashArrR_[curCountR_++] = hashIn;
+      hashArr_[curCount_++] = hashIn;
     }
   }
 
   private void reset() {
     skA_ = null;
     skB_ = null;
-    thetaLongR_ = Long.MAX_VALUE;
-    emptyR_ = true;
-    hashArrR_ = null;
-    curCountR_ = 0;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = true;
+    hashArr_ = null;
+    curCount_ = 0;
     lgArrLongsHT_ = 5;
     bHashTable_ = null;
   }
@@ -515,12 +516,12 @@ final class AnotBimpl extends AnotB {
 
   @Override
   short getSeedHash() {
-    return seedHashR_;
+    return seedHash_;
   }
 
   @Override
   long getThetaLong() {
-    return thetaLongR_;
+    return thetaLong_;
   }
 
 }

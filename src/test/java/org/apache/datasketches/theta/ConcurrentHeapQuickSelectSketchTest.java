@@ -30,14 +30,13 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
 
 /**
  * @author eshcar
@@ -382,7 +381,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk2.getUpperBound(2), localUB);
     assertEquals(csk2.isEmpty(), true);
     assertEquals(csk2.isEstimationMode(), estimating);
-    assertTrue(csk2 instanceof EmptyCompactSketch);
+    assertTrue(csk2 instanceof DirectCompactOrderedSketch);
 
     CompactSketch csk3 = shared.compact(true, mem2);
     csk3.toString(false, true, 0, false);
@@ -392,7 +391,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk3.getUpperBound(2), localUB);
     assertEquals(csk3.isEmpty(), true);
     assertEquals(csk3.isEstimationMode(), estimating);
-    assertTrue(csk3 instanceof EmptyCompactSketch);
+    assertTrue(csk3 instanceof DirectCompactOrderedSketch);
   }
 
   @Test
@@ -594,7 +593,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk2.getUpperBound(2), uskUB);
     assertTrue(csk2.isEmpty());
     assertFalse(csk2.isEstimationMode());
-    assertTrue(csk2 instanceof EmptyCompactSketch);
+    assertTrue(csk2 instanceof DirectCompactOrderedSketch);
 
     CompactSketch csk3 = shared.compact(true, mem2);
     csk3.toString(false, true, 0, false);
@@ -604,7 +603,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(csk3.getUpperBound(2), uskUB);
     assertTrue(csk3.isEmpty());
     assertFalse(csk3.isEstimationMode());
-    assertTrue(csk2 instanceof EmptyCompactSketch);
+    assertTrue(csk2 instanceof DirectCompactOrderedSketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

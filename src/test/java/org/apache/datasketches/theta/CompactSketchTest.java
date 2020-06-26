@@ -228,16 +228,74 @@ public class CompactSketchTest {
 
   @Test
   public void checkDirectCompactSingleItemSketch() {
+    State state;
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
-    CompactSketch csk = sk.compact(true, WritableMemory.allocate(16));
-    int bytes = csk.getCurrentBytes(true);
-    assertEquals(bytes, 8);
+
+    CompactSketch csko; //ordered
+    CompactSketch csku; //unordered
+
+    WritableMemory wmem = WritableMemory.allocate(16);
+    csko = sk.compact(true, wmem); //empty, direct, ordered
+    //ClassType, Count, Bytes, Compact, Empty, Direct, Memory, Ordered, Estimation
+    state = new State("DirectCompactOrderedSketch", 0, 8, true, true, false, true, true, false);
+    state.check(csko);
+
+    wmem = WritableMemory.allocate(16);
+    csku = sk.compact(false, wmem); //empty, direct, unordered
+    state = new State("DirectCompactOrderedSketch", 0, 8, true, true, false, true, true, false);
+    state.check(csku);
+
     sk.update(1);
-    csk = sk.compact(true, WritableMemory.allocate(16));
-    bytes = csk.getCurrentBytes(true);
-    assertEquals(bytes, 16);
-    assertTrue(csk == csk.compact());
-    assertTrue(csk == csk.compact(true, null));
+    wmem = WritableMemory.allocate(16);
+    csko = sk.compact(true, wmem); //Single, direct, ordered
+    state = new State("DirectCompactOrderedSketch", 1, 16, true, false, false, true, true, false);
+    state.check(csko);
+
+    wmem = WritableMemory.allocate(16);
+    csku = sk.compact(false, wmem); //Single, direct, unordered
+    state = new State("DirectCompactOrderedSketch", 1, 16, true, false, false, true, true, false);
+    state.check(csku);
+
+    CompactSketch csk2o; //ordered
+    CompactSketch csk2u; //unordered
+
+    csk2o = csku.compact(); //single, heap, ordered
+    state = new State("SingleItemSketch", 1, 16, true, false, false, false, true, false);
+    state.check(csk2o);
+
+    csk2o = csku.compact(true, null); //single, heap, ordered
+    state.check(csk2o);
+
+    csk2o = csku.compact(false, null); //single, heap, ordered
+    state.check(csk2o);
+
+    csk2o = csko.compact(true, null); //single, heap, ordered
+    state.check(csk2o);
+
+    csk2o = csko.compact(false, null); //single, heap, ordered
+    state.check(csk2o);
+
+    wmem = WritableMemory.allocate(16);
+    csk2o = csku.compact(true, wmem);
+    state.classType = "DirectCompactOrderedSketch";
+    state.memory = true;
+    state.check(csk2o);
+
+    wmem = WritableMemory.allocate(16);
+    csk2u = csku.compact(false, wmem);
+    state.classType = "DirectCompactOrderedSketch";
+    state.check(csk2u);
+
+    wmem = WritableMemory.allocate(16);
+    csk2o = csko.compact(true, wmem);
+    state.classType = "DirectCompactOrderedSketch";
+    state.memory = true;
+    state.check(csk2o);
+
+    wmem = WritableMemory.allocate(16);
+    csk2u = csko.compact(false, wmem);
+    state.classType = "DirectCompactOrderedSketch";
+    state.check(csk2u);
   }
 
   @Test
@@ -254,9 +312,9 @@ public class CompactSketchTest {
   @Test
   public void checkHeapifyEmptySketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
-    WritableMemory wmem = WritableMemory.allocate(16); //extra bytes
+    WritableMemory wmem = WritableMemory.allocate(16); //empty, but extra bytes
     CompactSketch csk = sk.compact(false, wmem);
-    assertTrue(csk instanceof EmptyCompactSketch);
+    assertTrue(csk instanceof DirectCompactOrderedSketch);
     Sketch csk2 = Sketch.heapify(wmem);
     assertTrue(csk2 instanceof EmptyCompactSketch);
   }
@@ -269,6 +327,44 @@ public class CompactSketchTest {
     CompactSketch csk = sk.compact(true, WritableMemory.allocate(bytes));
     long[] cache = csk.getCache();
     assertTrue(cache.length == 0);
+  }
+
+  private static class State {
+    String classType = null;
+    int count = 0;
+    int bytes = 0;
+    boolean compact = false;
+    boolean empty = false;
+    boolean direct = false;
+    boolean memory = false;
+    boolean ordered = false;
+    boolean estimation = false;
+
+
+    State(String classType, int count, int bytes, boolean compact, boolean empty, boolean direct,
+        boolean memory, boolean ordered, boolean estimation) {
+      this.classType = classType;
+      this.count = count;
+      this.bytes = bytes;
+      this.compact = compact;
+      this.empty = empty;
+      this.direct = direct;
+      this.memory = memory;
+      this.ordered = ordered;
+      this.estimation = estimation;
+    }
+
+    void check(CompactSketch csk) {
+      assertEquals(csk.getClass().getSimpleName(), classType, "ClassType");
+      assertEquals(csk.getRetainedEntries(), count, "curCount");
+      assertEquals(csk.getCurrentBytes(true), bytes, "Bytes" );
+      assertEquals(csk.isCompact(), compact, "Compact");
+      assertEquals(csk.isEmpty(), empty, "Empty");
+      assertEquals(csk.isDirect(), direct, "Direct");
+      assertEquals(csk.hasMemory(), memory, "Memory");
+      assertEquals(csk.isOrdered(), ordered, "Ordered");
+      assertEquals(csk.isEstimationMode(), estimation, "Estimation");
+    }
   }
 
   @Test

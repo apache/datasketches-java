@@ -24,12 +24,11 @@ import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3to
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -113,16 +112,10 @@ public class ForwardCompatibilityTest {
     WritableMemory srcMemW = WritableMemory.allocate(16);
     srcMem.copyTo(0, srcMemW, 0, 16);
     PreambleUtil.setEmpty(srcMemW); //Force
-    assertTrue(PreambleUtil.isEmptySketch(srcMemW));
+    assertTrue(PreambleUtil.isEmptyFlag(srcMemW));
     srcMemW.putInt(8, 0); //corrupt curCount = 0
 
     Sketch sketch = Sketch.heapify(srcMemW);
-    assertEquals(sketch.isEmpty(), true); //was forced true
-    assertEquals(sketch.isEstimationMode(), false);
-    assertEquals(sketch.isDirect(), false);
-    assertEquals(sketch.hasMemory(), false);
-    assertEquals(sketch.isCompact(), true);
-    assertEquals(sketch.isOrdered(), true);
     assertTrue(sketch instanceof EmptyCompactSketch);
   }
 
@@ -136,17 +129,11 @@ public class ForwardCompatibilityTest {
     WritableMemory srcMemW = WritableMemory.allocate(24);
     srcMem.copyTo(0, srcMemW, 0, 24);
     PreambleUtil.setEmpty(srcMemW); //Force
-    assertTrue(PreambleUtil.isEmptySketch(srcMemW));
+    assertTrue(PreambleUtil.isEmptyFlag(srcMemW));
     srcMemW.putInt(8, 0); //corrupt curCount = 0
     srcMemW.putLong(16, Long.MAX_VALUE); //corrupt to make it look empty
 
-    Sketch sketch = Sketch.heapify(srcMemW);
-    assertEquals(sketch.isEmpty(), true); //was forced true
-    assertEquals(sketch.isEstimationMode(), false);
-    assertEquals(sketch.isDirect(), false);
-    assertEquals(sketch.hasMemory(), false);
-    assertEquals(sketch.isCompact(), true);
-    assertEquals(sketch.isOrdered(), true);
+    Sketch sketch = Sketch.heapify(srcMemW); //now serVer=3, EmptyCompactSketch
     assertTrue(sketch instanceof EmptyCompactSketch);
   }
 

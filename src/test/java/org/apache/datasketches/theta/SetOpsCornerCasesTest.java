@@ -217,6 +217,7 @@ public class SetOpsCornerCasesTest {
     return PairwiseSetOperations.aNotB(tskA, tskB);
   }
 
+
   private static void checkCornerCase(Sketch rskA, Sketch rskB) {
     double estA = rskA.getEstimate();
     double estB = rskB.getEstimate();
@@ -230,8 +231,6 @@ public class SetOpsCornerCasesTest {
     Assert.assertEquals(emptyB, emptyA);
     Assert.assertEquals(thetaLongB, thetaLongA);
     Assert.assertEquals(countB, countA);
-    String A = rskA.getClass().getSimpleName();
-    String B = rskB.getClass().getSimpleName();
     Assert.assertEquals(rskA.getClass().getSimpleName(), rskB.getClass().getSimpleName());
   }
 

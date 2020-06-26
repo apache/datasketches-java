@@ -19,12 +19,14 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.SetOperation.createCompactSketch;
+import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
+import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.checkSeedHashes;
+import static org.apache.datasketches.Util.computeSeedHash;
 
 import java.util.Arrays;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 
 /**
  * Set Operations where the arguments are presented in pairs as in <i>C = Op(A,B)</i>. These are
@@ -101,7 +103,7 @@ public class PairwiseSetOperations {
    */
   @Deprecated
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB) {
-    return union(skA, skB, Util.DEFAULT_NOMINAL_ENTRIES);
+    return union(skA, skB, DEFAULT_NOMINAL_ENTRIES);
   }
 
   /**
@@ -216,7 +218,10 @@ public class PairwiseSetOperations {
     } else {
       outArr = Arrays.copyOf(outCache, curCount); //copy only valid items
     }
-    return createCompactSketch(outArr, false, skA.getSeedHash(), curCount, thetaLong, true, null);
+    final short seedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
+    final boolean srcEmpty = (curCount == 0) && (thetaLong == Long.MAX_VALUE);
+    return CompactOperations.componentsToCompact(
+        thetaLong, curCount, seedHash, srcEmpty, true, true, true, null, outArr);
   }
 
   private static CompactSketch maybeCutback(final CompactSketch csk, final int k) {
@@ -228,7 +233,9 @@ public class PairwiseSetOperations {
       thetaLong = cache[k];
       final long[] arr = Arrays.copyOf(cache, k);
       curCount = k;
-      return createCompactSketch(arr, empty, csk.getSeedHash(), curCount, thetaLong, true, null);
+      final short seedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
+      return CompactOperations.componentsToCompact(
+          thetaLong, curCount, seedHash, empty, true, false, true, null, cache);
     }
     return csk;
   }
@@ -242,7 +249,7 @@ public class PairwiseSetOperations {
   private static short seedHashesCheck(final Sketch skA, final Sketch skB) {
     final short seedHashA = skA.getSeedHash(); //lgtm [java/dereferenced-value-may-be-null]
     final short seedHashB = skB.getSeedHash(); //lgtm [java/dereferenced-value-may-be-null]
-    return Util.checkSeedHashes(seedHashA, seedHashB);
+    return checkSeedHashes(seedHashA, seedHashB);
   }
 
 }

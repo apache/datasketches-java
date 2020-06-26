@@ -45,16 +45,16 @@ final class HeapCompactOrderedSketch extends HeapCompactSketch {
 
   //Sketch interface
 
-  @Override //ordered, on-heap
+  @Override
   public CompactSketch compact() {
-    //TODO
-    return null;
+    return this;
   }
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
-    //TODO
-    return null;
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
+    return CompactOperations.componentsToCompact(
+    getThetaLong(), getRetainedEntries(), getSeedHash(), isEmpty(),
+    true, true, dstOrdered, dstMem, getCache());
   }
 
   @Override

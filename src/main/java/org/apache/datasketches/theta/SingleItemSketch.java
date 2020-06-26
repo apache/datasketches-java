@@ -24,9 +24,14 @@ import static org.apache.datasketches.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
+import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItemSketch;
+import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
+import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
+import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -89,24 +94,24 @@ final class SingleItemSketch extends CompactSketch {
    */ //does not override Sketch
   public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
     final short seedHashMem = checkMemorySeedHash(srcMem, seed);
-    if (isSingleItemSketch(srcMem)) {
-      return new SingleItemSketch(srcMem.getLong(8), seedHashMem);
-    }
-    throw new SketchesArgumentException("Input Memory Preamble is not a SingleItemSketch.");
+    final boolean singleItem = otherCheckForSingleItem(srcMem);
+    if (singleItem) { return new SingleItemSketch(srcMem.getLong(8), seedHashMem); }
+    throw new SketchesArgumentException("Input Memory is not a SingleItemSketch.");
   }
 
   @Override
   public CompactSketch compact() {
-    final long[] hashArr = getCache();
-    final short seedHash = getSeedHash();
-    return new HeapCompactOrderedSketch(hashArr, false, seedHash, 1, Long.MAX_VALUE);
+    return this;
   }
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    dstMem.putLong(0, pre0_);
-    dstMem.putLong(8, hash_);
-    return new DirectCompactOrderedSketch(dstMem);
+    if (dstMem == null) { return this; }
+    else {
+      dstMem.putLong(0, pre0_);
+      dstMem.putLong(8, hash_);
+      return new DirectCompactOrderedSketch(dstMem);
+    }
   }
 
   //Create methods using the default seed
@@ -402,6 +407,27 @@ final class SingleItemSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return (short) (pre0_ >>> 48);
+  }
+
+  static final boolean otherCheckForSingleItem(final Memory mem) {
+    return otherCheckForSingleItem(extractPreLongs(mem), extractSerVer(mem),
+        extractFamilyID(mem), extractFlags(mem) );
+  }
+
+  static final boolean otherCheckForSingleItem(final int preLongs, final int serVer,
+      final int famId, final int flags) {
+    // Flags byte: SI=X, Ordered=T, Compact=T, Empty=F, ReadOnly=T, BigEndian=F = X11010 = 0x1A.
+    // Flags mask will be 0x1F.
+    // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
+    // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
+    // and the hash seed matches (not done here), it is virtually guaranteed that we have a
+    // SingleItem Sketch.
+    final boolean numPreLongs = preLongs == 1;
+    final boolean numSerVer = serVer >= 3;
+    final boolean numFamId = famId == Family.COMPACT.getID();
+    final boolean numFlags =  (flags & 0x1F) == 0x1A; //no SI, yet
+    final boolean singleFlag = (flags & SINGLEITEM_FLAG_MASK) > 0;
+    return (numPreLongs && numSerVer && numFamId && numFlags) || singleFlag;
   }
 
 }

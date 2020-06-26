@@ -26,6 +26,7 @@ import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
+import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -136,7 +137,10 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    return compact(this, dstOrdered, dstMem);
+    return componentsToCompact(getThetaLong(), getRetainedEntries(), getSeedHash(), isEmpty(),
+        false, false, dstOrdered, dstMem, getCache());
+
+    //return compact(this, dstOrdered, dstMem);
   }
 
   static CompactSketch compact(final UpdateSketch usk, final boolean dstOrdered,

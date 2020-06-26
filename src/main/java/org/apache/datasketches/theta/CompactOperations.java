@@ -46,6 +46,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -60,35 +61,37 @@ final class CompactOperations {
       final long thetaLong,
       final int curCount,
       final short seedHash,
+      final boolean srcEmpty,
       final boolean srcCompact,
-      boolean srcOrdered,
+      final boolean srcOrdered,
       final boolean dstOrdered,
       final WritableMemory dstMem,
       final long[] hashArr) //may not be compacted, ordered or unordered
-
   {
     final boolean direct = dstMem != null;
-    final boolean empty = (curCount == 0) && (thetaLong == Long.MAX_VALUE);
+    final boolean empty = srcEmpty || ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
     final boolean single = (curCount == 1) && (thetaLong == Long.MAX_VALUE);
     final long[] hashArrOut;
     if (!srcCompact) {
       hashArrOut = CompactOperations.compactCache(hashArr, curCount, thetaLong, dstOrdered);
-      srcOrdered = true;
     } else {
       hashArrOut = hashArr;
     }
     if (!srcOrdered && dstOrdered && !empty && !single) {
       Arrays.sort(hashArrOut);
     }
+    //Note: for empty and single we always output the ordered form.
+    final boolean dstOrderedOut = (empty || single) ? true : dstOrdered;
     if (direct) {
       final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
       int flags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK; //always LE
       flags |=  empty ? EMPTY_FLAG_MASK : 0;
-      flags |= dstOrdered ? ORDERED_FLAG_MASK : 0;
+      flags |= dstOrderedOut ? ORDERED_FLAG_MASK : 0;
       flags |= single ? SINGLEITEM_FLAG_MASK : 0;
+
       final Memory mem =
-          loadCompactMemory(hashArr, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
-      if (dstOrdered) {
+          loadCompactMemory(hashArrOut, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
+      if (dstOrderedOut) {
         return new DirectCompactOrderedSketch(mem);
       } else {
         return new DirectCompactUnorderedSketch(mem);
@@ -100,7 +103,7 @@ final class CompactOperations {
       if (single) {
         return new SingleItemSketch(hashArrOut[0], seedHash);
       }
-      if (dstOrdered) {
+      if (dstOrderedOut) {
         return new HeapCompactOrderedSketch(hashArrOut, empty, seedHash, curCount, thetaLong);
       } else {
         return new HeapCompactUnorderedSketch(hashArrOut, empty, seedHash, curCount, thetaLong);
@@ -108,45 +111,117 @@ final class CompactOperations {
     }
   }
 
-  @SuppressWarnings("unused")
+  /**
+   * Heapify or convert a source Theta Sketch Memory image into a heap or target Memory CompactSketch.
+   * This assumes hashSeed is OK; serVer = 3.
+   * @param srcMem the given input source Memory image
+   * @param dstOrdered the desired ordering of the resulting CompactSketch
+   * @param dstMem Used for the target CompactSketch if it is Direct.
+   * @return a CompactSketch of the correct form.
+   */
+  @SuppressWarnings("unused") //to replace CompactSketch.anyMemoryToCompactHeap
   static CompactSketch memoryToCompact(
       final Memory srcMem,
       final boolean dstOrdered,
       final WritableMemory dstMem)
   {
-    //extract Pre0 fields
-    final int preLongs = extractPreLongs(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int famId = extractFamilyID(srcMem);
-    final int lgArrLongs = extractLgArrLongs(srcMem);
-    final int flags = extractFlags(srcMem);
-    final short seedHash = (short) extractSeedHash(srcMem);
+    //extract Pre0 fields and Flags from srcMem
+    final int srcPreLongs = extractPreLongs(srcMem);
+    final int srcSerVer = extractSerVer(srcMem); //not used
+    final int srcFamId = extractFamilyID(srcMem);
+    final Family srcFamily = Family.idToFamily(srcFamId);
+    final int srcLgArrLongs = extractLgArrLongs(srcMem);
+    final int srcFlags = extractFlags(srcMem);
+    final short srcSeedHash = (short) extractSeedHash(srcMem);
 
+    //srcFlags
+    final boolean srcReadOnlyFlag = (srcFlags & READ_ONLY_FLAG_MASK) > 0;
+    final boolean srcEmptyFlag = (srcFlags & EMPTY_FLAG_MASK) > 0;
+    final boolean srcCompactFlag = (srcFlags & COMPACT_FLAG_MASK) > 0;
+    final boolean srcOrderedFlag = (srcFlags & ORDERED_FLAG_MASK) > 0;
+    //final boolean srcSingleFlag = (srcFlags & SINGLEITEM_FLAG_MASK) > 0;
 
+    final boolean single =
+        SingleItemSketch.otherCheckForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
 
-    final int curCount = extractCurCount(srcMem);
-    final long thetaLong = extractThetaLong(srcMem);
+    //extract pre1 and pre2 fields
+    final int curCount = single ? 1 : (srcPreLongs > 1) ? extractCurCount(srcMem) : 0;
+    final long thetaLong = (srcPreLongs > 2) ? extractThetaLong(srcMem) : Long.MAX_VALUE;
 
-    final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
-    final boolean srcCompact = (flags & COMPACT_FLAG_MASK) > 0;
-    final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) > 0;
-    final boolean single = (flags & SINGLEITEM_FLAG_MASK) > 0;
-    if (!srcOrdered) {
-
-    }
-    final long[] hashArr ;
-
-    //do checks ...
-    final boolean direct = dstMem != null;
-    if (empty)  { assert (curCount == 0) && (thetaLong == Long.MAX_VALUE); }
+    //do some basic checks ...
+    if (srcEmptyFlag)  { assert (curCount == 0) && (thetaLong == Long.MAX_VALUE); }
     if (single) { assert (curCount == 1) && (thetaLong == Long.MAX_VALUE); }
-    if (direct) {
+    checkFamilyAndFlags(srcFamId, srcCompactFlag, srcReadOnlyFlag);
+
+    //dispatch empty and single cases
+    //Note: for empty and single we always output the ordered form.
+    final boolean dstOrderedOut = (srcEmptyFlag || single) ? true : dstOrdered;
+    if (srcEmptyFlag) {
+      if (dstMem != null) {
+        dstMem.putByteArray(0, EmptyCompactSketch.EMPTY_COMPACT_SKETCH_ARR, 0, 8);
+        return new DirectCompactOrderedSketch(dstMem);
+      } else {
+        return EmptyCompactSketch.getInstance();
+      }
+    }
+    if (single) {
+      final long hash = srcMem.getLong(srcPreLongs << 3);
+      final SingleItemSketch sis = new SingleItemSketch(hash, srcSeedHash);
+      if (dstMem != null) {
+        dstMem.putByteArray(0, sis.toByteArray(),0, 16);
+        return new DirectCompactOrderedSketch(dstMem);
+      } else { //heap
+        return sis;
+      }
+    }
+
+    //extract hashArr > 1
+    final long[] hashArr;
+    if (srcCompactFlag) {
+      hashArr = new long[curCount];
+      srcMem.getLongArray(srcPreLongs << 3, hashArr, 0, curCount);
+    } else { //estimating, thus hashTable form
+      final int srcCacheLen = 1 << srcLgArrLongs;
+      final long[] tempHashArr = new long[srcCacheLen];
+      srcMem.getLongArray(srcPreLongs << 3, tempHashArr, 0, srcCacheLen);
+      hashArr = compactCache(tempHashArr, curCount, thetaLong, dstOrderedOut);
+    }
+
+    //load the destination.
+    if (dstMem != null) {
+      final Memory tgtMem = loadCompactMemory(hashArr, srcSeedHash, curCount, thetaLong, dstMem,
+          (byte)srcFlags, srcPreLongs);
+      if (dstOrderedOut) {
+        return new DirectCompactOrderedSketch(tgtMem);
+      } else {
+        return new DirectCompactUnorderedSketch(tgtMem);
+      }
 
     } else { //heap
-      //dispatch empty and single
-      //dispatch other
+      if (dstOrderedOut) {
+        return new HeapCompactOrderedSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong);
+      } else {
+        return new HeapCompactUnorderedSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong);
+      }
     }
-    return null;
+  }
+
+  private static final void checkFamilyAndFlags(
+      final int srcFamId,
+      final boolean srcCompactFlag,
+      final boolean srcReadOnlyFlag) {
+    final Family srcFamily = Family.idToFamily(srcFamId);
+    if (srcCompactFlag) {
+      if ((srcFamily == Family.COMPACT) && srcReadOnlyFlag) { return; }
+    } else {
+      if (srcFamily == Family.ALPHA) { return; }
+      if (srcFamily == Family.QUICKSELECT) { return; }
+    }
+    throw new SketchesArgumentException(
+        "Possible Corruption: Family does not match flags: Family: "
+            + srcFamily.toString()
+            + ", Compact Flag: " + srcCompactFlag
+            + ", ReadOnly Flag: " + srcReadOnlyFlag);
   }
 
   //All arguments must be valid and correct including flags.
@@ -200,15 +275,16 @@ final class CompactOperations {
   }
 
   /**
-   * Compact the given array. The source cache can be a hash table with interstitial zeros or
-   * "dirty" values, which are hash values greater than theta. These can be generated by the
-   * Alpha sketch.
+   * Copies then compacts, cleans, and may sort the resulting array.
+   * The source cache can be a hash table with interstitial zeros or
+   * "dirty" values, which are hash values greater than theta.
+   * These can be generated by the Alpha sketch.
    * @param srcCache anything
    * @param curCount must be correct
    * @param thetaLong The correct
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
    * @param dstOrdered true if output array must be sorted
-   * @return the compacted array
+   * @return the compacted array.
    */
   static final long[] compactCache(final long[] srcCache, final int curCount,
       final long thetaLong, final boolean dstOrdered) {
@@ -223,15 +299,15 @@ final class CompactOperations {
       if ((v <= 0L) || (v >= thetaLong) ) { continue; } //ignoring zeros or dirty values
       cacheOut[j++] = v;
     }
-    assert curCount == j;
+    if (j < curCount) {
+      throw new SketchesStateException(
+          "Possible Corruption: curCount parameter is incorrect.");
+    }
     if (dstOrdered && (curCount > 1)) {
       Arrays.sort(cacheOut);
     }
     return cacheOut;
   }
-
-
-
 
 }
 

@@ -27,7 +27,6 @@ import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.Sketch.checkIllegalCurCountAndEmpty;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -75,11 +74,11 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Heap-based SetOperation from the given Memory
-   */ //TODO Do we need to add a stateful AnotB here?
+   */
   public static SetOperation heapify(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
-    switch (family) {
+    switch (family) { //TODO Do we need to add the stateful AnotB ?
       case UNION : {
         return UnionImpl.heapifyInstance(srcMem, seed);
       }
@@ -115,7 +114,7 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
-   */ //TODO Do we need to add a stateful AnotB here?
+   */
   public static SetOperation wrap(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
@@ -123,7 +122,7 @@ public abstract class SetOperation {
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
-    switch (family) {
+    switch (family) { //TODO Do we need to add the stateful AnotB ?
       case UNION : {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
@@ -246,49 +245,6 @@ public abstract class SetOperation {
 
   //intentionally not made public because behavior will be confusing to end user.
   abstract boolean isEmpty();
-
-  //used only by the set operations
-  static final CompactSketch createCompactSketch(
-      final long[] compactCache,
-      boolean empty,
-      final short seedHash,
-      final int curCount,
-      final long thetaLong,
-      final boolean dstOrdered,
-      final WritableMemory dstMem) {
-    checkIllegalCurCountAndEmpty(empty, curCount);
-    empty = correctEmptyOnSetResult(curCount, thetaLong);
-    if (empty) {
-      final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
-      if (dstMem != null) {
-        dstMem.putByteArray(0, sk.toByteArray(), 0, 8);
-      }
-      return sk;
-    }
-    //Not Empty
-    if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
-      final SingleItemSketch sis = new SingleItemSketch(compactCache[0], seedHash);
-      if ((dstMem != null) && (dstMem.getCapacity() >= 16)) {
-        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
-      }
-      return sis;
-    }
-    if (dstMem == null) {
-      if (dstOrdered) {
-        return new HeapCompactOrderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
-      } else {
-        return new HeapCompactUnorderedSketch(compactCache, empty, seedHash, curCount, thetaLong);
-      }
-    } else {
-      if (dstOrdered) {
-        return DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem);
-      } else {
-        return DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem);
-      }
-    }
-  }
 
   /**
    * Computes minimum lgArrLongs from a current count.
