@@ -51,10 +51,11 @@ public class AnotBimplTest {
     }
 
     AnotB aNb = SetOperation.builder().buildANotB();
-    assertTrue(aNb.isEmpty());
-    assertNull(aNb.getCache());
-    assertEquals(aNb.getThetaLong(), Long.MAX_VALUE);
+    assertTrue(aNb.isEmpty());  //only applies to stateful
+    assertNull(aNb.getCache()); //only applies to stateful
+    assertEquals(aNb.getThetaLong(), Long.MAX_VALUE); //only applies to stateful
     assertEquals(aNb.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
+
 
     aNb.update(usk1, usk2);
     assertEquals(aNb.getRetainedEntries(true), 256);

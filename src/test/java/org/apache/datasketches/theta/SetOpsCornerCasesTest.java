@@ -244,32 +244,12 @@ public class SetOpsCornerCasesTest {
     CompactSketch skHeap = generate(EST_HEAP, k);
     CompactSketch skHeapUO = generate(EST_MEMORY_UNORDERED, k);
 
-    try {
-      PairwiseSetOperations.union(skNull, skHeapUO, k);
-      Assert.fail();
-    } catch (Exception e) { } //pass
-    try {
-      PairwiseSetOperations.union(skEmpty, skHeapUO, k);
-      Assert.fail();
-    } catch (Exception e) { } //pass
-
-    try {
-      PairwiseSetOperations.union(skHeapUO, skNull, k);
-      Assert.fail();
-    } catch (Exception e) { } //pass
-    try {
-      PairwiseSetOperations.union(skHeapUO, skEmpty, k);
-      Assert.fail();
-    } catch (Exception e) { } //pass
-
-    try {
-      PairwiseSetOperations.union(skHeapUO, skHeap, k);
-      Assert.fail();
-    } catch (Exception e) { } //pass
-    try {
-      PairwiseSetOperations.union(skHeap, skHeapUO, k);
-      Assert.fail();
-    } catch (Exception e) { } //pass
+    PairwiseSetOperations.union(skNull, skHeapUO, k);
+    PairwiseSetOperations.union(skEmpty, skHeapUO, k);
+    PairwiseSetOperations.union(skHeapUO, skNull, k);
+    PairwiseSetOperations.union(skHeapUO, skEmpty, k);
+    PairwiseSetOperations.union(skHeapUO, skHeap, k);
+    PairwiseSetOperations.union(skHeap, skHeapUO, k);
   }
 
   @Test

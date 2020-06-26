@@ -173,7 +173,6 @@ class IntersectionImplR extends Intersection {
     }
     compactCacheR = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
 
-    //Create the CompactSketch
     return CompactOperations.componentsToCompact(
         thetaLong_, curCount_, seedHash_, empty_, true, dstOrdered, dstOrdered, dstMem, compactCacheR);
   }

@@ -20,13 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
-
-import java.util.Arrays;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * Set Operations where the arguments are presented in pairs as in <i>C = Op(A,B)</i>. These are
@@ -37,7 +30,7 @@ import org.apache.datasketches.SketchesArgumentException;
  *
  * @author Lee Rhodes
  * @deprecated  This class has been deprecated as equivalent functionality has been added to the
- * SetOperation classes: Union, Intersection and AnotB.
+ * SetOperation classes: {@link Union}, {@link Intersection} and {@link AnotB}.
  */
 @Deprecated
 public class PairwiseSetOperations {
@@ -55,13 +48,8 @@ public class PairwiseSetOperations {
    */
   @Deprecated
   public static CompactSketch intersect(final Sketch skA, final Sketch skB) {
-    if (((skA == null) || (skA instanceof EmptyCompactSketch))
-        || ((skB == null) || (skB instanceof EmptyCompactSketch))) {
-      return EmptyCompactSketch.getInstance();
-    }
-    final short seedHash = skA.getSeedHash();
-    final Intersection inter = new IntersectionImpl(seedHash);
-    return inter.intersect(skA, skB, true, null);
+    final Intersection inter = new SetOperationBuilder().buildIntersection();
+    return inter.intersect(skA, skB);
   }
 
   /**
@@ -77,14 +65,8 @@ public class PairwiseSetOperations {
    */
   @Deprecated
   public static CompactSketch aNotB(final Sketch skA, final Sketch skB) {
-    if (((skA == null) || (skA instanceof EmptyCompactSketch))
-        && ((skB == null) || (skB instanceof EmptyCompactSketch))) {
-      return EmptyCompactSketch.getInstance();
-    }
-    final short seedHash = ((skA == null) || (skA instanceof EmptyCompactSketch))
-        ? skB.getSeedHash() : skA.getSeedHash(); // lgtm [java/dereferenced-value-may-be-null]
-    final AnotBimpl anotb = new AnotBimpl(seedHash);
-    return anotb.aNotB(skA, skB, true, null);
+    final AnotB anotb = new SetOperationBuilder().buildANotB();
+    return anotb.aNotB(skA, skB);
   }
 
   /**
@@ -123,133 +105,9 @@ public class PairwiseSetOperations {
    * complete seed handling.
    */
   @Deprecated
-  @SuppressWarnings("null")
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB, final int k) {
-    //Handle all corner cases with null or empty arguments
-    //For backward compatibility, we must allow input empties with Theta < 1.0.
-    final int swA, swB;
-    swA = ((skA == null) || (skA instanceof EmptyCompactSketch)) ? 0 : 2;
-    swB = ((skB == null) || (skB instanceof EmptyCompactSketch)) ? 0 : 1;
-    final int sw = swA | swB;
-    switch (sw) {
-      case 0: { //skA == null/ECS;  skB == null/ECS; return EmptyCompactSketch.
-        return EmptyCompactSketch.getInstance();
-      }
-      case 1: { //skA == null/ECS;  skB == valid; return skB
-        checkOrdered(skB);
-        return maybeCutback(skB, k);
-      }
-      case 2: { //skA == valid; skB == null/ECS; return skA
-        checkOrdered(skA);
-        return maybeCutback(skA, k);
-      }
-      case 3: { //skA == valid; skB == valid; perform full union
-        checkOrdered(skA);
-        checkOrdered(skB);
-        seedHashesCheck(skA, skB);
-        break;
-      }
-      //default: cannot happen
-    }
-
-    //Both sketches are valid with matching seedhashes and ordered
-    //Full Union operation:
-    final long thetaLongA = skA.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
-    final long thetaLongB = skB.getThetaLong(); //lgtm [java/dereferenced-value-may-be-null]
-    long thetaLong = Math.min(thetaLongA, thetaLongB); //Theta rule
-    final long[] cacheA = (skA.hasMemory()) ? skA.getCache() : skA.getCache().clone();
-    final long[] cacheB = (skB.hasMemory()) ? skB.getCache() : skB.getCache().clone();
-    final int aLen = cacheA.length;
-    final int bLen = cacheB.length;
-
-    final long[] outCache = new long[aLen + bLen];
-
-    int indexA = 0;
-    int indexB = 0;
-    int indexOut = 0;
-    long hashA = (aLen == 0) ? thetaLong : cacheA[indexA];
-    long hashB = (bLen == 0) ? thetaLong : cacheB[indexB];
-
-    while ((indexA < aLen) || (indexB < bLen)) {
-      if (hashA == hashB) {
-        if (hashA < thetaLong) {
-          if (indexOut >= k) {
-            thetaLong = hashA;
-            break;
-          }
-          outCache[indexOut++] = hashA;
-          hashA = (++indexA < aLen) ? cacheA[indexA] : thetaLong;
-          hashB = (++indexB < bLen) ? cacheB[indexB] : thetaLong;
-          continue;
-        }
-        break;
-      }
-      else if (hashA < hashB) {
-        if (hashA < thetaLong) {
-          if (indexOut >= k) {
-            thetaLong = hashA;
-            break;
-          }
-          outCache[indexOut++] = hashA;
-          hashA = (++indexA < aLen) ? cacheA[indexA] : thetaLong;
-          continue;
-        }
-        break;
-      }
-      else { //hashA > hashB
-        if (hashB < thetaLong) {
-          if (indexOut >= k) {
-            thetaLong = hashB;
-            break;
-          }
-          outCache[indexOut++] = hashB;
-          hashB = (++indexB < bLen) ? cacheB[indexB] : thetaLong;
-          continue;
-        }
-        break;
-      }
-    }
-
-    int curCount = indexOut;
-    final long[] outArr;
-    if (indexOut > k) { //unlikely
-      outArr = Arrays.copyOf(outCache, k); //cutback to k, just in case
-      curCount = k;
-    } else {
-      outArr = Arrays.copyOf(outCache, curCount); //copy only valid items
-    }
-    final short seedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
-    final boolean srcEmpty = (curCount == 0) && (thetaLong == Long.MAX_VALUE);
-    return CompactOperations.componentsToCompact(
-        thetaLong, curCount, seedHash, srcEmpty, true, true, true, null, outArr);
-  }
-
-  private static CompactSketch maybeCutback(final CompactSketch csk, final int k) {
-    final boolean empty = csk.isEmpty();
-    int curCount = csk.getRetainedEntries(true);
-    long thetaLong = csk.getThetaLong();
-    if (curCount > k) { //cutback to k
-      final long[] cache = (csk.hasMemory()) ? csk.getCache() : csk.getCache().clone();
-      thetaLong = cache[k];
-      final long[] arr = Arrays.copyOf(cache, k);
-      curCount = k;
-      final short seedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
-      return CompactOperations.componentsToCompact(
-          thetaLong, curCount, seedHash, empty, true, false, true, null, cache);
-    }
-    return csk;
-  }
-
-  private static void checkOrdered(final CompactSketch csk) {
-    if (!csk.isOrdered()) {
-      throw new SketchesArgumentException("Given sketch must be ordered.");
-    }
-  }
-
-  private static short seedHashesCheck(final Sketch skA, final Sketch skB) {
-    final short seedHashA = skA.getSeedHash(); //lgtm [java/dereferenced-value-may-be-null]
-    final short seedHashB = skB.getSeedHash(); //lgtm [java/dereferenced-value-may-be-null]
-    return checkSeedHashes(seedHashA, seedHashB);
+    final Union un = new SetOperationBuilder().setNominalEntries(k).buildUnion();
+    return un.union(skA, skB);
   }
 
 }

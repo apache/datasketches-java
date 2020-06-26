@@ -24,18 +24,33 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The API for the set difference operation <i>A and not B</i> operations.
- * This is a stateless operation. However, to make the API
- * more consistent with the other set operations the intended use is:
+ * This class include both stateful and stateless operations.
+ *
+ * <p>The stateful operation is as follows:</p>
  * <pre><code>
- * AnotB aNotB = SetOperationBuilder.buildAnotB();
- * aNotB.update(SketchA, SketchB); //Called only once.
- * CompactSketch result = aNotB.getResult();
+ * AnotB anotb = SetOperationBuilder.buildAnotB();
+ *
+ * anotb.setA(Sketch skA); //The first argument.
+ * anotb.notB(Sketch skB); //The second (subtraction) argument.
+ * anotb.notB(Sketch skC); // ...any number of additional subtractions...
+ * anotb.getResult(false); //Get an interim result.
+ * anotb.notB(Sketch skD); //Additional subtractions.
+ * anotb.getResult(true);  //Final result and resets the AnotB operator.
  * </code></pre>
  *
- * <p>Calling the update function a second time essentially clears the internal state and updates
- * with the new pair of sketches.
+ * <p>The stateless operation is as follows:</p>
+ * <pre><code>
+ * AnotB anotb = SetOperationBuilder.buildAnotB();
  *
- * <p>As an alternative, one can use the aNotB method that returns the result immediately.
+ * CompactSketch csk = anotb.aNotB(Sketch skA, Sketch skB);
+ * </code></pre>
+ *
+ * <p>Calling the <i>setA</i> operation a second time essentially clears the internal state and loads
+ * the new sketch.</p>
+ *
+ * <p>The stateless and stateful operations are independent of each other with the exception of
+ * sharing the same update hash seed loaded as the default seed or specified by the user as an
+ * argument to the builder.</p>
  *
  * @author Lee Rhodes
  */

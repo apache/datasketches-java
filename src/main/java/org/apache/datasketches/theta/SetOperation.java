@@ -271,17 +271,4 @@ public abstract class SetOperation {
     return ret;
   }
 
-  /**
-   * This corrects a temporary anomalous condition from an intersection of two exact, disjoint sets,
-   * or AnotB of two exact, identical sets. Because there is no probability error distribuion,
-   * the result is exactly empty. The empty flag is changed to true before returning a result.
-   * This is used in the compaction step of SetOperation.
-   * @param curCount the given curCount
-   * @param thetaLong the given theta.
-   * @return the empty state
-   */
-  private static final boolean correctEmptyOnSetResult(final int curCount, final long thetaLong) {
-    return (curCount == 0) && (thetaLong == Long.MAX_VALUE);
-  }
-
 }
