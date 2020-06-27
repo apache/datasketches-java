@@ -110,7 +110,7 @@ final class SingleItemSketch extends CompactSketch {
     else {
       dstMem.putLong(0, pre0_);
       dstMem.putLong(8, hash_);
-      return new DirectCompactOrderedSketch(dstMem);
+      return new DirectCompactSketch(dstMem);
     }
   }
 

@@ -54,14 +54,14 @@ public class UnionImplTest {
     assertEquals(union.getResult().getEstimate(), k, 0.0);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkCorruptedCompactFlag() {
+  @Test
+  public void checkUnorderedCompactFlag() {
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { sketch.update(i); }
     CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
-    sketch.compact(false, mem); //corrupt memory
+    sketch.compact(false, mem); //change the order bit
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(sketchInDirectOrd);
   }

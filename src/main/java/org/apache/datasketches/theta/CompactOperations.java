@@ -91,11 +91,8 @@ final class CompactOperations {
 
       final Memory mem =
           loadCompactMemory(hashArrOut, seedHash, curCount, thetaLong, dstMem, (byte)flags, preLongs);
-      if (dstOrderedOut) {
-        return new DirectCompactOrderedSketch(mem);
-      } else {
-        return new DirectCompactUnorderedSketch(mem);
-      }
+      return new DirectCompactSketch(mem);
+
     } else { //Heap
       if (empty) {
         return EmptyCompactSketch.getInstance();
@@ -159,7 +156,7 @@ final class CompactOperations {
     if (srcEmptyFlag) {
       if (dstMem != null) {
         dstMem.putByteArray(0, EmptyCompactSketch.EMPTY_COMPACT_SKETCH_ARR, 0, 8);
-        return new DirectCompactOrderedSketch(dstMem);
+        return new DirectCompactSketch(dstMem);
       } else {
         return EmptyCompactSketch.getInstance();
       }
@@ -169,7 +166,7 @@ final class CompactOperations {
       final SingleItemSketch sis = new SingleItemSketch(hash, srcSeedHash);
       if (dstMem != null) {
         dstMem.putByteArray(0, sis.toByteArray(),0, 16);
-        return new DirectCompactOrderedSketch(dstMem);
+        return new DirectCompactSketch(dstMem);
       } else { //heap
         return sis;
       }
@@ -191,11 +188,7 @@ final class CompactOperations {
     if (dstMem != null) {
       final Memory tgtMem = loadCompactMemory(hashArr, srcSeedHash, curCount, thetaLong, dstMem,
           (byte)srcFlags, srcPreLongs);
-      if (dstOrderedOut) {
-        return new DirectCompactOrderedSketch(tgtMem);
-      } else {
-        return new DirectCompactUnorderedSketch(tgtMem);
-      }
+      return new DirectCompactSketch(tgtMem);
 
     } else { //heap
       if (dstOrderedOut) {

@@ -70,7 +70,7 @@ final class EmptyCompactSketch extends CompactSketch {
   // The hashSeed is ignored and set == 0.
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
     wmem.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
-    return new DirectCompactOrderedSketch(wmem);
+    return new DirectCompactSketch(wmem);
   }
 
   //static

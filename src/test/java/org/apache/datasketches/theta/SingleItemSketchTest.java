@@ -205,9 +205,9 @@ public class SingleItemSketchTest {
     bytes = Sketches.getMaxCompactSketchBytes(1);
     wmem = WritableMemory.wrap(new byte[bytes]);
     csk = sk1.compact(true, wmem);
-    assertTrue(csk instanceof DirectCompactOrderedSketch);
+    assertTrue(csk.isOrdered());
     csk = sk1.compact(false, wmem);
-    assertTrue(csk instanceof DirectCompactOrderedSketch);
+    assertTrue(csk.isOrdered());
   }
 
   @Test
@@ -294,7 +294,7 @@ public class SingleItemSketchTest {
     inter.update(sk2);
     WritableMemory wmem = WritableMemory.wrap(new byte[16]);
     CompactSketch csk = inter.getResult(false, wmem);
-    assertTrue(csk instanceof DirectCompactOrderedSketch);
+    assertTrue(csk.isOrdered());
     Sketch csk2 = Sketches.heapifySketch(wmem);
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));

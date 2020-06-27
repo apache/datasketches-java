@@ -280,7 +280,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp3.isEstimationMode(), estimating);
     assertEquals(comp1bytes, comp3.getCurrentBytes(true)); //flag is not relevant
     assertEquals(comp1curCount, comp3.getRetainedEntries(true)); //flag is not relevant
-    assertEquals(comp3.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+    assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
 
     mem2.clear();
     comp4 = usk.compact(true, mem2);
@@ -292,7 +292,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp4.isEstimationMode(), estimating);
     assertEquals(comp1bytes, comp4.getCurrentBytes(true)); //flag is not relevant
     assertEquals(comp1curCount, comp4.getRetainedEntries(true)); //flag is not relevant
-    assertEquals(comp4.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+    assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");
   }
 
   @Test
@@ -321,7 +321,7 @@ public class HeapAlphaSketchTest {
     assertEquals(csk2.getUpperBound(2), uskUB);
     assertEquals(csk2.isEmpty(), true);
     assertEquals(csk2.isEstimationMode(), estimating);
-    assertTrue(csk2 instanceof DirectCompactOrderedSketch);
+    assertTrue(csk2.isOrdered());
 
     CompactSketch csk3 = usk.compact(true, mem2);
     csk3.toString(false, true, 0, false);
@@ -331,7 +331,7 @@ public class HeapAlphaSketchTest {
     assertEquals(csk3.getUpperBound(2), uskUB);
     assertEquals(csk3.isEmpty(), true);
     assertEquals(csk3.isEstimationMode(), estimating);
-    assertTrue(csk3 instanceof DirectCompactOrderedSketch);
+    assertTrue(csk3.isOrdered());
   }
 
   @Test

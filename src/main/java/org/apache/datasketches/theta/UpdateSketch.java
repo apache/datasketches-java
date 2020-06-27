@@ -223,12 +223,11 @@ public abstract class UpdateSketch extends Sketch {
     if (ordered) {
       final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
       CompactOperations.loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
-      return new DirectCompactOrderedSketch(dstMem);
     } else {
       final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
       CompactOperations.loadCompactMemory(cacheOut, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
-      return new DirectCompactUnorderedSketch(dstMem);
     }
+    return new DirectCompactSketch(dstMem);
   }
 
 

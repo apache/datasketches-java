@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
+import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
@@ -29,15 +32,39 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * Parent class of the Direct Compact Sketches.
+ * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
+ * or unordered.
+ *
+ * <p>This sketch can only be associated with a Serialization Version 3 format binary image.</p>
+ *
+ * <p>This implementation uses data in a given Memory that is owned and managed by the caller.
+ * This Memory can be off-heap, which if managed properly will greatly reduce the need for
+ * the JVM to perform garbage collection.</p>
  *
  * @author Lee Rhodes
  */
-abstract class DirectCompactSketch extends CompactSketch {
+class DirectCompactSketch extends CompactSketch {
   final Memory mem_;
 
+  /**
+   * Construct this sketch with the given memory.
+   * @param mem Read-only Memory object with the order bit properly set.
+   */
   DirectCompactSketch(final Memory mem) {
     mem_ = mem;
+  }
+
+  /**
+   * Wraps the given Memory, which must be a SerVer 3, ordered, CompactSketch image.
+   * Must check the validity of the Memory before calling. The order bit must be set properly.
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed The update seed.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return this sketch
+   */
+  static DirectCompactSketch wrapInstance(final Memory srcMem, final long seed) {
+    checkMemorySeedHash(srcMem, seed);
+    return new DirectCompactSketch(srcMem);
   }
 
   //Sketch
@@ -99,6 +126,11 @@ abstract class DirectCompactSketch extends CompactSketch {
     final long thetaLong = getThetaLong();
     final int curCount = getRetainedEntries(true);
     return emptyFlag || ((curCount == 0) && (thetaLong == Long.MAX_VALUE));
+  }
+
+  @Override
+  public boolean isOrdered() {
+    return (extractFlags(mem_) & ORDERED_FLAG_MASK) > 0;
   }
 
   @Override

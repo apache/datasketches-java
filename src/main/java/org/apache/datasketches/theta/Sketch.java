@@ -153,7 +153,6 @@ public abstract class Sketch {
           }
           //not empty & not singleItem
           final int flags = srcMem.getByte(FLAGS_BYTE);
-          final boolean orderedFlag = (flags & ORDERED_FLAG_MASK) > 0;
           final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
           if (!compactFlag) {
             throw new SketchesArgumentException(
@@ -164,9 +163,7 @@ public abstract class Sketch {
             throw new SketchesArgumentException(
                 "Corrupted: COMPACT family sketch image must have Read-Only flag set");
           }
-          return orderedFlag
-              ? DirectCompactOrderedSketch.wrapInstance(srcMem, seed)
-              : DirectCompactUnorderedSketch.wrapInstance(srcMem, seed);
+          return DirectCompactSketch.wrapInstance(srcMem, seed);
         } //end of serVer 3
         else if (serVer == 1) {
           return ForwardCompatibility.heapify1to3(srcMem, seed);
