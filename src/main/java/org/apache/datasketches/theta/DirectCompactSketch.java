@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
+import static org.apache.datasketches.theta.CompactOperations.memoryToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
@@ -76,7 +78,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    return CompactOperations.memoryToCompact(mem_, dstOrdered, dstMem);
+    return memoryToCompact(mem_, dstOrdered, dstMem);
   }
 
   @Override
@@ -146,7 +148,7 @@ class DirectCompactSketch extends CompactSketch {
   @Override
   public byte[] toByteArray() {
     final int curCount = getRetainedEntries(true);
-    Sketch.checkIllegalCurCountAndEmpty(isEmpty(), curCount);
+    checkIllegalCurCountAndEmpty(isEmpty(), curCount);
     final int preLongs = extractPreLongs(mem_);
     final int outBytes = (curCount + preLongs) << 3;
     final byte[] byteArrOut = new byte[outBytes];

@@ -170,7 +170,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public byte[] toByteArray() { //MY_FAMILY is stored in wmem_
-    Sketch.checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wmem_));
+    CompactOperations.checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wmem_));
     final byte lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE);
     final int preambleLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int lengthBytes = (preambleLongs + (1 << lgArrLongs)) << 3;
@@ -178,7 +178,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final WritableMemory mem = WritableMemory.wrap(byteArray);
     wmem_.copyTo(0, mem, 0, lengthBytes);
     final long thetaLong =
-        Sketch.correctThetaOnCompact(isEmpty(), extractCurCount(wmem_), extractThetaLong(wmem_));
+        CompactOperations.correctThetaOnCompact(isEmpty(), extractCurCount(wmem_), extractThetaLong(wmem_));
     PreambleUtil.insertThetaLong(wmem_, thetaLong);
     return byteArray;
   }

@@ -100,11 +100,7 @@ final class CompactOperations {
       if (single) {
         return new SingleItemSketch(hashArrOut[0], seedHash);
       }
-      if (dstOrderedOut) {
-        return new HeapCompactOrderedSketch(hashArrOut, empty, seedHash, curCount, thetaLong);
-      } else {
-        return new HeapCompactUnorderedSketch(hashArrOut, empty, seedHash, curCount, thetaLong);
-      }
+      return new HeapCompactSketch(hashArrOut, empty, seedHash, curCount, thetaLong, dstOrderedOut);
     }
   }
 
@@ -116,7 +112,7 @@ final class CompactOperations {
    * @param dstMem Used for the target CompactSketch if it is Direct.
    * @return a CompactSketch of the correct form.
    */
-  @SuppressWarnings("unused") //to replace CompactSketch.anyMemoryToCompactHeap
+  @SuppressWarnings("unused")
   static CompactSketch memoryToCompact(
       final Memory srcMem,
       final boolean dstOrdered,
@@ -136,10 +132,10 @@ final class CompactOperations {
     final boolean srcEmptyFlag = (srcFlags & EMPTY_FLAG_MASK) > 0;
     final boolean srcCompactFlag = (srcFlags & COMPACT_FLAG_MASK) > 0;
     final boolean srcOrderedFlag = (srcFlags & ORDERED_FLAG_MASK) > 0;
-    //final boolean srcSingleFlag = (srcFlags & SINGLEITEM_FLAG_MASK) > 0;
+    final boolean srcSingleFlag = (srcFlags & SINGLEITEM_FLAG_MASK) > 0;
 
-    final boolean single =
-        SingleItemSketch.otherCheckForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
+    final boolean single = srcSingleFlag
+        || SingleItemSketch.otherCheckForSingleItem(srcPreLongs, srcSerVer, srcFamId, srcFlags);
 
     //extract pre1 and pre2 fields
     final int curCount = single ? 1 : (srcPreLongs > 1) ? extractCurCount(srcMem) : 0;
@@ -189,13 +185,8 @@ final class CompactOperations {
       final Memory tgtMem = loadCompactMemory(hashArr, srcSeedHash, curCount, thetaLong, dstMem,
           (byte)srcFlags, srcPreLongs);
       return new DirectCompactSketch(tgtMem);
-
     } else { //heap
-      if (dstOrderedOut) {
-        return new HeapCompactOrderedSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong);
-      } else {
-        return new HeapCompactUnorderedSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong);
-      }
+      return new HeapCompactSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong, dstOrderedOut);
     }
   }
 
@@ -262,11 +253,6 @@ final class CompactOperations {
     return dstMem; //curCount == 0, theta could be < 1.0
   }
 
-  static final int computeCompactPreLongs(final long thetaLong, final boolean empty,
-      final int curCount) {
-    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : (curCount > 1) ? 2 : 1;
-  }
-
   /**
    * Copies then compacts, cleans, and may sort the resulting array.
    * The source cache can be a hash table with interstitial zeros or
@@ -302,5 +288,74 @@ final class CompactOperations {
     return cacheOut;
   }
 
+  /*
+   * The truth table for empty, curCount and theta when compacting is as follows:
+   * <pre>
+   * Num Theta CurCount Empty State    Comments
+   *  0    1.0     0      T     OK     The Normal Empty State
+   *  1    1.0     0      F   Internal This can result from an intersection of two exact, disjoint sets,
+   *                                   or AnotB of two exact, identical sets. There is no probability
+   *                                   distribution, so change to empty. Return {Th = 1.0, 0, T}.
+   *                                   This is handled in SetOperation.createCompactSketch().
+   *  2    1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
+   *                                   This is checked in all compacting operations.
+   *  3    1.0    !0      F     OK     This corresponds to a sketch in exact mode
+   *  4   <1.0     0      T   Internal This can be an initial UpdateSketch state if p < 1.0,
+   *                                   so change theta to 1.0. Return {Th = 1.0, 0, T}.
+   *                                   This is handled in UpdateSketch.compact() and toByteArray().
+   *  5   <1.0     0      F     OK     This can result from set operations
+   *  6   <1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
+   *                                   This is checked in all compacting operations.
+   *  7   <1.0    !0      F     OK     This corresponds to a sketch in estimation mode
+   * </pre>
+   * #4 is handled by <i>correctThetaOnCompat(boolean, int)</i> (below).
+   * #2 & #6 handled by <i>checkIllegalCurCountAndEmpty(boolean, int)</i>
+   */
+
+  /**
+   * This corrects a temporary anomalous condition where compact() is called on an UpdateSketch
+   * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
+   * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
+   * returning sketch empty. This should only be used in the compaction or serialization of an
+   * UpdateSketch.
+   * @param empty the given empty state
+   * @param curCount the given curCount
+   * @param thetaLong the given thetaLong
+   * @return thetaLong
+   */
+  static final long correctThetaOnCompact(final boolean empty, final int curCount,
+      final long thetaLong) { //handles #4 above
+    return (empty && (curCount == 0)) ? Long.MAX_VALUE : thetaLong;
+  }
+
+  /**
+   * This checks for the illegal condition where curCount > 0 and the state of
+   * empty = true.  This check can be used anywhere a sketch is returned or a sketch is created
+   * from complete arguments.
+   * @param empty the given empty state
+   * @param curCount the given current count
+   */ //This handles #2 and #6 above
+  static final void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
+    if (empty && (curCount != 0)) { //this handles #2 and #6 above
+      throw new SketchesStateException("Illegal State: Empty=true and Current Count != 0.");
+    }
+  }
+
+  static final int computeCompactPreLongs(final long thetaLong, final boolean empty,
+      final int curCount) {
+    return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : (curCount > 1) ? 2 : 1;
+  }
+
+  /**
+   * This checks for the singleItem Compact Sketch.
+   * @param empty the given empty state
+   * @param curCount the given curCount
+   * @param thetaLong the given thetaLong
+   * @return true if notEmpty, curCount = 1 and theta = 1.0;
+   */
+  static final boolean isSingleItem(final boolean empty, final int curCount,
+      final long thetaLong) {
+    return !empty && (curCount == 1) && (thetaLong == Long.MAX_VALUE);
+  }
 }
 

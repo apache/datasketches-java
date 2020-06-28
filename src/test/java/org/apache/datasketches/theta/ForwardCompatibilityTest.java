@@ -199,7 +199,7 @@ public class ForwardCompatibilityTest {
     assertEquals(sketch.hasMemory(), false);
     assertEquals(sketch.isCompact(), true);
     assertEquals(sketch.isOrdered(), true);
-    assertTrue(sketch instanceof HeapCompactOrderedSketch);
+    assertTrue(sketch instanceof HeapCompactSketch);
   }
 
   @Test

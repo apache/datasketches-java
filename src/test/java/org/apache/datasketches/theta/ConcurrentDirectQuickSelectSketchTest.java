@@ -372,7 +372,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk.getUpperBound(2), localUB);
       assertFalse(csk.isEmpty());
       assertEquals(csk.isEstimationMode(), estimating);
-      assertEquals(csk.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
+      assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       csk = shared.compact(true, null);
       assertEquals(csk.getEstimate(), localEst);
@@ -380,7 +380,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk.getUpperBound(2), localUB);
       assertFalse(csk.isEmpty());
       assertEquals(csk.isEstimationMode(), estimating);
-      assertEquals(csk.getClass().getSimpleName(), "HeapCompactOrderedSketch");
+      assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       int bytes = local.getCurrentBytes(true);
       assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));

@@ -252,7 +252,7 @@ public class HeapAlphaSketchTest {
 
     assertEquals(comp1.isEmpty(), false);
     assertEquals(comp1.isEstimationMode(), estimating);
-    assertEquals(comp1.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
+    assertEquals(comp1.getClass().getSimpleName(), "HeapCompactSketch");
 
     comp2 = usk.compact(true,  null);
 
@@ -263,7 +263,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp2.isEstimationMode(), estimating);
     assertEquals(comp1bytes, comp2.getCurrentBytes(true)); //flag is not relevant
     assertEquals(comp1curCount, comp2.getRetainedEntries(true)); //flag is not relevant
-    assertEquals(comp2.getClass().getSimpleName(), "HeapCompactOrderedSketch");
+    assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
     int bytes = usk.getCurrentBytes(true);
     int alphaBytes = sk1.getRetainedEntries(true) * 8;

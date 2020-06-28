@@ -39,7 +39,6 @@ import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingle
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -609,59 +608,6 @@ public abstract class Sketch {
           + "Memory Ordered Flag inconsistent with Sketch");
     }
   }
-
-  /*
-   * The truth table for empty, curCount and theta when compacting is as follows:
-   * <pre>
-   * Num Theta CurCount Empty State    Comments
-   *  0    1.0     0      T     OK     The Normal Empty State
-   *  1    1.0     0      F   Internal This can result from an intersection of two exact, disjoint sets,
-   *                                   or AnotB of two exact, identical sets. There is no probability
-   *                                   distribution, so change to empty. Return {Th = 1.0, 0, T}.
-   *                                   This is handled in SetOperation.createCompactSketch().
-   *  2    1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
-   *                                   This is checked in all compacting operations.
-   *  3    1.0    !0      F     OK     This corresponds to a sketch in exact mode
-   *  4   <1.0     0      T   Internal This can be an initial UpdateSketch state if p < 1.0,
-   *                                   so change theta to 1.0. Return {Th = 1.0, 0, T}.
-   *                                   This is handled in UpdateSketch.compact() and toByteArray().
-   *  5   <1.0     0      F     OK     This can result from set operations
-   *  6   <1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
-   *                                   This is checked in all compacting operations.
-   *  7   <1.0    !0      F     OK     This corresponds to a sketch in estimation mode
-   * </pre>
-   */
-
-  /**
-   * This checks for the illegal condition where curCount > 0 and the state of
-   * empty = true.  This check can be used anywhere a sketch is returned or a sketch is created
-   * from complete arguments.
-   * @param empty the given empty state
-   * @param curCount the given current count
-   */ //This handles #2 and #6 above
-  static final void checkIllegalCurCountAndEmpty(final boolean empty, final int curCount) {
-    if (empty && (curCount != 0)) { //this handles #2 and #6 above
-      throw new SketchesStateException("Illegal State: Empty=true and Current Count != 0.");
-    }
-  }
-
-  /**
-   * This corrects a temporary anomalous condition where compact() is called on an UpdateSketch
-   * that was initialized with p < 1.0 and update() was never called.  In this case Theta < 1.0,
-   * curCount = 0, and empty = true.  The correction is to change Theta to 1.0, which makes the
-   * returning sketch empty. This should only be used in the compaction or serialization of an
-   * UpdateSketch.
-   * @param empty the given empty state
-   * @param curCount the given curCount
-   * @param thetaLong the given thetaLong
-   * @return thetaLong
-   */ //This handles #4 above
-  static final long correctThetaOnCompact(final boolean empty, final int curCount,
-      final long thetaLong) {
-    return (empty && (curCount == 0) && (thetaLong < Long.MAX_VALUE)) ? Long.MAX_VALUE : thetaLong;
-  }
-
-
 
   static final double estimate(final long thetaLong, final int curCount) {
     return curCount * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong);

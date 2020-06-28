@@ -326,7 +326,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getUpperBound(2), uskUB);
       assertEquals(csk.isEmpty(), false);
       assertEquals(csk.isEstimationMode(), estimating);
-      assertEquals(csk.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
+      assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       csk = usk.compact(true, null);
       assertEquals(csk.getEstimate(), uskEst);
@@ -334,7 +334,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getUpperBound(2), uskUB);
       assertEquals(csk.isEmpty(), false);
       assertEquals(csk.isEstimationMode(), estimating);
-      assertEquals(csk.getClass().getSimpleName(), "HeapCompactOrderedSketch");
+      assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       int bytes = usk.getCurrentBytes(true);
       assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));

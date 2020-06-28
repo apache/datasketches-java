@@ -311,7 +311,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp1.isEmpty(), false);
     assertEquals(comp1.isEstimationMode(), estimating);
     assertEquals(comp1.getCurrentBytes(true), localCompBytes);
-    assertEquals(comp1.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
+    assertEquals(comp1.getClass().getSimpleName(), "HeapCompactSketch");
 
     comp2 = shared.compact(true, null);
 
@@ -321,7 +321,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp2.isEmpty(), false);
     assertEquals(comp2.isEstimationMode(), estimating);
     assertEquals(comp2.getCurrentBytes(true), localCompBytes);
-    assertEquals(comp2.getClass().getSimpleName(), "HeapCompactOrderedSketch");
+    assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
     byte[] memArr2 = new byte[localCompBytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);  //allocate mem for compact form

@@ -159,11 +159,7 @@ public class CompactSketchTest {
       }
     } else {
       assertFalse(testSk.hasMemory());
-      if (ordered) {
-        assertTrue(testSk instanceof HeapCompactOrderedSketch);
-      } else {
-        assertTrue(testSk instanceof HeapCompactUnorderedSketch);
-      }
+      assertTrue(testSk instanceof HeapCompactSketch);
     }
     assertEquals(testSk.getSeedHash(), refSk.getSeedHash());
     assertEquals(testSk.getRetainedEntries(true), refSk.getRetainedEntries());

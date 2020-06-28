@@ -106,7 +106,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
-    Sketch.checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
+    CompactOperations.checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
     final int preBytes = (preLongs << 3) & 0X3F;
     final int dataBytes = getCurrentDataLongs(false) << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
@@ -124,7 +124,8 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
     insertCurCount(memOut, this.getRetainedEntries(true));
     insertP(memOut, getP());
-    final long thetaLong = correctThetaOnCompact(isEmpty(), getRetainedEntries(), getThetaLong());
+    final long thetaLong =
+        CompactOperations.correctThetaOnCompact(isEmpty(), getRetainedEntries(), getThetaLong());
     insertThetaLong(memOut, thetaLong);
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0
