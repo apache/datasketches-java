@@ -20,6 +20,8 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
+import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
@@ -59,9 +61,16 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //Sketch
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
-    final int preLongs = getCurrentPreambleLongs(compact);
-    final int dataLongs = getCurrentDataLongs(compact);
+  public int getCompactBytes() {
+    final int preLongs = getCurrentPreambleLongs(true);
+    final int dataLongs = getRetainedEntries(true);
+    return (preLongs + dataLongs) << 3;
+  }
+
+  @Override
+  public int getCurrentBytes() {
+    final int preLongs = getCurrentPreambleLongs(false);
+    final int dataLongs = getCurrentDataLongs();
     return (preLongs + dataLongs) << 3;
   }
 
@@ -106,9 +115,9 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
-    CompactOperations.checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
+    checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
     final int preBytes = (preLongs << 3) & 0X3F;
-    final int dataBytes = getCurrentDataLongs(false) << 3;
+    final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
 
@@ -125,7 +134,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     insertCurCount(memOut, this.getRetainedEntries(true));
     insertP(memOut, getP());
     final long thetaLong =
-        CompactOperations.correctThetaOnCompact(isEmpty(), getRetainedEntries(), getThetaLong());
+        correctThetaOnCompact(isEmpty(), getRetainedEntries(), getThetaLong());
     insertThetaLong(memOut, thetaLong);
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0

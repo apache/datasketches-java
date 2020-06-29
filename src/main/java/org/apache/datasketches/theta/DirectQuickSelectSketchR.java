@@ -20,6 +20,9 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
+import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
+import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
+import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_ARR_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
@@ -33,6 +36,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
+import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
@@ -107,17 +111,12 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //Sketch
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
-    if (!compact) {
-      final byte lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE);
-      final int preambleLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-      final int lengthBytes = (preambleLongs + (1 << lgArrLongs)) << 3;
-      return lengthBytes;
-    }
-    final int preLongs = getCurrentPreambleLongs(true);
-    final int curCount = getRetainedEntries(true);
-
-    return (preLongs + curCount) << 3;
+  public int getCurrentBytes() {
+    //not compact
+    final byte lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE);
+    final int preLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int lengthBytes = (preLongs + (1 << lgArrLongs)) << 3;
+    return lengthBytes;
   }
 
   @Override
@@ -170,16 +169,14 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public byte[] toByteArray() { //MY_FAMILY is stored in wmem_
-    CompactOperations.checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wmem_));
-    final byte lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE);
-    final int preambleLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
-    final int lengthBytes = (preambleLongs + (1 << lgArrLongs)) << 3;
+    checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wmem_));
+    final int lengthBytes = getCurrentBytes();
     final byte[] byteArray = new byte[lengthBytes];
     final WritableMemory mem = WritableMemory.wrap(byteArray);
     wmem_.copyTo(0, mem, 0, lengthBytes);
     final long thetaLong =
-        CompactOperations.correctThetaOnCompact(isEmpty(), extractCurCount(wmem_), extractThetaLong(wmem_));
-    PreambleUtil.insertThetaLong(wmem_, thetaLong);
+        correctThetaOnCompact(isEmpty(), extractCurCount(wmem_), extractThetaLong(wmem_));
+    insertThetaLong(wmem_, thetaLong);
     return byteArray;
   }
 
@@ -220,7 +217,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   @Override
   int getCurrentPreambleLongs(final boolean compact) {
     if (!compact) { return PreambleUtil.extractPreLongs(wmem_); }
-    return CompactOperations.computeCompactPreLongs(getThetaLong(), isEmpty(), getRetainedEntries(true));
+    return computeCompactPreLongs(isEmpty(), getRetainedEntries(true), getThetaLong());
   }
 
   @Override

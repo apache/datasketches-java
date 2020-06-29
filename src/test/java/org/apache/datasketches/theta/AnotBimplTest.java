@@ -70,7 +70,7 @@ public class AnotBimplTest {
     assertEquals(rsk1.getEstimate(), k/2.0);
 
     //getCurrentBytes( compact )
-    int bytes = rsk1.getCurrentBytes(true);
+    int bytes = rsk1.getCurrentBytes();
     byte[] byteArray = new byte[bytes];
     WritableMemory mem = WritableMemory.wrap(byteArray);
 
@@ -329,7 +329,7 @@ public class AnotBimplTest {
       c.update(i);  //256
     }
 
-    int memBytes = Sketch.getMaxCompactSketchBytes(a.getCurrentBytes(true));
+    int memBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
 
     byte[] memArr = new byte[memBytes];
     WritableMemory mem = WritableMemory.wrap(memArr);
@@ -356,7 +356,7 @@ public class AnotBimplTest {
     UpdateSketch skB = Sketches.updateSketchBuilder().build();
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
     CompactSketch csk = aNotB.aNotB(skA, skB);
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test
@@ -367,7 +367,7 @@ public class AnotBimplTest {
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
     aNotB.update(skA, skB);
     CompactSketch csk = aNotB.getResult();
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test

@@ -68,7 +68,7 @@ class HeapCompactSketch extends CompactSketch {
     cache_ = cache;
     //computed
     thetaLong_ = correctThetaOnCompact(empty, curCount, thetaLong);
-    preLongs_ = computeCompactPreLongs(thetaLong, empty, curCount); //considers singleItem
+    preLongs_ = computeCompactPreLongs(empty, curCount, thetaLong); //considers singleItem
     singleItem_ = isSingleItem(empty, curCount, thetaLong);
     checkIllegalCurCountAndEmpty(empty, curCount);
   }
@@ -87,7 +87,7 @@ class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getCurrentBytes(final boolean compact) { //already compact; ignored
+  public int getCurrentBytes() {
     return (preLongs_ + curCount_) << 3;
   }
 
@@ -156,7 +156,7 @@ class HeapCompactSketch extends CompactSketch {
   //use of Memory is convenient. The byteArray and Memory are loaded simulaneously.
   @Override
   public byte[] toByteArray() {
-    final int bytes = getCurrentBytes(true);
+    final int bytes = getCurrentBytes();
     final byte[] byteArray = new byte[bytes];
     final WritableMemory dstMem = WritableMemory.wrap(byteArray);
     final int emptyBit = isEmpty() ? EMPTY_FLAG_MASK : 0;

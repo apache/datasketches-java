@@ -118,7 +118,9 @@ interface ConcurrentSharedThetaSketch {
   // inheritance. They are provided here to allow casts to this interface access
   // to these methods without having to cast back to the extended parent class.
 
-  int getCurrentBytes(boolean compact);
+  int getCompactBytes();
+
+  int getCurrentBytes();
 
   double getEstimate();
 

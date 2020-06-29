@@ -82,7 +82,7 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getCurrentBytes(final boolean compact) { //compact is ignored here
+  public int getCurrentBytes() {
     if (otherCheckForSingleItem(mem_)) { return 16; }
     final int preLongs = extractPreLongs(mem_);
     final int curCount = (preLongs == 1) ? 0 : extractCurCount(mem_);

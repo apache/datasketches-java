@@ -382,7 +382,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       assertEquals(csk.isEstimationMode(), estimating);
       assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
-      int bytes = local.getCurrentBytes(true);
+      int bytes = local.getCurrentBytes();  //TODO WHAT IS GOING ON HERE
       assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
       byte[] memArr2 = new byte[bytes];
       WritableMemory mem2 = WritableMemory.wrap(memArr2);
@@ -427,7 +427,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
       double localUB  = local.getUpperBound(2);
       assertFalse(local.isEstimationMode());
 
-      int bytes = local.getCurrentBytes(true); //compact form
+      int bytes = local.getCompactBytes(); //compact form
       assertEquals(bytes, 8);
       byte[] memArr2 = new byte[bytes];
       WritableMemory mem2 = WritableMemory.wrap(memArr2);

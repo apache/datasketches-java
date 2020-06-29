@@ -220,6 +220,14 @@ public abstract class Sketch {
   public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);
 
   /**
+   * Returns the number of storage bytes required for this Sketch if its current state were
+   * compacted. It this sketch is already in the compact form this is equivalent to
+   * calling {@link #getCurrentBytes()}.
+   * @return number of compact bytes
+   */
+  public abstract int getCompactBytes();
+
+  /**
    * Gets the number of hash values less than the given theta.
    * @param theta the given theta as a double between zero and one.
    * @return the number of hash values less than the given theta.
@@ -242,11 +250,10 @@ public abstract class Sketch {
 
   /**
    * Returns the number of storage bytes required for this Sketch in its current state.
-   * @param compact if true, returns the bytes required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
+   *
    * @return the number of storage bytes required for this sketch
    */
-  public abstract int getCurrentBytes(boolean compact);
+  public abstract int getCurrentBytes();
 
   /**
    * Gets the unique count estimate.
@@ -553,6 +560,8 @@ public abstract class Sketch {
    * @return the internal cache array.
    */
   abstract long[] getCache();
+
+  abstract int getCurrentDataLongs();
 
   int getCurrentDataLongs(final boolean compact) {
     return (isCompact() || compact)

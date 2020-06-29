@@ -46,6 +46,16 @@ public abstract class CompactSketch extends Sketch {
   public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);
 
   @Override
+  public int getCompactBytes() {
+    return getCurrentBytes();
+  }
+
+  @Override
+  int getCurrentDataLongs() {
+    return getRetainedEntries(true);
+  }
+
+  @Override
   public Family getFamily() {
     return Family.COMPACT;
   }

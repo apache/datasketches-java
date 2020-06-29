@@ -30,6 +30,7 @@ import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
+import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
@@ -66,17 +67,17 @@ public class SketchTest {
     UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(); // QS Sketch
     assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
     assertEquals(sketch.getCurrentPreambleLongs(true), 1); //compact form
-    assertEquals(sketch.getCurrentDataLongs(false), k*2);
-    assertEquals(sketch.getCurrentDataLongs(true), 0); //compact form
+    assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCurrentBytes(true), lowCompPreLongs << 3);
 
     CompactSketch compSk = sketch.compact(false, null);
     assertEquals(compSk.getCurrentBytes(true), 8);
     assertEquals(compSk.getCurrentBytes(false), 8);
+    assertEquals(compSk.getCurrentDataLongs(), 0);
 
-    int compPreLongs = CompactOperations.computeCompactPreLongs(sketch.getThetaLong(), sketch.isEmpty(),
-        sketch.getRetainedEntries(true));
+    int compPreLongs = computeCompactPreLongs(sketch.isEmpty(), sketch.getRetainedEntries(true),
+        sketch.getThetaLong());
     assertEquals(compPreLongs, 1);
 
     for (int i=0; i<k; i++) {
@@ -85,13 +86,12 @@ public class SketchTest {
 
     assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
     assertEquals(sketch.getCurrentPreambleLongs(true), 2); //compact form
-    assertEquals(sketch.getCurrentDataLongs(false), k*2);
-    assertEquals(sketch.getCurrentDataLongs(true), k); //compact form
+    assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCurrentBytes(true), (k*8) + (2*8)); //compact form  //FAILS HERE
 
-    compPreLongs = CompactOperations.computeCompactPreLongs(sketch.getThetaLong(), sketch.isEmpty(),
-        sketch.getRetainedEntries(true));
+    compPreLongs = computeCompactPreLongs(sketch.isEmpty(), sketch.getRetainedEntries(true),
+        sketch.getThetaLong());
     assertEquals(compPreLongs, 2);
 
     for (int i = k; i < (2*k); i++) {
@@ -101,13 +101,12 @@ public class SketchTest {
 
     assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
     assertEquals(sketch.getCurrentPreambleLongs(true), 3); //compact form
-    assertEquals(sketch.getCurrentDataLongs(false), k*2);
-    assertEquals(sketch.getCurrentDataLongs(true), curCount); //compact form
+    assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(false), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCurrentBytes(true), (curCount*8) + (3*8)); //compact form
 
-    compPreLongs = CompactOperations.computeCompactPreLongs(sketch.getThetaLong(), sketch.isEmpty(),
-        sketch.getRetainedEntries(true));
+    compPreLongs = computeCompactPreLongs(sketch.isEmpty(), sketch.getRetainedEntries(true),
+        sketch.getThetaLong());
     assertEquals(compPreLongs, 3);
 
     for (int i=0; i<3; i++) {

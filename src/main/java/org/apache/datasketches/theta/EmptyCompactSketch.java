@@ -80,7 +80,7 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
+  public int getCurrentBytes() {
     return 8;
   }
 

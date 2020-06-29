@@ -325,7 +325,7 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
+  public int getCurrentBytes() {
     return 16;
   }
 

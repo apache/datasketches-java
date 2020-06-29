@@ -139,8 +139,18 @@ public abstract class UpdateSketch extends Sketch {
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     return componentsToCompact(getThetaLong(), getRetainedEntries(), getSeedHash(), isEmpty(),
         false, false, dstOrdered, dstMem, getCache());
+  }
 
-    //return compact(this, dstOrdered, dstMem);
+  @Override
+  public int getCompactBytes() {
+    final int preLongs = getCurrentPreambleLongs(true);
+    final int dataLongs = getRetainedEntries();
+    return (preLongs + dataLongs) << 3;
+  }
+
+  @Override
+  int getCurrentDataLongs() {
+    return 1 << getLgArrLongs();
   }
 
   @Override

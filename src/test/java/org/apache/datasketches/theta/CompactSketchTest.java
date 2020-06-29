@@ -76,7 +76,7 @@ public class CompactSketchTest {
 
     /****OFF HEAP MEMORY -- WRAP****/
     //Prepare Memory for direct
-    int bytes = usk.getCurrentBytes(true); //for Compact
+    int bytes = usk.getCompactBytes(); //for Compact
 
     try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes)) {
       WritableMemory directMem = wdh.get();
@@ -114,7 +114,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getSeedHash(), 0);
     assertEquals(testSk.getRetainedEntries(true), 0);
     assertEquals(testSk.getEstimate(), 0.0, 0.0);
-    assertEquals(testSk.getCurrentBytes(true), 8);
+    assertEquals(testSk.getCurrentBytes(), 8);
     assertNotNull(testSk.iterator());
     assertEquals(testSk.toByteArray().length, 8);
     assertEquals(testSk.getCache().length, 0);
@@ -132,7 +132,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getSeedHash(), refSk.getSeedHash());
     assertEquals(testSk.getRetainedEntries(true), 1);
     assertEquals(testSk.getEstimate(), 1.0, 0.0);
-    assertEquals(testSk.getCurrentBytes(true), 16);
+    assertEquals(testSk.getCurrentBytes(), 16);
     assertNotNull(testSk.iterator());
     assertEquals(testSk.toByteArray().length, 16);
     assertEquals(testSk.getCache().length, 1);
@@ -164,7 +164,7 @@ public class CompactSketchTest {
     assertEquals(testSk.getSeedHash(), refSk.getSeedHash());
     assertEquals(testSk.getRetainedEntries(true), refSk.getRetainedEntries());
     assertEquals(testSk.getEstimate(), refSk.getEstimate(), 0.0);
-    assertEquals(testSk.getCurrentBytes(true), refSk.getCurrentBytes(true));
+    assertEquals(testSk.getCurrentBytes(), refSk.getCurrentBytes());
     assertEquals(testSk.toByteArray().length, refSk.toByteArray().length);
     assertEquals(testSk.getCache().length, refSk.getCache().length);
     assertEquals(testSk.getCurrentPreambleLongs(true), refSk.getCurrentPreambleLongs(true));
@@ -174,7 +174,7 @@ public class CompactSketchTest {
   public void checkDirectSingleItemSketch() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    int bytes = sk.getCurrentBytes(true);
+    int bytes = sk.getCompactBytes();
     WritableMemory wmem = WritableMemory.allocate(bytes);
     sk.compact(true, wmem);
     Sketch csk2 = Sketch.heapify(wmem);
@@ -192,7 +192,7 @@ public class CompactSketchTest {
       usk.update(i);
     }
 
-    int bytes = usk.getCurrentBytes(compact);
+    int bytes = usk.getCompactBytes();
     byte[] byteArray = new byte[bytes -8]; //too small
     WritableMemory mem = WritableMemory.wrap(byteArray);
     usk.compact(ordered, mem);
@@ -209,7 +209,7 @@ public class CompactSketchTest {
       usk.update(i);
     }
 
-    int bytes = usk.getCurrentBytes(compact);
+    int bytes = usk.getCompactBytes();
     byte[] byteArray = new byte[bytes -8]; //too small
     WritableMemory mem = WritableMemory.wrap(byteArray);
     usk.compact(ordered, mem);
@@ -319,7 +319,7 @@ public class CompactSketchTest {
   public void checkGetCache() {
     UpdateSketch sk = Sketches.updateSketchBuilder().setP((float).5).build();
     sk.update(7);
-    int bytes = sk.getCurrentBytes(true);
+    int bytes = sk.getCompactBytes();
     CompactSketch csk = sk.compact(true, WritableMemory.allocate(bytes));
     long[] cache = csk.getCache();
     assertTrue(cache.length == 0);
@@ -353,7 +353,7 @@ public class CompactSketchTest {
     void check(CompactSketch csk) {
       assertEquals(csk.getClass().getSimpleName(), classType, "ClassType");
       assertEquals(csk.getRetainedEntries(), count, "curCount");
-      assertEquals(csk.getCurrentBytes(true), bytes, "Bytes" );
+      assertEquals(csk.getCurrentBytes(), bytes, "Bytes" );
       assertEquals(csk.isCompact(), compact, "Compact");
       assertEquals(csk.isEmpty(), empty, "Empty");
       assertEquals(csk.isDirect(), direct, "Direct");

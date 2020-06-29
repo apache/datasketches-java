@@ -83,7 +83,7 @@ final class CompactOperations {
     //Note: for empty and single we always output the ordered form.
     final boolean dstOrderedOut = (empty || single) ? true : dstOrdered;
     if (direct) {
-      final int preLongs = computeCompactPreLongs(thetaLong, empty, curCount);
+      final int preLongs = computeCompactPreLongs(empty, curCount, thetaLong);
       int flags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK; //always LE
       flags |=  empty ? EMPTY_FLAG_MASK : 0;
       flags |= dstOrderedOut ? ORDERED_FLAG_MASK : 0;
@@ -341,8 +341,17 @@ final class CompactOperations {
     }
   }
 
-  static final int computeCompactPreLongs(final long thetaLong, final boolean empty,
-      final int curCount) {
+  /**
+   * This compute number of preamble longs for a compact sketch based on <i>empty</i>,
+   * <i>curCount</i> and <i>thetaLong</i>.
+   * This also accommodates for EmptyCompactSketch and SingleItemSketch.
+   * @param empty The given empty state
+   * @param curCount The given current count (retained entries)
+   * @param thetaLong the current thetaLong
+   * @return the number of preamble longs
+   */
+  static final int computeCompactPreLongs(final boolean empty, final int curCount,
+      final long thetaLong) {
     return (thetaLong < Long.MAX_VALUE) ? 3 : empty ? 1 : (curCount > 1) ? 2 : 1;
   }
 
