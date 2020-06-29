@@ -19,25 +19,24 @@
 
 package org.apache.datasketches.theta;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.HeapUnionTest.testAllCompactForms;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.SetOperation.getMaxUnionBytes;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -271,7 +270,7 @@ public class DirectUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCompactBytes()]);
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
@@ -311,7 +310,7 @@ public class DirectUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCompactBytes()]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
@@ -351,7 +350,7 @@ public class DirectUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCompactBytes()]);
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
 
     WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]); //union memory
@@ -683,7 +682,7 @@ public class DirectUnionTest {
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(iMem);
     union.update(sk);
     CompactSketch csk = union.getResult();
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test
@@ -795,7 +794,7 @@ public class DirectUnionTest {
       usk.update(Integer.toString(i));
     }
     usk.rebuild(); //optional but created the symptom
-    final WritableMemory memIn = WritableMemory.allocate(usk.getCurrentBytes(true));
+    final WritableMemory memIn = WritableMemory.allocate(usk.getCompactBytes());
     usk.compact(true, memIn); //side effect of loading the memIn
 
     //create empty target union in off-heap mem

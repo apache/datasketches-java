@@ -29,14 +29,13 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesReadOnlyException;
 import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -83,8 +82,7 @@ public class DirectIntersectionTest {
     rsk1 = inter.getResult(ordered, null);
     assertEquals(rsk1.getEstimate(), 0.0);
 
-    boolean compact = true;
-    int bytes = rsk1.getCurrentBytes(compact);
+    int bytes = rsk1.getCompactBytes();
     byte[] byteArray = new byte[bytes];
     WritableMemory mem = WritableMemory.wrap(byteArray);
 
@@ -128,8 +126,7 @@ public class DirectIntersectionTest {
     rsk1 = inter.getResult(ordered, null);
     assertEquals(rsk1.getEstimate(), (double)k);
 
-    boolean compact = true;
-    int bytes = rsk1.getCurrentBytes(compact);
+    int bytes = rsk1.getCompactBytes();
     byte[] byteArray = new byte[bytes];
     WritableMemory mem = WritableMemory.wrap(byteArray);
 
@@ -720,7 +717,7 @@ public class DirectIntersectionTest {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection(iMem);
     inter.update(sk);
     CompactSketch csk = inter.getResult();
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test

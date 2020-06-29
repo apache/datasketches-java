@@ -122,7 +122,7 @@ public class SingleItemSketchTest {
   @Test
   public void checkSketchInterface() {
     SingleItemSketch sis = SingleItemSketch.create(1);
-    assertEquals(sis.getCurrentBytes(true), 16);
+    assertEquals(sis.getCompactBytes(), 16);
     assertEquals(sis.getEstimate(), 1.0);
     assertEquals(sis.getLowerBound(1), 1.0);
     assertEquals(sis.getRetainedEntries(true), 1);

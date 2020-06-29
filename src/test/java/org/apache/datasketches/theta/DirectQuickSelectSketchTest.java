@@ -218,7 +218,7 @@ public class DirectQuickSelectSketchTest {
 
       for (int i=0; i< k; i++) { usk.update(i); }
 
-      int bytes = usk.getCurrentBytes(false);
+      int bytes = usk.getCurrentBytes();
       byte[] byteArray = usk.toByteArray();
       assertEquals(bytes, byteArray.length);
 
@@ -336,7 +336,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.isEstimationMode(), estimating);
       assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
-      int bytes = usk.getCurrentBytes(true);
+      int bytes = usk.getCompactBytes();
       assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
       byte[] memArr2 = new byte[bytes];
       WritableMemory mem2 = WritableMemory.wrap(memArr2);
@@ -377,7 +377,7 @@ public class DirectQuickSelectSketchTest {
       double uskUB  = usk.getUpperBound(2);
       assertEquals(usk.isEstimationMode(), false);
 
-      int bytes = usk.getCurrentBytes(true); //compact form
+      int bytes = usk.getCompactBytes(); //compact form
       assertEquals(bytes, 8);
       byte[] memArr2 = new byte[bytes];
       WritableMemory mem2 = WritableMemory.wrap(memArr2);

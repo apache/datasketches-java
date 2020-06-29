@@ -19,22 +19,21 @@
 
 package org.apache.datasketches.theta;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.MemoryRequestServer;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -147,7 +146,7 @@ public class UpdateSketchTest {
   public void checkCompact() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     CompactSketch csk = sk.compact();
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

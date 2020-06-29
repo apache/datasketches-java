@@ -140,7 +140,7 @@ public class HeapAlphaSketchTest {
       usk.update(i);
     }
 
-    int bytes = usk.getCurrentBytes(false);
+    int bytes = usk.getCurrentBytes();
     byte[] byteArray = usk.toByteArray();
     assertEquals(bytes, byteArray.length);
 
@@ -245,8 +245,8 @@ public class HeapAlphaSketchTest {
     double comp1est = comp1.getEstimate();
     double comp1lb  = comp1.getLowerBound(2);
     double comp1ub  = comp1.getUpperBound(2);
-    int comp1bytes = comp1.getCurrentBytes(true);
-    assertEquals(comp1bytes, comp1.getCurrentBytes(false));
+    int comp1bytes = comp1.getCompactBytes();
+    assertEquals(comp1bytes, comp1.getCurrentBytes());
     int comp1curCount = comp1.getRetainedEntries(true); //flag is not relevant
     assertEquals(comp1bytes, (comp1curCount << 3) + (Family.COMPACT.getMaxPreLongs() << 3));
 
@@ -261,11 +261,11 @@ public class HeapAlphaSketchTest {
     assertEquals(comp2.getUpperBound(2), comp1ub);
     assertEquals(comp2.isEmpty(), false);
     assertEquals(comp2.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp2.getCurrentBytes(true)); //flag is not relevant
+    assertEquals(comp1bytes, comp2.getCompactBytes()); //flag is not relevant
     assertEquals(comp1curCount, comp2.getRetainedEntries(true)); //flag is not relevant
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
-    int bytes = usk.getCurrentBytes(true);
+    int bytes = usk.getCompactBytes();
     int alphaBytes = sk1.getRetainedEntries(true) * 8;
     assertEquals(bytes, alphaBytes + (Family.COMPACT.getMaxPreLongs() << 3));
     byte[] memArr2 = new byte[bytes];
@@ -278,7 +278,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp3.getUpperBound(2), comp1ub);
     assertEquals(comp3.isEmpty(), false);
     assertEquals(comp3.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp3.getCurrentBytes(true)); //flag is not relevant
+    assertEquals(comp1bytes, comp3.getCompactBytes()); //flag is not relevant
     assertEquals(comp1curCount, comp3.getRetainedEntries(true)); //flag is not relevant
     assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
 
@@ -290,7 +290,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp4.getUpperBound(2), comp1ub);
     assertEquals(comp4.isEmpty(), false);
     assertEquals(comp4.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp4.getCurrentBytes(true)); //flag is not relevant
+    assertEquals(comp1bytes, comp4.getCompactBytes()); //flag is not relevant
     assertEquals(comp1curCount, comp4.getRetainedEntries(true)); //flag is not relevant
     assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");
   }
@@ -310,7 +310,7 @@ public class HeapAlphaSketchTest {
     double uskUB  = usk.getUpperBound(2);
     assertEquals(usk.isEstimationMode(), estimating);
 
-    int bytes = usk.getCurrentBytes(true);
+    int bytes = usk.getCompactBytes();
     assertEquals(bytes, 8); //compact, empty and theta = 1.0
     byte[] memArr2 = new byte[bytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);

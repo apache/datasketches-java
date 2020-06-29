@@ -185,7 +185,6 @@ public class CompactSketchTest {
   public void checkMemTooSmall() {
     int k = 512;
     int u = k;
-    boolean compact = true;
     boolean ordered = false;
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) {
@@ -202,7 +201,6 @@ public class CompactSketchTest {
   public void checkMemTooSmallOrdered() {
     int k = 512;
     int u = k;
-    boolean compact = true;
     boolean ordered = true;
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<u; i++) {

@@ -296,8 +296,8 @@ public class ConcurrentHeapQuickSelectSketchTest {
     double localEst = local.getEstimate();
     double localLB  = local.getLowerBound(2);
     double localUB  = local.getUpperBound(2);
-    int localBytes = local.getCurrentBytes(false);    //size stored as UpdateSketch
-    int localCompBytes = local.getCurrentBytes(true); //size stored as CompactSketch
+    int localBytes = local.getCurrentBytes();    //size stored as UpdateSketch
+    int localCompBytes = local.getCompactBytes(); //size stored as CompactSketch
     assertEquals(localBytes, maxBytes);
     assertEquals(local.isEstimationMode(), estimating);
 
@@ -310,7 +310,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp1.getUpperBound(2), localUB);
     assertEquals(comp1.isEmpty(), false);
     assertEquals(comp1.isEstimationMode(), estimating);
-    assertEquals(comp1.getCurrentBytes(true), localCompBytes);
+    assertEquals(comp1.getCompactBytes(), localCompBytes);
     assertEquals(comp1.getClass().getSimpleName(), "HeapCompactSketch");
 
     comp2 = shared.compact(true, null);
@@ -320,7 +320,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp2.getUpperBound(2), localUB);
     assertEquals(comp2.isEmpty(), false);
     assertEquals(comp2.isEstimationMode(), estimating);
-    assertEquals(comp2.getCurrentBytes(true), localCompBytes);
+    assertEquals(comp2.getCompactBytes(), localCompBytes);
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
     byte[] memArr2 = new byte[localCompBytes];
@@ -333,7 +333,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp3.getUpperBound(2), localUB);
     assertEquals(comp3.isEmpty(), false);
     assertEquals(comp3.isEstimationMode(), estimating);
-    assertEquals(comp3.getCurrentBytes(true), localCompBytes);
+    assertEquals(comp3.getCompactBytes(), localCompBytes);
     assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
 
     mem2.clear();
@@ -344,7 +344,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp4.getUpperBound(2), localUB);
     assertEquals(comp4.isEmpty(), false);
     assertEquals(comp4.isEstimationMode(), estimating);
-    assertEquals(comp4.getCurrentBytes(true), localCompBytes);
+    assertEquals(comp4.getCompactBytes(), localCompBytes);
     assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");
     comp4.toString(false, true, 0, false);
   }
@@ -368,7 +368,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     double localUB  = local.getUpperBound(2);
     //int currentUSBytes = local.getCurrentBytes(false);
     //assertEquals(currentUSBytes, (32*8) + 24);  // clumsy, but a function of RF and TCF
-    int compBytes = local.getCurrentBytes(true); //compact form
+    int compBytes = local.getCompactBytes(); //compact form
     assertEquals(compBytes, 8);
     assertEquals(local.isEstimationMode(), estimating);
 
@@ -582,7 +582,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     double uskUB  = local.getUpperBound(2);
     assertFalse(local.isEstimationMode());
 
-    int bytes = local.getCurrentBytes(true); //compact form
+    int bytes = local.getCompactBytes(); //compact form
     assertEquals(bytes, 8);
     byte[] memArr2 = new byte[bytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);

@@ -78,6 +78,11 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
   //Sketch overrides
 
   @Override
+  public int getCompactBytes() {
+    return shared.getCompactBytes();
+  }
+
+  @Override
   public int getCurrentBytes() {
     return shared.getCurrentBytes();
   }

@@ -97,7 +97,7 @@ public abstract class Sketch {
    * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
    * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
    * been explicitly stored as direct objects can be wrapped. This method assumes the
-   * {@link Util#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -250,6 +250,18 @@ public abstract class Sketch {
 
   /**
    * Returns the number of storage bytes required for this Sketch in its current state.
+   * @param compact if true, returns the bytes required for compact form.
+   * If this sketch is already in compact form this parameter is ignored.
+   * @return the number of storage bytes required for this sketch
+   * @deprecated use either {@link #getCompactBytes()} or {@link #getCurrentBytes()}.
+   */
+  @Deprecated
+  public int getCurrentBytes(final boolean compact) {
+    return compact ? getCompactBytes() : getCurrentBytes();
+  }
+
+  /**
+   * Returns the number of storage bytes required for this sketch in its current state.
    *
    * @return the number of storage bytes required for this sketch
    */
@@ -562,12 +574,6 @@ public abstract class Sketch {
   abstract long[] getCache();
 
   abstract int getCurrentDataLongs();
-
-  int getCurrentDataLongs(final boolean compact) {
-    return (isCompact() || compact)
-        ? getRetainedEntries(true)
-        : (1 << ((UpdateSketch) this).getLgArrLongs());
-  }
 
   /**
    * Returns preamble longs if stored in current state.

@@ -65,7 +65,7 @@ public abstract class UpdateSketch extends Sketch {
   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
   * been explicitly stored as direct objects can be wrapped. This method assumes the
-  * {@link Util#DEFAULT_UPDATE_SEED}.
+  * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -106,7 +106,7 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
-   * {@link Util#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return an UpdateSketch
    */
