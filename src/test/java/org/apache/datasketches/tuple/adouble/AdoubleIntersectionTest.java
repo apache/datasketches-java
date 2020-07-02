@@ -82,6 +82,7 @@ public class AdoubleIntersectionTest {
     Assert.assertEquals(result.getUpperBound(1), 0.0);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void intersectionExactMode() {
     UpdatableSketch<Double, DoubleSummary> sketch1 =

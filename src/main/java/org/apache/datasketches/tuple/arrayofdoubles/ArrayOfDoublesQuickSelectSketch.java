@@ -104,7 +104,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
    */
   static int getMaxBytes(final int nomEntries, final int numValues) {
     return ENTRIES_START
-        + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * ceilingPowerOf2(nomEntries) * 2);
+        + (SIZE_OF_KEY_BYTES + SIZE_OF_VALUE_BYTES * numValues) * ceilingPowerOf2(nomEntries) * 2;
   }
 
   // non-public methods below

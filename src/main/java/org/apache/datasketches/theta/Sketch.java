@@ -634,7 +634,7 @@ public abstract class Sketch {
    * @param curCount the given curCount
    * @param thetaLong the given thetaLong
    * @return thetaLong
-   */
+   */ //This handles #4 above
   static final long correctThetaOnCompact(final boolean empty, final int curCount,
       final long thetaLong) {
     return (empty && (curCount == 0) && (thetaLong < Long.MAX_VALUE)) ? Long.MAX_VALUE : thetaLong;
