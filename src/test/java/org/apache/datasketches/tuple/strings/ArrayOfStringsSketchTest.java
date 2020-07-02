@@ -22,14 +22,13 @@ package org.apache.datasketches.tuple.strings;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
 import org.apache.datasketches.tuple.SketchIterator;
 import org.apache.datasketches.tuple.Union;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -38,6 +37,7 @@ import org.apache.datasketches.tuple.Union;
 public class ArrayOfStringsSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkSketch() {
     ArrayOfStringsSketch sketch1 = new ArrayOfStringsSketch();
@@ -56,7 +56,6 @@ public class ArrayOfStringsSketchTest {
 
     String[] strArr3 = {"g", "h" };
     sketch2.update(strArr3, strArr3);
-
 
     Union<ArrayOfStringsSummary> union = new Union<>(new ArrayOfStringsSummarySetOperations());
     union.update(sketch1);
