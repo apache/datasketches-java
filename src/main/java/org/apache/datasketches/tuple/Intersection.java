@@ -137,7 +137,7 @@ public class Intersection<S extends Summary> {
     firstCall_ = false;
     // input sketch is not null, could be first or next call
     final long thetaLongIn = sketchIn.getThetaLong();
-    final int countIn = sketchIn.getRetainedEntries();
+    final int countIn = sketchIn.getRetainedEntries(true);
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
     // Empty rule extended in case incoming sketch does not have empty bit properly set
     empty_ |= (countIn == 0) && (thetaLongIn == Long.MAX_VALUE);
@@ -159,7 +159,7 @@ public class Intersection<S extends Summary> {
       }
       final org.apache.datasketches.theta.Sketch nextSketch = sketchIn;
       //Match nextSketch data with local instance data, filtering by theta
-      final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries());
+      final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries(true));
 
       final long[] matchHashArr = new long[maxMatchSize];
       S[] matchSummaries = null;
@@ -263,7 +263,7 @@ public class Intersection<S extends Summary> {
     }
 
     void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
-      count_ = sketch.getRetainedEntries();
+      count_ = sketch.getRetainedEntries(true);
       lgTableSize_ = getLgTableSize(count_);
       S mySummary = null;
 

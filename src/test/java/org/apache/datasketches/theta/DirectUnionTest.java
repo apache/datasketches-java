@@ -780,7 +780,7 @@ public class DirectUnionTest {
     CompactSketch csk = union1.getResult();
 
     assertTrue(csk.getTheta() < 0.2);
-    assertEquals(csk.getRetainedEntries(), 16384);
+    assertEquals(csk.getRetainedEntries(true), 16384);
     final double est = csk.getEstimate();
     assertTrue(est > 98663.0);
     assertTrue(est < 101530.0);
@@ -806,7 +806,7 @@ public class DirectUnionTest {
     CompactSketch csk = union1.getResult();
 
     assertTrue(csk.getTheta() < 0.2);
-    assertEquals(csk.getRetainedEntries(), 16384);
+    assertEquals(csk.getRetainedEntries(true), 16384);
     final double est = csk.getEstimate();
     assertTrue(est > 98663.0);
     assertTrue(est < 101530.0);

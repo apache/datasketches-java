@@ -92,7 +92,7 @@ final class AnotBimpl extends AnotB {
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
 
     //Build hashtable and removes hashes of skB >= theta
-    final int countB = skB.getRetainedEntries();
+    final int countB = skB.getRetainedEntries(true);
     CompactSketch cskB = null;
     UpdateSketch uskB = null;
     final long[] hashTableB;
@@ -161,12 +161,12 @@ final class AnotBimpl extends AnotB {
         ? (CompactSketch)skA
         : ((UpdateSketch)skA).compact();
     final long[] hashArrA = cskA.getCache().clone();
-    final int countA = cskA.getRetainedEntries();
+    final int countA = cskA.getRetainedEntries(true);
 
     //Compare with skB
     final long thetaLongB = skB.getThetaLong();
     final long thetaLong = Math.min(thetaLongA, thetaLongB);
-    final int countB = skB.getRetainedEntries();
+    final int countB = skB.getRetainedEntries(true);
 
     //Rebuild hashtable and removes hashes of skB >= thetaLong
     final long[] hashTableB = convertToHashTable(skB.getCache(), countB, thetaLong, REBUILD_THRESHOLD);

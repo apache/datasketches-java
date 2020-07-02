@@ -263,7 +263,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
       return RejectedDuplicate; //Duplicate, not inserted
     }
     //insertion occurred, increment curCount
-    final int curCount = getRetainedEntries() + 1;
+    final int curCount = getRetainedEntries(true) + 1;
     wmem_.putInt(RETAINED_ENTRIES_INT, curCount); //update curCount
 
     if (isOutOfSpace(curCount)) { //we need to do something, we are out of space

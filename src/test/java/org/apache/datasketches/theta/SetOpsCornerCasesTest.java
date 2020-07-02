@@ -329,15 +329,15 @@ public class SetOpsCornerCasesTest {
     CompactSketch skHeap2 = generate(EST_HEAP, k);
     CompactSketch csk;
     csk = PairwiseSetOperations.union(skNull, skHeap1, k);
-    Assert.assertEquals(csk.getRetainedEntries(), k);
+    Assert.assertEquals(csk.getRetainedEntries(true), k);
     csk = PairwiseSetOperations.union(skEmpty, skHeap1, k);
-    Assert.assertEquals(csk.getRetainedEntries(), k);
+    Assert.assertEquals(csk.getRetainedEntries(true), k);
     csk = PairwiseSetOperations.union(skHeap1, skNull, k);
-    Assert.assertEquals(csk.getRetainedEntries(), k);
+    Assert.assertEquals(csk.getRetainedEntries(true), k);
     csk = PairwiseSetOperations.union(skHeap1, skEmpty, k);
-    Assert.assertEquals(csk.getRetainedEntries(), k);
+    Assert.assertEquals(csk.getRetainedEntries(true), k);
     csk = PairwiseSetOperations.union(skHeap1, skHeap2, k);
-    Assert.assertEquals(csk.getRetainedEntries(), k);
+    Assert.assertEquals(csk.getRetainedEntries(true), k);
   }
 
 
@@ -366,7 +366,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.EMPTY, k);
     assertEquals(csk.isEmpty(), true);
     assertEquals(csk.isEstimationMode(), false);
-    assertEquals(csk.getRetainedEntries(), 0);
+    assertEquals(csk.getRetainedEntries(true), 0);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -375,7 +375,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.SINGLE, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), false);
-    assertEquals(csk.getRetainedEntries(), 1);
+    assertEquals(csk.getRetainedEntries(true), 1);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -384,7 +384,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.EXACT, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), false);
-    assertEquals(csk.getRetainedEntries(), k);
+    assertEquals(csk.getRetainedEntries(true), k);
     assertEquals(csk.getThetaLong(), Long.MAX_VALUE);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -393,7 +393,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.EST_HEAP, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), true);
-    assertEquals(csk.getRetainedEntries() > k, true);
+    assertEquals(csk.getRetainedEntries(true) > k, true);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -402,7 +402,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.THLT1_CNT0_FALSE, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), true);
-    assertEquals(csk.getRetainedEntries(), 0);
+    assertEquals(csk.getRetainedEntries(true), 0);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -411,7 +411,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.THEQ1_CNT0_TRUE, k);
     assertEquals(csk.isEmpty(), true);
     assertEquals(csk.isEstimationMode(), false);
-    assertEquals(csk.getRetainedEntries(), 0);
+    assertEquals(csk.getRetainedEntries(true), 0);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, false);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), false);
@@ -420,7 +420,7 @@ public class SetOpsCornerCasesTest {
     csk = generate(State.EST_MEMORY_UNORDERED, k);
     assertEquals(csk.isEmpty(), false);
     assertEquals(csk.isEstimationMode(), true);
-    assertEquals(csk.getRetainedEntries() > k, true);
+    assertEquals(csk.getRetainedEntries(true) > k, true);
     assertEquals(csk.getThetaLong() < Long.MAX_VALUE, true);
     assertEquals(csk.isDirect(), false);
     assertEquals(csk.hasMemory(), true);
@@ -467,13 +467,13 @@ public class SetOpsCornerCasesTest {
       case THLT1_CNT0_FALSE : {
         sk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build();
         sk.update(7); //above theta
-        assert(sk.getRetainedEntries() == 0);
+        assert(sk.getRetainedEntries(true) == 0);
         csk = sk.compact(true, null); //compact as {Th < 1.0, 0, F}
         break;
       }
       case THEQ1_CNT0_TRUE : {
         sk = Sketches.updateSketchBuilder().setP((float)0.5).setNominalEntries(k).build();
-        assert(sk.getRetainedEntries() == 0);
+        assert(sk.getRetainedEntries(true) == 0);
         csk = sk.compact(true, null); //compact as {Th < 1.0, 0, T}
         break;
       }

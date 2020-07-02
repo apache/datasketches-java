@@ -65,8 +65,8 @@ public class SketchTest {
     int lowQSPreLongs = Family.QUICKSELECT.getMinPreLongs();
     int lowCompPreLongs = Family.COMPACT.getMinPreLongs();
     UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build(); // QS Sketch
-    assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
-    assertEquals(sketch.getCurrentPreambleLongs(true), 1); //compact form
+    assertEquals(sketch.getCurrentPreambleLongs(), lowQSPreLongs);
+    assertEquals(sketch.getCompactPreambleLongs(), 1); //compact form
     assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCompactBytes(), lowCompPreLongs << 3);
@@ -84,8 +84,8 @@ public class SketchTest {
       sketch.update(i);
     }
 
-    assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
-    assertEquals(sketch.getCurrentPreambleLongs(true), 2); //compact form
+    assertEquals(sketch.getCurrentPreambleLongs(), lowQSPreLongs);
+    assertEquals(sketch.getCompactPreambleLongs(), 2); //compact form
     assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCompactBytes(), (k*8) + (2*8)); //compact form  //FAILS HERE
@@ -99,8 +99,8 @@ public class SketchTest {
     }
     int curCount = sketch.getRetainedEntries(true);
 
-    assertEquals(sketch.getCurrentPreambleLongs(false), lowQSPreLongs);
-    assertEquals(sketch.getCurrentPreambleLongs(true), 3); //compact form
+    assertEquals(sketch.getCurrentPreambleLongs(), lowQSPreLongs);
+    assertEquals(sketch.getCompactPreambleLongs(), 3); //compact form
     assertEquals(sketch.getCurrentDataLongs(), k*2);
     assertEquals(sketch.getCurrentBytes(), (k*2*8) + (lowQSPreLongs << 3));
     assertEquals(sketch.getCompactBytes(), (curCount*8) + (3*8)); //compact form

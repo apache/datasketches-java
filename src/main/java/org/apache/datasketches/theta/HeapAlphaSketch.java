@@ -267,9 +267,13 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   //restricted methods
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
-    if (!compact) { return Family.ALPHA.getMinPreLongs(); }
+  int getCompactPreambleLongs() {
     return CompactOperations.computeCompactPreLongs(empty_, curCount_, thetaLong_);
+  }
+
+  @Override
+  int getCurrentPreambleLongs() {
+    return Family.ALPHA.getMinPreLongs();
   }
 
   @Override

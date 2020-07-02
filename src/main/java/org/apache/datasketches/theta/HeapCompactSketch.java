@@ -82,7 +82,7 @@ class HeapCompactSketch extends CompactSketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    return componentsToCompact(getThetaLong(), getRetainedEntries(), getSeedHash(), isEmpty(),
+    return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
         true, ordered_, dstOrdered, dstMem, getCache());
   }
 
@@ -139,7 +139,12 @@ class HeapCompactSketch extends CompactSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) { //already compact; ignored
+  int getCompactPreambleLongs() {
+    return preLongs_;
+  }
+
+  @Override
+  int getCurrentPreambleLongs() { //already compact; ignored
     return preLongs_;
   }
 
@@ -164,7 +169,7 @@ class HeapCompactSketch extends CompactSketch {
     final int singleItemBit = singleItem_ ? SINGLEITEM_FLAG_MASK : 0;
     final byte flags = (byte) (emptyBit |  READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK
         | orderedBit | singleItemBit);
-    final int preLongs = getCurrentPreambleLongs(true);
+    final int preLongs = getCompactPreambleLongs();
     loadCompactMemory(getCache(), getSeedHash(), getRetainedEntries(true), getThetaLong(),
         dstMem, flags, preLongs);
     return byteArray;

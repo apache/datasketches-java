@@ -167,7 +167,7 @@ public class SingleItemSketchTest {
   public void checkRestricted() {
     SingleItemSketch sis = SingleItemSketch.create(1);
     assertNull(sis.getMemory());
-    assertEquals(sis.getCurrentPreambleLongs(true), 1);
+    assertEquals(sis.getCompactPreambleLongs(), 1);
   }
 
   @Test

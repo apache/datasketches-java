@@ -137,14 +137,14 @@ public abstract class UpdateSketch extends Sketch {
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    return componentsToCompact(getThetaLong(), getRetainedEntries(), getSeedHash(), isEmpty(),
+    return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
         false, false, dstOrdered, dstMem, getCache());
   }
 
   @Override
   public int getCompactBytes() {
-    final int preLongs = getCurrentPreambleLongs(true);
-    final int dataLongs = getRetainedEntries();
+    final int preLongs = getCompactPreambleLongs();
+    final int dataLongs = getRetainedEntries(true);
     return (preLongs + dataLongs) << 3;
   }
 

@@ -573,15 +573,24 @@ public abstract class Sketch {
    */
   abstract long[] getCache();
 
+  /**
+   * Gets preamble longs if stored in compact form. If this sketch is already in compact form,
+   * this is identical to the call {@link #getCurrentPreambleLongs()}.
+   * @return preamble longs if stored in compact form.
+   */
+  abstract int getCompactPreambleLongs();
+
+  /**
+   * Gets the number of data longs if stored in current state.
+   * @return the number of data longs if stored in current state.
+   */
   abstract int getCurrentDataLongs();
 
   /**
    * Returns preamble longs if stored in current state.
-   * @param compact if true, returns the preamble longs required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
-   * @return preamble longs if stored.
+   * @return number of preamble longs if stored.
    */
-  abstract int getCurrentPreambleLongs(boolean compact);
+  abstract int getCurrentPreambleLongs();
 
   /**
    * Returns the Memory object if it exists, otherwise null.

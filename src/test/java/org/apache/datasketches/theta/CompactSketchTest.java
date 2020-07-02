@@ -118,7 +118,7 @@ public class CompactSketchTest {
     assertNotNull(testSk.iterator());
     assertEquals(testSk.toByteArray().length, 8);
     assertEquals(testSk.getCache().length, 0);
-    assertEquals(testSk.getCurrentPreambleLongs(true), 1);
+    assertEquals(testSk.getCompactPreambleLongs(), 1);
   }
 
   private static void checkSingleItemSketch(Sketch testSk, Sketch refSk) {
@@ -136,7 +136,7 @@ public class CompactSketchTest {
     assertNotNull(testSk.iterator());
     assertEquals(testSk.toByteArray().length, 16);
     assertEquals(testSk.getCache().length, 1);
-    assertEquals(testSk.getCurrentPreambleLongs(true), 1);
+    assertEquals(testSk.getCompactPreambleLongs(), 1);
   }
 
   private static void checkOtherCompactSketch(Sketch testSk, Sketch refSk, boolean ordered) {
@@ -162,12 +162,12 @@ public class CompactSketchTest {
       assertTrue(testSk instanceof HeapCompactSketch);
     }
     assertEquals(testSk.getSeedHash(), refSk.getSeedHash());
-    assertEquals(testSk.getRetainedEntries(true), refSk.getRetainedEntries());
+    assertEquals(testSk.getRetainedEntries(true), refSk.getRetainedEntries(true));
     assertEquals(testSk.getEstimate(), refSk.getEstimate(), 0.0);
     assertEquals(testSk.getCurrentBytes(), refSk.getCurrentBytes());
     assertEquals(testSk.toByteArray().length, refSk.toByteArray().length);
     assertEquals(testSk.getCache().length, refSk.getCache().length);
-    assertEquals(testSk.getCurrentPreambleLongs(true), refSk.getCurrentPreambleLongs(true));
+    assertEquals(testSk.getCompactPreambleLongs(), refSk.getCompactPreambleLongs());
   }
 
   @Test
@@ -350,7 +350,7 @@ public class CompactSketchTest {
 
     void check(CompactSketch csk) {
       assertEquals(csk.getClass().getSimpleName(), classType, "ClassType");
-      assertEquals(csk.getRetainedEntries(), count, "curCount");
+      assertEquals(csk.getRetainedEntries(true), count, "curCount");
       assertEquals(csk.getCurrentBytes(), bytes, "Bytes" );
       assertEquals(csk.isCompact(), compact, "Compact");
       assertEquals(csk.isEmpty(), empty, "Empty");

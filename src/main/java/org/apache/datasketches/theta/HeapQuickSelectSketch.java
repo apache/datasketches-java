@@ -213,9 +213,13 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
-    if (!compact) { return preambleLongs_; }
+  int getCompactPreambleLongs() {
     return CompactOperations.computeCompactPreLongs(empty_, curCount_, thetaLong_);
+  }
+
+  @Override
+  int getCurrentPreambleLongs() {
+    return preambleLongs_;
   }
 
   //only used by ConcurrentHeapThetaBuffer & Test

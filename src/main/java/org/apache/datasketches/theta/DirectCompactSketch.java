@@ -142,7 +142,7 @@ class DirectCompactSketch extends CompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new MemoryHashIterator(mem_, getRetainedEntries(), getThetaLong());
+    return new MemoryHashIterator(mem_, getRetainedEntries(true), getThetaLong());
   }
 
   @Override
@@ -172,7 +172,12 @@ class DirectCompactSketch extends CompactSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) { //already compact; ignore
+  int getCompactPreambleLongs() {
+    return extractPreLongs(mem_);
+  }
+
+  @Override
+  int getCurrentPreambleLongs() {
     return extractPreLongs(mem_);
   }
 

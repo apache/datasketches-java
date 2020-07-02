@@ -139,7 +139,7 @@ public final class AnotB<S extends Summary> {
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
     //Build hashtable and removes hashes of skB >= theta
-    final int countB = skB.getRetainedEntries();
+    final int countB = skB.getRetainedEntries(true);
     final long[] hashTableB =
         convertToHashTable(extractThetaHashArray(skB, countB), countB,
             thetaLong_, REBUILD_THRESHOLD);
@@ -296,7 +296,7 @@ public final class AnotB<S extends Summary> {
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     final long thetaLong = Math.min(thetaLongA, thetaLongB);
-    final int countB = skB.getRetainedEntries();
+    final int countB = skB.getRetainedEntries(true);
 
     //Build/rebuild hashtable and removes hashes of skB >= thetaLong
     final long[] hashTableB = //the following convert works for all theta sketches

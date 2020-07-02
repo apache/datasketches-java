@@ -197,7 +197,7 @@ public class UnionImplTest {
     for (int i = 0; i < k; i++) { sk.update(i); }
     double est1 = sk.getEstimate();
 
-    int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries());
+    int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
     try (WritableDirectHandle h = WritableMemory.allocateDirect(bytes)) {
       WritableMemory wmem = h.get();
       CompactSketch csk = sk.compact(true, wmem); //ordered, direct

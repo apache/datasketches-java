@@ -395,7 +395,12 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  int getCompactPreambleLongs() {
+    return 1;
+  }
+
+  @Override
+  int getCurrentPreambleLongs() {
     return 1;
   }
 

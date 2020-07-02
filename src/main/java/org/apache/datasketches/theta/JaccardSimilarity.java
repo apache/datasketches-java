@@ -59,8 +59,8 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
 
-    final int countA = sketchA.getRetainedEntries();
-    final int countB = sketchB.getRetainedEntries();
+    final int countA = sketchA.getRetainedEntries(true);
+    final int countB = sketchB.getRetainedEntries(true);
 
     //Create the Union
     final int minK = 1 << MIN_LG_NOM_LONGS;
@@ -74,7 +74,7 @@ public final class JaccardSimilarity {
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries();
+    final int countUAB = unionAB.getRetainedEntries(true);
 
     //Check for identical data
     if ((countUAB == countA) && (countUAB == countB)
@@ -110,8 +110,8 @@ public final class JaccardSimilarity {
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
 
-    final int countA = sketchA.getRetainedEntries();
-    final int countB = sketchB.getRetainedEntries();
+    final int countA = sketchA.getRetainedEntries(true);
+    final int countB = sketchB.getRetainedEntries(true);
 
     //Create the Union
     final Union union =
@@ -122,7 +122,7 @@ public final class JaccardSimilarity {
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
-    final int countUAB = unionAB.getRetainedEntries();
+    final int countUAB = unionAB.getRetainedEntries(true);
 
     //Check for identical counts and thetas
     if ((countUAB == countA) && (countUAB == countB)

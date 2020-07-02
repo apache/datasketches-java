@@ -115,7 +115,7 @@ public class UpdateSketchBuilder {
    * Be aware that sketches as large as this maximum value may not have been
    * thoroughly tested or characterized for performance.
    *
-   * @param lgNomEntries the Log Nominal Entries for the concurrent shared sketch
+   * @param lgNomEntries the Log Nominal Entries. Also for the concurrent shared sketch
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLogNominalEntries(final int lgNomEntries) {
@@ -139,7 +139,7 @@ public class UpdateSketchBuilder {
    *
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    *                   This will become the ceiling power of 2 if it is not.
-   * @return this ConcurrentThetaBuilder
+   * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLocalNominalEntries(final int nomEntries) {
     bLocalLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
@@ -158,7 +158,7 @@ public class UpdateSketchBuilder {
    * value have not been thoroughly tested or characterized for performance.
    *
    * @param lgNomEntries the Log Nominal Entries for a concurrent local sketch
-   * @return this ConcurrentThetaBuilder
+   * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLocalLogNominalEntries(final int lgNomEntries) {
     bLocalLgNomLongs = lgNomEntries;

@@ -210,8 +210,8 @@ public class BackwardConversions {
       return wmem;
     }
     //General CompactSketch
-    final int preLongs = skV3.getCurrentPreambleLongs(true);
-    final int entries = skV3.getRetainedEntries();
+    final int preLongs = skV3.getCompactPreambleLongs();
+    final int entries = skV3.getRetainedEntries(true);
     final boolean unordered = !(skV3.isOrdered());
     final byte flags = (byte) (0xA | (unordered ? 16 : 0)); //Unordered, NoRebuild, notEmpty, ReadOnly, LE
     wmem = WritableMemory.allocate((preLongs + entries) << 3);

@@ -61,15 +61,8 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //Sketch
 
   @Override
-  public int getCompactBytes() {
-    final int preLongs = getCurrentPreambleLongs(true);
-    final int dataLongs = getRetainedEntries(true);
-    return (preLongs + dataLongs) << 3;
-  }
-
-  @Override
   public int getCurrentBytes() {
-    final int preLongs = getCurrentPreambleLongs(false);
+    final int preLongs = getCurrentPreambleLongs();
     final int dataLongs = getCurrentDataLongs();
     return (preLongs + dataLongs) << 3;
   }
@@ -113,6 +106,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return Util.computeSeedHash(getSeed());
   }
 
+  //Used by HeapAlphaSketch and HeapQuickSelectSketch
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
     checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
@@ -134,7 +128,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     insertCurCount(memOut, this.getRetainedEntries(true));
     insertP(memOut, getP());
     final long thetaLong =
-        correctThetaOnCompact(isEmpty(), getRetainedEntries(), getThetaLong());
+        correctThetaOnCompact(isEmpty(), getRetainedEntries(true), getThetaLong());
     insertThetaLong(memOut, thetaLong);
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0

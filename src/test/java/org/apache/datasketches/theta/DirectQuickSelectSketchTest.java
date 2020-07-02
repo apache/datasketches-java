@@ -133,7 +133,7 @@ public class DirectQuickSelectSketchTest {
       assertTrue(sk1.hasMemory());
       assertFalse(sk1.isDirty());
       assertTrue(sk1.hasMemory());
-      assertEquals(sk1.getCurrentPreambleLongs(false), 3);
+      assertEquals(sk1.getCurrentPreambleLongs(), 3);
 
       UpdateSketch sk2 = Sketches.heapifyUpdateSketch(mem);
       assertEquals(sk2.getEstimate(), sk1est);
