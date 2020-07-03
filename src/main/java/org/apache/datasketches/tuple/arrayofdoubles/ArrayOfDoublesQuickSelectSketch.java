@@ -126,7 +126,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   void rebuildIfNeeded() {
-    if (getRetainedEntries() < rebuildThreshold_) { return; }
+    if (getRetainedEntries() <= rebuildThreshold_) { return; }
     if (getCurrentCapacity() > getNominalEntries()) {
       setThetaLong(getNewTheta());
       rebuild();
@@ -160,7 +160,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
         + " elements, but has " + values.length);
     }
     setNotEmpty();
-    if (key == 0 || key >= theta_) { return; }
+    if ((key == 0) || (key >= theta_)) { return; }
     final int index = findOrInsertKey(key);
     if (index < 0) {
       incrementCount();

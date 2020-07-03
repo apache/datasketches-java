@@ -633,6 +633,7 @@ public abstract class Sketch {
     }
   }
 
+
   static final double estimate(final long thetaLong, final int curCount) {
     return curCount * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong);
   }

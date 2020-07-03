@@ -74,16 +74,17 @@ public class IntegerSketchTest {
   @Test
   public void aNotBTest() {
     int lgK = 4;
-    //int m = 2 * K;
+    int u = 5;
     IntegerSummary.Mode a1Mode = IntegerSummary.Mode.AlwaysOne;
     IntegerSketch a1Sk1 = new IntegerSketch(lgK, a1Mode);
     IntegerSketch a1Sk2 = null;//new IntegerSketch(lgK, a1Mode);
     AnotB<IntegerSummary> anotb = new AnotB<>();
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < u; i++) {
       a1Sk1.update(i, 1);
     }
     anotb.update(a1Sk1, a1Sk2);
-    anotb.getResult();
+    CompactSketch<IntegerSummary> cSk = anotb.getResult();
+    assertEquals((int)cSk.getEstimate(), u);
   }
 
   @Test
@@ -125,7 +126,7 @@ public class IntegerSketchTest {
    * @param o object to print
    */
   static void println(Object o) {
-    System.out.println(o.toString()); //Disable
+    //System.out.println(o.toString()); //Disable
   }
 
   /**
@@ -133,6 +134,6 @@ public class IntegerSketchTest {
    * @param args arguments
    */
   static void printf(String fmt, Object ... args) {
-    System.out.printf(fmt, args); //Disable
+    //System.out.printf(fmt, args); //Disable
   }
 }
