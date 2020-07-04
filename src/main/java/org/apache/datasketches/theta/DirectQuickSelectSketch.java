@@ -52,6 +52,8 @@ import static org.apache.datasketches.theta.Rebuilder.moveAndResize;
 import static org.apache.datasketches.theta.Rebuilder.quickSelectAndRebuild;
 import static org.apache.datasketches.theta.Rebuilder.resize;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncremented;
+import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedRebuilt;
+import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedResized;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
@@ -274,6 +276,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
             : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs;
         //rebuild, refresh curCount based on # values in the hashtable.
         quickSelectAndRebuild(wmem_, preambleLongs, lgNomLongs);
+        return InsertedCountIncrementedRebuilt;
       } //end of rebuild, exit
 
       else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
@@ -285,6 +288,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           //lgArrLongs will change; thetaLong, curCount will not
           resize(wmem_, preambleLongs, lgArrLongs, tgtLgArrLongs);
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
+          return InsertedCountIncrementedResized;
         } //end of Expand in current memory, exit.
 
         else {
@@ -304,10 +308,10 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           wmem_ = newDstMem;
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
-
+          return InsertedCountIncrementedResized;
         } //end of Request more memory to resize
       } //end of resize
-    }
+    } //end of isOutOfSpace
     return InsertedCountIncremented;
   }
 

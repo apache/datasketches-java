@@ -36,6 +36,8 @@ import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncremented;
+import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedRebuilt;
+import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedResized;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
@@ -258,11 +260,12 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
       //must rebuild or resize
       if (lgArrLongs_ <= lgNomLongs_) { //resize
         resizeCache();
+        return InsertedCountIncrementedResized;
       }
-      else { //Already at tgt size, must rebuild
-        assert (lgArrLongs_ == (lgNomLongs_ + 1)) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
-        quickSelectAndRebuild(); //Changes thetaLong_, curCount_, reassigns cache
-      }
+      //Already at tgt size, must rebuild
+      assert (lgArrLongs_ == (lgNomLongs_ + 1)) : "lgArr: " + lgArrLongs_ + ", lgNom: " + lgNomLongs_;
+      quickSelectAndRebuild(); //Changes thetaLong_, curCount_, reassigns cache
+      return InsertedCountIncrementedRebuilt;
     }
     return InsertedCountIncremented;
   }

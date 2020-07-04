@@ -308,7 +308,6 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     //The over-theta test
     if (HashOperations.continueCondition(thetaLong_, hash)) {
-      // very very unlikely that hash == Long.MAX_VALUE. It is ignored just as zero is ignored.
       return RejectedOverTheta; //signal that hash was rejected due to theta.
     }
 
