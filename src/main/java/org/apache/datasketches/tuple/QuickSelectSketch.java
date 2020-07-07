@@ -41,7 +41,6 @@ import org.apache.datasketches.memory.Memory;
  * @param <S> type of Summary
  */
 class QuickSelectSketch<S extends Summary> extends Sketch<S> {
-  //private static final byte serialVersionWithSummaryFactoryUID = 1;
   private static final byte serialVersionUID = 2;
 
   private enum Flags { IS_BIG_ENDIAN, IS_IN_SAMPLING_MODE, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
@@ -63,7 +62,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * given value.
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  QuickSelectSketch(final int nomEntries, final SummaryFactory<S> summaryFactory) {
+  QuickSelectSketch(
+      final int nomEntries,
+      final SummaryFactory<S> summaryFactory) {
     this(nomEntries, DEFAULT_LG_RESIZE_FACTOR, summaryFactory);
   }
 
@@ -80,7 +81,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * </pre>
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  QuickSelectSketch(final int nomEntries, final int lgResizeFactor,
+  QuickSelectSketch(
+      final int nomEntries,
+      final int lgResizeFactor,
       final SummaryFactory<S> summaryFactory) {
     this(nomEntries, lgResizeFactor, 1f, summaryFactory);
   }
@@ -100,7 +103,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param samplingProbability the given sampling probability
    * @param summaryFactory An instance of a SummaryFactory.
    */
-  QuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
+  QuickSelectSketch(
+      final int nomEntries,
+      final int lgResizeFactor,
+      final float samplingProbability,
       final SummaryFactory<S> summaryFactory) {
     this(
       nomEntries,
@@ -111,8 +117,12 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     );
   }
 
-  QuickSelectSketch(final int nomEntries, final int lgResizeFactor, final float samplingProbability,
-      final SummaryFactory<S> summaryFactory, final int startingSize) {
+  QuickSelectSketch(
+      final int nomEntries,
+      final int lgResizeFactor,
+      final float samplingProbability,
+      final SummaryFactory<S> summaryFactory,
+      final int startingSize) {
     nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
@@ -130,7 +140,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
    */
-  QuickSelectSketch(final Memory mem, final SummaryDeserializer<S> deserializer,
+  QuickSelectSketch(
+      final Memory mem,
+      final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
     summaryFactory_ = summaryFactory;
     int offset = 0;
@@ -202,7 +214,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     return summaryTable_;
   }
 
-
   /**
    * Get configured nominal number of entries
    * @return nominal number of entries
@@ -249,7 +260,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   public void trim() {
     if (count_ > nomEntries_) {
       updateTheta();
-      rebuild(hashTable_.length);
+      resize(hashTable_.length);
     }
   }
 
@@ -427,13 +438,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       updateTheta();
       rebuild();
     } else {
-      rebuild(hashTable_.length * (1 << lgResizeFactor_));
+      resize(hashTable_.length * (1 << lgResizeFactor_));
     }
     return true;
   }
 
   void rebuild() {
-    rebuild(hashTable_.length);
+    resize(hashTable_.length);
   }
 
   void insert(final long hash, final S summary) {
@@ -446,6 +457,10 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private void updateTheta() {
     final long[] hashArr = new long[count_];
     int i = 0;
+    //Because of the association of the hashTable with the summaryTable we cannot destroy the
+    // hashTable structure. So we must copy. May as well compact at the same time.
+    // Might consider a whole table clone and use the selectExcludingZeros method instead.
+    // Not sure if there would be any speed advantage.
     for (int j = 0; j < hashTable_.length; j++) {
       if (summaryTable_[j] != null) {
         hashArr[i++] = hashTable_[j];
@@ -455,7 +470,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   @SuppressWarnings({"unchecked"})
-  private void rebuild(final int newSize) {
+  private void resize(final int newSize) {
     final long[] oldHashTable = hashTable_;
     final S[] oldSummaryTable = summaryTable_;
     final Class<S> summaryType = (Class<S>) summaryTable_.getClass().getComponentType();

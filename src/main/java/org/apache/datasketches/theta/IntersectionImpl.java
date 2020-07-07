@@ -359,7 +359,7 @@ final class IntersectionImpl extends IntersectionImplR {
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = arr[i];
         if (HashOperations.continueCondition(thetaLong, hashIn)) { continue; }
-        HashOperations.fastHashInsertOnly(mem_, lgArrLongs, hashIn, preBytes);
+        HashOperations.hashInsertOnlyMemory(mem_, lgArrLongs, hashIn, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough

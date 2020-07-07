@@ -85,21 +85,21 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   }
 
   @Override
-  public ResizeFactor getResizeFactor() {
-    return rf_;
-  }
-
-  //restricted methods
-
-  @Override
   float getP() {
     return p_;
+  }
+
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return rf_;
   }
 
   @Override
   long getSeed() {
     return seed_;
   }
+
+  //restricted methods
 
   @Override
   short getSeedHash() {

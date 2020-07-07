@@ -167,12 +167,30 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Returns a new builder
-   *
    * @return a new builder
    */
   public static final UpdateSketchBuilder builder() {
     return new UpdateSketchBuilder();
   }
+
+  /**
+   * Returns the configured ResizeFactor
+   * @return the configured ResizeFactor
+   */
+  public abstract ResizeFactor getResizeFactor();
+
+  /**
+   * Gets the configured sampling probability, <i>p</i>.
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @return the sampling probability, <i>p</i>
+   */
+  abstract float getP();
+
+  /**
+   * Gets the configured seed
+   * @return the configured seed
+   */
+  abstract long getSeed();
 
   /**
    * Resets this sketch back to a virgin empty state.
@@ -185,12 +203,6 @@ public abstract class UpdateSketch extends Sketch {
    * @return this sketch
    */
   public abstract UpdateSketch rebuild();
-
-  /**
-   * Returns the configured ResizeFactor
-   * @return the configured ResizeFactor
-   */
-  public abstract ResizeFactor getResizeFactor();
 
   /**
    * Present this sketch with a long.
@@ -328,19 +340,6 @@ public abstract class UpdateSketch extends Sketch {
    * @return the Log base 2 of the configured nominal entries
    */
   public abstract int getLgNomLongs();
-
-  /**
-   * Gets the configured sampling probability, <i>p</i>.
-   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @return the sampling probability, <i>p</i>
-   */
-  abstract float getP();
-
-  /**
-   * Gets the configured seed
-   * @return the configured seed
-   */
-  abstract long getSeed();
 
   /**
    * Returns true if the internal cache contains "dirty" values that are greater than or equal

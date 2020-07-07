@@ -280,14 +280,15 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     return numEntries > hashTableThreshold_;
   }
 
-  //Must resize. Changes lgArrLongs_ and cache_. theta and count don't change.
+  //Must resize. Changes lgArrLongs_, cache_, hashTableThreshold;
+  // theta and count don't change.
   // Used by hashUpdate()
   private final void resizeCache() {
     final ResizeFactor rf = getResizeFactor();
-    final int lgTgtLongs = lgNomLongs_ + 1;
-    final int lgDeltaLongs = lgTgtLongs - lgArrLongs_;
+    final int lgMaxArrLongs = lgNomLongs_ + 1;
+    final int lgDeltaLongs = lgMaxArrLongs - lgArrLongs_;
     final int lgResizeFactor = max(min(rf.lg(), lgDeltaLongs), 1); //rf_.lg() could be 0
-    lgArrLongs_ += lgResizeFactor; // new tgt size
+    lgArrLongs_ += lgResizeFactor; // new arr size
 
     final long[] tgtArr = new long[1 << lgArrLongs_];
     final int newCount = HashOperations.hashArrayInsert(cache_, tgtArr, lgArrLongs_, thetaLong_);
@@ -301,9 +302,9 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   //array stays the same size. Changes theta and thus count
   private final void quickSelectAndRebuild() {
-    final int arrLongs = 1 << lgArrLongs_;
+    final int arrLongs = 1 << lgArrLongs_; // generally 2 * k,
 
-    final int pivot = (1 << lgNomLongs_) + 1; // pivot for QS
+    final int pivot = (1 << lgNomLongs_) + 1; // pivot for QS = k + 1
 
     thetaLong_ = selectExcludingZeros(cache_, curCount_, pivot); //messes up the cache_
 

@@ -188,8 +188,18 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   }
 
   @Override
+  float getP() {
+    return wmem_.getFloat(P_FLOAT);
+  }
+
+  @Override
   public ResizeFactor getResizeFactor() {
     return ResizeFactor.getRF(getLgRF());
+  }
+
+  @Override
+  long getSeed() {
+    return seed_;
   }
 
   @Override
@@ -229,15 +239,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return wmem_;
   }
 
-  @Override
-  float getP() {
-    return wmem_.getFloat(P_FLOAT);
-  }
 
-  @Override
-  long getSeed() {
-    return seed_;
-  }
 
   @Override
   short getSeedHash() {

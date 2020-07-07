@@ -33,7 +33,6 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public final class HashOperations {
   private static final int STRIDE_HASH_BITS = 7;
-
   private static final int EMPTY = 0;
 
   /**
@@ -43,47 +42,8 @@ public final class HashOperations {
 
   private HashOperations() {}
 
-  /**
-   * Counts the cardinality of the first Log2 values of the given source array.
-   * @param srcArr the given source array
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
-   * @param thetaLong <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
-   * @return the cardinality
-   */
-  public static int countPart(final long[] srcArr, final int lgArrLongs, final long thetaLong) {
-    int cnt = 0;
-    final int len = 1 << lgArrLongs;
-    for (int i = len; i-- > 0;) {
-      final long hash = srcArr[i];
-      if (continueCondition(thetaLong, hash) ) {
-        continue;
-      }
-      cnt++ ;
-    }
-    return cnt;
-  }
-
-  /**
-   * Counts the cardinality of the given source array.
-   * @param srcArr the given source array
-   * @param thetaLong <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
-   * @return the cardinality
-   */
-  public static int count(final long[] srcArr, final long thetaLong) {
-    int cnt = 0;
-    final int len = srcArr.length;
-    for (int i = len; i-- > 0;) {
-      final long hash = srcArr[i];
-      if (continueCondition(thetaLong, hash) ) {
-        continue;
-      }
-      cnt++ ;
-    }
-    return cnt;
-  }
-
-  // make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for
-  //  index
+  //Make odd and independent of index assuming lgArrLongs lowest bits of the hash were used for
+  //  index. This results in a 8 bit value that is always odd.
   private static int getStride(final long hash, final int lgArrLongs) {
     return (2 * (int) ((hash >>> lgArrLongs) & STRIDE_MASK) ) + 1;
   }
@@ -91,18 +51,18 @@ public final class HashOperations {
   //ON-HEAP
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash search scheme for on-heap.
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) search scheme for on-heap.
    * Returns the index if found, -1 if not found.
    *
-   * @param hashTable The hash table to search. Must be a power of 2 in size.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param hash A hash value to search for. Must not be zero.
+   * @param hashTable The hash table to search. Its size must be a power of 2.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to search for. It must not be zero.
    * @return Current probe index if found, -1 if not found.
    */
   public static int hashSearch(final long[] hashTable, final int lgArrLongs, final long hash) {
     if (hash == 0) {
-      throw new SketchesArgumentException("Given hash cannot be zero: " + hash);
+      throw new SketchesArgumentException("Given hash must not be zero: " + hash);
     }
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
@@ -123,16 +83,16 @@ public final class HashOperations {
   }
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for on-heap.
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) insert scheme for on-heap.
    * This method assumes that the input hash is not a duplicate.
    * Useful for rebuilding tables to avoid unnecessary comparisons.
-   * Returns the index of insertion, which is always positive or zero. Throws an exception if the
-   * table is full with no empty slot.
+   * Returns the index of insertion, which is always positive or zero.
+   * Throws an exception if the table has no empty slot.
    *
-   * @param hashTable the hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param hash value that must not be zero and will be inserted into the array into an empty slot.
+   * @param hashTable the hash table to insert into. Its size must be a power of 2.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to be potentially inserted into an empty slot. It must not be zero.
    * @return index of insertion.  Always positive or zero.
    */
   public static int hashInsertOnly(final long[] hashTable, final int lgArrLongs, final long hash) {
@@ -153,15 +113,15 @@ public final class HashOperations {
   }
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme for on-heap.
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) insert scheme for on-heap.
    * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    * Throws an exception if the value is not found and table has no empty slot.
    *
-   * @param hashTable the hash table to insert into.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param hash hash value that must not be zero and if not a duplicate will be inserted into the
-   * array into an empty slot
+   * @param hashTable The hash table to insert into. Its size must be a power of 2.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to be potentially inserted into an empty slot only if it is not
+   * a duplicate of any other hash value in the table. It must not be zero.
    * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    */
   public static int hashSearchOrInsert(final long[] hashTable, final int lgArrLongs,
@@ -182,22 +142,24 @@ public final class HashOperations {
       }
       curProbe = (curProbe + stride) & arrayMask;
     } while (curProbe != loopIndex);
-    throw new SketchesArgumentException("Key not found and no empty slots!");
+    throw new SketchesArgumentException("Hash not found and no empty slots!");
   }
 
   /**
-   * Inserts the given long array into the given hash table array of the target size,
-   * removes any negative input values, ignores duplicates and counts the values inserted.
+   * Inserts the given long array into the given OADH hashTable of the target size,
+   * ignores duplicates and counts the values inserted.
+   * The hash values must not be negative, zero values and values &ge; thetaLong are ignored.
    * The given hash table may have values, but they must have been inserted by this method or one
-   * of the other OADH insert methods in this class and they may not be dirty.
+   * of the other OADH insert methods in this class.
    * This method performs additional checks against potentially invalid hash values or theta values.
    * Returns the count of values actually inserted.
    *
    * @param srcArr the source hash array to be potentially inserted
-   * @param hashTable The correctly sized target hash table that must be a power of two.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param thetaLong must greater than zero
+   * @param hashTable The hash table to insert into. Its size must be a power of 2.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param thetaLong The theta value that all input hash values are compared against.
+   * It must greater than zero.
    * <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
    * @return the count of values actually inserted
    */
@@ -219,21 +181,25 @@ public final class HashOperations {
     return count;
   }
 
-  //OFF-HEAP (these are kept for backward compatibility)
+  //With Memory or WritableMemory
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash search scheme for off-heap.
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) search scheme for Memory.
    * Returns the index if found, -1 if not found.
    *
-   * @param mem The Memory hash table to search.
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param hash A hash value to search for. Must not be zero.
-   * @param memOffsetBytes offset in the memory where the hash array starts
-   * @return index if found, -1 if not found.
+   * @param mem The <i>Memory</i> containing the hash table to search.
+   * The hash table portion must be a power of 2 in size.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to search for. Must not be zero.
+   * @param memOffsetBytes offset in the memory where the hashTable starts
+   * @return Current probe index if found, -1 if not found.
    */
-  public static int hashSearch(final Memory mem, final int lgArrLongs, final long hash,
+  public static int hashSearchMemory(final Memory mem, final int lgArrLongs, final long hash,
       final int memOffsetBytes) {
+    if (hash == 0) {
+      throw new SketchesArgumentException("Given hash must not be zero: " + hash);
+    }
     final int arrayMask = (1 << lgArrLongs) - 1;
     final int stride = getStride(hash, lgArrLongs);
     int curProbe = (int) (hash & arrayMask);
@@ -249,21 +215,21 @@ public final class HashOperations {
   }
 
   /**
-   * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
-   * values directly into a Memory.
+   * This is a classical Knuth-style Open Addressing, Double Hash (OADH) insert scheme for Memory.
    * This method assumes that the input hash is not a duplicate.
    * Useful for rebuilding tables to avoid unnecessary comparisons.
    * Returns the index of insertion, which is always positive or zero.
    * Throws an exception if table has no empty slot.
    *
-   * @param wmem The writable memory
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
+   * @param wmem The <i>WritableMemory</i> that contains the hashTable to insert into.
+   * The size of the hashTable portion must be a power of 2.
+   * @param lgArrLongs The log_base2(hashTable.length.
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @param hash value that must not be zero and will be inserted into the array into an empty slot.
-   * @param memOffsetBytes offset in the memory where the hash array starts
+   * @param memOffsetBytes offset in the <i>WritableMemory</i> where the hashTable starts
    * @return index of insertion.  Always positive or zero.
    */
-  public static int fastHashInsertOnly(final WritableMemory wmem, final int lgArrLongs,
+  public static int hashInsertOnlyMemory(final WritableMemory wmem, final int lgArrLongs,
       final long hash, final int memOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
@@ -282,23 +248,21 @@ public final class HashOperations {
     throw new SketchesArgumentException("No empty slot in table!");
   }
 
-  //FAST OFF-HEAP
-
   /**
    * This is a classical Knuth-style Open Addressing, Double Hash insert scheme, but inserts
    * values directly into a Memory.
    * Returns index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    * Throws an exception if the value is not found and table has no empty slot.
    *
-   * @param wmem the WritableMemory
-   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
-   * lgArrLongs &le; log2(hashTable.length).
-   * @param hash A hash value that must not be zero and if not a duplicate will be inserted into the
-   * array into an empty slot.
-   * @param memOffsetBytes offset in the memory where the hash array starts
+   * @param wmem The <i>WritableMemory</i> that contains the hashTable to insert into.
+   * @param lgArrLongs The log_base2(hashTable.length).
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
+   * @param hash The hash value to be potentially inserted into an empty slot only if it is not
+   * a duplicate of any other hash value in the table. It must not be zero.
+   * @param memOffsetBytes offset in the <i>WritableMemory</i> where the hash array starts
    * @return index &ge; 0 if found (duplicate); &lt; 0 if inserted, inserted at -(index + 1).
    */
-  public static int fastHashSearchOrInsert(final WritableMemory wmem, final int lgArrLongs,
+  public static int hashSearchOrInsertMemory(final WritableMemory wmem, final int lgArrLongs,
       final long hash, final int memOffsetBytes) {
     final int arrayMask = (1 << lgArrLongs) - 1; // current Size -1
     final int stride = getStride(hash, lgArrLongs);
@@ -317,6 +281,8 @@ public final class HashOperations {
     } while (curProbe != loopIndex);
     throw new SketchesArgumentException("Key not found and no empty slot in table!");
   }
+
+  //Other related methods
 
   /**
    * @param thetaLong must be greater than zero otherwise throws an exception.
@@ -376,6 +342,45 @@ public final class HashOperations {
     hashArrayInsert(
         hashArr, hashTable, Integer.numberOfTrailingZeros(size), thetaLong);
     return hashTable;
+  }
+
+  /**
+   * Counts the cardinality of the first Log2 values of the given source array.
+   * @param srcArr the given source array
+   * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>
+   * @param thetaLong <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
+   * @return the cardinality
+   */
+  public static int countPart(final long[] srcArr, final int lgArrLongs, final long thetaLong) {
+    int cnt = 0;
+    final int len = 1 << lgArrLongs;
+    for (int i = len; i-- > 0;) {
+      final long hash = srcArr[i];
+      if (continueCondition(thetaLong, hash) ) {
+        continue;
+      }
+      cnt++ ;
+    }
+    return cnt;
+  }
+
+  /**
+   * Counts the cardinality of the given source array.
+   * @param srcArr the given source array
+   * @param thetaLong <a href="{@docRoot}/resources/dictionary.html#thetaLong">See Theta Long</a>
+   * @return the cardinality
+   */
+  public static int count(final long[] srcArr, final long thetaLong) {
+    int cnt = 0;
+    final int len = srcArr.length;
+    for (int i = len; i-- > 0;) {
+      final long hash = srcArr[i];
+      if (continueCondition(thetaLong, hash) ) {
+        continue;
+      }
+      cnt++ ;
+    }
+    return cnt;
   }
 
 }

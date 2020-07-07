@@ -260,7 +260,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     //The duplicate test
     final int index =
-        HashOperations.fastHashSearchOrInsert(wmem_, lgArrLongs, hash, preambleLongs << 3);
+        HashOperations.hashSearchOrInsertMemory(wmem_, lgArrLongs, hash, preambleLongs << 3);
     if (index >= 0) {
       return RejectedDuplicate; //Duplicate, not inserted
     }

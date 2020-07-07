@@ -280,14 +280,6 @@ public abstract class Sketch {
   public abstract Family getFamily();
 
   /**
-   * Returns a HashIterator that can be used to iterate over the retained hash values of the
-   * Theta sketch.
-   * @return a HashIterator that can be used to iterate over the retained hash values of the
-   * Theta sketch.
-   */
-  public abstract HashIterator iterator();
-
-  /**
    * Gets the approximate lower error bound given the specified number of Standard Deviations.
    * This will return getEstimate() if isEmpty() is true.
    *
@@ -437,6 +429,14 @@ public abstract class Sketch {
   }
 
   /**
+   * Returns a HashIterator that can be used to iterate over the retained hash values of the
+   * Theta sketch.
+   * @return a HashIterator that can be used to iterate over the retained hash values of the
+   * Theta sketch.
+   */
+  public abstract HashIterator iterator();
+
+  /**
    * Serialize this sketch to a byte array form.
    * @return byte array of this sketch
    */
@@ -568,7 +568,7 @@ public abstract class Sketch {
 
   /**
    * Gets the internal cache array. For on-heap sketches this will return a reference to the actual
-   * cache array. For off-heap sketches this returns a copy.
+   * cache array. For Memory-based sketches this returns a copy.
    * @return the internal cache array.
    */
   abstract long[] getCache();
@@ -632,7 +632,6 @@ public abstract class Sketch {
           + "Memory Ordered Flag inconsistent with Sketch");
     }
   }
-
 
   static final double estimate(final long thetaLong, final int curCount) {
     return curCount * (LONG_MAX_VALUE_AS_DOUBLE / thetaLong);
