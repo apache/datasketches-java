@@ -323,6 +323,21 @@ public class SingleItemSketchTest {
     //println(sk.toString());
   }
 
+  @Test
+  public void checkSingleItemCompact() {
+    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    sk1.update(1);
+    CompactSketch csk = sk1.compact();
+    assertTrue(csk instanceof SingleItemSketch);
+    CompactSketch csk2 = csk.compact();
+    assertEquals(csk, csk2);
+    CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(16));
+    assertTrue(csk3 instanceof DirectCompactSketch);
+    assertEquals(csk2.getCurrentPreambleLongs(), 1);
+    assertEquals(csk3.getCurrentPreambleLongs(), 1);
+  }
+
+
   static final long SiSkPre0WithSiFlag = 0x93cc3a0000030301L;
   static final long SiSkPre0WoutSiFlag = 0x93cc1a0000030301L;
   static final long Hash = 0x05a186bdcb7df915L;

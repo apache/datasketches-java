@@ -323,6 +323,17 @@ public class CompactSketchTest {
     assertTrue(cache.length == 0);
   }
 
+  @Test
+  public void checkHeapCompactSketchCompact() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    sk.update(1);
+    sk.update(2);
+    CompactSketch csk = sk.compact();
+    CompactSketch csk2 = csk.compact();
+    assertTrue(csk.isOrdered());
+    assertEquals(csk.getCurrentPreambleLongs(), 2);
+  }
+
   private static class State {
     String classType = null;
     int count = 0;

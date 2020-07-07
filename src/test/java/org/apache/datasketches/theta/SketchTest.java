@@ -409,7 +409,18 @@ public class SketchTest {
       sk = Sketch.heapify(wmem);
       fail();
     } catch (SketchesArgumentException e) { }
+  }
 
+  @Test
+  public void check2Methods() {
+    int k = 16;
+    Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
+    int bytes1 = sk.getCurrentBytes(true);
+    int bytes2 = sk.getCurrentBytes(false);
+    assertEquals(bytes1, 8);
+    assertEquals(bytes2, 280); //32*8 + 24
+    int retEnt = sk.getRetainedEntries();
+    assertEquals(retEnt, 0);
   }
 
   @Test

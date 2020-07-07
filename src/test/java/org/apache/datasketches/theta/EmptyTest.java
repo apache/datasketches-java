@@ -136,6 +136,19 @@ public class EmptyTest {
     Sketches.heapifySketch(mem);
   }
 
+  @Test
+  public void checkEmptyToCompact() {
+    UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
+    CompactSketch csk = sk1.compact();
+    assertTrue(csk instanceof EmptyCompactSketch);
+    CompactSketch csk2 = csk.compact();
+    assertTrue(csk2 instanceof EmptyCompactSketch);
+    CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(8));
+    assertTrue(csk3 instanceof DirectCompactSketch);
+    assertEquals(csk2.getCurrentPreambleLongs(), 1);
+  }
+
+
   //SerVer 2 had an empty sketch where preLongs = 1, but empty bit was not set.
   private static Memory badEmptySk() {
     final long preLongs = 1;
@@ -149,8 +162,6 @@ public class EmptyTest {
     wmem.putLong(0, badEmptySk);
     return wmem;
   }
-
-
 
   /**
    * @param s value to print

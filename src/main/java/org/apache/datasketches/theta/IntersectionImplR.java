@@ -83,15 +83,15 @@ class IntersectionImplR extends Intersection {
     }
   }
 
-  IntersectionImplR(final short seedHash) {
-    seedHash_ = seedHash;
-    mem_ = null;
-    lgArrLongs_ = 0;
-    curCount_ = -1;
-    thetaLong_ = Long.MAX_VALUE;
-    empty_ = false;
-    hashTable_ = null;
-  }
+  //  IntersectionImplR(final short seedHash) {
+  //    seedHash_ = seedHash;
+  //    mem_ = null;
+  //    lgArrLongs_ = 0;
+  //    curCount_ = -1;
+  //    thetaLong_ = Long.MAX_VALUE;
+  //    empty_ = false;
+  //    hashTable_ = null;
+  //  }
 
   /**
    * Wrap an Intersection target around the given source Memory containing intersection data.

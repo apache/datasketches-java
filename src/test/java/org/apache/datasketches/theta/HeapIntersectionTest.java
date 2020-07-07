@@ -509,7 +509,7 @@ public class HeapIntersectionTest {
     byte[] byteArray = union.toByteArray();
     Memory mem = Memory.wrap(byteArray);
     Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast
-    println(inter1.toString());
+    //println(inter1.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

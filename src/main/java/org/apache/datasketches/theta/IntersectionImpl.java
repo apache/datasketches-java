@@ -55,10 +55,6 @@ final class IntersectionImpl extends IntersectionImplR {
     super(wmem, seed, newMem);
   }
 
-  IntersectionImpl(final short seedHash) {
-    super(seedHash);
-  }
-
   /**
    * Construct a new Intersection target on the java heap.
    *
@@ -260,7 +256,7 @@ final class IntersectionImpl extends IntersectionImplR {
         performIntersect(sketchIn);
         break;
       }
-      default: assert false : "Should not happen";
+      //default: assert false : "Should not happen";
     }
   }
 

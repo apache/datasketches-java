@@ -378,6 +378,12 @@ public class AnotBimplTest {
   }
 
   @Test
+  public void checkGetMaxBytes() {
+    int bytes = Sketches.getMaxAnotBResultBytes(10);
+    assertEquals(bytes, (16 * 15) + 24);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }

@@ -204,11 +204,12 @@ public abstract class SetOperation {
   /**
    * Returns the maximum number of bytes for the returned CompactSketch, given the maximum
    * value of nomEntries of the first sketch A of AnotB.
-   * @param maxNomEntries the given value
+   * @param maxNomEntries the given value must be a power of 2.
    * @return the maximum number of bytes.
    */
   public static int getMaxAnotBResultBytes(final int maxNomEntries) {
-    return 24 + (15 * maxNomEntries);
+    final int ceil = ceilingPowerOf2(maxNomEntries);
+    return 24 + (15 * ceil);
   }
 
 
