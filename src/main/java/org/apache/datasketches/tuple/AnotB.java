@@ -52,7 +52,9 @@ public final class AnotB<S extends Summary> {
    */
   public void setA(final Sketch<S> skA) {
     if (skA == null) {
-      throw new SketchesArgumentException("The input argument may not be null");
+      reset();
+      return;
+      //throw new SketchesArgumentException("The input argument may not be null");
     }
     if (skA.isEmpty()) {
       reset();
@@ -331,7 +333,7 @@ public final class AnotB<S extends Summary> {
   /**
    * Resets this sketch back to the empty state.
    */
-  public void reset() {
+  private void reset() {
     empty_ = true;
     thetaLong_ = Long.MAX_VALUE;
     hashArr_ = null;
@@ -365,55 +367,11 @@ public final class AnotB<S extends Summary> {
    * @param skB The incoming sketch for the second argument
    * @deprecated Instead please use {@link #aNotB(Sketch, Sketch)}.
    */
-  @SuppressWarnings("unchecked")
   @Deprecated
   public void update(final Sketch<S> skA, final Sketch<S> skB) {
-    if (skA != null) { empty_ = skA.isEmpty(); } //stays this way even if we end up with no result entries
-    final long thetaA = skA == null ? Long.MAX_VALUE : skA.getThetaLong();
-    final long thetaB = skB == null ? Long.MAX_VALUE : skB.getThetaLong();
-    thetaLong_ = Math.min(thetaA, thetaB);
-    if ((skA == null) || (skA.getRetainedEntries() == 0)) { return; }
-    if ((skB == null) || (skB.getRetainedEntries() == 0)) {
-      loadCompactedArrays(skA);
-    }
-    //neither A or B is null nor with zero entries
-    else {
-      final long[] hashTableB;
-      final int count = skB.getRetainedEntries();
-
-      CompactSketch<S> csk = null;
-      QuickSelectSketch<S> qsk = null;
-      final int lgHashTableSize;
-      final Class<S> summaryType;
-
-      if (skB instanceof CompactSketch) {
-        csk = (CompactSketch<S>) skB;
-        hashTableB = convertToHashTable(csk.getHashArr(), count, thetaLong_, REBUILD_THRESHOLD);
-        summaryType = (Class<S>) csk.getSummaryArr().getClass().getComponentType();
-        lgHashTableSize = Integer.numberOfTrailingZeros(hashTableB.length);
-      } else {
-        qsk = (QuickSelectSketch<S>) skB;
-        hashTableB = convertToHashTable(qsk.getHashTable(), count, thetaLong_, REBUILD_THRESHOLD);
-        summaryType = (Class<S>) qsk.getSummaryTable().getClass().getComponentType();
-        lgHashTableSize = Integer.numberOfTrailingZeros(hashTableB.length);
-      }
-      //scan A, search B
-      final SketchIterator<S> itrA = skA.iterator();
-      final int noMatchSize = skA.getRetainedEntries();
-      hashArr_ = new long[noMatchSize];
-      summaryArr_ = (S[]) Array.newInstance(summaryType, noMatchSize);
-      while (itrA.next()) {
-        final long hash = itrA.getHash();
-        final S summary = itrA.getSummary();
-        if ((hash <= 0) || (hash >= thetaLong_)) { continue; }
-        final int index = hashSearch(hashTableB, lgHashTableSize, hash);
-        if (index == -1) {
-          hashArr_[curCount_] = hash;
-          summaryArr_[curCount_] = summary;
-          curCount_++;
-        }
-      }
-    }
+    reset();
+    setA(skA);
+    notB(skB);
   }
 
   /**
@@ -424,34 +382,7 @@ public final class AnotB<S extends Summary> {
    */
   @Deprecated
   public CompactSketch<S> getResult() {
-    if (curCount_ == 0) {
-      return new CompactSketch<>(null, null, thetaLong_, empty_);
-    }
-    final CompactSketch<S> result =
-        new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, curCount_),
-            Arrays.copyOfRange(summaryArr_, 0, curCount_), thetaLong_, empty_);
-    reset();
-    return result;
-  }
-
-  /**
-   * Only used by deprecated {@link #update(Sketch, Sketch)}.
-   * Remove at the same time other deprecated methods are removed.
-   * @param sketch the given sketch to extract arrays from.
-   */
-  private void loadCompactedArrays(final Sketch<S> sketch) {
-    final CompactSketch<S> csk;
-    // assuming only two types: CompactSketch and QuickSelectSketch
-    if (sketch instanceof CompactSketch) {
-      csk = (CompactSketch<S>)sketch;
-      hashArr_ = csk.getHashArr().clone();
-      summaryArr_ = csk.getSummaryArr().clone();
-    } else {
-      csk = ((QuickSelectSketch<S>)sketch).compact();
-      hashArr_ = csk.getHashArr();
-      summaryArr_ = csk.getSummaryArr();
-    }
-    curCount_ = sketch.getRetainedEntries();
+    return getResult(true);
   }
 
 }

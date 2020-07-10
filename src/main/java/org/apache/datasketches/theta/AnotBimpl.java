@@ -27,6 +27,7 @@ import static org.apache.datasketches.Util.simpleIntLog2;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -65,8 +66,7 @@ final class AnotBimpl extends AnotB {
   public void setA(final Sketch skA) {
     if (skA == null) {
       reset();
-      return;
-      //throw new SketchesArgumentException("The input argument may not be null");
+      throw new SketchesArgumentException("The input argument must not be null");
     }
     if (skA.isEmpty()) {
       reset();
@@ -248,7 +248,7 @@ final class AnotBimpl extends AnotB {
   @Deprecated
   @Override
   public CompactSketch getResult() {
-    return getResult(true, null);
+    return getResult(true, null, true);
   }
 
   @Deprecated

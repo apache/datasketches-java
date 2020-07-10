@@ -96,7 +96,7 @@ public final class BoundsOnRatiosInSampledSets {
   /**
    * Return the estimate of B. See class javadoc.
    * @param b See class javadoc
-   * @param f the inclusion probability used to produce the set with size <i>a</i>.
+   * @param f the inclusion probability used to produce the set with size <i>b</i>.
    * @return the approximate lower bound
    */
   public static double getEstimateOfB(final long b, final double f) {

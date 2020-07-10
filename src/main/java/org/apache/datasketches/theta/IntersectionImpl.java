@@ -178,14 +178,16 @@ final class IntersectionImpl extends IntersectionImplR {
 
   @Override
   public void update(final Sketch sketchIn) {
-    //Null/Empty cases: Note: null == empty := Th = 1.0, count = 0, empty = true
-    if (empty_ || (sketchIn == null) || sketchIn.isEmpty()) { //empty rule
+    if (sketchIn == null) {
+      throw new SketchesArgumentException("Intersection argument must not be null.");
+    }
+    if (empty_ || sketchIn.isEmpty()) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make it empty.
-      empty_ = true;
-      thetaLong_ = Long.MAX_VALUE;
-      curCount_ = 0;
       lgArrLongs_ = 0;
+      curCount_ = 0;
+      thetaLong_ = Long.MAX_VALUE;
+      empty_ = true;
       maxLgArrLongs_ = 0;
       hashTable_ = null;
       if (mem_ != null) {
@@ -271,6 +273,7 @@ final class IntersectionImpl extends IntersectionImplR {
 
   @Override
   public void reset() {
+    lgArrLongs_ = 0;
     curCount_ = -1;
     thetaLong_ = Long.MAX_VALUE;
     empty_ = false;

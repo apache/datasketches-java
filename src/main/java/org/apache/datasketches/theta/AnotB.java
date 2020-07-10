@@ -24,7 +24,7 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The API for the set difference operation <i>A and not B</i> operations.
- * This class include both stateful and stateless operations.
+ * This class includes both stateful and stateless operations.
  *
  * <p>The stateful operation is as follows:</p>
  * <pre><code>
@@ -88,13 +88,14 @@ public abstract class AnotB extends SetOperation {
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.
    * @param reset If true, clears this operator to the empty state after result is returned.
-   * @return the result of this operation as a CompactSketch.
+   * @return the result of this operation as an ordered CompactSketch.
    */
   public abstract CompactSketch getResult(boolean reset);
 
   /**
-   * Gets the result of this stateful set operation as a CompactSketch of the chosen form. The
-   * stateful input operations are {@link #setA(Sketch)} and {@link #notB(Sketch)}.
+   * Gets the result of this stateful set operation as a CompactSketch of the form based on
+   * the input arguments.
+   * The stateful input operations are {@link #setA(Sketch)} and {@link #notB(Sketch)}.
    *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
@@ -117,8 +118,8 @@ public abstract class AnotB extends SetOperation {
    * {@link #notB(Sketch)}, {@link #getResult(boolean)}, or
    * {@link #getResult(boolean, WritableMemory, boolean)} methods.</p>
    *
-   * @param skA The incoming sketch for the first argument
-   * @param skB The incoming sketch for the second argument
+   * @param skA The incoming sketch for the first argument. It must not be null.
+   * @param skB The incoming sketch for the second argument. A null is equivalent to Empty.
    * @return an ordered CompactSketch on the heap
    */
   public CompactSketch aNotB(final Sketch skA, final Sketch skB) {
@@ -133,8 +134,8 @@ public abstract class AnotB extends SetOperation {
    * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)}
    * or {@link #notB(Sketch)} methods.</p>
    *
-   * @param skA The incoming sketch for the first argument
-   * @param skB The incoming sketch for the second argument
+   * @param skA The incoming sketch for the first argument. It must not be null.
+   * @param skB The incoming sketch for the second argument. A null is equivalent to Empty.
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    * @param dstMem
