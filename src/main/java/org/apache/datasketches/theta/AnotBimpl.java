@@ -40,7 +40,7 @@ final class AnotBimpl extends AnotB {
   private final short seedHash_;
   private boolean empty_;
   private long thetaLong_;
-  private long[] hashArr_; //compact array w curCount_ entries
+  private long[] hashArr_ = new long[0]; //compact array w curCount_ entries
   private int curCount_;
 
   /**
@@ -146,8 +146,11 @@ final class AnotBimpl extends AnotB {
   @Override
   public CompactSketch aNotB(final Sketch skA, final Sketch skB, final boolean dstOrdered,
       final WritableMemory dstMem) {
-    if ((skA == null) || skA.isEmpty()) { return EmptyCompactSketch.getInstance(); }
-    if ((skB == null) || skB.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
+    if ((skA == null) || (skB == null)) {
+      throw new SketchesArgumentException("Neither argument may be null");
+    }
+    if (skA.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
+    if (skB.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
     final short seedHashA = skA.getSeedHash();
     final short seedHashB = skB.getSeedHash();
     checkSeedHashes(seedHashA, seedHash_);
@@ -216,7 +219,7 @@ final class AnotBimpl extends AnotB {
   private void reset() {
     thetaLong_ = Long.MAX_VALUE;
     empty_ = true;
-    hashArr_ = null;
+    hashArr_ = new long[0];
     curCount_ = 0;
   }
 
@@ -240,9 +243,12 @@ final class AnotBimpl extends AnotB {
   @Deprecated
   @Override
   public void update(final Sketch skA, final Sketch skB) {
+    //duplicate old behavior
     reset();
-    setA(skA);
-    notB(skB);
+    if (skA == null) { return; }
+    else { setA(skA); }
+    if (skB == null) { return; }
+    else { notB(skB); }
   }
 
   @Deprecated

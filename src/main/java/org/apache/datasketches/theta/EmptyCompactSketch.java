@@ -69,6 +69,7 @@ final class EmptyCompactSketch extends CompactSketch {
   // This is required for fast detection.
   // The hashSeed is ignored and set == 0.
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+    if (wmem == null) { return compact(); }
     wmem.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
     return new DirectCompactSketch(wmem);
   }

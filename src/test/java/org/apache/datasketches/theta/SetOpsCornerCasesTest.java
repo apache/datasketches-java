@@ -89,16 +89,17 @@ public class SetOpsCornerCasesTest {
     for (State stateA : State.values()) {
       for (State stateB : State.values()) {
         if ((stateA == EST_MEMORY_UNORDERED) || (stateB == EST_MEMORY_UNORDERED)) { continue; }
+        if ((stateA == NULL) || (stateB == NULL)) { continue; }
         cornerCaseChecks(stateA, stateB, k);
-        //cornerCaseChecksMemory(stateA, stateB, k);
+        cornerCaseChecksMemory(stateA, stateB, k);
       }
     }
   }
 
-  @Test
-  public void checkExactNullSpecificCase() {
-    cornerCaseChecksMemory(State.EXACT, State.NULL, 64);
-  }
+//  @Test
+//  public void checkExactNullSpecificCase() {
+//    cornerCaseChecksMemory(State.EXACT, State.NULL, 64);
+//  }
 
   private static void cornerCaseChecksMemory(State stateA, State stateB, int k) {
     println("StateA: " + stateA + ", StateB: " + stateB);
@@ -339,9 +340,6 @@ public class SetOpsCornerCasesTest {
     csk = PairwiseSetOperations.union(skHeap1, skHeap2, k);
     Assert.assertEquals(csk.getRetainedEntries(true), k);
   }
-
-
-
 
   @Test
   public void printlnTest() {

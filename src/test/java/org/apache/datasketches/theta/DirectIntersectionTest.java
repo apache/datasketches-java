@@ -186,6 +186,23 @@ public class DirectIntersectionTest {
   }
 
   @Test
+  public void checkIntersectionNull() {
+    int lgK = 9;
+    int k = 1<<lgK;
+    int memBytes = getMaxIntersectionBytes(k);
+    byte[] memArr = new byte[memBytes];
+    WritableMemory iMem = WritableMemory.wrap(memArr);
+    Intersection inter = SetOperation.builder().buildIntersection(iMem);
+    UpdateSketch sk = null;
+    try { inter.update(sk); fail(); }
+    catch (SketchesArgumentException e) { }
+
+    try { inter.intersect(sk, sk); fail(); }
+    catch (SketchesArgumentException e) { }
+  }
+
+
+  @Test
   public void check1stCall() {
     int lgK = 9;
     int k = 1<<lgK;
@@ -197,14 +214,6 @@ public class DirectIntersectionTest {
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
     WritableMemory iMem = WritableMemory.wrap(memArr);
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection(iMem);
-    inter.update(null);
-    rsk1 = inter.getResult(false, null);
-    est = rsk1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est); // = 0
 
     //1st call = empty
     sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
@@ -227,53 +236,6 @@ public class DirectIntersectionTest {
   }
 
   @Test
-  public void check2ndCallAfterNull() {
-    int lgK = 9;
-    int k = 1<<lgK;
-    Intersection inter;
-    UpdateSketch sk;
-    CompactSketch comp1;
-    double est;
-
-    int memBytes = getMaxIntersectionBytes(k);
-    byte[] memArr = new byte[memBytes];
-    WritableMemory iMem = WritableMemory.wrap(memArr);
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection(iMem);
-    inter.update(null);
-    //2nd call = null
-    inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection(iMem);
-    inter.update(null);
-    //2nd call = empty
-    sk = UpdateSketch.builder().build(); //empty
-    inter.update(sk);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection(iMem);
-    inter.update(null);
-    //2nd call = valid & not empty
-    sk = UpdateSketch.builder().build();
-    sk.update(1);
-    inter.update(sk);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
-  }
-
-  @Test
   public void check2ndCallAfterEmpty() {
     int lgK = 9;
     int k = 1<<lgK;
@@ -285,17 +247,6 @@ public class DirectIntersectionTest {
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
     WritableMemory iMem = WritableMemory.wrap(memArr);
-
-    //1st call = empty
-    sk1 = UpdateSketch.builder().build(); //empty
-    inter = SetOperation.builder().buildIntersection(iMem);
-    inter.update(sk1);
-    //2nd call = null
-    inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
 
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
@@ -335,18 +286,6 @@ public class DirectIntersectionTest {
     int memBytes = getMaxIntersectionBytes(k);
     byte[] memArr = new byte[memBytes];
     WritableMemory iMem = WritableMemory.wrap(memArr);
-
-    //1st call = valid
-    sk1 = UpdateSketch.builder().build();
-    sk1.update(1);
-    inter = SetOperation.builder().buildIntersection(iMem);
-    inter.update(sk1);
-    //2nd call = null
-    inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
@@ -502,29 +441,56 @@ public class DirectIntersectionTest {
     println("Est2: "+est2);
   }
 
+  /**
+   * This proves that the hash of 7 is < 0.5. This fact will be used in other tests involving P.
+   */
   @Test
-  public void checkWrapNullEmpty() {
+  public void checkPreject() {
+    UpdateSketch sk = UpdateSketch.builder().setP((float) .5).build();
+    sk.update(7);
+    assertEquals(sk.getRetainedEntries(), 0);
+  }
+
+  @Test
+  public void checkWrapVirginEmpty() {
     int lgK = 5;
     int k = 1<<lgK;
     Intersection inter1, inter2;
+    UpdateSketch sk1;
 
     int memBytes = getMaxIntersectionBytes(k);
-    byte[] memArr = new byte[memBytes];
-    WritableMemory iMem = WritableMemory.wrap(memArr);
+    WritableMemory iMem = WritableMemory.wrap(new byte[memBytes]);
 
-    inter1 = SetOperation.builder().buildIntersection(iMem); //virgin
-    inter2 = Sketches.wrapIntersection(iMem);
+    inter1 = SetOperation.builder().buildIntersection(iMem); //virgin off-heap
+    inter2 = Sketches.wrapIntersection(iMem); //virgin off-heap, identical to inter1
     //both in virgin state, empty = false
+    //note: both inter1 and inter2 are tied to the same memory,
+    // so an update to one also updates the other.  Don't do what I do!
     assertFalse(inter1.hasResult());
     assertFalse(inter2.hasResult());
 
-    inter1.update(null);  //A virgin intersection intersected with null => empty = true;
-    inter2 = Sketches.wrapIntersection(iMem);
+    //This constructs a sketch with 0 entries and theta < 1.0
+    sk1 = UpdateSketch.builder().setP((float) .5).setNominalEntries(k).build();
+    sk1.update(7); //will be rejected by P, see proof above.
+
+    //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
+    //remains empty = false!
+    inter1.update(sk1);
+    assertFalse(inter1.isEmpty());
     assertTrue(inter1.hasResult());
+    //note that inter2 is not independent
+    assertFalse(inter2.isEmpty());
     assertTrue(inter2.hasResult());
+
+    //test the path via toByteArray, wrap, now in a different state
+    iMem = WritableMemory.wrap(inter1.toByteArray());
+    inter2 = Sketches.wrapIntersection(iMem);
+    assertTrue(inter2.hasResult()); //still true
+
+    //test the compaction path
     CompactSketch comp = inter2.getResult(true, null);
     assertEquals(comp.getRetainedEntries(false), 0);
-    assertTrue(comp.isEmpty());
+    assertFalse(comp.isEmpty());
   }
 
   @Test

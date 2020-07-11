@@ -260,13 +260,13 @@ public class CompactSketchTest {
     csk2o = csku.compact(true, null); //single, heap, ordered
     state.check(csk2o);
 
-    csk2o = csku.compact(false, null); //single, heap, ordered
+    csk2o = csku.compact(false, null); //single, heap, unordered
     state.check(csk2o);
 
     csk2o = csko.compact(true, null); //single, heap, ordered
     state.check(csk2o);
 
-    csk2o = csko.compact(false, null); //single, heap, ordered
+    csk2o = csko.compact(false, null); //single, heap, unordered
     state.check(csk2o);
 
     wmem = WritableMemory.allocate(16);
@@ -329,7 +329,6 @@ public class CompactSketchTest {
     sk.update(1);
     sk.update(2);
     CompactSketch csk = sk.compact();
-    CompactSketch csk2 = csk.compact();
     assertTrue(csk.isOrdered());
     assertEquals(csk.getCurrentPreambleLongs(), 2);
   }

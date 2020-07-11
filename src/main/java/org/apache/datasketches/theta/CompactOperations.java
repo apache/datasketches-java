@@ -66,7 +66,7 @@ final class CompactOperations {
       final boolean srcOrdered,
       final boolean dstOrdered,
       final WritableMemory dstMem,
-      final long[] hashArr) //may not be compacted, ordered or unordered
+      final long[] hashArr) //may not be compacted, ordered or unordered, may be null
   {
     final boolean direct = dstMem != null;
     final boolean empty = srcEmpty || ((curCount == 0) && (thetaLong == Long.MAX_VALUE));

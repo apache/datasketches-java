@@ -247,7 +247,7 @@ public class HeapAlphaSketchTest {
     double comp1ub  = comp1.getUpperBound(2);
     int comp1bytes = comp1.getCompactBytes();
     assertEquals(comp1bytes, comp1.getCurrentBytes());
-    int comp1curCount = comp1.getRetainedEntries(true); //flag is not relevant
+    int comp1curCount = comp1.getRetainedEntries(true);
     assertEquals(comp1bytes, (comp1curCount << 3) + (Family.COMPACT.getMaxPreLongs() << 3));
 
     assertEquals(comp1.isEmpty(), false);
@@ -261,8 +261,8 @@ public class HeapAlphaSketchTest {
     assertEquals(comp2.getUpperBound(2), comp1ub);
     assertEquals(comp2.isEmpty(), false);
     assertEquals(comp2.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp2.getCompactBytes()); //flag is not relevant
-    assertEquals(comp1curCount, comp2.getRetainedEntries(true)); //flag is not relevant
+    assertEquals(comp1bytes, comp2.getCompactBytes());
+    assertEquals(comp1curCount, comp2.getRetainedEntries(true));
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
     int bytes = usk.getCompactBytes();
@@ -278,8 +278,8 @@ public class HeapAlphaSketchTest {
     assertEquals(comp3.getUpperBound(2), comp1ub);
     assertEquals(comp3.isEmpty(), false);
     assertEquals(comp3.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp3.getCompactBytes()); //flag is not relevant
-    assertEquals(comp1curCount, comp3.getRetainedEntries(true)); //flag is not relevant
+    assertEquals(comp1bytes, comp3.getCompactBytes());
+    assertEquals(comp1curCount, comp3.getRetainedEntries(true));
     assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
 
     mem2.clear();
@@ -290,8 +290,8 @@ public class HeapAlphaSketchTest {
     assertEquals(comp4.getUpperBound(2), comp1ub);
     assertEquals(comp4.isEmpty(), false);
     assertEquals(comp4.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp4.getCompactBytes()); //flag is not relevant
-    assertEquals(comp1curCount, comp4.getRetainedEntries(true)); //flag is not relevant
+    assertEquals(comp1bytes, comp4.getCompactBytes());
+    assertEquals(comp1curCount, comp4.getRetainedEntries(true));
     assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");
   }
 

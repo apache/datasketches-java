@@ -23,7 +23,7 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * The API for the set difference operation <i>A and not B</i> operations.
+ * Computes a set difference, A-AND-NOT-B, of two theta sketches.
  * This class includes both stateful and stateless operations.
  *
  * <p>The stateful operation is as follows:</p>
@@ -62,33 +62,59 @@ public abstract class AnotB extends SetOperation {
   }
 
   /**
-   * This is a stateful input operation. This method sets the given Sketch as the first
-   * argument <i>A</i> of a stateful <i>AnotB</i> operation. This overwrites the internal state of
-   * this AnotB operator with the contents of the given sketch. This sets the stage for multiple
-   * stateful subsequent {@link #notB(Sketch)} operations. The ultimate result is obtained using
-   * the {@link #getResult(boolean)} or {@link #getResult(boolean, WritableMemory, boolean)}.
+   * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
+   * first argument <i>A</i> of <i>A-AND-NOT-B</i>. This overwrites the internal state of this
+   * AnotB operator with the contents of the given sketch.
+   * This sets the stage for multiple following <i>notB</i> steps.
    *
    * <p>An input argument of null will throw an exception.</p>
+   *
+   * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * In most cases it is a programming error due to some object that was not properly initialized.
+   * With a null as the first argument, we cannot know what the user's intent is.
+   * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
+   *
+   * <p>An enpty input argument will set the internal state to empty.</p>
+   *
+   * <p>Rationale: An empty set is a mathematically legal concept. Although it makes any subsequent,
+   * valid argument for B irrelvant, we must allow this and assume the user knows what they are
+   * doing.</p>
+   *
+   * <p>Performing {@link #getResult(boolean)} just after this step will return a compact form of
+   * the given argument.</p>
    *
    * @param skA The incoming sketch for the first argument, <i>A</i>.
    */
   public abstract void setA(Sketch skA);
 
   /**
-   * Performs a stateful <i>AND NOT</i> operation with the existing internal state of this AnotB
-   * operator. Use {@link #getResult(boolean)} or {@link #getResult(boolean, WritableMemory, boolean)}
-   * to obtain the result.
+   * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
+   * second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.
+   * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
-   * @param skB The incoming sketch for the second (or following) argument <i>B</i>.
+   * <p>Rationale: A <i>null</i> for the second or following arguments is more tollerable because
+   * <i>A NOT null</i> is still <i>A</i> even if we don't know exactly what the null represents. It
+   * clearly does not have any content that overlaps with <i>A</i>. Also, because this can be part of
+   * a multistep operation with multiple <i>notB</i> steps. Other following steps can still produce
+   * a valid result.</p>
+   *
+   * <p>Use {@link #getResult(boolean)} to obtain the result.</p>
+   *
+   * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
   public abstract void notB(Sketch skB);
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
-   * @param reset If true, clears this operator to the empty state after result is returned.
-   * @return the result of this operation as an ordered CompactSketch.
+   * Gets the result of the mutistep, stateful operation AnotB that have been executed with calls
+   * to {@link #setA(Sketch)} and ({@link #notB(Sketch)} or
+   * {@link #notB(org.apache.datasketches.theta.Sketch)}).
+   *
+   * @param reset If <i>true</i>, clears this operator to the empty state after this result is
+   * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
+   * @return the result of this operation as an ordered, on-heap {@link CompactSketch}.
    */
   public abstract CompactSketch getResult(boolean reset);
 
@@ -97,15 +123,16 @@ public abstract class AnotB extends SetOperation {
    * the input arguments.
    * The stateful input operations are {@link #setA(Sketch)} and {@link #notB(Sketch)}.
    *
-   * @param dstOrdered
+   * @param dstOrdered If <i>true</i>, the result will be an ordered {@link CompactSketch}.
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    *
-   * @param dstMem
+   * @param dstMem if not <i>null</i> the given Memory will be the target location of the result.
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    *
-   * @param reset If true, clears this operator to the empty state after result is returned.
+   * @param reset If <i>true</i>, clears this operator to the empty state after this result is
+   * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    *
-   * @return the result of this set operation as a CompactSketch of the chosen form
+   * @return the result of this operation as a {@link CompactSketch} of the chosen form.
    */
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem, boolean reset);
 
@@ -118,8 +145,18 @@ public abstract class AnotB extends SetOperation {
    * {@link #notB(Sketch)}, {@link #getResult(boolean)}, or
    * {@link #getResult(boolean, WritableMemory, boolean)} methods.</p>
    *
-   * @param skA The incoming sketch for the first argument. It must not be null.
-   * @param skB The incoming sketch for the second argument. A null is equivalent to Empty.
+   * <p>If either argument is null an exception is thrown.</p>
+   *
+   * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * In most cases it is a programming error due to some object that was not properly initialized.
+   * With a null as the first argument, we cannot know what the user's intent is.
+   * With a null as the second argument, we can't ignore it as we must return a result and there is
+   * no following possible viable arguments for the second argument.
+   * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
+   *
+   * @param skA The incoming sketch for the first argument.
+   * @param skB The incoming sketch for the second argument.
    * @return an ordered CompactSketch on the heap
    */
   public CompactSketch aNotB(final Sketch skA, final Sketch skB) {
@@ -131,11 +168,22 @@ public abstract class AnotB extends SetOperation {
    * CompactSketch.
    *
    * <p>This a stateless operation and has no impact on the internal state of this operator.
-   * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)}
-   * or {@link #notB(Sketch)} methods.</p>
+   * Thus, this is not an accumulating update and does not interact with the {@link #setA(Sketch)},
+   * {@link #notB(Sketch)}, {@link #getResult(boolean)}, or
+   * {@link #getResult(boolean, WritableMemory, boolean)} methods.</p>
    *
-   * @param skA The incoming sketch for the first argument. It must not be null.
-   * @param skB The incoming sketch for the second argument. A null is equivalent to Empty.
+   * <p>If either argument is null an exception is thrown.</p>
+   *
+   * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * In most cases it is a programming error due to some object that was not properly initialized.
+   * With a null as the first argument, we cannot know what the user's intent is.
+   * With a null as the second argument, we can't ignore it as we must return a result and there is
+   * no following possible viable arguments for the second argument.
+   * Since it is very likely that a <i>null</i> is a programming error, we throw an exception.</p>
+   *
+   * @param skA The incoming sketch for the first argument.
+   * @param skB The incoming sketch for the second argument.
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    * @param dstMem

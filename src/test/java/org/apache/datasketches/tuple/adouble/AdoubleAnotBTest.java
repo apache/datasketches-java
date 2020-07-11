@@ -41,7 +41,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class AdoubleAnotBTest {
-  private final DoubleSummary.Mode mode = Mode.Sum;
+  private static final DoubleSummary.Mode mode = Mode.Sum;
   private final Results results = new Results();
 
   @SuppressWarnings("deprecation")
@@ -50,15 +50,22 @@ public class AdoubleAnotBTest {
       final Sketch<DoubleSummary> skA,
       final Sketch<DoubleSummary> skB,
       final org.apache.datasketches.theta.Sketch skThetaB,
-      final Results results) {
-    //Deprecated, no Theta
+      final Results results)
+  {
+    CompactSketch<DoubleSummary> result;
+
+    //Deprecated, Stateless, A = Tuple, B = Tuple
+    //Old behavior is tolerant of nulls
     aNotB.update(skA, skB);
-    CompactSketch<DoubleSummary> result = aNotB.getResult();
+    result = aNotB.getResult();
     results.check(result);
 
     //Stateless A = Tuple, B = Tuple
     if ((skA == null) || (skB == null)) {
-      try { result = AnotB.aNotB(skA, skB); fail(); }
+      try {
+        result = AnotB.aNotB(skA, skB);
+        fail();
+      }
       catch (final SketchesArgumentException e) { }
     } else {
       result = AnotB.aNotB(skA, skB);
@@ -74,7 +81,7 @@ public class AdoubleAnotBTest {
       results.check(result);
     }
 
-    //Stateful w B = Tuple
+    //Stateful A = Tuple, B = Tuple
     if (skA == null) {
       try { aNotB.setA(skA); fail(); }
       catch (final SketchesArgumentException e) { }
@@ -85,7 +92,7 @@ public class AdoubleAnotBTest {
       results.check(result);
     }
 
-    //Stateful w B = Theta
+    //Stateful A = Tuple, B = Theta
     if (skA == null) {
       try { aNotB.setA(skA); fail(); }
       catch (final SketchesArgumentException e) { }
@@ -109,11 +116,11 @@ public class AdoubleAnotBTest {
     Results() {}
 
     Results set(final int retEnt, final boolean empty,
-        final double expect, final double toll, final double sum) {
-      this.retEnt = retEnt;
+        final double expect, final double tol, final double sum) {
+      this.retEnt = retEnt; //retained Entries
       this.empty = empty;
-      this.expect = expect;
-      tol = toll;
+      this.expect = expect; //expected estimate
+      this.tol = tol;       //tolerance
       this.sum = sum;
       return this;
     }
@@ -136,9 +143,9 @@ public class AdoubleAnotBTest {
         Assert.assertEquals(it.getSummary().getValue(), sum);
       }
     }
-  }
+  } //End class Results
 
-  private UpdatableSketch<Double, DoubleSummary> buildUpdatableTuple() {
+  private static UpdatableSketch<Double, DoubleSummary> buildUpdatableTuple() {
     return new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode)).build();
   }
 

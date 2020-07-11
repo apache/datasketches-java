@@ -20,7 +20,9 @@
 package org.apache.datasketches.theta;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 @SuppressWarnings({"javadoc","deprecation"})
@@ -150,9 +152,9 @@ public class PairwiseSetOperationsTest {
 
   @Test
   public void checkAnotBEarlyStop() {
-    int lgK = 10; //6
+    int lgK = 10;
     int k = 1<<lgK;
-    int u = 4*k; //1K + 57 fails
+    int u = 4*k;
     long v = 0;
     int trials = 10;
 
@@ -171,7 +173,7 @@ public class PairwiseSetOperationsTest {
       CompactSketch csk2 = usk2.compact(true, null);
 
       Sketch rsk = PairwiseSetOperations.aNotB(csk1, csk2);
-      double result1 = rsk.getEstimate(); //null ptr
+      double result1 = rsk.getEstimate();
 
       aNotB.update(csk1, csk2);
       CompactSketch csk3 = aNotB.getResult(true, null);
@@ -181,7 +183,6 @@ public class PairwiseSetOperationsTest {
 
       usk1.reset();
       usk2.reset();
-      //aNotB is stateless, so no reset()
     }
   }
 
@@ -237,7 +238,7 @@ public class PairwiseSetOperationsTest {
  public void checkUnionEarlyStop() {
    int lgK = 10;
    int k = 1<<lgK;
-   int u = 4*k; //4096 + 2048 = 6144
+   int u = 4*k;
    long v = 0;
    int trials = 10;
 
@@ -306,7 +307,45 @@ public class PairwiseSetOperationsTest {
  }
 
  @Test
- public void checkEmptyNullRules() {
+ public void checkNullRules() {
+   int k = 16;
+   UpdateSketch uskA = UpdateSketch.builder().setNominalEntries(k).build();
+   CompactSketch cskAempty = uskA.compact();
+   CompactSketch cskAnull = null;
+
+   AnotB aNotB = SetOperation.builder().buildANotB();
+   Intersection inter = SetOperation.builder().buildIntersection();
+
+   try {
+     checkIntersection(inter, cskAnull, cskAempty);
+     fail();
+   } catch (SketchesArgumentException e) { }
+   try {
+     checkIntersection(inter, cskAempty, cskAnull);
+     fail();
+   } catch (SketchesArgumentException e) { }
+   try {
+     checkIntersection(inter, cskAnull, cskAnull);
+     fail();
+   } catch (SketchesArgumentException e) { }
+
+   try {
+     checkAnotB(aNotB, cskAnull, cskAempty);
+     fail();
+   } catch (SketchesArgumentException e) { }
+   try {
+     checkAnotB(aNotB, cskAempty, cskAnull);
+     fail();
+   } catch (SketchesArgumentException e) { }
+   try {
+     checkAnotB(aNotB, cskAnull, cskAnull);
+     fail();
+   } catch (SketchesArgumentException e) { }
+
+ }
+
+ @Test
+ public void checkEmptyValidRules() {
    int k = 16;
    UpdateSketch uskA = UpdateSketch.builder().setNominalEntries(k).build();
    UpdateSketch uskB = UpdateSketch.builder().setNominalEntries(k).build();
@@ -321,9 +360,6 @@ public class PairwiseSetOperationsTest {
    AnotB aNotB = SetOperation.builder().buildANotB();
    Intersection inter = SetOperation.builder().buildIntersection();
 
-   checkSetOps(union, inter, aNotB, k, cskAnull, cskBnull);   //Null, Null
-   checkSetOps(union, inter, aNotB, k, cskAnull, cskBempty);  //Null, Empty
-   checkSetOps(union, inter, aNotB, k, cskAempty, cskBnull);  //Empty, Null
    checkSetOps(union, inter, aNotB, k, cskAempty, cskBempty); //Empty, Empty
    checkSetOps(union, inter, aNotB, k, cskA1, cskBempty);     //NotEmpty, Empty
    checkSetOps(union, inter, aNotB, k, cskAempty, cskA1);     //Empty, NotEmpty
@@ -334,7 +370,6 @@ public class PairwiseSetOperationsTest {
    checkUnion(union, cskA, cskB, k);
    checkIntersection(inter, cskA, cskB);
    checkAnotB(aNotB, cskA, cskB);
-
  }
 
  private static void checkUnion(Union union, CompactSketch cskA, CompactSketch cskB, int k) {

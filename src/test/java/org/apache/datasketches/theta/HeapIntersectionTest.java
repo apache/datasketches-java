@@ -26,6 +26,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -137,7 +138,7 @@ public class HeapIntersectionTest {
     }
     for (int i=u/2; i<(u + (u/2)); i++)
      {
-      usk2.update(i); //inter 512
+      usk2.update(i);
     }
 
     CompactSketch csk1 = usk1.compact(true, null);
@@ -163,6 +164,17 @@ public class HeapIntersectionTest {
   }
 
   @Test
+  public void checkIntersectionNull() {
+    Intersection inter = SetOperation.builder().buildIntersection();
+    UpdateSketch sk = null;
+    try { inter.update(sk); fail(); }
+    catch (SketchesArgumentException e) { }
+
+    try { inter.intersect(sk, sk); fail(); }
+    catch (SketchesArgumentException e) { }
+  }
+
+  @Test
   public void check1stCall() {
     int lgK = 9;
     int k = 1<<lgK;
@@ -170,14 +182,6 @@ public class HeapIntersectionTest {
     UpdateSketch sk;
     CompactSketch rsk1;
     double est;
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(null);
-    rsk1 = inter.getResult(false, null);
-    est = rsk1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est); // = 0
 
     //1st call = empty
     sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
@@ -200,63 +204,11 @@ public class HeapIntersectionTest {
   }
 
   @Test
-  public void check2ndCallAfterNull() {
-    Intersection inter;
-    UpdateSketch sk;
-    CompactSketch comp1;
-    double est;
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(null);
-    //2nd call = null
-    inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(null);
-    //2nd call = empty
-    sk = UpdateSketch.builder().build(); //empty
-    inter.update(sk);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
-
-    //1st call = null
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(null);
-    //2nd call = valid & not empty
-    sk = UpdateSketch.builder().build();
-    sk.update(1);
-    inter.update(sk);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
-  }
-
-  @Test
   public void check2ndCallAfterEmpty() {
     Intersection inter;
     UpdateSketch sk1, sk2;
     CompactSketch comp1;
     double est;
-
-    //1st call = empty
-    sk1 = UpdateSketch.builder().build(); //empty
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
-    //2nd call = null
-    inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
 
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
@@ -290,18 +242,6 @@ public class HeapIntersectionTest {
     UpdateSketch sk1, sk2;
     CompactSketch comp1;
     double est;
-
-    //1st call = valid
-    sk1 = UpdateSketch.builder().build();
-    sk1.update(1);
-    inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
-    //2nd call = null
-    inter.update(null);
-    comp1 = inter.getResult(false, null);
-    est = comp1.getEstimate();
-    assertEquals(est, 0.0, 0.0);
-    println("Est: "+est);
 
     //1st call = valid
     sk1 = UpdateSketch.builder().build();
@@ -435,48 +375,49 @@ public class HeapIntersectionTest {
     inter3.reset();
   }
 
+
+  /**
+   * This proves that the hash of 7 is < 0.5. This fact will be used in other tests involving P.
+   */
   @Test
-  public void checkHeapifyNullEmpty() {
-    Intersection inter1, inter2;
-
-    inter1 = SetOperation.builder().buildIntersection(); //virgin
-    byte[] byteArray = inter1.toByteArray();
-    Memory srcMem = Memory.wrap(byteArray);
-    inter2 = (Intersection) SetOperation.heapify(srcMem);
-    //inter2 is in virgin state, empty = false
-
-    inter1.update(null);  //A virgin intersection intersected with null => empty = true;
-    byteArray = inter1.toByteArray(); //update the byteArray
-
-    srcMem = Memory.wrap(byteArray);
-    inter2 = (Intersection) SetOperation.heapify(srcMem);
-    CompactSketch comp = inter2.getResult(true, null);
-    assertEquals(comp.getRetainedEntries(false), 0);
-    assertTrue(comp.isEmpty());
+  public void checkPreject() {
+    UpdateSketch sk = UpdateSketch.builder().setP((float) .5).build();
+    sk.update(7);
+    assertEquals(sk.getRetainedEntries(), 0);
   }
 
   @Test
-  public void checkHeapifyNullEmpty2() {
+  public void checkHeapifyVirginEmpty() {
     int lgK = 5;
     int k = 1<<lgK;
     Intersection inter1, inter2;
     UpdateSketch sk1;
 
-    inter1 = SetOperation.builder().buildIntersection(); //virgin
-    byte[] byteArray = inter1.toByteArray();
-    Memory srcMem = Memory.wrap(byteArray);
-    inter2 = (Intersection) SetOperation.heapify(srcMem);
-    //inter2 is in virgin state
+    inter1 = SetOperation.builder().buildIntersection(); //virgin heap
+    Memory srcMem = Memory.wrap(inter1.toByteArray());
+    inter2 = (Intersection) SetOperation.heapify(srcMem); //virgin heap, independent of inter1
+    assertFalse(inter1.hasResult());
+    assertFalse(inter2.hasResult());
 
-    sk1 = UpdateSketch.builder().setP((float) .005).setFamily(Family.QUICKSELECT).setNominalEntries(k).build();
-    sk1.update(1);
+    //This constructs a sketch with 0 entries and theta < 1.0
+    sk1 = UpdateSketch.builder().setP((float) .5).setNominalEntries(k).build();
+    sk1.update(7); //will be rejected by P, see proof above.
+
     //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
-    //remains empty = false!
-
+    //remains empty = false!, but has a result.
     inter1.update(sk1);
-    byteArray = inter1.toByteArray();
-    srcMem = Memory.wrap(byteArray);
-    inter2 = (Intersection) SetOperation.heapify(srcMem);
+    assertFalse(inter1.isEmpty());
+    assertTrue(inter1.hasResult());
+    //note that inter2 is independent
+    assertFalse(inter2.hasResult());
+
+    //test the path via toByteArray, heapify, now in a different state
+    srcMem = Memory.wrap(inter1.toByteArray());
+    inter2 = (Intersection) SetOperation.heapify(srcMem); //inter2 identical to inter1
+    assertFalse(inter2.isEmpty());
+    assertTrue(inter2.hasResult());
+
+    //test the compaction path
     CompactSketch comp = inter2.getResult(true, null);
     assertEquals(comp.getRetainedEntries(false), 0);
     assertFalse(comp.isEmpty());
@@ -508,6 +449,7 @@ public class HeapIntersectionTest {
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
     byte[] byteArray = union.toByteArray();
     Memory mem = Memory.wrap(byteArray);
+    @SuppressWarnings("unused")
     Intersection inter1 = (Intersection) SetOperation.heapify(mem); //bad cast
     //println(inter1.toString());
   }

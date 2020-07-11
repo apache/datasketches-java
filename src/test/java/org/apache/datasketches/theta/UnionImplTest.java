@@ -55,15 +55,22 @@ public class UnionImplTest {
   }
 
   @Test
-  public void checkUnorderedMemoryWithOrderedCompactFlag() {
+  public void checkUnorderedAndOrderedMemory() {
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { sketch.update(i); }
-    CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
-    sketch.compact(false, mem); //change the order bit
+    CompactSketch sketchInDirectOrd = sketch.compact(false, mem);
+    assertFalse(sketchInDirectOrd.isOrdered());
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(sketchInDirectOrd);
+    final double est1 = union.getResult().getEstimate();
+    sketch.compact(true, mem); //change the order as a side effect
+    assertTrue(sketchInDirectOrd.isOrdered());
+    union.update(sketchInDirectOrd);
+    final double est2 = union.getResult().getEstimate();
+    assertEquals(est1, est2);
+    assertEquals((int)est1, k);
   }
 
   @Test
