@@ -53,7 +53,8 @@ final class EmptyCompactSketch extends CompactSketch {
     }
     final long maskedPre0 = pre0 & EMPTY_SKETCH_MASK;
     throw new SketchesArgumentException("Input Memory does not match required Preamble. "
-        + "Memory Pre0: " + maskedPre0 + ", required Pre0: " +  EMPTY_SKETCH_MASK);
+        + "Memory Pre0: " + Long.toHexString(maskedPre0)
+        + ", required Pre0: " + Long.toHexString(EMPTY_SKETCH_MASK));
   }
 
   @Override
