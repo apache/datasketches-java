@@ -33,7 +33,7 @@ final class EmptyCompactSketch extends CompactSketch {
   //For backward compatibility, a candidate long must have Flags= compact, read-only,
   //  COMPACT-Family=3, SerVer=3, PreLongs=1, and be exactly 8 bytes long. The seedHash is ignored.
   // NOTE: The empty and ordered flags may or may not be set
-  private static final long EMPTY_SKETCH_MASK = 0X00_00_EB_FF_FF_FF_FF_FFL;
+  private static final long EMPTY_SKETCH_MASK = 0X00_00_EB_00_00_FF_FF_FFL;
   private static final long EMPTY_SKETCH_TEST = 0X00_00_0A_00_00_03_03_01L;
   //When returning a byte array the empty and ordered bits are also set
   static final byte[] EMPTY_COMPACT_SKETCH_ARR = { 1, 3, 3, 0, 0, 0x1E, 0, 0 };
@@ -54,7 +54,7 @@ final class EmptyCompactSketch extends CompactSketch {
     final long maskedPre0 = pre0 & EMPTY_SKETCH_MASK;
     throw new SketchesArgumentException("Input Memory does not match required Preamble. "
         + "Memory Pre0: " + Long.toHexString(maskedPre0)
-        + ", required Pre0: " + Long.toHexString(EMPTY_SKETCH_MASK));
+        + ", required Pre0: " + Long.toHexString(EMPTY_SKETCH_TEST));
   }
 
   @Override
