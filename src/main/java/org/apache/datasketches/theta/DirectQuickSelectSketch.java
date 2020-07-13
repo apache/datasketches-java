@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.computeSeedHash;
-import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -32,7 +31,6 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.getMemBytes;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
@@ -178,10 +176,8 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     UpdateSketch.checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
     checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
-    if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
+    if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
+      //If incorrect it sets it to X2 which always works.
       insertLgResizeFactor(srcMem, ResizeFactor.X2.lg());
     }
 

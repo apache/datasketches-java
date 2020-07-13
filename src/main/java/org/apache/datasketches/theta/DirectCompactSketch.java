@@ -72,11 +72,6 @@ class DirectCompactSketch extends CompactSketch {
   //Sketch
 
   @Override
-  public CompactSketch compact() {
-    return compact(true, null);
-  }
-
-  @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     return memoryToCompact(mem_, dstOrdered, dstMem);
   }

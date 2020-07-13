@@ -188,6 +188,7 @@ public abstract class ArrayOfDoublesUnion {
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     mem.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
+    //byte 4-7 automatically zero
     mem.putLong(THETA_LONG, theta_);
     sketch_.serializeInto(mem.writableRegion(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES));
     return byteArray;

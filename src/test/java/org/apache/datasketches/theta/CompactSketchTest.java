@@ -333,6 +333,55 @@ public class CompactSketchTest {
     assertEquals(csk.getCurrentPreambleLongs(), 2);
   }
 
+  @Test
+  public void checkDirectCompactSketchCompact() {
+    WritableMemory wmem1, wmem2;
+    CompactSketch csk1, csk2;
+    int bytes;
+    int lgK = 6;
+
+    //empty
+    UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
+    bytes = sk.getCompactBytes();
+    wmem1 = WritableMemory.allocate(bytes);
+    wmem2 = WritableMemory.allocate(bytes);
+    csk1 = sk.compact(true, wmem1); //place into memory
+    assertTrue(csk1 instanceof DirectCompactSketch);
+    csk2 = csk1.compact(true, wmem2);
+    assertTrue(csk2 instanceof DirectCompactSketch);
+
+    //single
+    sk.update(1);
+    bytes = sk.getCompactBytes();
+    wmem1 = WritableMemory.allocate(bytes);
+    wmem2 = WritableMemory.allocate(bytes);
+    csk1 = sk.compact(true, wmem1); //place into memory
+    assertTrue(csk1 instanceof DirectCompactSketch);
+    csk2 = csk1.compact(true, wmem2);
+    assertTrue(csk2 instanceof DirectCompactSketch);
+
+    //exact
+    sk.update(2);
+    bytes = sk.getCompactBytes();
+    wmem1 = WritableMemory.allocate(bytes);
+    wmem2 = WritableMemory.allocate(bytes);
+    csk1 = sk.compact(true, wmem1); //place into memory
+    assertTrue(csk1 instanceof DirectCompactSketch);
+    csk2 = csk1.compact(true, wmem2);
+    assertTrue(csk2 instanceof DirectCompactSketch);
+
+    //estimating
+//    int n = 1 << (lgK + 1);
+//    for (int i = 2; i < n; i++) { sk.update(i); }
+//    bytes = sk.getCompactBytes();
+//    wmem1 = WritableMemory.allocate(bytes);
+//    wmem2 = WritableMemory.allocate(bytes);
+//    csk1 = sk.compact(true, wmem1); //place into memory
+//    assertTrue(csk1 instanceof DirectCompactSketch);
+//    csk2 = csk1.compact(true, wmem2);
+//    assertTrue(csk2 instanceof DirectCompactSketch);
+  }
+
   private static class State {
     String classType = null;
     int count = 0;

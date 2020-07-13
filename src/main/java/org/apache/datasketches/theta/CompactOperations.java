@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
@@ -80,7 +81,7 @@ final class CompactOperations {
     if (!srcOrdered && dstOrdered && !empty && !single) {
       Arrays.sort(hashArrOut);
     }
-    //Note: for empty and single we always output the ordered form.
+    //Note: for empty or single we always output the ordered form.
     final boolean dstOrderedOut = (empty || single) ? true : dstOrdered;
     if (direct) {
       final int preLongs = computeCompactPreLongs(empty, curCount, thetaLong);
@@ -173,17 +174,20 @@ final class CompactOperations {
     if (srcCompactFlag) {
       hashArr = new long[curCount];
       srcMem.getLongArray(srcPreLongs << 3, hashArr, 0, curCount);
-    } else { //estimating, thus hashTable form
+    } else { //update sketch, thus hashTable form
       final int srcCacheLen = 1 << srcLgArrLongs;
       final long[] tempHashArr = new long[srcCacheLen];
       srcMem.getLongArray(srcPreLongs << 3, tempHashArr, 0, srcCacheLen);
       hashArr = compactCache(tempHashArr, curCount, thetaLong, dstOrderedOut);
     }
 
+    final int flagsOut = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK
+                         | ((dstOrderedOut) ? ORDERED_FLAG_MASK : 0);
+
     //load the destination.
     if (dstMem != null) {
       final Memory tgtMem = loadCompactMemory(hashArr, srcSeedHash, curCount, thetaLong, dstMem,
-          (byte)srcFlags, srcPreLongs);
+          (byte)flagsOut, srcPreLongs);
       return new DirectCompactSketch(tgtMem);
     } else { //heap
       return new HeapCompactSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong, dstOrderedOut);
@@ -229,10 +233,20 @@ final class CompactOperations {
     }
     final byte famID = (byte) Family.COMPACT.getID();
 
+    //Caution: The following loads directly into Memory without creating a heap byte[] first,
+    // which would act as a pre-clearing, initialization mechanism. So it is important to make sure
+    // that all fields are initialized, even those that are not used by the CompactSketch.
+    // Otherwise, uninitialized fields could be filled with off-heap garbage, which could cause
+    // other problems downstream if those fields are not filtered out first.
+    // As written below, all fields are initialized avoiding an extra copy.
+
+    //The first 8 bytes (pre0)
     insertPreLongs(dstMem, preLongs); //RF not used = 0
     insertSerVer(dstMem, SER_VER);
     insertFamilyID(dstMem, famID);
-    //ignore lgNomLongs, lgArrLongs bytes for compact sketches
+    //The following initializes the lgNomLongs and lgArrLongs to 0.
+    //They are not used in CompactSketches.
+    dstMem.putShort(LG_NOM_LONGS_BYTE, (short)0);
     insertFlags(dstMem, flags);
     insertSeedHash(dstMem, seedHash);
 
@@ -250,7 +264,7 @@ final class CompactOperations {
     if (curCount > 0) { //theta could be < 1.0.
       dstMem.putLongArray(preLongs << 3, compactHashArr, 0, curCount);
     }
-    return dstMem; //curCount == 0, theta could be < 1.0
+    return dstMem; //if prelongs == 3 & curCount == 0, theta could be < 1.0.
   }
 
   /**

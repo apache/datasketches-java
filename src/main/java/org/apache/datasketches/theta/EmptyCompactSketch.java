@@ -46,7 +46,7 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   //This should be a heapify
-  static EmptyCompactSketch getInstance(final Memory srcMem) {
+  static EmptyCompactSketch getHeapInstance(final Memory srcMem) {
     final long pre0 = srcMem.getLong(0);
     if (testCandidatePre0(pre0)) {
       return EMPTY_COMPACT_SKETCH;
@@ -61,16 +61,8 @@ final class EmptyCompactSketch extends CompactSketch {
   // This returns with ordered flag = true independent of dstOrdered.
   // This is required for fast detection.
   // The hashSeed is ignored and set == 0.
-  public CompactSketch compact() {
-    return EmptyCompactSketch.getInstance();
-  }
-
-  @Override
-  // This returns with ordered flag = true independent of dstOrdered.
-  // This is required for fast detection.
-  // The hashSeed is ignored and set == 0.
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
-    if (wmem == null) { return compact(); }
+    if (wmem == null) { return EmptyCompactSketch.getInstance(); }
     wmem.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
     return new DirectCompactSketch(wmem);
   }

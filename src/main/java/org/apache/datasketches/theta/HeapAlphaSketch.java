@@ -102,7 +102,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
 
-    final int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    final int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf.lg(), MIN_LG_ARR_LONGS);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0;
@@ -128,20 +128,19 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
     checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcMem);                             //bytes 12-15
-    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
+    final int memlgRF = extractLgResizeFactor(srcMem);            //byte 0
+    final ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * LONG_MAX_VALUE_AS_DOUBLE);
 
-    if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
-      throw new SketchesArgumentException("Possible corruption: ResizeFactor X1, but provided "
-              + "array too small for sketch size");
+    if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
+      throw new SketchesArgumentException("Possible corruption: ResizeFactor  "
+          + "inconsistent with lgNomLongs and lgArrLongs.");
     }
 
-    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, myRF, alpha, split1);
+    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, memRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = extractCurCount(srcMem);
@@ -247,7 +246,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public final void reset() {
     final int lgArrLongs =
-        startingSubMultiple(lgNomLongs_ + 1, getResizeFactor(), MIN_LG_ARR_LONGS);
+        startingSubMultiple(lgNomLongs_ + 1, getResizeFactor().lg(), MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;

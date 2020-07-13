@@ -397,10 +397,21 @@ final class PreambleUtil {
     return mem.getLong(UNION_THETA_LONG);
   }
 
+  /**
+   * Sets PreLongs in the low 6 bits and sets LgRF in the upper 2 bits = 0.
+   * @param wmem the target WritableMemory
+   * @param preLongs the given number of preamble longs
+   */
   static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
     wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) (preLongs & 0X3F));
   }
 
+  /**
+   * Sets the top 2 lgRF bits and does not affect the lower 6 bits (PreLongs).
+   * To work properly, this should be called after insertPreLongs().
+   * @param wmem the target WritableMemory
+   * @param rf the given lgRF bits
+   */
   static void insertLgResizeFactor(final WritableMemory wmem, final int rf) {
     final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE) & 0xFF;
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits

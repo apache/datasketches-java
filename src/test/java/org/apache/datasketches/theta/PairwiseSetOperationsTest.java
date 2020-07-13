@@ -351,8 +351,6 @@ public class PairwiseSetOperationsTest {
    UpdateSketch uskB = UpdateSketch.builder().setNominalEntries(k).build();
    CompactSketch cskAempty = uskA.compact();
    CompactSketch cskBempty = uskB.compact();
-   CompactSketch cskAnull = null;
-   CompactSketch cskBnull = null;
    uskA.update(1);
    CompactSketch cskA1 = uskA.compact();
 

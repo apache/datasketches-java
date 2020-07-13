@@ -38,6 +38,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
@@ -129,11 +130,6 @@ public abstract class UpdateSketch extends Sketch {
   }
 
   //Sketch interface
-
-  @Override
-  public CompactSketch compact() {
-    return compact(true, null);
-  }
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
@@ -419,11 +415,30 @@ public abstract class UpdateSketch extends Sketch {
     final float p = extractP(srcMem);                                   //bytes 12-15
     final long thetaLong = extractThetaLong(srcMem);                    //bytes 16-23
     final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
+    //if (lgArrLongs <= lgNomLongs) the sketch is still resizing, thus theta cannot be < p.
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
+  }
+
+  /**
+   * This checks to see if the memory RF factor was set correctly as early versions may not
+   * have set it.
+   * @param srcMem the source memory
+   * @param lgNomLongs the current lgNomLongs
+   * @param lgArrLongs the current lgArrLongs
+   * @return true if the the memory RF factor is incorrect and the caller can either
+   * correct it or throw an error.
+   */
+  static boolean isResizeFactorIncorrect(final Memory srcMem, final int lgNomLongs,
+      final int lgArrLongs) {
+    final int lgT = lgNomLongs + 1;
+    final int lgA = lgArrLongs;
+    final int lgR = extractLgResizeFactor(srcMem);
+    if (lgR == 0) { return lgA != lgT; }
+    return !(((lgT - lgA) % lgR) == 0);
   }
 
 }

@@ -100,11 +100,6 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  public CompactSketch compact() {
-    return this;
-  }
-
-  @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     if (dstMem == null) { return this; }
     else {

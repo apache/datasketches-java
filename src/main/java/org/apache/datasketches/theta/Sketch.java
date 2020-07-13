@@ -145,7 +145,7 @@ public abstract class Sketch {
       case COMPACT: { //serVer 1, 2, 3; preLongs = 1, 2, or 3
         if (serVer == 3) {
           if (PreambleUtil.isEmptyFlag(srcMem)) {
-            return EmptyCompactSketch.getInstance(srcMem);
+            return EmptyCompactSketch.getHeapInstance(srcMem);
           }
           if (otherCheckForSingleItem(srcMem)) { //SINGLEITEM?
             return SingleItemSketch.heapify(srcMem, seed);
@@ -190,7 +190,9 @@ public abstract class Sketch {
    *
    * @return this sketch as an ordered CompactSketch on the Java heap.
    */
-  public abstract CompactSketch compact();
+  public CompactSketch compact() {
+    return compact(true, null);
+  }
 
   /**
    * Convert this sketch to a new CompactSketch of the chosen order and direct or on the heap.

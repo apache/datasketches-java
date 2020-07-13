@@ -40,9 +40,6 @@ public abstract class CompactSketch extends Sketch {
   //Sketch
 
   @Override
-  public abstract CompactSketch compact();
-
-  @Override
   public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);
 
   @Override

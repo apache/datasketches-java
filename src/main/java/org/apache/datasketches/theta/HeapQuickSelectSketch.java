@@ -94,7 +94,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
       MY_FAMILY = Family.QUICKSELECT;
     }
 
-    lgArrLongs_ = startingSubMultiple(lgNomLongs + 1, rf, MIN_LG_ARR_LONGS);
+    lgArrLongs_ = startingSubMultiple(lgNomLongs + 1, rf.lg(), MIN_LG_ARR_LONGS);
     hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs_);
     curCount_ = 0;
     thetaLong_ = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
@@ -119,17 +119,16 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcMem);                             //bytes 12-15
-    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
-    ResizeFactor myRF = ResizeFactor.getRF(lgRF);
+    final int memlgRF = extractLgResizeFactor(srcMem);               //byte 0
+    ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
     final int familyID = extractFamilyID(srcMem);
     final Family family = Family.idToFamily(familyID);
 
-    if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
-      myRF = ResizeFactor.X2;
+    if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
+      memRF = ResizeFactor.X2;
     }
 
-    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, myRF,
+    final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, memRF,
         preambleLongs, family);
     hqss.lgArrLongs_ = lgArrLongs;
     hqss.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
@@ -191,7 +190,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
   @Override
   public void reset() {
     final ResizeFactor rf = getResizeFactor();
-    final int lgArrLongsSM = startingSubMultiple(lgNomLongs_ + 1, rf, MIN_LG_ARR_LONGS);
+    final int lgArrLongsSM = startingSubMultiple(lgNomLongs_ + 1, rf.lg(), MIN_LG_ARR_LONGS);
     if (lgArrLongsSM == lgArrLongs_) {
       final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;
