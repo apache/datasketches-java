@@ -333,6 +333,12 @@ public class CompactSketchTest {
     assertEquals(csk.getCurrentPreambleLongs(), 2);
   }
 
+  /**
+   * This is checking the empty, single, exact and estimating cases of an off-heap
+   * sketch to make sure they are being stored properly and to check the new capability
+   * of calling compact(boolean, Memory) on an already compact sketch. This allows the
+   * user to be able to change the order and heap status of an already compact sketch.
+   */
   @Test
   public void checkDirectCompactSketchCompact() {
     WritableMemory wmem1, wmem2;
@@ -342,44 +348,61 @@ public class CompactSketchTest {
 
     //empty
     UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
-    bytes = sk.getCompactBytes();
+    bytes = sk.getCompactBytes();         //empty, 8 bytes
     wmem1 = WritableMemory.allocate(bytes);
     wmem2 = WritableMemory.allocate(bytes);
-    csk1 = sk.compact(true, wmem1); //place into memory
+    csk1 = sk.compact(false, wmem1);      //place into memory as unordered
     assertTrue(csk1 instanceof DirectCompactSketch);
-    csk2 = csk1.compact(true, wmem2);
+    assertTrue(csk1.isOrdered());         //empty is always ordered
+    csk2 = csk1.compact(false, wmem2);    //set to unordered again
     assertTrue(csk2 instanceof DirectCompactSketch);
+    assertTrue(csk2.isOrdered());         //empty is always ordered
+    assertTrue(csk2.getSeedHash() == 0);  //empty has no seed hash
+    assertEquals(csk2.getCompactBytes(), 8);
 
     //single
     sk.update(1);
-    bytes = sk.getCompactBytes();
+    bytes = sk.getCompactBytes();         //single, 16 bytes
     wmem1 = WritableMemory.allocate(bytes);
     wmem2 = WritableMemory.allocate(bytes);
-    csk1 = sk.compact(true, wmem1); //place into memory
+    csk1 = sk.compact(false, wmem1);      //place into memory as unordered
     assertTrue(csk1 instanceof DirectCompactSketch);
-    csk2 = csk1.compact(true, wmem2);
+    assertTrue(csk1.isOrdered());         //single is always ordered
+    csk2 = csk1.compact(false, wmem2);    //set to unordered again
     assertTrue(csk2 instanceof DirectCompactSketch);
+    assertTrue(csk2.isOrdered());         //single is always ordered
+    assertTrue(csk2.getSeedHash() != 0);  //has a seed hash
+    assertEquals(csk2.getCompactBytes(), 16);
 
     //exact
     sk.update(2);
-    bytes = sk.getCompactBytes();
+    bytes = sk.getCompactBytes(); //exact, 16 bytes preamble, 16 bytes data
     wmem1 = WritableMemory.allocate(bytes);
     wmem2 = WritableMemory.allocate(bytes);
-    csk1 = sk.compact(true, wmem1); //place into memory
+    csk1 = sk.compact(false, wmem1);      //place into memory as unordered
     assertTrue(csk1 instanceof DirectCompactSketch);
-    csk2 = csk1.compact(true, wmem2);
+    assertFalse(csk1.isOrdered());        //should be unordered
+    csk2 = csk1.compact(true, wmem2);     //set to ordered
     assertTrue(csk2 instanceof DirectCompactSketch);
+    assertTrue(csk2.isOrdered());         //should be ordered
+    assertTrue(csk2.getSeedHash() != 0);  //has a seed hash
+    assertEquals(csk2.getCompactBytes(), 32);
 
     //estimating
-//    int n = 1 << (lgK + 1);
-//    for (int i = 2; i < n; i++) { sk.update(i); }
-//    bytes = sk.getCompactBytes();
-//    wmem1 = WritableMemory.allocate(bytes);
-//    wmem2 = WritableMemory.allocate(bytes);
-//    csk1 = sk.compact(true, wmem1); //place into memory
-//    assertTrue(csk1 instanceof DirectCompactSketch);
-//    csk2 = csk1.compact(true, wmem2);
-//    assertTrue(csk2 instanceof DirectCompactSketch);
+    int n = 1 << (lgK + 1);
+    for (int i = 2; i < n; i++) { sk.update(i); }
+    bytes = sk.getCompactBytes(); //24 bytes preamble + curCount * 8,
+    wmem1 = WritableMemory.allocate(bytes);
+    wmem2 = WritableMemory.allocate(bytes);
+    csk1 = sk.compact(false, wmem1);      //place into memory as unordered
+    assertTrue(csk1 instanceof DirectCompactSketch);
+    assertFalse(csk1.isOrdered());        //should be unordered
+    csk2 = csk1.compact(true, wmem2);    //set to ordered
+    assertTrue(csk2 instanceof DirectCompactSketch);
+    assertTrue(csk2.isOrdered());        //should be ordered
+    assertTrue(csk2.getSeedHash() != 0);  //has a seed hash
+    int curCount = csk2.getRetainedEntries();
+    assertEquals(csk2.getCompactBytes(), 24 + (curCount * 8));
   }
 
   private static class State {

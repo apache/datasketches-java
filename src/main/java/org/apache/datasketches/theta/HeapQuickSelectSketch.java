@@ -125,7 +125,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
     final Family family = Family.idToFamily(familyID);
 
     if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
-      memRF = ResizeFactor.X2;
+      memRF = ResizeFactor.X2; //X2 always works.
     }
 
     final HeapQuickSelectSketch hqss = new HeapQuickSelectSketch(lgNomLongs, seed, p, memRF,

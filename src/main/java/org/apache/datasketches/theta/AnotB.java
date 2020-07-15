@@ -62,7 +62,7 @@ public abstract class AnotB extends SetOperation {
   }
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
+   * This is part of a multistep, stateful AnotB operation and sets the given Theta sketch as the
    * first argument <i>A</i> of <i>A-AND-NOT-B</i>. This overwrites the internal state of this
    * AnotB operator with the contents of the given sketch.
    * This sets the stage for multiple following <i>notB</i> steps.
@@ -89,7 +89,7 @@ public abstract class AnotB extends SetOperation {
   public abstract void setA(Sketch skA);
 
   /**
-   * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
+   * This is part of a multistep, stateful AnotB operation and sets the given Theta sketch as the
    * second (or <i>n+1</i>th) argument <i>B</i> of <i>A-AND-NOT-B</i>.
    * Performs an <i>AND NOT</i> operation with the existing internal state of this AnotB operator.
    *
@@ -103,7 +103,7 @@ public abstract class AnotB extends SetOperation {
    *
    * <p>Use {@link #getResult(boolean)} to obtain the result.</p>
    *
-   * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
+   * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
   public abstract void notB(Sketch skB);
 

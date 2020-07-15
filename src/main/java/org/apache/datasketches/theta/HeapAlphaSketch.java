@@ -129,15 +129,14 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final float p = extractP(srcMem);                             //bytes 12-15
     final int memlgRF = extractLgResizeFactor(srcMem);            //byte 0
-    final ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
+    ResizeFactor memRF = ResizeFactor.getRF(memlgRF);
 
     final double nomLongs = (1L << lgNomLongs);
     final double alpha = nomLongs / (nomLongs + 1.0);
     final long split1 = (long) (((p * (alpha + 1.0)) / 2.0) * LONG_MAX_VALUE_AS_DOUBLE);
 
     if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
-      throw new SketchesArgumentException("Possible corruption: ResizeFactor  "
-          + "inconsistent with lgNomLongs and lgArrLongs.");
+      memRF = ResizeFactor.X2; //X2 always works.
     }
 
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, memRF, alpha, split1);
