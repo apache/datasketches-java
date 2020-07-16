@@ -628,14 +628,11 @@ public class HeapAlphaSketchTest {
       //expected
     }
 
-    // force ResizeFactor.X1, but allocated capacity too small
+    // force ResizeFactor.X1, and allocated capacity too small
     insertLgResizeFactor(mem, ResizeFactor.X1.lg());
-    try {
-      HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
-      fail();
-    } catch (SketchesArgumentException e) {
-      //expected
-    }
+    UpdateSketch usk = HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+    ResizeFactor rf = usk.getResizeFactor();
+    assertEquals(rf, ResizeFactor.X2);//ResizeFactor recovered to X2, which always works.
   }
 
   private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
