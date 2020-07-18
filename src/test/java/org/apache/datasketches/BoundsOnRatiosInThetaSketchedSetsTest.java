@@ -40,8 +40,8 @@ public class BoundsOnRatiosInThetaSketchedSetsTest {
     for (int i = 0; i < uA; i++) { skA.update(i); }
     for (int i = 0; i < uC; i++) { skC.update(i + (uA / 2)); }
     final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(skA);
-    inter.update(skC);
+    inter.intersect(skA);
+    inter.intersect(skC);
     final CompactSketch skB = inter.getResult();
 
     double est = BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA(skA, skB);

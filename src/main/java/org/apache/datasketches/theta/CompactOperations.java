@@ -190,7 +190,8 @@ final class CompactOperations {
           (byte)flagsOut, srcPreLongs);
       return new DirectCompactSketch(tgtMem);
     } else { //heap
-      return new HeapCompactSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong, dstOrderedOut);
+      return new HeapCompactSketch(hashArr, srcEmptyFlag, srcSeedHash, curCount, thetaLong,
+          dstOrderedOut);
     }
   }
 

@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  *
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc","deprecation"})
+@SuppressWarnings("javadoc")
 public class EmptyTest {
 
   @Test
@@ -50,8 +50,8 @@ public class EmptyTest {
       sk1.update(i);
       sk2.update(i + u);
     }
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
 
     CompactSketch csk = inter.getResult();
     //The intersection of two disjoint, exact-mode sketches is empty, T == 1.0.
@@ -59,8 +59,7 @@ public class EmptyTest {
     assertTrue(csk.isEmpty());
 
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(csk, sk1);
-    CompactSketch csk2 = aNotB.getResult();
+    CompactSketch csk2 = aNotB.aNotB(csk, sk1);
     //The AnotB of an empty, T == 1.0 sketch with another exact-mode sketch is empty, T == 1.0
     assertTrue(csk2.isEmpty());
   }
@@ -71,13 +70,13 @@ public class EmptyTest {
     UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
 
-    int u = 10000;
+    int u = 10000; //estimating
     for (int i = 0; i < u; i++) { //disjoint
       sk1.update(i);
       sk2.update(i + u);
     }
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
 
     CompactSketch csk = inter.getResult();
     println(csk.toString());
@@ -85,16 +84,14 @@ public class EmptyTest {
     assertFalse(csk.isEmpty());
 
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(csk, sk1); //empty, T < 1.0; with est-mode sketch
-    CompactSketch csk2 = aNotB.getResult();
+    CompactSketch csk2 = aNotB.aNotB(csk, sk1); //empty, T < 1.0; with est-mode sketch
     println(csk2.toString());
     //The AnotB of an empty, T < 1.0 sketch with another exact-mode sketch is not-empty.
     assertFalse(csk2.isEmpty());
 
     UpdateSketch sk3 = Sketches.updateSketchBuilder().build();
     aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(sk3, sk1); //empty, T == 1.0; with est-mode sketch
-    CompactSketch csk3 = aNotB.getResult();
+    CompactSketch csk3 = aNotB.aNotB(sk3, sk1); //empty, T == 1.0; with est-mode sketch
     println(csk3.toString());
     //the AnotB of an empty, T == 1.0 sketch with another est-mode sketch is empty, T < 1.0
     assertTrue(csk3.isEmpty());

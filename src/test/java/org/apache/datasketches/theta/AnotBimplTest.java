@@ -22,10 +22,11 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.Family;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -33,7 +34,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc","deprecation"})
+@SuppressWarnings("javadoc")
 public class AnotBimplTest {
 
   @Test
@@ -52,34 +53,35 @@ public class AnotBimplTest {
 
     AnotB aNb = SetOperation.builder().buildANotB();
     assertTrue(aNb.isEmpty());  //only applies to stateful
-    assertNull(aNb.getCache()); //only applies to stateful
+    assertTrue(aNb.getCache().length == 0); //only applies to stateful
     assertEquals(aNb.getThetaLong(), Long.MAX_VALUE); //only applies to stateful
     assertEquals(aNb.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
 
-
-    aNb.update(usk1, usk2);
-    assertEquals(aNb.getRetainedEntries(true), 256);
+    aNb.setA(usk1);
+    aNb.notB(usk2);
+    assertEquals(aNb.getRetainedEntries(true), k/2);
 
     CompactSketch rsk1;
 
-    rsk1 = aNb.getResult(false, null);
+    rsk1 = aNb.getResult(false, null, true); //not ordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
 
-    aNb.update(usk1, usk2);
-    rsk1 = aNb.getResult(true, null);
+    aNb.setA(usk1);
+    aNb.notB(usk2);
+    rsk1 = aNb.getResult(true, null, true); //ordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
 
-    //getCurrentBytes( compact )
     int bytes = rsk1.getCurrentBytes();
-    byte[] byteArray = new byte[bytes];
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory wmem = WritableMemory.allocate(bytes);
 
-    aNb.update(usk1, usk2);
-    rsk1 = aNb.getResult(false, mem);
+    aNb.setA(usk1);
+    aNb.notB(usk2);
+    rsk1 = aNb.getResult(false, wmem, true); //unordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
 
-    aNb.update(usk1, usk2);
-    rsk1 = aNb.getResult(true, mem);
+    aNb.setA(usk1);
+    aNb.notB(usk2);
+    rsk1 = aNb.getResult(true, wmem, true); //ordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
   }
 
@@ -99,172 +101,105 @@ public class AnotBimplTest {
     CompactSketch aO = aHT.compact(true,  null);
 
     UpdateSketch bHT = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<(k+(k/2)); i++)
-     {
+    for (int i=k/2; i<(k+(k/2)); i++) {
       bHT.update(i); //overlap is k/2
     }
     CompactSketch bC = bHT.compact(false, null);
     CompactSketch bO = bHT.compact(true,  null);
 
-    CompactSketch res;
+    CompactSketch result;
     AnotB aNb;
     boolean ordered = true;
 
     aNb = SetOperation.builder().buildANotB();
 
-    aNb.update(aNull, bNull);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    try { aNb.setA(aNull); fail();} catch (SketchesArgumentException e) {}
 
-    aNb.update(aNull, bEmpty);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    aNb.notB(bNull); //ok
 
-    aNb.update(aNull, bC);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    try { aNb.aNotB(aNull, bNull); fail(); } catch (SketchesArgumentException e) {}
+    try { aNb.aNotB(aNull, bEmpty); fail(); } catch (SketchesArgumentException e) {}
+    try { aNb.aNotB(aEmpty, bNull); fail(); } catch (SketchesArgumentException e) {}
 
-    aNb.update(aNull, bO);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aEmpty, bEmpty, !ordered, null);
+    assertEquals(result.getEstimate(), 0.0);
+    assertTrue(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aNull, bHT);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aEmpty, bC, !ordered, null);
+    assertEquals(result.getEstimate(), 0.0);
+    assertTrue(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
+    result = aNb.aNotB(aEmpty, bO, !ordered, null);
+    assertEquals(result.getEstimate(), 0.0);
+    assertTrue(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aEmpty, bNull);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aEmpty, bHT, !ordered, null);
+    assertEquals(result.getEstimate(), 0.0);
+    assertTrue(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aEmpty, bEmpty);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aC, bEmpty, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aEmpty, bC);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aC, bC, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aEmpty, bO);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aC, bO, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aEmpty, bHT);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), 0.0);
-    assertTrue(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aC, bHT, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
+    result = aNb.aNotB(aO, bEmpty, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aC, bNull);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aO, bC, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aC, bEmpty);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aO, bO, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aC, bC);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result =  aNb.aNotB(aO, bHT, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aC, bO);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aHT, bEmpty, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aC, bHT);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aHT, bC, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
+    result = aNb.aNotB(aHT, bO, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
-    aNb.update(aO, bNull);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aO, bEmpty);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aO, bC);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aO, bO);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aO, bHT);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-
-    aNb.update(aHT, bNull);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aHT, bEmpty);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aHT, bC);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aHT, bO);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
-
-    aNb.update(aHT, bHT);
-    res = aNb.getResult(!ordered, null);
-    assertEquals(res.getEstimate(), (double) k/2);
-    assertFalse(res.isEmpty());
-    assertEquals(res.getThetaLong(), Long.MAX_VALUE);
+    result = aNb.aNotB(aHT, bHT, !ordered, null);
+    assertEquals(result.getEstimate(), (double) k/2);
+    assertFalse(result.isEmpty());
+    assertEquals(result.getThetaLong(), Long.MAX_VALUE);
   }
 
   @Test
@@ -273,37 +208,42 @@ public class AnotBimplTest {
     boolean ordered = true;
 
     UpdateSketch aU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) {
-      aU.update(i);  //All 1024
-    }
+    for (int i=0; i<k; i++) { aU.update(i); }  //All 1024
 
     UpdateSketch bU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(k/2); i++) {
-      bU.update(i);  //512
-    }
+    for (int i=0; i<(k/2); i++) { bU.update(i); } //first 512
 
     UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<((3*k)/4); i++) {
-      cU.update(i);  //256
-    }
+    for (int i=k/2; i<((3*k)/4); i++) { cU.update(i); } //third 256
 
     int memBytes = Sketch.getMaxUpdateSketchBytes(k);
-    CompactSketch r1, r2;
+    CompactSketch result1, result2, result3;
 
-    byte[] memArr1 = new byte[memBytes];
-    byte[] memArr2 = new byte[memBytes];
-    WritableMemory mem1 = WritableMemory.wrap(memArr1);
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);
+    WritableMemory wmem1 = WritableMemory.allocate(memBytes);
+    WritableMemory wmem2 = WritableMemory.allocate(memBytes);
+    WritableMemory wmem3 = WritableMemory.allocate(memBytes);
 
     AnotB aNb = SetOperation.builder().buildANotB();
-    aNb.update(aU, bU);
-    r1 = aNb.getResult(ordered, mem1);
 
-    aNb.update(r1, cU);
-    r2 = aNb.getResult(ordered, mem2);
-    double est = r2.getEstimate();
-    println("est: "+est);
-    assertEquals(est, k/4.0, 0.0);
+    //Note: stateful and stateless operations can be interleaved, they are independent.
+
+    aNb.setA(aU);                                     //stateful
+
+    result1 = aNb.aNotB(aU, bU, ordered, wmem1);      //stateless
+
+    aNb.notB(bU);                                     //stateful
+
+    result2 = aNb.aNotB(result1, cU, ordered, wmem2); //stateless
+
+    aNb.notB(cU);                                     //stateful
+
+    double est2 = result2.getEstimate();              //stateless result
+    println("est: "+est2);
+    assertEquals(est2, k/4.0, 0.0);
+
+    result3 = aNb.getResult(ordered, wmem3, true);    //stateful result, then reset
+    double est3 = result3.getEstimate();
+    assertEquals(est3, k/4.0, 0.0);
   }
 
   @Test
@@ -312,42 +252,40 @@ public class AnotBimplTest {
     boolean ordered = true;
 
     UpdateSketch a = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++)
-     {
-      a.update(i);        //All 1024
-    }
+    for (int i=0; i<k; i++) { a.update(i); }       //All 1024
 
     UpdateSketch b = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(k/2); i++)
-     {
-      b.update(i);      //512
-    }
+    for (int i=0; i<(k/2); i++) { b.update(i); }     //first 512
 
     UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<((3*k)/4); i++)
-     {
-      c.update(i);  //256
-    }
+    for (int i=k/2; i<((3*k)/4); i++) { c.update(i); }  //third 256
 
     int memBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
+    WritableMemory mem = WritableMemory.allocate(memBytes);
 
-    byte[] memArr = new byte[memBytes];
-    WritableMemory mem = WritableMemory.wrap(memArr);
-
-    CompactSketch r;
+    CompactSketch result1, result2;
     AnotB aNb = SetOperation.builder().buildANotB();
 
-    //Iterative loop: {
-    aNb.update(a, b);
-    r = aNb.getResult(ordered, mem);
+    //Note: stateful and stateless operations can be interleaved, they are independent.
 
-    aNb.update(r, c);
-    r = aNb.getResult(ordered, mem);
-    //}
+    aNb.setA(a);                                    //stateful
 
-    double est = r.getEstimate();
-    println("est: "+est);
-    assertEquals(est, k/4.0, 0.0);
+    result1 = aNb.aNotB(a, b, ordered, mem);        //stateless
+
+    aNb.notB(b);                                    //stateful
+
+    result1 = aNb.aNotB(result1, c, ordered, mem);  //stateless
+
+    aNb.notB(c);                                    //stateful
+
+    result2 = aNb.getResult(ordered, mem, true);    //stateful result, then reset
+
+    double est1 = result1.getEstimate();            //check stateless result
+    println("est: "+est1);
+    assertEquals(est1, k/4.0, 0.0);
+
+    double est2 = result2.getEstimate();            //check stateful result
+    assertEquals(est2, k/4.0, 0.0);
   }
 
   @Test
@@ -365,8 +303,7 @@ public class AnotBimplTest {
     UpdateSketch skB = Sketches.updateSketchBuilder().build();
 
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(skA, skB);
-    CompactSketch csk = aNotB.getResult();
+    CompactSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
 

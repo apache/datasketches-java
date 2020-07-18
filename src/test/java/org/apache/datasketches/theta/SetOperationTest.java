@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc","deprecation"})
+@SuppressWarnings("javadoc")
 public class SetOperationTest {
 
   @Test
@@ -310,8 +310,8 @@ public class SetOperationTest {
     //Intersection is similar
 
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(unionSk);
-    inter.update(skC);
+    inter.intersect(unionSk);
+    inter.intersect(skC);
     // ... continue to iterate on the input sketches to intersect
 
     CompactSketch interSk = inter.getResult();  //the result intersection sketch
@@ -320,9 +320,8 @@ public class SetOperationTest {
     //The AnotB operation is a little different as it is stateless:
 
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(skA, skC);
+    CompactSketch not = aNotB.aNotB(skA, skC);
 
-    CompactSketch not = aNotB.getResult();
     println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
   }
 

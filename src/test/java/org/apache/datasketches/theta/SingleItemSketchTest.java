@@ -222,8 +222,8 @@ public class SingleItemSketchTest {
     sk1.update(2);
     sk2.update(1);
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
     csk = inter.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
@@ -231,8 +231,8 @@ public class SingleItemSketchTest {
     bytes = Sketches.getMaxIntersectionBytes(32);
     WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
     inter = Sketches.setOperationBuilder().buildIntersection(wmem);
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
     csk = inter.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
     csk = inter.getResult(false, null);
@@ -290,8 +290,8 @@ public class SingleItemSketchTest {
     UpdateSketch sk2 = new UpdateSketchBuilder().build();
     sk2.update(1);
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
     WritableMemory wmem = WritableMemory.wrap(new byte[16]);
     CompactSketch csk = inter.getResult(false, wmem);
     assertTrue(csk.isOrdered());

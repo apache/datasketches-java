@@ -178,8 +178,8 @@ public class SetOpsCornerCasesTest {
 
   private static CompactSketch doStdIntersection(Sketch tskA, Sketch tskB, WritableMemory wmem) {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(tskA);
-    inter.update(tskB);
+    inter.intersect(tskA);
+    inter.intersect(tskB);
     return inter.getResult(true, wmem);
   }
 

@@ -78,7 +78,7 @@ class HeapCompactSketch extends CompactSketch {
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
-        true, ordered_, dstOrdered, dstMem, getCache());
+        true, ordered_, dstOrdered, dstMem, getCache().clone());
   }
 
   @Override

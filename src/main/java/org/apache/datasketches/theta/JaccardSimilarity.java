@@ -84,9 +84,9 @@ public final class JaccardSimilarity {
 
     //Create the Intersection
     final Intersection inter = SetOperation.builder().buildIntersection();
-    inter.update(sketchA);
-    inter.update(sketchB);
-    inter.update(unionAB); //ensures that intersection is a subset of the union
+    inter.intersect(sketchA);
+    inter.intersect(sketchB);
+    inter.intersect(unionAB); //ensures that intersection is a subset of the union
     final Sketch interABU = inter.getResult(true, null);
 
     final double lb = getLowerBoundForBoverA(unionAB, interABU);

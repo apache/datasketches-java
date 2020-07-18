@@ -95,8 +95,8 @@ public class PairwiseSetOperationsTest {
       Sketch rsk = PairwiseSetOperations.intersect(csk1, csk2);
       double result1 = rsk.getEstimate();
 
-      inter.update(csk1);
-      inter.update(csk2);
+      inter.intersect(csk1);
+      inter.intersect(csk2);
       CompactSketch csk3 = inter.getResult(true, null);
       double result2 = csk3.getEstimate();
 
@@ -175,8 +175,7 @@ public class PairwiseSetOperationsTest {
       Sketch rsk = PairwiseSetOperations.aNotB(csk1, csk2);
       double result1 = rsk.getEstimate();
 
-      aNotB.update(csk1, csk2);
-      CompactSketch csk3 = aNotB.getResult(true, null);
+      CompactSketch csk3 = aNotB.aNotB(csk1, csk2);
       double result2 = csk3.getEstimate();
 
       assertEquals(result1, result2, 0.0);
@@ -380,8 +379,8 @@ public class PairwiseSetOperationsTest {
  }
 
  private static void checkIntersection(Intersection inter, CompactSketch cskA, CompactSketch cskB) {
-   inter.update(cskA);
-   inter.update(cskB);
+   inter.intersect(cskA);
+   inter.intersect(cskB);
    CompactSketch cskI = inter.getResult();
    CompactSketch cskP = PairwiseSetOperations.intersect(cskA, cskB);
    assertEquals(cskI.isEmpty(), cskP.isEmpty());
@@ -389,8 +388,7 @@ public class PairwiseSetOperationsTest {
  }
 
  private static void checkAnotB(AnotB aNotB, CompactSketch cskA, CompactSketch cskB) {
-   aNotB.update(cskA, cskB);
-   CompactSketch cskD = aNotB.getResult();
+   CompactSketch cskD = aNotB.aNotB(cskA, cskB);
    CompactSketch cskP = PairwiseSetOperations.aNotB(cskA, cskB);
    assertEquals(cskD.isEmpty(), cskP.isEmpty());
  }

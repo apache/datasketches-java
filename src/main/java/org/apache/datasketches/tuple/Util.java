@@ -30,8 +30,6 @@ import org.apache.datasketches.memory.XxHash64;
 
 /**
  * Common utility functions for Tuples
- *
- * @author Lee Rhodes
  */
 public final class Util {
   private static final int PRIME = 0x7A3C_CA71;

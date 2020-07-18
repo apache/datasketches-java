@@ -70,7 +70,7 @@ public abstract class AnotB extends SetOperation {
    * <p>An input argument of null will throw an exception.</p>
    *
    * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
-   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistent object.
    * In most cases it is a programming error due to some object that was not properly initialized.
    * With a null as the first argument, we cannot know what the user's intent is.
    * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
@@ -148,15 +148,16 @@ public abstract class AnotB extends SetOperation {
    * <p>If either argument is null an exception is thrown.</p>
    *
    * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
-   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
-   * In most cases it is a programming error due to some object that was not properly initialized.
-   * With a null as the first argument, we cannot know what the user's intent is.
-   * With a null as the second argument, we can't ignore it as we must return a result and there is
-   * no following possible viable arguments for the second argument.
-   * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistent object.
+   * In most cases <i>null</i> is a programming error due to a non-initialized object. </p>
    *
-   * @param skA The incoming sketch for the first argument.
-   * @param skB The incoming sketch for the second argument.
+   * <p>With a null as the first argument we cannot know what the user's intent is and throw an
+   * exception. With a null as the second argument for this method we must return a result and
+   * there is no following possible viable arguments for the second argument so we thrown an
+   * exception.</p>
+   *
+   * @param skA The incoming sketch for the first argument. It must not be null.
+   * @param skB The incoming sketch for the second argument. It must not be null.
    * @return an ordered CompactSketch on the heap
    */
   public CompactSketch aNotB(final Sketch skA, final Sketch skB) {
@@ -175,15 +176,16 @@ public abstract class AnotB extends SetOperation {
    * <p>If either argument is null an exception is thrown.</p>
    *
    * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
-   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
-   * In most cases it is a programming error due to some object that was not properly initialized.
-   * With a null as the first argument, we cannot know what the user's intent is.
-   * With a null as the second argument, we can't ignore it as we must return a result and there is
-   * no following possible viable arguments for the second argument.
-   * Since it is very likely that a <i>null</i> is a programming error, we throw an exception.</p>
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistent object.
+   * In most cases <i>null</i> is a programming error due to a non-initialized object. </p>
    *
-   * @param skA The incoming sketch for the first argument.
-   * @param skB The incoming sketch for the second argument.
+   * <p>With a null as the first argument we cannot know what the user's intent is and throw an
+   * exception. With a null as the second argument for this method we must return a result and
+   * there is no following possible viable arguments for the second argument so we thrown an
+   * exception.</p>
+   *
+   * @param skA The incoming sketch for the first argument. It must not be null.
+   * @param skB The incoming sketch for the second argument. It must not be null.
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
    * @param dstMem
@@ -196,8 +198,7 @@ public abstract class AnotB extends SetOperation {
   //Deprecated methods
 
   /**
-   * Perform A-and-not-B set operation on the two given sketches.
-   * A null sketch is interpreted as an empty sketch.
+   * @see #aNotB(Sketch, Sketch)
    *
    * @param skA The incoming sketch for the first argument
    * @param skB The incoming sketch for the second argument
@@ -207,17 +208,20 @@ public abstract class AnotB extends SetOperation {
   public abstract void update(Sketch skA, Sketch skB);
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * Gets the result of the stateful operations, {@link #setA(Sketch)} and {@link #notB(Sketch)},
+   * as an ordered CompactSketch on the Java heap.
    * This clears the state of this operator after the result is returned.
-   * @return the result of this operation as an ordered CompactSketch on the Java heap.
+   * @return the result of the stateful operations as an ordered CompactSketch on the Java heap.
    * @deprecated Instead use {@link #getResult(boolean)} or
    * {@link #getResult(boolean, WritableMemory, boolean)}.
    */
   @Deprecated
-  public abstract CompactSketch getResult();
+  public CompactSketch getResult() {
+    return getResult(true, null, true);
+  }
 
   /**
-   * Gets the result of this set operation as a CompactSketch of the chosen form.
+   * Gets the result of the stateful operations {@link #setA(Sketch)} and {@link #notB(Sketch)}.
    * This clears the state of this operator after the result is returned.
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
@@ -230,6 +234,8 @@ public abstract class AnotB extends SetOperation {
    * {@link #getResult(boolean, WritableMemory, boolean)}.
    */
   @Deprecated
-  public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
+  public CompactSketch getResult(final boolean dstOrdered, final WritableMemory dstMem) {
+    return getResult(dstOrdered, dstMem, true);
+  }
 
 }

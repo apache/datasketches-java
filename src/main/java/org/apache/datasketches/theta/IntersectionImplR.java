@@ -68,7 +68,7 @@ class IntersectionImplR extends Intersection {
   protected long[] hashTable_ = null;  //HT => Data.  Only used On Heap
   protected int maxLgArrLongs_ = 0; //max size of hash table. Only used Off Heap
 
-  IntersectionImplR(final WritableMemory mem, final long seed, final boolean newMem) {
+  protected IntersectionImplR(final WritableMemory mem, final long seed, final boolean newMem) {
     mem_ = mem;
     if (mem != null) {
       if (newMem) {
@@ -82,16 +82,6 @@ class IntersectionImplR extends Intersection {
       seedHash_ = computeSeedHash(seed);
     }
   }
-
-  //  IntersectionImplR(final short seedHash) {
-  //    seedHash_ = seedHash;
-  //    mem_ = null;
-  //    lgArrLongs_ = 0;
-  //    curCount_ = -1;
-  //    thetaLong_ = Long.MAX_VALUE;
-  //    empty_ = false;
-  //    hashTable_ = null;
-  //  }
 
   /**
    * Wrap an Intersection target around the given source Memory containing intersection data.
@@ -177,11 +167,6 @@ class IntersectionImplR extends Intersection {
         thetaLong_, curCount_, seedHash_, empty_, true, dstOrdered, dstOrdered, dstMem, compactCacheR);
   }
 
-  @Override
-  public CompactSketch getResult() {
-    return getResult(true, null);
-  }
-
   /**
    * Gets the number of retained entries from this operation. If negative, it is interpreted
    * as the infinite <i>Universal Set</i>.
@@ -247,6 +232,12 @@ class IntersectionImplR extends Intersection {
     return byteArrOut;
   }
 
+  @Override
+  public void intersect(final Sketch sketchIn) {
+    throw new SketchesReadOnlyException();
+  }
+
+  @Deprecated
   @Override
   public void update(final Sketch sketchIn) {
     throw new SketchesReadOnlyException();

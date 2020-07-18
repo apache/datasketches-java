@@ -25,10 +25,11 @@ import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.simpleIntLog2;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.theta.HashIterator;
+import org.apache.datasketches.SketchesStateException;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two generic tuple sketches.
@@ -69,6 +70,17 @@ public final class AnotB<S extends Summary> {
   private S[] summaryArr_ = null; //always in compact form, not necessarily sorted
   private int curCount_ = 0;
 
+  private static final Method GET_CACHE;
+
+  static {
+    try {
+      GET_CACHE = org.apache.datasketches.theta.Sketch.class.getDeclaredMethod("getCache");
+      GET_CACHE.setAccessible(true);
+    } catch (final Exception e) {
+      throw new SketchesStateException("Could not reflect getCache(): " + e);
+    }
+  }
+
   /**
    * This is part of a multistep, stateful AnotB operation and sets the given Tuple sketch as the
    * first argument <i>A</i> of <i>A-AND-NOT-B</i>. This overwrites the internal state of this
@@ -78,7 +90,7 @@ public final class AnotB<S extends Summary> {
    * <p>An input argument of null will throw an exception.</p>
    *
    * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
-   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistent object.
    * In most cases it is a programming error due to some object that was not properly initialized.
    * With a null as the first argument, we cannot know what the user's intent is.
    * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
@@ -106,12 +118,12 @@ public final class AnotB<S extends Summary> {
     //skA is not empty
     empty_ = false;
     thetaLong_ = skA.getThetaLong();
-    final CompactSketch<S> cskA = (skA instanceof CompactSketch)
-        ? (CompactSketch<S>)skA
-        : ((QuickSelectSketch<S>)skA).compact();
-    hashArr_ = cskA.getHashArr().clone();
-    summaryArr_ = cskA.getSummaryArr().clone(); //shallow
-    curCount_ = cskA.getRetainedEntries();
+
+    //process A
+    final DataArrays<S> da = getDataArraysA(skA);
+    hashArr_ = da.hashArr;
+    summaryArr_ = da.summaryArr;
+    curCount_ = hashArr_.length;
   }
 
   /**
@@ -131,51 +143,19 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
-  @SuppressWarnings("unchecked")
   public void notB(final Sketch<S> skB) {
-    if (empty_ || (skB == null) || skB.isEmpty()) { return; }
+    if (empty_ || (skB == null) || skB.isEmpty() || (hashArr_ == null)) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
 
-    //Build hashtable and removes hashes of skB >= theta
-    final int countB = skB.getRetainedEntries();
-    CompactSketch<S> cskB = null;
-    QuickSelectSketch<S> qskB = null;
-    final long[] hashTableB;
-    if (skB instanceof CompactSketch) {
-      cskB = (CompactSketch<S>) skB;
-      hashTableB =
-          convertToHashTable(cskB.getHashArr(), countB, thetaLong_, REBUILD_THRESHOLD);
-    } else {
-      qskB = (QuickSelectSketch<S>) skB;
-      hashTableB = (thetaLong_ < thetaLongB)
-          ? convertToHashTable(qskB.getHashTable(), countB, thetaLong_, REBUILD_THRESHOLD)
-          : qskB.getHashTable();
-    }
+    //process B
+    final DataArrays<S> daB = getResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
+    hashArr_ = daB.hashArr;
+    summaryArr_ = daB.summaryArr;
 
-    //build temporary arrays of skA
-    final long[] tmpHashArrA = new long[curCount_];
-    final Class<S> summaryType = (Class<S>) summaryArr_.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, curCount_);
-
-    //search for non matches and build temp arrays
-    int nonMatches = 0;
-    for (int i = 0; i < curCount_; i++) {
-      final long hash = hashArr_[i];
-      if ((hash != 0) && (hash < thetaLong_)) { //skips hashes of A >= theta
-        final int index =
-            hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
-        if (index == -1) {
-          tmpHashArrA[nonMatches] = hash;
-          tmpSummaryArrA[nonMatches] = summaryArr_[i];
-          nonMatches++;
-        }
-      }
-    }
-    hashArr_ = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    summaryArr_ = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    curCount_ = nonMatches;
+    curCount_ = hashArr_.length;
+    empty_ = (curCount_ == 0) && (thetaLong_ == Long.MAX_VALUE);
   }
 
   /**
@@ -197,40 +177,19 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
-  @SuppressWarnings("unchecked")
   public void notB(final org.apache.datasketches.theta.Sketch skB) {
     if (empty_ || (skB == null) || skB.isEmpty()) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
-    //Build hashtable and removes hashes of skB >= theta
-    final int countB = skB.getRetainedEntries(true);
-    final long[] hashTableB =
-        convertToHashTable(extractThetaHashArray(skB, countB), countB,
-            thetaLong_, REBUILD_THRESHOLD);
 
-    //build temporary arrays of skA
-    final long[] tmpHashArrA = new long[curCount_];
-    final Class<S> summaryType = (Class<S>) summaryArr_.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, curCount_);
+    //process B
+    final DataArrays<S> daB = getResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
+    hashArr_ = daB.hashArr;
+    summaryArr_ = daB.summaryArr;
 
-    //search for non matches and build temp arrays
-    final int lgHTBLen = simpleIntLog2(hashTableB.length);
-    int nonMatches = 0;
-    for (int i = 0; i < curCount_; i++) {
-      final long hash = hashArr_[i];
-      if ((hash > 0) && (hash < thetaLong_)) { //skips hashes of A >= theta
-        final int index = hashSearch(hashTableB, lgHTBLen, hash);
-        if (index == -1) {
-          tmpHashArrA[nonMatches] = hash;
-          tmpSummaryArrA[nonMatches] = summaryArr_[i];
-          nonMatches++;
-        }
-      }
-    }
-    hashArr_ = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    summaryArr_ = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    curCount_ = nonMatches;
+    curCount_ = hashArr_.length;
+    empty_ = (curCount_ == 0) && (thetaLong_ == Long.MAX_VALUE);
   }
 
   /**
@@ -264,7 +223,7 @@ public final class AnotB<S extends Summary> {
    * <p>If either argument is null an exception is thrown.</p>
    *
    * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
-   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistent object.
    * In most cases it is a programming error due to some object that was not properly initialized.
    * With a null as the first argument, we cannot know what the user's intent is.
    * With a null as the second argument, we can't ignore it as we must return a result and there is
@@ -276,62 +235,31 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as a compact sketch
    */
-  @SuppressWarnings("unchecked")
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final Sketch<S> skB) {
     if ((skA == null) || (skB == null)) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
-    if (skA.isEmpty()) { return new CompactSketch<>(null, null, Long.MAX_VALUE, true); }
+    if (skA.isEmpty()) { return skA.compact(); }
     if (skB.isEmpty()) { return skA.compact(); }
     //Both skA & skB are not empty
-    //Load skA into tmp registers
-    boolean empty = false;
-    final long thetaLongA = skA.getThetaLong();
-    final CompactSketch<S> cskA = (skA instanceof CompactSketch)
-        ? (CompactSketch<S>)skA
-        : ((QuickSelectSketch<S>)skA).compact();
-    final long[] hashArrA = cskA.getHashArr().clone();
-    final S[] summaryArrA = cskA.getSummaryArr().clone();
-    final int countA = cskA.getRetainedEntries();
 
-    //Compare with skB
-    final long thetaLongB = skB.getThetaLong();
-    final long thetaLong = Math.min(thetaLongA, thetaLongB);
-    final int countB = skB.getRetainedEntries();
+    //Process A
+    final DataArrays<S> da = getDataArraysA(skA);
+    final long[] hashArrA = da.hashArr;
+    final S[] summaryArrA = da.summaryArr;
+    final int countA = hashArrA.length;
 
-    //Build/rebuild hashtable and removes hashes of skB >= thetaLong
-    final long[] hashes = (skB instanceof CompactSketch)
-        ? ((CompactSketch<S>) skB).getHashArr()
-        : ((QuickSelectSketch<S>) skB).getHashTable();
+    //Process B
+    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
+    final DataArrays<S> daB = getResultArraysTuple(minThetaLong, countA, hashArrA, summaryArrA, skB);
 
-    final long[] hashTableB = convertToHashTable(hashes, countB, thetaLong, REBUILD_THRESHOLD);
+    final long[] hashArr = daB.hashArr;
+    final S[] summaryArr = daB.summaryArr;
+    final int curCountOut = hashArr.length;
+    final boolean empty = ((curCountOut == 0) && (minThetaLong == Long.MAX_VALUE));
 
-    //build temporary hash array and summary array for values from skA
-    final long[] tmpHashArrA = new long[countA];
-    final Class<S> summaryType = (Class<S>) summaryArrA.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
-
-    //search for non matches and build temp arrays
-    int nonMatches = 0;
-    for (int i = 0; i < countA; i++) {
-      final long hash = hashArrA[i];
-      if ((hash != 0) && (hash < thetaLong)) { //skips hashes of A >= theta
-        final int index =
-            hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
-        if (index == -1) {
-          tmpHashArrA[nonMatches] = hash;
-          tmpSummaryArrA[nonMatches] = summaryArrA[i];
-          nonMatches++;
-        }
-      }
-    }
-    //final compaction
-    empty = ((nonMatches == 0) && (thetaLong == Long.MAX_VALUE));
-    final long[] hashArrOut = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    final S[] summaryArrOut = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    final CompactSketch<S> result =
-        new CompactSketch<>(hashArrOut, summaryArrOut, thetaLong, empty);
+    final CompactSketch<S> result = new CompactSketch<>(hashArr, summaryArr, minThetaLong, empty);
     return result;
   }
 
@@ -346,7 +274,7 @@ public final class AnotB<S extends Summary> {
    * <p>If either argument is null an exception is thrown.</p>
    *
    * <p>Rationale: In mathematics a "null set" is a set with no members, which we call an empty set.
-   * That is distinctly different from the java <i>null</i>, which represents a nonexistant object.
+   * That is distinctly different from the java <i>null</i>, which represents a nonexistent object.
    * In most cases it is a programming error due to some object that was not properly initialized.
    * With a null as the first argument, we cannot know what the user's intent is.
    * With a null as the second argument, we can't ignore it as we must return a result and there is
@@ -359,49 +287,91 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as a compact sketch
    */
-  @SuppressWarnings("unchecked")
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final org.apache.datasketches.theta.Sketch skB) {
     if ((skA == null) || (skB == null)) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
-    if (skA.isEmpty()) {
-      return new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+    //Both skA & skB are not null
+
+    if (skA.isEmpty()) { return skA.compact(); }
+    if (skB.isEmpty()) { return skA.compact(); }
+    //Both skA & skB are not empty
+
+    //Process A
+    final DataArrays<S> da = getDataArraysA(skA);
+    final long[] hashArrA = da.hashArr;
+    final S[] summaryArrA = da.summaryArr;
+    final int countA = hashArrA.length;
+
+    //Process B
+    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
+    final DataArrays<S> daB = getResultArraysTheta(minThetaLong, countA, hashArrA, summaryArrA, skB);
+
+    final long[] hashArr = daB.hashArr;
+    final S[] summaryArr = daB.summaryArr;
+    final int countOut = hashArr.length;
+    final boolean empty = (countOut == 0) && (minThetaLong == Long.MAX_VALUE);
+
+    final CompactSketch<S> result = new CompactSketch<>(hashArr, summaryArr, minThetaLong, empty);
+    return result;
+  }
+
+  //restricted
+
+  private static class DataArrays<S extends Summary> {
+    long[] hashArr;
+    S[] summaryArr;
+  }
+
+  private static <S extends Summary> DataArrays<S> getDataArraysA(final Sketch<S> skA) {
+    final CompactSketch<S> cskA;
+    final DataArrays<S> da = new DataArrays<>();
+    if (skA instanceof CompactSketch) {
+      cskA = (CompactSketch<S>) skA;
+      da.hashArr = cskA.getHashArr().clone();       //deep copy
+      da.summaryArr = cskA.getSummaryArr().clone(); //shallow copy
+    } else {
+      cskA = ((QuickSelectSketch<S>)skA).compact();
+      da.hashArr = cskA.getHashArr(); //not sorted
+      da.summaryArr = cskA.getSummaryArr();
     }
-    //skA is not empty
-    final boolean empty = false;
-    final long thetaLongA = skA.getThetaLong();
-    final CompactSketch<S> cskA = (skA instanceof CompactSketch)
-        ? (CompactSketch<S>)skA
-        : ((QuickSelectSketch<S>)skA).compact();
-    final long[] hashArrA = cskA.getHashArr();
-    final S[] summaryArrA = cskA.getSummaryArr();
-    final int countA = cskA.getRetainedEntries();
+    return da;
+  }
 
-    if (skB.isEmpty()) {
-      return new CompactSketch<>(hashArrA, summaryArrA, thetaLongA, empty);
+  @SuppressWarnings("unchecked")
+  private static <S extends Summary> DataArrays<S> getResultArraysTuple(
+      final long minThetaLong,
+      final int countA,
+      final long[] hashArrA,
+      final S[] summaryArrA,
+      final Sketch<S> skB) {
+    final DataArrays<S> daB = new DataArrays<>();
+
+    //Rebuild/get hashtable of skB
+    final long[] hashTableB;
+
+    if (skB instanceof CompactSketch) {
+      final CompactSketch<S> cskB = (CompactSketch<S>) skB;
+      final int countB = skB.getRetainedEntries();
+      hashTableB = convertToHashTable(cskB.getHashArr(), countB, minThetaLong, REBUILD_THRESHOLD);
+    } else {
+      final QuickSelectSketch<S> qskB = (QuickSelectSketch<S>) skB;
+      hashTableB = qskB.getHashTable();
     }
-    //skB is not empty
-    final long thetaLongB = skB.getThetaLong();
-    final long thetaLong = Math.min(thetaLongA, thetaLongB);
-    final int countB = skB.getRetainedEntries(true);
 
-    //Build/rebuild hashtable and removes hashes of skB >= thetaLong
-    final long[] hashTableB = //the following convert works for all theta sketches
-        convertToHashTable(extractThetaHashArray(skB, countB), countB, thetaLong, REBUILD_THRESHOLD);
-
-    //build temporary arrays of skA for matching
+    //build temporary arrays of skA
     final long[] tmpHashArrA = new long[countA];
     final Class<S> summaryType = (Class<S>) summaryArrA.getClass().getComponentType();
     final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
 
     //search for non matches and build temp arrays
+    final int lgHTBLen = simpleIntLog2(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];
-      if ((hash != 0) && (hash < thetaLong)) { //skips hashes of A >= theta
-        final int index =
-            hashSearch(hashTableB, simpleIntLog2(hashTableB.length), hash);
+      if ((hash != 0) && (hash < minThetaLong)) { //skips hashes of A >= minTheta
+        final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
           tmpSummaryArrA[nonMatches] = summaryArrA[i];
@@ -409,12 +379,59 @@ public final class AnotB<S extends Summary> {
         }
       }
     }
-    final long[] hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    final S[] summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    final CompactSketch<S> result =
-        new CompactSketch<>(hashArr, summaryArr, thetaLong, empty);
-    return result;
+    daB.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
+    daB.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
+    return daB;
   }
+
+
+  @SuppressWarnings("unchecked")
+  private static <S extends Summary> DataArrays<S> getResultArraysTheta(
+      final long minThetaLong,
+      final int countA,
+      final long[] hashArrA,
+      final S[] summaryArrA,
+      final org.apache.datasketches.theta.Sketch skB) {
+    final DataArrays<S> daB = new DataArrays<>();
+
+    //Rebuild/get hashtable of skB
+    final long[] hashTableB; //read only
+
+    final long[] thetaCacheB;
+    try { thetaCacheB = (long[])GET_CACHE.invoke(skB);
+    } catch (final Exception e) { throw new SketchesStateException("Reflection Exception " + e); }
+
+    if (skB instanceof org.apache.datasketches.theta.CompactSketch) {
+      final int countB = skB.getRetainedEntries(true);
+      hashTableB = convertToHashTable(thetaCacheB, countB, minThetaLong, REBUILD_THRESHOLD);
+    } else {
+      hashTableB = thetaCacheB;
+    }
+
+    //build temporary result arrays of skA
+    final long[] tmpHashArrA = new long[countA];
+    final Class<S> summaryType = (Class<S>) summaryArrA.getClass().getComponentType();
+    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
+
+    //search for non matches and build temp arrays
+    final int lgHTBLen = simpleIntLog2(hashTableB.length);
+    int nonMatches = 0;
+    for (int i = 0; i < countA; i++) {
+      final long hash = hashArrA[i];
+      if ((hash != 0) && (hash < minThetaLong)) { //skips hashes of A >= minTheta
+        final int index = hashSearch(hashTableB, lgHTBLen, hash);
+        if (index == -1) {
+          tmpHashArrA[nonMatches] = hash;
+          tmpSummaryArrA[nonMatches] = summaryArrA[i];
+          nonMatches++;
+        }
+      }
+    }
+    daB.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
+    daB.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
+    return daB;
+  }
+
 
   /**
    * Resets this sketch back to the empty state.
@@ -425,19 +442,6 @@ public final class AnotB<S extends Summary> {
     hashArr_ = null;
     summaryArr_ = null;
     curCount_ = 0;
-  }
-
-  private static long[] extractThetaHashArray(
-      final org.apache.datasketches.theta.Sketch sketch,
-      final int count) {
-    final HashIterator itr = sketch.iterator();
-    final long[] hashArr = new long[count];
-    int ctr = 0;
-    while (itr.next()) {
-      hashArr[ctr++] = itr.get();
-    }
-    assert ctr == count;
-    return hashArr;
   }
 
   //Deprecated methods

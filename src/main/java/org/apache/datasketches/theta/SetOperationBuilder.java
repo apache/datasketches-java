@@ -210,8 +210,8 @@ public class SetOperationBuilder {
           setOp = new AnotBimpl(bSeed);
         }
         else {
-          throw new SketchesArgumentException( //TODO we should be able to do this now.
-            "AnotB is only on heap and cannot be persisted.");
+          throw new SketchesArgumentException(
+            "AnotB can not be persisted.");
         }
         break;
       }

@@ -58,8 +58,8 @@ public class HeapIntersectionTest {
 
     Intersection inter = SetOperation.builder().buildIntersection();
 
-    inter.update(usk1);
-    inter.update(usk2);
+    inter.intersect(usk1);
+    inter.intersect(usk2);
 
     CompactSketch rsk1;
     boolean ordered = true;
@@ -101,8 +101,8 @@ public class HeapIntersectionTest {
     }
 
     Intersection inter = SetOperation.builder().buildIntersection();
-    inter.update(usk1);
-    inter.update(usk2);
+    inter.intersect(usk1);
+    inter.intersect(usk2);
 
     CompactSketch rsk1;
     boolean ordered = true;
@@ -145,8 +145,8 @@ public class HeapIntersectionTest {
     CompactSketch csk2 = usk2.compact(true, null);
 
     Intersection inter = SetOperation.builder().buildIntersection();
-    inter.update(csk1);
-    inter.update(csk2);
+    inter.intersect(csk1);
+    inter.intersect(csk2);
 
     CompactSketch rsk1 = inter.getResult(true, null);
     double result = rsk1.getEstimate();
@@ -167,7 +167,7 @@ public class HeapIntersectionTest {
   public void checkIntersectionNull() {
     Intersection inter = SetOperation.builder().buildIntersection();
     UpdateSketch sk = null;
-    try { inter.update(sk); fail(); }
+    try { inter.intersect(sk); fail(); }
     catch (SketchesArgumentException e) { }
 
     try { inter.intersect(sk, sk); fail(); }
@@ -186,7 +186,7 @@ public class HeapIntersectionTest {
     //1st call = empty
     sk = UpdateSketch.builder().setNominalEntries(k).build(); //empty
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk);
+    inter.intersect(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
     assertEquals(est, 0.0, 0.0);
@@ -196,7 +196,7 @@ public class HeapIntersectionTest {
     sk = UpdateSketch.builder().setNominalEntries(k).build();
     sk.update(1);
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk);
+    inter.intersect(sk);
     rsk1 = inter.getResult(false, null);
     est = rsk1.getEstimate();
     assertEquals(est, 1.0, 0.0);
@@ -213,10 +213,10 @@ public class HeapIntersectionTest {
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
+    inter.intersect(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
-    inter.update(sk2);
+    inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
     assertEquals(est, 0.0, 0.0);
@@ -225,11 +225,11 @@ public class HeapIntersectionTest {
     //1st call = empty
     sk1 = UpdateSketch.builder().build(); //empty
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
+    inter.intersect(sk1);
     //2nd call = valid and not empty
     sk2 = UpdateSketch.builder().build();
     sk2.update(1);
-    inter.update(sk2);
+    inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
     assertEquals(est, 0.0, 0.0);
@@ -247,10 +247,10 @@ public class HeapIntersectionTest {
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
+    inter.intersect(sk1);
     //2nd call = empty
     sk2 = UpdateSketch.builder().build(); //empty
-    inter.update(sk2);
+    inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
     assertEquals(est, 0.0, 0.0);
@@ -260,11 +260,11 @@ public class HeapIntersectionTest {
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
+    inter.intersect(sk1);
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().build(); //empty
     sk2.update(1);
-    inter.update(sk2);
+    inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
     assertEquals(est, 1.0, 0.0);
@@ -274,11 +274,11 @@ public class HeapIntersectionTest {
     sk1 = UpdateSketch.builder().build();
     sk1.update(1);
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
+    inter.intersect(sk1);
     //2nd call = valid not intersecting
     sk2 = UpdateSketch.builder().build(); //empty
     sk2.update(2);
-    inter.update(sk2);
+    inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
     assertEquals(est, 0.0, 0.0);
@@ -303,7 +303,7 @@ public class HeapIntersectionTest {
     println("sk1: "+sk1.getEstimate());
 
     inter = SetOperation.builder().buildIntersection();
-    inter.update(sk1);
+    inter.intersect(sk1);
 
     //2nd call = valid intersecting
     sk2 = UpdateSketch.builder().setNominalEntries(k).build();
@@ -313,7 +313,7 @@ public class HeapIntersectionTest {
     }
     println("sk2: "+sk2.getEstimate());
 
-    inter.update(sk2);
+    inter.intersect(sk2);
     comp1 = inter.getResult(false, null);
     est = comp1.getEstimate();
     assertTrue(est > k);
@@ -335,7 +335,7 @@ public class HeapIntersectionTest {
 
     Intersection inter = SetOperation.builder().buildIntersection();
     //1st call with a valid sketch
-    inter.update(cSk1);
+    inter.intersect(cSk1);
 
     UpdateSketch sk2 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < (2 * k); i++) {
@@ -347,7 +347,7 @@ public class HeapIntersectionTest {
     assertEquals(cSk2Est, cSk1Est, 0.0);
 
     //2nd call with identical valid sketch
-    inter.update(cSk2);
+    inter.intersect(cSk2);
     CompactSketch interResultCSk1 = inter.getResult(false, null);
     double inter1est = interResultCSk1.getEstimate();
     assertEquals(inter1est, cSk1Est, 0.0);
@@ -405,7 +405,7 @@ public class HeapIntersectionTest {
 
     //A virgin intersection (empty = false) intersected with a not-empty zero cache sketch
     //remains empty = false!, but has a result.
-    inter1.update(sk1);
+    inter1.intersect(sk1);
     assertFalse(inter1.isEmpty());
     assertTrue(inter1.hasResult());
     //note that inter2 is independent
@@ -458,7 +458,7 @@ public class HeapIntersectionTest {
   public void checkBadEmptyState() {
     Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
-    inter1.update(sk); //initializes to a true empty intersection.
+    inter1.intersect(sk); //initializes to a true empty intersection.
     byte[] byteArray = inter1.toByteArray();
     WritableMemory mem = WritableMemory.wrap(byteArray);
     //corrupt:
@@ -470,7 +470,7 @@ public class HeapIntersectionTest {
   public void checkEmpty() {
     UpdateSketch usk = Sketches.updateSketchBuilder().build();
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(usk);
+    inter.intersect(usk);
     assertTrue(inter.isEmpty());
     assertEquals(inter.getRetainedEntries(true), 0);
     assertTrue(inter.getSeedHash() != 0);
@@ -484,7 +484,7 @@ public class HeapIntersectionTest {
     UpdateSketch usk = Sketches.updateSketchBuilder().build();
     usk.update(1);
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(usk);
+    inter.intersect(usk);
     assertFalse(inter.isEmpty());
     assertEquals(inter.getRetainedEntries(true), 1);
     assertTrue(inter.getSeedHash() != 0);
@@ -498,7 +498,7 @@ public class HeapIntersectionTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
 
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(sk);
+    inter.intersect(sk);
     CompactSketch csk = inter.getResult();
     assertEquals(csk.getCompactBytes(), 8);
   }

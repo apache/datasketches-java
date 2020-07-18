@@ -71,7 +71,6 @@ final class IntersectionImpl extends IntersectionImplR {
     return impl;
   }
 
-
   /**
    * Construct a new Intersection target direct to the given destination Memory.
    * Called by SetOperation.Builder.
@@ -176,8 +175,14 @@ final class IntersectionImpl extends IntersectionImplR {
     return (IntersectionImpl) internalWrapInstance(srcMem, impl);
   }
 
+  @Deprecated
   @Override
   public void update(final Sketch sketchIn) {
+    intersect(sketchIn);
+  }
+
+  @Override
+  public void intersect(final Sketch sketchIn) {
     if (sketchIn == null) {
       throw new SketchesArgumentException("Intersection argument must not be null.");
     }
@@ -210,10 +215,10 @@ final class IntersectionImpl extends IntersectionImplR {
 
     // The truth table for the following state machine
     //   Case  curCount  sketchInEntries | Actions
-    //     1      <0            0        | First update, curCount = 0; HT = null; exit
+    //     1      <0            0        | First intersect, curCount = 0; HT = null; exit
     //     2       0            0        | CurCount = 0; HT = null; exit
     //     3      >0            0        | CurCount = 0; HT = null; exit
-    //     5      <0           >0        | First update, clone SketchIn; exit
+    //     5      <0           >0        | First intersect, clone SketchIn; exit
     //     6       0           >0        | CurCount = 0; HT = null; exit
     //     7      >0           >0        | Perform full intersect
     final int sw = ((curCount_ < 0) ? 1 : (curCount_ == 0) ? 2 : 3)
@@ -229,7 +234,7 @@ final class IntersectionImpl extends IntersectionImplR {
         hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
         break;
       }
-      case 5: { // curCount_ < 0; This is the 1st update, clone the incoming sketch
+      case 5: { // curCount_ < 0; This is the 1st intersect, clone the incoming sketch
         curCount_ = sketchIn.getRetainedEntries(true);
         final int requiredLgArrLongs = computeMinLgArrLongsFromCount(curCount_);
         final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
@@ -266,8 +271,8 @@ final class IntersectionImpl extends IntersectionImplR {
   public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
      final WritableMemory dstMem) {
     reset();
-    update(a);
-    update(b);
+    intersect(a);
+    intersect(b);
     return getResult(dstOrdered, dstMem);
   }
 
