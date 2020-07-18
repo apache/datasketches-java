@@ -38,14 +38,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -141,7 +140,7 @@ public class HeapAlphaSketchTest {
       usk.update(i);
     }
 
-    int bytes = usk.getCurrentBytes(false);
+    int bytes = usk.getCurrentBytes();
     byte[] byteArray = usk.toByteArray();
     assertEquals(bytes, byteArray.length);
 
@@ -246,14 +245,14 @@ public class HeapAlphaSketchTest {
     double comp1est = comp1.getEstimate();
     double comp1lb  = comp1.getLowerBound(2);
     double comp1ub  = comp1.getUpperBound(2);
-    int comp1bytes = comp1.getCurrentBytes(true);
-    assertEquals(comp1bytes, comp1.getCurrentBytes(false));
-    int comp1curCount = comp1.getRetainedEntries(true); //flag is not relevant
+    int comp1bytes = comp1.getCompactBytes();
+    assertEquals(comp1bytes, comp1.getCurrentBytes());
+    int comp1curCount = comp1.getRetainedEntries(true);
     assertEquals(comp1bytes, (comp1curCount << 3) + (Family.COMPACT.getMaxPreLongs() << 3));
 
     assertEquals(comp1.isEmpty(), false);
     assertEquals(comp1.isEstimationMode(), estimating);
-    assertEquals(comp1.getClass().getSimpleName(), "HeapCompactUnorderedSketch");
+    assertEquals(comp1.getClass().getSimpleName(), "HeapCompactSketch");
 
     comp2 = usk.compact(true,  null);
 
@@ -262,11 +261,11 @@ public class HeapAlphaSketchTest {
     assertEquals(comp2.getUpperBound(2), comp1ub);
     assertEquals(comp2.isEmpty(), false);
     assertEquals(comp2.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp2.getCurrentBytes(true)); //flag is not relevant
-    assertEquals(comp1curCount, comp2.getRetainedEntries(true)); //flag is not relevant
-    assertEquals(comp2.getClass().getSimpleName(), "HeapCompactOrderedSketch");
+    assertEquals(comp1bytes, comp2.getCompactBytes());
+    assertEquals(comp1curCount, comp2.getRetainedEntries(true));
+    assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
-    int bytes = usk.getCurrentBytes(true);
+    int bytes = usk.getCompactBytes();
     int alphaBytes = sk1.getRetainedEntries(true) * 8;
     assertEquals(bytes, alphaBytes + (Family.COMPACT.getMaxPreLongs() << 3));
     byte[] memArr2 = new byte[bytes];
@@ -279,9 +278,9 @@ public class HeapAlphaSketchTest {
     assertEquals(comp3.getUpperBound(2), comp1ub);
     assertEquals(comp3.isEmpty(), false);
     assertEquals(comp3.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp3.getCurrentBytes(true)); //flag is not relevant
-    assertEquals(comp1curCount, comp3.getRetainedEntries(true)); //flag is not relevant
-    assertEquals(comp3.getClass().getSimpleName(), "DirectCompactUnorderedSketch");
+    assertEquals(comp1bytes, comp3.getCompactBytes());
+    assertEquals(comp1curCount, comp3.getRetainedEntries(true));
+    assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
 
     mem2.clear();
     comp4 = usk.compact(true, mem2);
@@ -291,9 +290,9 @@ public class HeapAlphaSketchTest {
     assertEquals(comp4.getUpperBound(2), comp1ub);
     assertEquals(comp4.isEmpty(), false);
     assertEquals(comp4.isEstimationMode(), estimating);
-    assertEquals(comp1bytes, comp4.getCurrentBytes(true)); //flag is not relevant
-    assertEquals(comp1curCount, comp4.getRetainedEntries(true)); //flag is not relevant
-    assertEquals(comp4.getClass().getSimpleName(), "DirectCompactOrderedSketch");
+    assertEquals(comp1bytes, comp4.getCompactBytes());
+    assertEquals(comp1curCount, comp4.getRetainedEntries(true));
+    assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");
   }
 
   @Test
@@ -311,7 +310,7 @@ public class HeapAlphaSketchTest {
     double uskUB  = usk.getUpperBound(2);
     assertEquals(usk.isEstimationMode(), estimating);
 
-    int bytes = usk.getCurrentBytes(true);
+    int bytes = usk.getCompactBytes();
     assertEquals(bytes, 8); //compact, empty and theta = 1.0
     byte[] memArr2 = new byte[bytes];
     WritableMemory mem2 = WritableMemory.wrap(memArr2);
@@ -322,7 +321,7 @@ public class HeapAlphaSketchTest {
     assertEquals(csk2.getUpperBound(2), uskUB);
     assertEquals(csk2.isEmpty(), true);
     assertEquals(csk2.isEstimationMode(), estimating);
-    assertTrue(csk2 instanceof EmptyCompactSketch);
+    assertTrue(csk2.isOrdered());
 
     CompactSketch csk3 = usk.compact(true, mem2);
     csk3.toString(false, true, 0, false);
@@ -332,7 +331,7 @@ public class HeapAlphaSketchTest {
     assertEquals(csk3.getUpperBound(2), uskUB);
     assertEquals(csk3.isEmpty(), true);
     assertEquals(csk3.isEstimationMode(), estimating);
-    assertTrue(csk3 instanceof EmptyCompactSketch);
+    assertTrue(csk3.isOrdered());
   }
 
   @Test
@@ -522,7 +521,7 @@ public class HeapAlphaSketchTest {
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
     ResizeFactor rf = sk1.getResizeFactor();
-    int subMul = Util.startingSubMultiple(11, rf, 5); //messy
+    int subMul = Util.startingSubMultiple(11, rf.lg(), 5);
     assertEquals(sk1.getLgArrLongs(), subMul);
 
     UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_)
@@ -536,7 +535,7 @@ public class HeapAlphaSketchTest {
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
     rf = sk1.getResizeFactor();
-    subMul = Util.startingSubMultiple(11, rf, 5); //messy
+    subMul = Util.startingSubMultiple(11, rf.lg(), 5);
     assertEquals(sk1.getLgArrLongs(), subMul);
 
     assertNull(sk1.getMemory());
@@ -629,14 +628,11 @@ public class HeapAlphaSketchTest {
       //expected
     }
 
-    // force ResizeFactor.X1, but allocated capacity too small
+    // force ResizeFactor.X1, and allocated capacity too small
     insertLgResizeFactor(mem, ResizeFactor.X1.lg());
-    try {
-      HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
-      fail();
-    } catch (SketchesArgumentException e) {
-      //expected
-    }
+    UpdateSketch usk = HeapAlphaSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+    ResizeFactor rf = usk.getResizeFactor();
+    assertEquals(rf, ResizeFactor.X2);//ResizeFactor recovered to X2, which always works.
   }
 
   private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {

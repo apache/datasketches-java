@@ -19,22 +19,26 @@
 
 package org.apache.datasketches.theta;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
+import static org.apache.datasketches.theta.PreambleUtil.insertLgNomLongs;
+import static org.apache.datasketches.theta.PreambleUtil.insertLgResizeFactor;
+import static org.apache.datasketches.theta.UpdateSketch.isResizeFactorIncorrect;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.MemoryRequestServer;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -92,15 +96,15 @@ public class UpdateSketchTest {
   @Test
   public void checkStartingSubMultiple() {
     int lgSubMul;
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X1, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X1.lg(), 5);
     assertEquals(lgSubMul, 10);
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X2, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X2.lg(), 5);
     assertEquals(lgSubMul, 5);
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X4, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X4.lg(), 5);
     assertEquals(lgSubMul, 6);
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X8, 5);
+    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X8.lg(), 5);
     assertEquals(lgSubMul, 7);
-    lgSubMul = Util.startingSubMultiple(4, ResizeFactor.X1, 5);
+    lgSubMul = Util.startingSubMultiple(4, ResizeFactor.X1.lg(), 5);
     assertEquals(lgSubMul, 5);
   }
 
@@ -147,7 +151,7 @@ public class UpdateSketchTest {
   public void checkCompact() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     CompactSketch csk = sk.compact();
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -174,6 +178,49 @@ public class UpdateSketchTest {
       UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkIsResizeFactorIncorrect() {
+    WritableMemory wmem = WritableMemory.allocate(8);
+    insertLgNomLongs(wmem, 26);
+    for (int lgK = 4; lgK <= 26; lgK++) {
+      insertLgNomLongs(wmem, lgK);
+      int lgT = lgK + 1;
+      for (int lgA = 5; lgA <= lgT; lgA++) {
+        insertLgArrLongs(wmem, lgA);
+        for (int lgR = 0; lgR <= 3; lgR++) {
+          insertLgResizeFactor(wmem, lgR);
+          boolean lgRbad = isResizeFactorIncorrect(wmem, lgK, lgA);
+          boolean rf123 = (lgR > 0) && !(((lgT - lgA) % lgR) == 0);
+          boolean rf0 = (lgR == 0) && (lgA != lgT);
+          assertTrue((lgRbad == rf0) || (lgRbad == rf123));
+        }
+      }
+    }
+  }
+
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkCompactOpsMemoryToCompact() {
+    WritableMemory skwmem, cskwmem1, cskwmem2, cskwmem3;
+    CompactSketch csk1, csk2, csk3;
+    int lgK = 6;
+    UpdateSketch sk = Sketches.updateSketchBuilder().setLogNominalEntries(lgK).build();
+    int n = 1 << (lgK + 1);
+    for (int i = 2; i < n; i++) { sk.update(i); }
+    int cbytes = sk.getCompactBytes();
+    byte[] byteArr = sk.toByteArray();
+    skwmem = WritableMemory.wrap(byteArr);
+    cskwmem1 = WritableMemory.allocate(cbytes);
+    cskwmem2 = WritableMemory.allocate(cbytes);
+    cskwmem3 = WritableMemory.allocate(cbytes);
+    csk1 = sk.compact(true, cskwmem1);
+    csk2 = CompactOperations.memoryToCompact(skwmem, true, cskwmem2);
+    csk3 = CompactOperations.memoryToCompact(cskwmem1, true, cskwmem3);
+    assertTrue(cskwmem1.equals(cskwmem2));
+    assertTrue(cskwmem1.equals(cskwmem3));
   }
 
   @Test

@@ -27,7 +27,6 @@ import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.Sketch.checkIllegalCurCountAndEmpty;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -75,11 +74,11 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Heap-based SetOperation from the given Memory
-   */ //TODO Do we need to add a stateful AnotB here?
+   */
   public static SetOperation heapify(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
-    switch (family) {
+    switch (family) { //TODO Do we need to add the stateful AnotB ?
       case UNION : {
         return UnionImpl.heapifyInstance(srcMem, seed);
       }
@@ -115,7 +114,7 @@ public abstract class SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
-   */ //TODO Do we need to add a stateful AnotB here?
+   */
   public static SetOperation wrap(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
@@ -123,7 +122,7 @@ public abstract class SetOperation {
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
-    switch (family) {
+    switch (family) { //TODO Do we need to add the stateful AnotB ?
       case UNION : {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
@@ -203,6 +202,18 @@ public abstract class SetOperation {
   }
 
   /**
+   * Returns the maximum number of bytes for the returned CompactSketch, given the maximum
+   * value of nomEntries of the first sketch A of AnotB.
+   * @param maxNomEntries the given value must be a power of 2.
+   * @return the maximum number of bytes.
+   */
+  public static int getMaxAnotBResultBytes(final int maxNomEntries) {
+    final int ceil = ceilingPowerOf2(maxNomEntries);
+    return 24 + (15 * ceil);
+  }
+
+
+  /**
    * Gets the Family of this SetOperation
    * @return the Family of this SetOperation
    */
@@ -236,51 +247,6 @@ public abstract class SetOperation {
   //intentionally not made public because behavior will be confusing to end user.
   abstract boolean isEmpty();
 
-  //used only by the set operations
-  static final CompactSketch createCompactSketch(
-      final long[] compactCache,
-      boolean empty,
-      final short seedHash,
-      final int curCount,
-      final long thetaLong,
-      final boolean dstOrdered,
-      final WritableMemory dstMem) {
-    checkIllegalCurCountAndEmpty(empty, curCount);
-    empty = correctEmptyOnSetResult(curCount, thetaLong);
-    if (empty) {
-      final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
-      if (dstMem != null) {
-        dstMem.putByteArray(0, sk.toByteArray(), 0, 8);
-      }
-      return sk;
-    }
-    //Not Empty
-    if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
-      final SingleItemSketch sis = new SingleItemSketch(compactCache[0], seedHash);
-      if ((dstMem != null) && (dstMem.getCapacity() >= 16)) {
-        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
-      }
-      return sis;
-    }
-    if (dstMem == null) {
-      if (dstOrdered) {
-        return HeapCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong); //converts to SingleItem format if curCount == 1
-      } else {
-        return HeapCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong); //converts to SingleItem if curCount == 1
-      }
-    } else {
-      if (dstOrdered) {
-        return DirectCompactOrderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
-      } else {
-        return DirectCompactUnorderedSketch.compact(compactCache, empty, seedHash, curCount,
-            thetaLong, dstMem); //converts to SingleItem format if curCount == 1
-      }
-    }
-  }
-
   /**
    * Computes minimum lgArrLongs from a current count.
    * @param count the given current count
@@ -304,19 +270,6 @@ public abstract class SetOperation {
     final boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION)
         || (family == Family.A_NOT_B));
     return ret;
-  }
-
-  /**
-   * This corrects a temporary anomalous condition from an intersection of two exact, disjoint sets,
-   * or AnotB of two exact, identical sets. Because there is no probability error distribuion,
-   * the result is exactly empty. The empty flag is changed to true before returning a result.
-   * This is used in the compaction step of SetOperation.
-   * @param curCount the given curCount
-   * @param thetaLong the given theta.
-   * @return the empty state
-   */
-  private static final boolean correctEmptyOnSetResult(final int curCount, final long thetaLong) {
-    return (curCount == 0) && (thetaLong == Long.MAX_VALUE);
   }
 
 }

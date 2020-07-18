@@ -22,11 +22,12 @@ package org.apache.datasketches;
 import static org.apache.datasketches.HashOperations.checkHashCorruption;
 import static org.apache.datasketches.HashOperations.checkThetaCorruption;
 import static org.apache.datasketches.HashOperations.continueCondition;
-import static org.apache.datasketches.HashOperations.fastHashInsertOnly;
-import static org.apache.datasketches.HashOperations.fastHashSearchOrInsert;
+import static org.apache.datasketches.HashOperations.hashInsertOnlyMemory;
+import static org.apache.datasketches.HashOperations.hashSearchOrInsertMemory;
 import static org.apache.datasketches.HashOperations.hashArrayInsert;
 import static org.apache.datasketches.HashOperations.hashInsertOnly;
 import static org.apache.datasketches.HashOperations.hashSearch;
+import static org.apache.datasketches.HashOperations.hashSearchMemory;
 import static org.apache.datasketches.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
@@ -106,7 +107,7 @@ public class HashOperationsTest {
   public void testHashInsertOnlyMemoryNoStride() {
     final long[] table = new long[32];
     final WritableMemory mem = WritableMemory.wrap(table);
-    final int index = fastHashInsertOnly(mem, 5, 1, 0);
+    final int index = hashInsertOnlyMemory(mem, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
   }
@@ -116,7 +117,7 @@ public class HashOperationsTest {
     final long[] table = new long[32];
     table[1] = 1;
     final WritableMemory mem = WritableMemory.wrap(table);
-    final int index = fastHashInsertOnly(mem, 5, 1, 0);
+    final int index = hashInsertOnlyMemory(mem, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
   }
@@ -152,22 +153,22 @@ public class HashOperationsTest {
     final long[] table = new long[32];
     final WritableMemory mem = WritableMemory.wrap(table);
     for (int i = 1; i <= 32; ++i) {
-      fastHashInsertOnly(mem, 5, i, 0);
+      hashInsertOnlyMemory(mem, 5, i, 0);
     }
 
     // table full; search returns not found, others throw exception
-    final int retVal = hashSearch(mem, 5, 33, 0);
+    final int retVal = hashSearchMemory(mem, 5, 33, 0);
     assertEquals(retVal, -1);
 
     try {
-      fastHashInsertOnly(mem, 5, 33, 0);
+      hashInsertOnlyMemory(mem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
-      fastHashSearchOrInsert(mem, 5, 33, 0);
+      hashSearchOrInsertMemory(mem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
@@ -180,19 +181,19 @@ public class HashOperationsTest {
     final WritableMemory wmem = WritableMemory.wrap(table);
 
     for (int i = 1; i <= 32; ++i) {
-      fastHashInsertOnly(wmem, 5, i, 0);
+      hashInsertOnlyMemory(wmem, 5, i, 0);
     }
 
     // table full; throws exception
     try {
-      fastHashInsertOnly(wmem, 5, 33, 0);
+      hashInsertOnlyMemory(wmem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected
     }
 
     try {
-      fastHashSearchOrInsert(wmem, 5, 33, 0);
+      hashSearchOrInsertMemory(wmem, 5, 33, 0);
       fail();
     } catch (final SketchesArgumentException e) {
       // expected

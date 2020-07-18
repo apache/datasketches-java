@@ -25,8 +25,6 @@ import org.apache.datasketches.memory.Memory;
 
 /**
  * Multipurpose serializer-deserializer for a collection of sketches defined by the enum.
- *
- * @author Lee Rhodes
  */
 public final class SerializerDeserializer {
 

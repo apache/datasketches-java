@@ -33,15 +33,14 @@ import static org.testng.Assert.assertTrue;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.testng.annotations.Test;
-
+import org.apache.datasketches.Family;
+import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -311,8 +310,8 @@ public class SetOperationTest {
     //Intersection is similar
 
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(unionSk);
-    inter.update(skC);
+    inter.intersect(unionSk);
+    inter.intersect(skC);
     // ... continue to iterate on the input sketches to intersect
 
     CompactSketch interSk = inter.getResult();  //the result intersection sketch
@@ -321,9 +320,8 @@ public class SetOperationTest {
     //The AnotB operation is a little different as it is stateless:
 
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(skA, skC);
+    CompactSketch not = aNotB.aNotB(skA, skC);
 
-    CompactSketch not = aNotB.getResult();
     println("A \\ C      : "+not.getEstimate()); //the estimate of the AnotB operation
   }
 

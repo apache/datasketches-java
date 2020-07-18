@@ -19,10 +19,11 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
+import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.P_FLOAT;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
@@ -30,7 +31,6 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgNomLongs;
-import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.getMemBytes;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
@@ -50,6 +50,8 @@ import static org.apache.datasketches.theta.Rebuilder.moveAndResize;
 import static org.apache.datasketches.theta.Rebuilder.quickSelectAndRebuild;
 import static org.apache.datasketches.theta.Rebuilder.resize;
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncremented;
+import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedRebuilt;
+import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncrementedResized;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
@@ -57,7 +59,6 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -142,10 +143,10 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertLgArrLongs(dstMem, lgArrLongs);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     insertFlags(dstMem, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(dstMem, Util.computeSeedHash(seed));    //bytes 6,7
+    insertSeedHash(dstMem, computeSeedHash(seed));    //bytes 6,7
     insertCurCount(dstMem, 0);                             //bytes 8-11
     insertP(dstMem, p);                                    //bytes 12-15
-    final long thetaLong = (long)(p * MAX_THETA_LONG_AS_DOUBLE);
+    final long thetaLong = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);
     insertThetaLong(dstMem, thetaLong);                    //bytes 16-23
     if (unionGadget) {
       insertUnionThetaLong(dstMem, thetaLong);
@@ -175,10 +176,8 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     UpdateSketch.checkUnionQuickSelectFamily(srcMem, preambleLongs, lgNomLongs);
     checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
 
-    final int lgRF = extractLgResizeFactor(srcMem);               //byte 0
-    final ResizeFactor myRF = ResizeFactor.getRF(lgRF);
-    if ((myRF == ResizeFactor.X1)
-            && (lgArrLongs != Util.startingSubMultiple(lgNomLongs + 1, myRF, MIN_LG_ARR_LONGS))) {
+    if (isResizeFactorIncorrect(srcMem, lgNomLongs, lgArrLongs)) {
+      //If incorrect it sets it to X2 which always works.
       insertLgResizeFactor(srcMem, ResizeFactor.X2.lg());
     }
 
@@ -234,7 +233,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     wmem_.putByte(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     wmem_.putInt(RETAINED_ENTRIES_INT, 0);
     final float p = wmem_.getFloat(P_FLOAT);
-    final long thetaLong = (long) (p * MAX_THETA_LONG_AS_DOUBLE);
+    final long thetaLong = (long) (p * LONG_MAX_VALUE_AS_DOUBLE);
     wmem_.putLong(THETA_LONG, thetaLong);
   }
 
@@ -257,12 +256,12 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     //The duplicate test
     final int index =
-        HashOperations.fastHashSearchOrInsert(wmem_, lgArrLongs, hash, preambleLongs << 3);
+        HashOperations.hashSearchOrInsertMemory(wmem_, lgArrLongs, hash, preambleLongs << 3);
     if (index >= 0) {
       return RejectedDuplicate; //Duplicate, not inserted
     }
     //insertion occurred, increment curCount
-    final int curCount = getRetainedEntries() + 1;
+    final int curCount = getRetainedEntries(true) + 1;
     wmem_.putInt(RETAINED_ENTRIES_INT, curCount); //update curCount
 
     if (isOutOfSpace(curCount)) { //we need to do something, we are out of space
@@ -273,6 +272,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
             : "lgArr: " + lgArrLongs + ", lgNom: " + lgNomLongs;
         //rebuild, refresh curCount based on # values in the hashtable.
         quickSelectAndRebuild(wmem_, preambleLongs, lgNomLongs);
+        return InsertedCountIncrementedRebuilt;
       } //end of rebuild, exit
 
       else { //Not at full size, resize. Should not get here if lgRF = 0 and memCap is too small.
@@ -284,6 +284,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
           //lgArrLongs will change; thetaLong, curCount will not
           resize(wmem_, preambleLongs, lgArrLongs, tgtLgArrLongs);
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
+          return InsertedCountIncrementedResized;
         } //end of Expand in current memory, exit.
 
         else {
@@ -303,10 +304,10 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           wmem_ = newDstMem;
           hashTableThreshold_ = setHashTableThreshold(lgNomLongs, tgtLgArrLongs);
-
+          return InsertedCountIncrementedResized;
         } //end of Request more memory to resize
       } //end of resize
-    }
+    } //end of isOutOfSpace
     return InsertedCountIncremented;
   }
 

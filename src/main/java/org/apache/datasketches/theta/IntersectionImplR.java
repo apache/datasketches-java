@@ -21,7 +21,6 @@ package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.floorPowerOf2;
-import static org.apache.datasketches.theta.CompactSketch.compactCachePart;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -34,6 +33,8 @@ import static org.apache.datasketches.theta.PreambleUtil.SEED_HASH_SHORT;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.THETA_LONG;
+
+import java.util.Arrays;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -67,7 +68,7 @@ class IntersectionImplR extends Intersection {
   protected long[] hashTable_ = null;  //HT => Data.  Only used On Heap
   protected int maxLgArrLongs_ = 0; //max size of hash table. Only used Off Heap
 
-  IntersectionImplR(final WritableMemory mem, final long seed, final boolean newMem) {
+  protected IntersectionImplR(final WritableMemory mem, final long seed, final boolean newMem) {
     mem_ = mem;
     if (mem != null) {
       if (newMem) {
@@ -80,16 +81,6 @@ class IntersectionImplR extends Intersection {
     } else {
       seedHash_ = computeSeedHash(seed);
     }
-  }
-
-  IntersectionImplR(final short seedHash) {
-    seedHash_ = seedHash;
-    mem_ = null;
-    lgArrLongs_ = 0;
-    curCount_ = -1;
-    thetaLong_ = Long.MAX_VALUE;
-    empty_ = false;
-    hashTable_ = null;
   }
 
   /**
@@ -158,8 +149,8 @@ class IntersectionImplR extends Intersection {
 
     if (curCount_ == 0) {
       compactCacheR = new long[0];
-      return createCompactSketch(
-          compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
+      return CompactOperations.componentsToCompact(
+          thetaLong_, curCount_, seedHash_, empty_, true, false, dstOrdered, dstMem, compactCacheR);
     }
     //else curCount > 0
     final long[] hashTable;
@@ -172,14 +163,8 @@ class IntersectionImplR extends Intersection {
     }
     compactCacheR = compactCachePart(hashTable, lgArrLongs_, curCount_, thetaLong_, dstOrdered);
 
-    //Create the CompactSketch
-    return createCompactSketch(
-        compactCacheR, empty_, seedHash_, curCount_, thetaLong_, dstOrdered, dstMem);
-  }
-
-  @Override
-  public CompactSketch getResult() {
-    return getResult(true, null);
+    return CompactOperations.componentsToCompact(
+        thetaLong_, curCount_, seedHash_, empty_, true, dstOrdered, dstOrdered, dstMem, compactCacheR);
   }
 
   /**
@@ -248,6 +233,12 @@ class IntersectionImplR extends Intersection {
   }
 
   @Override
+  public void intersect(final Sketch sketchIn) {
+    throw new SketchesReadOnlyException();
+  }
+
+  @Deprecated
+  @Override
   public void update(final Sketch sketchIn) {
     throw new SketchesReadOnlyException();
   }
@@ -298,6 +289,37 @@ class IntersectionImplR extends Intersection {
         "dstMem not large enough for minimum sized hash table: " + cap);
     }
     return maxLgArrLongs;
+  }
+
+  /**
+   * Compact first 2^lgArrLongs of given array
+   * @param srcCache anything
+   * @param lgArrLongs The correct
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">lgArrLongs</a>.
+   * @param curCount must be correct
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param dstOrdered true if output array must be sorted
+   * @return the compacted array
+   */ //Only used in IntersectionImplR
+  static final long[] compactCachePart(final long[] srcCache, final int lgArrLongs,
+      final int curCount, final long thetaLong, final boolean dstOrdered) {
+    if (curCount == 0) {
+      return new long[0];
+    }
+    final long[] cacheOut = new long[curCount];
+    final int len = 1 << lgArrLongs;
+    int j = 0;
+    for (int i = 0; i < len; i++) {
+      final long v = srcCache[i];
+      if ((v <= 0L) || (v >= thetaLong) ) { continue; }
+      cacheOut[j++] = v;
+    }
+    assert curCount == j;
+    if (dstOrdered) {
+      Arrays.sort(cacheOut);
+    }
+    return cacheOut;
   }
 
 }

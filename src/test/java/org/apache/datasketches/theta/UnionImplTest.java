@@ -54,16 +54,23 @@ public class UnionImplTest {
     assertEquals(union.getResult().getEstimate(), k, 0.0);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkCorruptedCompactFlag() {
+  @Test
+  public void checkUnorderedAndOrderedMemory() {
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[(k*8) + 24]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    for (int i=0; i<k; i++) { sketch.update(i); }
-    CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
-    sketch.compact(false, mem); //corrupt memory
+    for (int i = 0; i < k; i++) { sketch.update(i); }
+    CompactSketch sketchInDirectOrd = sketch.compact(false, mem);
+    assertFalse(sketchInDirectOrd.isOrdered());
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(sketchInDirectOrd);
+    final double est1 = union.getResult().getEstimate();
+    sketch.compact(true, mem); //change the order as a side effect
+    assertTrue(sketchInDirectOrd.isOrdered());
+    union.update(sketchInDirectOrd);
+    final double est2 = union.getResult().getEstimate();
+    assertEquals(est1, est2);
+    assertEquals((int)est1, k);
   }
 
   @Test
@@ -197,7 +204,7 @@ public class UnionImplTest {
     for (int i = 0; i < k; i++) { sk.update(i); }
     double est1 = sk.getEstimate();
 
-    int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries());
+    int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
     try (WritableDirectHandle h = WritableMemory.allocateDirect(bytes)) {
       WritableMemory wmem = h.get();
       CompactSketch csk = sk.compact(true, wmem); //ordered, direct

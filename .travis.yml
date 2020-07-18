@@ -20,7 +20,7 @@ language: java
 dist: trusty
 
 jdk:
- - openjdk8
+ - oraclejdk8
 
 install:
  - mvn clean install -q -Dmaven.javadoc.skip=true -Dsource.skip=true -DskipTests=true -Dgpg.skip=true

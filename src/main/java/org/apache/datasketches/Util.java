@@ -123,6 +123,11 @@ public final class Util {
    */
   public static final double iGolden = 0.6180339887498949025; // the inverse golden ratio
 
+  /**
+   * Long.MAX_VALUE as a double.
+   */
+  public static final double LONG_MAX_VALUE_AS_DOUBLE = Long.MAX_VALUE;
+
   private Util() {}
 
   //Byte Conversions
@@ -583,13 +588,13 @@ public final class Util {
    * one or more resize factors.
    *
    * @param lgTarget Log2 of the target size
-   * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param lgRF Log_base2 of Resize Factor.
+   * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param lgMin Log2 of the minimum allowed starting size
    * @return The Log2 of the starting size
    */
-  public static final int startingSubMultiple(final int lgTarget, final ResizeFactor rf,
+  public static final int startingSubMultiple(final int lgTarget, final int lgRF,
       final int lgMin) {
-    final int lgRF = rf.lg();
     return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : ((lgTarget - lgMin) % lgRF) + lgMin;
   }
 

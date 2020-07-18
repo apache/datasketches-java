@@ -21,14 +21,15 @@ package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static org.apache.datasketches.Util.checkSeedHashes;
+import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.theta.CompactSketch.compactCache;
-import static org.apache.datasketches.theta.CompactSketch.loadCompactMemory;
+import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
@@ -37,6 +38,7 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractLgResizeFactor;
 import static org.apache.datasketches.theta.PreambleUtil.extractP;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
@@ -46,7 +48,6 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpt
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -65,7 +66,7 @@ public abstract class UpdateSketch extends Sketch {
   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
   * been explicitly stored as direct objects can be wrapped. This method assumes the
-  * {@link Util#DEFAULT_UPDATE_SEED}.
+  * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -106,7 +107,7 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
-   * {@link Util#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return an UpdateSketch
    */
@@ -131,90 +132,22 @@ public abstract class UpdateSketch extends Sketch {
   //Sketch interface
 
   @Override
-  public CompactSketch compact() {
-    return compact(true, null);
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
+    return componentsToCompact(getThetaLong(), getRetainedEntries(true), getSeedHash(), isEmpty(),
+        false, false, dstOrdered, dstMem, getCache());
   }
 
   @Override
-  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
-    final int curCount = this.getRetainedEntries(true);
-    final boolean empty = isEmpty();
-    checkIllegalCurCountAndEmpty(empty, curCount);
-    final long thetaLong = correctThetaOnCompact(empty, curCount, getThetaLong());
-
-    if (empty) {
-      final EmptyCompactSketch sk = EmptyCompactSketch.getInstance();
-      if (dstMem != null) {
-        dstMem.putByteArray(0, sk.toByteArray(), 0, 8);
-      }
-      return sk;
-    }
-    //not empty
-    if ((thetaLong == Long.MAX_VALUE) && (curCount == 1)) {
-      final long[] cache = getCache();
-      final long[] cacheOut = compactCache(cache, curCount, thetaLong, dstOrdered);
-      final long hash = cacheOut[0];
-      final SingleItemSketch sis = new SingleItemSketch(hash, getSeedHash());
-      if (dstMem != null) {
-        dstMem.putByteArray(0, sis.toByteArray(), 0, 16);
-      }
-      return new SingleItemSketch(hash, getSeedHash());
-    }
-    if (dstMem == null) {
-      return compactHeap(this, dstOrdered, curCount, thetaLong);
-    } else {
-      return compactDirect(this, dstMem, dstOrdered, curCount, thetaLong);
-    }
+  public int getCompactBytes() {
+    final int preLongs = getCompactPreambleLongs();
+    final int dataLongs = getRetainedEntries(true);
+    return (preLongs + dataLongs) << 3;
   }
 
-  /**
-   * Converts the given UpdateSketch to a compact form.
-   * EmptyCompactSketch and SingleItemSketch have already been checked.
-   * @param sketch the given UpdateSketch
-   * @param ordered true if the destination is to be ordered.
-   * @param curCount the number of retained entries.
-   * @param thetaLong the value of theta.
-   * @return a CompactSketch
-   */
-  private static CompactSketch compactHeap(final UpdateSketch sketch, final boolean ordered,
-      final int curCount, final long thetaLong) {
-    final short seedHash = sketch.getSeedHash();
-    final long[] cache = sketch.getCache();
-    final long[] cacheOut = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
-    if (ordered) {
-      return new HeapCompactOrderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
-    } else {
-      return new HeapCompactUnorderedSketch(cacheOut, false, seedHash, curCount, thetaLong);
-    }
+  @Override
+  int getCurrentDataLongs() {
+    return 1 << getLgArrLongs();
   }
-
-  /**
-   * Converts the given UpdateSketch to a compact form.
-   * EmptyCompactSketch and SingleItemSketch have already been checked.
-   * @param sketch the given UpdateSketch
-   * @param dstMem the given destination Memory. This clears it before use.
-   * @param ordered true if the destination is to be ordered.
-   * @param curCount the number of retained entries.
-   * @param thetaLong the value of theta.
-   * @return a CompactSketch.
-   */
-  static CompactSketch compactDirect(final UpdateSketch sketch,
-      final WritableMemory dstMem, final boolean ordered, final int curCount, final long thetaLong) {
-    final int preLongs = computeCompactPreLongs(thetaLong, false, curCount);
-    final short seedHash = sketch.getSeedHash();
-    final long[] cache = sketch.getCache();
-    final long[] compactCache = CompactSketch.compactCache(cache, curCount, thetaLong, ordered);
-    if (ordered) {
-      final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK | ORDERED_FLAG_MASK);
-      loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
-      return new DirectCompactOrderedSketch(dstMem);
-    } else {
-      final byte flags = (byte)(READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK);
-      loadCompactMemory(compactCache, seedHash, curCount, thetaLong, dstMem, flags, preLongs);
-      return new DirectCompactUnorderedSketch(dstMem);
-    }
-  }
-
 
   @Override
   public boolean isCompact() {
@@ -230,12 +163,30 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Returns a new builder
-   *
    * @return a new builder
    */
   public static final UpdateSketchBuilder builder() {
     return new UpdateSketchBuilder();
   }
+
+  /**
+   * Returns the configured ResizeFactor
+   * @return the configured ResizeFactor
+   */
+  public abstract ResizeFactor getResizeFactor();
+
+  /**
+   * Gets the configured sampling probability, <i>p</i>.
+   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
+   * @return the sampling probability, <i>p</i>
+   */
+  abstract float getP();
+
+  /**
+   * Gets the configured seed
+   * @return the configured seed
+   */
+  abstract long getSeed();
 
   /**
    * Resets this sketch back to a virgin empty state.
@@ -248,12 +199,6 @@ public abstract class UpdateSketch extends Sketch {
    * @return this sketch
    */
   public abstract UpdateSketch rebuild();
-
-  /**
-   * Returns the configured ResizeFactor
-   * @return the configured ResizeFactor
-   */
-  public abstract ResizeFactor getResizeFactor();
 
   /**
    * Present this sketch with a long.
@@ -393,19 +338,6 @@ public abstract class UpdateSketch extends Sketch {
   public abstract int getLgNomLongs();
 
   /**
-   * Gets the configured sampling probability, <i>p</i>.
-   * <a href="{@docRoot}/resources/dictionary.html#p">See Sampling Probability, <i>p</i></a>
-   * @return the sampling probability, <i>p</i>
-   */
-  abstract float getP();
-
-  /**
-   * Gets the configured seed
-   * @return the configured seed
-   */
-  abstract long getSeed();
-
-  /**
    * Returns true if the internal cache contains "dirty" values that are greater than or equal
    * to thetaLong.
    * @return true if the internal cache is dirty.
@@ -469,7 +401,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seed hashes
     final short seedHash = checkMemorySeedHash(srcMem, seed);              //byte 6,7
-    Util.checkSeedHashes(seedHash, Util.computeSeedHash(seed));
+    checkSeedHashes(seedHash, computeSeedHash(seed));
 
     //Check mem capacity, lgArrLongs
     final long curCapBytes = srcMem.getCapacity();
@@ -482,12 +414,31 @@ public abstract class UpdateSketch extends Sketch {
     //check Theta, p
     final float p = extractP(srcMem);                                   //bytes 12-15
     final long thetaLong = extractThetaLong(srcMem);                    //bytes 16-23
-    final double theta = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double theta = thetaLong / LONG_MAX_VALUE_AS_DOUBLE;
+    //if (lgArrLongs <= lgNomLongs) the sketch is still resizing, thus theta cannot be < p.
     if ((lgArrLongs <= lgNomLongs) && (theta < p) ) {
       throw new SketchesArgumentException(
         "Possible corruption: Theta cannot be < p and lgArrLongs <= lgNomLongs. "
             + lgArrLongs + " <= " + lgNomLongs + ", Theta: " + theta + ", p: " + p);
     }
+  }
+
+  /**
+   * This checks to see if the memory RF factor was set correctly as early versions may not
+   * have set it.
+   * @param srcMem the source memory
+   * @param lgNomLongs the current lgNomLongs
+   * @param lgArrLongs the current lgArrLongs
+   * @return true if the the memory RF factor is incorrect and the caller can either
+   * correct it or throw an error.
+   */
+  static boolean isResizeFactorIncorrect(final Memory srcMem, final int lgNomLongs,
+      final int lgArrLongs) {
+    final int lgT = lgNomLongs + 1;
+    final int lgA = lgArrLongs;
+    final int lgR = extractLgResizeFactor(srcMem);
+    if (lgR == 0) { return lgA != lgT; }
+    return !(((lgT - lgA) % lgR) == 0);
   }
 
 }

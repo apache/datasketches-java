@@ -27,39 +27,51 @@ package org.apache.datasketches.theta;
 public enum UpdateReturnState {
 
   /**
-   * Indicates that the value was accepted into the sketch and the retained count was incremented.
+   * The hash was accepted into the sketch and the retained count was incremented.
    */
   InsertedCountIncremented, //all UpdateSketches
 
   /**
-   * Indicates that the value was accepted into the sketch and the retained count was not incremented.
+   * The hash was accepted into the sketch, the retained count was incremented.
+   * The current cache was out of room and resized larger based on the Resize Factor.
+   */
+  InsertedCountIncrementedResized, //used by HeapQuickSelectSketch
+
+  /**
+   * The hash was accepted into the sketch, the retained count was incremented.
+   * The current cache was out of room and at maximum size, so the cache was rebuilt.
+   */
+  InsertedCountIncrementedRebuilt, //used by HeapQuickSelectSketch
+
+  /**
+   * The hash was accepted into the sketch and the retained count was not incremented.
    */
   InsertedCountNotIncremented, //used by enhancedHashInsert for Alpha
 
   /**
-   * Indicates that the value was inserted into the local concurrent buffer,
+   * The hash was inserted into the local concurrent buffer,
    * but has not yet been propagated to the concurrent shared sketch.
    */
   ConcurrentBufferInserted, //used by ConcurrentHeapThetaBuffer
 
   /**
-   * Indicates that the value has been propagated to the concurrent shared sketch.
+   * The hash has been propagated to the concurrent shared sketch.
    * This does not reflect the action taken by the shared sketch.
    */
   ConcurrentPropagated,  //used by ConcurrentHeapThetaBuffer
 
   /**
-   * Indicates that the value was rejected as a duplicate.
+   * The hash was rejected as a duplicate.
    */
   RejectedDuplicate, //all UpdateSketches hashUpdate(), enhancedHashInsert
 
   /**
-   * Indicates that the value was rejected because it was null or empty.
+   * The hash was rejected because it was null or empty.
    */
   RejectedNullOrEmpty, //UpdateSketch.update(arr[])
 
   /**
-   * Indicates that the value was rejected because the hash value was negative, zero or
+   * The hash was rejected because the value was negative, zero or
    * greater than theta.
    */
   RejectedOverTheta; //all UpdateSketches.hashUpdate()

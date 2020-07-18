@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.min;
 import static org.apache.datasketches.QuickSelect.selectExcludingZeros;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.theta.CompactSketch.compactCache;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -38,7 +37,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.extractUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
+import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.HashOperations;
@@ -136,7 +135,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
   }
 
@@ -153,7 +152,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
   }
 
@@ -170,7 +169,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
   }
 
@@ -187,7 +186,7 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
   }
 
@@ -204,8 +203,14 @@ final class UnionImpl extends Union {
     final UpdateSketch gadget = DirectQuickSelectSketch.writableWrap(srcMem, seed);
     final UnionImpl unionImpl = new UnionImpl(gadget, seed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
-    unionImpl.unionEmpty_ = PreambleUtil.isEmpty(srcMem);
+    unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
+  }
+
+  @Override
+  public boolean isSameResource(final Memory that) {
+    return (gadget_ instanceof DirectQuickSelectSketchR)
+        ? gadget_.getMemory().isSameResource(that) : false;
   }
 
   @Override
@@ -236,10 +241,12 @@ final class UnionImpl extends Union {
 
     //Compact the cache
     final long[] compactCacheOut =
-        compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
+        CompactOperations.compactCache(gadgetCacheCopy, curCountOut, minThetaLong, dstOrdered);
     final boolean empty = gadget_.isEmpty() && unionEmpty_;
-    return createCompactSketch(
-        compactCacheOut, empty, seedHash_, curCountOut, minThetaLong, dstOrdered, dstMem);
+    final short seedHash = gadget_.getSeedHash();
+    return CompactOperations.componentsToCompact(
+        minThetaLong, curCountOut, seedHash, empty, true, dstOrdered, dstOrdered, dstMem,
+        compactCacheOut);
   }
 
   @Override
@@ -262,9 +269,11 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public boolean isSameResource(final Memory that) {
-    return (gadget_ instanceof DirectQuickSelectSketchR)
-        ? gadget_.getMemory().isSameResource(that) : false;
+  public CompactSketch union(final Sketch sketchA, final Sketch sketchB, final boolean dstOrdered,
+      final WritableMemory dstMem) {
+    update(sketchA);
+    update(sketchB);
+    return getResult(dstOrdered, dstMem);
   }
 
   @Override
@@ -367,7 +376,7 @@ final class UnionImpl extends Union {
     final int preLongs = extractPreLongs(skMem);
 
     if (preLongs == 1) {
-      if (isSingleItem(skMem)) {
+      if (otherCheckForSingleItem(skMem)) {
         final long hash = skMem.getLong(8);
         gadget_.hashUpdate(hash);
         return;

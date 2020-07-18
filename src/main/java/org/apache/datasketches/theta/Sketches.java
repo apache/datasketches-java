@@ -284,6 +284,18 @@ public final class Sketches {
     return SetOperation.getMaxIntersectionBytes(nomEntries);
   }
 
+  /**
+   * Ref: {@link SetOperation#getMaxAnotBResultBytes(int)}.
+   * Returns the maximum number of bytes for the returned CompactSketch, given the maximum
+   * value of nomEntries of the first sketch A of AnotB.
+   * @param maxNomEntries the given value
+   * @return the maximum number of bytes.
+   */
+  public static int getMaxAnotBResultBytes(final int maxNomEntries) {
+    return SetOperation.getMaxAnotBResultBytes(maxNomEntries);
+  }
+
+
   //Get estimates and bounds from Memory
 
   /**

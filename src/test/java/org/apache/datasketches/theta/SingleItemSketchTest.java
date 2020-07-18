@@ -22,7 +22,6 @@ package org.apache.datasketches.theta;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -37,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc","deprecation"})
 public class SingleItemSketchTest {
   final static short DEFAULT_SEED_HASH = (short) (computeSeedHash(DEFAULT_UPDATE_SEED) & 0XFFFFL);
 
@@ -123,8 +122,7 @@ public class SingleItemSketchTest {
   @Test
   public void checkSketchInterface() {
     SingleItemSketch sis = SingleItemSketch.create(1);
-    assertEquals(sis.getCountLessThanTheta(1.0), 1);
-    assertEquals(sis.getCurrentBytes(true), 16);
+    assertEquals(sis.getCompactBytes(), 16);
     assertEquals(sis.getEstimate(), 1.0);
     assertEquals(sis.getLowerBound(1), 1.0);
     assertEquals(sis.getRetainedEntries(true), 1);
@@ -136,13 +134,14 @@ public class SingleItemSketchTest {
   }
 
   @Test
-  public void checkLessThanTheta() {
+  public void checkLessThanThetaLong() {
     for (int i = 0; i < 10; i++) {
       long[] data = { i };
       long h = hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1;
-      double theta = h / MAX_THETA_LONG_AS_DOUBLE;
       SingleItemSketch sis = SingleItemSketch.create(i);
-      assertEquals(sis.getCountLessThanTheta(0.5), (theta < 0.5) ? 1 : 0);
+      long halfMax = Long.MAX_VALUE >> 1;
+      int count = sis.getCountLessThanThetaLong(halfMax);
+      assertEquals(count, (h < halfMax) ? 1 : 0);
     }
   }
 
@@ -168,7 +167,7 @@ public class SingleItemSketchTest {
   public void checkRestricted() {
     SingleItemSketch sis = SingleItemSketch.create(1);
     assertNull(sis.getMemory());
-    assertEquals(sis.getCurrentPreambleLongs(true), 1);
+    assertEquals(sis.getCompactPreambleLongs(), 1);
   }
 
   @Test
@@ -203,13 +202,12 @@ public class SingleItemSketchTest {
     csk = sk1.compact(false, null);
     assertTrue(csk instanceof SingleItemSketch);
 
-    //SingleItemSketch has no off-heap form.
     bytes = Sketches.getMaxCompactSketchBytes(1);
     wmem = WritableMemory.wrap(new byte[bytes]);
     csk = sk1.compact(true, wmem);
-    assertTrue(csk instanceof SingleItemSketch);
+    assertTrue(csk.isOrdered());
     csk = sk1.compact(false, wmem);
-    assertTrue(csk instanceof SingleItemSketch);
+    assertTrue(csk.isOrdered());
   }
 
   @Test
@@ -224,8 +222,8 @@ public class SingleItemSketchTest {
     sk1.update(2);
     sk2.update(1);
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
     csk = inter.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
@@ -233,8 +231,8 @@ public class SingleItemSketchTest {
     bytes = Sketches.getMaxIntersectionBytes(32);
     WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
     inter = Sketches.setOperationBuilder().buildIntersection(wmem);
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
     csk = inter.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
     csk = inter.getResult(false, null);
@@ -292,11 +290,11 @@ public class SingleItemSketchTest {
     UpdateSketch sk2 = new UpdateSketchBuilder().build();
     sk2.update(1);
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
-    inter.update(sk1);
-    inter.update(sk2);
+    inter.intersect(sk1);
+    inter.intersect(sk2);
     WritableMemory wmem = WritableMemory.wrap(new byte[16]);
     CompactSketch csk = inter.getResult(false, wmem);
-    assertTrue(csk instanceof SingleItemSketch);
+    assertTrue(csk.isOrdered());
     Sketch csk2 = Sketches.heapifySketch(wmem);
     assertTrue(csk2 instanceof SingleItemSketch);
     println(csk2.toString(true, true, 1, true));
@@ -324,6 +322,21 @@ public class SingleItemSketchTest {
     assertEquals(sk.getEstimate(), 1.0, 0.0);
     //println(sk.toString());
   }
+
+  @Test
+  public void checkSingleItemCompact() {
+    UpdateSketch sk1 = new UpdateSketchBuilder().build();
+    sk1.update(1);
+    CompactSketch csk = sk1.compact();
+    assertTrue(csk instanceof SingleItemSketch);
+    CompactSketch csk2 = csk.compact();
+    assertEquals(csk, csk2);
+    CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(16));
+    assertTrue(csk3 instanceof DirectCompactSketch);
+    assertEquals(csk2.getCurrentPreambleLongs(), 1);
+    assertEquals(csk3.getCurrentPreambleLongs(), 1);
+  }
+
 
   static final long SiSkPre0WithSiFlag = 0x93cc3a0000030301L;
   static final long SiSkPre0WoutSiFlag = 0x93cc1a0000030301L;

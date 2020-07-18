@@ -20,6 +20,8 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
+import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
@@ -59,9 +61,9 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //Sketch
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
-    final int preLongs = getCurrentPreambleLongs(compact);
-    final int dataLongs = getCurrentDataLongs(compact);
+  public int getCurrentBytes() {
+    final int preLongs = getCurrentPreambleLongs();
+    final int dataLongs = getCurrentDataLongs();
     return (preLongs + dataLongs) << 3;
   }
 
@@ -83,15 +85,13 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   }
 
   @Override
-  public ResizeFactor getResizeFactor() {
-    return rf_;
-  }
-
-  //restricted methods
-
-  @Override
   float getP() {
     return p_;
+  }
+
+  @Override
+  public ResizeFactor getResizeFactor() {
+    return rf_;
   }
 
   @Override
@@ -99,16 +99,19 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return seed_;
   }
 
+  //restricted methods
+
   @Override
   short getSeedHash() {
     return Util.computeSeedHash(getSeed());
   }
 
+  //Used by HeapAlphaSketch and HeapQuickSelectSketch
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
-    Sketch.checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
+    checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
     final int preBytes = (preLongs << 3) & 0X3F;
-    final int dataBytes = getCurrentDataLongs(false) << 3;
+    final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
     final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
 
@@ -124,7 +127,8 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
     insertCurCount(memOut, this.getRetainedEntries(true));
     insertP(memOut, getP());
-    final long thetaLong = correctThetaOnCompact(isEmpty(), getRetainedEntries(), getThetaLong());
+    final long thetaLong =
+        correctThetaOnCompact(isEmpty(), getRetainedEntries(true), getThetaLong());
     insertThetaLong(memOut, thetaLong);
 
     //Flags: BigEnd=0, ReadOnly=0, Empty=X, compact=0, ordered=0

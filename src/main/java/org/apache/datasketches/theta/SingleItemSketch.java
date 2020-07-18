@@ -24,34 +24,36 @@ import static org.apache.datasketches.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.theta.PreambleUtil.MAX_THETA_LONG_AS_DOUBLE;
+import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
-import static org.apache.datasketches.theta.PreambleUtil.isSingleItem;
+import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
+import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
+import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * A CompactSketch that holds only one item hash.
  *
  * @author Lee Rhodes
  */
-public final class SingleItemSketch extends CompactSketch {
+final class SingleItemSketch extends CompactSketch {
   private static final long DEFAULT_SEED_HASH = computeSeedHash(DEFAULT_UPDATE_SEED) & 0xFFFFL;
 
   // For backward compatibility, a candidate pre0_ long must have:
-  // Flags byte 5 must be Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
+  // Flags (byte 5): Ordered, Compact, NOT Empty, Read Only, LittleEndian = 11010 = 0x1A.
   // Flags mask will be 0x1F.
   // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
   // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
   // and the hash seed matches, it is virtually guaranteed that we have a SingleItem Sketch.
 
   private static final long PRE0_LO6_SI   = 0X00_00_3A_00_00_03_03_01L; //with SI flag
-
   private long pre0_ = 0;
   private long hash_ = 0;
-
 
   //Internal Constructor. All checking & hashing has been done, assumes default seed
   private SingleItemSketch(final long hash) {
@@ -78,9 +80,9 @@ public final class SingleItemSketch extends CompactSketch {
    * DEFAULT_UPDATE_SEED.
    * @param srcMem the Memory to be heapified.  It must be a least 16 bytes.
    * @return a SingleItemSketch
-   */
+   */ //does not override Sketch
   public static SingleItemSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, Util.DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -89,13 +91,22 @@ public final class SingleItemSketch extends CompactSketch {
    * @param srcMem the Memory to be heapified.
    * @param seed a given hash seed
    * @return a SingleItemSketch
-   */
+   */ //does not override Sketch
   public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
     final short seedHashMem = checkMemorySeedHash(srcMem, seed);
-    if (isSingleItem(srcMem)) {
-      return new SingleItemSketch(srcMem.getLong(8), seedHashMem);
+    final boolean singleItem = otherCheckForSingleItem(srcMem);
+    if (singleItem) { return new SingleItemSketch(srcMem.getLong(8), seedHashMem); }
+    throw new SketchesArgumentException("Input Memory is not a SingleItemSketch.");
+  }
+
+  @Override
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
+    if (dstMem == null) { return this; }
+    else {
+      dstMem.putLong(0, pre0_);
+      dstMem.putLong(8, hash_);
+      return new DirectCompactSketch(dstMem);
     }
-    throw new SketchesArgumentException("Input Memory Preamble is not a SingleItemSketch.");
   }
 
   //Create methods using the default seed
@@ -106,7 +117,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param datum The given long datum.
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch create(final long datum) {
+  static SingleItemSketch create(final long datum) {
     final long[] data = { datum };
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
@@ -121,7 +132,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param datum The given double datum.
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch create(final double datum) {
+  static SingleItemSketch create(final double datum) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
     final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
@@ -139,7 +150,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param datum The given String.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final String datum) {
+  static SingleItemSketch create(final String datum) {
     if ((datum == null) || datum.isEmpty()) { return null; }
     final byte[] data = datum.getBytes(UTF_8);
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
@@ -152,7 +163,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param data The given byte array.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final byte[] data) {
+  static SingleItemSketch create(final byte[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
@@ -167,7 +178,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param data The given char array.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final char[] data) {
+  static SingleItemSketch create(final char[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
@@ -179,7 +190,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param data The given int array.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final int[] data) {
+  static SingleItemSketch create(final int[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
@@ -191,7 +202,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param data The given long array.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final long[] data) {
+  static SingleItemSketch create(final long[] data) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1);
   }
@@ -205,7 +216,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch create(final long datum, final long seed) {
+  static SingleItemSketch create(final long datum, final long seed) {
     final long[] data = { datum };
     return new SingleItemSketch(hash(data, seed)[0] >>> 1);
   }
@@ -221,7 +232,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch
    */
-  public static SingleItemSketch create(final double datum, final long seed) {
+  static SingleItemSketch create(final double datum, final long seed) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
     final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
@@ -240,7 +251,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final String datum, final long seed) {
+  static SingleItemSketch create(final String datum, final long seed) {
     if ((datum == null) || datum.isEmpty()) { return null; }
     final byte[] data = datum.getBytes(UTF_8);
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
@@ -254,7 +265,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final byte[] data, final long seed) {
+  static SingleItemSketch create(final byte[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
   }
@@ -270,7 +281,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final char[] data, final long seed) {
+  static SingleItemSketch create(final char[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
   }
@@ -283,7 +294,7 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final int[] data, final long seed) {
+  static SingleItemSketch create(final int[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
   }
@@ -296,20 +307,20 @@ public final class SingleItemSketch extends CompactSketch {
    * @param seed used to hash the given value.
    * @return a SingleItemSketch or null
    */
-  public static SingleItemSketch create(final long[] data, final long seed) {
+  static SingleItemSketch create(final long[] data, final long seed) {
     if ((data == null) || (data.length == 0)) { return null; }
     return new SingleItemSketch(hash(data, seed)[0] >>> 1, seed);
   }
 
   //Sketch
 
-  @Override
-  public int getCountLessThanTheta(final double theta) {
-    return (hash_ < (theta * MAX_THETA_LONG_AS_DOUBLE)) ? 1 : 0;
+  @Override //much faster
+  public int getCountLessThanThetaLong(final long thetaLong) {
+    return (hash_ < thetaLong) ? 1 : 0;
   }
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
+  public int getCurrentBytes() {
     return 16;
   }
 
@@ -379,7 +390,12 @@ public final class SingleItemSketch extends CompactSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  int getCompactPreambleLongs() {
+    return 1;
+  }
+
+  @Override
+  int getCurrentPreambleLongs() {
     return 1;
   }
 
@@ -391,6 +407,27 @@ public final class SingleItemSketch extends CompactSketch {
   @Override
   short getSeedHash() {
     return (short) (pre0_ >>> 48);
+  }
+
+  static final boolean otherCheckForSingleItem(final Memory mem) {
+    return otherCheckForSingleItem(extractPreLongs(mem), extractSerVer(mem),
+        extractFamilyID(mem), extractFlags(mem) );
+  }
+
+  static final boolean otherCheckForSingleItem(final int preLongs, final int serVer,
+      final int famId, final int flags) {
+    // Flags byte: SI=X, Ordered=T, Compact=T, Empty=F, ReadOnly=T, BigEndian=F = X11010 = 0x1A.
+    // Flags mask will be 0x1F.
+    // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
+    // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
+    // and the hash seed matches (not done here), it is virtually guaranteed that we have a
+    // SingleItem Sketch.
+    final boolean numPreLongs = preLongs == 1;
+    final boolean numSerVer = serVer >= 3;
+    final boolean numFamId = famId == Family.COMPACT.getID();
+    final boolean numFlags =  (flags & 0x1F) == 0x1A; //no SI, yet
+    final boolean singleFlag = (flags & SINGLEITEM_FLAG_MASK) > 0;
+    return (numPreLongs && numSerVer && numFamId && numFlags) || singleFlag;
   }
 
 }

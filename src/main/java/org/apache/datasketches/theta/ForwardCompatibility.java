@@ -100,8 +100,7 @@ final class ForwardCompatibility {
 
     final long[] compactOrderedCache = new long[curCount];
     srcMem.getLongArray(preLongs << 3, compactOrderedCache, 0, curCount);
-    return HeapCompactOrderedSketch
-        .compact(compactOrderedCache, false, seedHash, curCount, thetaLong);
+    return new HeapCompactSketch(compactOrderedCache, false, seedHash, curCount, thetaLong, true);
   }
 
   /**
@@ -147,8 +146,7 @@ final class ForwardCompatibility {
       validateInputSize(reqBytesIn, memCap);
       final long[] compactOrderedCache = new long[curCount];
       srcMem.getLongArray(preLongs << 3, compactOrderedCache, 0, curCount);
-      return HeapCompactOrderedSketch
-          .compact(compactOrderedCache, false, seedHash, curCount, thetaLong);
+      return new HeapCompactSketch(compactOrderedCache, false, seedHash, curCount, thetaLong,true);
     }
     if (preLongs == 3) { //pre0 + count + theta
       reqBytesIn = (preLongs) << 3; //
@@ -169,8 +167,7 @@ final class ForwardCompatibility {
       validateInputSize(reqBytesIn, memCap);
       final long[] compactOrderedCache = new long[curCount];
       srcMem.getLongArray(preLongs << 3, compactOrderedCache, 0, curCount);
-      return HeapCompactOrderedSketch
-          .compact(compactOrderedCache, false, seedHash, curCount, thetaLong);
+      return new HeapCompactSketch(compactOrderedCache, false, seedHash, curCount, thetaLong, true);
     }
     throw new SketchesArgumentException("PreLongs must be 1,2, or 3: " + preLongs);
   }

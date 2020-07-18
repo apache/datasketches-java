@@ -55,10 +55,6 @@ final class IntersectionImpl extends IntersectionImplR {
     super(wmem, seed, newMem);
   }
 
-  IntersectionImpl(final short seedHash) {
-    super(seedHash);
-  }
-
   /**
    * Construct a new Intersection target on the java heap.
    *
@@ -74,7 +70,6 @@ final class IntersectionImpl extends IntersectionImplR {
     impl.hashTable_ = null;
     return impl;
   }
-
 
   /**
    * Construct a new Intersection target direct to the given destination Memory.
@@ -180,16 +175,24 @@ final class IntersectionImpl extends IntersectionImplR {
     return (IntersectionImpl) internalWrapInstance(srcMem, impl);
   }
 
+  @Deprecated
   @Override
   public void update(final Sketch sketchIn) {
-    //Null/Empty cases: Note: null == empty := Th = 1.0, count = 0, empty = true
-    if (empty_ || (sketchIn == null) || sketchIn.isEmpty()) { //empty rule
+    intersect(sketchIn);
+  }
+
+  @Override
+  public void intersect(final Sketch sketchIn) {
+    if (sketchIn == null) {
+      throw new SketchesArgumentException("Intersection argument must not be null.");
+    }
+    if (empty_ || sketchIn.isEmpty()) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make it empty.
-      empty_ = true;
-      thetaLong_ = Long.MAX_VALUE;
-      curCount_ = 0;
       lgArrLongs_ = 0;
+      curCount_ = 0;
+      thetaLong_ = Long.MAX_VALUE;
+      empty_ = true;
       maxLgArrLongs_ = 0;
       hashTable_ = null;
       if (mem_ != null) {
@@ -212,10 +215,10 @@ final class IntersectionImpl extends IntersectionImplR {
 
     // The truth table for the following state machine
     //   Case  curCount  sketchInEntries | Actions
-    //     1      <0            0        | First update, curCount = 0; HT = null; exit
+    //     1      <0            0        | First intersect, curCount = 0; HT = null; exit
     //     2       0            0        | CurCount = 0; HT = null; exit
     //     3      >0            0        | CurCount = 0; HT = null; exit
-    //     5      <0           >0        | First update, clone SketchIn; exit
+    //     5      <0           >0        | First intersect, clone SketchIn; exit
     //     6       0           >0        | CurCount = 0; HT = null; exit
     //     7      >0           >0        | Perform full intersect
     final int sw = ((curCount_ < 0) ? 1 : (curCount_ == 0) ? 2 : 3)
@@ -231,7 +234,7 @@ final class IntersectionImpl extends IntersectionImplR {
         hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
         break;
       }
-      case 5: { // curCount_ < 0; This is the 1st update, clone the incoming sketch
+      case 5: { // curCount_ < 0; This is the 1st intersect, clone the incoming sketch
         curCount_ = sketchIn.getRetainedEntries(true);
         final int requiredLgArrLongs = computeMinLgArrLongsFromCount(curCount_);
         final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
@@ -260,7 +263,7 @@ final class IntersectionImpl extends IntersectionImplR {
         performIntersect(sketchIn);
         break;
       }
-      //default: not possible
+      //default: assert false : "Should not happen";
     }
   }
 
@@ -268,13 +271,14 @@ final class IntersectionImpl extends IntersectionImplR {
   public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
      final WritableMemory dstMem) {
     reset();
-    update(a);
-    update(b);
+    intersect(a);
+    intersect(b);
     return getResult(dstOrdered, dstMem);
   }
 
   @Override
   public void reset() {
+    lgArrLongs_ = 0;
     curCount_ = -1;
     thetaLong_ = Long.MAX_VALUE;
     empty_ = false;
@@ -359,7 +363,7 @@ final class IntersectionImpl extends IntersectionImplR {
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = arr[i];
         if (HashOperations.continueCondition(thetaLong, hashIn)) { continue; }
-        HashOperations.fastHashInsertOnly(mem_, lgArrLongs, hashIn, preBytes);
+        HashOperations.hashInsertOnlyMemory(mem_, lgArrLongs, hashIn, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough

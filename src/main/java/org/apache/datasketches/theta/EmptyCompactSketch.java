@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Singleton empty CompactSketch.
@@ -32,7 +33,7 @@ final class EmptyCompactSketch extends CompactSketch {
   //For backward compatibility, a candidate long must have Flags= compact, read-only,
   //  COMPACT-Family=3, SerVer=3, PreLongs=1, and be exactly 8 bytes long. The seedHash is ignored.
   // NOTE: The empty and ordered flags may or may not be set
-  private static final long EMPTY_SKETCH_MASK = 0X00_00_EB_FF_FF_FF_FF_FFL;
+  private static final long EMPTY_SKETCH_MASK = 0X00_00_EB_00_00_FF_FF_FFL;
   private static final long EMPTY_SKETCH_TEST = 0X00_00_0A_00_00_03_03_01L;
   //When returning a byte array the empty and ordered bits are also set
   static final byte[] EMPTY_COMPACT_SKETCH_ARR = { 1, 3, 3, 0, 0, 0x1E, 0, 0 };
@@ -44,14 +45,26 @@ final class EmptyCompactSketch extends CompactSketch {
     return EMPTY_COMPACT_SKETCH;
   }
 
-  static EmptyCompactSketch getInstance(final Memory srcMem) {
+  //This should be a heapify
+  static EmptyCompactSketch getHeapInstance(final Memory srcMem) {
     final long pre0 = srcMem.getLong(0);
     if (testCandidatePre0(pre0)) {
       return EMPTY_COMPACT_SKETCH;
     }
     final long maskedPre0 = pre0 & EMPTY_SKETCH_MASK;
     throw new SketchesArgumentException("Input Memory does not match required Preamble. "
-        + "Memory Pre0: " + maskedPre0 + ", required Pre0: " +  EMPTY_SKETCH_MASK);
+        + "Memory Pre0: " + Long.toHexString(maskedPre0)
+        + ", required Pre0: " + Long.toHexString(EMPTY_SKETCH_TEST));
+  }
+
+  @Override
+  // This returns with ordered flag = true independent of dstOrdered.
+  // This is required for fast detection.
+  // The hashSeed is ignored and set == 0.
+  public CompactSketch compact(final boolean dstOrdered, final WritableMemory wmem) {
+    if (wmem == null) { return EmptyCompactSketch.getInstance(); }
+    wmem.putByteArray(0, EMPTY_COMPACT_SKETCH_ARR, 0, 8);
+    return new DirectCompactSketch(wmem);
   }
 
   //static
@@ -61,7 +74,7 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   @Override
-  public int getCurrentBytes(final boolean compact) {
+  public int getCurrentBytes() {
     return 8;
   }
 
@@ -119,7 +132,12 @@ final class EmptyCompactSketch extends CompactSketch {
   }
 
   @Override
-  int getCurrentPreambleLongs(final boolean compact) {
+  int getCompactPreambleLongs() {
+    return 1;
+  }
+
+  @Override
+  int getCurrentPreambleLongs() {
     return 1;
   }
 

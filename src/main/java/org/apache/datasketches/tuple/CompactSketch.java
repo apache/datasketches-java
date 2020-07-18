@@ -121,6 +121,11 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     }
   }
 
+  @Override
+  public CompactSketch<S> compact() {
+    return this;
+  }
+
   long[] getHashArr() {
     return hashArr_;
   }

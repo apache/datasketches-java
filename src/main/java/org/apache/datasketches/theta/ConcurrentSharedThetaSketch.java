@@ -24,9 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * An interface to define the API of a concurrent shared theta sketch.
+ * An internal interface to define the API of a concurrent shared theta sketch.
  * It reflects all data processed by a single or multiple update threads, and can serve queries at
- * any time
+ * any time.
  *
  * @author eshcar
  */
@@ -117,8 +117,21 @@ interface ConcurrentSharedThetaSketch {
   //The following mirrors are public methods that already exist on the "extends" side of the dual
   // inheritance. They are provided here to allow casts to this interface access
   // to these methods without having to cast back to the extended parent class.
+  //
+  //This allows an internal class to cast either the Concurrent Direct or Concurrent Heap
+  //shared class to this interface and have access to the above special concurrent methods as
+  //well as the methods below.
+  //
+  //For the external user all of the below methods can be obtained by casting the shared
+  //sketch to UpdateSketch.  However, these methods here also act as an alias so that an
+  //attempt to access these methods from the local buffer will be divered to the shared
+  //sketch.
 
-  int getCurrentBytes(boolean compact);
+  //From Sketch
+
+  int getCompactBytes();
+
+  int getCurrentBytes();
 
   double getEstimate();
 

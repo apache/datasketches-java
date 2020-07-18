@@ -19,22 +19,21 @@
 
 package org.apache.datasketches.theta;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 
 import java.util.Arrays;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -230,7 +229,7 @@ public class HeapUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCompactBytes()]);
     CompactSketch cosk2 = usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
@@ -269,7 +268,7 @@ public class HeapUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCompactBytes()]);
     usk2.compact(true, cskMem2); //ordered, loads the cskMem2 as ordered
 
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
@@ -308,7 +307,7 @@ public class HeapUnionTest {
       usk2.update(i);  //2k no overlap, exact, will force early stop
     }
 
-    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCurrentBytes(true)]);
+    WritableMemory cskMem2 = WritableMemory.wrap(new byte[usk2.getCompactBytes()]);
     usk2.compact(false, cskMem2); //unordered, loads the cskMem2 as unordered
 
     Union union = SetOperation.builder().setNominalEntries(k).buildUnion();
@@ -562,7 +561,7 @@ public class HeapUnionTest {
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.update(sk);
     CompactSketch csk = union.getResult();
-    assertEquals(csk.getCurrentBytes(true), 8);
+    assertEquals(csk.getCompactBytes(), 8);
   }
 
   @Test
@@ -626,7 +625,7 @@ public class HeapUnionTest {
     compEst2 = comp2.getEstimate();
     assertEquals(compEst2, compEst1, 0.0);
 
-    WritableMemory mem = WritableMemory.wrap(new byte[comp2.getCurrentBytes(false)]);
+    WritableMemory mem = WritableMemory.wrap(new byte[comp2.getCurrentBytes()]);
 
     compEst2 = union.getResult(false, mem).getEstimate(); //not ordered, mem
     assertEquals(compEst2, compEst1, 0.0);

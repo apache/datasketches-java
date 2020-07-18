@@ -25,11 +25,10 @@ import static org.testng.Assert.fail;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.SketchesReadOnlyException;
 
 @SuppressWarnings("javadoc")
 public class ReadOnlyMemoryTest {
@@ -152,12 +151,12 @@ public class ReadOnlyMemoryTest {
     us2.update(3);
 
     Intersection i1 = SetOperation.builder().buildIntersection();
-    i1.update(us1);
-    i1.update(us2);
+    i1.intersect(us1);
+    i1.intersect(us2);
     Memory mem = Memory.wrap(ByteBuffer.wrap(i1.toByteArray())
         .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
     Intersection i2 = (Intersection) SetOperation.heapify(mem);
-    i2.update(us1);
+    i2.intersect(us1);
     Assert.assertEquals(i2.getResult().getEstimate(), 1.0);
   }
 
@@ -171,8 +170,8 @@ public class ReadOnlyMemoryTest {
     us2.update(3);
 
     Intersection i1 = SetOperation.builder().buildIntersection();
-    i1.update(us1);
-    i1.update(us2);
+    i1.intersect(us1);
+    i1.intersect(us2);
     Memory mem = Memory.wrap(ByteBuffer.wrap(i1.toByteArray())
         .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
     Intersection i2 = (Intersection) SetOperation.wrap(mem);
@@ -180,7 +179,7 @@ public class ReadOnlyMemoryTest {
 
     boolean thrown = false;
     try {
-      i2.update(us1);
+      i2.intersect(us1);
     } catch (SketchesReadOnlyException e) {
       thrown = true;
     }

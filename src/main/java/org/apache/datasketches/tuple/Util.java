@@ -25,14 +25,11 @@ import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
-import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.XxHash64;
 
 /**
  * Common utility functions for Tuples
- *
- * @author Lee Rhodes
  */
 public final class Util {
   private static final int PRIME = 0x7A3C_CA71;
@@ -99,7 +96,7 @@ public final class Util {
     return 1 << startingSubMultiple(
       // target table size is twice the number of nominal entries
       Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
-      ResizeFactor.getRF(lgResizeFactor),
+      lgResizeFactor,
       MIN_LG_ARR_LONGS
     );
   }

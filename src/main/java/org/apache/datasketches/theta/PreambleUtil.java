@@ -29,6 +29,7 @@ import java.nio.ByteOrder;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -190,8 +191,6 @@ final class PreambleUtil {
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
-  static final double MAX_THETA_LONG_AS_DOUBLE = Long.MAX_VALUE;
-
   /**
    * Computes the number of bytes required for a non-full sized sketch in hash-table form.
    * This can be used to compute current storage size for heap sketches, or current off-heap memory
@@ -239,7 +238,8 @@ final class PreambleUtil {
 
     //Flags
     final int flags = extractFlags(mem);
-    final String flagsStr = (flags) + ", " + zeroPad(Integer.toBinaryString(flags), 8);
+    final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
+        + zeroPad(Integer.toBinaryString(flags), 8);
     final String nativeOrder = ByteOrder.nativeOrder().toString();
     final boolean bigEndian = (flags & BIG_ENDIAN_FLAG_MASK) > 0;
     final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
@@ -274,9 +274,9 @@ final class PreambleUtil {
     }
     //else the same as an empty sketch or singleItem
 
-    final double thetaDbl = thetaLong / MAX_THETA_LONG_AS_DOUBLE;
+    final double thetaDbl = thetaLong / Util.LONG_MAX_VALUE_AS_DOUBLE;
     final String thetaHex = zeroPad(Long.toHexString(thetaLong), 16);
-    final double thetaUDbl = thetaULong / MAX_THETA_LONG_AS_DOUBLE;
+    final double thetaUDbl = thetaULong / Util.LONG_MAX_VALUE_AS_DOUBLE;
     final String thetaUHex = zeroPad(Long.toHexString(thetaULong), 16);
 
     final StringBuilder sb = new StringBuilder();
@@ -397,10 +397,21 @@ final class PreambleUtil {
     return mem.getLong(UNION_THETA_LONG);
   }
 
+  /**
+   * Sets PreLongs in the low 6 bits and sets LgRF in the upper 2 bits = 0.
+   * @param wmem the target WritableMemory
+   * @param preLongs the given number of preamble longs
+   */
   static void insertPreLongs(final WritableMemory wmem, final int preLongs) {
     wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) (preLongs & 0X3F));
   }
 
+  /**
+   * Sets the top 2 lgRF bits and does not affect the lower 6 bits (PreLongs).
+   * To work properly, this should be called after insertPreLongs().
+   * @param wmem the target WritableMemory
+   * @param rf the given lgRF bits
+   */
   static void insertLgResizeFactor(final WritableMemory wmem, final int rf) {
     final int curByte = wmem.getByte(PREAMBLE_LONGS_BYTE) & 0xFF;
     final int shift = LG_RESIZE_FACTOR_BIT; // shift in bits
@@ -462,24 +473,8 @@ final class PreambleUtil {
     wmem.putByte(FLAGS_BYTE, (byte) flags);
   }
 
-  static boolean isEmpty(final Memory mem) {
-    final boolean emptyFlag = (mem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) > 0;
-    final boolean emptyCap = mem.getCapacity() < 16L;
-    return emptyFlag || emptyCap;
-  }
-
-  static boolean isSingleItem(final Memory mem) {
-    // Flags byte must be LittleEndian, ReadOnly, Not Empty, Compact, Ordered = 11010 = 0x1A.
-    // Flags mask will be 0x1F.
-    // SingleItem flag may not be set due to a historical bug, so we can't depend on it for now.
-    // However, if the above flags are correct, preLongs == 1, SerVer >= 3, FamilyID == 3,
-    // and the hash seed matches (not done here), it is virtually guaranteed that we have a
-    // SingleItem Sketch.
-    final boolean preLongs = extractPreLongs(mem) == 1;
-    final boolean serVer = extractSerVer(mem) >= 3;
-    final boolean famId = extractFamilyID(mem) == Family.COMPACT.getID();
-    final boolean flags =  (extractFlags(mem) & 0x1F) == 0x1A; //no SI, yet
-    return preLongs && serVer && famId && flags;
+  static boolean isEmptyFlag(final Memory mem) {
+    return ((extractFlags(mem) & EMPTY_FLAG_MASK) > 0);
   }
 
   /**

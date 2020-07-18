@@ -35,14 +35,27 @@ public abstract class Intersection extends SetOperation {
   }
 
   /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * The {@link #intersect(Sketch)} method must have been called at least once.
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  public CompactSketch getResult() {
+    return getResult(true, null);
+  }
+
+  /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
-   * The update method must have been called at least once, otherwise an exception will be
-   * thrown. This is because a virgin Intersection object represents the Universal Set,
-   * which has an infinite number of values.
+   * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
+   * exception will be thrown. This is because a virgin Intersection object represents the
+   * Universal Set, which has an infinite number of values.
    *
-   * <p>Note that presenting an intersection with an empty or null sketch sets the internal
+   * <p>Note that presenting an intersection with an empty sketch sets the internal
    * state of the intersection to empty = true, and current count = 0. This is consistent with
-   * the mathematical definition of the intersection of any set with the null set is always null.</p>
+   * the mathematical definition of the intersection of any set with the empty set is
+   * always empty.</p>
+   *
+   * <p>Presenting an intersection with a null argument will throw an exception.</p>
+   *
    *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
@@ -55,20 +68,14 @@ public abstract class Intersection extends SetOperation {
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
-   * The update method must have been called at least once.
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
-   */
-  public abstract CompactSketch getResult();
-
-  /**
    * Returns true if there is an intersection result available
    * @return true if there is an intersection result available
    */
   public abstract boolean hasResult();
 
   /**
-   * Resets this Intersection. The seed remains intact, otherwise reverts to
+   * Resets this Intersection for stateful operations only.
+   * The seed remains intact, otherwise reverts to
    * the Universal Set, theta of 1.0 and empty = false.
    */
   public abstract void reset();
@@ -85,8 +92,21 @@ public abstract class Intersection extends SetOperation {
    * If the given sketch is null the internal state becomes the empty sketch.
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
+   * @deprecated Use {@link #intersect(Sketch)} instead.
    */
-  public abstract void update(Sketch sketchIn);
+  @Deprecated
+  public void update(final Sketch sketchIn) {
+    intersect(sketchIn);
+  }
+
+  /**
+   * Intersect the given sketch with the internal state.
+   * This method can be repeatedly called.
+   * If the given sketch is null the internal state becomes the empty sketch.
+   * Theta will become the minimum of thetas seen so far.
+   * @param sketchIn the given sketch
+   */
+  public abstract void intersect(Sketch sketchIn);
 
   /**
    * Perform intersect set operation on the two given sketch arguments and return the result as an
