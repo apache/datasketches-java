@@ -20,6 +20,7 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
+import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -57,7 +58,8 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 class IntersectionImplR extends Intersection {
   protected final short seedHash_;
-  protected final WritableMemory mem_;
+  protected final boolean readOnly_;
+  protected final WritableMemory wmem_;
 
   //Note: Intersection does not use lgNomLongs or k, per se.
   protected int lgArrLongs_; //current size of hash table
@@ -66,31 +68,42 @@ class IntersectionImplR extends Intersection {
   protected boolean empty_;
 
   protected long[] hashTable_ = null;  //HT => Data.  Only used On Heap
-  protected int maxLgArrLongs_ = 0; //max size of hash table. Only used Off Heap
+  protected int maxLgArrLongs_ = 0; //max size of wmem_ hash table. Only used Off Heap, never reset.
 
-  protected IntersectionImplR(final WritableMemory mem, final long seed, final boolean newMem) {
-    mem_ = mem;
-    if (mem != null) {
-      if (newMem) {
+  /**
+   * Constructor.
+   * @param wmem Can be either a Source(e.g. wrap) or Destination (new Direct) WritableMemory
+   * @param seed Used to validate incoming sketch arguments
+   * @param dstMemFlag The given memory is a Destination (new Direct) WritableMemory
+   */
+  protected IntersectionImplR(final WritableMemory wmem, final long seed, final boolean dstMemFlag) {
+    readOnly_ = !dstMemFlag;
+    if (wmem != null) {
+      wmem_ = wmem;
+      if (dstMemFlag) { //DstMem: compute & store seedHash, newMem means no seedhash checking
+        checkMinSizeMemory(wmem);
         seedHash_ = computeSeedHash(seed);
-        mem_.putShort(SEED_HASH_SHORT, seedHash_);
-      } else {
-        seedHash_ = mem_.getShort(SEED_HASH_SHORT);
+        wmem_.putShort(SEED_HASH_SHORT, seedHash_);
+      } else { //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
+        seedHash_ = wmem_.getShort(SEED_HASH_SHORT);
         Util.checkSeedHashes(seedHash_, computeSeedHash(seed)); //check for seed hash conflict
       }
-    } else {
+    } else { //compute & store seedHash
+      wmem_ = null;
       seedHash_ = computeSeedHash(seed);
     }
   }
 
   /**
    * Wrap an Intersection target around the given source Memory containing intersection data.
+   * @See SetOperation#wrap(Memory, long)
    * @param srcMem The source Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @return an IntersectionImplR that wraps a read-only Intersection image referenced by srcMem
+   * @return an IntersectionImplR that wraps a read-only Intersection image
    */
   static IntersectionImplR wrapInstance(final Memory srcMem, final long seed) {
+    //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
     final IntersectionImplR impl = new IntersectionImplR((WritableMemory) srcMem, seed, false);
     return internalWrapInstance(srcMem, impl);
   }
@@ -134,7 +147,7 @@ class IntersectionImplR extends Intersection {
     impl.curCount_ = curCount;
     impl.thetaLong_ = thetaLong;
     impl.empty_ = empty;
-    impl.maxLgArrLongs_ = checkMaxLgArrLongs(srcMem); //Only Off Heap, check for min size
+    impl.maxLgArrLongs_ = getMaxLgArrLongs(srcMem); //Only Off Heap, check for min size
     return impl;
   }
 
@@ -154,10 +167,10 @@ class IntersectionImplR extends Intersection {
     }
     //else curCount > 0
     final long[] hashTable;
-    if (mem_ != null) {
+    if (wmem_ != null) {
       final int htLen = 1 << lgArrLongs_;
       hashTable = new long[htLen];
-      mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+      wmem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     } else {
       hashTable = hashTable_;
     }
@@ -172,13 +185,13 @@ class IntersectionImplR extends Intersection {
    * as the infinite <i>Universal Set</i>.
    */
   @Override
-  int getRetainedEntries(final boolean valid) {
+  int getRetainedEntries() {
     return curCount_;
   }
 
   @Override
   public boolean hasResult() {
-    return (mem_ != null) ? mem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
+    return (wmem_ != null) ? wmem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
   }
 
   @Override
@@ -188,7 +201,7 @@ class IntersectionImplR extends Intersection {
 
   @Override
   public boolean isSameResource(final Memory that) {
-    return (mem_ != null) ? mem_.isSameResource(that) : false;
+    return (wmem_ != null) ? wmem_.isSameResource(that) : false;
   }
 
   @Override
@@ -201,8 +214,8 @@ class IntersectionImplR extends Intersection {
     final int preBytes = CONST_PREAMBLE_LONGS << 3;
     final int dataBytes = (curCount_ > 0) ? 8 << lgArrLongs_ : 0;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
-    if (mem_ != null) {
-      mem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
+    if (wmem_ != null) {
+      wmem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
     }
     else {
       final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
@@ -253,13 +266,13 @@ class IntersectionImplR extends Intersection {
 
   @Override
   long[] getCache() {
-    if (mem_ == null) {
+    if (wmem_ == null) {
       return (hashTable_ != null) ? hashTable_ : new long[0];
     }
     //Direct
     final int arrLongs = 1 << lgArrLongs_;
     final long[] outArr = new long[arrLongs];
-    mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
+    wmem_.getLongArray(CONST_PREAMBLE_LONGS << 3, outArr, 0, arrLongs);
     return outArr;
   }
 
@@ -274,21 +287,23 @@ class IntersectionImplR extends Intersection {
   }
 
   /**
-   * Returns the correct maximum lgArrLongs given the capacity of the Memory. Checks that the
-   * capacity is large enough for the minimum sized hash table.
+   * Returns the maximum lgArrLongs given the capacity of the Memory.
    * @param dstMem the given Memory
-   * @return the correct maximum lgArrLongs given the capacity of the Memory
+   * @return the maximum lgArrLongs given the capacity of the Memory
    */
-  static final int checkMaxLgArrLongs(final Memory dstMem) {
+  static final int getMaxLgArrLongs(final Memory dstMem) {
     final int preBytes = CONST_PREAMBLE_LONGS << 3;
     final long cap = dstMem.getCapacity();
-    final int maxLgArrLongs =
-        Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
-    if (maxLgArrLongs < MIN_LG_ARR_LONGS) {
+    return Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
+  }
+
+  static final void checkMinSizeMemory(final Memory mem) {
+    final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << MIN_LG_ARR_LONGS);//280
+    final long cap = mem.getCapacity();
+    if (cap < minBytes) {
       throw new SketchesArgumentException(
-        "dstMem not large enough for minimum sized hash table: " + cap);
+          "Memory must be at least " + minBytes + " bytes. Actual capacity: " + cap);
     }
-    return maxLgArrLongs;
   }
 
   /**

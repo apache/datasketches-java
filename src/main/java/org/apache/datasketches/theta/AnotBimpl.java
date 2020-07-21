@@ -23,6 +23,7 @@ import static org.apache.datasketches.HashOperations.convertToHashTable;
 import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.checkSeedHashes;
+import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.Util.simpleIntLog2;
 
 import java.util.Arrays;
@@ -141,7 +142,7 @@ final class AnotBimpl extends AnotB {
   }
 
   @Override
-  int getRetainedEntries(final boolean valid) {
+  int getRetainedEntries() {
     return curCount_;
   }
 

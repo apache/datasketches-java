@@ -19,18 +19,14 @@
 
 package org.apache.datasketches.theta;
 
-import static java.lang.Math.max;
 import static org.apache.datasketches.Family.idToFamily;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -58,6 +54,10 @@ public abstract class SetOperation {
    * SetOperation using the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
    * The resulting SetOperation will not retain any link to the source Memory.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
+   * heapified.</p>
+   *
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a Heap-based SetOperation from the given Memory
@@ -70,6 +70,10 @@ public abstract class SetOperation {
    * Heapify takes the SetOperation image in Memory and instantiates an on-heap
    * SetOperation using the given seed.
    * The resulting SetOperation will not retain any link to the source Memory.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
+   * heapified.</p>
+   *
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -95,9 +99,12 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
    * This method assumes the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
+   * wrapped.</p>
+   *
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a SetOperation backed by the given Memory
@@ -109,7 +116,10 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
+   * wrapped.</p>
+   *
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -122,7 +132,7 @@ public abstract class SetOperation {
     if (serVer != 3) {
       throw new SketchesArgumentException("SerVer must be 3: " + serVer);
     }
-    switch (family) { //TODO Do we need to add the stateful AnotB ?
+    switch (family) {
       case UNION : {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
@@ -137,9 +147,12 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
    * This method assumes the
    * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
+   * wrapped.</p>
+   *
    * @param srcMem an image of a SetOperation where the image seed hash matches the default seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a SetOperation backed by the given Memory
@@ -151,7 +164,10 @@ public abstract class SetOperation {
   /**
    * Wrap takes the SetOperation image in Memory and refers to it directly.
    * There is no data copying onto the java heap.
-   * Only "Direct" SetOperations that have been explicitly stored as direct can be wrapped.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized and thus
+   * wrapped.</p>
+   *
    * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -202,16 +218,15 @@ public abstract class SetOperation {
   }
 
   /**
-   * Returns the maximum number of bytes for the returned CompactSketch, given the maximum
+   * Returns the maximum number of bytes for the returned CompactSketch, given the
    * value of nomEntries of the first sketch A of AnotB.
-   * @param maxNomEntries the given value must be a power of 2.
+   * @param nomEntries this value must be a power of 2.
    * @return the maximum number of bytes.
    */
-  public static int getMaxAnotBResultBytes(final int maxNomEntries) {
-    final int ceil = ceilingPowerOf2(maxNomEntries);
+  public static int getMaxAnotBResultBytes(final int nomEntries) {
+    final int ceil = ceilingPowerOf2(nomEntries);
     return 24 + (15 * ceil);
   }
-
 
   /**
    * Gets the Family of this SetOperation
@@ -223,6 +238,10 @@ public abstract class SetOperation {
    * Returns true if the backing resource of <i>this</i> is identical with the backing resource
    * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
    * the region offset must also be the same.
+   *
+   * <p>Note: Only certain set operators during stateful operations can be serialized.
+   * Only when they are stored into Memory will this be relevant.</p>
+   *
    * @param that A different non-null object
    * @return true if the backing resource of <i>this</i> is the same as the backing resource
    * of <i>that</i>.
@@ -231,45 +250,43 @@ public abstract class SetOperation {
 
   //restricted
 
+  /**
+   * Gets the hash array in compact form.
+   * This is only useful during stateful operations.
+   * This should never be made public.
+   * @return the hash array
+   */
   abstract long[] getCache();
 
-  //intentionally not made public because behavior will be confusing to end user.
-  abstract int getRetainedEntries(boolean valid);
+  /**
+   * Gets the current count of retained entries.
+   * This is only useful during stateful operations.
+   * Intentionally not made public because behavior will be confusing to end user.
+   *
+   * @return Gets the current count of retained entries.
+   */
+  abstract int getRetainedEntries();
 
+  /**
+   * Returns the seedHash established during class construction.
+   * @return the seedHash.
+   */
   abstract short getSeedHash();
 
+  /**
+   * Gets the current value of ThetaLong.
+   * Only useful during stateful operations.
+   * Intentionally not made public because behavior will be confusing to end user.
+   * @return the current value of ThetaLong.
+   */
   abstract long getThetaLong();
 
-  static short computeSeedHash(final long seed) {
-    return Util.computeSeedHash(seed);
-  }
-
-  //intentionally not made public because behavior will be confusing to end user.
+  /**
+   * Returns true if this set operator is empty.
+   * Only useful during stateful operations.
+   * Intentionally not made public because behavior will be confusing to end user.
+   * @return true if this set operator is empty.
+   */
   abstract boolean isEmpty();
-
-  /**
-   * Computes minimum lgArrLongs from a current count.
-   * @param count the given current count
-   * @return the minimum lgArrLongs from a current count.
-   */
-  //Used by intersection and AnotB
-  static final int computeMinLgArrLongsFromCount(final int count) {
-    final int upperCount = (int) Math.ceil(count / REBUILD_THRESHOLD);
-    final int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
-    final int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
-    return newLgArrLongs;
-  }
-
-  /**
-   * Returns true if given Family id is one of the set operations
-   * @param id the given Family id
-   * @return true if given Family id is one of the set operations
-   */
-  static boolean isValidSetOpID(final int id) {
-    final Family family = Family.idToFamily(id);
-    final boolean ret = ((family == Family.UNION) || (family == Family.INTERSECTION)
-        || (family == Family.A_NOT_B));
-    return ret;
-  }
 
 }

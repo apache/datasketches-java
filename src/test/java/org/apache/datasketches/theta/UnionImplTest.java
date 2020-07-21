@@ -193,8 +193,8 @@ public class UnionImplTest {
     assertTrue(union.isEmpty());
     assertEquals(union.getThetaLong(), Long.MAX_VALUE);
     assertEquals(union.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
-    assertEquals(union.getRetainedEntries(true), 0);
-    assertEquals(union.getCache().length, 128);
+    assertEquals(union.getRetainedEntries(), 0);
+    assertEquals(union.getCache().length, 128); //only applies to stateful
   }
 
   @Test

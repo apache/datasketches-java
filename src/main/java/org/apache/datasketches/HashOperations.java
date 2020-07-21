@@ -19,7 +19,8 @@
 
 package org.apache.datasketches;
 
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
+import static java.lang.Math.max;
+import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 
 import org.apache.datasketches.memory.Memory;
@@ -334,14 +335,24 @@ public final class HashOperations {
       final int count,
       final long thetaLong,
       final double rebuildThreshold) {
-    final int size = Math.max(
-      ceilingPowerOf2((int) Math.ceil(count / rebuildThreshold)),
-      1 << MIN_LG_NOM_LONGS
-    );
-    final long[] hashTable = new long[size];
-    hashArrayInsert(
-        hashArr, hashTable, Integer.numberOfTrailingZeros(size), thetaLong);
+    final int lgArrLongs = minLgHashTableSize(count, rebuildThreshold);
+    final int arrLongs = 1 << lgArrLongs;
+    final long[] hashTable = new long[arrLongs];
+    hashArrayInsert(hashArr, hashTable, lgArrLongs, thetaLong);
     return hashTable;
+  }
+
+  /**
+   * Returns the smallest log hash table size given the count of items and the rebuild threshold.
+   * @param count the given count of items
+   * @param rebuild_threshold the rebuild threshold as a fraction between zero and one.
+   * @return the smallest log hash table size
+   */
+  public static int minLgHashTableSize(final int count, final double rebuild_threshold) {
+    final int upperCount = (int) Math.ceil(count / rebuild_threshold);
+    final int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
+    final int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
+    return newLgArrLongs;
   }
 
   /**

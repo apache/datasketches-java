@@ -20,7 +20,13 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
+import static org.apache.datasketches.HashOperations.continueCondition;
+import static org.apache.datasketches.HashOperations.hashInsertOnly;
+import static org.apache.datasketches.HashOperations.hashInsertOnlyMemory;
+import static org.apache.datasketches.HashOperations.hashSearch;
+import static org.apache.datasketches.HashOperations.minLgHashTableSize;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
+import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -35,15 +41,16 @@ import static org.apache.datasketches.theta.PreambleUtil.insertCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.insertFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.insertFlags;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
+import static org.apache.datasketches.theta.PreambleUtil.insertLgNomLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertP;
 import static org.apache.datasketches.theta.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
+import static org.apache.datasketches.theta.PreambleUtil.setEmpty;
 
 import java.util.Arrays;
 
 import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
@@ -62,12 +69,13 @@ final class IntersectionImpl extends IntersectionImplR {
    * @return a new IntersectionImpl on the Java heap
    */
   static IntersectionImpl initNewHeapInstance(final long seed) {
+    //compute & store seedHash,
     final IntersectionImpl impl = new IntersectionImpl(null, seed, false);
     impl.lgArrLongs_ = 0;
     impl.curCount_ = -1;  //Universal Set is true
     impl.thetaLong_ = Long.MAX_VALUE;
     impl.empty_ = false;  //A virgin intersection represents the Universal Set so empty is FALSE!
-    impl.hashTable_ = null;
+    impl.hashTable_ = null; //retained entries of the intersection as a hash table, on-heap only.
     return impl;
   }
 
@@ -81,27 +89,30 @@ final class IntersectionImpl extends IntersectionImplR {
    * @return a new IntersectionImpl that may be off-heap
    */
   static IntersectionImpl initNewDirectInstance(final long seed, final WritableMemory dstMem) {
-    final IntersectionImpl impl = new IntersectionImpl(dstMem, seed, true);
+    //DstMem: compute & store seedHash, true means no seedhash checking
+    final IntersectionImpl impl = new IntersectionImpl(dstMem, seed, true); //compute & store seedHash
 
     //Load Preamble
+
     insertPreLongs(dstMem, CONST_PREAMBLE_LONGS); //RF not used = 0
     insertSerVer(dstMem, SER_VER);
     insertFamilyID(dstMem, Family.INTERSECTION.getID());
-    //Note: Intersection does not use lgNomLongs or k, per se.
+    insertLgNomLongs(dstMem, 0); //Note: Intersection does not use lgNomLongs or k, per se.
     //set lgArrLongs initially to minimum.  Don't clear cache in mem
     insertLgArrLongs(dstMem, MIN_LG_ARR_LONGS);
     insertFlags(dstMem, 0); //bigEndian = readOnly = compact = ordered = empty = false;
     //seedHash loaded and checked in private constructor
     insertCurCount(dstMem, -1);
     insertP(dstMem, (float) 1.0);
+    //pre2
     insertThetaLong(dstMem, Long.MAX_VALUE);
 
-    //Initialize
+    //internal initialize
     impl.lgArrLongs_ = MIN_LG_ARR_LONGS;
     impl.curCount_ = -1; //set in mem below
     impl.thetaLong_ = Long.MAX_VALUE;
     impl.empty_ = false;
-    impl.maxLgArrLongs_ = checkMaxLgArrLongs(dstMem); //Only Off Heap
+    impl.maxLgArrLongs_ = getMaxLgArrLongs(dstMem); //Only Off Heap
 
     return impl;
   }
@@ -114,6 +125,7 @@ final class IntersectionImpl extends IntersectionImplR {
    * @return a IntersectionImplR instance on the Java heap
    */
   static IntersectionImplR heapifyInstance(final Memory srcMem, final long seed) {
+    //compute & store seedHash,
     final IntersectionImpl impl = new IntersectionImpl(null, seed, false);
 
     //Get Preamble
@@ -164,13 +176,14 @@ final class IntersectionImpl extends IntersectionImplR {
   }
 
   /**
-   * Wrap an Intersection target around the given source Memory containing intersection data.
-   * @param srcMem The source Memory image.
+   * Wrap an Intersection target around the given source WritableMemory containing intersection data.
+   * @param srcMem The source WritableMemory image.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
-   * @return a IntersectionImpl that wraps a source Memory that contains an Intersection image
+   * @return a IntersectionImpl that wraps a source WritableMemory that contains an Intersection image
    */
   static IntersectionImpl wrapInstance(final WritableMemory srcMem, final long seed) {
+    //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
     final IntersectionImpl impl = new IntersectionImpl(srcMem, seed, false);
     return (IntersectionImpl) internalWrapInstance(srcMem, impl);
   }
@@ -193,31 +206,31 @@ final class IntersectionImpl extends IntersectionImplR {
       curCount_ = 0;
       thetaLong_ = Long.MAX_VALUE;
       empty_ = true;
-      maxLgArrLongs_ = 0;
       hashTable_ = null;
-      if (mem_ != null) {
-        PreambleUtil.setEmpty(mem_); //true
-        insertThetaLong(mem_, thetaLong_);
-        insertCurCount(mem_, 0);
-        insertLgArrLongs(mem_, lgArrLongs_);
+      if (wmem_ != null) {
+        setEmpty(wmem_); //true
+        insertThetaLong(wmem_, thetaLong_);
+        insertCurCount(wmem_, 0);
+        insertLgArrLongs(wmem_, lgArrLongs_);
       }
       return;
     }
     Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = false;
-    if (mem_ != null) {
-      insertThetaLong(mem_, thetaLong_);
-      PreambleUtil.clearEmpty(mem_); //false
+    if (wmem_ != null) {
+      insertThetaLong(wmem_, thetaLong_);
+      clearEmpty(wmem_); //false
     }
 
     final int sketchInEntries = sketchIn.getRetainedEntries(true);
 
     // The truth table for the following state machine
     //   Case  curCount  sketchInEntries | Actions
-    //     1      <0            0        | First intersect, curCount = 0; HT = null; exit
+    //     1      <0            0        | First intersect, curCount < 0; HT = null; exit
     //     2       0            0        | CurCount = 0; HT = null; exit
     //     3      >0            0        | CurCount = 0; HT = null; exit
+    //     4                             | Not used
     //     5      <0           >0        | First intersect, clone SketchIn; exit
     //     6       0           >0        | CurCount = 0; HT = null; exit
     //     7      >0           >0        | Perform full intersect
@@ -230,26 +243,27 @@ final class IntersectionImpl extends IntersectionImplR {
       case 6: { //(curCount_ == 0) || (sketchInEntries == 0)
         //All future intersections result in zero data, but theta can still be reduced.
         curCount_ = 0;
-        if (mem_ != null) { insertCurCount(mem_, 0); }
+        if (wmem_ != null) { insertCurCount(wmem_, 0); }
         hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
         break;
       }
       case 5: { // curCount_ < 0; This is the 1st intersect, clone the incoming sketch
         curCount_ = sketchIn.getRetainedEntries(true);
-        final int requiredLgArrLongs = computeMinLgArrLongsFromCount(curCount_);
+        final int requiredLgArrLongs = minLgHashTableSize(curCount_, REBUILD_THRESHOLD);
         final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
         lgArrLongs_ = requiredLgArrLongs;
 
-        if (mem_ != null) { //Off heap, check if current dstMem is large enough
-          insertCurCount(mem_, curCount_);
-          insertLgArrLongs(mem_, lgArrLongs_);
+        if (wmem_ != null) { //Off heap, check if current dstMem is large enough
+          insertCurCount(wmem_, curCount_);
+          insertLgArrLongs(wmem_, lgArrLongs_);
           if (requiredLgArrLongs <= maxLgArrLongs_) { //OK
-            mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
+            wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear only what required
           }
           else { //not enough space in dstMem
+            final int requiredBytes = (8 << requiredLgArrLongs) + 24;
+            final int givenBytes = (8 << priorLgArrLongs) + 24;
             throw new SketchesArgumentException(
-                "Insufficient dstMem hash table space: "
-                    + (1 << requiredLgArrLongs) + " > " + (1 << priorLgArrLongs));
+                "Insufficient internal Memory space: " + requiredBytes + " > " + givenBytes);
           }
         }
         else { //On the heap, allocate a HT
@@ -283,11 +297,35 @@ final class IntersectionImpl extends IntersectionImplR {
     thetaLong_ = Long.MAX_VALUE;
     empty_ = false;
     hashTable_ = null;
-    if (mem_ != null) {
-      insertLgArrLongs(mem_, lgArrLongs_); //make sure
-      insertCurCount(mem_, -1);
-      insertThetaLong(mem_, Long.MAX_VALUE);
-      clearEmpty(mem_);
+    if (wmem_ != null) {
+      insertLgArrLongs(wmem_, 0);
+      insertCurCount(wmem_, -1);
+      insertThetaLong(wmem_, Long.MAX_VALUE);
+      clearEmpty(wmem_);
+    }
+  }
+
+  private void hardReset() { //Universal Set
+    resetToEmpty();
+    curCount_ = -1;
+    empty_ = false;
+    if (wmem_ != null) {
+      clearEmpty(wmem_);
+      insertCurCount(wmem_, -1);
+    }
+  }
+
+  private void resetToEmpty() { //empty state
+    lgArrLongs_ = 0;
+    curCount_ = 0;
+    thetaLong_ = Long.MAX_VALUE;
+    empty_ = true;
+    hashTable_ = null;
+    if (wmem_ != null) {
+      insertLgArrLongs(wmem_, 0);
+      insertCurCount(wmem_, 0);
+      insertThetaLong(wmem_, Long.MAX_VALUE);
+      setEmpty(wmem_); //true
     }
   }
 
@@ -299,10 +337,10 @@ final class IntersectionImpl extends IntersectionImplR {
     final long[] cacheIn = sketchIn.getCache();
     final int arrLongsIn = cacheIn.length;
     final long[] hashTable;
-    if (mem_ != null) {
+    if (wmem_ != null) {
       final int htLen = 1 << lgArrLongs_;
       hashTable = new long[htLen];
-      mem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
+      wmem_.getLongArray(CONST_PREAMBLE_LONGS << 3, hashTable, 0, htLen);
     } else {
       hashTable = hashTable_;
     }
@@ -318,7 +356,7 @@ final class IntersectionImpl extends IntersectionImplR {
         if (hashIn >= thetaLong_) {
           break; //early stop assumes that hashes in input sketch are ordered!
         }
-        final int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
+        final int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
         if (foundIdx == -1) { continue; }
         matchSet[matchSetCount++] = hashIn;
       }
@@ -328,18 +366,18 @@ final class IntersectionImpl extends IntersectionImplR {
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = cacheIn[i];
         if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
-        final int foundIdx = HashOperations.hashSearch(hashTable, lgArrLongs_, hashIn);
+        final int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
         if (foundIdx == -1) { continue; }
         matchSet[matchSetCount++] = hashIn;
       }
     }
     //reduce effective array size to minimum
     curCount_ = matchSetCount;
-    lgArrLongs_ = computeMinLgArrLongsFromCount(matchSetCount);
-    if (mem_ != null) {
-      insertCurCount(mem_, matchSetCount);
-      insertLgArrLongs(mem_, lgArrLongs_);
-      mem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear for rebuild
+    lgArrLongs_ = minLgHashTableSize(matchSetCount, REBUILD_THRESHOLD);
+    if (wmem_ != null) {
+      insertCurCount(wmem_, matchSetCount);
+      insertLgArrLongs(wmem_, lgArrLongs_);
+      wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << lgArrLongs_); //clear for rebuild
     } else {
       Arrays.fill(hashTable_, 0, 1 << lgArrLongs_, 0L); //clear for rebuild
     }
@@ -356,21 +394,21 @@ final class IntersectionImpl extends IntersectionImplR {
   private void moveDataToTgt(final long[] arr, final int count) {
     final int arrLongsIn = arr.length;
     int tmpCnt = 0;
-    if (mem_ != null) { //Off Heap puts directly into mem
+    if (wmem_ != null) { //Off Heap puts directly into mem
       final int preBytes = CONST_PREAMBLE_LONGS << 3;
       final int lgArrLongs = lgArrLongs_;
       final long thetaLong = thetaLong_;
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = arr[i];
-        if (HashOperations.continueCondition(thetaLong, hashIn)) { continue; }
-        HashOperations.hashInsertOnlyMemory(mem_, lgArrLongs, hashIn, preBytes);
+        if (continueCondition(thetaLong, hashIn)) { continue; }
+        hashInsertOnlyMemory(wmem_, lgArrLongs, hashIn, preBytes);
         tmpCnt++;
       }
     } else { //On Heap. Assumes HT exists and is large enough
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = arr[i];
-        if (HashOperations.continueCondition(thetaLong_, hashIn)) { continue; }
-        HashOperations.hashInsertOnly(hashTable_, lgArrLongs_, hashIn);
+        if (continueCondition(thetaLong_, hashIn)) { continue; }
+        hashInsertOnly(hashTable_, lgArrLongs_, hashIn);
         tmpCnt++;
       }
     }

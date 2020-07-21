@@ -69,7 +69,7 @@ public class DirectIntersectionTest {
     inter.intersect(usk1);
     inter.intersect(usk2);
 
-    long[] cache = inter.getCache();
+    long[] cache = inter.getCache(); //only applies to stateful
     assertEquals(cache.length, 32);
 
     CompactSketch rsk1;
@@ -454,7 +454,7 @@ public class DirectIntersectionTest {
   @Test
   public void checkWrapVirginEmpty() {
     int lgK = 5;
-    int k = 1<<lgK;
+    int k = 1 << lgK;
     Intersection inter1, inter2;
     UpdateSketch sk1;
 
@@ -484,7 +484,7 @@ public class DirectIntersectionTest {
 
     //test the path via toByteArray, wrap, now in a different state
     iMem = WritableMemory.wrap(inter1.toByteArray());
-    inter2 = Sketches.wrapIntersection(iMem);
+    inter2 = Sketches.wrapIntersection((Memory)iMem);
     assertTrue(inter2.hasResult()); //still true
 
     //test the compaction path
