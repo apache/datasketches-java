@@ -691,7 +691,7 @@ public class DirectIntersectionTest {
     //cheap trick
     int k = 16;
     WritableMemory mem = WritableMemory.wrap(new byte[(k*16) + PREBYTES]);
-    IntersectionImplR impl = IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
+    IntersectionImpl impl = IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 
@@ -702,7 +702,7 @@ public class DirectIntersectionTest {
     IntersectionImpl.initNewDirectInstance(DEFAULT_UPDATE_SEED, mem);
     //corrupt SerVer
     mem.putByte(PreambleUtil.SER_VER_BYTE, (byte) 2);
-    IntersectionImplR.wrapInstance(mem, DEFAULT_UPDATE_SEED);
+    IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED, false);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -714,7 +714,7 @@ public class DirectIntersectionTest {
     //corrupt empty and CurCount
     mem.setBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.EMPTY_FLAG_MASK);
     mem.putInt(PreambleUtil.RETAINED_ENTRIES_INT, 2);
-    IntersectionImplR.wrapInstance(mem, DEFAULT_UPDATE_SEED);
+    IntersectionImpl.wrapInstance(mem, DEFAULT_UPDATE_SEED, false);
   }
 
   //Check Alex's bug intersecting 2 direct full sketches with only overlap of 2

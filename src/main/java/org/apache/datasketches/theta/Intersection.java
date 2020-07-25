@@ -19,7 +19,21 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
+import static org.apache.datasketches.Util.floorPowerOf2;
+import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
+import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
+import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
+import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
+import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
+import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
+
+import java.util.Arrays;
+
 import org.apache.datasketches.Family;
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -132,5 +146,85 @@ public abstract class Intersection extends SetOperation {
    */
   public abstract CompactSketch intersect(Sketch a, Sketch b, boolean dstOrdered,
       WritableMemory dstMem);
+
+  // Restricted
+
+  /**
+   * Returns the maximum lgArrLongs given the capacity of the Memory.
+   * @param dstMem the given Memory
+   * @return the maximum lgArrLongs given the capacity of the Memory
+   */
+  protected static int getMaxLgArrLongs(final Memory dstMem) {
+    final int preBytes = CONST_PREAMBLE_LONGS << 3;
+    final long cap = dstMem.getCapacity();
+    return Integer.numberOfTrailingZeros(floorPowerOf2((int)(cap - preBytes)) >>> 3);
+  }
+
+  protected static void checkMinSizeMemory(final Memory mem) {
+    final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << MIN_LG_ARR_LONGS);//280
+    final long cap = mem.getCapacity();
+    if (cap < minBytes) {
+      throw new SketchesArgumentException(
+          "Memory must be at least " + minBytes + " bytes. Actual capacity: " + cap);
+    }
+  }
+
+  /**
+   * Compact first 2^lgArrLongs of given array
+   * @param srcCache anything
+   * @param lgArrLongs The correct
+   * <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">lgArrLongs</a>.
+   * @param curCount must be correct
+   * @param thetaLong The correct
+   * <a href="{@docRoot}/resources/dictionary.html#thetaLong">thetaLong</a>.
+   * @param dstOrdered true if output array must be sorted
+   * @return the compacted array
+   */ //Only used in IntersectionImpl & Test
+  static final long[] compactCachePart(final long[] srcCache, final int lgArrLongs,
+      final int curCount, final long thetaLong, final boolean dstOrdered) {
+    if (curCount == 0) {
+      return new long[0];
+    }
+    final long[] cacheOut = new long[curCount];
+    final int len = 1 << lgArrLongs;
+    int j = 0;
+    for (int i = 0; i < len; i++) {
+      final long v = srcCache[i];
+      if ((v <= 0L) || (v >= thetaLong) ) { continue; }
+      cacheOut[j++] = v;
+    }
+    assert curCount == j;
+    if (dstOrdered) {
+      Arrays.sort(cacheOut);
+    }
+    return cacheOut;
+  }
+
+  protected static void memChecks(final Memory srcMem) {
+    //Get Preamble
+    //Note: Intersection does not use lgNomLongs (or k), per se.
+    //seedHash loaded and checked in private constructor
+    final int preLongs = extractPreLongs(srcMem);
+    final int serVer = extractSerVer(srcMem);
+    final int famID = extractFamilyID(srcMem);
+    final boolean empty = (extractFlags(srcMem) & EMPTY_FLAG_MASK) > 0;
+    final int curCount = extractCurCount(srcMem);
+    //Checks
+    if (preLongs != CONST_PREAMBLE_LONGS) {
+      throw new SketchesArgumentException(
+          "Memory PreambleLongs must equal " + CONST_PREAMBLE_LONGS + ": " + preLongs);
+    }
+    if (serVer != SER_VER) {
+      throw new SketchesArgumentException("Serialization Version must equal " + SER_VER);
+    }
+    Family.INTERSECTION.checkFamilyID(famID);
+    if (empty) {
+      if (curCount != 0) {
+        throw new SketchesArgumentException(
+            "srcMem empty state inconsistent with curCount: " + empty + "," + curCount);
+      }
+      //empty = true AND curCount_ = 0: OK
+    } //else empty = false, curCount could be anything
+  }
 
 }

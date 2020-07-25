@@ -107,28 +107,51 @@ import org.apache.datasketches.memory.Memory;
  * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
  * </ul>
  *
- * <p>A <i>getPMF()</i> query has the following guarantees:
+ * <p>A <i>getPMF(...)</i> query has the following guarantees:
  * <ul>
- * <li>Let <i>{r1, r2, ..., r(m+1)} = getPMF(v1, v2, ..., vm)</i> where <i>v1, v2</i> are values
- * between the min and max values of the input stream.
- * <li>Let <i>mass<sub>i</sub> = estimated mass between v<sub>i</sub> and v<sub>i+1</sub></i>.</li>
+ * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
+ * = getPMF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
+ * <i>v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub></i> are monotonically increasing values
+ * supplied by the user that are part of the monotonic sequence
+ * <i>v<sub>0</sub> = min, v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>, v<sub>m+1</sub> = max</i>,
+ * and where <i>min</i> and <i>max</i> are the actual minimum and maximum values of the input
+ * stream automatically included in the sequence by the <i>getPMF(...)</i> function.
+ *
+ * <li>Let <i>r<sub>i</sub> = mass<sub>i</sub></i> = estimated mass between
+ * <i>v<sub>i-1</sub></i> and <i>v<sub>i</sub></i> where <i>v<sub>0</sub> = min</i>
+ * and <i>v<sub>m+1</sub> = max</i>.</li>
+ *
  * <li>Let <i>trueMass</i> be the true mass between the values of <i>v<sub>i</sub>,
  * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
  * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
- * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
- * <li>r(m+1) includes the mass of all points larger than vm.</li>
+ * <li>Then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
+ * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
+ * <i>v<sub>1</sub></i>.</li>
+ * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>v<sub>m</sub></i> and
+ * <i>max = v<sub>m+1</sub></i>.</li>
  * </ul>
  *
  * <p>A <i>getCDF(...)</i> query has the following guarantees;
  * <ul>
- * <li>Let <i>{r1, r2, ..., r(m+1)} = getCDF(v1, v2, ..., vm)</i> where <i>v1, v2</i> are values
- * between the min and max values of the input stream.
- * <li>Let <i>mass<sub>i</sub> = r<sub>i+1</sub> - r<sub>i</sub></i>.</li>
+ * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
+ * = getCDF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
+ * <i>v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> are monotonically increasing values
+ * supplied by the user that are part of the monotonic sequence
+ * <i>{v<sub>0</sub> = min, v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>, v<sub>m+1</sub> = max}</i>,
+ * and where <i>min</i> and <i>max</i> are the actual minimum and maximum values of the input
+ * stream automatically included in the sequence by the <i>getCDF(...)</i> function.
+ *
+ * <li>Let <i>r<sub>i</sub> = mass<sub>i</sub></i> = estimated mass between
+ * <i>v<sub>0</sub> = min</i> and <i>v<sub>i</sub></i>.</li>
+ *
  * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v<sub>i</sub>,
  * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
  * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
  * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
- * <li>1 - r(m+1) includes the mass of all points larger than vm.</li>
+ * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
+ * <i>v<sub>1</sub></i>.</li>
+ * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
+ * <i>max = v<sub>m+1</sub></i>.</li>
  * </ul>
  *
  * <p>From the above, it might seem like we could make some estimates to bound the

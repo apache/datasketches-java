@@ -137,7 +137,7 @@ public abstract class SetOperation {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
       case INTERSECTION : {
-        return IntersectionImplR.wrapInstance(srcMem, seed);
+        return IntersectionImpl.wrapInstance((WritableMemory)srcMem, seed, true);
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
@@ -185,7 +185,7 @@ public abstract class SetOperation {
         return UnionImpl.wrapInstance(srcMem, seed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.wrapInstance(srcMem, seed);
+        return IntersectionImpl.wrapInstance(srcMem, seed, false);
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: "
