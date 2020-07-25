@@ -386,12 +386,6 @@ class IntersectionImpl extends Intersection {
     return (wmem_ != null) ? wmem_.isSameResource(that) : false;
   }
 
-  @Deprecated
-  @Override
-  public void update(final Sketch sketchIn) {
-    intersect(sketchIn);
-  }
-
   //restricted
 
   /**
