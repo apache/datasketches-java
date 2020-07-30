@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class HeapIntersectionTest {
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkExactIntersectionNoOverlap() {
     int lgK = 9;
@@ -59,7 +60,7 @@ public class HeapIntersectionTest {
     Intersection inter = SetOperation.builder().buildIntersection();
 
     inter.intersect(usk1);
-    inter.intersect(usk2);
+    inter.update(usk2); //check deprecated
 
     CompactSketch rsk1;
     boolean ordered = true;
@@ -472,10 +473,10 @@ public class HeapIntersectionTest {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.intersect(usk);
     assertTrue(inter.isEmpty());
-    assertEquals(inter.getRetainedEntries(true), 0);
+    assertEquals(inter.getRetainedEntries(), 0);
     assertTrue(inter.getSeedHash() != 0);
     assertEquals(inter.getThetaLong(), Long.MAX_VALUE);
-    long[] longArr = inter.getCache();
+    long[] longArr = inter.getCache(); //only applies to stateful
     assertEquals(longArr.length, 0);
   }
 
@@ -486,10 +487,10 @@ public class HeapIntersectionTest {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.intersect(usk);
     assertFalse(inter.isEmpty());
-    assertEquals(inter.getRetainedEntries(true), 1);
+    assertEquals(inter.getRetainedEntries(), 1);
     assertTrue(inter.getSeedHash() != 0);
     assertEquals(inter.getThetaLong(), Long.MAX_VALUE);
-    long[] longArr = inter.getCache();
+    long[] longArr = inter.getCache(); //only applies to stateful
     assertEquals(longArr.length, 32);
   }
 

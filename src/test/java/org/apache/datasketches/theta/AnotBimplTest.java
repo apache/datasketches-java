@@ -59,7 +59,7 @@ public class AnotBimplTest {
 
     aNb.setA(usk1);
     aNb.notB(usk2);
-    assertEquals(aNb.getRetainedEntries(true), k/2);
+    assertEquals(aNb.getRetainedEntries(), k/2);
 
     CompactSketch rsk1;
 

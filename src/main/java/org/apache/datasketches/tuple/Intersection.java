@@ -257,7 +257,6 @@ public class Intersection<S extends Summary> {
         if (summaryTable_ == null) {
           summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
         }
-        hashTable_[index] = hash;
         summaryTable_[index] = mySummary;
       }
     }
@@ -276,7 +275,6 @@ public class Intersection<S extends Summary> {
         if (summaryTable_ == null) {
           summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
         }
-        hashTable_[index] = hash;
         summaryTable_[index] = mySummary;
       }
     }
@@ -296,7 +294,6 @@ public class Intersection<S extends Summary> {
         if (summaryTable_ == null) {
           summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
         }
-        hashTable_[index] = hash;
         summaryTable_[index] = summaryArr[i];
       }
     }

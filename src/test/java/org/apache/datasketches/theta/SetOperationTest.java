@@ -19,11 +19,9 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Family.A_NOT_B;
-import static org.apache.datasketches.Family.INTERSECTION;
-import static org.apache.datasketches.Family.UNION;
+import static org.apache.datasketches.HashOperations.minLgHashTableSize;
 import static org.apache.datasketches.ResizeFactor.X4;
-import static org.apache.datasketches.theta.SetOperation.computeMinLgArrLongsFromCount;
+import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.theta.Sketch.getMaxUpdateSketchBytes;
 import static org.testng.Assert.assertEquals;
 //import static org.testng.Assert.assertTrue;
@@ -227,8 +225,8 @@ public class SetOperationTest {
 
   @Test
   public void checkComputeLgArrLongs() {
-    assertEquals(computeMinLgArrLongsFromCount(30), 5);
-    assertEquals(computeMinLgArrLongsFromCount(31), 6);
+    assertEquals(minLgHashTableSize(30, REBUILD_THRESHOLD), 5);
+    assertEquals(minLgHashTableSize(31, REBUILD_THRESHOLD), 6);
   }
 
   /**
@@ -277,14 +275,6 @@ public class SetOperationTest {
     assertEquals(result, expected, expected*0.05);
     println("2nd est: "+result);
     println("Error %: "+(((result/expected) -1.0)*100));
-  }
-
-  @Test
-  public void checkValidSetOpID() {
-    assertFalse(SetOperation.isValidSetOpID(1)); //Alpha
-    assertTrue(SetOperation.isValidSetOpID(UNION.getID()));
-    assertTrue(SetOperation.isValidSetOpID(INTERSECTION.getID()));
-    assertTrue(SetOperation.isValidSetOpID(A_NOT_B.getID()));
   }
 
   @Test
