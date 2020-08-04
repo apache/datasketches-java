@@ -20,7 +20,7 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.Util.simpleIntLog2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.LG_INIT_SET_SIZE;
@@ -463,10 +463,10 @@ final class PreambleUtil {
     int ceilPwr2 = ceilingPowerOf2(count);
     if ((RESIZE_DENOM * count) > (RESIZE_NUMER * ceilPwr2)) { ceilPwr2 <<= 1; }
     if (curMode == CurMode.SET) {
-      return Math.max(LG_INIT_SET_SIZE, simpleIntLog2(ceilPwr2));
+      return Math.max(LG_INIT_SET_SIZE, simpleLog2OfLong(ceilPwr2));
     }
     //only used for HLL4
-    return Math.max(LG_AUX_ARR_INTS[lgConfigK], simpleIntLog2(ceilPwr2));
+    return Math.max(LG_AUX_ARR_INTS[lgConfigK], simpleLog2OfLong(ceilPwr2));
   }
 
 }
