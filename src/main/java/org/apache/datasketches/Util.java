@@ -462,7 +462,7 @@ public final class Util {
   }
 
   /**
-   * Computes the floor power of 2 given <i>n</i> is in therange [1, 2^63-1].
+   * Computes the floor power of 2 given <i>n</i> is in the range [1, 2^63-1].
    * This is the largest positive power of 2 that is equal to or less than the given <i>n</i> and
    * equal to a mathematical integer.
    *
