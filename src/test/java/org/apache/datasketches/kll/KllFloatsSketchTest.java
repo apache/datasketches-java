@@ -152,19 +152,6 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void floorLog2() {
-    assertEquals(KllHelper.floorOfLog2OfFraction(0, 1), 0);
-    assertEquals(KllHelper.floorOfLog2OfFraction(1, 2), 0);
-    assertEquals(KllHelper.floorOfLog2OfFraction(2, 2), 0);
-    assertEquals(KllHelper.floorOfLog2OfFraction(3, 2), 0);
-    assertEquals(KllHelper.floorOfLog2OfFraction(4, 2), 1);
-    assertEquals(KllHelper.floorOfLog2OfFraction(5, 2), 1);
-    assertEquals(KllHelper.floorOfLog2OfFraction(6, 2), 1);
-    assertEquals(KllHelper.floorOfLog2OfFraction(7, 2), 1);
-    assertEquals(KllHelper.floorOfLog2OfFraction(8, 2), 2);
-  }
-
-  @Test
   public void merge() {
     final KllFloatsSketch sketch1 = new KllFloatsSketch();
     final KllFloatsSketch sketch2 = new KllFloatsSketch();
@@ -407,8 +394,17 @@ public class KllFloatsSketchTest {
 
   @Test
   public void checkIntCapAux() {
-    final int lvlCap = KllHelper.levelCapacity(10, 100, 50, 8);
+    int lvlCap = KllHelper.levelCapacity(10, 61, 0, 8);
     assertEquals(lvlCap, 8);
+    lvlCap = KllHelper.levelCapacity(10, 61, 60, 8);
+    assertEquals(lvlCap, 10);
+  }
+
+  @Test
+  public void checkSuperLargeKandLevels() {
+    //This is beyond what the sketch can be configured for.
+    int size = KllHelper.computeTotalCapacity(1 << 29, 8, 61);
+    assertEquals(size, 1_610_612_846);
   }
 
   @Test

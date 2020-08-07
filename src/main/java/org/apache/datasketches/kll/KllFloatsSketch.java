@@ -177,20 +177,28 @@ public class KllFloatsSketch {
    * The default value of K.
    */
   public static final int DEFAULT_K = 200;
-  static final int DEFAULT_M = 8;
+  private static final int DEFAULT_M = 8;
   static final int MIN_K = DEFAULT_M;
   static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
-  /* Serialized sketch layout:
+  /* Serialized sketch layout, more than one item:
    *  Adr:
    *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
    *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
    *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
    *  1   ||---------------------------------N_LONG---------------------------------------|
    *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
-   *  2   ||---------------data----------------|--------|numLevels|-------min K-----------|
+   *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
+   *
+   * Serialized sketch layout, Single Item:
+   *  Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
+   *  1   ||<--------------------------------data-----------------------------------------|
    */
 
+  // Preamble byte addresses
   private static final int PREAMBLE_INTS_BYTE = 0;
   private static final int SER_VER_BYTE       = 1;
   private static final int FAMILY_BYTE        = 2;
@@ -198,19 +206,18 @@ public class KllFloatsSketch {
   private static final int K_SHORT            = 4;  // to 5
   private static final int M_BYTE             = 6;
   private static final int N_LONG             = 8;  // to 15
-  private static final int MIN_K_SHORT        = 16;  // to 17
+  private static final int MIN_K_SHORT        = 16; // to 17
   private static final int NUM_LEVELS_BYTE    = 18;
-  private static final int DATA_START         = 20;
-
+  private static final int DATA_START         = 20; // if using items larger than 4 bytes, use 24
   private static final int DATA_START_SINGLE_ITEM = 8;
 
+  // Other static values
   private static final byte serialVersionUID1 = 1;
   private static final byte serialVersionUID2 = 2;
+  private static final int PREAMBLE_INTS_SMALL = 2; // for empty and single item
+  private static final int PREAMBLE_INTS_FULL  = 5; // if using items larger than 4 bytes, use 6
 
   private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED, IS_SINGLE_ITEM }
-
-  private static final int PREAMBLE_INTS_SHORT = 2; // for empty and single item
-  private static final int PREAMBLE_INTS_FULL = 5;
 
   /*
    * Data is stored in items_.
@@ -227,18 +234,61 @@ public class KllFloatsSketch {
    *  the sketch is exactly filled to capacity and must be compacted.
    */
 
-  private final int k_;
-  private final int m_; // minimum buffer "width"
+  private final int k_; // configured value of K
+  private final int m_; // configured minimum buffer "width", Must always be DEFAULT_M for now.
 
-  private int minK_; // for error estimation after merging with different k
-  private long n_;
-  private int numLevels_;
-  private int[] levels_;
+  private int minK_;      // for error estimation after merging with different k
+  private long n_;        // number of items input into this sketch
+  private int numLevels_; // one-based number of current levels,
+  private int[] levels_;  // array of index offsets to the levels. Size = numLevels + 1.
+  private boolean isLevelZeroSorted_;
+
+  // Specific to the floats sketch
   private float[] items_;
   private float minValue_;
   private float maxValue_;
-  private boolean isLevelZeroSorted_;
 
+
+  /**
+   * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
+   */
+  public KllFloatsSketch() {
+    this(DEFAULT_K);
+  }
+
+  /**
+   * Heap constructor with a given parameter <em>k</em>. <em>k</em> can be any value between 8 and
+   * 65535, inclusive. The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   */
+  public KllFloatsSketch(final int k) {
+    this(k, DEFAULT_M);
+  }
+
+  /**
+   * Heap constructor.
+   * @param k configured size of sketch. Range [m, 2^16]
+   * @param m minimum level size. Default is 8.
+   */
+  private KllFloatsSketch(final int k, final int m) {
+    checkK(k);
+    k_ = k;
+    minK_ = k;
+    m_ = m;
+    numLevels_ = 1;
+    levels_ = new int[] {k, k};
+    items_ = new float[k];
+    minValue_ = Float.NaN;
+    maxValue_ = Float.NaN;
+    isLevelZeroSorted_ = false;
+
+  }
+
+  /**
+   * Off-heap constructor.
+   * @param mem Memory object that contains data serilized by this sketch.
+   */
   private KllFloatsSketch(final Memory mem) {
     m_ = DEFAULT_M;
     k_ = mem.getShort(K_SHORT) & 0xffff;
@@ -248,11 +298,11 @@ public class KllFloatsSketch {
     if (isEmpty) {
       numLevels_ = 1;
       levels_ = new int[] {k_, k_};
+      isLevelZeroSorted_ = false;
+      minK_ = k_;
       items_ = new float[k_];
       minValue_ = Float.NaN;
       maxValue_ = Float.NaN;
-      isLevelZeroSorted_ = false;
-      minK_ = k_;
     } else {
       if (isSingleItem) {
         n_ = 1;
@@ -290,35 +340,49 @@ public class KllFloatsSketch {
     }
   }
 
-  private KllFloatsSketch(final int k, final int m) {
-    checkK(k);
-    k_ = k;
-    m_ = m;
-    numLevels_ = 1;
-    levels_ = new int[] {k, k};
-    items_ = new float[k];
-    minValue_ = Float.NaN;
-    maxValue_ = Float.NaN;
-    isLevelZeroSorted_ = false;
-    minK_ = k;
+  /**
+   * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param mem a Memory image of a sketch serialized by this sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based sketch based on the given Memory.
+   */
+  public static KllFloatsSketch heapify(final Memory mem) {
+    final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
+    final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
+    final int family = mem.getByte(FAMILY_BYTE) & 0xff;
+    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
+    final int m = mem.getByte(M_BYTE) & 0xff;
+    if (m != DEFAULT_M) {
+      throw new SketchesArgumentException(
+          "Possible corruption: M must be " + DEFAULT_M + ": " + m);
+    }
+    final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
+    final boolean isSingleItem = (flags & (1 << Flags.IS_SINGLE_ITEM.ordinal())) > 0;
+    if (isEmpty || isSingleItem) {
+      if (preambleInts != PREAMBLE_INTS_SMALL) {
+        throw new SketchesArgumentException("Possible corruption: preambleInts must be "
+            + PREAMBLE_INTS_SMALL + " for an empty or single item sketch: " + preambleInts);
+      }
+    } else {
+      if (preambleInts != PREAMBLE_INTS_FULL) {
+        throw new SketchesArgumentException("Possible corruption: preambleInts must be "
+            + PREAMBLE_INTS_FULL + " for a sketch with more than one item: " + preambleInts);
+      }
+    }
+    if ((serialVersion != serialVersionUID1) && (serialVersion != serialVersionUID2)) {
+      throw new SketchesArgumentException(
+          "Possible corruption: serial version mismatch: expected " + serialVersionUID1 + " or "
+              + serialVersionUID2 + ", got " + serialVersion);
+    }
+    if (family != Family.KLL.getID()) {
+      throw new SketchesArgumentException(
+      "Possible corruption: family mismatch: expected " + Family.KLL.getID() + ", got " + family);
+    }
+    return new KllFloatsSketch(mem);
   }
 
-  /**
-   * Constructor with the default <em>k</em> (rank error of about 1.65%)
-   */
-  public KllFloatsSketch() {
-    this(DEFAULT_K);
-  }
-
-  /**
-   * Constructor with a given parameter <em>k</em>. <em>k</em> can be any value between 8 and
-   * 65535, inclusive. The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   */
-  public KllFloatsSketch(final int k) {
-    this(k, DEFAULT_M);
-  }
+  // public functions
 
   /**
    * Returns the parameter k
@@ -395,15 +459,18 @@ public class KllFloatsSketch {
       throw new SketchesArgumentException("incompatible M: " + m_ + " and " + other.m_);
     }
     final long finalN = n_ + other.n_;
+    //update this sketch with level0 items from the other sketch
     for (int i = other.levels_[0]; i < other.levels_[1]; i++) {
       update(other.items_[i]);
     }
-    if (other.numLevels_ >= 2) {
+    if (other.numLevels_ >= 2) { //now merge other levels if they exist
       mergeHigherLevels(other, finalN);
     }
+    //update min, max values, n
     if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
     if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
     n_ = finalN;
+
     assertCorrectTotalWeight();
     if (other.isEstimationMode()) {
       minK_ = min(minK_, other.minK_);
@@ -797,7 +864,7 @@ public class KllFloatsSketch {
   public byte[] toByteArray() {
     final byte[] bytes = new byte[getSerializedSizeBytes()];
     final boolean isSingleItem = n_ == 1;
-    bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() || isSingleItem ? PREAMBLE_INTS_SHORT : PREAMBLE_INTS_FULL);
+    bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() || isSingleItem ? PREAMBLE_INTS_SMALL : PREAMBLE_INTS_FULL);
     bytes[SER_VER_BYTE] = isSingleItem ? serialVersionUID2 : serialVersionUID1;
     bytes[FAMILY_BYTE] = (byte) Family.KLL.getID();
     bytes[FLAGS_BYTE] = (byte) (
@@ -833,53 +900,13 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap sketch.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param mem a Memory image of a sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based sketch based on the given Memory
-   */
-  public static KllFloatsSketch heapify(final Memory mem) {
-    final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
-    final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
-    final int family = mem.getByte(FAMILY_BYTE) & 0xff;
-    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
-    final int m = mem.getByte(M_BYTE) & 0xff;
-    if (m != DEFAULT_M) {
-      throw new SketchesArgumentException(
-          "Possible corruption: M must be " + DEFAULT_M + ": " + m);
-    }
-    final boolean isEmpty = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    final boolean isSingleItem = (flags & (1 << Flags.IS_SINGLE_ITEM.ordinal())) > 0;
-    if (isEmpty || isSingleItem) {
-      if (preambleInts != PREAMBLE_INTS_SHORT) {
-        throw new SketchesArgumentException("Possible corruption: preambleInts must be "
-            + PREAMBLE_INTS_SHORT + " for an empty or single item sketch: " + preambleInts);
-      }
-    } else {
-      if (preambleInts != PREAMBLE_INTS_FULL) {
-        throw new SketchesArgumentException("Possible corruption: preambleInts must be "
-            + PREAMBLE_INTS_FULL + " for a sketch with more than one item: " + preambleInts);
-      }
-    }
-    if ((serialVersion != serialVersionUID1) && (serialVersion != serialVersionUID2)) {
-      throw new SketchesArgumentException(
-          "Possible corruption: serial version mismatch: expected " + serialVersionUID1 + " or "
-              + serialVersionUID2 + ", got " + serialVersion);
-    }
-    if (family != Family.KLL.getID()) {
-      throw new SketchesArgumentException(
-      "Possible corruption: family mismatch: expected " + Family.KLL.getID() + ", got " + family);
-    }
-    return new KllFloatsSketch(mem);
-  }
-
-  /**
    * @return the iterator for this class
    */
   public KllFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(items_, levels_, numLevels_);
   }
+
+  // Restricted Methods
 
   /**
    * Checks the validity of the given value k
@@ -1137,7 +1164,7 @@ public class KllFloatsSketch {
     return levels_[level + 1] - levels_[level];
   }
 
- private int getNumRetainedAboveLevelZero() {
+  private int getNumRetainedAboveLevelZero() {
     if (numLevels_ == 1) { return 0; }
     return levels_[numLevels_] - levels_[1];
   }
