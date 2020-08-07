@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.Util.simpleIntLog2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
@@ -227,7 +227,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @return log_base2 of Nominal Entries
    */
   public int getLgK() {
-    return simpleIntLog2(nomEntries_);
+    return simpleLog2OfLong(nomEntries_);
   }
 
   /**

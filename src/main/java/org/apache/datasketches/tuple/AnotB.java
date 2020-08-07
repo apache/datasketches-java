@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple;
 import static org.apache.datasketches.HashOperations.convertToHashTable;
 import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.simpleIntLog2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -366,7 +366,7 @@ public final class AnotB<S extends Summary> {
     final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
 
     //search for non matches and build temp arrays
-    final int lgHTBLen = simpleIntLog2(hashTableB.length);
+    final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];
@@ -414,7 +414,7 @@ public final class AnotB<S extends Summary> {
     final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
 
     //search for non matches and build temp arrays
-    final int lgHTBLen = simpleIntLog2(hashTableB.length);
+    final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];

@@ -24,7 +24,7 @@ import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.Util.computeSeedHash;
-import static org.apache.datasketches.Util.simpleIntLog2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
 
 import java.util.Arrays;
 
@@ -180,7 +180,7 @@ final class AnotBimpl extends AnotB {
     final long[] tmpHashArrA = new long[countA];
 
     //search for non matches and build temp arrays
-    final int lgHTBLen = simpleIntLog2(hashTableB.length);
+    final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];

@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.Util.floorPowerOf2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
+
 import java.util.Arrays;
 import java.util.Random;
 
@@ -38,17 +41,11 @@ class KllHelper {
   }
 
   static boolean isOdd(final int value) {
-    return (value & 1) > 0;
+    return (value & 1) == 1;
   }
 
-  static int floorOfLog2OfFraction(final long numer, long denom) {
-    if (denom > numer) { return 0; }
-    int count = 0;
-    while (true) {
-      denom <<= 1;
-      if (denom > numer) { return count; }
-      count++;
-    }
+  static int floorOfLog2OfFraction(final long numer, final long denom) {
+    return simpleLog2OfLong(floorPowerOf2(numer / denom));
   }
 
   /**
@@ -89,11 +86,11 @@ class KllHelper {
     return total;
   }
 
-  static int levelCapacity(final int k, final int numLevels, final int height, final int minWid) {
+  static int levelCapacity(final int k, final int numLevels, final int height, final int minWidth) {
     assert height >= 0;
     assert height < numLevels;
     final int depth = numLevels - height - 1;
-    return Math.max(minWid, intCapAux(k, depth));
+    return Math.max(minWidth, intCapAux(k, depth));
   }
 
   private static int intCapAux(final int k, final int depth) {
@@ -106,14 +103,6 @@ class KllHelper {
     return intCapAuxAux(tmp, rest);
   }
 
-  // 0 <= power <= 30
-  private static final long[] powersOfThree =
-      new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
-  1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
-  3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
-  847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
-  205891132094649L};
-
   private static int intCapAuxAux(final int k, final int depth) {
     assert (k <= (1 << 30));
     assert (depth <= 30);
@@ -123,6 +112,14 @@ class KllHelper {
     assert (result <= k);
     return result;
   }
+
+  // 0 <= index <= 30
+  private static final long[] powersOfThree =
+      new long[] {1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441,
+  1594323, 4782969, 14348907, 43046721, 129140163, 387420489, 1162261467,
+  3486784401L, 10460353203L, 31381059609L, 94143178827L, 282429536481L,
+  847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
+  205891132094649L};
 
   static long sumTheSampleWeights(final int num_levels, final int[] levels) {
     long total = 0;
@@ -217,7 +214,7 @@ class KllHelper {
       }
       else {
         // The sketch is too full AND this level is too full, so we compact it
-        // Note: this can add a level and thus change the sketches capacities
+        // Note: this can add a level and thus change the sketch's capacity
 
         final int popAbove = inLevels[curLevel + 2] - rawLim;
         final boolean oddPop = isOdd(rawPop);

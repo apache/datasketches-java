@@ -43,7 +43,7 @@ import static org.apache.datasketches.Util.nanoSecToString;
 import static org.apache.datasketches.Util.pwr2LawNext;
 import static org.apache.datasketches.Util.pwr2LawPrev;
 import static org.apache.datasketches.Util.pwrLawNextDouble;
-import static org.apache.datasketches.Util.simpleIntLog2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -111,7 +111,7 @@ public class UtilTest {
   }
 
   @Test
-  public void checkFloorPowerOf2() {
+  public void checkFloorPowerOf2Int() {
     Assert.assertEquals(floorPowerOf2( -1), 1);
     Assert.assertEquals(floorPowerOf2(0), 1);
     Assert.assertEquals(floorPowerOf2(1), 1);
@@ -123,7 +123,19 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2((1 << 30)), (1 << 30));
     Assert.assertEquals(floorPowerOf2((1 << 30) + 1), (1 << 30));
   }
+  @Test
+  public void checkFloorPowerOf2Long() {
+    Assert.assertEquals(floorPowerOf2( -1L), 1L);
+    Assert.assertEquals(floorPowerOf2(0L), 1L);
+    Assert.assertEquals(floorPowerOf2(1L), 1L);
+    Assert.assertEquals(floorPowerOf2(2L), 2L);
+    Assert.assertEquals(floorPowerOf2(3L), 2L);
+    Assert.assertEquals(floorPowerOf2(4L), 4L);
 
+    Assert.assertEquals(floorPowerOf2((1L << 63) - 1L), (1L << 62));
+    Assert.assertEquals(floorPowerOf2((1L << 62)), (1L << 62));
+    Assert.assertEquals(floorPowerOf2((1L << 62) + 1L), (1L << 62));
+  }
   @Test
   public void checkFloorPowerOf2double() {
     Assert.assertEquals(floorPowerOfBdouble(2.0, -1.0), 1.0);
@@ -318,11 +330,12 @@ public class UtilTest {
   }
 
   @Test
-  public void checkSimpleIntLog2() {
-    Assert.assertEquals(simpleIntLog2(2), 1);
-    Assert.assertEquals(simpleIntLog2(1), 0);
+  public void checkSimpleLog2OfLong() {
+    Assert.assertEquals(simpleLog2OfLong(2), 1);
+    Assert.assertEquals(simpleLog2OfLong(1), 0);
+    Assert.assertEquals(simpleLog2OfLong(1L << 62), 62);
     try {
-      simpleIntLog2(0);
+      simpleLog2OfLong(0);
       fail();
     } catch (final SketchesArgumentException e) { }
   }

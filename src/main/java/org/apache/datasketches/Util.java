@@ -440,8 +440,9 @@ public final class Util {
   }
 
   /**
-   * Computes the floor power of 2 within the range [1, 2^30]. This is the largest positive power of
-   * 2 that equal to or less than the given n and equal to a mathematical integer.
+   * Computes the floor power of 2 given <i>n</i> is in therange [1, 2^31-1].
+   * This is the largest positive power of 2 that equal to or less than the given n and equal
+   * to a mathematical integer.
    *
    * <p>For:
    * <ul>
@@ -452,12 +453,34 @@ public final class Util {
    * integer.</li>
    * </ul>
    *
-   * @param n The given argument.
-   * @return the floor power of 2.
+   * @param n The given int argument.
+   * @return the floor power of 2 as an int.
    */
   public static int floorPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     return Integer.highestOneBit(n);
+  }
+
+  /**
+   * Computes the floor power of 2 given <i>n</i> is in the range [1, 2^63-1].
+   * This is the largest positive power of 2 that is equal to or less than the given <i>n</i> and
+   * equal to a mathematical integer.
+   *
+   * <p>For:
+   * <ul>
+   * <li>n &le; 1: returns 1</li>
+   * <li>2^62 &le; n &le; 2^63 -1 : returns 2^62</li>
+   * <li>n == a power of 2 : returns n</li>
+   * <li>otherwise returns the largest power of 2 less than n and equal to a mathematical
+   * integer.</li>
+   * </ul>
+   *
+   * @param n The given long argument.
+   * @return the floor power of 2 as a long
+   */
+  public static long floorPowerOf2(final long n) {
+    if (n <= 1) { return 1; }
+    return Long.highestOneBit(n);
   }
 
   /**
@@ -570,15 +593,15 @@ public final class Util {
   }
 
   /**
-   * Gives the log2 of an integer that is known to be a power of 2.
+   * Gives the log2 of a long that is known to be a power of 2.
    *
    * @param x number that is greater than zero
-   * @return the log2 of an integer that is known to be a power of 2.
+   * @return the log2 of a long that is known to be a power of 2.
    */
-  public static int simpleIntLog2(final int x) {
-    final int exp = Integer.numberOfTrailingZeros(x);
-    if (x != (1 << exp)) {
-      throw new SketchesArgumentException("Argument x cannot be negative or zero.");
+  public static int simpleLog2OfLong(final long x) {
+    final int exp = Long.numberOfTrailingZeros(x);
+    if (x != (1L << exp)) {
+      throw new SketchesArgumentException("Argument x must be a positive power of 2.");
     }
     return exp;
   }
