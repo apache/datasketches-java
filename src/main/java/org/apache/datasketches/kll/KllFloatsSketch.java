@@ -190,12 +190,12 @@ public class KllFloatsSketch {
    *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
    *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
    *
-   * Serialized sketch layout, Single Item:
+   * Serialized sketch layout, Empty and Single Item:
    *  Adr:
    *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
    *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
    *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||<--------------------------------data-----------------------------------------|
+   *  1   ||                                   |-------------------data-------------------|
    */
 
   // Preamble byte addresses
@@ -205,15 +205,17 @@ public class KllFloatsSketch {
   private static final int FLAGS_BYTE         = 3;
   private static final int K_SHORT            = 4;  // to 5
   private static final int M_BYTE             = 6;
+  //                                            7 is reserved for future use
   private static final int N_LONG             = 8;  // to 15
   private static final int MIN_K_SHORT        = 16; // to 17
   private static final int NUM_LEVELS_BYTE    = 18;
+  //                                            19 is reserved for future use
   private static final int DATA_START         = 20; // if using items larger than 4 bytes, use 24
   private static final int DATA_START_SINGLE_ITEM = 8;
 
   // Other static values
-  private static final byte serialVersionUID1 = 1;
-  private static final byte serialVersionUID2 = 2;
+  private static final byte serialVersionUID1  = 1;
+  private static final byte serialVersionUID2  = 2;
   private static final int PREAMBLE_INTS_SMALL = 2; // for empty and single item
   private static final int PREAMBLE_INTS_FULL  = 5; // if using items larger than 4 bytes, use 6
 
@@ -240,14 +242,13 @@ public class KllFloatsSketch {
   private int minK_;      // for error estimation after merging with different k
   private long n_;        // number of items input into this sketch
   private int numLevels_; // one-based number of current levels,
-  private int[] levels_;  // array of index offsets to the levels. Size = numLevels + 1.
+  private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   private boolean isLevelZeroSorted_;
 
   // Specific to the floats sketch
-  private float[] items_;
+  private float[] items_; // the continuous array of float items
   private float minValue_;
   private float maxValue_;
-
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -385,6 +386,31 @@ public class KllFloatsSketch {
   // public functions
 
   /**
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
+   * getNormalizedRankError(false) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these split points.
+   *
+   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
+   * of the input stream given the splitPoints. The value at array position j of the returned
+   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
+   * array.
+   */
+  public double[] getCDF(final float[] splitPoints) {
+    return getPmfOrCdf(splitPoints, true);
+  }
+
+  /**
    * Returns the parameter k
    * @return parameter k
    */
@@ -393,88 +419,37 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns the length of the input stream.
-   * @return stream length
+   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * @param epsilon the normalized rank error between zero and one.
+   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
+   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * epsilon for all the other queries.
+   * @return the value of <i>k</i> given a value of epsilon.
+   * @see KllFloatsSketch
    */
-  public long getN() {
-    return n_;
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
+  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
+    //Ensure that eps is >= than the lowest possible eps given MAX_K and pmf=false.
+    final double eps = max(epsilon, 4.7634E-5);
+    final double kdbl = pmf
+        ? exp(log(2.446 / eps) / 0.9433)
+        : exp(log(2.296 / eps) / 0.9723);
+    final double krnd = round(kdbl);
+    final double del = abs(krnd - kdbl);
+    final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
+    return max(MIN_K, min(MAX_K, k));
   }
 
   /**
-   * Returns true if this sketch is empty.
-   * @return empty flag
-   */
-  public boolean isEmpty() {
-    return n_ == 0;
-  }
-
-  /**
-   * Returns the number of retained items (samples) in the sketch.
-   * @return the number of retained items (samples) in the sketch
-   */
-  public int getNumRetained() {
-    return levels_[numLevels_] - levels_[0];
-  }
-
-  /**
-   * Returns true if this sketch is in estimation mode.
-   * @return estimation mode flag
-   */
-  public boolean isEstimationMode() {
-    return numLevels_ > 1;
-  }
-
-  /**
-   * Updates this sketch with the given data item.
+   * Returns the max value of the stream.
+   * If the sketch is empty this returns NaN.
    *
-   * @param value an item from a stream of items. NaNs are ignored.
+   * @return the max value of the stream
    */
-  public void update(final float value) {
-    if (Float.isNaN(value)) { return; }
-    if (isEmpty()) {
-      minValue_ = value;
-      maxValue_ = value;
-    } else {
-      if (value < minValue_) { minValue_ = value; }
-      if (value > maxValue_) { maxValue_ = value; }
-    }
-    if (levels_[0] == 0) {
-      compressWhileUpdating();
-    }
-    n_++;
-    isLevelZeroSorted_ = false;
-    final int nextPos = levels_[0] - 1;
-    assert levels_[0] >= 0;
-    levels_[0] = nextPos;
-    items_[nextPos] = value;
-  }
-
-  /**
-   * Merges another sketch into this one.
-   * @param other sketch to merge into this one
-   */
-  public void merge(final KllFloatsSketch other) {
-    if ((other == null) || other.isEmpty()) { return; }
-    if (m_ != other.m_) {
-      throw new SketchesArgumentException("incompatible M: " + m_ + " and " + other.m_);
-    }
-    final long finalN = n_ + other.n_;
-    //update this sketch with level0 items from the other sketch
-    for (int i = other.levels_[0]; i < other.levels_[1]; i++) {
-      update(other.items_[i]);
-    }
-    if (other.numLevels_ >= 2) { //now merge other levels if they exist
-      mergeHigherLevels(other, finalN);
-    }
-    //update min, max values, n
-    if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
-    if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
-    n_ = finalN;
-
-    assertCorrectTotalWeight();
-    if (other.isEstimationMode()) {
-      minK_ = min(minK_, other.minK_);
-    }
+  public float getMaxValue() {
+    return maxValue_;
   }
 
   /**
@@ -488,13 +463,115 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns the max value of the stream.
-   * If the sketch is empty this returns NaN.
-   *
-   * @return the max value of the stream
+   * Returns the length of the input stream.
+   * @return stream length
    */
-  public float getMaxValue() {
-    return maxValue_;
+  public long getN() {
+    return n_;
+  }
+
+  /**
+   * Gets the approximate "double-sided" rank error for the <i>getPMF()</i> function of this
+   * sketch normalized as a fraction between zero and one.
+   *
+   * @return the rank error normalized as a fraction between zero and one.
+   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
+   * @see KllFloatsSketch
+   */
+  @Deprecated
+  public double getNormalizedRankError() {
+    return getNormalizedRankError(true);
+  }
+
+  /**
+   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @see KllFloatsSketch
+   */
+  public double getNormalizedRankError(final boolean pmf) {
+    return getNormalizedRankError(minK_, pmf);
+  }
+
+  /**
+   * Static method version of the double-sided {@link #getNormalizedRankError()} that
+   * specifies <em>k</em>.
+   * @param k the configuration parameter
+   * @return the normalized "double-sided" rank error as a function of <em>k</em>.
+   * @see KllFloatsSketch
+   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
+   */
+  @Deprecated
+  public static double getNormalizedRankError(final int k) {
+    return getNormalizedRankError(k, true);
+  }
+
+  /**
+   * Gets the normalized rank error given k and pmf.
+   * Static method version of the {@link #getNormalizedRankError(boolean)}.
+   * @param k the configuation parameter
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @see KllFloatsSketch
+   */
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
+  public static double getNormalizedRankError(final int k, final boolean pmf) {
+    return pmf
+        ? 2.446 / pow(k, 0.9433)
+        : 2.296 / pow(k, 0.9723);
+  }
+
+  /**
+   * Returns the number of retained items (samples) in the sketch.
+   * @return the number of retained items (samples) in the sketch
+   */
+  public int getNumRetained() {
+    return levels_[numLevels_] - levels_[0];
+  }
+
+  /**
+   * Returns upper bound on the serialized size of a sketch given a parameter <em>k</em> and stream
+   * length. The resulting size is an overestimate to make sure actual sketches don't exceed it.
+   * This method can be used if allocation of storage is necessary beforehand, but it is not
+   * optimal.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @return upper bound on the serialized size
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n) {
+    final int numLevels = KllHelper.ubOnNumLevels(n);
+    final int maxNumItems = KllHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
+    return getSerializedSizeBytes(numLevels, maxNumItems);
+  }
+
+  /**
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
+   * given a set of splitPoints (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
+   * getNormalizedRankError(true) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these split points.
+   *
+   * @return an array of m+1 doubles each of which is an approximation
+   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
+   * splitPoint, with the exception that the last interval will include maximum value.
+   */
+  public double[] getPMF(final float[] splitPoints) {
+    return getPmfOrCdf(splitPoints, false);
   }
 
   /**
@@ -640,136 +717,6 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * given a set of splitPoints (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(true) function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these split points.
-   *
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
-   */
-  public double[] getPMF(final float[] splitPoints) {
-    return getPmfOrCdf(splitPoints, false);
-  }
-
-  /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
-   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these split points.
-   *
-   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
-   * of the input stream given the splitPoints. The value at array position j of the returned
-   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
-   * array.
-   */
-  public double[] getCDF(final float[] splitPoints) {
-    return getPmfOrCdf(splitPoints, true);
-  }
-
-  /**
-   * Gets the approximate "double-sided" rank error for the <i>getPMF()</i> function of this
-   * sketch normalized as a fraction between zero and one.
-   *
-   * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
-   * @see KllFloatsSketch
-   */
-  @Deprecated
-  public double getNormalizedRankError() {
-    return getNormalizedRankError(true);
-  }
-
-  /**
-   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
-   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllFloatsSketch
-   */
-  public double getNormalizedRankError(final boolean pmf) {
-    return getNormalizedRankError(minK_, pmf);
-  }
-
-  /**
-   * Static method version of the double-sided {@link #getNormalizedRankError()} that
-   * specifies <em>k</em>.
-   * @param k the configuration parameter
-   * @return the normalized "double-sided" rank error as a function of <em>k</em>.
-   * @see KllFloatsSketch
-   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
-   */
-  @Deprecated
-  public static double getNormalizedRankError(final int k) {
-    return getNormalizedRankError(k, true);
-  }
-
-  /**
-   * Gets the normalized rank error given k and pmf.
-   * Static method version of the {@link #getNormalizedRankError(boolean)}.
-   * @param k the configuation parameter
-   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @return if pmf is true, the normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllFloatsSketch
-   */
-  // constants were derived as the best fit to 99 percentile empirically measured max error in
-  // thousands of trials
-  public static double getNormalizedRankError(final int k, final boolean pmf) {
-    return pmf
-        ? 2.446 / pow(k, 0.9433)
-        : 2.296 / pow(k, 0.9723);
-  }
-
-  /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
-   * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
-   * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
-   * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
-   * @see KllFloatsSketch
-   */
-  // constants were derived as the best fit to 99 percentile empirically measured max error in
-  // thousands of trials
-  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    //Ensure that eps is >= than the lowest possible eps given MAX_K and pmf=false.
-    final double eps = max(epsilon, 4.7634E-5);
-    final double kdbl = pmf
-        ? exp(log(2.446 / eps) / 0.9433)
-        : exp(log(2.296 / eps) / 0.9723);
-    final double krnd = round(kdbl);
-    final double del = abs(krnd - kdbl);
-    final int k = (int) ((del < 1E-6) ? krnd : ceil(kdbl));
-    return max(MIN_K, min(MAX_K, k));
-  }
-
-  /**
    * Returns the number of bytes this sketch would require to store.
    * @return the number of bytes this sketch would require to store.
    */
@@ -779,82 +726,54 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns upper bound on the serialized size of a sketch given a parameter <em>k</em> and stream
-   * length. The resulting size is an overestimate to make sure actual sketches don't exceed it.
-   * This method can be used if allocation of storage is necessary beforehand, but it is not
-   * optimal.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @return upper bound on the serialized size
+   * Returns true if this sketch is empty.
+   * @return empty flag
    */
-  public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final int numLevels = KllHelper.ubOnNumLevels(n);
-    final int maxNumItems = KllHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
-    return getSerializedSizeBytes(numLevels, maxNumItems);
-  }
-
-  @Override
-  public String toString() {
-    return toString(false, false);
+  public boolean isEmpty() {
+    return n_ == 0;
   }
 
   /**
-   * Returns a summary of the sketch as a string.
-   * @param withLevels if true include information about levels
-   * @param withData if true include sketch data
-   * @return string representation of sketch summary
+   * Returns true if this sketch is in estimation mode.
+   * @return estimation mode flag
    */
-  public String toString(final boolean withLevels, final boolean withData) {
-    final String epsPct = String.format("%.3f%%", getNormalizedRankError(false) * 100);
-    final String epsPMFPct = String.format("%.3f%%", getNormalizedRankError(true) * 100);
-    final StringBuilder sb = new StringBuilder();
-    sb.append(Util.LS).append("### KLL sketch summary:").append(Util.LS);
-    sb.append("   K                    : ").append(k_).append(Util.LS);
-    sb.append("   min K                : ").append(minK_).append(Util.LS);
-    sb.append("   M                    : ").append(m_).append(Util.LS);
-    sb.append("   N                    : ").append(n_).append(Util.LS);
-    sb.append("   Epsilon              : ").append(epsPct).append(Util.LS);
-    sb.append("   Epsison PMF          : ").append(epsPMFPct).append(Util.LS);
-    sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);
-    sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
-    sb.append("   Levels               : ").append(numLevels_).append(Util.LS);
-    sb.append("   Sorted               : ").append(isLevelZeroSorted_).append(Util.LS);
-    sb.append("   Buffer Capacity Items: ").append(items_.length).append(Util.LS);
-    sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
-    sb.append("   Storage Bytes        : ").append(getSerializedSizeBytes()).append(Util.LS);
-    sb.append("   Min Value            : ").append(minValue_).append(Util.LS);
-    sb.append("   Max Value            : ").append(maxValue_).append(Util.LS);
-    sb.append("### End sketch summary").append(Util.LS);
+  public boolean isEstimationMode() {
+    return numLevels_ > 1;
+  }
 
-    if (withLevels) {
-      sb.append("### KLL sketch levels:").append(Util.LS)
-      .append("   index: nominal capacity, actual size").append(Util.LS);
-      for (int i = 0; i < numLevels_; i++) {
-        sb.append("   ").append(i).append(": ")
-        .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
-        .append(", ").append(safeLevelSize(i)).append(Util.LS);
-      }
-      sb.append("### End sketch levels").append(Util.LS);
+  /**
+   * @return the iterator for this class
+   */
+  public KllFloatsSketchIterator iterator() {
+    return new KllFloatsSketchIterator(items_, levels_, numLevels_);
+  }
+
+  /**
+   * Merges another sketch into this one.
+   * @param other sketch to merge into this one
+   */
+  public void merge(final KllFloatsSketch other) {
+    if ((other == null) || other.isEmpty()) { return; }
+    if (m_ != other.m_) {
+      throw new SketchesArgumentException("incompatible M: " + m_ + " and " + other.m_);
     }
-
-    if (withData) {
-      sb.append("### KLL sketch data:").append(Util.LS);
-      int level = 0;
-      while (level < numLevels_) {
-        final int fromIndex = levels_[level];
-        final int toIndex = levels_[level + 1]; // exclusive
-        if (fromIndex < toIndex) {
-          sb.append(" level ").append(level).append(":").append(Util.LS);
-        }
-        for (int i = fromIndex; i < toIndex; i++) {
-          sb.append("   ").append(items_[i]).append(Util.LS);
-        }
-        level++;
-      }
-      sb.append("### End sketch data").append(Util.LS);
+    final long finalN = n_ + other.n_;
+    //update this sketch with level0 items from the other sketch
+    for (int i = other.levels_[0]; i < other.levels_[1]; i++) {
+      update(other.items_[i]);
     }
+    if (other.numLevels_ >= 2) { //now merge other levels if they exist
+      mergeHigherLevels(other, finalN);
+    }
+    //update min, max values, n
+    if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
+    if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
+    n_ = finalN;
 
-    return sb.toString();
+    assertCorrectTotalWeight();
+    if (other.isEstimationMode()) {
+      minK_ = min(minK_, other.minK_);
+    }
   }
 
   /**
@@ -899,11 +818,93 @@ public class KllFloatsSketch {
     return bytes;
   }
 
+  @Override
+  public String toString() {
+    return toString(false, false);
+  }
+
   /**
-   * @return the iterator for this class
+   * Returns a summary of the sketch as a string.
+   * @param withLevels if true include information about levels
+   * @param withData if true include sketch data
+   * @return string representation of sketch summary
    */
-  public KllFloatsSketchIterator iterator() {
-    return new KllFloatsSketchIterator(items_, levels_, numLevels_);
+  public String toString(final boolean withLevels, final boolean withData) {
+    final String epsPct = String.format("%.3f%%", getNormalizedRankError(false) * 100);
+    final String epsPMFPct = String.format("%.3f%%", getNormalizedRankError(true) * 100);
+    final StringBuilder sb = new StringBuilder();
+    sb.append(Util.LS).append("### KLL sketch summary:").append(Util.LS);
+    sb.append("   K                    : ").append(k_).append(Util.LS);
+    sb.append("   min K                : ").append(minK_).append(Util.LS);
+    sb.append("   M                    : ").append(m_).append(Util.LS);
+    sb.append("   N                    : ").append(n_).append(Util.LS);
+    sb.append("   Epsilon              : ").append(epsPct).append(Util.LS);
+    sb.append("   Epsison PMF          : ").append(epsPMFPct).append(Util.LS);
+    sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);
+    sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
+    sb.append("   Levels               : ").append(numLevels_).append(Util.LS);
+    sb.append("   Sorted               : ").append(isLevelZeroSorted_).append(Util.LS);
+    sb.append("   Buffer Capacity Items: ").append(items_.length).append(Util.LS);
+    sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
+    sb.append("   Storage Bytes        : ").append(getSerializedSizeBytes()).append(Util.LS);
+    sb.append("   Min Value            : ").append(minValue_).append(Util.LS);
+    sb.append("   Max Value            : ").append(maxValue_).append(Util.LS);
+    sb.append("### End sketch summary").append(Util.LS);
+
+    if (withLevels) {
+      sb.append("### KLL sketch levels:").append(Util.LS)
+      .append("   level, offset: nominal capacity, actual size").append(Util.LS);
+      for (int i = 0; i < numLevels_; i++) {
+        sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
+        .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
+        .append(", ").append(safeLevelSize(i)).append(Util.LS);
+      }
+      sb.append("### End sketch levels").append(Util.LS);
+    }
+
+    if (withData) {
+      sb.append("### KLL sketch data:").append(Util.LS);
+      int level = 0;
+      while (level < numLevels_) {
+        final int fromIndex = levels_[level];
+        final int toIndex = levels_[level + 1]; // exclusive
+        if (fromIndex < toIndex) {
+          sb.append(" level ").append(level).append(":").append(Util.LS);
+        }
+        for (int i = fromIndex; i < toIndex; i++) {
+          sb.append("   ").append(items_[i]).append(Util.LS);
+        }
+        level++;
+      }
+      sb.append("### End sketch data").append(Util.LS);
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Updates this sketch with the given data item.
+   *
+   * @param value an item from a stream of items. NaNs are ignored.
+   */
+  public void update(final float value) {
+    if (Float.isNaN(value)) { return; }
+    if (isEmpty()) {
+      minValue_ = value;
+      maxValue_ = value;
+    } else {
+      if (value < minValue_) { minValue_ = value; }
+      if (value > maxValue_) { maxValue_ = value; }
+    }
+    if (levels_[0] == 0) {
+      compressWhileUpdating();
+    }
+    n_++;
+    isLevelZeroSorted_ = false;
+    final int nextPos = levels_[0] - 1;
+    assert levels_[0] >= 0;
+    levels_[0] = nextPos;
+    items_[nextPos] = value;
   }
 
   // Restricted Methods
@@ -912,7 +913,7 @@ public class KllFloatsSketch {
    * Checks the validity of the given value k
    * @param k must be greater than 7 and less than 65536.
    */
-  static void checkK(final int k) {
+  private static void checkK(final int k) {
     if ((k < MIN_K) || (k > MAX_K)) {
       throw new SketchesArgumentException(
           "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
@@ -1022,12 +1023,12 @@ public class KllFloatsSketch {
       KllHelper.mergeSortedArrays(items_, adjBeg, halfAdjPop, items_, rawLim, popAbove,
           items_, adjBeg + halfAdjPop);
     }
-    levels_[level + 1] -= halfAdjPop; // adjust boundaries of the level above
+    levels_[level + 1] -= halfAdjPop;          // adjust boundaries of the level above
     if (oddPop) {
       levels_[level] = levels_[level + 1] - 1; // the current level now contains one item
       items_[levels_[level]] = items_[rawBeg]; // namely this leftover guy
     } else {
-      levels_[level] = levels_[level + 1]; // the current level is now empty
+      levels_[level] = levels_[level + 1];     // the current level is now empty
     }
 
     // verify that we freed up halfAdjPop array slots just below the current level
