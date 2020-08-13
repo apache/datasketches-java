@@ -40,11 +40,14 @@ import static org.apache.datasketches.Util.isMultipleOf8AndGT0;
 import static org.apache.datasketches.Util.isPowerOf2;
 import static org.apache.datasketches.Util.milliSecToString;
 import static org.apache.datasketches.Util.nanoSecToString;
+import static org.apache.datasketches.Util.numberOfLeadingOnes;
+import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.Util.pwr2LawNext;
 import static org.apache.datasketches.Util.pwr2LawPrev;
 import static org.apache.datasketches.Util.pwrLawNextDouble;
 import static org.apache.datasketches.Util.simpleLog2OfLong;
 import static org.apache.datasketches.Util.zeroPad;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -63,6 +66,22 @@ public class UtilTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPowerOf2() {
     checkIfPowerOf2(31, "31");
+  }
+
+
+  @Test
+  public void numTrailingOnes() {
+    long mask = 1L;
+    for (int i = 0; i <= 64; i++) {
+      long v = ~mask & -1L;
+      mask <<= 1;
+      int numT1s = numberOfTrailingOnes(v);
+      int numL1s = numberOfLeadingOnes(v);
+      assertEquals(Long.numberOfTrailingZeros(~v), numT1s);
+      assertEquals(Long.numberOfLeadingZeros(~v), numL1s);
+      //println(zeroPad(Long.toBinaryString(v),64) + ", " + numL1s + ", " + numT1s);
+      continue;
+    }
   }
 
   @Test
@@ -383,7 +402,7 @@ public class UtilTest {
    */
   static void print(final Object o) {
     if (o != null) {
-      //System.out.print(o.toString()); //disable here
+      System.out.print(o.toString()); //disable here
     }
   }
 

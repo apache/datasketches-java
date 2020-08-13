@@ -381,6 +381,32 @@ public final class Util {
   //Powers of 2 related
 
   /**
+   * Returns the number of one bits following the lowest-order ("rightmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   * @param v the value whose number of trailing ones is to be computed.
+   * @return the number of one bits following the lowest-order ("rightmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   */
+  public static int numberOfTrailingOnes(final long v) {
+    return Long.numberOfTrailingZeros(~v);
+  }
+
+  /**
+   * Returns the number of one bits preceding the highest-order ("leftmost") one-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   * @param v the value whose number of leading ones is to be computed.
+   * @return the number of one bits preceding the lowest-order ("rightmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   */
+  public static int numberOfLeadingOnes(final long v) {
+    return Long.numberOfLeadingZeros(~v);
+  }
+
+  /**
    * Returns true if argument is exactly a positive power of 2 and greater than zero.
    *
    * @param v The input argument.

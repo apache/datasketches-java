@@ -22,7 +22,11 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.ceil;
 import static java.lang.Math.sqrt;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+
+import org.apache.datasketches.kll.RelativeErrorUtil.Schedule;
 
 /**
  * Proof-of-concept code for paper "Relative Error Streaming Quantiles",
@@ -55,7 +59,7 @@ import java.util.Random;
  * @author Lee Rhodes
  */
 @SuppressWarnings("unused")
-public class KllReFloatsSketch {
+public class RelativeErrorSketch {
 
   static {
     final double x = sqrt(2);
@@ -63,60 +67,48 @@ public class KllReFloatsSketch {
     final Random rand =  new Random();
   }
 
-  // Constants
-
-  private final static double SECTION_SIZE_SCALAR = 0.5;
-  private final static double NEVER_SIZE_SCALAR = 0.5;
-  private final static int INIT_NUMBER_OF_SECTIONS = 2;
-  private final static int SMALLEST_MEANINGFUL_SECTION_SIZE = 4;
-  private final static double DEFAULT_EPS = 0.01;
-  private final static double EPS_UPPER_BOUND = 0.1; //the sketch gives rather bad results for eps > 0.1
-
-  /**
-   * Schedule
-   * @author Lee Rhodes
-   */
-  @SuppressWarnings("javadoc")
-  public enum Schedule { DETERMINISTIC, RANDOMIZED }
+  //final class parameters
+  private final double eps; //default = DEFAULT_EPS = .01
+  private final Schedule schedule; //default = Schedule.DETERMINISTIC;
+  private final int initNumSections; //default = INIT_NUMBER_OF_SECTIONS;
+  private final boolean lazy; //default = true;
+  private final boolean alternate;//default = true;
+  private final boolean neverGrows; //default = false;
 
   //class variables
-  private double eps = DEFAULT_EPS;
-  private Schedule sch = Schedule.DETERMINISTIC;
-  private int always = -1;
-  private int never = -1;
-  private int sectionSize = -1;
-  private int initNumSections = INIT_NUMBER_OF_SECTIONS;
-  private boolean lazy = true;
-  private boolean alternate = true;
-  private boolean neverGrows = false;
-  private RelativeCompactor compactor = new RelativeCompactor();
-  private RelativeCompactor[] compactors = new RelativeCompactor[0];
+  private int always;
+  private int never; //the part that is never compacted. Default = sectionSize * numSections
+  private int sectionSize; //the number of sections & determined by eps
+
+  private List<RelativeCompactor> compactors = new ArrayList<>();
   private int H = 0;
   private int size = 0;
-
+  private int maxSize = 0;
 
   /**
    * Constructor.
-   * @param eps blah
-   * @param sch blah
-   * @param always blah
-   * @param never blah
-   * @param sectionSize blah
-   * @param initNumSections blah
-   * @param lazy blah
-   * @param alternate blah
+   * @param eps target error rate. Must be less than .1. Default = .01.
+   * @param sch schedule, whether deterministic or randomized. Default = deterministic.
+   * @param always the size of the buffer that is always compacted
+   * @param never the size of the buffer that is never compacted
+   * @param sectionSize the size of a section in the buffer
+   * @param initNumSections the initial number of sections. Default = 2.
+   * @param lazy if true, stop compressing after the first compressible candidate found.
+   * @param alternate if true, then random choice of odd/even done every other time.
+   * @param neverGrows if true, we do not let "never" grow.
    */
-  public KllReFloatsSketch(
+  RelativeErrorSketch(
       final double eps,
-      final Schedule sch,
+      final Schedule schedule,
       final int always,
       final int never,
       final int sectionSize,
       final int initNumSections,
       final boolean lazy,
-      final boolean alternate) {
+      final boolean alternate,
+      final boolean neverGrows) {
     this.eps = eps;
-    this.sch = sch;
+    this.schedule = schedule;
     this.always = always;
     this.never = never;
     this.sectionSize = sectionSize;
@@ -124,36 +116,67 @@ public class KllReFloatsSketch {
     this.initNumSections = initNumSections;
     this.lazy = lazy;
     this.alternate = alternate;
+    this.neverGrows = neverGrows;
 
-    // default setting of sectionSize, always, and never according to eps
-    if (this.sectionSize == -1) {
-      // ensured to be even and positive (thus >= 2)
-      this.sectionSize = (2 * (int)(SECTION_SIZE_SCALAR / eps)) + 1;
-    }
-    if (this.always == -1) { this.always = sectionSize; }
-
-    neverGrows = false; //if never is set by the user, then we do not let it grow
-    if (this.never == -1) {
-      this.never = (int)(NEVER_SIZE_SCALAR * this.sectionSize * this.initNumSections);
-      neverGrows = true;
-    }
-    compactors = new RelativeCompactor[0];
     H = 0;
     size = 0;
+    maxSize = 0;
     grow();
   }
 
   void grow() {
+    compactors.add(
+        new RelativeCompactor(schedule,
+                              sectionSize,
+                              initNumSections,
+                              always,
+                              never,
+                              neverGrows,
+                              H,
+                              alternate
+        ));
+    H = compactors.size();
+    updateMaxSize();
+  }
+
+  void updateMaxSize() {
+    int maxSize = 0;
+    for (RelativeCompactor c : compactors) { maxSize += c.capacity(); }
+    this.maxSize = maxSize;
+  }
+
+  void update(final float item) {
+    final RelativeCompactor c = compactors.get(0);
 
   }
 
+  void compress(final boolean lazy) {
 
-  class RelativeCompactor {
-    int numCompactions = 0;
+  }
 
-    public RelativeCompactor() {
-      numCompactions = 0; // number of compaction operations performed
-    }
+  void mergeIntoSelf(final RelativeErrorSketch sketch) {
+
+  }
+
+  void merge(final RelativeErrorSketch sketch1, final RelativeErrorSketch sketch2) {
+
+  }
+
+  int rank(final float value) {
+    return 0;
+  }
+
+  Pair[] cdf() {
+    return null;
+  }
+
+  Pair[] ranks() {
+    return null;
+  }
+
+  class Pair {
+    float rank;
+    float value;
   }
 
 }
