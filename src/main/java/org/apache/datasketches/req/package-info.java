@@ -17,20 +17,8 @@
  * under the License.
  */
 
-package org.apache.datasketches.kll;
-
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc"})
-public class RelativeErrorUtil {
-  final static double SECTION_SIZE_SCALAR = 0.5;
-  final static double NEVER_SIZE_SCALAR = 0.5;
-  final static int INIT_NUMBER_OF_SECTIONS = 2;
-  final static int SMALLEST_MEANINGFUL_SECTION_SIZE = 4;
-  final static double DEFAULT_EPS = 0.01;
-  //the sketch gives rather bad results for eps > 0.1
-  final static double EPS_UPPER_BOUND = 0.1;
 
-  public enum Schedule { DETERMINISTIC, RANDOMIZED, RANDOMIZED_LINAR }
-}
+package org.apache.datasketches.req;
