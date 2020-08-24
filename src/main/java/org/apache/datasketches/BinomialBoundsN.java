@@ -33,7 +33,7 @@ public final class BinomialBoundsN {
 
   private BinomialBoundsN() {}
 
-  private static double[] deltaOfNumSDev =
+  private static final double[] deltaOfNumSDev =
   {
     0.5000000000000000000, // not actually using this value
     0.1586553191586026479,
@@ -225,9 +225,9 @@ public final class BinomialBoundsN {
    * This must be an integer value of 1, 2 or 3.
    * @param noDataSeen this is normally false. However, in the case where you have zero samples
    * and a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual
-   * data has been seen and the case where the estimate may be zero but an upper error bound may
+   * data has been seen and the case where the estimate may be zero but a lower error bound may
    * still exist.
-   * @return the approximate upper bound value
+   * @return the approximate lower bound value
    */
   public static double getLowerBound(final long numSamples, final double theta, final int numSDev,
       final boolean noDataSeen) {
@@ -264,7 +264,7 @@ public final class BinomialBoundsN {
   }
 
   //exposed only for test
-  static final void checkArgs(final long numSamples, final double theta, final int numSDev) {
+  static void checkArgs(final long numSamples, final double theta, final int numSDev) {
     if ((numSDev | (numSDev - 1) | (3 - numSDev) | numSamples) < 0) {
       throw new SketchesArgumentException(
           "numSDev must only be 1,2, or 3 and numSamples must >= 0: numSDev="
