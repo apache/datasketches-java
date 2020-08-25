@@ -33,10 +33,10 @@ public class RelativeErrorSketchIterator {
   private int retainedItems;
   private Buffer currentBuf;
 
-  RelativeErrorSketchIterator(final RelativeErrorSketch sketch) {
+  RelativeErrorSketchIterator(final RelativeErrorQuantiles sketch) {
     compactors = sketch.compactors;
     retainedItems = sketch.size;
-    currentBuf = compactors.get(0).buf;
+    currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;
   }
@@ -49,12 +49,12 @@ public class RelativeErrorSketchIterator {
    */
   public boolean next() {
     if ((retainedItems == 0)
-        || ((cIndex == (compactors.size() - 1)) && (bIndex == currentBuf.length()))) {
+        || ((cIndex == (compactors.size() - 1)) && (bIndex == currentBuf.getItemCount()))) {
       return false;
     }
-    if (bIndex == currentBuf.length()) {
+    if (bIndex == currentBuf.getItemCount()) {
       cIndex++;
-      currentBuf = compactors.get(cIndex).buf;
+      currentBuf = compactors.get(cIndex).getBuffer();
       bIndex = 0;
     } else {
       bIndex++;

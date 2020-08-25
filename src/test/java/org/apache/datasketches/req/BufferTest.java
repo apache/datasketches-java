@@ -33,16 +33,16 @@ public class BufferTest {
   public void checkTrimLength() {
     Buffer buf = new Buffer(16, 4);
     for (int i = 0; i < 8; i++) { buf.append(i+1); }
-    assertEquals(buf.length(), 8);
+    assertEquals(buf.getItemCount(), 8);
     buf.trimLength(4);
-    assertEquals(buf.length(), 4);
+    assertEquals(buf.getItemCount(), 4);
   }
 
   @Test
   public void checkGetOdds() {
     int cap = 16;
     Buffer buf = new Buffer(cap, cap / 4);
-    for (int i = 0; i < buf.capacity(); i++) {
+    for (int i = 0; i < buf.getCapacity(); i++) {
       buf.append(i);
     }
     float[] out = buf.getOdds(0, cap);
@@ -56,10 +56,10 @@ public class BufferTest {
   public void checkGetEvens() {
     int cap = 15;
     Buffer buf = new Buffer(cap, cap / 4);
-    for (int i = 0; i < buf.capacity(); i++) {
+    for (int i = 0; i < buf.getCapacity(); i++) {
       buf.append(i);
     }
-    float[] out = buf.getEvens(0, buf.capacity());
+    float[] out = buf.getEvens(0, buf.getCapacity());
     println("");
     for (int i = 0; i < out.length; i++) {
       print((int)out[i] + " ");
@@ -70,25 +70,29 @@ public class BufferTest {
   public void checkAppend() {
     Buffer buf = new Buffer(2, 2);
     buf.append(1);
-    assertEquals(buf.length(), 1);
+    assertEquals(buf.getItemCount(), 1);
     buf.append(2);
-    assertEquals(buf.length(), 2);
+    assertEquals(buf.getItemCount(), 2);
     buf.append(3);
-    assertEquals(buf.capacity(), 4);
+    assertEquals(buf.getCapacity(), 4);
   }
 
   @Test
   public void checkCountLessThan() {
     Buffer buf = new Buffer(16, 2);
-    buf.extend(new float[] {1,2,3,4,5,6,7,1});
-    buf.setSorted(true);
+    float[] unsortedArr = {1,7,3,6,5,2,4};
+    buf.extend(unsortedArr); //unsorted flag
     assertEquals(buf.countLessThan(4), 3);
-    buf.setSorted(false);
-    assertEquals(buf.countLessThan(4), 4);
-    buf.clear(4, 7);
-    assertEquals(buf.getItem(4), 0.0F);
-    assertEquals(buf.getItem(5), 0.0F);
-    assertEquals(buf.getItem(6), 0.0F);
+    buf = new Buffer(16, 2);
+    float[] sortedArr = {1,2,3,4,5,6,7};
+    buf.mergeSortIn(sortedArr);
+    assertEquals(buf.countLessThan(4), 3);
+    buf.mergeSortIn(sortedArr);
+    assertEquals(buf.countLessThan(4), 6);
+    buf.trimLength(12);
+    assertEquals(buf.getItemCount(), 12);
+    assertEquals(buf.getItem(12), 0.0F);
+    assertEquals(buf.getItem(13), 0.0F);
   }
 
   @Test
@@ -98,7 +102,7 @@ public class BufferTest {
     float[] arr2 = {3,4};
     buf.extend(arr1);
     buf.extend(arr2);
-    for (int i = 0; i < buf.length(); i++) {
+    for (int i = 0; i < buf.getItemCount(); i++) {
       println(buf.getItem(i));
     }
   }
@@ -135,7 +139,7 @@ public class BufferTest {
     buf.extend(arr1);
     buf.sort();
     buf.mergeSortIn(arr2);
-    int len = buf.length();
+    int len = buf.getItemCount();
     for (int i = 0; i < len; i++) { print(buf.getItem(i) + ", "); }
     println("");
   }

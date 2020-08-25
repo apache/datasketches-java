@@ -19,49 +19,19 @@
 
 package org.apache.datasketches.req;
 
+import static org.testng.Assert.assertEquals;
+
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class RelativeErrorSketchTest {
+public class RelativeCompactorTest {
 
 
   @Test
-  public void test1() {
-    RelativeErrorQuantiles sk = new RelativeErrorQuantiles(4, true); //w debug
-    for (int i = 101; i-- > 1; ) {
-      sk.update(i);
-    }
-    print(sk.getSummary(0));
-
-    for (float i = 10; i <= 100; i += 10) {
-      printRank(sk, i + .5f);
-    }
+  public void checkNearestEven() {
+    assertEquals(RelativeCompactor.nearestEven(-0.9), 0);
   }
-
-  private static void printRank(RelativeErrorQuantiles sk, float v) {
-    double r = sk.rank(v);
-    println("Normalized Rank: value: " + v + ", rank: " + r);
-  }
-
-  @Test
-  public void strTest() {
-    StringBuilder sb = new StringBuilder();
-    float[] arr = {1, 2, 3};
-    String fmt = " %.0f";
-    for (int i = 0; i < arr.length; i++) {
-      String str = String.format(fmt, arr[i]);
-      sb.append(str);
-    }
-    println(sb.toString());
-  }
-
-
-  static final void print(final Object o) { System.out.print(o.toString()); }
-
-  static final void println(final Object o) { System.out.println(o.toString()); }
-
-
 }

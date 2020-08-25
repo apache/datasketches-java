@@ -20,28 +20,28 @@
 package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
+import static org.apache.datasketches.req.Buffer.LS;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
 /**
- * Proof-of-concept code for paper "Relative Error Streaming Quantiles",
+ * Java implementation for paper "Relative Error Streaming Quantiles",
  * https://arxiv.org/abs/2004.01668.
  *
  * <p>This implementation differs from the algorithm described in the paper in the following:</p>
  * <ul><li>The algorithm requires no upper bound on the stream length.
- * Instead, each relative-compactor (i.e. buffer) counts the number of compaction operations performed
- * so far (variable numCompactions). Initially, the relative-compactor starts with 2 buffer sections
+ * Instead, each relative-compactor counts the number of compaction operations performed
+ * so far (variable numCompactions). Initially, the relative-compactor starts with 3 sections
  * and each time the numCompactions exceeds 2^{# of sections}, we double the number of sections
  * (variable numSections).
  * </li>
- * <li>The size of each buffer section (variable k and sectionSize in the code and parameter k in
+ * <li>The size of each section (variable k and sectionSize in the code and parameter k in
  * the paper) is initialized with a value set by the user via variable k.
- * When the number of sections doubles, we decrease sectionSize by a factor of sqrt(2)
- * (for which we use a float variable sectionSizeF). As above, this is applied
- * at each level separately. Thus, when we double the number of sections, the buffer size
- * increases by a factor of sqrt(2) (up to +-1 after rounding).</li>
+ * When the number of sections doubles, we decrease sectionSize by a factor of sqrt(2).
+ * This is applied at each level separately. Thus, when we double the number of sections, the
+ * size increases by a factor of sqrt(2) (up to +-1 after rounding).</li>
  * <li>The merge operation here does not perform "special compactions", which are used in the paper
  * to allow for a tight analysis of the sketch.</li>
  * </ul>
@@ -51,12 +51,12 @@ import java.util.List;
  * @author Lee Rhodes
  */
 @SuppressWarnings("unused")
-public class RelativeErrorSketch {
+public class RelativeErrorQuantiles {
   //An initial upper bound on log_2 (number of compactions) + 1 COMMMENT: Huh?
   final static int INIT_NUMBER_OF_SECTIONS = 3;
   final static int MIN_K = 4;
-  //should be even; value of 50 roughly corresponds to 0.01-relative error guarantee wiTH
-  //constant probability (TODO determine confidence bounds)
+  //should be even; value of 50 roughly corresponds to 0.01-relative error guarantee with
+  //constant probability
   final static int DEFAULT_K = 50;
 
   private int k; //default
@@ -64,14 +64,16 @@ public class RelativeErrorSketch {
   List<RelativeCompactor> compactors = new ArrayList<>();
   //int levels; //number of compactors; was H
   int size; //retained items
-  private int maxSize; //capacity
+  private int maxNomSize; //nominal capacity
   private long totalN; //total items offered to sketch
+  private float minValue = Float.MAX_VALUE;
+  private float maxValue = Float.MIN_VALUE;
 
   /**
    * Constructor with default k = 50;
    *
    */
-  RelativeErrorSketch() {
+  public RelativeErrorQuantiles() {
     this(DEFAULT_K, false);
   }
 
@@ -79,7 +81,7 @@ public class RelativeErrorSketch {
    * Constructor
    * @param k Controls the size and error of the sketch
    */
-  RelativeErrorSketch(final int k) {
+  public RelativeErrorQuantiles(final int k) {
     this(k, false);
   }
 
@@ -89,12 +91,13 @@ public class RelativeErrorSketch {
    * rounded down by one.
    * @param debug debug mode
    */
-  RelativeErrorSketch(final int k, final boolean debug) {
+  public RelativeErrorQuantiles(final int k, final boolean debug) {
     this.k = max(k & -2, MIN_K);
     this.debug = debug;
     size = 0;
-    maxSize = 0;
+    maxNomSize = 0;
     totalN = 0;
+    if (debug) { println("START:"); }
     grow();
   }
 
@@ -102,54 +105,73 @@ public class RelativeErrorSketch {
    * Copy Constructor
    * @param other the other sketch to be deep copied into this one.
    */
-  RelativeErrorSketch(final RelativeErrorSketch other) {
+  RelativeErrorQuantiles(final RelativeErrorQuantiles other) {
     k = other.k;
     debug = other.debug;
     for (int i = 0; i < other.levels(); i++) {
       compactors.add(new RelativeCompactor(other.compactors.get(i)));
     }
     size = other.size;
-    maxSize = other.maxSize;
+    maxNomSize = other.maxNomSize;
     totalN = other.totalN;
 
   }
 
   void compress(final boolean lazy) {
-    if (debug) { println("Compression Start ..."); }
-    updateMaxSize();
-    if (size < maxSize) { return; }
-    for (int h = 0; h < compactors.size(); h++) { //# compactors
+    updateMaxNomSize();
+    if (debug) {
+      println("COMPRESS:       sKsize: " + size + "\t>=\t"
+          + "\tmaxNomSize: " + maxNomSize
+          + "\tN: " + totalN);
+    }
+
+    if (size < maxNomSize) { return; }
+    for (int h = 0; h < compactors.size(); h++) {
       final RelativeCompactor c = compactors.get(h);
-      if (c.length() >= c.capacity()) {
-        if ((h + 1) >= levels()) { grow(); } //add a level
-        final float[] arr = c.compact();
-        compactors.get(h + 1).extend(arr);
-        size += arr.length;
-        if (lazy && (size < maxSize)) { break; }
+      final int re = c.getNumRetainedEntries();
+      final int nc = c.getNomCapacity();
+
+      if (re >= nc) {
+        if ((h + 1) >= levels()) {
+          if (debug) {
+            println("  Must Add Compactor: len(c[" + h + "]): "
+                + re + "\t>=\tc[" + h + "].nomCapacity(): " + nc);
+          }
+          grow(); //add a level
+        }
+        final float[] promoted = c.compact();
+        compactors.get(h + 1).extendAndMerge(promoted);
+        updateRetainedItems();
+        if (lazy && (size < maxNomSize)) { break; }
       }
     }
     if (debug) {
-      println("Compresssion Done:\n  RetainedItems:\t" + size + "\n  Capacity     :\t" + maxSize);
+      for (int h = 0; h < compactors.size(); h++) {
+        final RelativeCompactor c = compactors.get(h);
+        print(c.toHorizontalList(0));
+      }
+      println("COMPRESS: DONE: sKsize: " + size
+          + "\tMaxNomSize: " + maxNomSize + LS);
     }
   }
 
-  double[] getCDF(final float[] splitPoints) {
-    return getPmfOrCdf(splitPoints, true);
-  }
+  //  public double[] getCDF(final float[] splitPoints) {
+  //    return getPmfOrCdf(splitPoints, true);
+  //  }
 
   @SuppressWarnings("static-method")
   private double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf) {
     return null;
   }
 
-  public double getQuantile(final double rank) {
-
-    return 0;
-  }
+  //  public double getQuantile(final double rank) {
+  //
+  //    return 0;
+  //  }
 
   void grow() {
     compactors.add( new RelativeCompactor(k, levels(), debug));
-    updateMaxSize();
+    updateMaxNomSize();
   }
 
   /**
@@ -184,18 +206,20 @@ public class RelativeErrorSketch {
    * Merge other sketch into this one. The other sketch is not modified.
    * @param other sketch to be merged into this one.
    */
-  RelativeErrorSketch mergeIntoSelf(final RelativeErrorSketch other) {
+  RelativeErrorQuantiles merge(final RelativeErrorQuantiles other) {
     //Grow until self has at least as many compactors as other
     while (levels() < other.levels()) { grow(); }
     //Append the items in same height compactors
     for (int i = 0; i < levels(); i++) {
-      compactors.get(i).mergeIntoSelf(other.compactors.get(i));
+      final boolean mergeSort = i > 0;
+      compactors.get(i).merge(other.compactors.get(i), mergeSort);
     }
     updateRetainedItems();
-    // After merging, we should not be lazy when compressing the sketch (as the maxSize bound may
+    // After merging, we should not be lazy when compressing the sketch (as the maxNomSize bound may
     // be exceeded on many levels)
-    if (size >= maxSize) { compress(false); }
-    assert size < maxSize;
+    if (size >= maxNomSize) { compress(false); }
+    updateRetainedItems();
+    assert size < maxNomSize;
     return this;
   }
 
@@ -214,7 +238,7 @@ public class RelativeErrorSketch {
     int nnRank = 0;
     for (int i = 0; i < levels(); i++) {
       final RelativeCompactor c = compactors.get(i);
-      nnRank += c.rank(value) * (1 << c.lgWeight);
+      nnRank += c.rank(value) * (1 << c.getLgWeight());
     }
     return (double)nnRank / totalN;
   }
@@ -223,21 +247,52 @@ public class RelativeErrorSketch {
     return null;
   }
 
+  /**
+   * Returns a summary of the sketch and the horizontal lists for all compactors.
+   * @param decimals number of digits after the decimal point
+   * @return a summary of the sketch and the horizontal lists for all compactors.
+   */
+  public String getSummary(final int decimals) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("**********Relative Error Quantiles Sketch Summary**********").append(LS);
+    final int numC = compactors.size();
+    sb.append("  N               : " + totalN).append(LS);
+    sb.append("  Retained Entries: " + size).append(LS);
+    sb.append("  Max Nominal Size: " + maxNomSize).append(LS);
+    sb.append("  Min Value       : " + minValue).append(LS);
+    sb.append("  Max Value       : " + maxValue).append(LS);
+
+    sb.append("  Levels          : " + compactors.size()).append(LS);
+    for (int i = 0; i < numC; i++) {
+      final RelativeCompactor c = compactors.get(i);
+      sb.append("  " + c.toHorizontalList(decimals));
+    }
+    sb.append("************************End Summary************************").append(LS);
+    return sb.toString();
+  }
+
   void update(final float item) {
+    if (!Float.isFinite(item)) { return; }
+
     final RelativeCompactor c = compactors.get(0).append(item);
     size++;
-    if (size >= maxSize) { compress(true); }
     totalN++;
+    minValue = (item < minValue) ? item : minValue;
+    maxValue = (item > maxValue) ? item : maxValue;
+    if (size >= maxNomSize) {
+      c.sort();
+      compress(true);
+    }
   }
 
 /**
  * Computes a new bound for determining when to compress the sketch.
  * @return this
  */
-RelativeErrorSketch updateMaxSize() {
+RelativeErrorQuantiles updateMaxNomSize() {
   int cap = 0;
-  for (RelativeCompactor c : compactors) { cap += c.capacity(); } //get or set?
-  maxSize = cap;
+  for (RelativeCompactor c : compactors) { cap += c.getNomCapacity(); }
+  maxNomSize = cap;
   return this;
 }
 
@@ -245,9 +300,9 @@ RelativeErrorSketch updateMaxSize() {
  * Computes the size for the sketch.
  * @return this
  */
-RelativeErrorSketch updateRetainedItems() {
+RelativeErrorQuantiles updateRetainedItems() {
   int count = 0;
-  for (RelativeCompactor c : compactors) { count += c.length(); }
+  for (RelativeCompactor c : compactors) { count += c.getNumRetainedEntries(); }
   size = count;
   return this;
 }

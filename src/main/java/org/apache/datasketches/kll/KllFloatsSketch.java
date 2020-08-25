@@ -247,8 +247,8 @@ public class KllFloatsSketch {
 
   // Specific to the floats sketch
   private float[] items_; // the continuous array of float items
-  private float minValue_;
-  private float maxValue_;
+  private float minValue_ = Float.MAX_VALUE;
+  private float maxValue_ = Float.MIN_VALUE;
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -888,14 +888,9 @@ public class KllFloatsSketch {
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final float value) {
-    if (Float.isNaN(value)) { return; }
-    if (isEmpty()) {
-      minValue_ = value;
-      maxValue_ = value;
-    } else {
-      if (value < minValue_) { minValue_ = value; }
-      if (value > maxValue_) { maxValue_ = value; }
-    }
+    if (!Float.isFinite(value)) { return; }
+    minValue_ = (value < minValue_) ? value : minValue_;
+    maxValue_ = (value > maxValue_) ? value : maxValue_;
     if (levels_[0] == 0) {
       compressWhileUpdating();
     }

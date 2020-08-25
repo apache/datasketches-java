@@ -19,12 +19,14 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
-import static org.apache.datasketches.req.RelativeErrorSketch.INIT_NUMBER_OF_SECTIONS;
-import static org.apache.datasketches.req.RelativeErrorSketch.MIN_K;
-import static org.apache.datasketches.req.RelativeErrorSketch.println;
+import static org.apache.datasketches.req.Buffer.LS;
+import static org.apache.datasketches.req.RelativeErrorQuantiles.INIT_NUMBER_OF_SECTIONS;
+import static org.apache.datasketches.req.RelativeErrorQuantiles.MIN_K;
+import static org.apache.datasketches.req.RelativeErrorQuantiles.print;
+import static org.apache.datasketches.req.RelativeErrorQuantiles.println;
 
 import java.util.Random;
 
@@ -35,17 +37,20 @@ import java.util.Random;
 public class RelativeCompactor {
   private static final double SQRT2 = Math.sqrt(2.0);
   private int numCompactions; //number of compaction operations performed
-  private int state; //state of the deterministic compaction schedule
+
+  //State of the deterministic compaction schedule.
+  //  If there are no merge operations performed, state == numCompactions
+  private int state;
   //if there are no merge operations performed, state == numCompactions
 
   private boolean coin; //true or false uniformly at random for each compaction
-  private int sectionSize; //k
-  private int numSections; //# of sections in the buffer, minimum 3
-  Buffer buf;
-  int lgWeight = 0;
+  private int sectionSize; //initialized with k
+  private double sectionSizeDbl;
+  private int numSections; //# of sections, minimum 3
+  private Buffer buf;
+  private final int lgWeight;
   private boolean debug;
-  Random rand = new Random();
-
+  private Random rand;
 
   /**
    * Constructor
@@ -53,8 +58,12 @@ public class RelativeCompactor {
    * @param lgWeight this compactor's lgWeight
    * @param debug optional
    */
-  public RelativeCompactor(final int sectionSize, final int lgWeight, final boolean debug) {
+  RelativeCompactor(
+      final int sectionSize,
+      final int lgWeight,
+      final boolean debug) {
     this.sectionSize = sectionSize;
+    sectionSizeDbl = sectionSize;
     this.lgWeight = lgWeight;
     this.debug = debug;
 
@@ -62,16 +71,25 @@ public class RelativeCompactor {
     state = 0;
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
-    final int cap = 2 * numSections * sectionSize; //cap is always even
-    buf = new Buffer(cap, cap / 4);
+    final int nCap = 2 * numSections * sectionSize; //nCap is always even
+    buf = new Buffer(nCap, nCap);
+    if (debug) { rand = new Random(1); }
+    else { rand = new Random(); }
+
+    if (debug) {
+      println("    New Compactor: height: " + lgWeight
+          + "\tsectionSize: " + sectionSize
+          + "\tnumSections: " + numSections + LS);
+    }
   }
 
   /**
    * Copy Constuctor
    * @param other the compactor to be copied into this one
    */
-  public RelativeCompactor(final RelativeCompactor other) {
+  RelativeCompactor(final RelativeCompactor other) {
     sectionSize = other.sectionSize;
+    sectionSizeDbl = other.sectionSizeDbl;
     lgWeight = other.lgWeight;
     debug = other.debug;
     numCompactions = other.numCompactions;
@@ -79,6 +97,8 @@ public class RelativeCompactor {
     coin = other.coin;
     numSections = other.numSections;
     buf = new Buffer(other.buf);
+    if (debug) { rand = new Random(1); }
+    else { rand = new Random(); }
   }
 
   /**
@@ -86,7 +106,7 @@ public class RelativeCompactor {
    * @param item the given item
    * @return this;
    */
-  public RelativeCompactor append(final float item) {
+  RelativeCompactor append(final float item) {
     buf.append(item);
     return this;
   }
@@ -95,58 +115,77 @@ public class RelativeCompactor {
    * Perform a compaction operation on this compactor
    * @return the array of items to be promoted to the next level compactor
    */
-  public float[] compact() {
-    if (debug) { println("Compactor " + lgWeight + " Compacting ..."); }
-    final int cap = capacity(); //ensures and gets
+  float[] compact() {
+    if (debug) {
+      println("  Compacting[" + lgWeight + "] nomCapacity: " + getNomCapacity()
+        + "\tsectionSize: " + sectionSize
+        + "\tnumSections: " + numSections
+        + "\tstate(bin): " + Integer.toBinaryString(state));
+    }
+
     if (!buf.isSorted()) {
       buf.sort(); //Footnote 1
     }
-    //choose a part of the buffer to compac
-    final int compactionOffset;
-    if (sectionSize < MIN_K) {  //COMMENT: can be avoided by making sure sectionSize >= MIN_K
-      //too small sections => compact half of the buffer always
-      compactionOffset = cap / 2;  //COMMENT:  Not sure this makes sense and may be unneccesary
-    }
-    else { //Footnote 2
-      final int secsToCompact = numberOfTrailingOnes(state) + 1;
-      compactionOffset = (cap / 2) + ((numSections - secsToCompact) * sectionSize);
 
-      if (numCompactions >= (1 << (numSections - 1))) { //make numSections larger
-        numSections *= 2; //Footnote 3
-        sectionSize = max(nearestEven(sectionSize / SQRT2), MIN_K); //Footnote 4
-      }
-    }
+    if (debug) { print("    "); print(toHorizontalList(0)); }
 
-    //COMMENT: we can avoid this if we can guarantee that buf.length, compactionSize are even
-    //if (((buf.length() - compactionOffset) % 2) == 1) { //ensure compacted part has an even size
-    //  if (compactionOffset > 0) { compactionOffset--; }
-    //} else { compactionOffset++; }
-    assert compactionOffset <= (buf.length() - 2); //Footnote 5; This is easier to read!
+    //choose a part of the buffer to compact
+    final int compactionOffset; //a.k.a.  "s" see footnote 2
+    final int secsToCompact = min(numberOfTrailingOnes(state) + 1, numSections - 1);
+    compactionOffset = buf.getItemCount() - (secsToCompact * sectionSize);
+
+    adjustSectSizeNumSect(); //see Footnotes 3, 4 and 8
+
+    assert compactionOffset <= (buf.getItemCount() - 2); //Footnote 5; This is easier to read!
 
     if ((numCompactions % 2) == 1) { coin = !coin; } //invert coin; Footnote 6
-    else { coin = (rand.nextDouble() < 0.5); } //random coin flip
+    else { coin = (rand.nextDouble() < 0.5); }       //random coin flip
 
     final float[] promote = (coin)
-        ? buf.getEvens(compactionOffset, buf.length())
-        : buf.getOdds(compactionOffset, buf.length());
+        ? buf.getOdds(compactionOffset, buf.getItemCount())
+        : buf.getEvens(compactionOffset, buf.getItemCount());
 
-    //if (debug) { println("RelativeCompactor: Compacting..."); } //Footnote 7
+    if (debug) { //Footnote 7
+      println("    s: " + compactionOffset
+          + "\tsecsToComp: " + secsToCompact
+          + "\tsectionSize: " + sectionSize
+          + "\tnumSections: " + numSections);
+      final int delete = buf.getItemCount() - compactionOffset;
+      final int promoteLen = promote.length;
+      final int offset = (coin) ? 1 : 0;
+      println("    Promote: " + promoteLen + "\tDelete: " + delete + "\tOffset: " + offset);
+    }
 
     buf.trimLength(compactionOffset);
     numCompactions += 1;
     state += 1;
 
-    if (debug) { println("Compactor: Done\n  Buf Length   :\t" + buf.length()); }
+    if (debug) {
+      println("    DONE: nomCapacity: " + getNomCapacity()
+        + "\tnumCompactions: " + numCompactions);
+    }
     return promote;
   } //End Compact
 
   /**
-   * Sets the current maximum capacity of this compactor.
+   * Sets the current nominal capacity of this compactor.
    * @return the current maximum capacity of this compactor.
    */
-  public int capacity() {
-    buf.ensureCapacity(2 * numSections * sectionSize);
-    return buf.capacity();
+  int getNomCapacity() {
+    final int nCap = 2 * numSections * sectionSize;
+    return nCap;
+  }
+
+  /**
+   * Extends the given item array starting at length() by merging the items into
+   * the already sorted array.
+   * This will expand the Buffer if necessary.
+   * @param items the given item array, which also must be sorted
+   * @return this
+   */
+  RelativeCompactor extendAndMerge(final float[] items) {
+    buf.mergeSortIn(items);
+    return this;
   }
 
   /**
@@ -154,7 +193,7 @@ public class RelativeCompactor {
    * @param items the given items
    * @return this.
    */
-  public RelativeCompactor extend(final float[] items) {
+  RelativeCompactor extend(final float[] items) {
     buf.extend(items);
     return this;
   }
@@ -163,58 +202,80 @@ public class RelativeCompactor {
    * Gets a reference to this compactor's internal Buffer
    * @return a reference to this compactor's internal Buffer
    */
-  Buffer getBuf() { return buf; }
+  Buffer getBuffer() { return buf; }
 
   /**
    * Gets the current capacity of this compactor
    * @return the current capacity of this compactor
    */
-  public int getCapacity() {
-    return buf.capacity();
+  int getCapacity() {
+    return buf.getCapacity();
   }
 
   /**
    * Gets the lgWeight of this buffer
    * @return the lgWeight of this buffer
    */
-  public int getLgWeight() {
+  int getLgWeight() {
     return lgWeight;
   }
 
   /**
-   * Gets the length (number of retained values) in this compactor.
-   * @return the length of this compactor
+   * Gets the number of retained values in this compactor.
+   * @return the number of retained values in this compactor.
    */
-  public int length() { return buf.length(); }
+  int getNumRetainedEntries() { return buf.getItemCount(); }
 
   /**
    * Merge the other given compactor into this one
    * @param other the other given compactor
+   * @param mergeSort if true, apply mergeSort algorithm instead of sort().
    * @return this
    */
-  public RelativeCompactor mergeIntoSelf(final RelativeCompactor other) {
+  RelativeCompactor merge(final RelativeCompactor other, final boolean mergeSort) {
     state |= other.state;
     numCompactions += other.numCompactions;
-    buf.extend(other.getBuf());
-    buf.sort(); //TODO this wasn't in Pavel's code
+    if (mergeSort) { //assumes this and other is already sorted
+      final float[] arrIn = other.getBuffer().getArray();
+      buf.mergeSortIn(arrIn);
+    } else {
+      buf.extend(other.getBuffer());
+      buf.sort();
+    }
     return this;
   }
 
   /**
-   * Sort only the values in this compactor that are not already sorted.
-   * @return this
+   * Returns the nearest even integer to the given value.
+   * @param value the given value
+   * @return the nearest even integer to the given value.
    */
-  public RelativeCompactor optimizedSort() { //TODO not done
-    return this;
+  //also used by test
+  static final int nearestEven(final double value) {
+    return ((int) round(value / 2.0)) << 1;
   }
 
   /**
-   * Gets the non-normalized rank of the given value.  This is equal to the number of values in
+   * Returns a printable formatted string of the values of this buffer separated by a single space.
+   * This string is prepended by the lgWeight and retained entries of this compactor.
+   * @param decimals The desired precision after the decimal point
+   * @return a printable, formatted string of the values of this buffer.
+   */
+  String toHorizontalList(final int decimals) {
+    final int re = getNumRetainedEntries();
+    final int h = getLgWeight();
+    final String str = h + " [" + re + "]: " + buf.toHorizList(decimals) + LS;
+    return str;
+  }
+
+  /**
+   * Gets the non-normalized rank of the given value.
+   * This is equal to the number of values in
    * this compactor that are &lt; the given value.
    * @param value the given value
    * @return the non-normalized rank of the given value
    */
-  public int rank(final float value) { //one-based integer
+  int rank(final float value) { //one-based integer
     return buf.countLessThan(value);
   }
 
@@ -222,18 +283,22 @@ public class RelativeCompactor {
    * Sort all values in this compactor.
    * @return this
    */
-  public RelativeCompactor sort() {
+  RelativeCompactor sort() {
     if (!buf.isSorted()) { buf.sort(); }
     return this;
   }
 
-  @Override
-  public String toString() {
-    return null;
-  }
-
-  private static final int nearestEven(final double value) {
-    return ((int) round(value / 2.0)) << 1;
+  /**
+   * This adjusts sectionSize and numSections and guarantees that the sectionSize
+   * will always be even and >= minK.
+   */
+  private void adjustSectSizeNumSect() {
+    final double newSectSizeDbl = sectionSizeDbl / SQRT2;
+    final int nearestEven = nearestEven(newSectSizeDbl);
+    if (nearestEven < MIN_K) { return; }
+    sectionSizeDbl = newSectSizeDbl;
+    sectionSize = nearestEven;
+    numSections <<= 1;
   }
 
   /* Footnotes:
@@ -260,5 +325,9 @@ public class RelativeCompactor {
    *
    * 7. Possible debug outputs: compactionOffset, numCompactions, sectionsToCompact, length,
    *    capacity, sectionSize, numSections
+   *
+   * 8. if (((buf.length() - compactionOffset) % 2) == 1) { //ensure compacted part has an even size
+   *      if (compactionOffset > 0) { compactionOffset--; }
+   *    } else { compactionOffset++; }
    */
 }

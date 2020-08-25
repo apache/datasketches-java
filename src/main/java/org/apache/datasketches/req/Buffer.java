@@ -5,8 +5,6 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.max;
-
 import java.util.Arrays;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -17,6 +15,7 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 class Buffer {
+  static final String LS = System.getProperty("line.separator");
   private float[] arr_;
   private int count_;
   private int delta_;
@@ -42,7 +41,7 @@ class Buffer {
     count_ = 0;
     delta_ = delta;
     capacity_ = capacity;
-    sorted_ = false;
+    sorted_ = true;
   }
 
   /**
@@ -52,13 +51,14 @@ class Buffer {
   Buffer(final Buffer buf) {
     arr_ = buf.arr_.clone();
     count_ = buf.count_;
+    delta_ = buf.delta_;
     capacity_ = buf.capacity_;
     sorted_ = buf.sorted_;
   }
 
   /**
    * Appends the given item to the end of the active array and increments length().
-   * This will expand the array if necessary. //TODO add delta?
+   * This will expand the array if necessary.
    * @param item the given item
    * @return this
    */
@@ -67,16 +67,6 @@ class Buffer {
     arr_[count_++] = item;
     sorted_ = false;
     return this;
-  }
-
-  /**
-   * Returns the current capacity of this Buffer. The capacity is the total amount of storage
-   * available.
-   *
-   * @return the current capacity
-   */
-  int capacity() {
-    return capacity_;
   }
 
   /**
@@ -100,22 +90,11 @@ class Buffer {
   }
 
   /**
-   * Clears a range of the buffer
-   * @param start the start of the range, inclusive
-   * @param end the end of the range, exclusive
-   * @return this
-   */
-  Buffer clear(final int start, final int end) {
-    for (int i = start; i < end; i++) { arr_[i] = 0; }
-    return this;
-  }
-
-  /**
    * Ensures that the capacity of this Buffer is at least newCapacity.
    * If newCapacity &lt; capacity(), no action is taken.
    * @return this
    */
-  Buffer ensureCapacity(final int newCapacity) {
+  private Buffer ensureCapacity(final int newCapacity) {
     if (newCapacity > capacity_) {
       arr_ = Arrays.copyOf(arr_, newCapacity);
       capacity_ = newCapacity;
@@ -128,36 +107,40 @@ class Buffer {
    * @param space the requested space remaining
    * @return this
    */
-  Buffer ensureSpace(final int space) {
+  private Buffer ensureSpace(final int space) {
     if ((count_ + space) > arr_.length) {
-      ensureCapacity(count_ + max(space, delta_));
+      ensureCapacity(count_ + space + delta_);
     }
     return this;
   }
 
   /**
-   * Extends the given item array starting at length(). This will expand the Buffer if necessary.
+   * Extends the given item array starting at length(). This will expand this Buffer if necessary.
+   * This buffer becomes unsorted after this operation.
    * @param floatArray the given item array
    * @return this Buffer
    */
   Buffer extend(final float[] floatArray) {
     final int len = floatArray.length;
     ensureSpace(len);
-    System.arraycopy(floatArray, 0, arr_, count_, len); //TODO a merge sort instead!
+    System.arraycopy(floatArray, 0, arr_, count_, len);
     count_ += len;
     sorted_ = false;
     return this;
   }
 
+
   /**
-   * Append other buffer to this buffer. Items beyond length() are ignored.
+   * Append other buffer to this buffer. Any items beyond other.length() are ignored.
+   * This will expand this Buffer if necessary.
+   * This buffer becomes unsorted after this operation.
    * @param other the other buffer
    * @return this
    */
   Buffer extend(final Buffer other) { //may not need this
-    final int len = other.length();
+    final int len = other.getItemCount();
     ensureSpace(len);
-    System.arraycopy(other.getArray(), 0, arr_, length(), len);
+    System.arraycopy(other.getArray(), 0, arr_, getItemCount(), len);
     count_ += len;
     sorted_ = false;
     return this;
@@ -169,6 +152,16 @@ class Buffer {
    */
   float[] getArray() {
     return arr_;
+  }
+
+  /**
+   * Gets the current capacity of this Buffer. The capacity is the total amount of storage
+   * currently available without expanding the array.
+   *
+   * @return the current capacity
+   */
+  int getCapacity() {
+    return capacity_;
   }
 
   /**
@@ -190,8 +183,22 @@ class Buffer {
     return out;
   }
 
+  /**
+   * Gets an item given its index
+   * @param index the given index
+   * @return an item given its index
+   */
   float getItem(final int index) {
     return arr_[index];
+  }
+
+  /**
+   * Returns the item count.
+   *
+   * @return the number of active items currently in this array.
+   */
+  int getItemCount() {
+    return count_;
   }
 
   /**
@@ -224,21 +231,14 @@ class Buffer {
   }
 
   /**
-   * Returns the length (item count).
-   *
-   * @return the number of active items currently in this array.
-   */
-  int length() {
-    return count_;
-  }
-
-  /**
    * Merges the incoming sorted array into this sorted array.
    * @param arrIn sorted array in
    * @return this
    */
   Buffer mergeSortIn(final float[] arrIn) {
-    if (!sorted_) { throw new SketchesArgumentException("Must be sorted."); }
+    if (!sorted_) {
+      throw new SketchesArgumentException("Must be sorted.");
+    }
     ensureSpace(arrIn.length);
     int i = count_;
     int j = arrIn.length;
@@ -254,17 +254,7 @@ class Buffer {
       }
     }
     count_ += arrIn.length;
-    setSorted(true);
-    return this;
-  }
-
-  /**
-   * Set the sorted state
-   * @param sortedState the sorted state
-   * @return the sorted state
-   */
-  Buffer setSorted(final boolean sortedState) {
-    sorted_ = sortedState;
+    sorted_ = true;
     return this;
   }
 
@@ -279,36 +269,18 @@ class Buffer {
   }
 
   /**
-   * Sorts this array from start to length;
-   * @param start starting index
-   * @param length number of items to sort
-   * @return this
+   * Returns a printable formatted string of the values of this buffer separated by a single space.
+   * @param decimals The desired precision after the decimal point
+   * @return a printable, formatted string of the values of this buffer.
    */
-  Buffer sort(final int start, final int length) {
-    Arrays.sort(arr_, start, length);
-    return this;
-  }
-
-  /**
-   * Returns a new items array of all the active data.
-   * @return a new items array with data.
-   */
-  float[] toItemArray() {
-    return Arrays.copyOf(arr_, count_);
-  }
-
-  /**
-   * Returns a new item array of the active data specified by the offset and length.
-   *
-   * @param offset the zero-based offset into the array.
-   * @param length the number of items to copy to the new array.
-   * @return a new item array of all the active data specified by the offset and length.
-   */
-  float[] toItemArray(final int offset, final int length) {
-    if ((offset + length) > count_) {
-      throw new SketchesArgumentException("Sum of arguments exceed current length().");
+  String toHorizList(final int decimals) {
+    final StringBuilder sb = new StringBuilder();
+    final String fmt = " %." + decimals + "f";
+    for (int i = 0; i < count_; i++) {
+      final String str = String.format(fmt, arr_[i]);
+      sb.append(str);
     }
-    return Arrays.copyOfRange(arr_, offset, offset + length);
+    return sb.toString();
   }
 
   /**
