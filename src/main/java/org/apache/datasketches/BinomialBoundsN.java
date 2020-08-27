@@ -225,7 +225,7 @@ public final class BinomialBoundsN {
    * This must be an integer value of 1, 2 or 3.
    * @param noDataSeen this is normally false. However, in the case where you have zero samples
    * and a theta &lt; 1.0, this flag enables the distinction between a virgin case when no actual
-   * data has been seen and the case where the estimate may be zero but a lower error bound may
+   * data has been seen and the case where the estimate may be zero but an upper error bound may
    * still exist.
    * @return the approximate lower bound value
    */
