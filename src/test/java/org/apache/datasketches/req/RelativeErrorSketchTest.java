@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantilesHelper.getEvenlySpacedRanks;
+
 import org.testng.annotations.Test;
 
 /**
@@ -30,20 +32,34 @@ public class RelativeErrorSketchTest {
 
   @Test
   public void test1() {
-    RelativeErrorQuantiles sk = new RelativeErrorQuantiles(4, true); //w debug
-    for (int i = 101; i-- > 1; ) {
-      sk.update(i);
+    RelativeErrorQuantiles sk = new RelativeErrorQuantiles(6, true); //w debug
+    int max = 200;
+    int min = 1;
+    boolean up = false;
+
+    if (up) {
+      for (int i = min; i <= max; i++) {
+        sk.update(i);
+      }
+    } else { //down
+      for (int i = max + 1; i-- > min; ) {
+        sk.update(i);
+      }
     }
     print(sk.getSummary(0));
 
-    for (float i = 10; i <= 100; i += 10) {
-      printRank(sk, i + .5f);
+    double[] ranks = getEvenlySpacedRanks(11);
+    println("Ranks Test:");
+    for (int i = 0; i < ranks.length; i++) {
+      printRank(sk, ((float)ranks[i] * (max - min)) + min);
     }
   }
 
   private static void printRank(RelativeErrorQuantiles sk, float v) {
     double r = sk.rank(v);
-    println("Normalized Rank: value: " + v + ", rank: " + r);
+    String rstr = String.format("%.2f", r);
+    String vstr = String.format("%.2f", v);
+    println("Value: " + vstr + ", Rank: " + rstr);
   }
 
   @Test

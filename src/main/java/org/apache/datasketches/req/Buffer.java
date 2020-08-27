@@ -202,6 +202,15 @@ class Buffer {
   }
 
   /**
+   * Returns the active length = item count.
+   *
+   * @return the active length of this buffer.
+   */
+  int getLength() {
+    return count_;
+  }
+
+  /**
    * Returns an array of the odd values from the range start (inclusive) to end (exclusive).
    * The odd values are with respect to the start index. If the starting index is odd with
    * respect to the origin of the Buffer, then this will actually return the even values.

@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.Buffer.LS;
@@ -56,7 +55,7 @@ public class RelativeCompactor {
    * Constructor
    * @param sectionSize the value of k
    * @param lgWeight this compactor's lgWeight
-   * @param debug optional
+   * @param debug true for debug info
    */
   RelativeCompactor(
       final int sectionSize,
@@ -76,11 +75,13 @@ public class RelativeCompactor {
     if (debug) { rand = new Random(1); }
     else { rand = new Random(); }
 
-    if (debug) {
-      println("    New Compactor: height: " + lgWeight
-          + "\tsectionSize: " + sectionSize
-          + "\tnumSections: " + numSections + LS);
-    }
+    if (debug) { printNewCompactor(); }
+  }
+
+  private void printNewCompactor() {
+    println("    New Compactor: height: " + lgWeight
+        + "\tsectionSize: " + sectionSize
+        + "\tnumSections: " + numSections + LS);
   }
 
   /**
@@ -116,64 +117,82 @@ public class RelativeCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   float[] compact() {
-    if (debug) {
-      println("  Compacting[" + lgWeight + "] nomCapacity: " + getNomCapacity()
-        + "\tsectionSize: " + sectionSize
-        + "\tnumSections: " + numSections
-        + "\tstate(bin): " + Integer.toBinaryString(state));
-    }
-
-    if (!buf.isSorted()) {
-      buf.sort(); //Footnote 1
-    }
-
-    if (debug) { print("    "); print(toHorizontalList(0)); }
+    final int count = buf.getItemCount();
+    if (debug) { printCompactingStart(); }
+    if (!buf.isSorted()) { buf.sort(); } //Footnote 1
+    if (debug) { print("    "); print(toHorizontalList(0)); } //#decimals
 
     //choose a part of the buffer to compact
-    final int compactionOffset; //a.k.a.  "s" see footnote 2
-    final int secsToCompact = min(numberOfTrailingOnes(state) + 1, numSections - 1);
-    compactionOffset = buf.getItemCount() - (secsToCompact * sectionSize);
+    final int secsToCompact = numberOfTrailingOnes(state) + 1;
+    final int compactionStart = computeCompactionStart(secsToCompact); //a.k.a.  "s" see footnote 2
+    assert compactionStart <= (count - 2); //Footnote 5
 
-    adjustSectSizeNumSect(); //see Footnotes 3, 4 and 8
-
-    assert compactionOffset <= (buf.getItemCount() - 2); //Footnote 5; This is easier to read!
-
-    if ((numCompactions % 2) == 1) { coin = !coin; } //invert coin; Footnote 6
+    if ((numCompactions & 1) == 1) { coin = !coin; } //if odd, flip coin; Footnote 6
     else { coin = (rand.nextDouble() < 0.5); }       //random coin flip
 
     final float[] promote = (coin)
-        ? buf.getOdds(compactionOffset, buf.getItemCount())
-        : buf.getEvens(compactionOffset, buf.getItemCount());
+        ? buf.getOdds(compactionStart, count)
+        : buf.getEvens(compactionStart, count);
 
-    if (debug) { //Footnote 7
-      println("    s: " + compactionOffset
-          + "\tsecsToComp: " + secsToCompact
-          + "\tsectionSize: " + sectionSize
-          + "\tnumSections: " + numSections);
-      final int delete = buf.getItemCount() - compactionOffset;
-      final int promoteLen = promote.length;
-      final int offset = (coin) ? 1 : 0;
-      println("    Promote: " + promoteLen + "\tDelete: " + delete + "\tOffset: " + offset);
-    }
+    if (debug) { printCompactionDetail(compactionStart, secsToCompact, promote.length); }
 
-    buf.trimLength(compactionOffset);
+    buf.trimLength(compactionStart);
     numCompactions += 1;
     state += 1;
 
-    if (debug) {
-      println("    DONE: nomCapacity: " + getNomCapacity()
-        + "\tnumCompactions: " + numCompactions);
+    if (numCompactions >= (1 << (numSections - 1))) {
+      adjustSectSizeNumSect(); //see Footnotes 3, 4 and 8
+      printAdjSecSizeNumSec();
     }
+
+    if (debug) { printCompactionDone(); }
+
     return promote;
   } //End Compact
 
-  /**
-   * Sets the current nominal capacity of this compactor.
-   * @return the current maximum capacity of this compactor.
-   */
-  int getNomCapacity() {
-    final int nCap = 2 * numSections * sectionSize;
-    return nCap;
+  private int computeCompactionStart(final int secsToCompact) {
+    int s = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
+    return (((buf.getItemCount() - s) & 1) == 1) ? ++s : s;
+  }
+
+  private void printAdjSecSizeNumSec() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("    ");
+    sb.append("Adjust: SectionSize: ").append(sectionSize);
+    sb.append(" NumSections: ").append(numSections);
+    println(sb.toString());
+  }
+
+  private void printCompactingStart() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("  ");
+    sb.append("Compacting[").append(lgWeight).append("] ");
+    sb.append("NomCapacity: ").append(getNomCapacity());
+    sb.append("\tSectionSize: ").append(sectionSize);
+    sb.append("\tNumSections: ").append(numSections);
+    sb.append("\tState(bin): ").append(Integer.toBinaryString(state));
+    println(sb.toString());
+  }
+
+  private void printCompactionDetail(final int compactionStart, final int secsToCompact,
+      final int promoteLen) { //Footnote 7
+    final StringBuilder sb = new StringBuilder();
+    final int count = buf.getItemCount();
+    sb.append("    ");
+    sb.append("SecsToCompact: ").append(secsToCompact);
+    sb.append("\tNoCompact: ").append(compactionStart);
+    sb.append("\tDoCompact: ").append(count - compactionStart).append(LS);
+    final int delete = count - compactionStart;
+    final String oddOrEven = (coin) ? "Odds" : "Evens";
+    sb.append("    ");
+    sb.append("Promote: ").append(promoteLen);
+    sb.append("\tDelete: ").append(delete);
+    sb.append("\tChoose: ").append(oddOrEven);
+    println(sb.toString());
+  }
+
+  private void printCompactionDone() {
+    println("    DONE: NumCompactions: " + numCompactions);
   }
 
   /**
@@ -218,6 +237,15 @@ public class RelativeCompactor {
    */
   int getLgWeight() {
     return lgWeight;
+  }
+
+  /**
+   * Sets the current nominal capacity of this compactor.
+   * @return the current maximum capacity of this compactor.
+   */
+  int getNomCapacity() {
+    final int nCap = 2 * numSections * sectionSize;
+    return nCap;
   }
 
   /**

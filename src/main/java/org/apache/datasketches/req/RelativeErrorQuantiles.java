@@ -59,7 +59,7 @@ public class RelativeErrorQuantiles {
   //constant probability
   final static int DEFAULT_K = 50;
 
-  private int k; //default
+  private int k;
   private boolean debug = false;
   List<RelativeCompactor> compactors = new ArrayList<>();
   //int levels; //number of compactors; was H
@@ -119,24 +119,17 @@ public class RelativeErrorQuantiles {
 
   void compress(final boolean lazy) {
     updateMaxNomSize();
-    if (debug) {
-      println("COMPRESS:       sKsize: " + size + "\t>=\t"
-          + "\tmaxNomSize: " + maxNomSize
-          + "\tN: " + totalN);
-    }
+    if (debug) { printStartCompress(); }
 
     if (size < maxNomSize) { return; }
     for (int h = 0; h < compactors.size(); h++) {
       final RelativeCompactor c = compactors.get(h);
-      final int re = c.getNumRetainedEntries();
-      final int nc = c.getNomCapacity();
+      final int retEnt = c.getNumRetainedEntries();
+      final int nomCap = c.getNomCapacity();
 
-      if (re >= nc) {
+      if (retEnt >= nomCap) {
         if ((h + 1) >= levels()) {
-          if (debug) {
-            println("  Must Add Compactor: len(c[" + h + "]): "
-                + re + "\t>=\tc[" + h + "].nomCapacity(): " + nc);
-          }
+          if (debug) { printAddCompactor(h, retEnt, nomCap); }
           grow(); //add a level
         }
         final float[] promoted = c.compact();
@@ -145,19 +138,46 @@ public class RelativeErrorQuantiles {
         if (lazy && (size < maxNomSize)) { break; }
       }
     }
-    if (debug) {
-      for (int h = 0; h < compactors.size(); h++) {
-        final RelativeCompactor c = compactors.get(h);
-        print(c.toHorizontalList(0));
-      }
-      println("COMPRESS: DONE: sKsize: " + size
-          + "\tMaxNomSize: " + maxNomSize + LS);
+    if (debug) { printAllHorizList(); }
+  }
+
+  private static void printAddCompactor(final int h, final int retEnt, final int nomCap) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("  ");
+    sb.append("Must Add Compactor: len(c[").append(h).append("]): ");
+    sb.append(retEnt).append(" >= c[").append(h).append("].nomCapacity(): ").append(nomCap);
+    println(sb.toString());
+  }
+
+  private void printStartCompress() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("COMPRESS: ");
+    sb.append("skSize: ").append(size).append(" >= ");
+    sb.append("MaxNomSize: ").append(maxNomSize);
+    sb.append("; N: ").append(totalN);
+    println(sb.toString());
+  }
+
+  private void printAllHorizList() {
+    for (int h = 0; h < compactors.size(); h++) {
+      final RelativeCompactor c = compactors.get(h);
+      print(c.toHorizontalList(0));
     }
+    println("COMPRESS: DONE: sKsize: " + size
+        + "\tMaxNomSize: " + maxNomSize + LS);
   }
 
   //  public double[] getCDF(final float[] splitPoints) {
   //    return getPmfOrCdf(splitPoints, true);
   //  }
+
+  /**
+   * Gets the total number of items offered to the sketch.
+   * @return the total number of items offered to the sketch.
+   */
+  public long getN() {
+    return totalN;
+  }
 
   @SuppressWarnings("static-method")
   private double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf) {
@@ -243,7 +263,7 @@ public class RelativeErrorQuantiles {
     return (double)nnRank / totalN;
   }
 
-  Pair[] ranks() { //debug
+  Pair[] ranks() { //not yet used for debug
     return null;
   }
 
@@ -272,7 +292,7 @@ public class RelativeErrorQuantiles {
   }
 
   void update(final float item) {
-    if (!Float.isFinite(item)) { return; }
+    if (!Float.isFinite(item)) { return; } //TODO: We may want to throw here
 
     final RelativeCompactor c = compactors.get(0).append(item);
     size++;
