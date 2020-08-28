@@ -21,18 +21,19 @@ package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantilesHelper.getEvenlySpacedRanks;
 
+import org.apache.datasketches.req.ReqAuxiliary.Row;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class RelativeErrorSketchTest {
+public class ReqSketchTest {
 
 
   @Test
   public void test1() {
-    RelativeErrorQuantiles sk = new RelativeErrorQuantiles(6, true); //w debug
+    ReqSketch sk = new ReqSketch(6, true); //w debug
     int max = 200;
     int min = 1;
     boolean up = false;
@@ -46,17 +47,33 @@ public class RelativeErrorSketchTest {
         sk.update(i);
       }
     }
-    print(sk.getSummary(0));
+    print(sk.toString(0));
 
     double[] ranks = getEvenlySpacedRanks(11);
     println("Ranks Test:");
     for (int i = 0; i < ranks.length; i++) {
       printRank(sk, ((float)ranks[i] * (max - min)) + min);
     }
+
+    ReqAuxiliary aux = new ReqAuxiliary(sk);
+    aux.buildAuxTable(sk);
+    String fmt = "%12.1f%12d%12.5f\n";
+    final int totalCount = sk.getRetainedEntries();
+    for (int i = 0; i < totalCount; i++) {
+      Row row = aux.getRow(i);
+      printf(fmt, row.item, row.weight, row.normRank);
+    }
+
+    float[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
+    float[] qOut = sk.getQuantiles(rArr);
+    for (int i = 0; i < qOut.length; i++) {
+      println("nRank: " + rArr[i] + ", q: " + qOut[i]);
+    }
+
   }
 
-  private static void printRank(RelativeErrorQuantiles sk, float v) {
-    double r = sk.rank(v);
+  private static void printRank(ReqSketch sk, float v) {
+    double r = sk.getRank(v);
     String rstr = String.format("%.2f", r);
     String vstr = String.format("%.2f", v);
     println("Value: " + vstr + ", Rank: " + rstr);
@@ -74,6 +91,10 @@ public class RelativeErrorSketchTest {
     println(sb.toString());
   }
 
+
+  static final void printf(final String format, final Object ...args) {
+    System.out.printf(format, args);
+  }
 
   static final void print(final Object o) { System.out.print(o.toString()); }
 

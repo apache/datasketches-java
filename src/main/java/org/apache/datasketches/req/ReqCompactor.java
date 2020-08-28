@@ -21,11 +21,11 @@ package org.apache.datasketches.req;
 
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
-import static org.apache.datasketches.req.Buffer.LS;
-import static org.apache.datasketches.req.RelativeErrorQuantiles.INIT_NUMBER_OF_SECTIONS;
-import static org.apache.datasketches.req.RelativeErrorQuantiles.MIN_K;
-import static org.apache.datasketches.req.RelativeErrorQuantiles.print;
-import static org.apache.datasketches.req.RelativeErrorQuantiles.println;
+import static org.apache.datasketches.req.FloatBuffer.LS;
+import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
+import static org.apache.datasketches.req.ReqSketch.MIN_K;
+import static org.apache.datasketches.req.ReqSketch.print;
+import static org.apache.datasketches.req.ReqSketch.println;
 
 import java.util.Random;
 
@@ -33,7 +33,7 @@ import java.util.Random;
  * @author Lee Rhodes
  */
 //@SuppressWarnings({"javadoc","unused"})
-public class RelativeCompactor {
+public class ReqCompactor {
   private static final double SQRT2 = Math.sqrt(2.0);
   private int numCompactions; //number of compaction operations performed
 
@@ -46,7 +46,7 @@ public class RelativeCompactor {
   private int sectionSize; //initialized with k
   private double sectionSizeDbl;
   private int numSections; //# of sections, minimum 3
-  private Buffer buf;
+  private FloatBuffer buf;
   private final int lgWeight;
   private boolean debug;
   private Random rand;
@@ -57,7 +57,7 @@ public class RelativeCompactor {
    * @param lgWeight this compactor's lgWeight
    * @param debug true for debug info
    */
-  RelativeCompactor(
+  ReqCompactor(
       final int sectionSize,
       final int lgWeight,
       final boolean debug) {
@@ -71,7 +71,7 @@ public class RelativeCompactor {
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
     final int nCap = 2 * numSections * sectionSize; //nCap is always even
-    buf = new Buffer(nCap, nCap);
+    buf = new FloatBuffer(nCap, nCap);
     if (debug) { rand = new Random(1); }
     else { rand = new Random(); }
 
@@ -88,7 +88,7 @@ public class RelativeCompactor {
    * Copy Constuctor
    * @param other the compactor to be copied into this one
    */
-  RelativeCompactor(final RelativeCompactor other) {
+  ReqCompactor(final ReqCompactor other) {
     sectionSize = other.sectionSize;
     sectionSizeDbl = other.sectionSizeDbl;
     lgWeight = other.lgWeight;
@@ -97,7 +97,7 @@ public class RelativeCompactor {
     state = other.state;
     coin = other.coin;
     numSections = other.numSections;
-    buf = new Buffer(other.buf);
+    buf = new FloatBuffer(other.buf);
     if (debug) { rand = new Random(1); }
     else { rand = new Random(); }
   }
@@ -107,7 +107,7 @@ public class RelativeCompactor {
    * @param item the given item
    * @return this;
    */
-  RelativeCompactor append(final float item) {
+  ReqCompactor append(final float item) {
     buf.append(item);
     return this;
   }
@@ -198,11 +198,11 @@ public class RelativeCompactor {
   /**
    * Extends the given item array starting at length() by merging the items into
    * the already sorted array.
-   * This will expand the Buffer if necessary.
+   * This will expand the FloatBuffer if necessary.
    * @param items the given item array, which also must be sorted
    * @return this
    */
-  RelativeCompactor extendAndMerge(final float[] items) {
+  ReqCompactor extendAndMerge(final float[] items) {
     buf.mergeSortIn(items);
     return this;
   }
@@ -212,16 +212,16 @@ public class RelativeCompactor {
    * @param items the given items
    * @return this.
    */
-  RelativeCompactor extend(final float[] items) {
+  ReqCompactor extend(final float[] items) {
     buf.extend(items);
     return this;
   }
 
   /**
-   * Gets a reference to this compactor's internal Buffer
-   * @return a reference to this compactor's internal Buffer
+   * Gets a reference to this compactor's internal FloatBuffer
+   * @return a reference to this compactor's internal FloatBuffer
    */
-  Buffer getBuffer() { return buf; }
+  FloatBuffer getBuffer() { return buf; }
 
   /**
    * Gets the current capacity of this compactor
@@ -260,7 +260,7 @@ public class RelativeCompactor {
    * @param mergeSort if true, apply mergeSort algorithm instead of sort().
    * @return this
    */
-  RelativeCompactor merge(final RelativeCompactor other, final boolean mergeSort) {
+  ReqCompactor merge(final ReqCompactor other, final boolean mergeSort) {
     state |= other.state;
     numCompactions += other.numCompactions;
     if (mergeSort) { //assumes this and other is already sorted
@@ -311,7 +311,7 @@ public class RelativeCompactor {
    * Sort all values in this compactor.
    * @return this
    */
-  RelativeCompactor sort() {
+  ReqCompactor sort() {
     if (!buf.isSorted()) { buf.sort(); }
     return this;
   }

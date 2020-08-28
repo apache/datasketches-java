@@ -27,11 +27,11 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class BufferTest {
+public class FloatBufferTest {
 
   @Test
   public void checkTrimLength() {
-    Buffer buf = new Buffer(16, 4);
+    FloatBuffer buf = new FloatBuffer(16, 4);
     for (int i = 0; i < 8; i++) { buf.append(i+1); }
     assertEquals(buf.getItemCount(), 8);
     buf.trimLength(4);
@@ -41,7 +41,7 @@ public class BufferTest {
   @Test
   public void checkGetOdds() {
     int cap = 16;
-    Buffer buf = new Buffer(cap, cap / 4);
+    FloatBuffer buf = new FloatBuffer(cap, cap / 4);
     for (int i = 0; i < buf.getCapacity(); i++) {
       buf.append(i);
     }
@@ -55,7 +55,7 @@ public class BufferTest {
   @Test
   public void checkGetEvens() {
     int cap = 15;
-    Buffer buf = new Buffer(cap, cap / 4);
+    FloatBuffer buf = new FloatBuffer(cap, cap / 4);
     for (int i = 0; i < buf.getCapacity(); i++) {
       buf.append(i);
     }
@@ -68,7 +68,7 @@ public class BufferTest {
 
   @Test
   public void checkAppend() {
-    Buffer buf = new Buffer(2, 2);
+    FloatBuffer buf = new FloatBuffer(2, 2);
     buf.append(1);
     assertEquals(buf.getItemCount(), 1);
     buf.append(2);
@@ -79,11 +79,11 @@ public class BufferTest {
 
   @Test
   public void checkCountLessThan() {
-    Buffer buf = new Buffer(16, 2);
+    FloatBuffer buf = new FloatBuffer(16, 2);
     float[] unsortedArr = {1,7,3,6,5,2,4};
     buf.extend(unsortedArr); //unsorted flag
     assertEquals(buf.countLessThan(4), 3);
-    buf = new Buffer(16, 2);
+    buf = new FloatBuffer(16, 2);
     float[] sortedArr = {1,2,3,4,5,6,7};
     buf.mergeSortIn(sortedArr);
     assertEquals(buf.countLessThan(4), 3);
@@ -97,7 +97,7 @@ public class BufferTest {
 
   @Test
   public void checkExtendArray() {
-    Buffer buf = new Buffer(0, 2);
+    FloatBuffer buf = new FloatBuffer(0, 2);
     float[] arr1 = {1,2};
     float[] arr2 = {3,4};
     buf.extend(arr1);
@@ -109,10 +109,10 @@ public class BufferTest {
 
   @Test
   public void checkExtendWithBuffer() {
-    Buffer buf = new Buffer(0, 2);
+    FloatBuffer buf = new FloatBuffer(0, 2);
     float[] arr1 = {1,2};
     buf.extend(arr1);
-    Buffer buf2 = new Buffer(0, 2);
+    FloatBuffer buf2 = new FloatBuffer(0, 2);
     float[] arr2 = {3,4};
     buf2.extend(arr2);
     buf.extend(buf2);
@@ -133,7 +133,7 @@ public class BufferTest {
 
   @Test
   public void checkMergeSortIn() {
-    Buffer buf = new Buffer(4,0);
+    FloatBuffer buf = new FloatBuffer(4,0);
     float[] arr1 = {1,2,5,6};
     float[] arr2 = {3,4,4,7};
     buf.extend(arr1);

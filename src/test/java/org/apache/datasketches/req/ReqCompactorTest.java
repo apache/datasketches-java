@@ -27,11 +27,11 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class RelativeCompactorTest {
+public class ReqCompactorTest {
 
 
   @Test
   public void checkNearestEven() {
-    assertEquals(RelativeCompactor.nearestEven(-0.9), 0);
+    assertEquals(ReqCompactor.nearestEven(-0.9), 0);
   }
 }

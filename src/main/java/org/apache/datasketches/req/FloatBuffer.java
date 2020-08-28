@@ -14,7 +14,7 @@ import org.apache.datasketches.SketchesArgumentException;
  *
  * @author Lee Rhodes
  */
-class Buffer {
+class FloatBuffer {
   static final String LS = System.getProperty("line.separator");
   private float[] arr_;
   private int count_;
@@ -23,20 +23,20 @@ class Buffer {
   private boolean sorted_;
 
   /**
-   * Constructs a new Buffer with a default size of 1024 items.
+   * Constructs a new FloatBuffer with a default size of 1024 items.
    */
-  Buffer() {
+  FloatBuffer() {
     this(1024, 256);
   }
 
   /**
-   * Constructs an empty Buffer with an initial capacity specified by
+   * Constructs an empty FloatBuffer with an initial capacity specified by
    * the <code>capacity</code> argument.
    *
    * @param capacity the initial capacity.
    * @param delta add space in increments of this size
    */
-  Buffer(final int capacity, final int delta) {
+  FloatBuffer(final int capacity, final int delta) {
     arr_ = new float[capacity];
     count_ = 0;
     delta_ = delta;
@@ -46,9 +46,9 @@ class Buffer {
 
   /**
    * Copy Constructor
-   * @param buf the Buffer to be copied into this one
+   * @param buf the FloatBuffer to be copied into this one
    */
-  Buffer(final Buffer buf) {
+  FloatBuffer(final FloatBuffer buf) {
     arr_ = buf.arr_.clone();
     count_ = buf.count_;
     delta_ = buf.delta_;
@@ -62,7 +62,7 @@ class Buffer {
    * @param item the given item
    * @return this
    */
-  Buffer append(final float item) {
+  FloatBuffer append(final float item) {
     ensureSpace(1);
     arr_[count_++] = item;
     sorted_ = false;
@@ -90,11 +90,11 @@ class Buffer {
   }
 
   /**
-   * Ensures that the capacity of this Buffer is at least newCapacity.
+   * Ensures that the capacity of this FloatBuffer is at least newCapacity.
    * If newCapacity &lt; capacity(), no action is taken.
    * @return this
    */
-  private Buffer ensureCapacity(final int newCapacity) {
+  private FloatBuffer ensureCapacity(final int newCapacity) {
     if (newCapacity > capacity_) {
       arr_ = Arrays.copyOf(arr_, newCapacity);
       capacity_ = newCapacity;
@@ -107,7 +107,7 @@ class Buffer {
    * @param space the requested space remaining
    * @return this
    */
-  private Buffer ensureSpace(final int space) {
+  private FloatBuffer ensureSpace(final int space) {
     if ((count_ + space) > arr_.length) {
       ensureCapacity(count_ + space + delta_);
     }
@@ -115,12 +115,12 @@ class Buffer {
   }
 
   /**
-   * Extends the given item array starting at length(). This will expand this Buffer if necessary.
+   * Extends the given item array starting at length(). This will expand this FloatBuffer if necessary.
    * This buffer becomes unsorted after this operation.
    * @param floatArray the given item array
-   * @return this Buffer
+   * @return this FloatBuffer
    */
-  Buffer extend(final float[] floatArray) {
+  FloatBuffer extend(final float[] floatArray) {
     final int len = floatArray.length;
     ensureSpace(len);
     System.arraycopy(floatArray, 0, arr_, count_, len);
@@ -132,12 +132,12 @@ class Buffer {
 
   /**
    * Append other buffer to this buffer. Any items beyond other.length() are ignored.
-   * This will expand this Buffer if necessary.
+   * This will expand this FloatBuffer if necessary.
    * This buffer becomes unsorted after this operation.
    * @param other the other buffer
    * @return this
    */
-  Buffer extend(final Buffer other) { //may not need this
+  FloatBuffer extend(final FloatBuffer other) { //may not need this
     final int len = other.getItemCount();
     ensureSpace(len);
     System.arraycopy(other.getArray(), 0, arr_, getItemCount(), len);
@@ -155,7 +155,7 @@ class Buffer {
   }
 
   /**
-   * Gets the current capacity of this Buffer. The capacity is the total amount of storage
+   * Gets the current capacity of this FloatBuffer. The capacity is the total amount of storage
    * currently available without expanding the array.
    *
    * @return the current capacity
@@ -167,7 +167,7 @@ class Buffer {
   /**
    * Returns an array of the even values from the range start (inclusive) to end (exclusive).
    * The even values are with respect to the start index. If the starting index is odd with
-   * respect to the origin of the Buffer, then this will actually return the odd values.
+   * respect to the origin of the FloatBuffer, then this will actually return the odd values.
    * @param start the starting index
    * @param end the end index, exclusive
    * @return the selected evens from the range
@@ -213,7 +213,7 @@ class Buffer {
   /**
    * Returns an array of the odd values from the range start (inclusive) to end (exclusive).
    * The odd values are with respect to the start index. If the starting index is odd with
-   * respect to the origin of the Buffer, then this will actually return the even values.
+   * respect to the origin of the FloatBuffer, then this will actually return the even values.
    * @param start the starting index
    * @param end the end index, exclusive
    * @return the selected odds from the range
@@ -232,7 +232,7 @@ class Buffer {
   }
 
   /**
-   * Returns true if this Buffer is sorted.
+   * Returns true if this FloatBuffer is sorted.
    * @return true if sorted
    */
   boolean isSorted() {
@@ -244,7 +244,7 @@ class Buffer {
    * @param arrIn sorted array in
    * @return this
    */
-  Buffer mergeSortIn(final float[] arrIn) {
+  FloatBuffer mergeSortIn(final float[] arrIn) {
     if (!sorted_) {
       throw new SketchesArgumentException("Must be sorted.");
     }
@@ -271,7 +271,7 @@ class Buffer {
    * Sorts this array from 0 to length();
    * @return this
    */
-  Buffer sort() {
+  FloatBuffer sort() {
     Arrays.sort(arr_, 0, count_);
     sorted_ = true;
     return this;
@@ -293,10 +293,10 @@ class Buffer {
   }
 
   /**
-   * Trims the capacity of this Buffer to length().
+   * Trims the capacity of this FloatBuffer to length().
    * @return this
    */
-  Buffer trimCapacity() {
+  FloatBuffer trimCapacity() {
     if (count_ < arr_.length) {
       arr_ = Arrays.copyOf(arr_, count_);
       capacity_ = count_;
@@ -312,7 +312,7 @@ class Buffer {
    * @param newLength the new length
    * @return this
    */
-  Buffer trimLength(final int newLength) {
+  FloatBuffer trimLength(final int newLength) {
     if (newLength < count_) {
       for (int i = newLength; i < count_; i++) {
         arr_[i] = 0;

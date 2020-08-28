@@ -22,18 +22,18 @@ package org.apache.datasketches.req;
 import java.util.List;
 
 /**
- * Iterator over KllFloatsSketch. The order is not defined.
+ * Iterator over ReqSketch. The order is not defined.
  *
  * @author Lee Rhodes
  */
-public class RelativeErrorSketchIterator {
-  private List<RelativeCompactor> compactors;
+public class ReqIterator {
+  private List<ReqCompactor> compactors;
   private int cIndex;
   private int bIndex;
   private int retainedItems;
-  private Buffer currentBuf;
+  private FloatBuffer currentBuf;
 
-  RelativeErrorSketchIterator(final RelativeErrorQuantiles sketch) {
+  ReqIterator(final ReqSketch sketch) {
     compactors = sketch.compactors;
     retainedItems = sketch.size;
     currentBuf = compactors.get(0).getBuffer();
