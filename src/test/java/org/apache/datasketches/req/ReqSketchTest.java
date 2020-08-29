@@ -20,24 +20,75 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantilesHelper.getEvenlySpacedRanks;
+import static org.apache.datasketches.req.FloatBuffer.LS;
 
+//import static org.apache.datasketches.req.FloatBuffer.TAB;
 import org.apache.datasketches.req.ReqAuxiliary.Row;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings({"javadoc", "unused"})
 public class ReqSketchTest {
-
 
   @Test
   public void test1() {
-    ReqSketch sk = new ReqSketch(6, true); //w debug
-    int max = 200;
     int min = 1;
-    boolean up = false;
+    int max = 200;
+    ReqSketch sk = loadSketch(min, max, true, 6, true); //up, debug
 
+    checkToString(sk);
+    checkGetRank(sk, min, max);
+    checkAux(sk);
+    checkGetQuantiles(sk);
+  }
+
+  private static void checkToString(ReqSketch sk) {
+    println("ToString() Test");
+    print(sk.toString("%4.0f", true)); //print dataDetail
+  }
+
+  private static void checkGetRank(ReqSketch sk, int min, int max) {
+    println(LS + "GetRank Test:");
+    double[] ranks = getEvenlySpacedRanks(11);
+    String dfmt = "%10.2f%10.6f" + LS;
+    String sfmt = "%10s%10s";
+    printf(sfmt, "Value", "Rank");
+    for (int i = 0; i < ranks.length; i++) {
+      float rank = (float) ranks[i];
+      float scaledV = (rank * (max - min)) + min;
+      double r = sk.getRank(scaledV);
+      printf(dfmt, scaledV, r);
+    }
+  }
+
+  private static void checkAux(ReqSketch sk) {
+    println(LS + "Aux Test");
+    ReqAuxiliary aux = new ReqAuxiliary(sk);
+    aux.buildAuxTable(sk);
+    String dfmt = "%12.1f%12d%12.5f" + LS;
+    String sfmt = "%12s%12s%12s" + LS;
+    printf(sfmt, "Item", "Weight", "NormRank");
+    final int totalCount = sk.getRetainedEntries();
+    for (int i = 0; i < totalCount; i++) {
+      Row row = aux.getRow(i);
+      printf(dfmt, row.item, row.weight, row.normRank);
+    }
+  }
+
+  private static void checkGetQuantiles(ReqSketch sk) {
+    println(LS + "GetQuantiles() Test");
+    float[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
+    float[] qOut = sk.getQuantiles(rArr);
+    for (int i = 0; i < qOut.length; i++) {
+      println("nRank: " + rArr[i] + ", q: " + qOut[i]);
+    }
+  }
+
+
+  private static ReqSketch loadSketch(int min, int max, boolean up, int k, boolean debug) {
+    ReqSketch sk = new ReqSketch(k, debug);
     if (up) {
       for (int i = min; i <= max; i++) {
         sk.update(i);
@@ -47,48 +98,15 @@ public class ReqSketchTest {
         sk.update(i);
       }
     }
-    print(sk.toString(0));
-
-    double[] ranks = getEvenlySpacedRanks(11);
-    println("Ranks Test:");
-    for (int i = 0; i < ranks.length; i++) {
-      printRank(sk, ((float)ranks[i] * (max - min)) + min);
-    }
-
-    ReqAuxiliary aux = new ReqAuxiliary(sk);
-    aux.buildAuxTable(sk);
-    String fmt = "%12.1f%12d%12.5f\n";
-    final int totalCount = sk.getRetainedEntries();
-    for (int i = 0; i < totalCount; i++) {
-      Row row = aux.getRow(i);
-      printf(fmt, row.item, row.weight, row.normRank);
-    }
-
-    float[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
-    float[] qOut = sk.getQuantiles(rArr);
-    for (int i = 0; i < qOut.length; i++) {
-      println("nRank: " + rArr[i] + ", q: " + qOut[i]);
-    }
-
+    return sk;
   }
+
 
   private static void printRank(ReqSketch sk, float v) {
     double r = sk.getRank(v);
     String rstr = String.format("%.2f", r);
     String vstr = String.format("%.2f", v);
     println("Value: " + vstr + ", Rank: " + rstr);
-  }
-
-  @Test
-  public void strTest() {
-    StringBuilder sb = new StringBuilder();
-    float[] arr = {1, 2, 3};
-    String fmt = " %.0f";
-    for (int i = 0; i < arr.length; i++) {
-      String str = String.format(fmt, arr[i]);
-      sb.append(str);
-    }
-    println(sb.toString());
   }
 
 

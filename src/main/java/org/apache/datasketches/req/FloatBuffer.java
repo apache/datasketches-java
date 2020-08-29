@@ -16,6 +16,7 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 class FloatBuffer {
   static final String LS = System.getProperty("line.separator");
+  static final String TAB = "\t";
   private float[] arr_;
   private int count_;
   private int delta_;
@@ -75,18 +76,9 @@ class FloatBuffer {
    * @return count of items less-than the given value.
    */
   int countLessThan(final float value) {
-    int num = 0;
-    if (sorted_) {
-      for (int i = 0; i < count_; i++) {
-        if (arr_[i] < value) { num++; }
-        else { break; }
-      }
-    } else {
-      for (int i = 0; i < count_; i++) {
-        if (arr_[i] < value) { num++; }
-      }
-    }
-    return num;
+    if (!sorted_) { sort(); }
+    final int index = ReqAuxiliary.binarySearch(arr_, 0, count_ - 1, value);
+    return (index == -1) ? 0 : index + 1;
   }
 
   /**
@@ -279,14 +271,18 @@ class FloatBuffer {
 
   /**
    * Returns a printable formatted string of the values of this buffer separated by a single space.
-   * @param decimals The desired precision after the decimal point
+   * @param fmt The format for each printed item.
+   * @param width the number of items to print per line
+   * @param indent the number of spaces at the beginning of a new line
    * @return a printable, formatted string of the values of this buffer.
    */
-  String toHorizList(final int decimals) {
+  String toHorizList(final String fmt, final int width, final int indent) {
     final StringBuilder sb = new StringBuilder();
-    final String fmt = " %." + decimals + "f";
+    final char[] spaces = new char[indent];
+    Arrays.fill(spaces, ' ');
     for (int i = 0; i < count_; i++) {
       final String str = String.format(fmt, arr_[i]);
+      if ((i > 0) && ((i % width) == 0)) { sb.append(LS).append(spaces); }
       sb.append(str);
     }
     return sb.toString();

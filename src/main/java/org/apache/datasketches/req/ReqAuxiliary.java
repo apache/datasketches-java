@@ -69,7 +69,8 @@ class ReqAuxiliary {
     if (!init) {
       throw new SketchesStateException("Aux structure not initialized.");
     }
-    final int index = binarySearch(normRanks, normRank);
+    final int len = normRanks.length;
+    final int index = binarySearch(normRanks, 0, len - 1, normRank);
     if (index == -1) { return Float.NaN; }
     return items[index];
   }
@@ -116,32 +117,33 @@ class ReqAuxiliary {
   }
 
   /**
-   * Binary Search for the index of the highest value that is strictly less than the key.
-   * If -1 is returned there are no values in the array that are strictly less than the key.
+   * Binary Search for the index of the highest value in the given range that is strictly less-than
+   * the key. If -1 is returned there are no values in the range that are strictly less than the key.
    * If there are duplicates in the array and the key is one of those values, the index returned
    * will be the index of the next lower value prior to the sequence of duplicates.
    * @param arr the given array that must be sorted.
+   * @param low the index of the lowest value in the range
+   * @param high the index of the highest value in the range
    * @param key the value to search for.
-   * @return the index of the highest value that is strictly less than the key
+   * @return the index of the highest value in the given range that is strictly less than the key
    */
-  static int binarySearch(final float[] arr, final float key) {
-    int lo = 0;
-    int mid = 0;
-    int hi = arr.length - 1;
+  static int binarySearch(final float[] arr, final int low, final int high, final float key) {
+    int lo = low;
+    int mid = lo;
+    int hi = high;
     while (lo <= hi) {
       mid = lo + ((hi - lo) / 2);
       if      (key < arr[mid]) { hi = mid - 1; }
       else if (key > arr[mid]) { lo = mid + 1; }
       else {
-        //handle duplicates, if any
-        while ((mid > 0) && (arr[mid - 1] == arr[mid])) { mid--; }
-        return mid;
+        //println("\nFound: lo: " + lo + " mid: " + mid + " hi: " + hi);
+        while ((mid > lo) && (arr[mid - 1] == arr[mid])) { --mid; }
+        return mid <= low ? -1 : --mid;
       }
     }
-    //exact value not found
-    if (mid == hi) { return mid; }
-    if (lo == mid) { return hi; }
-    return -1; //never actually reached
+    //println("\nNot Found: lo: " + lo + " mid: " + mid + " hi: " + hi);
+    return (hi < low) ? -1 : hi;
   }
 
+  //static final void println(final Object o) { System.out.println(o.toString()); }
 }

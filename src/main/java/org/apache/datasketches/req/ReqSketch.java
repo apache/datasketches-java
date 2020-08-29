@@ -21,6 +21,7 @@ package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
 import static org.apache.datasketches.req.FloatBuffer.LS;
+import static org.apache.datasketches.req.FloatBuffer.TAB;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -181,8 +182,8 @@ public class ReqSketch {
    */
   public float getQuantile(final float normRank) {
     if ((normRank < 0) || (normRank > 1.0)) {
-      throw new SketchesArgumentException("Normalized rank must be in the range [0, 1.0]: "
-          + normRank);
+      throw new SketchesArgumentException(
+          "Normalized rank must be in the range [0, 1.0]: " + normRank);
     }
     if (normRank == 0.0) { return minValue; }
     if (normRank == 1.0) { return maxValue; }
@@ -254,8 +255,8 @@ public class ReqSketch {
     while (getNumLevels() < other.getNumLevels()) { grow(); }
     //Append the items in same height compactors
     for (int i = 0; i < getNumLevels(); i++) {
-      final boolean mergeSort = i > 0;
-      compactors.get(i).merge(other.compactors.get(i), mergeSort);
+      final ReqCompactor c = compactors.get(i);
+      compactors.get(i).merge(other.compactors.get(i));
     }
     updateRetainedItems();
     // After merging, we should not be lazy when compressing the sketch (as the maxNomSize bound may
@@ -277,17 +278,19 @@ public class ReqSketch {
     int nnRank = 0;
     for (int i = 0; i < getNumLevels(); i++) {
       final ReqCompactor c = compactors.get(i);
-      nnRank += c.rank(value) * (1 << c.getLgWeight());
+      final int count = c.rank(value);
+      nnRank += count * (1 << c.getLgWeight());
     }
     return (float)nnRank / totalN;
   }
 
   /**
    * Returns a summary of the sketch and the horizontal lists for all compactors.
-   * @param decimals number of digits after the decimal point
+   * @param fmt The format for each printed item.
+   * @param dataDetail show all the retained data from all the compactors.
    * @return a summary of the sketch and the horizontal lists for all compactors.
    */
-  public String toString(final int decimals) {
+  public String toString(final String fmt, final boolean dataDetail) {
     final StringBuilder sb = new StringBuilder();
     sb.append("**********Relative Error Quantiles Sketch Summary**********").append(LS);
     final int numC = compactors.size();
@@ -298,11 +301,13 @@ public class ReqSketch {
     sb.append("  Max Value       : " + maxValue).append(LS);
 
     sb.append("  Levels          : " + compactors.size()).append(LS);
-    for (int i = 0; i < numC; i++) {
-      final ReqCompactor c = compactors.get(i);
-      sb.append("  " + c.toHorizontalList(decimals));
+    if (dataDetail) {
+      for (int i = 0; i < numC; i++) {
+        final ReqCompactor c = compactors.get(i);
+        sb.append("  " + c.toHorizontalList(fmt, 24, 12));
+      }
     }
-    sb.append("************************End Summary************************").append(LS);
+    sb.append("************************End Summary************************").append(LS + LS);
     return sb.toString();
   }
 
@@ -368,10 +373,9 @@ private void printStartCompress() {
 private void printAllHorizList() {
   for (int h = 0; h < compactors.size(); h++) {
     final ReqCompactor c = compactors.get(h);
-    print(c.toHorizontalList(0));
+    print(c.toHorizontalList("%4.0f", 24, 10));
   }
-  println("COMPRESS: DONE: sKsize: " + size
-      + "\tMaxNomSize: " + maxNomSize + LS);
+  println("COMPRESS: DONE: sKsize: " + size + TAB + "MaxNomSize: " + maxNomSize + LS);
 }
 
   //temporary

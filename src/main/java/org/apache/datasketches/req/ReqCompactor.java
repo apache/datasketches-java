@@ -22,6 +22,7 @@ package org.apache.datasketches.req;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.FloatBuffer.LS;
+import static org.apache.datasketches.req.FloatBuffer.TAB;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 import static org.apache.datasketches.req.ReqSketch.print;
@@ -80,8 +81,8 @@ public class ReqCompactor {
 
   private void printNewCompactor() {
     println("    New Compactor: height: " + lgWeight
-        + "\tsectionSize: " + sectionSize
-        + "\tnumSections: " + numSections + LS);
+        + TAB + "sectionSize: " + sectionSize
+        + TAB + "numSections: " + numSections + LS);
   }
 
   /**
@@ -120,7 +121,7 @@ public class ReqCompactor {
     final int count = buf.getItemCount();
     if (debug) { printCompactingStart(); }
     if (!buf.isSorted()) { buf.sort(); } //Footnote 1
-    if (debug) { print("    "); print(toHorizontalList(0)); } //#decimals
+    if (debug) { print("    "); print(toHorizontalList("%4.0f", 24, 14)); } //#decimals
 
     //choose a part of the buffer to compact
     final int secsToCompact = numberOfTrailingOnes(state) + 1;
@@ -142,58 +143,13 @@ public class ReqCompactor {
 
     if (numCompactions >= (1 << (numSections - 1))) {
       adjustSectSizeNumSect(); //see Footnotes 3, 4 and 8
-      printAdjSecSizeNumSec();
+      if (debug) { printAdjSecSizeNumSec(); }
     }
 
     if (debug) { printCompactionDone(); }
 
     return promote;
   } //End Compact
-
-  private int computeCompactionStart(final int secsToCompact) {
-    int s = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
-    return (((buf.getItemCount() - s) & 1) == 1) ? ++s : s;
-  }
-
-  private void printAdjSecSizeNumSec() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("    ");
-    sb.append("Adjust: SectionSize: ").append(sectionSize);
-    sb.append(" NumSections: ").append(numSections);
-    println(sb.toString());
-  }
-
-  private void printCompactingStart() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("  ");
-    sb.append("Compacting[").append(lgWeight).append("] ");
-    sb.append("NomCapacity: ").append(getNomCapacity());
-    sb.append("\tSectionSize: ").append(sectionSize);
-    sb.append("\tNumSections: ").append(numSections);
-    sb.append("\tState(bin): ").append(Integer.toBinaryString(state));
-    println(sb.toString());
-  }
-
-  private void printCompactionDetail(final int compactionStart, final int secsToCompact,
-      final int promoteLen) { //Footnote 7
-    final StringBuilder sb = new StringBuilder();
-    final int count = buf.getItemCount();
-    sb.append("    ");
-    sb.append("SecsToCompact: ").append(secsToCompact);
-    sb.append("\tNoCompact: ").append(compactionStart);
-    sb.append("\tDoCompact: ").append(count - compactionStart).append(LS);
-    final int delete = count - compactionStart;
-    final String oddOrEven = (coin) ? "Odds" : "Evens";
-    sb.append("    ");
-    sb.append("Promote: ").append(promoteLen);
-    sb.append("\tDelete: ").append(delete);
-    sb.append("\tChoose: ").append(oddOrEven);
-    println(sb.toString());
-  }
-
-  private void printCompactionDone() {
-    println("    DONE: NumCompactions: " + numCompactions);
-  }
 
   /**
    * Extends the given item array starting at length() by merging the items into
@@ -255,15 +211,30 @@ public class ReqCompactor {
   int getNumRetainedEntries() { return buf.getItemCount(); }
 
   /**
+   * Returns true if this compactor is empty
+   * @return true if this compactor is empty
+   */
+  boolean isEmpty() {
+    return buf.isEmpty();
+  }
+
+  /**
+   * Returns true if this compactor is sorted
+   * @return true if this compactor is sorted
+   */
+  boolean isSorted() {
+    return buf.isSorted();
+  }
+
+  /**
    * Merge the other given compactor into this one
    * @param other the other given compactor
-   * @param mergeSort if true, apply mergeSort algorithm instead of sort().
    * @return this
    */
-  ReqCompactor merge(final ReqCompactor other, final boolean mergeSort) {
+  ReqCompactor merge(final ReqCompactor other) {
     state |= other.state;
     numCompactions += other.numCompactions;
-    if (mergeSort) { //assumes this and other is already sorted
+    if (isSorted() && other.isSorted()) {
       final float[] arrIn = other.getBuffer().getArray();
       buf.mergeSortIn(arrIn);
     } else {
@@ -281,19 +252,6 @@ public class ReqCompactor {
   //also used by test
   static final int nearestEven(final double value) {
     return ((int) round(value / 2.0)) << 1;
-  }
-
-  /**
-   * Returns a printable formatted string of the values of this buffer separated by a single space.
-   * This string is prepended by the lgWeight and retained entries of this compactor.
-   * @param decimals The desired precision after the decimal point
-   * @return a printable, formatted string of the values of this buffer.
-   */
-  String toHorizontalList(final int decimals) {
-    final int re = getNumRetainedEntries();
-    final int h = getLgWeight();
-    final String str = h + " [" + re + "]: " + buf.toHorizList(decimals) + LS;
-    return str;
   }
 
   /**
@@ -317,6 +275,23 @@ public class ReqCompactor {
   }
 
   /**
+   * Returns a printable formatted string of the values of this buffer separated by a single space.
+   * This string is prepended by the lgWeight and retained entries of this compactor.
+   * @param fmt The format for each printed item.
+   * @param width the number of items to print per line
+   * @param indent the number of spaces at the beginning of a new line
+   * @return a printable, formatted string of the values of this buffer.
+   */
+  String toHorizontalList(final String fmt, final int width, final int indent) {
+    final int re = getNumRetainedEntries();
+    final int h = getLgWeight();
+    final String prefix = String.format("%2d [%3d]: ", h, re);
+    final String str = prefix + buf.toHorizList(fmt, width, indent) + LS;
+    return str;
+  }
+
+
+  /**
    * This adjusts sectionSize and numSections and guarantees that the sectionSize
    * will always be even and >= minK.
    */
@@ -327,6 +302,53 @@ public class ReqCompactor {
     sectionSizeDbl = newSectSizeDbl;
     sectionSize = nearestEven;
     numSections <<= 1;
+  }
+
+  private int computeCompactionStart(final int secsToCompact) {
+    int s = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
+    return (((buf.getItemCount() - s) & 1) == 1) ? ++s : s;
+  }
+
+  //debug print functions
+
+  private void printAdjSecSizeNumSec() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("    ");
+    sb.append("Adjust: SectionSize: ").append(sectionSize);
+    sb.append(" NumSections: ").append(numSections);
+    println(sb.toString());
+  }
+
+  private void printCompactingStart() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("  ");
+    sb.append("Compacting[").append(lgWeight).append("] ");
+    sb.append("NomCapacity: ").append(getNomCapacity());
+    sb.append(TAB + "SectionSize: ").append(sectionSize);
+    sb.append(TAB + "NumSections: ").append(numSections);
+    sb.append(TAB + "State(bin): ").append(Integer.toBinaryString(state));
+    println(sb.toString());
+  }
+
+  private void printCompactionDetail(final int compactionStart, final int secsToCompact,
+      final int promoteLen) { //Footnote 7
+    final StringBuilder sb = new StringBuilder();
+    final int count = buf.getItemCount();
+    sb.append("    ");
+    sb.append("SecsToCompact: ").append(secsToCompact);
+    sb.append(TAB + "NoCompact: ").append(compactionStart);
+    sb.append(TAB + "DoCompact: ").append(count - compactionStart).append(LS);
+    final int delete = count - compactionStart;
+    final String oddOrEven = (coin) ? "Odds" : "Evens";
+    sb.append("    ");
+    sb.append("Promote: ").append(promoteLen);
+    sb.append(TAB + "Delete: ").append(delete);
+    sb.append(TAB + "Choose: ").append(oddOrEven);
+    println(sb.toString());
+  }
+
+  private void printCompactionDone() {
+    println("    DONE: NumCompactions: " + numCompactions);
   }
 
   /* Footnotes:
