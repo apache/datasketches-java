@@ -32,6 +32,6 @@ public class ReqCompactorTest {
 
   @Test
   public void checkNearestEven() {
-    assertEquals(ReqCompactor.nearestEven(-0.9), 0);
+    assertEquals(ReqHelper.nearestEven(-0.9), 0);
   }
 }

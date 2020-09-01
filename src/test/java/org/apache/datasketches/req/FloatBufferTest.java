@@ -20,6 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
@@ -45,10 +46,12 @@ public class FloatBufferTest {
     for (int i = 0; i < buf.getCapacity(); i++) {
       buf.append(i);
     }
-    float[] out = buf.getOdds(0, cap);
-    println("");
-    for (int i = 0; i < out.length; i++) {
-      print((int)out[i] + " ");
+    FloatBuffer out = buf.getOdds(0, cap);
+    //println("");
+    for (int i = 0; i < out.getLength(); i++) {
+      int v = (int)out.getItem(i);
+      assertTrue((v & 1) > 0);
+      //print((int)out[i] + " ");
     }
   }
 
@@ -59,89 +62,67 @@ public class FloatBufferTest {
     for (int i = 0; i < buf.getCapacity(); i++) {
       buf.append(i);
     }
-    float[] out = buf.getEvens(0, buf.getCapacity());
-    println("");
-    for (int i = 0; i < out.length; i++) {
-      print((int)out[i] + " ");
+    FloatBuffer out = buf.getEvens(0, buf.getCapacity());
+    //println("");
+    for (int i = 0; i < out.getLength(); i++) {
+      int v = (int)out.getItem(i);
+      assertTrue((v & 1) == 0);
+      //print((int)out[i] + " ");
     }
   }
 
   @Test
-  public void checkAppend() {
+  public void checkAppendAndSpace() {
     FloatBuffer buf = new FloatBuffer(2, 2);
+    assertEquals(buf.getLength(), 0);
+    assertEquals(buf.getCapacity(), 2);
+    assertEquals(buf.getSpace(), 2);
     buf.append(1);
+    assertEquals(buf.getLength(), 1);
     assertEquals(buf.getItemCount(), 1);
+    assertEquals(buf.getCapacity(), 2);
+    assertEquals(buf.getSpace(), 1);
     buf.append(2);
+    assertEquals(buf.getLength(), 2);
     assertEquals(buf.getItemCount(), 2);
+    assertEquals(buf.getCapacity(), 2);
+    assertEquals(buf.getSpace(), 0);
     buf.append(3);
-    assertEquals(buf.getCapacity(), 4);
+    assertEquals(buf.getLength(), 3);
+    assertEquals(buf.getItemCount(), 3);
+    assertEquals(buf.getCapacity(), 5);
+    assertEquals(buf.getSpace(), 2);
   }
 
   @Test
   public void checkCountLessThan() {
-    FloatBuffer buf = new FloatBuffer(16, 2);
-    float[] unsortedArr = {1,7,3,6,5,2,4};
-    buf.extend(unsortedArr); //unsorted flag
-    assertEquals(buf.countLessThan(4), 3);
-    buf = new FloatBuffer(16, 2);
+    FloatBuffer buf = new FloatBuffer(14, 2);
     float[] sortedArr = {1,2,3,4,5,6,7};
-    buf.mergeSortIn(sortedArr);
-    assertEquals(buf.countLessThan(4), 3);
-    buf.mergeSortIn(sortedArr);
-    assertEquals(buf.countLessThan(4), 6);
-    buf.trimLength(12);
-    assertEquals(buf.getItemCount(), 12);
-    assertEquals(buf.getItem(12), 0.0F);
-    assertEquals(buf.getItem(13), 0.0F);
-  }
-
-  @Test
-  public void checkExtendArray() {
-    FloatBuffer buf = new FloatBuffer(0, 2);
-    float[] arr1 = {1,2};
-    float[] arr2 = {3,4};
-    buf.extend(arr1);
-    buf.extend(arr2);
-    for (int i = 0; i < buf.getItemCount(); i++) {
-      println(buf.getItem(i));
-    }
-  }
-
-  @Test
-  public void checkExtendWithBuffer() {
-    FloatBuffer buf = new FloatBuffer(0, 2);
-    float[] arr1 = {1,2};
-    buf.extend(arr1);
-    FloatBuffer buf2 = new FloatBuffer(0, 2);
-    float[] arr2 = {3,4};
-    buf2.extend(arr2);
-    buf.extend(buf2);
-    float[] arr3 = buf.getArray();
-    assertEquals(arr3.length, 4);
-
-    float[] arr4 = buf.getOdds(0, 4);
-    for (int i = 0; i < arr4.length; i++) {
-      println(arr4[i]);
-    }
-    arr4 = buf.getEvens(0, 4);
-    for (int i = 0; i < arr4.length; i++) {
-      println(arr4[i]);
-    }
-    assertEquals(buf.isSorted(), false);
-    assertEquals(buf.sort().isSorted(), true);
+    buf = FloatBuffer.wrap(sortedArr, true);
+    FloatBuffer buf2 = new FloatBuffer(7,0);
+    buf2.mergeSortIn(buf);
+    assertEquals(buf2.getCountLtOrEq(4, false), 3);
+    buf2.mergeSortIn(buf);
+    assertEquals(buf2.getCountLtOrEq(4, false), 6);
+    assertEquals(buf2.getLength(), 14);
+    buf2.trimLength(12);
+    assertEquals(buf2.getItemCount(), 12);
   }
 
   @Test
   public void checkMergeSortIn() {
-    FloatBuffer buf = new FloatBuffer(4,0);
-    float[] arr1 = {1,2,5,6};
-    float[] arr2 = {3,4,4,7};
-    buf.extend(arr1);
-    buf.sort();
-    buf.mergeSortIn(arr2);
-    int len = buf.getItemCount();
-    for (int i = 0; i < len; i++) { print(buf.getItem(i) + ", "); }
-    println("");
+    float[] arr1 = {1,2,5,6}; //both must be sorted
+    float[] arr2 = {3,4,7,8};
+    FloatBuffer buf1 = FloatBuffer.wrap(arr1, true);
+    FloatBuffer buf2 = FloatBuffer.wrap(arr2, true);
+    buf1.mergeSortIn(buf2);
+    assertEquals(buf1.getSpace(), 0);
+    assertEquals(buf1.getLength(), 8);
+    assertEquals(buf1.getCapacity(), 8);
+    int len = buf1.getItemCount();
+    for (int i = 0; i < len; i++) {
+      assertEquals((int)buf1.getItem(i), i+1);
+    }
   }
 
   static void print(Object o) { System.out.print(o.toString()); }

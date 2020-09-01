@@ -819,4 +819,21 @@ public final class Util {
     }
   }
 
+  /**
+   * Checks the sequential validity of the given array of float values.
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of values
+   */
+  public static final void validateValues(final float[] values) {
+    for (int i = 0; i < values.length ; i++) {
+      if (Float.isNaN(values[i])) {
+        throw new SketchesArgumentException("Values must not be NaN");
+      }
+      if ((i < (values.length - 1)) && (values[i] >= values[i + 1])) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
+    }
+  }
+
 }

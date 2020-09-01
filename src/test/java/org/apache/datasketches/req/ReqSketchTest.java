@@ -21,6 +21,7 @@ package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantilesHelper.getEvenlySpacedRanks;
 import static org.apache.datasketches.req.FloatBuffer.LS;
+import static org.testng.Assert.assertTrue;
 
 //import static org.apache.datasketches.req.FloatBuffer.TAB;
 import org.apache.datasketches.req.ReqAuxiliary.Row;
@@ -36,59 +37,113 @@ public class ReqSketchTest {
   public void test1() {
     int min = 1;
     int max = 200;
-    ReqSketch sk = loadSketch(min, max, true, 6, true); //up, debug
+    boolean up = true;
+    int k = 6;
+    boolean lteq = false;
+    boolean debug = false;
+    ReqSketch sk = loadSketch(min, max, up, k, lteq, debug);
 
-    checkToString(sk);
-    checkGetRank(sk, min, max);
-    checkAux(sk);
-    checkGetQuantiles(sk);
+    checkToString(sk, debug);
+    checkGetRank(sk, min, max, debug);
+    checkAux(sk, debug);
+    checkGetQuantiles(sk, debug);
+    checkGetCDF(sk, debug);
+    checkGetPMF(sk, debug);
   }
 
-  private static void checkToString(ReqSketch sk) {
-    println("ToString() Test");
-    print(sk.toString("%4.0f", true)); //print dataDetail
+  private static void checkToString(ReqSketch sk, boolean debug) {
+    if (debug) { println("ToString() Test"); }
+    String str = sk.toString("%4.0f", true);
+    if (debug) { print(str); } //print dataDetail
   }
 
-  private static void checkGetRank(ReqSketch sk, int min, int max) {
-    println(LS + "GetRank Test:");
-    double[] ranks = getEvenlySpacedRanks(11);
+  private static void checkGetRank(ReqSketch sk, int min, int max, boolean debug) {
+    if (debug) { println(LS + "GetRank Test:"); }
+    double[] nranks = getEvenlySpacedRanks(11);
     String dfmt = "%10.2f%10.6f" + LS;
-    String sfmt = "%10s%10s";
-    printf(sfmt, "Value", "Rank");
-    for (int i = 0; i < ranks.length; i++) {
-      float rank = (float) ranks[i];
-      float scaledV = (rank * (max - min)) + min;
-      double r = sk.getRank(scaledV);
-      printf(dfmt, scaledV, r);
+    String sfmt = "%10s%10s" + LS;
+    if (debug) { printf(sfmt, "Value", "Rank"); }
+    float slope = (max - min) + min;
+    float va = 0;
+    float ranka = 0;
+    for (int i = 0; i < nranks.length; i++) {
+      float nrank = (float) nranks[i];
+      float v = slope * nrank;
+      float rank = sk.getRank(v);
+      if (debug) { printf(dfmt, v, rank); }
+      if (i == 0) {
+        va = v;
+        ranka = rank;
+      } else {
+        assertTrue(v >= va);
+        assertTrue(rank >= ranka);
+        va = v;
+        ranka = rank;
+      }
     }
   }
 
-  private static void checkAux(ReqSketch sk) {
-    println(LS + "Aux Test");
+  private static void checkAux(ReqSketch sk, boolean debug) {
+    if (debug) { println(LS + "Aux Test"); }
     ReqAuxiliary aux = new ReqAuxiliary(sk);
-    aux.buildAuxTable(sk);
     String dfmt = "%12.1f%12d%12.5f" + LS;
     String sfmt = "%12s%12s%12s" + LS;
-    printf(sfmt, "Item", "Weight", "NormRank");
+    if (debug) { printf(sfmt, "Item", "Weight", "NormRank"); }
     final int totalCount = sk.getRetainedEntries();
+    float item = 0;
+    float normRank = 0;
     for (int i = 0; i < totalCount; i++) {
       Row row = aux.getRow(i);
-      printf(dfmt, row.item, row.weight, row.normRank);
+      if (debug) { printf(dfmt, row.item, row.weight, row.normRank); }
+      if (i == 0) {
+        item = row.item;
+        normRank = row.normRank;
+      } else {
+        assertTrue(row.item >= item);
+        assertTrue(row.normRank >= normRank);
+        item = row.item;
+        normRank = row.normRank;
+      }
     }
   }
 
-  private static void checkGetQuantiles(ReqSketch sk) {
-    println(LS + "GetQuantiles() Test");
+  private static void checkGetQuantiles(ReqSketch sk, boolean debug) {
+    if (debug) { println(LS + "GetQuantiles() Test"); }
     float[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
     float[] qOut = sk.getQuantiles(rArr);
-    for (int i = 0; i < qOut.length; i++) {
-      println("nRank: " + rArr[i] + ", q: " + qOut[i]);
+    if (debug) {
+      for (int i = 0; i < qOut.length; i++) {
+        println("nRank: " + rArr[i] + ", q: " + qOut[i]);
+      }
     }
   }
 
+  private static void checkGetCDF(ReqSketch sk, boolean debug) {
+    if (debug) { println(LS + "GetCDF() Test"); }
+    float[] spArr = { 20, 40, 60, 80, 100, 120, 140, 160, 180 };
+    double[] cdf = sk.getCDF(spArr);
+    if (debug) {
+      for (int i = 0; i < cdf.length; i++) {
+        float sp = (i == spArr.length) ? sk.getMax() : spArr[i];
+        println("SP: " +sp + ", Den: " + cdf[i]);
+      }
+    }
+  }
 
-  private static ReqSketch loadSketch(int min, int max, boolean up, int k, boolean debug) {
-    ReqSketch sk = new ReqSketch(k, debug);
+  private static void checkGetPMF(ReqSketch sk, boolean debug) {
+    if (debug) { println(LS + "GetPMF() Test"); }
+    float[] spArr = { 20, 40, 60, 80, 100, 120, 140, 160, 180 };
+    double[] pmf = sk.getPMF(spArr);
+    if (debug) {
+      for (int i = 0; i < pmf.length; i++) {
+        float sp = (i == spArr.length) ? sk.getMax() : spArr[i];
+        println("SP: " +sp + ", Mass: " + pmf[i]);
+      }
+    }
+  }
+
+  private static ReqSketch loadSketch(int min, int max, boolean up, int k, boolean lteq, boolean debug) {
+    ReqSketch sk = new ReqSketch(k, lteq, debug);
     if (up) {
       for (int i = min; i <= max; i++) {
         sk.update(i);

@@ -27,26 +27,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.Util;
 
 
 /**
- * Java implementation for paper "Relative Error Streaming Quantiles",
- * https://arxiv.org/abs/2004.01668.
+ * This Relative Error Quantiles Sketch is the Java implementation based on the paper
+ * "Relative Error Streaming Quantiles", https://arxiv.org/abs/2004.01668.
  *
  * <p>This implementation differs from the algorithm described in the paper in the following:</p>
  * <ul><li>The algorithm requires no upper bound on the stream length.
  * Instead, each relative-compactor counts the number of compaction operations performed
- * so far (variable numCompactions). Initially, the relative-compactor starts with 3 sections
- * and each time the numCompactions exceeds 2^{# of sections}, we double the number of sections
- * (variable numSections).
- * </li>
+ * so far (variable numCompactions). Initially, the relative-compactor starts with 3 sections.
+ * Each time the numCompactions exceeds 2^{numSections - 1}, we double numSections.</li>
  * <li>The size of each section (variable k and sectionSize in the code and parameter k in
  * the paper) is initialized with a value set by the user via variable k.
  * When the number of sections doubles, we decrease sectionSize by a factor of sqrt(2).
  * This is applied at each level separately. Thus, when we double the number of sections, the
- * size increases by a factor of sqrt(2) (up to +-1 after rounding).</li>
+ * nominal compactor size increases by a factor of sqrt(2) (up to +-1 after rounding).</li>
  * <li>The merge operation here does not perform "special compactions", which are used in the paper
- * to allow for a tight analysis of the sketch.</li>
+ * to allow for a tight mathematical analysis of the sketch.</li>
  * </ul>
  *
  * @author Edo Liberty
@@ -66,19 +65,22 @@ public class ReqSketch {
   private boolean debug = false;
   List<ReqCompactor> compactors = new ArrayList<>();
   private ReqAuxiliary aux = null;
-  //int levels; //number of compactors; was H
-  int size; //retained items
-  private int maxNomSize; //nominal capacity
+  int size; //number of retained items in the sketch
+  private int maxNomSize; //sum of nominal capacities of all compactors
   private long totalN; //total items offered to sketch
   private float minValue = Float.MAX_VALUE;
   private float maxValue = Float.MIN_VALUE;
+  //if lteq = true, the compuation of rank and quantiles will be based on a less-than or equals
+  // criteria. Otherwise the criteria is strictly less-than, which is consistent with the other
+  // quantiles sketches in the library.
+  private boolean lteq = false;
 
   /**
-   * Constructor with default k = 50;
+   * Constructor with default k = 50, lteq = false, and debug = false.
    *
    */
   public ReqSketch() {
-    this(DEFAULT_K, false);
+    this(DEFAULT_K, false, false);
   }
 
   /**
@@ -86,17 +88,21 @@ public class ReqSketch {
    * @param k Controls the size and error of the sketch
    */
   public ReqSketch(final int k) {
-    this(k, false);
+    this(k, false, false);
   }
 
   /**
    * Constructor.
    * @param k Controls the size and error of the sketch. It must be even, if not, it will be
    * rounded down by one.
+   * @param lteq if true, the compuation of rank and quantiles will be based on a less-than or equals
+   * criteria. Otherwise the criteria is strictly less-than, which is consistent with the other
+   * quantiles sketches in the library.
    * @param debug debug mode
    */
-  public ReqSketch(final int k, final boolean debug) {
+  public ReqSketch(final int k, final boolean lteq, final boolean debug) {
     this.k = max(k & -2, MIN_K);
+    this.lteq = lteq;
     this.debug = debug;
     size = 0;
     maxNomSize = 0;
@@ -128,7 +134,7 @@ public class ReqSketch {
     if (size < maxNomSize) { return; }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      final int retEnt = c.getNumRetainedEntries();
+      final int retEnt = c.getBuffer().getLength();
       final int nomCap = c.getNomCapacity();
 
       if (retEnt >= nomCap) {
@@ -136,8 +142,8 @@ public class ReqSketch {
           if (debug) { printAddCompactor(h, retEnt, nomCap); }
           grow(); //add a level
         }
-        final float[] promoted = c.compact();
-        compactors.get(h + 1).extendAndMerge(promoted);
+        final FloatBuffer promoted = c.compact();
+        compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         updateRetainedItems();
         if (lazy && (size < maxNomSize)) { break; }
       }
@@ -146,10 +152,58 @@ public class ReqSketch {
     aux = null;
   }
 
-    @SuppressWarnings("javadoc")
-    public double[] getCDF(final float[] splitPoints) {
-      return null; //getPmfOrCdf(splitPoints, true);
+  /**
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
+   * getNormalizedRankError(false) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these splitpoints.
+   *
+   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
+   * of the input stream given the splitPoints. The value at array position j of the returned
+   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
+   * array.
+   */
+  public double[] getCDF(final float[] splitPoints) {
+    if (isEmpty()) { return null; }
+    Util.validateValues(splitPoints);
+    final long[] buckets = getPMForCDF(splitPoints);
+    final int numBkts = buckets.length;
+    final double[] outArr = new double[numBkts];
+    for (int j = 0; j < numBkts; j++) {
+      outArr[j] = (double)buckets[j] / getN();
     }
+    return outArr;
+  }
+
+  boolean getLtEq() {
+    return lteq;
+  }
+
+  /**
+   * Gets the smallest value seen by this sketch
+   * @return the smallest value seen by this sketch
+   */
+  public float getMin() {
+    return minValue;
+  }
+
+  /**
+   * Gets the largest value seen by this sketch
+   * @return the largest value seen by this sketch
+   */
+  public float getMax() {
+    return maxValue;
+  }
 
   /**
    * Gets the total number of items offered to the sketch.
@@ -167,13 +221,66 @@ public class ReqSketch {
     return compactors.size();
   }
 
-  @SuppressWarnings("static-method")
-  private double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf) {
-    return null;
+  /**
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
+   * given a set of splitPoints (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
+   * getNormalizedRankError(true) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these splitpoints.
+   *
+   * @return an array of m+1 doubles each of which is an approximation
+   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
+   * splitPoint, with the exception that the last interval will include maximum value.
+   */
+  public double[] getPMF(final float[] splitPoints) {
+    if (isEmpty()) { return null; }
+    Util.validateValues(splitPoints);
+    final long[] buckets = getPMForCDF(splitPoints);
+    final int numBkts = buckets.length;
+    final double[] outArr = new double[numBkts];
+    outArr[0] = (double)buckets[0] / getN();
+    for (int j = 1; j < numBkts; j++) {
+      outArr[j] = (double)(buckets[j] - buckets[j - 1]) / getN();
+    }
+    return outArr;
   }
 
   /**
-   * Gets the quantile of the largest normalized rank that is less than the given normalized rank.
+   * Gets a CDF in raw counts, which can be easily converted into a CDF or PMF.
+   * @param splitPoints the splitPoints array
+   * @return a CDF in raw counts
+   */
+  private long[] getPMForCDF(final float[] splitPoints) {
+    final int numComp = compactors.size();
+    final int numBkts = splitPoints.length + 1;
+    final long[] buckets = new long[numBkts];
+    final double[] outArr = new double[numBkts];
+    for (int i = 0; i < numComp; i++) {
+      final ReqCompactor c = compactors.get(i);
+      final FloatBuffer buf = c.getBuffer();
+      final int weight = 1 << c.getLgWeight();
+      for (int j = 0; j < (numBkts - 1); j++) {
+        buckets[j] += buf.getCountLtOrEq(splitPoints[j], lteq) * weight;
+      }
+    }
+    buckets[numBkts - 1] = getN();
+    return buckets;
+  }
+
+  /**
+   * Gets the quantile of the largest normalized rank that is less-than the given normalized rank;
+   * or, if lteq is true, this gets the quantile of the largest normalized rank that is less-than or
+   * equal to the given normalized rank.
    * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
    * A given normalized rank of 0.0 will return the minimum value from the stream.
    * A given normalized rank of 1.0 will return the maximum value from the stream.
@@ -183,15 +290,15 @@ public class ReqSketch {
   public float getQuantile(final float normRank) {
     if ((normRank < 0) || (normRank > 1.0)) {
       throw new SketchesArgumentException(
-          "Normalized rank must be in the range [0, 1.0]: " + normRank);
+          "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
-    if (normRank == 0.0) { return minValue; }
-    if (normRank == 1.0) { return maxValue; }
+    //if (normRank == 0.0) { return minValue; }
+    //if (normRank == 1.0) { return maxValue; }
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
-    final float q = aux.getQuantile(normRank);
-    if (q == Float.NaN) { return minValue; }
+    final float q = aux.getQuantile(normRank, lteq);
+    //if (Float.isNaN(q)) { return minValue; }
     return q;
   }
 
@@ -208,6 +315,51 @@ public class ReqSketch {
       qArr[i] = getQuantile(normRanks[i]);
     }
     return qArr;
+  }
+
+  /**
+   * Computes the normalized rank of the given value in the stream.
+   * The normalized rank is the fraction of values less than the given value;
+   * or if lteq is true, the fraction of values less than or equal to the given value.
+   * @param value the given value
+   * @return the normalized rank of the given value in the stream.
+   */
+  public float getRank(final float value) {
+    int nnRank = 0;
+    final int numComp = compactors.size();
+    for (int i = 0; i < numComp; i++) {
+      final ReqCompactor c = compactors.get(i);
+      final FloatBuffer buf = c.getBuffer();
+      final int count = buf.getCountLtOrEq(value, lteq);
+      nnRank += count * (1 << c.getLgWeight());
+    }
+    return (float)nnRank / totalN;
+  }
+
+  /**
+   * Gets an array of normalized ranks that correspond to the given array of values.
+   * @param values the given array of values.
+   * @return the  array of normalized ranks that correspond to the given array of values.
+   * @see #getRank(float)
+   */
+  public float[] getRanks(final float[] values) {
+    final int numValues = values.length;
+    final int numComp = compactors.size();
+    final float[] rArr = new float[numValues];
+    final int[] cumNnrArr = new int[numValues];
+
+    for (int i = 0; i < numComp; i++) {
+      final ReqCompactor c = compactors.get(i);
+      final FloatBuffer buf = c.getBuffer();
+      final int[] countsArr = buf.getCountsLtOrEq(values, lteq);
+      for (int j = 0; j < numValues; j++) {
+        cumNnrArr[j] += countsArr[j];
+      }
+    }
+    for (int j = 0; j < numValues; j++) {
+      rArr[j] = (float) cumNnrArr[j] / totalN;
+    }
+    return rArr;
   }
 
   /**
@@ -269,22 +421,6 @@ public class ReqSketch {
   }
 
   /**
-   * Computes the normalized rank of the given value in the stream.
-   * The normalized rank is the fraction of values less than the given value.
-   * @param value the given value
-   * @return the normalized rank of the given value in the stream.
-   */
-  public float getRank(final float value) {
-    int nnRank = 0;
-    for (int i = 0; i < getNumLevels(); i++) {
-      final ReqCompactor c = compactors.get(i);
-      final int count = c.rank(value);
-      nnRank += count * (1 << c.getLgWeight());
-    }
-    return (float)nnRank / totalN;
-  }
-
-  /**
    * Returns a summary of the sketch and the horizontal lists for all compactors.
    * @param fmt The format for each printed item.
    * @param dataDetail show all the retained data from all the compactors.
@@ -299,6 +435,7 @@ public class ReqSketch {
     sb.append("  Max Nominal Size: " + maxNomSize).append(LS);
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
+    sb.append("  LtEq Criterion  : " + lteq).append(LS);
 
     sb.append("  Levels          : " + compactors.size()).append(LS);
     if (dataDetail) {
@@ -316,14 +453,16 @@ public class ReqSketch {
    * @param item the given item
    */
   public void update(final float item) {
-    if (!Float.isFinite(item)) { return; } //TODO: We may want to throw instead
-    final ReqCompactor c = compactors.get(0).append(item);
+    if (!Float.isFinite(item)) {
+      throw new SketchesArgumentException("Input float values must be finite.");
+    }
+    final FloatBuffer buf = compactors.get(0).getBuffer().append(item);
     size++;
     totalN++;
     minValue = (item < minValue) ? item : minValue;
     maxValue = (item > maxValue) ? item : maxValue;
     if (size >= maxNomSize) {
-      c.sort();
+      buf.sort();
       compress(true);
     }
     aux = null;
@@ -346,7 +485,7 @@ ReqSketch updateMaxNomSize() {
  */
 ReqSketch updateRetainedItems() {
   int count = 0;
-  for (ReqCompactor c : compactors) { count += c.getNumRetainedEntries(); }
+  for (ReqCompactor c : compactors) { count += c.getBuffer().getLength(); }
   size = count;
   return this;
 }

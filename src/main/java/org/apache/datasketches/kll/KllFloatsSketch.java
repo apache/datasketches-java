@@ -922,7 +922,7 @@ public class KllFloatsSketch {
 
   private double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf) {
     if (isEmpty()) { return null; }
-    KllHelper.validateValues(splitPoints);
+    Util.validateValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
     int level = 0;
     int weight = 1;
