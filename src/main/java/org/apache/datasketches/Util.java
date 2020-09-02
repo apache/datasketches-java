@@ -825,9 +825,9 @@ public final class Util {
    * @param values the given array of values
    */
   public static final void validateValues(final float[] values) {
-    for (int i = 0; i < values.length ; i++) {
-      if (Float.isNaN(values[i])) {
-        throw new SketchesArgumentException("Values must not be NaN");
+    for (int i = 0; i < values.length; i++) {
+      if (!Float.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
       }
       if ((i < (values.length - 1)) && (values[i] >= values[i + 1])) {
         throw new SketchesArgumentException(

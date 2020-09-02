@@ -21,10 +21,14 @@ package org.apache.datasketches.req;
 
 import static java.lang.Math.round;
 
+import org.apache.datasketches.SketchesArgumentException;
+
 /**
  * @author Lee Rhodes
  */
 class ReqHelper {
+  static final String LS = System.getProperty("line.separator");
+  static final String TAB = "\t";
 
   /**
    * Binary Search for the index of the highest value in the given range that is either less-than or
@@ -67,6 +71,22 @@ class ReqHelper {
     return (hi < low) ? -1 : hi;
   }
 
+  static float[] validateSplits(final float[] splits) {
+    final int len = splits.length;
+    final float[] out = splits;
+    for (int i = 0; i < len; i++) {
+      final float v = splits[i];
+      if (!Float.isFinite(v)) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+      if ((i < (len - 1)) && (v >= splits[i + 1])) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
+    }
+    return out;
+  }
+
   /**
    * Returns the nearest even integer to the given value.
    * @param value the given value
@@ -76,5 +96,13 @@ class ReqHelper {
   static final int nearestEven(final double value) {
     return ((int) round(value / 2.0)) << 1;
   }
+
+  static final void printf(final String format, final Object ...args) {
+    System.out.printf(format, args);
+  }
+
+  static final void print(final Object o) { System.out.print(o.toString()); }
+
+  static final void println(final Object o) { System.out.println(o.toString()); }
 
 }

@@ -20,7 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantilesHelper.getEvenlySpacedRanks;
-import static org.apache.datasketches.req.FloatBuffer.LS;
+import static org.apache.datasketches.req.ReqHelper.LS;
 import static org.testng.Assert.assertTrue;
 
 //import static org.apache.datasketches.req.FloatBuffer.TAB;
@@ -39,9 +39,10 @@ public class ReqSketchTest {
     int max = 200;
     boolean up = true;
     int k = 6;
-    boolean lteq = false;
-    boolean debug = false;
-    ReqSketch sk = loadSketch(min, max, up, k, lteq, debug);
+    boolean hra = false;
+    boolean lteq = true;
+    boolean debug = true;
+    ReqSketch sk = loadSketch(min, max, up, k, hra, lteq, debug);
 
     checkToString(sk, debug);
     checkGetRank(sk, min, max, debug);
@@ -142,8 +143,9 @@ public class ReqSketchTest {
     }
   }
 
-  private static ReqSketch loadSketch(int min, int max, boolean up, int k, boolean lteq, boolean debug) {
-    ReqSketch sk = new ReqSketch(k, lteq, debug);
+  private static ReqSketch loadSketch(int min, int max, boolean up, int k, boolean hra,
+      boolean lteq, boolean debug) {
+    ReqSketch sk = new ReqSketch(k, hra, lteq, debug);
     if (up) {
       for (int i = min; i <= max; i++) {
         sk.update(i);

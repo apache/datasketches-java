@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.ReqHelper.binarySearch;
+
+import java.util.List;
+
 import org.apache.datasketches.SketchesStateException;
 
 /**
@@ -35,17 +39,18 @@ class ReqAuxiliary {
   }
 
   private void buildAuxTable(final ReqSketch sk) {
-    final int numComp = sk.compactors.size();
-    final int totalItems = sk.size;
+    final List<ReqCompactor> compactors = sk.getCompactors();
+    final int numComp = compactors.size();
+    final int totalItems = sk.getRetainedEntries();
     final long N = sk.getN();
     items = new float[totalItems];
     weights = new long[totalItems];
     normRanks = new float[totalItems];
     int curCount = 0;
     for (int i = 0; i < numComp; i++) {
-      final ReqCompactor c = sk.compactors.get(i);
+      final ReqCompactor c = compactors.get(i);
       final int len = c.getBuffer().getLength();
-      mergeSortIn(sk.compactors.get(i), curCount);
+      mergeSortIn(compactors.get(i), curCount);
       curCount += len;
     }
     float sum = 0;
@@ -68,7 +73,7 @@ class ReqAuxiliary {
       throw new SketchesStateException("Aux structure not initialized.");
     }
     final int len = normRanks.length;
-    final int index = ReqHelper.binarySearch(normRanks, 0, len - 1, normRank, lteq);
+    final int index = binarySearch(normRanks, 0, len - 1, normRank, lteq);
     if (index == -1) { return Float.NaN; }
     return items[index];
   }

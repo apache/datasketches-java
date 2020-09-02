@@ -5,6 +5,8 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.ReqHelper.LS;
+
 import java.util.Arrays;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -15,9 +17,6 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 class FloatBuffer {
-  static final String LS = System.getProperty("line.separator");
-  static final String TAB = "\t";
-
   private float[] arr_;
   private int count_;
   private int capacity_;
@@ -265,7 +264,7 @@ class FloatBuffer {
 
   /**
    * Merges the incoming sorted array into this sorted array.
-   * @param arrIn sorted array in
+   * @param bufIn sorted buffer in
    * @return this
    */
   FloatBuffer mergeSortIn(final FloatBuffer bufIn) {
@@ -317,7 +316,8 @@ class FloatBuffer {
     final char[] spaces = new char[indent];
     Arrays.fill(spaces, ' ');
     for (int i = 0; i < count_; i++) {
-      final String str = String.format(fmt, arr_[i]);
+      final float v = arr_[i];
+      final String str = String.format(fmt, v);
       if ((i > 0) && ((i % width) == 0)) { sb.append(LS).append(spaces); }
       sb.append(str);
     }

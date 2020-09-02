@@ -20,14 +20,16 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
-import static org.apache.datasketches.req.FloatBuffer.LS;
-import static org.apache.datasketches.req.FloatBuffer.TAB;
+import static org.apache.datasketches.req.ReqHelper.LS;
+import static org.apache.datasketches.req.ReqHelper.TAB;
+import static org.apache.datasketches.req.ReqHelper.nearestEven;
+import static org.apache.datasketches.req.ReqHelper.print;
+import static org.apache.datasketches.req.ReqHelper.println;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
-import static org.apache.datasketches.req.ReqSketch.print;
-import static org.apache.datasketches.req.ReqSketch.println;
 
 import java.util.Random;
+
 
 /**
  * @author Lee Rhodes
@@ -172,7 +174,7 @@ class ReqCompactor {
    */
   private void adjustSectSizeNumSect() {
     final double newSectSizeDbl = sectionSizeDbl / SQRT2;
-    final int nearestEven = ReqHelper.nearestEven(newSectSizeDbl);
+    final int nearestEven = nearestEven(newSectSizeDbl);
     if (nearestEven < MIN_K) { return; }
     sectionSizeDbl = newSectSizeDbl;
     sectionSize = nearestEven;

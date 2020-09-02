@@ -34,8 +34,8 @@ public class ReqIterator {
   private FloatBuffer currentBuf;
 
   ReqIterator(final ReqSketch sketch) {
-    compactors = sketch.compactors;
-    retainedItems = sketch.size;
+    compactors = sketch.getCompactors();
+    retainedItems = sketch.getRetainedEntries();
     currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;

@@ -20,6 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.req.ReqHelper.binarySearch;
+import static org.apache.datasketches.req.ReqHelper.validateSplits;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Random;
@@ -102,6 +103,18 @@ public class ReqHelperTest {
       if (idx == -1) { r = 0; } else { r = (double) (idx + 1) / len; }
       printf("%10.2f, %10d, %10.2f\n", v, idx, r);
     }
+  }
+
+  @Test
+  public void checkValidateSplits() {
+    float[] arr = {1,2,3,4,5};
+    float[] result = validateSplits(arr);
+    int len = result.length;
+    for (int i = 0, j = len - 1; i < len; i++, j--) {
+      print(result[i] + " ");
+      assertEquals(arr[i], -result[j]);
+    }
+    println("");
   }
 
   private static int linearSearch(final float[] arr, final int low, final int high,
