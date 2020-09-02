@@ -22,9 +22,11 @@ package org.apache.datasketches.req;
 import static org.apache.datasketches.req.ReqHelper.binarySearch;
 import static org.apache.datasketches.req.ReqHelper.validateSplits;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import java.util.Random;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**
@@ -108,13 +110,13 @@ public class ReqHelperTest {
   @Test
   public void checkValidateSplits() {
     float[] arr = {1,2,3,4,5};
-    float[] result = validateSplits(arr);
-    int len = result.length;
-    for (int i = 0, j = len - 1; i < len; i++, j--) {
-      print(result[i] + " ");
-      assertEquals(arr[i], -result[j]);
+    validateSplits(arr);
+    try {
+      float[] arr1 = {1,2,4,3,5};
+      validateSplits(arr1);
+      fail();
     }
-    println("");
+    catch (final SketchesArgumentException e) { }
   }
 
   private static int linearSearch(final float[] arr, final int low, final int high,

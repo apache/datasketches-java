@@ -41,7 +41,7 @@ public class ReqSketchTest {
     int k = 6;
     boolean hra = false;
     boolean lteq = true;
-    boolean debug = true;
+    boolean debug = false;
     ReqSketch sk = loadSketch(min, max, up, k, hra, lteq, debug);
 
     checkToString(sk, debug);

@@ -71,9 +71,8 @@ class ReqHelper {
     return (hi < low) ? -1 : hi;
   }
 
-  static float[] validateSplits(final float[] splits) {
+  static void validateSplits(final float[] splits) {
     final int len = splits.length;
-    final float[] out = splits;
     for (int i = 0; i < len; i++) {
       final float v = splits[i];
       if (!Float.isFinite(v)) {
@@ -84,7 +83,6 @@ class ReqHelper {
           "Values must be unique and monotonically increasing");
       }
     }
-    return out;
   }
 
   /**

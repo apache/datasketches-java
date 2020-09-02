@@ -161,8 +161,8 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public double[] getCDF(final float[] splitPoints) {
     if (isEmpty()) { return null; }
-    final float[] splits = validateSplits(splitPoints);
-    final long[] buckets = getPMForCDF(splits);
+    validateSplits(splitPoints);
+    final long[] buckets = getPMForCDF(splitPoints);
     final int numBkts = buckets.length;
     final double[] outArr = new double[numBkts];
     for (int j = 0; j < numBkts; j++) {
@@ -205,8 +205,8 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public double[] getPMF(final float[] splitPoints) {
     if (isEmpty()) { return null; }
-    final float[] splits = validateSplits(splitPoints);
-    final long[] buckets = getPMForCDF(splits);
+    validateSplits(splitPoints);
+    final long[] buckets = getPMForCDF(splitPoints);
     final int numBkts = buckets.length;
     final double[] outArr = new double[numBkts];
     outArr[0] = (double)buckets[0] / getN();
@@ -243,7 +243,7 @@ public class ReqSketch extends BaseReqSketch {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
-    //if (normRank == 0.0) { return minValue; }
+    //if (normRank == 0.0) { return minValue; } //option for compat with other Q sketches
     //if (normRank == 1.0) { return maxValue; }
     if (aux == null) {
       aux = new ReqAuxiliary(this);
