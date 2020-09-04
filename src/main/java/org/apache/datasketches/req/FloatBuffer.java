@@ -22,12 +22,14 @@ class FloatBuffer {
   private int capacity_;
   private int delta_;
   private boolean sorted_;
+  private boolean spaceAtBottom_;
 
   /**
-   * Constructs a new FloatBuffer with a default size of 1024 items and delta of 256 items.
+   * Constructs a new FloatBuffer with a default size of 1024 items,delta of 256 items, and
+   * space at the top.
    */
   FloatBuffer() {
-    this(1024, 256);
+    this(1024, 256, false);
   }
 
   /**
@@ -36,13 +38,16 @@ class FloatBuffer {
    *
    * @param capacity the initial capacity.
    * @param delta add space in increments of this size
+   * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
+   * otherwise, create any extra space at the top of the buffer.
    */
-  FloatBuffer(final int capacity, final int delta) {
+  FloatBuffer(final int capacity, final int delta, final boolean spaceAtBottom) {
     arr_ = new float[capacity];
     count_ = 0;
     capacity_ = capacity;
     delta_ = delta;
     sorted_ = true;
+    spaceAtBottom_ = spaceAtBottom;
   }
 
   /**
@@ -55,6 +60,7 @@ class FloatBuffer {
     capacity_ = buf.capacity_;
     delta_ = buf.delta_;
     sorted_ = buf.sorted_;
+    spaceAtBottom_ = buf.spaceAtBottom_;
   }
 
   /**
@@ -64,36 +70,44 @@ class FloatBuffer {
    * @param delta add space in increments of this size
    * @param capacity the initial capacity
    * @param sorted true if already sorted
+   * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
+   * otherwise, create any extra space at the top of the buffer.
    */
   private FloatBuffer(final float[] arr, final int count, final int delta, final int capacity,
-      final boolean sorted) {
+      final boolean sorted, final boolean spaceAtBottom) {
     arr_ = arr;
     count_ = count;
     capacity_ = capacity;
     delta_ = delta;
     sorted_ = sorted;
+    spaceAtBottom_ = spaceAtBottom;
   }
 
   /**
    * Wraps the given array to use as the internal array; thus no copies. For internal use.
    * @param arr the given array
+   * @param isSorted set true, if incomming array is already sorted.
+   * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
+   * otherwise, create any extra space at the top of the buffer.
    * @return this, which will be sorted
    */
-  static FloatBuffer wrap(final float[] arr, final boolean isSorted) {
-    final FloatBuffer buf = new FloatBuffer(arr, arr.length, 0, arr.length, isSorted);
+  static FloatBuffer wrap(final float[] arr, final boolean isSorted, final boolean spaceAtBottom) {
+    final FloatBuffer buf = new FloatBuffer(arr, arr.length, 0, arr.length, isSorted, spaceAtBottom);
     buf.sort();
     return buf;
   }
 
   /**
-   * Appends the given item to the end of the active array and increments length().
+   * Appends the given item to the active array and increments length().
    * This will expand the array if necessary.
    * @param item the given item
    * @return this
    */
   FloatBuffer append(final float item) {
     ensureSpace(1);
-    arr_[count_++] = item;
+    final int index = spaceAtBottom_ ? capacity_ - count_ - 1 : count_;
+    arr_[index] = item;
+    count_++;
     sorted_ = false;
     return this;
   }
@@ -101,11 +115,17 @@ class FloatBuffer {
   /**
    * Ensures that the capacity of this FloatBuffer is at least newCapacity.
    * If newCapacity &lt; capacity(), no action is taken.
+   * @param newCapacity the new desired capacity
+   * at the top.
    * @return this
    */
-  private FloatBuffer ensureCapacity(final int newCapacity) {
+  FloatBuffer ensureCapacity(final int newCapacity) {
     if (newCapacity > capacity_) {
-      arr_ = Arrays.copyOf(arr_, newCapacity);
+      final float[] out = new float[newCapacity];
+      final int srcPos = spaceAtBottom_ ? capacity_ - count_ : 0;
+      final int destPos = spaceAtBottom_ ? newCapacity - count_ : 0;
+      System.arraycopy(arr_, srcPos, out, destPos, count_);
+      arr_ = out;
       capacity_ = newCapacity;
     }
     return this;
@@ -117,8 +137,9 @@ class FloatBuffer {
    * @return this
    */
   private FloatBuffer ensureSpace(final int space) {
-    if ((count_ + space) > arr_.length) {
-      ensureCapacity(count_ + space + delta_);
+    if ((count_ + space) > capacity_) {
+      final int newCap = count_ + space + delta_;
+      ensureCapacity(newCap);
     }
     return this;
   }
@@ -150,8 +171,16 @@ class FloatBuffer {
    */
   int getCountLtOrEq(final float value, final boolean lteq) {
     if (!sorted_) { sort(); } //we must be sorted!
-    final int index = ReqHelper.binarySearch(arr_, 0, count_ - 1, value, lteq);
-    return (index == -1) ? 0 : index + 1;
+    if (spaceAtBottom_) {
+      final int low = capacity_ - count_;
+      final int high = capacity_ - 1;
+      final int index = ReqHelper.binarySearch(arr_, low, high, value, lteq);
+      return (index == -1) ? 0 : (index + 1) - (capacity_ - count_);
+    } else {
+      final int index = ReqHelper.binarySearch(arr_, 0, count_ - 1, value, lteq);
+      return (index == -1) ? 0 : index + 1;
+    }
+
   }
 
   /**
@@ -172,32 +201,49 @@ class FloatBuffer {
   }
 
   /**
-   * Returns a sorted FloatBuffer of the even indicies from the range start (inclusive) to end (exclusive).
-   * The even indicies are with respect to the start index, as if it were even.
-   * If the starting index is odd with respect to the origin of the FloatBuffer, then this will
-   * actually return the odd indicies with respect to the FloatBuffer origin.
-   * @param start the starting index
-   * @param end the end index, exclusive
-   * @return the selected evens from the range
+   * Returns a sorted FloatBuffer of the odd or even offsets from the range startOffset (inclusive)
+   * to endOffset (exclusive). The size of the range must be of even size.
+   * The offsets are with respect to the start of the active region and independent of the
+   * location of the active region within the overall buffer. The requested region will be sorted
+   * first.
+   * @param startOffset the starting offset within the active region
+   * @param endOffset the end offset within the active region, exclusive
+   * @param odds if true, return the odds, otherwise return the evens.
+   * @return the selected odds from the range
    */
-  FloatBuffer getEvens(final int start, final int end) {
-    sort();
-    final int range = end - start;
-    final int odd = range & 1;
-    final int len = odd + (range / 2);
-    final float[] out = new float[len];
-    for (int i = start, j = 0; i < end; i += 2, j++) {
+  FloatBuffer getEvensOrOdds(final int startOffset, final int endOffset, final boolean odds) {
+    final int start = spaceAtBottom_ ? (capacity_ - count_) + startOffset : startOffset;
+    final int end = spaceAtBottom_ ? (capacity_ - count_) + endOffset : endOffset;
+    Arrays.sort(arr_, start, end);
+    final int range = endOffset - startOffset;
+    if ((range & 1) == 1) {
+      throw new SketchesArgumentException("Input range size must be even");
+    }
+    final int odd = odds ? 1 : 0;
+    final float[] out = new float[range / 2];
+    for (int i = start + odd, j = 0; i < end; i += 2, j++) {
       out[j] = arr_[i];
     }
-    return wrap(out, true);
+    return wrap(out, true, spaceAtBottom_);
   }
 
   /**
-   * Gets an item given its index
+   * Gets a value from the backing array given its index.
+   * Only used in test or debug.
    * @param index the given index
-   * @return an item given its index
+   * @return a value given its backing array index
    */
-  float getItem(final int index) {
+  float getIndex(final int index) {
+    return arr_[index];
+  }
+
+  /**
+   * Gets an item given its offset in the active region
+   * @param offset the given offset in the active region
+   * @return an item given its offset
+   */
+  float getItem(final int offset) {
+    final int index = (spaceAtBottom_) ? (capacity_ - count_) + offset : offset;
     return arr_[index];
   }
 
@@ -220,26 +266,8 @@ class FloatBuffer {
   }
 
   /**
-   * Returns a sorted FloatBuffer of the odd indicies from the range start (inclusive) to end (exclusive).
-   * The odd indicies are with respect to the start index, as if it was even.
-   * If the starting index is odd with respect to the origin of the FloatBuffer,
-   * then this will actually return the even indicies with respect to the FloatBuffer origin.
-   * @param start the starting index
-   * @param end the end index, exclusive
-   * @return the selected odds from the range
-   */
-  FloatBuffer getOdds(final int start, final int end) {
-    sort();
-    final int outLen = (end - start) / 2;
-    final float[] out = new float[outLen];
-    for (int i = start + 1, j = 0; i < end; i += 2, j++) {
-      out[j] = arr_[i];
-    }
-    return wrap(out, true);
-  }
-
-  /**
    * Gets available space, which is getCapacity() - getLength().
+   * When spaceAtBottom is true this is the start position for active data, otherwise it is zero.
    * @return available space
    */
   int getSpace() {
@@ -263,7 +291,7 @@ class FloatBuffer {
   }
 
   /**
-   * Merges the incoming sorted array into this sorted array.
+   * Merges the incoming sorted buffer into this sorted buffer.
    * @param bufIn sorted buffer in
    * @return this
    */
@@ -271,34 +299,54 @@ class FloatBuffer {
     if (!sorted_ || !bufIn.isSorted()) {
       throw new SketchesArgumentException("Both buffers must be sorted.");
     }
-    final float[] arrIn = bufIn.getArray(); //may be larger than its length.
+    final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
     final int inLen = bufIn.getLength();
     ensureSpace(inLen);
-    int i = count_;
-    int j = inLen;
-    for (int k = i-- + j--; k-- > 0; ) {
-      if ((i >= 0) && (j >= 0)) { //both valid
-        arr_[k] = (arr_[i] >= arrIn[j]) ? arr_[i--] : arrIn[j--];
-      } else if (i >= 0) { //i is valid
-        arr_[k] = arr_[i--];
-      } else if (j >= 0) { //j is valid
-        arr_[k] = arrIn[j--];
-      } else {
-        break;
+    final int totLen = count_ + inLen;
+    if (spaceAtBottom_) { //scan up, insert at bottom
+      final int tgtStart = capacity_ - totLen;
+      int i = capacity_ - count_;
+      int j = bufIn.capacity_ - bufIn.count_;
+      for (int k = tgtStart; k < capacity_; k++) {
+        if ((i < capacity_) && (j < bufIn.capacity_)) { //both valid
+          arr_[k] = (arr_[i] <= arrIn[j]) ? arr_[i++] : arrIn[j++];
+        } else if (i < capacity_) { //i is valid
+          arr_[k] = arr_[i++];
+        } else if (j <  bufIn.capacity_) { //j is valid
+          arr_[k] = arrIn[j++];
+        } else {
+          break;
+        }
+      }
+    } else { //scan down, insert at top
+      int i = count_ - 1;
+      int j = inLen - 1;
+      for (int k = totLen; k-- > 0; ) {
+        if ((i >= 0) && (j >= 0)) { //both valid
+          arr_[k] = (arr_[i] >= arrIn[j]) ? arr_[i--] : arrIn[j--];
+        } else if (i >= 0) { //i is valid
+          arr_[k] = arr_[i--];
+        } else if (j >= 0) { //j is valid
+          arr_[k] = arrIn[j--];
+        } else {
+          break;
+        }
       }
     }
-    count_ += arrIn.length;
+    count_ += inLen;
     sorted_ = true;
     return this;
   }
 
   /**
-   * Sorts this array from 0 to length();
+   * Sorts the active region;
    * @return this
    */
   FloatBuffer sort() {
     if (!sorted_) {
-      Arrays.sort(arr_, 0, count_);
+      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
+      final int end = spaceAtBottom_ ? capacity_ : count_;
+      Arrays.sort(arr_, start, end);
       sorted_ = true;
     }
     return this;
@@ -315,10 +363,13 @@ class FloatBuffer {
     final StringBuilder sb = new StringBuilder();
     final char[] spaces = new char[indent];
     Arrays.fill(spaces, ' ');
-    for (int i = 0; i < count_; i++) {
+    final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
+    final int end   = spaceAtBottom_ ? capacity_ : count_;
+    int cnt = 0;
+    for (int i = start; i < end; i++) {
       final float v = arr_[i];
       final String str = String.format(fmt, v);
-      if ((i > 0) && ((i % width) == 0)) { sb.append(LS).append(spaces); }
+      if ((i > start) && ((++cnt % width) == 0)) { sb.append(LS).append(spaces); }
       sb.append(str);
     }
     return sb.toString();
@@ -329,8 +380,10 @@ class FloatBuffer {
    * @return this
    */
   FloatBuffer trimCapacity() {
-    if (count_ < arr_.length) {
-      arr_ = Arrays.copyOf(arr_, count_);
+    if (count_ < capacity_) {
+      final float[] out = new float[count_];
+      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
+      System.arraycopy(arr_, start, out, 0, count_);
       capacity_ = count_;
     }
     return this;

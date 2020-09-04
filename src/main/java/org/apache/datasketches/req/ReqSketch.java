@@ -74,6 +74,7 @@ public class ReqSketch extends BaseReqSketch {
   private boolean debug = false;
 
   private List<ReqCompactor> compactors = new ArrayList<>();
+  private FloatBuffer updateBuf = null;
   private ReqAuxiliary aux = null;
 
   /**
@@ -112,6 +113,8 @@ public class ReqSketch extends BaseReqSketch {
     maxNomSize = 0;
     totalN = 0;
     if (debug) { println("START:"); }
+    final int ncap = 2 * k * INIT_NUMBER_OF_SECTIONS;
+    updateBuf = new FloatBuffer(ncap, ncap, hra);
     grow();
   }
 
@@ -134,19 +137,19 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   private void compress(final boolean lazy) {
-    updateMaxNomSize();
     if (debug) { printStartCompress(); }
-
-    if (size < maxNomSize) { return; }
+    if (debug) { printAllHorizList(); }
+    //Choose the first compactor that is too large to compact
+    //If lazy, we will compact more compactors that are too large.
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
       final int retEnt = c.getBuffer().getLength();
       final int nomCap = c.getNomCapacity();
 
       if (retEnt >= nomCap) {
-        if ((h + 1) >= getNumLevels()) {
+        if ((h + 1) >= getNumLevels()) { //at the top?
           if (debug) { printAddCompactor(h, retEnt, nomCap); }
-          grow(); //add a level
+          grow(); //add a level, increases maxNomSize
         }
         final FloatBuffer promoted = c.compact();
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
@@ -156,6 +159,9 @@ public class ReqSketch extends BaseReqSketch {
     }
     if (debug) { printAllHorizList(); }
     aux = null;
+    if (debug) {
+      println("COMPRESS: DONE: SketchSize: " + size + TAB + " MaxNomSize: " + maxNomSize + LS + LS);
+    }
   }
 
   @Override
@@ -173,6 +179,10 @@ public class ReqSketch extends BaseReqSketch {
 
   List<ReqCompactor> getCompactors() {
     return compactors;
+  }
+
+  boolean getHra() {
+    return hra;
   }
 
   boolean getLtEq() {
@@ -248,7 +258,7 @@ public class ReqSketch extends BaseReqSketch {
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
-    final float q = aux.getQuantile(normRank, lteq);
+    final float q = aux.getQuantile(normRank);
     //if (Float.isNaN(q)) { return minValue; }
     return q;
   }
@@ -301,7 +311,7 @@ public class ReqSketch extends BaseReqSketch {
   public int getRetainedEntries() { return size; }
 
   private void grow() {
-    compactors.add( new ReqCompactor(k, getNumLevels(), debug));
+    compactors.add(new ReqCompactor(k, getNumLevels(), hra, debug));
     updateMaxNomSize();
   }
 
@@ -349,11 +359,12 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
     sb.append("  LtEq Criterion  : " + lteq).append(LS);
+    sb.append("  High Rank Acc   : " + hra).append(LS);
     sb.append("  Levels          : " + compactors.size()).append(LS);
     if (dataDetail) {
       for (int i = 0; i < numC; i++) {
         final ReqCompactor c = compactors.get(i);
-        sb.append("  " + c.toHorizontalList(fmt, 24, 12));
+        sb.append(c.toHorizontalList(fmt, 24, 16));
       }
     }
     sb.append("************************End Summary************************").append(LS + LS);
@@ -365,13 +376,16 @@ public class ReqSketch extends BaseReqSketch {
     if (!Float.isFinite(item)) {
       throw new SketchesArgumentException("Input float values must be finite.");
     }
-    final FloatBuffer buf = compactors.get(0).getBuffer().append(item);
+    updateBuf.append(item);
     size++;
     totalN++;
     minValue = (item < minValue) ? item : minValue;
     maxValue = (item > maxValue) ? item : maxValue;
     if (size >= maxNomSize) {
-      buf.sort();
+      updateBuf.sort();
+      final FloatBuffer buf = compactors.get(0).getBuffer();
+      buf.mergeSortIn(updateBuf);
+      updateBuf.trimLength(0);
       compress(true);
     }
     aux = null;
@@ -410,16 +424,15 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("COMPRESS: ");
     sb.append("skSize: ").append(size).append(" >= ");
     sb.append("MaxNomSize: ").append(maxNomSize);
-    sb.append("; N: ").append(totalN);
+    sb.append("  N: ").append(totalN);
     println(sb.toString());
   }
 
   private void printAllHorizList() {
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      print(c.toHorizontalList("%4.0f", 24, 10));
+      print(c.toHorizontalList("%4.0f", 24, 16));
     }
-    println("COMPRESS: DONE: sKsize: " + size + TAB + "MaxNomSize: " + maxNomSize + LS);
   }
 
 }

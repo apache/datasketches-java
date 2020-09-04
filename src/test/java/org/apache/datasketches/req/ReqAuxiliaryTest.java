@@ -19,12 +19,40 @@
 
 package org.apache.datasketches.req;
 
+import static org.testng.Assert.assertTrue;
 
-
+import org.apache.datasketches.req.ReqAuxiliary.Row;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class ReqAuxiliaryTest {
 
+  @Test
+  public void checkMergeSortIn() {
+    checkMergeSortInImpl(true);
+    checkMergeSortInImpl(false);
+  }
+
+  private static void checkMergeSortInImpl(boolean hra) {
+    boolean lteq = false;
+    ReqAuxiliary aux = new ReqAuxiliary(25, hra, lteq);
+    FloatBuffer buf1 = new FloatBuffer(25, 0, hra);
+    for (int i = 1; i < 12; i += 2) { buf1.append(i); } //6 items
+    aux.mergeSortIn(buf1, 1, 0);
+    FloatBuffer buf2 = new FloatBuffer(25, 0, hra);
+    for (int i = 2; i <= 12; i += 2) { buf2.append(i); } //6 items
+    aux.mergeSortIn(buf2, 2, 6);
+    println(aux.toString(3, 12));
+    Row row = aux.getRow(0);
+    for (int i = 1; i < 12; i++) {
+      Row rowi = aux.getRow(i);
+      assertTrue(rowi.item >= row.item);
+      row = rowi;
+    }
+  }
+
+  static final void println(final Object o) { System.out.println(o.toString()); }
 }

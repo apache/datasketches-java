@@ -32,7 +32,12 @@ public class FloatBufferTest {
 
   @Test
   public void checkTrimLength() {
-    FloatBuffer buf = new FloatBuffer(16, 4);
+    checkTrimLengthImpl(true);
+    checkTrimLengthImpl(false);
+  }
+
+  private static void checkTrimLengthImpl(boolean spaceAtBottom) {
+    FloatBuffer buf = new FloatBuffer(16, 4, spaceAtBottom);
     for (int i = 0; i < 8; i++) { buf.append(i+1); }
     assertEquals(buf.getItemCount(), 8);
     buf.trimLength(4);
@@ -40,40 +45,38 @@ public class FloatBufferTest {
   }
 
   @Test
-  public void checkGetOdds() {
+  public void checkGetEvensOrOdds() {
+    checkGetEvensOrOddsImpl(false, false);
+    checkGetEvensOrOddsImpl(false, true);
+    checkGetEvensOrOddsImpl(true, false);
+    checkGetEvensOrOddsImpl(true, true);
+  }
+
+  private static void checkGetEvensOrOddsImpl(boolean odds, boolean spaceAtBottom) {
     int cap = 16;
-    FloatBuffer buf = new FloatBuffer(cap, cap / 4);
-    for (int i = 0; i < buf.getCapacity(); i++) {
+    FloatBuffer buf = new FloatBuffer(cap, 0, spaceAtBottom);
+    for (int i = 0; i < (cap/2); i++) {
       buf.append(i);
     }
-    FloatBuffer out = buf.getOdds(0, cap);
-    //println("");
+    FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
+    //println("odds: " + odds + ", spaceAtBottom: " + spaceAtBottom);
     for (int i = 0; i < out.getLength(); i++) {
       int v = (int)out.getItem(i);
-      assertTrue((v & 1) > 0);
-      //print((int)out[i] + " ");
+      if (odds) { assertTrue((v & 1) == 1); }
+      else { assertTrue((v & 1) == 0); }
+      //print(v + " ");
     }
+    //println("");
   }
 
   @Test
-  public void checkGetEvens() {
-    int cap = 15;
-    FloatBuffer buf = new FloatBuffer(cap, cap / 4);
-    for (int i = 0; i < buf.getCapacity(); i++) {
-      buf.append(i);
-    }
-    FloatBuffer out = buf.getEvens(0, buf.getCapacity());
-    //println("");
-    for (int i = 0; i < out.getLength(); i++) {
-      int v = (int)out.getItem(i);
-      assertTrue((v & 1) == 0);
-      //print((int)out[i] + " ");
-    }
+  public void checkAppendAndSpaceTop() {
+    checkAppendAndSpaceImpl(true);
+    checkAppendAndSpaceImpl(false);
   }
 
-  @Test
-  public void checkAppendAndSpace() {
-    FloatBuffer buf = new FloatBuffer(2, 2);
+  private static void checkAppendAndSpaceImpl(boolean spaceAtBottom) {
+    FloatBuffer buf = new FloatBuffer(2, 2, spaceAtBottom);
     assertEquals(buf.getLength(), 0);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 2);
@@ -95,34 +98,76 @@ public class FloatBufferTest {
   }
 
   @Test
+  public void checkEnsureCapacity() {
+    checkEnsureCapacityImpl(true);
+    checkEnsureCapacityImpl(false);
+  }
+
+  private static void checkEnsureCapacityImpl(boolean spaceAtBottom) {
+    FloatBuffer buf = new FloatBuffer(4, 2, spaceAtBottom);
+    buf.append(2);
+    buf.append(1);
+    buf.append(3);
+    buf.ensureCapacity(8);
+    buf.sort();
+    assertEquals(buf.getItem(0), 1.0f);
+    assertEquals(buf.getItem(1), 2.0f);
+    assertEquals(buf.getItem(2), 3.0f);
+  }
+
+  @Test
   public void checkCountLessThan() {
-    FloatBuffer buf = new FloatBuffer(14, 2);
+    checkCountLessThanImpl(true);
+    checkCountLessThanImpl(false);
+  }
+
+  private static void checkCountLessThanImpl(boolean spaceAtBottom) {
+    FloatBuffer buf = new FloatBuffer(14, 2, spaceAtBottom);
     float[] sortedArr = {1,2,3,4,5,6,7};
-    buf = FloatBuffer.wrap(sortedArr, true);
-    FloatBuffer buf2 = new FloatBuffer(7,0);
+    buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
+    FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
     assertEquals(buf2.getCountLtOrEq(4, false), 3);
     buf2.mergeSortIn(buf);
     assertEquals(buf2.getCountLtOrEq(4, false), 6);
     assertEquals(buf2.getLength(), 14);
     buf2.trimLength(12);
-    assertEquals(buf2.getItemCount(), 12);
+    assertEquals(buf2.getLength(), 12);
   }
 
   @Test
   public void checkMergeSortIn() {
+    checkMergeSortInImpl(true);
+    checkMergeSortInImpl(false);
+  }
+
+  private static void checkMergeSortInImpl(boolean spaceAtBottom) {
     float[] arr1 = {1,2,5,6}; //both must be sorted
     float[] arr2 = {3,4,7,8};
-    FloatBuffer buf1 = FloatBuffer.wrap(arr1, true);
-    FloatBuffer buf2 = FloatBuffer.wrap(arr2, true);
+    FloatBuffer buf1 = new FloatBuffer(12, 0, spaceAtBottom);
+    FloatBuffer buf2 = new FloatBuffer(12, 0, spaceAtBottom);
+    for (int i = 0; i < arr1.length; i++) { buf1.append(arr1[i]); }
+    for (int i = 0; i < arr2.length; i++) { buf2.append(arr2[i]); }
+
+    assertEquals(buf1.getSpace(), 8);
+    assertEquals(buf2.getSpace(), 8);
+    assertEquals(buf1.getLength(), 4);
+    assertEquals(buf2.getLength(), 4);
+
+    buf1.sort();
+    buf2.sort();
     buf1.mergeSortIn(buf2);
-    assertEquals(buf1.getSpace(), 0);
-    assertEquals(buf1.getLength(), 8);
-    assertEquals(buf1.getCapacity(), 8);
-    int len = buf1.getItemCount();
+
+    assertEquals(buf1.getSpace(), 4);
+    int len = buf1.getLength();
+    assertEquals(len, 8);
+
     for (int i = 0; i < len; i++) {
-      assertEquals((int)buf1.getItem(i), i+1);
+      int item = (int)buf1.getItem(i);
+      assertEquals(item, i+1);
+      //print(item + " ");
     }
+    //println("");
   }
 
   static void print(Object o) { System.out.print(o.toString()); }

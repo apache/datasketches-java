@@ -23,7 +23,6 @@ import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.ReqHelper.LS;
 import static org.apache.datasketches.req.ReqHelper.TAB;
 import static org.apache.datasketches.req.ReqHelper.nearestEven;
-import static org.apache.datasketches.req.ReqHelper.print;
 import static org.apache.datasketches.req.ReqHelper.println;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
@@ -43,6 +42,7 @@ class ReqCompactor {
   private int state; //State of the deterministic compaction schedule
   private final int lgWeight;
   private boolean coin; //true or false at random for each compaction
+  private boolean hra; //high rank accuracy
   private final boolean debug;
   private FloatBuffer buf;
   private Random rand;
@@ -56,10 +56,12 @@ class ReqCompactor {
   ReqCompactor(
       final int sectionSize,
       final int lgWeight,
+      final boolean hra,
       final boolean debug) {
     this.sectionSize = sectionSize;
     sectionSizeDbl = sectionSize;
     this.lgWeight = lgWeight;
+    this.hra = hra;
     this.debug = debug;
 
     numCompactions = 0;
@@ -67,7 +69,7 @@ class ReqCompactor {
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
     final int nomCap = 2 * numSections * sectionSize; //nCap is always even
-    buf = new FloatBuffer(nomCap, nomCap / 2);
+    buf = new FloatBuffer(2 * nomCap, 0, hra);
 
     if (debug) { rand = new Random(1); }
     else { rand = new Random(); }
@@ -98,31 +100,32 @@ class ReqCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact() {
-    final int count = buf.getItemCount();
     if (debug) { printCompactingStart(); }
     buf.sort();
-    if (debug) { print("    "); print(toHorizontalList("%4.0f", 24, 14)); } //#decimals
+    //if (debug) { print("    "); print(toHorizontalList("%4.0f", 24, 14)); } //#decimals
 
     //choose a part of the buffer to compact
     final int secsToCompact = numberOfTrailingOnes(state) + 1;
-    final int compactionStart = computeCompactionStart(secsToCompact); //a.k.a.  "s"
-    assert compactionStart <= (count - 2);
+    final long compactionRange = computeCompactionRange(secsToCompact);
+    final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
+    final int compactionEnd = (int) (compactionRange >>> 32); //high 32
+    assert (compactionEnd - compactionStart) >= 2;
 
     if ((numCompactions & 1) == 1) { coin = !coin; } //if numCompactions odd, flip coin;
     else { coin = (rand.nextDouble() < 0.5); }       //random coin flip
 
-    final FloatBuffer promote = (coin)
-        ? buf.getOdds(compactionStart, count)
-        : buf.getEvens(compactionStart, count);
+    final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
-    if (debug) { printCompactionDetail(compactionStart, secsToCompact, promote.getLength()); }
+    if (debug) { printCompactionDetail(compactionStart, compactionEnd, secsToCompact,
+        promote.getLength()); }
 
-    buf.trimLength(compactionStart);
+    buf.trimLength(buf.getLength() - (compactionEnd - compactionStart));
     numCompactions += 1;
     state += 1;
 
     if (numCompactions >= (1 << (numSections - 1))) {
       adjustSectSizeNumSect();
+      buf.ensureCapacity(4 * numSections * sectionSize);
       if (debug) { printAdjSecSizeNumSec(); }
     }
 
@@ -187,9 +190,14 @@ class ReqCompactor {
    * @param secsToCompact the number of contiguous sections to compact
    * @return the start index of the compacted region
    */
-  private int computeCompactionStart(final int secsToCompact) {
-    int s = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
-    return (((buf.getLength() - s) & 1) == 1) ? ++s : s;
+  private long computeCompactionRange(final int secsToCompact) {
+    final int bufLen = buf.getLength();
+    int nonCompact = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
+    //make compacted region even:
+    nonCompact = (((bufLen - nonCompact) & 1) == 1) ? nonCompact + 1 : nonCompact;
+    final long low =  (hra) ? 0                   : nonCompact;
+    final long high = (hra) ? bufLen - nonCompact : bufLen;
+    return (high << 32) + low;
   }
 
   //debug print functions
@@ -203,9 +211,11 @@ class ReqCompactor {
    * @return a printable, formatted string of the values of this buffer.
    */
   String toHorizontalList(final String fmt, final int width, final int indent) {
-    final int re = buf.getLength();
     final int h = getLgWeight();
-    final String prefix = String.format("%2d [%3d]: ", h, re);
+    final int len = buf.getLength();
+    final int nomCap = getNomCapacity();
+
+    final String prefix = String.format("%2d [%3d] [%3d]: ", h, len, nomCap);
     final String str = prefix + buf.toHorizList(fmt, width, indent) + LS;
     return str;
   }
@@ -213,7 +223,7 @@ class ReqCompactor {
   private void printNewCompactor() {
     println("    New Compactor: height: " + lgWeight
         + TAB + "sectionSize: " + sectionSize
-        + TAB + "numSections: " + numSections + LS);
+        + TAB + "numSections: " + numSections);
   }
 
   private void printAdjSecSizeNumSec() {
@@ -226,34 +236,35 @@ class ReqCompactor {
 
   private void printCompactingStart() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("  ");
-    sb.append("Compacting[").append(lgWeight).append("] ");
+    sb.append(LS + "  ");
+    sb.append("COMPACTING[").append(lgWeight).append("] ");
     sb.append("NomCapacity: ").append(getNomCapacity());
-    sb.append(TAB + "SectionSize: ").append(sectionSize);
-    sb.append(TAB + "NumSections: ").append(numSections);
-    sb.append(TAB + "State(bin): ").append(Integer.toBinaryString(state));
+    sb.append(TAB + " SectionSize: ").append(sectionSize);
+    sb.append(TAB + " NumSections: ").append(numSections);
+    sb.append(TAB + " State(bin): ").append(Integer.toBinaryString(state));
+    sb.append(TAB + " BufCapacity: ").append(buf.getCapacity());
     println(sb.toString());
   }
 
-  private void printCompactionDetail(final int compactionStart, final int secsToCompact,
+  private void printCompactionDetail(final int compactionStart, final int compactionEnd,
+      final int secsToCompact,
       final int promoteLen) {
     final StringBuilder sb = new StringBuilder();
-    final int count = buf.getItemCount();
     sb.append("    ");
     sb.append("SecsToCompact: ").append(secsToCompact);
-    sb.append(TAB + "NoCompact: ").append(compactionStart);
-    sb.append(TAB + "DoCompact: ").append(count - compactionStart).append(LS);
-    final int delete = count - compactionStart;
+    sb.append(TAB + " CompactStart: ").append(compactionStart);
+    sb.append(TAB + " CompactEnd: ").append(compactionEnd).append(LS);
+    final int delete = compactionEnd - compactionStart;
     final String oddOrEven = (coin) ? "Odds" : "Evens";
     sb.append("    ");
     sb.append("Promote: ").append(promoteLen);
-    sb.append(TAB + "Delete: ").append(delete);
-    sb.append(TAB + "Choose: ").append(oddOrEven);
+    sb.append(TAB + " Delete: ").append(delete);
+    sb.append(TAB + " Choose: ").append(oddOrEven);
     println(sb.toString());
   }
 
   private void printCompactionDone() {
-    println("    DONE: NumCompactions: " + numCompactions);
+    println("  COMPACTING DONE: NumCompactions: " + numCompactions + LS);
   }
 
 }

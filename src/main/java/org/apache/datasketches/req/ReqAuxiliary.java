@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.ReqHelper.LS;
 import static org.apache.datasketches.req.ReqHelper.binarySearch;
 
 import java.util.List;
@@ -33,9 +34,23 @@ class ReqAuxiliary {
   private long[] weights;
   private float[] normRanks;
   private boolean init = false;
+  private final boolean hra;
+  private final boolean lteq;
 
   ReqAuxiliary(final ReqSketch sk) {
+    hra = sk.getHra();
+    lteq = sk.getLtEq();
     buildAuxTable(sk);
+  }
+
+  //For testing only
+  ReqAuxiliary(final int arrLen, final boolean hra, final boolean lteq) {
+    this.hra = hra;
+    this.lteq = lteq;
+    items = new float[arrLen];
+    weights = new long[arrLen];
+    normRanks = new float[arrLen];
+    init = true;
   }
 
   private void buildAuxTable(final ReqSketch sk) {
@@ -46,12 +61,14 @@ class ReqAuxiliary {
     items = new float[totalItems];
     weights = new long[totalItems];
     normRanks = new float[totalItems];
-    int curCount = 0;
+    int auxCount = 0;
     for (int i = 0; i < numComp; i++) {
       final ReqCompactor c = compactors.get(i);
-      final int len = c.getBuffer().getLength();
-      mergeSortIn(compactors.get(i), curCount);
-      curCount += len;
+      final FloatBuffer bufIn = c.getBuffer();
+      final long wt = 1L << c.getLgWeight();
+      final int bufInLen = bufIn.getLength();
+      mergeSortIn(bufIn, wt, auxCount);
+      auxCount += bufInLen;
     }
     float sum = 0;
     for (int i = 0; i < totalItems; i++) {
@@ -61,14 +78,42 @@ class ReqAuxiliary {
     init = true;
   }
 
+  void mergeSortIn(final FloatBuffer bufIn, final long wt, final int auxCount) {
+    if (!bufIn.isSorted()) { bufIn.sort(); }
+    final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
+    final int bufInLen = bufIn.getLength();
+    final int totLen = auxCount + bufInLen;
+    int i = auxCount - 1;
+    int j = bufInLen - 1;
+    int h = (hra) ? bufIn.getCapacity() - 1 : bufInLen - 1;
+    for (int k = totLen; k-- > 0; ) {
+      if ((i >= 0) && (j >= 0)) { //both valid
+        if (items[i] >= arrIn[h]) {
+          items[k] = items[i];
+          weights[k] = weights[i--];
+        } else {
+          items[k] = arrIn[h--]; j--;
+          weights[k] = wt;
+        }
+      } else if (i >= 0) { //i is valid
+        items[k] = items[i];
+        weights[k] = weights[i--];
+      } else if (j >= 0) { //j is valid
+        items[k] = arrIn[h--]; j--;
+        weights[k] = wt;
+      } else {
+        break;
+      }
+    }
+  }
+
   /**
    * Gets the quantile of the largest normalized rank that is less than the given normalized rank,
    * which must be in the range [0.0, 1.0], inclusive, inclusive
    * @param normRank the given normalized rank
-   * @param lteq the less-than or equal to criterion.
    * @return the largest quantile less than the given normalized rank.
    */
-  float getQuantile(final float normRank, final boolean lteq) {
+  float getQuantile(final float normRank) {
     if (!init) {
       throw new SketchesStateException("Aux structure not initialized.");
     }
@@ -76,34 +121,6 @@ class ReqAuxiliary {
     final int index = binarySearch(normRanks, 0, len - 1, normRank, lteq);
     if (index == -1) { return Float.NaN; }
     return items[index];
-  }
-
-  private void mergeSortIn(final ReqCompactor c, final int curCount) {
-    final FloatBuffer buf = c.getBuffer();
-    if (!buf.isSorted()) { buf.sort(); }
-    final float[] arrIn = buf.getArray();
-    final long wt = 1 << c.getLgWeight();
-    int i = curCount;
-    int j = buf.getLength();
-    for (int k = i-- + j--; k-- > 0; ) {
-      if ((i >= 0) && (j >= 0)) { //both valid
-        if (items[i] >= arrIn[j]) {
-          items[k] = items[i];
-          weights[k] = weights[i--];
-        } else {
-          items[k] = arrIn[j--];
-          weights[k] = wt;
-        }
-      } else if (i >= 0) { //i is valid
-        items[k] = items[i];
-        weights[k] = weights[i--];
-      } else if (j >= 0) { //j is valid
-        items[k] = arrIn[j--];
-        weights[k] = wt;
-      } else {
-        break;
-      }
-    }
   }
 
   //used for testing
@@ -122,6 +139,26 @@ class ReqAuxiliary {
       this.weight = weight;
       this.normRank = normRank;
     }
+  }
+
+  String toString(final int precision, final int fieldSize) {
+    final StringBuilder sb = new StringBuilder();
+    final int p = precision;
+    final int z = fieldSize;
+    final String ff = "%" + z + "." + p + "f";
+    final String sf = "%" + z + "s";
+    final String df = "%"  + z + "d";
+    final String dfmt = ff + df + ff + LS;
+    final String sfmt = sf + sf + sf + LS;
+    sb.append(LS + "Aux Detail").append(LS);
+    sb.append(String.format(sfmt, "Item", "Weight", "NormRank"));
+    final int totalCount = items.length;
+    for (int i = 0; i < totalCount; i++) {
+      final Row row = getRow(i);
+      sb.append(String.format(dfmt, row.item, row.weight, row.normRank));
+    }
+    sb.append(LS);
+    return sb.toString();
   }
 
 }

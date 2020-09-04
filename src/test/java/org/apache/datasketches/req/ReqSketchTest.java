@@ -41,15 +41,15 @@ public class ReqSketchTest {
     int k = 6;
     boolean hra = false;
     boolean lteq = true;
-    boolean debug = false;
+    boolean debug = true;
     ReqSketch sk = loadSketch(min, max, up, k, hra, lteq, debug);
 
     checkToString(sk, debug);
     checkGetRank(sk, min, max, debug);
     checkAux(sk, debug);
-    checkGetQuantiles(sk, debug);
-    checkGetCDF(sk, debug);
-    checkGetPMF(sk, debug);
+    //checkGetQuantiles(sk, debug);
+    //checkGetCDF(sk, debug);
+    //checkGetPMF(sk, debug);
   }
 
   private static void checkToString(ReqSketch sk, boolean debug) {
