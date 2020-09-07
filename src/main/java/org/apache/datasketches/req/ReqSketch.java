@@ -222,6 +222,11 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
+  public double getMaximumRSE(final int k) {
+    return Math.sqrt(8.0 / INIT_NUMBER_OF_SECTIONS) / k;
+  }
+
+  @Override
   public long getN() {
     return totalN;
   }
@@ -294,6 +299,17 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
+  public double getRankLowerBound(final float value, final int numStdDev) {
+    final long nnRank = getCounts(new float[] { value })[0];
+    if (nnRank <= (k * INIT_NUMBER_OF_SECTIONS)) {
+      return nnRank;
+    }
+    else {
+      return Math.ceil((1 - (numStdDev * getMaximumRSE(k))) * nnRank);
+    }
+  }
+
+  @Override
   public double[] getRanks(final float[] values) {
     final long[] cumNnrArr = getCounts(values);
     final int numValues = values.length;
@@ -302,6 +318,17 @@ public class ReqSketch extends BaseReqSketch {
       rArr[i] = (double)cumNnrArr[i] / totalN;
     }
     return rArr;
+  }
+
+  @Override
+  public double getRankUpperBound(final float value, final int numStdDev) {
+    final long nnRank = getCounts(new float[] { value })[0];
+    if (nnRank <= (k * INIT_NUMBER_OF_SECTIONS)) {
+      return nnRank;
+    }
+    else {
+      return Math.ceil((1 + (numStdDev * getMaximumRSE(k))) * nnRank);
+    }
   }
 
   private long[] getCounts(final float[] values) {

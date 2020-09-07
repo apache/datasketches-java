@@ -63,6 +63,19 @@ abstract class BaseReqSketch {
   public abstract float getMax();
 
   /**
+   * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]),
+   * calculated as sqrt(Var) / rank; note that it does not depend on the rank or n.
+   * An upper bound on Var of the error is taken from Lemma 12 in https://arxiv.org/abs/2004.01668v2
+   *  (taking a possible improvement by a factor of 2 into account).
+   * Still, this upper bound on RSE seems too pesimistic (by a factor of 3) and experiments suggest
+   * to replace the 8 below by approx. 1 (or even 0.9), at least when k is large enough
+   * (say, k >= 20; TODO: test this)
+   * @param k the given value of k
+   * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
+   */
+  public abstract double getMaximumRSE(int k);
+
+  /**
    * Gets the total number of items offered to the sketch.
    * @return the total number of items offered to the sketch.
    */
@@ -121,6 +134,14 @@ abstract class BaseReqSketch {
   public abstract double getRank(final float value);
 
   /**
+   * returns an approximate lower bound rank of value + numStdDev * standard deviation.
+   * @param value the given value
+   * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
+   * @return an approximate lower bound rank of value + numStdDev * standard deviation.
+   */
+  public abstract double getRankLowerBound(float value, int numStdDev);
+
+  /**
    * Gets an array of normalized ranks that correspond to the given array of values.
    * @param values the given array of values.
    * @return the  array of normalized ranks that correspond to the given array of values.
@@ -129,10 +150,20 @@ abstract class BaseReqSketch {
   public abstract double[] getRanks(final float[] values);
 
   /**
+   * returns an approximate upper bound rank of value + numStdDev * standard deviation.
+   * @param value the given value
+   * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
+   * @return an approximate upper bound rank of value + numStdDev * standard deviation.
+   */
+  public abstract double getRankUpperBound(float value, int numStdDev);
+
+  /**
    * Gets the number of retained entries of this sketch
    * @return the number of retained entries of this sketch
    */
   public abstract int getRetainedEntries();
+
+
 
   /**
    * Returns true if this sketch is empty.
