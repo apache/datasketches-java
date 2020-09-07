@@ -305,7 +305,8 @@ public class ReqSketch extends BaseReqSketch {
       return nnRank;
     }
     else {
-      return Math.ceil((1 - (numStdDev * getMaximumRSE(k))) * nnRank);
+      final double nRank = nnRank / getN();
+      return Math.floor( (1 - (numStdDev * getMaximumRSE(k)) ) * nRank);
     }
   }
 
@@ -327,7 +328,8 @@ public class ReqSketch extends BaseReqSketch {
       return nnRank;
     }
     else {
-      return Math.ceil((1 + (numStdDev * getMaximumRSE(k))) * nnRank);
+      final double nRank = nnRank / getN();
+      return Math.ceil( (1 + (numStdDev * getMaximumRSE(k)) ) * nRank);
     }
   }
 
