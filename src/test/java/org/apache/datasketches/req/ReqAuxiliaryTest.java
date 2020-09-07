@@ -54,5 +54,8 @@ public class ReqAuxiliaryTest {
     }
   }
 
-  static final void println(final Object o) { System.out.println(o.toString()); }
+  @SuppressWarnings("unused")
+  static final void println(final Object o) {
+    //System.out.println(o.toString());
+  }
 }

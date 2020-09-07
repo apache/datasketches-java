@@ -101,7 +101,7 @@ abstract class BaseReqSketch {
    * @param normRank the given normalized rank
    * @return the largest quantile less than the given normalized rank.
    */
-  public abstract float getQuantile(final float normRank);
+  public abstract float getQuantile(final double normRank);
 
   /**
    * Gets an array of quantiles that correspond to the given array of normalized ranks.
@@ -109,7 +109,7 @@ abstract class BaseReqSketch {
    * @return the array of quantiles that correspond to the given array of normalized ranks.
    * @see #getQuantile(float)
    */
-  public abstract float[] getQuantiles(final float[] normRanks);
+  public abstract float[] getQuantiles(final double[] normRanks);
 
   /**
    * Computes the normalized rank of the given value in the stream.
@@ -118,7 +118,7 @@ abstract class BaseReqSketch {
    * @param value the given value
    * @return the normalized rank of the given value in the stream.
    */
-  public abstract float getRank(final float value);
+  public abstract double getRank(final float value);
 
   /**
    * Gets an array of normalized ranks that correspond to the given array of values.
@@ -126,7 +126,7 @@ abstract class BaseReqSketch {
    * @return the  array of normalized ranks that correspond to the given array of values.
    * @see #getRank(float)
    */
-  public abstract float[] getRanks(final float[] values);
+  public abstract double[] getRanks(final float[] values);
 
   /**
    * Gets the number of retained entries of this sketch
@@ -160,12 +160,19 @@ abstract class BaseReqSketch {
   public abstract ReqSketch merge(final ReqSketch other);
 
   /**
-   * Returns a summary of the sketch and the horizontal lists for all compactors.
-   * @param fmt The format for each printed item.
-   * @param dataDetail show all the retained data from all the compactors.
-   * @return a summary of the sketch and the horizontal lists for all compactors.
+   * Returns a summary of the key parameters of the sketch.
+   * @return a summary of the key parameters of the sketch.
    */
-  public abstract String toString(final String fmt, final boolean dataDetail);
+  @Override
+  public abstract String toString();
+
+  /**
+   * A detailed, human readable view of the sketch compactors and their data.
+   * The sketch debug variable must be set &gt; 0. See {@link #setDebug(int)}.
+   * @param fmt the format string for the data items; example "%4.0f"
+   * @return a detailed view of the compactors and their data
+   */
+  public abstract String viewCompactorDetail(String fmt);
 
   /**
    * Updates this sketch with the given item.

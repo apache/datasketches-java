@@ -25,14 +25,6 @@ class FloatBuffer {
   private boolean spaceAtBottom_;
 
   /**
-   * Constructs a new FloatBuffer with a default size of 1024 items,delta of 256 items, and
-   * space at the top.
-   */
-  FloatBuffer() {
-    this(1024, 256, false);
-  }
-
-  /**
    * Constructs an empty FloatBuffer with an initial capacity specified by
    * the <code>capacity</code> argument.
    *
@@ -195,6 +187,8 @@ class FloatBuffer {
     final int len = values.length;
     final int[] nnrArr = new int[len];
     for (int i = 0; i < len; i++) {
+      final float v = values[i];
+      assert Float.isFinite(v) : "Float values must be finite.";
       nnrArr[i] = getCountLtOrEq(values[i], lteq);
     }
     return nnrArr;
@@ -375,19 +369,19 @@ class FloatBuffer {
     return sb.toString();
   }
 
-  /**
-   * Trims the capacity of this FloatBuffer to length().
-   * @return this
-   */
-  FloatBuffer trimCapacity() {
-    if (count_ < capacity_) {
-      final float[] out = new float[count_];
-      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
-      System.arraycopy(arr_, start, out, 0, count_);
-      capacity_ = count_;
-    }
-    return this;
-  }
+  //  /** //may need this in the futre
+  //   * Trims the capacity of this FloatBuffer to length().
+  //   * @return this
+  //   */
+  //  FloatBuffer trimCapacity() {
+  //    if (count_ < capacity_) {
+  //      final float[] out = new float[count_];
+  //      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
+  //      System.arraycopy(arr_, start, out, 0, count_);
+  //      capacity_ = count_;
+  //    }
+  //    return this;
+  //  }
 
   /**
    * Trims the length to newLength. If newLength &gt; length() this does nothing and returns.

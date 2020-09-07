@@ -91,36 +91,14 @@ public class QuantilesHelper {
     assert l < r;
     assert arr[l] <= pos;
     assert pos < arr[r];
-    if (l + 1 == r) {
+    if ((l + 1) == r) {
       return l;
     }
-    final int m = l + (r - l) / 2;
+    final int m = l + ((r - l) / 2);
     if (arr[m] <= pos) {
       return searchForChunkContainingPos(arr, pos, m, r);
     }
     return searchForChunkContainingPos(arr, pos, l, m);
-  }
-
-  /**
-   * Compute an array of evenly spaced normalized ranks from 0 to 1 inclusive.
-   * A value of 1 will result in [0], 2 will result in [0, 1],
-   * 3 will result in [0, .5, 1] and so on.
-   * @param n number of ranks needed (must be greater than 0)
-   * @return array of ranks
-   */
-  public static double[] getEvenlySpacedRanks(final int n) {
-    if (n <= 0) {
-      throw new SketchesArgumentException("n must be > 0");
-    }
-    final double[] fractions = new double[n];
-    fractions[0] = 0.0;
-    for (int i = 1; i < n; i++) {
-      fractions[i] = (double) i / (n - 1);
-    }
-    if (n > 1) {
-      fractions[n - 1] = 1.0;
-    }
-    return fractions;
   }
 
 }

@@ -24,16 +24,13 @@ import static org.apache.datasketches.req.ReqHelper.binarySearch;
 
 import java.util.List;
 
-import org.apache.datasketches.SketchesStateException;
-
 /**
  * @author Lee Rhodes
  */
 class ReqAuxiliary {
   private float[] items;
   private long[] weights;
-  private float[] normRanks;
-  private boolean init = false;
+  private double[] normRanks;
   private final boolean hra;
   private final boolean lteq;
 
@@ -43,14 +40,27 @@ class ReqAuxiliary {
     buildAuxTable(sk);
   }
 
+  //  /** //may need this later
+  //   * Copy constructor
+  //   * @param aux the ReqAuxiliary to be copied into this one
+  //   */
+  //  ReqAuxiliary(final ReqAuxiliary aux) {
+  //    items = aux.items.clone();
+  //    weights = aux.weights.clone();
+  //    normRanks = aux.normRanks.clone();
+  //    init = aux.init;
+  //    hra = aux.hra;
+  //    lteq = aux.lteq;
+  //  }
+
   //For testing only
   ReqAuxiliary(final int arrLen, final boolean hra, final boolean lteq) {
     this.hra = hra;
     this.lteq = lteq;
     items = new float[arrLen];
     weights = new long[arrLen];
-    normRanks = new float[arrLen];
-    init = true;
+    normRanks = new double[arrLen];
+
   }
 
   private void buildAuxTable(final ReqSketch sk) {
@@ -60,7 +70,7 @@ class ReqAuxiliary {
     final long N = sk.getN();
     items = new float[totalItems];
     weights = new long[totalItems];
-    normRanks = new float[totalItems];
+    normRanks = new double[totalItems];
     int auxCount = 0;
     for (int i = 0; i < numComp; i++) {
       final ReqCompactor c = compactors.get(i);
@@ -75,7 +85,7 @@ class ReqAuxiliary {
       sum += weights[i];
       normRanks[i] = sum / N;
     }
-    init = true;
+
   }
 
   void mergeSortIn(final FloatBuffer bufIn, final long wt, final int auxCount) {
@@ -113,10 +123,7 @@ class ReqAuxiliary {
    * @param normRank the given normalized rank
    * @return the largest quantile less than the given normalized rank.
    */
-  float getQuantile(final float normRank) {
-    if (!init) {
-      throw new SketchesStateException("Aux structure not initialized.");
-    }
+  float getQuantile(final double normRank) {
     final int len = normRanks.length;
     final int index = binarySearch(normRanks, 0, len - 1, normRank, lteq);
     if (index == -1) { return Float.NaN; }
@@ -132,9 +139,9 @@ class ReqAuxiliary {
   class Row {
     float item;
     long weight;
-    float normRank;
+    double normRank;
 
-    Row(final float item, final long weight, final float normRank) {
+    Row(final float item, final long weight, final double normRank) {
       this.item = item;
       this.weight = weight;
       this.normRank = normRank;
@@ -150,14 +157,13 @@ class ReqAuxiliary {
     final String df = "%"  + z + "d";
     final String dfmt = ff + df + ff + LS;
     final String sfmt = sf + sf + sf + LS;
-    sb.append(LS + "Aux Detail").append(LS);
+    sb.append("Aux Detail").append(LS);
     sb.append(String.format(sfmt, "Item", "Weight", "NormRank"));
     final int totalCount = items.length;
     for (int i = 0; i < totalCount; i++) {
       final Row row = getRow(i);
       sb.append(String.format(dfmt, row.item, row.weight, row.normRank));
     }
-    sb.append(LS);
     return sb.toString();
   }
 

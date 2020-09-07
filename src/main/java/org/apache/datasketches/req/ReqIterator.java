@@ -31,6 +31,7 @@ public class ReqIterator {
   private int cIndex;
   private int bIndex;
   private int retainedItems;
+  private int count;
   private FloatBuffer currentBuf;
 
   ReqIterator(final ReqSketch sketch) {
@@ -39,6 +40,7 @@ public class ReqIterator {
     currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;
+    count = 0;
   }
 
   /**
@@ -49,16 +51,17 @@ public class ReqIterator {
    */
   public boolean next() {
     if ((retainedItems == 0)
-        || ((cIndex == (compactors.size() - 1)) && (bIndex == currentBuf.getItemCount()))) {
+        || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getLength() - 1)))) {
       return false;
     }
-    if (bIndex == currentBuf.getItemCount()) {
+    if (bIndex == (currentBuf.getLength() - 1)) {
       cIndex++;
       currentBuf = compactors.get(cIndex).getBuffer();
       bIndex = 0;
     } else {
       bIndex++;
     }
+    count++;
     return true;
   }
 
@@ -80,5 +83,13 @@ public class ReqIterator {
    */
   public long getWeight() {
     return 1 << cIndex;
+  }
+
+  /**
+   * The number of items processed so far
+   * @return  The number of items processed so far
+   */
+  public int getCount() {
+    return count;
   }
 }

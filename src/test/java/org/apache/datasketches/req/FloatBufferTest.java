@@ -21,7 +21,9 @@ package org.apache.datasketches.req;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**
@@ -169,6 +171,30 @@ public class FloatBufferTest {
     }
     //println("");
   }
+
+  @Test
+  private static void checkMergeSortInNotSorted() {
+    float[] arr1 = {6,5,2,1};
+    float[] arr2 = {8,7,4,3};
+    FloatBuffer buf1 = FloatBuffer.wrap(arr1, false, false);
+    FloatBuffer buf2 = FloatBuffer.wrap(arr2, false, false);
+    buf1.mergeSortIn(buf2);
+  }
+
+  @Test
+  public void checkGetCountLtOrEqOddRange() {
+    FloatBuffer buf = new FloatBuffer(8, 0, false);
+    assertTrue(buf.isEmpty());
+    buf.append(3); buf.append(2); buf.append(1);
+    buf.trimLength(4);
+    assertEquals(buf.getLength(), 3);
+    int cnt = buf.getCountLtOrEq(3.0f, true);
+    assertEquals(cnt, 3);
+    assertEquals(buf.getIndex(2), 3.0f);
+    try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (SketchesArgumentException e) {}
+  }
+
+
 
   static void print(Object o) { System.out.print(o.toString()); }
 

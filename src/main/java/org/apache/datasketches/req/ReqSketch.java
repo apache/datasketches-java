@@ -27,6 +27,7 @@ import static org.apache.datasketches.req.ReqHelper.println;
 import static org.apache.datasketches.req.ReqHelper.validateSplits;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -71,26 +72,40 @@ public class ReqSketch extends BaseReqSketch {
   private float maxValue = Float.MIN_VALUE;
   private final boolean hra;
   private boolean lteq = false;
-  private boolean debug = false;
-
-  private List<ReqCompactor> compactors = new ArrayList<>();
-  private FloatBuffer updateBuf = null;
+  private int debug = 0;
   private ReqAuxiliary aux = null;
 
+  private List<ReqCompactor> compactors = new ArrayList<>();
+
   /**
-   * Constructor with default k = 50, lteq = false, and debug = false.
-   *
+   * Constructor with default k = 50, highRankAccuracy = true, lteq = false, and debug = 0.
+   * @see #ReqSketch(int, boolean, boolean, int)
    */
   public ReqSketch() {
-    this(DEFAULT_K, true, false, false);
+    this(DEFAULT_K);
   }
 
   /**
-   * Constructor
-   * @param k Controls the size and error of the sketch
+   * Constructor with given k, highRankAccuracy = true, lteq = false, and debug = 0.
+   * @param k Controls the size and error of the sketch. It must be even, if not, it will be
+   * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
+   * constant probability.
    */
   public ReqSketch(final int k) {
-    this(k, true, false, false);
+    this(k, true, false);
+  }
+
+  /**
+   * Constructor with given k, highRankAccuracy and lteq.
+   * @param k Controls the size and error of the sketch. It must be even, if not, it will be
+   * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
+   * constant probability
+   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy.
+   * @param lteq if true, the compuation of rank and quantiles will be based on less-than or equals
+   * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than criterion.
+   */
+  public ReqSketch(final int k, final boolean highRankAccuracy, final boolean lteq) {
+    this(k, highRankAccuracy, lteq, 0);
   }
 
   /**
@@ -99,22 +114,23 @@ public class ReqSketch extends BaseReqSketch {
    * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
    * constant probability
    * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy.
-   * @param lteq if true, the compuation of rank and quantiles will be based on a less-than or equals
+   * @param lteq if true, the compuation of rank and quantiles will be based on less-than or equals
+   * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than criterion.
+   * @param debug if &gt; 0, debug printing will be enabled.
+   * If &gt; 1, extensive detail of compactor data will be printed
    * criteria. Otherwise the criteria is strictly less-than, which is consistent with the other
    * quantiles sketches in the library.
-   * @param debug debug mode
    */
-  public ReqSketch(final int k, final boolean highRankAccuracy, final boolean lteq, final boolean debug) {
+  public ReqSketch(final int k, final boolean highRankAccuracy, final boolean lteq,
+      final int debug) {
     this.k = max(k & -2, MIN_K);
     hra = highRankAccuracy;
     this.lteq = lteq;
-    this.debug = debug;
     size = 0;
     maxNomSize = 0;
     totalN = 0;
-    if (debug) { println("START:"); }
-    final int ncap = 2 * k * INIT_NUMBER_OF_SECTIONS;
-    updateBuf = new FloatBuffer(ncap, ncap, hra);
+    this.debug = debug;
+    if (debug > 0) { println("START:"); }
     grow();
   }
 
@@ -123,24 +139,27 @@ public class ReqSketch extends BaseReqSketch {
    * @param other the other sketch to be deep copied into this one.
    */
   ReqSketch(final ReqSketch other) {
+    totalN = other.totalN;
     k = other.k;
+    size = other.size;
+    maxNomSize = other.maxNomSize;
+    minValue = other.minValue;
+    maxValue = other.maxValue;
     hra = other.hra;
     lteq = other.lteq;
     debug = other.debug;
+
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
     }
-    size = other.size;
-    maxNomSize = other.maxNomSize;
-    totalN = other.totalN;
     aux = null;
   }
 
   private void compress(final boolean lazy) {
-    if (debug) { printStartCompress(); }
-    if (debug) { printAllHorizList(); }
-    //Choose the first compactor that is too large to compact
-    //If lazy, we will compact more compactors that are too large.
+    if (debug > 0) { printStartCompress(); }
+    if (debug > 0) { printAllHorizList(debug); }
+    //If lazy, choose the first compactor that is too large to compact.
+    //If !lazy, we will compact more compactors that are too large.
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
       final int retEnt = c.getBuffer().getLength();
@@ -148,7 +167,7 @@ public class ReqSketch extends BaseReqSketch {
 
       if (retEnt >= nomCap) {
         if ((h + 1) >= getNumLevels()) { //at the top?
-          if (debug) { printAddCompactor(h, retEnt, nomCap); }
+          if (debug > 0) { printAddCompactor(h, retEnt, nomCap); }
           grow(); //add a level, increases maxNomSize
         }
         final FloatBuffer promoted = c.compact();
@@ -157,17 +176,16 @@ public class ReqSketch extends BaseReqSketch {
         if (lazy && (size < maxNomSize)) { break; }
       }
     }
-    if (debug) { printAllHorizList(); }
+    if (debug > 0) { printAllHorizList(debug); }
     aux = null;
-    if (debug) {
+    if (debug > 0) {
       println("COMPRESS: DONE: SketchSize: " + size + TAB + " MaxNomSize: " + maxNomSize + LS + LS);
     }
   }
 
   @Override
   public double[] getCDF(final float[] splitPoints) {
-    if (isEmpty()) { return null; }
-    validateSplits(splitPoints);
+    if (isEmpty()) { return new double[0]; }
     final long[] buckets = getPMForCDF(splitPoints);
     final int numBkts = buckets.length;
     final double[] outArr = new double[numBkts];
@@ -183,6 +201,10 @@ public class ReqSketch extends BaseReqSketch {
 
   boolean getHra() {
     return hra;
+  }
+
+  int getK() {
+    return k;
   }
 
   boolean getLtEq() {
@@ -214,8 +236,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getPMF(final float[] splitPoints) {
-    if (isEmpty()) { return null; }
-    validateSplits(splitPoints);
+    if (isEmpty()) { return new double[0]; }
     final long[] buckets = getPMForCDF(splitPoints);
     final int numBkts = buckets.length;
     final double[] outArr = new double[numBkts];
@@ -232,23 +253,17 @@ public class ReqSketch extends BaseReqSketch {
    * @return a CDF in raw counts
    */
   private long[] getPMForCDF(final float[] splits) {
-    final int numComp = compactors.size();
-    final int numBkts = splits.length + 1;
-    final long[] buckets = new long[numBkts];
-    for (int i = 0; i < numComp; i++) {
-      final ReqCompactor c = compactors.get(i);
-      final FloatBuffer buf = c.getBuffer();
-      final int weight = 1 << c.getLgWeight();
-      for (int j = 0; j < (numBkts - 1); j++) {
-        buckets[j] += buf.getCountLtOrEq(splits[j], lteq) * weight;
-      }
-    }
-    buckets[numBkts - 1] = getN();
-    return buckets;
+    validateSplits(splits);
+    final int numSplits = splits.length;
+    final long[] splitCounts = getCounts(splits);
+    final int numBkts = numSplits + 1;
+    final long[] bkts = Arrays.copyOf(splitCounts, numBkts);
+    bkts[numBkts - 1] = getN();
+    return bkts;
   }
 
   @Override
-  public float getQuantile(final float normRank) {
+  public float getQuantile(final double normRank) {
     if ((normRank < 0) || (normRank > 1.0)) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
@@ -264,7 +279,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public float[] getQuantiles(final float[] normRanks) {
+  public float[] getQuantiles(final double[] normRanks) {
     final int len = normRanks.length;
     final float[] qArr = new float[len];
     for (int i = 0; i < len; i++) {
@@ -274,37 +289,35 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public float getRank(final float value) {
-    int nnRank = 0;
-    final int numComp = compactors.size();
-    for (int i = 0; i < numComp; i++) {
-      final ReqCompactor c = compactors.get(i);
-      final FloatBuffer buf = c.getBuffer();
-      final float v = value;
-      final int count = buf.getCountLtOrEq(v, lteq);
-      nnRank += count * (1 << c.getLgWeight());
-    }
-    return (float)nnRank / totalN;
+  public double getRank(final float value) {
+    return getRanks( new float[] { value } )[0];
   }
 
   @Override
-  public float[] getRanks(final float[] values) {
+  public double[] getRanks(final float[] values) {
+    final long[] cumNnrArr = getCounts(values);
+    final int numValues = values.length;
+    final double[] rArr = new double[numValues];
+    for (int i = 0; i < numValues; i++) {
+      rArr[i] = (double)cumNnrArr[i] / totalN;
+    }
+    return rArr;
+  }
+
+  private long[] getCounts(final float[] values) {
     final int numValues = values.length;
     final int numComp = compactors.size();
-    final float[] rArr = new float[numValues];
-    final int[] cumNnrArr = new int[numValues];
+    final long[] cumNnrArr = new long[numValues];
     for (int i = 0; i < numComp; i++) {
       final ReqCompactor c = compactors.get(i);
+      final int wt = 1 << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
       final int[] countsArr = buf.getCountsLtOrEq(values, lteq);
       for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] += countsArr[j];
+        cumNnrArr[j] += countsArr[j] * wt;
       }
     }
-    for (int j = 0; j < numValues; j++) {
-      rArr[j] = (float) cumNnrArr[j] / totalN;
-    }
-    return rArr;
+    return cumNnrArr;
   }
 
   @Override
@@ -343,49 +356,57 @@ public class ReqSketch extends BaseReqSketch {
     // be exceeded on many levels)
     if (size >= maxNomSize) { compress(false); }
     updateRetainedItems();
+    totalN += other.totalN;
     assert size < maxNomSize;
     aux = null;
     return this;
   }
 
   @Override
-  public String toString(final String fmt, final boolean dataDetail) {
+  public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("**********Relative Error Quantiles Sketch Summary**********").append(LS);
-    final int numC = compactors.size();
     sb.append("  N               : " + totalN).append(LS);
-    sb.append("  Retained Entries: " + size).append(LS);
+    sb.append("  Retained Items  : " + size).append(LS);
     sb.append("  Max Nominal Size: " + maxNomSize).append(LS);
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
+    sb.append("  Estimation Mode : " + isEstimationMode()).append(LS);
     sb.append("  LtEq Criterion  : " + lteq).append(LS);
     sb.append("  High Rank Acc   : " + hra).append(LS);
     sb.append("  Levels          : " + compactors.size()).append(LS);
-    if (dataDetail) {
-      for (int i = 0; i < numC; i++) {
-        final ReqCompactor c = compactors.get(i);
-        sb.append(c.toHorizontalList(fmt, 24, 16));
-      }
-    }
-    sb.append("************************End Summary************************").append(LS + LS);
+    sb.append("************************End Summary************************").append(LS);
     return sb.toString();
   }
+
+  @Override
+  public String viewCompactorDetail(final String fmt) {
+    if (debug < 1) { return ""; }
+    final StringBuilder sb = new StringBuilder();
+    sb.append("*********Relative Error Quantiles Compactor Detail*********").append(LS);
+    sb.append("Compactor Detail").append(LS);
+    for (int i = 0; i < getNumLevels(); i++) {
+      final ReqCompactor c = compactors.get(i);
+      sb.append(c.toHorizontalList(fmt, 20, 16, debug));
+    }
+    sb.append("************************End Detail*************************").append(LS);
+    return sb.toString();
+  }
+
 
   @Override
   public void update(final float item) {
     if (!Float.isFinite(item)) {
       throw new SketchesArgumentException("Input float values must be finite.");
     }
-    updateBuf.append(item);
+    final FloatBuffer buf = compactors.get(0).getBuffer();
+    buf.append(item);
     size++;
     totalN++;
     minValue = (item < minValue) ? item : minValue;
     maxValue = (item > maxValue) ? item : maxValue;
     if (size >= maxNomSize) {
-      updateBuf.sort();
-      final FloatBuffer buf = compactors.get(0).getBuffer();
-      buf.mergeSortIn(updateBuf);
-      updateBuf.trimLength(0);
+      buf.sort();
       compress(true);
     }
     aux = null;
@@ -428,10 +449,10 @@ public class ReqSketch extends BaseReqSketch {
     println(sb.toString());
   }
 
-  private void printAllHorizList() {
+  private void printAllHorizList(final int debug) {
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      print(c.toHorizontalList("%4.0f", 24, 16));
+      print(c.toHorizontalList("%4.0f", 20, 16, debug));
     }
   }
 

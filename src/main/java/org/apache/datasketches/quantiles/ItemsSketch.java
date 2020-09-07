@@ -37,7 +37,6 @@ import java.util.Comparator;
 import java.util.Random;
 
 import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -359,7 +358,7 @@ public final class ItemsSketch<T> {
    */
   public T[] getQuantiles(final int evenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(evenlySpaced));
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, evenlySpaced));
   }
 
   /**

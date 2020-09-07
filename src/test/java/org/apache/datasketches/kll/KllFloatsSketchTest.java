@@ -41,14 +41,16 @@ public class KllFloatsSketchTest {
   @Test
   public void empty() {
     final KllFloatsSketch sketch = new KllFloatsSketch();
-    sketch.update(Float.NaN); // this must not change anything
+    sketch.update(Float.NaN); // these must not change anything
+    sketch.update(Float.POSITIVE_INFINITY);
+    sketch.update(Float.NEGATIVE_INFINITY);
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
     assertTrue(Double.isNaN(sketch.getRank(0)));
-    assertTrue(Float.isNaN(sketch.getMinValue()));
-    assertTrue(Float.isNaN(sketch.getMaxValue()));
-    assertTrue(Float.isNaN(sketch.getQuantile(0.5)));
+    assertEquals(sketch.getMinValue(), Float.MAX_VALUE);
+    assertEquals(sketch.getMaxValue(), Float.MIN_VALUE);
+    assertTrue(Double.isNaN(sketch.getQuantile(0.5)));
     assertNull(sketch.getQuantiles(new double[] {0}));
     assertNull(sketch.getPMF(new float[] {0}));
     assertNotNull(sketch.toString(true, true));
@@ -316,8 +318,8 @@ public class KllFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Float.isNaN(sketch2.getMinValue()));
-    assertTrue(Float.isNaN(sketch2.getMaxValue()));
+    assertEquals(sketch2.getMinValue(), Float.MAX_VALUE);
+    assertEquals(sketch2.getMaxValue(), Float.MIN_VALUE);
     assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
   }
 

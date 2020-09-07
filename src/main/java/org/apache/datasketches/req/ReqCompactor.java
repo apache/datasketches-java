@@ -43,7 +43,7 @@ class ReqCompactor {
   private final int lgWeight;
   private boolean coin; //true or false at random for each compaction
   private boolean hra; //high rank accuracy
-  private final boolean debug;
+  private final int debug;
   private FloatBuffer buf;
   private Random rand;
 
@@ -57,7 +57,7 @@ class ReqCompactor {
       final int sectionSize,
       final int lgWeight,
       final boolean hra,
-      final boolean debug) {
+      final int debug) {
     this.sectionSize = sectionSize;
     sectionSizeDbl = sectionSize;
     this.lgWeight = lgWeight;
@@ -71,10 +71,10 @@ class ReqCompactor {
     final int nomCap = 2 * numSections * sectionSize; //nCap is always even
     buf = new FloatBuffer(2 * nomCap, 0, hra);
 
-    if (debug) { rand = new Random(1); }
+    if (debug > 0) { rand = new Random(1); }
     else { rand = new Random(); }
 
-    if (debug) { printNewCompactor(); }
+    if (debug > 0) { printNewCompactor(); }
   }
 
   /**
@@ -91,7 +91,7 @@ class ReqCompactor {
     coin = other.coin;
     debug = other.debug;
     buf = new FloatBuffer(other.buf);
-    if (debug) { rand = new Random(1); }
+    if (debug > 0) { rand = new Random(1); }
     else { rand = new Random(); }
   }
 
@@ -100,9 +100,8 @@ class ReqCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact() {
-    if (debug) { printCompactingStart(); }
+    if (debug > 0) { printCompactingStart(); }
     buf.sort();
-    //if (debug) { print("    "); print(toHorizontalList("%4.0f", 24, 14)); } //#decimals
 
     //choose a part of the buffer to compact
     final int secsToCompact = numberOfTrailingOnes(state) + 1;
@@ -116,7 +115,7 @@ class ReqCompactor {
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
-    if (debug) { printCompactionDetail(compactionStart, compactionEnd, secsToCompact,
+    if (debug > 0) { printCompactionDetail(compactionStart, compactionEnd, secsToCompact,
         promote.getLength()); }
 
     buf.trimLength(buf.getLength() - (compactionEnd - compactionStart));
@@ -126,10 +125,10 @@ class ReqCompactor {
     if (numCompactions >= (1 << (numSections - 1))) {
       adjustSectSizeNumSect();
       buf.ensureCapacity(4 * numSections * sectionSize);
-      if (debug) { printAdjSecSizeNumSec(); }
+      if (debug > 0) { printAdjSecSizeNumSec(); }
     }
 
-    if (debug) { printCompactionDone(); }
+    if (debug > 0) { printCompactionDone(); }
 
     return promote;
   } //End Compact
@@ -166,8 +165,9 @@ class ReqCompactor {
     state |= other.state;
     numCompactions += other.numCompactions;
     buf.sort();
-    other.buf.sort();
-    buf.mergeSortIn(other.getBuffer());
+    final FloatBuffer buf2 = new FloatBuffer(other.buf);
+    buf2.sort();
+    buf.mergeSortIn(buf2);
     return this;
   }
 
@@ -204,20 +204,26 @@ class ReqCompactor {
 
   /**
    * Returns a printable formatted string of the values of this buffer separated by a single space.
-   * This string is prepended by the lgWeight and retained entries of this compactor.
+   * This string is prepended by the lgWeight and retained entries of this compactor. The debug
+   * parameter must be either 1 or 2.
    * @param fmt The format for each printed item.
    * @param width the number of items to print per line
    * @param indent the number of spaces at the beginning of a new line
+   * @param debug if &gt; 0, debug printing will be enabled.
+   * If &gt; 1, extensive detail of compactor data will be printed, which is useful for
+   * very large streams.
    * @return a printable, formatted string of the values of this buffer.
    */
-  String toHorizontalList(final String fmt, final int width, final int indent) {
+  String toHorizontalList(final String fmt, final int width, final int indent,
+      final int debug) {
+    if (debug < 1) { return null; }
     final int h = getLgWeight();
     final int len = buf.getLength();
     final int nomCap = getNomCapacity();
 
     final String prefix = String.format("%2d [%3d] [%3d]: ", h, len, nomCap);
-    final String str = prefix + buf.toHorizList(fmt, width, indent) + LS;
-    return str;
+    final String list = buf.toHorizList(fmt, width, indent) + LS;
+    return (debug > 1) ? prefix + list : prefix + LS;
   }
 
   private void printNewCompactor() {

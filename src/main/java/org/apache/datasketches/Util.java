@@ -466,6 +466,72 @@ public final class Util {
   }
 
   /**
+   * Returns a double array of evenly spaced double values between min and max inclusive.
+   * @param min the lowest returned value
+   * @param max the highest returned value
+   * @param num the total number of values including min and max. Must be 2 or greater.
+   * @return a double array of evenly spaced values between min and max inclusive.
+   */
+  public static double[] evenlySpaced(final double min, final double max, final int num) {
+    if (num < 2) {
+      throw new SketchesArgumentException("num must be >= 2");
+    }
+    final double[] out = new double[num];
+    out[0] = min;
+    out[num - 1] = max;
+    if (num == 2) { return out; }
+
+    final double delta = (max - min) / (num - 1);
+
+    for (int i = 1; i < (num - 1); i++) { out[i] = i * delta; }
+    return out;
+  }
+
+  /**
+   * Returns a double array of evenly spaced float values between min and max inclusive.
+   * @param min the lowest returned value
+   * @param max the highest returned value
+   * @param num the total number of values including min and max. Must be 2 or greater.
+   * @return a double array of evenly spaced values between min and max inclusive.
+   */
+  public static float[] evenlySpacedFloats(final float min, final float max, final int num) {
+    if (num < 2) {
+      throw new SketchesArgumentException("num must be >= 2");
+    }
+    final float[] out = new float[num];
+    out[0] = min;
+    out[num - 1] = max;
+    if (num == 2) { return out; }
+
+    final float delta = (max - min) / (num - 1);
+
+    for (int i = 1; i < (num - 1); i++) { out[i] = i * delta; }
+    return out;
+  }
+
+  /**
+   * Returns a double array of values between min and max inclusive where the log of the
+   * returned values are evenly spaced.
+   *
+   * @param min the lowest returned value, must be greater than zero.
+   * @param max the highest returned value, must be greater than zero.
+   * @param num the total number of values including min and max. Must be 2 or greater
+   * @return a double array of exponentially spaced values between min and max inclusive.
+   */
+  public static double[] evenlyLogSpaced(final double min, final double max, final int num) {
+    if (num < 2) {
+      throw new SketchesArgumentException("num must be >= 2");
+    }
+    if ((min <= 0) || (max <= 0)) {
+      throw new SketchesArgumentException("min and max must be > 0.");
+    }
+
+    final double[] arr = evenlySpaced(log(min) / LOG2, log(max) / LOG2, num);
+    for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
+    return arr;
+  }
+
+  /**
    * Computes the floor power of 2 given <i>n</i> is in therange [1, 2^31-1].
    * This is the largest positive power of 2 that equal to or less than the given n and equal
    * to a mathematical integer.
@@ -517,32 +583,6 @@ public final class Util {
   public static double invPow2(final int e) {
     assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
     return Double.longBitsToDouble((1023L - e) << 52);
-  }
-
-  /**
-   * Returns an int array of points that will be evenly spaced on a log axis.
-   * This is designed for Log_base2 numbers.
-   * @param lgStart the Log_base2 of the starting value. E.g., for 1 lgStart = 0.
-   * @param lgEnd the Log_base2 of the ending value. E.g. for 1024 lgEnd = 10.
-   * @param points the total number of points including the starting and ending values.
-   * @return an int array of points that will be evenly spaced on a log axis.
-   */
-  public static int[] evenlyLgSpaced(final int lgStart, final int lgEnd, final int points) {
-    if (points <= 0) {
-      throw new SketchesArgumentException("points must be > 0");
-    }
-    if ((lgEnd < 0) || (lgStart < 0)) {
-      throw new SketchesArgumentException("lgStart and lgEnd must be >= 0.");
-    }
-    final int[] out = new int[points];
-    out[0] = 1 << lgStart;
-    if (points == 1) { return out; }
-    final double delta = (lgEnd - lgStart) / (points - 1.0);
-    for (int i = 1; i < points; i++) {
-      final double mXpY = (delta * i) + lgStart;
-      out[i] = (int)round(pow(2, mXpY));
-    }
-    return out;
   }
 
   /**

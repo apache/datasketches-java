@@ -27,7 +27,6 @@ import static org.apache.datasketches.quantiles.Util.checkIsCompactMemory;
 import java.util.Random;
 
 import org.apache.datasketches.Family;
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.memory.Memory;
@@ -294,7 +293,7 @@ public abstract class DoublesSketch {
    * <p>If the sketch is empty this returns null.
    *
    * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
-   * This must be a positive integer greater than 0. A value of 1 will return the min value.
+   * This must be a positive integer greater than 1.
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
    *
@@ -303,7 +302,7 @@ public abstract class DoublesSketch {
    */
   public double[] getQuantiles(final int evenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(evenlySpaced));
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, evenlySpaced));
   }
 
   /**

@@ -32,7 +32,6 @@ import java.util.Arrays;
 
 import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.Family;
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
@@ -280,8 +279,8 @@ public class KllFloatsSketch {
     numLevels_ = 1;
     levels_ = new int[] {k, k};
     items_ = new float[k];
-    minValue_ = Float.NaN;
-    maxValue_ = Float.NaN;
+    minValue_ = Float.MAX_VALUE;
+    maxValue_ = Float.MIN_VALUE;
     isLevelZeroSorted_ = false;
 
   }
@@ -302,8 +301,8 @@ public class KllFloatsSketch {
       isLevelZeroSorted_ = false;
       minK_ = k_;
       items_ = new float[k_];
-      minValue_ = Float.NaN;
-      maxValue_ = Float.NaN;
+      minValue_ = Float.MAX_VALUE;
+      maxValue_ = Float.MIN_VALUE;
     } else {
       if (isSingleItem) {
         n_ = 1;
@@ -680,7 +679,7 @@ public class KllFloatsSketch {
    */
   public float[] getQuantiles(final int numEvenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(numEvenlySpaced));
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
   }
 
   /**
@@ -766,8 +765,8 @@ public class KllFloatsSketch {
       mergeHigherLevels(other, finalN);
     }
     //update min, max values, n
-    if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
-    if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
+    if (!Float.isFinite(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
+    if (!Float.isFinite(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
     n_ = finalN;
 
     assertCorrectTotalWeight();
