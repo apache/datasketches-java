@@ -194,7 +194,17 @@ public class FloatBufferTest {
     try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (SketchesArgumentException e) {}
   }
 
-
+  @Test
+  public void checkTrimCapacityToLength() {
+    FloatBuffer buf = new FloatBuffer(100, 100, true);
+    for (int i = 0; i <= 100; i++) { buf.append(i); }
+    assertEquals(buf.getCapacity(), 201);
+    assertEquals(buf.getLength(), 101);
+    buf.trimCapacity();
+    assertEquals(buf.getIndex(0), 100f);
+    assertEquals(buf.getCapacity(), 101);
+    assertEquals(buf.getLength(), 101);
+  }
 
   static void print(Object o) { System.out.print(o.toString()); }
 

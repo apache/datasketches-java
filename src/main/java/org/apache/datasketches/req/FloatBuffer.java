@@ -12,7 +12,7 @@ import java.util.Arrays;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * A special buffer of floats.
+ * A special buffer of floats specifically designed to support the ReqCompactor class.
  *
  * @author Lee Rhodes
  */
@@ -369,19 +369,20 @@ class FloatBuffer {
     return sb.toString();
   }
 
-  //  /** //may need this in the futre
-  //   * Trims the capacity of this FloatBuffer to length().
-  //   * @return this
-  //   */
-  //  FloatBuffer trimCapacity() {
-  //    if (count_ < capacity_) {
-  //      final float[] out = new float[count_];
-  //      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
-  //      System.arraycopy(arr_, start, out, 0, count_);
-  //      capacity_ = count_;
-  //    }
-  //    return this;
-  //  }
+  /**
+   * Trims the capacity of this FloatBuffer to length().
+   * @return this
+   */
+  FloatBuffer trimCapacity() {
+    if (count_ < capacity_) {
+      final float[] out = new float[count_];
+      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
+      System.arraycopy(arr_, start, out, 0, count_);
+      capacity_ = count_;
+      arr_ = out;
+    }
+    return this;
+  }
 
   /**
    * Trims the length to newLength. If newLength &gt; length() this does nothing and returns.

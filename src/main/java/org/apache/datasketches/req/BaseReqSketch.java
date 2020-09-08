@@ -20,8 +20,8 @@
 package org.apache.datasketches.req;
 
 /**
- * This abstract class provides a single place to define and document the common public API
- * for the ReqSketch.
+ * This abstract class provides a single place to define and document the public API
+ * for the Relative Error Quantiles Sketch.
  *
  * @author Lee Rhodes
  */

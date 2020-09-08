@@ -28,6 +28,7 @@ import java.util.Random;
 
 
 /**
+ * The compactor class for the ReqSketch
  * @author Lee Rhodes
  */
 class ReqCompactor {

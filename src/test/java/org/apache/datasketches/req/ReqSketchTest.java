@@ -35,8 +35,8 @@ import org.testng.annotations.Test;
 public class ReqSketchTest {
 
   //To control debug printing:
-  private int skDebug = 1; // sketch debug printing
-  private int iDebug = 1; // debug printing for individual tests below
+  private int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
+  private int iDebug = 0; // debug printing for individual tests below, same scale as above
 
   @Test
   public void bigTest() {

@@ -22,7 +22,7 @@ package org.apache.datasketches.req;
 import java.util.List;
 
 /**
- * Iterator over ReqSketch. The order is not defined.
+ * Iterator over all retained items of the ReqSketch. The order is not defined.
  *
  * @author Lee Rhodes
  */

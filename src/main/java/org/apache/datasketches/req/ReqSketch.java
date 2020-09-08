@@ -32,7 +32,8 @@ import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * This Relative Error Quantiles Sketch is the Java implementation based on the paper
- * "Relative Error Streaming Quantiles", https://arxiv.org/abs/2004.01668.
+ * "Relative Error Streaming Quantiles", https://arxiv.org/abs/2004.01668, and loosely derived from
+ * a Python prototype written by Pavel Vesely.
  *
  * <p>This implementation differs from the algorithm described in the paper in the following:</p>
  *
@@ -50,6 +51,18 @@ import org.apache.datasketches.SketchesArgumentException;
  *
  * <li>The merge operation here does not perform "special compactions", which are used in the paper
  * to allow for a tight mathematical analysis of the sketch.</li>
+ * </ul>
+ *
+ * <p>This implementation provides a number of capabilites not discussed in the paper or provided
+ * in the Python prototype.</p>
+ * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
+ * provides the user with the ability to choose either high rank accuracy or low rank accuracy at the
+ * time of construction.</li>
+ * <li>The Python prototype only implemented a comparison criterion of "&le;". This implementation
+ * allows the user to switch back and forth between the "&le;" criterion and the "&lt;" criterion.</li>
+ * <li>This implementation provides extensive debug visibility into the operation of the sketch with
+ * two levels of detail output. This is not only useful for debugging, but is a powerful tool to
+ * help users understand how the sketch works.</li>
  * </ul>
  *
  * @author Edo Liberty

@@ -22,6 +22,7 @@ package org.apache.datasketches.req;
 import java.util.List;
 
 /**
+ * The implementation of the ReqDebug interface.
  * @author Lee Rhodes
  */
 public class ReqDebugImpl implements ReqDebug{
@@ -37,11 +38,11 @@ public class ReqDebugImpl implements ReqDebug{
    */
   public ReqDebugImpl(int debugLevel) {
     this.debugLevel = debugLevel;
-
   }
 
   @Override
   public void emitStart(ReqSketch sk) {
+    if (debugLevel == 0) { return; }
     this.sk = sk;
     compactors = sk.getCompactors();
     println("START");
@@ -49,6 +50,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitStartCompress() {
+    if (debugLevel == 0) { return; }
     int retItems = sk.getRetainedItems();
     int maxNomSize = sk.getMaxNomSize();
     long totalN = sk.getN();
@@ -63,6 +65,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitCompressDone() {
+    if (debugLevel == 0) { return; }
     int retItems = sk.getRetainedItems();
     int maxNomSize = sk.getMaxNomSize();
     emitAllHorizList();
@@ -72,6 +75,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitAllHorizList() {
+    if (debugLevel == 0) { return; }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
       print(c.toListPrefix());
@@ -85,6 +89,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitMustAddCompactor() {
+    if (debugLevel == 0) { return; }
     int curLevels = sk.getNumLevels();
     ReqCompactor topC = compactors.get(curLevels - 1);
     int lgWt = topC.getLgWeight();
@@ -102,6 +107,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitCompactingStart(int lgWeight) {
+    if (debugLevel == 0) { return; }
     ReqCompactor comp = compactors.get(lgWeight);
     int nomCap = comp.getNomCapacity();
     int secSize = comp.getSectionSize();
@@ -121,6 +127,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitNewCompactor(int lgWeight) {
+    if (debugLevel == 0) { return; }
     ReqCompactor comp = compactors.get(lgWeight);
     println("    New Compactor: lgWeight: " + comp.getLgWeight()
         + TAB + "sectionSize: " + comp.getSectionSize()
@@ -129,6 +136,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitAdjSecSizeNumSec(int lgWeight) {
+    if (debugLevel == 0) { return; }
     ReqCompactor comp = compactors.get(lgWeight);
     int secSize = comp.getSectionSize();
     int numSec = comp.getNumSections();
@@ -142,6 +150,7 @@ public class ReqDebugImpl implements ReqDebug{
   @Override
   public void emitCompactionDetail(int compactionStart, int compactionEnd,
       int secsToCompact, int promoteLen, boolean coin) {
+    if (debugLevel == 0) { return; }
     final StringBuilder sb = new StringBuilder();
     sb.append("    ");
     sb.append("SecsToCompact: ").append(secsToCompact);
@@ -158,6 +167,7 @@ public class ReqDebugImpl implements ReqDebug{
 
   @Override
   public void emitCompactionDone(int lgWeight) {
+    if (debugLevel == 0) { return; }
     ReqCompactor comp = compactors.get(lgWeight);
     int numCompactions = comp.getNumCompactions();
     println("  COMPACTING DONE: NumCompactions: " + numCompactions + LS);

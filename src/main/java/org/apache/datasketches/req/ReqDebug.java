@@ -22,6 +22,9 @@ package org.apache.datasketches.req;
 //import org.apache.datasketches.req.ReqCompactor;
 
 /**
+ * The signaling interface that allows comprehensive analysis of the ReqSketch and ReqCompactor
+ * while eliminating code clutter in the main classes. The implementation of this interface can be
+ * found in the test tree.
  * @author Lee Rhodes
  */
 public interface ReqDebug {

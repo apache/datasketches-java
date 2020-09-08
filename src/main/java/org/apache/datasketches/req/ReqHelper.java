@@ -24,6 +24,7 @@ import static java.lang.Math.round;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
+ * Contains some common algorithms
  * @author Lee Rhodes
  */
 class ReqHelper {
@@ -112,6 +113,11 @@ class ReqHelper {
     return (hi < low) ? -1 : hi;
   }
 
+  /**
+   * This tests input float arrays to make sure they contain only finite values
+   * and are monotonically increasing in value.
+   * @param splits the given array
+   */
   static void validateSplits(final float[] splits) {
     final int len = splits.length;
     for (int i = 0; i < len; i++) {
@@ -137,9 +143,6 @@ class ReqHelper {
   }
 
   //used by other Req classes
-  //  static final void printf(final String format, final Object ...args) {
-  //    System.out.printf(format, args);
-  //  }
 
   static final void print(final Object o) { System.out.print(o.toString()); }
 

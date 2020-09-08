@@ -25,6 +25,7 @@ import static org.apache.datasketches.req.ReqHelper.binarySearch;
 import java.util.List;
 
 /**
+ * Supports searches for quantiles
  * @author Lee Rhodes
  */
 class ReqAuxiliary {
