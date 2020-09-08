@@ -83,7 +83,7 @@ abstract class BaseReqSketch {
    *  (taking a possible improvement by a factor of 2 into account).
    * Still, this upper bound on RSE seems too pesimistic (by a factor of 3) and experiments suggest
    * to replace the 8 below by approx. 1 (or even 0.9), at least when k is large enough
-   * (say, k >= 20; TODO: test this)
+   * (say, k &ge; 20; TODO: test this)
    * @param k the given value of k
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
