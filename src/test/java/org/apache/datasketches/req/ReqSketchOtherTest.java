@@ -20,6 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -68,10 +69,29 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkEstimationMode() {
-    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 35,  true,  false,  false, 0);
+    boolean up = true;
+    boolean hra = true;
+    boolean lteq = true;
+    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  lteq, 0);
     assertEquals(sk.isEstimationMode(), false);
-    sk.update(36);
+    double lb = sk.getRankLowerBound(119, 1);
+    double ub = sk.getRankUpperBound(119, 1);
+    assertEquals(lb, 1.0);
+    assertEquals(ub, 1.0);
+    int maxNomSize = sk.getMaxNomSize();
+    assertEquals(maxNomSize, 120);
+    sk.update(120);
     assertEquals(sk.isEstimationMode(), true);
+    lb = sk.getRankLowerBound(120, 1);
+    ub = sk.getRankUpperBound(120, 1);
+    assertEquals(lb, 0.0);
+    assertEquals(ub, 2.0);
+    maxNomSize = sk.getMaxNomSize();
+    assertEquals(maxNomSize, 240);
+    float v = sk.getQuantile(1.0);
+    assertEquals(v, 120.0f);
+    ReqAuxiliary aux = sk.getAux();
+    assertNotNull(aux);
   }
 
   @Test
@@ -86,5 +106,17 @@ public class ReqSketchOtherTest {
     sk.update(1);
     try { sk.getRank(Float.POSITIVE_INFINITY); fail(); } catch (AssertionError e) {}
   }
+
+  @Test
+  public void checkFlags() {
+    ReqSketch sk = new ReqSketch();
+    sk.setLtEq(true);
+    assertEquals(sk.getLtEq(), true);
+    sk.setLtEq(false);
+    assertEquals(sk.getLtEq(), false);
+  }
+
+
+
 
 }

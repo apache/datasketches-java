@@ -311,8 +311,9 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public double getRankLowerBound(final float value, final int numStdDev) {
     final long nnRank = getCounts(new float[] { value })[0];
+    if (getNumLevels() == 1) { return nnRank / getN(); }
     if (nnRank <= (k * INIT_NUMBER_OF_SECTIONS)) {
-      return nnRank;
+      return nnRank / getN();
     }
     else {
       final double nRank = nnRank / getN();
@@ -334,8 +335,9 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public double getRankUpperBound(final float value, final int numStdDev) {
     final long nnRank = getCounts(new float[] { value })[0];
+    if (getNumLevels() == 1) { return nnRank / getN(); }
     if (nnRank <= (k * INIT_NUMBER_OF_SECTIONS)) {
-      return nnRank;
+      return nnRank / getN();
     }
     else {
       final double nRank = nnRank / getN();

@@ -74,11 +74,17 @@ public class ReqSketchTest {
   }
 
   private static void checkToString(ReqSketch sk, int iDebug) {
-    boolean summary = iDebug > 0;
-    boolean allData = iDebug > 1;
+    boolean summary = iDebug == 1;
+    boolean allData = iDebug == 2;
+    String brief = sk.toString();
+    String all = sk.viewCompactorDetail("%4.0f", true);
     if (summary) {
-      println(sk.toString());
-      println(sk.viewCompactorDetail("%4.0f", allData));
+      println(brief);
+      println(sk.viewCompactorDetail("%4.0f", false));
+    }
+    if (allData) {
+      println(brief);
+      println(all);
     }
   }
 
@@ -220,6 +226,7 @@ public class ReqSketchTest {
       boolean lteq, int skDebug) {
 
     ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug));
+    if (lteq) { sk.setLtEq(lteq); }
     if (up) {
       for (int i = min; i <= max; i++) {
         sk.update(i);

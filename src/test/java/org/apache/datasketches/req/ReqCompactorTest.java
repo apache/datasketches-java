@@ -28,10 +28,26 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class ReqCompactorTest {
-
+  final ReqSketchTest reqSketchTest = new ReqSketchTest();
 
   @Test
   public void checkNearestEven() {
     assertEquals(ReqHelper.nearestEven(-0.9), 0);
+  }
+
+  @Test
+  public void checkGetters() {
+    boolean up = true;
+    boolean hra = true;
+    boolean lteq = true;
+    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  lteq, 0);
+    ReqCompactor c = sk.getCompactors().get(0);
+
+    c.getCoin();
+    int numCompacts = c.getNumCompactions();
+    assertEquals(numCompacts, 1);
+    assertEquals(c.getNumSections(), 3);
+    assertEquals(c.getSectionSize(), 20);
+    assertEquals(c.getState(), numCompacts);
   }
 }
