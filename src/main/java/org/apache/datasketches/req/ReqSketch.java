@@ -21,9 +21,6 @@ package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
 import static org.apache.datasketches.req.ReqHelper.LS;
-import static org.apache.datasketches.req.ReqHelper.TAB;
-import static org.apache.datasketches.req.ReqHelper.print;
-import static org.apache.datasketches.req.ReqHelper.println;
 import static org.apache.datasketches.req.ReqHelper.validateSplits;
 
 import java.util.ArrayList;
@@ -66,46 +63,46 @@ public class ReqSketch extends BaseReqSketch {
 
   private long totalN; //total items offered to sketch
   private int k;
-  private int size; //number of retained items in the sketch
+  private int retItems; //number of retained items in the sketch
   private int maxNomSize; //sum of nominal capacities of all compactors
   private float minValue = Float.MAX_VALUE;
   private float maxValue = Float.MIN_VALUE;
   private final boolean hra;
-  private boolean lteq = false;
-  private int debug = 0;
+  private boolean lteq = false; //default is less-than
   private ReqAuxiliary aux = null;
 
   private List<ReqCompactor> compactors = new ArrayList<>();
 
+  private ReqDebug reqDebug = null;
+
   /**
-   * Constructor with default k = 50, highRankAccuracy = true, lteq = false, and debug = 0.
-   * @see #ReqSketch(int, boolean, boolean, int)
+   * Constructor with default k = 50, highRankAccuracy = true, reqDebug = null.
+   * @see #ReqSketch(int, boolean, ReqDebug)
    */
   public ReqSketch() {
     this(DEFAULT_K);
   }
 
   /**
-   * Constructor with given k, highRankAccuracy = true, lteq = false, and debug = 0.
+   * Constructor with given k, highRankAccuracy = true, and reqDebug = null.
    * @param k Controls the size and error of the sketch. It must be even, if not, it will be
    * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
    * constant probability.
    */
   public ReqSketch(final int k) {
-    this(k, true, false);
+    this(k, true);
   }
 
   /**
-   * Constructor with given k, highRankAccuracy and lteq.
+   * Constructor with given k and highRankAccuracy, and reqDebug = null.
    * @param k Controls the size and error of the sketch. It must be even, if not, it will be
    * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
    * constant probability
-   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy.
-   * @param lteq if true, the compuation of rank and quantiles will be based on less-than or equals
-   * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than criterion.
+   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy. Otherwise,
+   * the low ranks are prioritized for better accuracy.
    */
-  public ReqSketch(final int k, final boolean highRankAccuracy, final boolean lteq) {
-    this(k, highRankAccuracy, lteq, 0);
+  public ReqSketch(final int k, final boolean highRankAccuracy) {
+    this(k, highRankAccuracy, null);
   }
 
   /**
@@ -113,24 +110,18 @@ public class ReqSketch extends BaseReqSketch {
    * @param k Controls the size and error of the sketch. It must be even, if not, it will be
    * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
    * constant probability
-   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy.
-   * @param lteq if true, the compuation of rank and quantiles will be based on less-than or equals
-   * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than criterion.
-   * @param debug if &gt; 0, debug printing will be enabled.
-   * If &gt; 1, extensive detail of compactor data will be printed
-   * criteria. Otherwise the criteria is strictly less-than, which is consistent with the other
-   * quantiles sketches in the library.
+   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy. Otherwise
+   * the low ranks are prioritized for better accuracy.
+   * @param reqDebug the debug signaling interface.
    */
-  public ReqSketch(final int k, final boolean highRankAccuracy, final boolean lteq,
-      final int debug) {
+  public ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug) {
     this.k = max(k & -2, MIN_K);
     hra = highRankAccuracy;
-    this.lteq = lteq;
-    size = 0;
+    retItems = 0;
     maxNomSize = 0;
     totalN = 0;
-    this.debug = debug;
-    if (debug > 0) { println("START:"); }
+    this.reqDebug = reqDebug;
+    if (reqDebug != null) { reqDebug.emitStart(this); }
     grow();
   }
 
@@ -141,13 +132,13 @@ public class ReqSketch extends BaseReqSketch {
   ReqSketch(final ReqSketch other) {
     totalN = other.totalN;
     k = other.k;
-    size = other.size;
+    retItems = other.retItems;
     maxNomSize = other.maxNomSize;
     minValue = other.minValue;
     maxValue = other.maxValue;
     hra = other.hra;
     lteq = other.lteq;
-    debug = other.debug;
+    reqDebug = other.reqDebug;
 
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
@@ -156,31 +147,31 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   private void compress(final boolean lazy) {
-    if (debug > 0) { printStartCompress(); }
-    if (debug > 0) { printAllHorizList(debug); }
+    if (reqDebug != null) { reqDebug.emitStartCompress(); }
     //If lazy, choose the first compactor that is too large to compact.
     //If !lazy, we will compact more compactors that are too large.
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      final int retEnt = c.getBuffer().getLength();
+      final int retCompItems = c.getBuffer().getLength();
       final int nomCap = c.getNomCapacity();
 
-      if (retEnt >= nomCap) {
+      if (retCompItems >= nomCap) {
         if ((h + 1) >= getNumLevels()) { //at the top?
-          if (debug > 0) { printAddCompactor(h, retEnt, nomCap); }
+          if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
         }
         final FloatBuffer promoted = c.compact();
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         updateRetainedItems();
-        if (lazy && (size < maxNomSize)) { break; }
+        if (lazy && (retCompItems < maxNomSize)) { break; }
       }
     }
-    if (debug > 0) { printAllHorizList(debug); }
     aux = null;
-    if (debug > 0) {
-      println("COMPRESS: DONE: SketchSize: " + size + TAB + " MaxNomSize: " + maxNomSize + LS + LS);
-    }
+    if (reqDebug != null) { reqDebug.emitCompressDone(); }
+  }
+
+  ReqAuxiliary getAux() {
+    return aux;
   }
 
   @Override
@@ -199,7 +190,8 @@ public class ReqSketch extends BaseReqSketch {
     return compactors;
   }
 
-  boolean getHra() {
+  @Override
+  public boolean getHighRanksAccuracy() {
     return hra;
   }
 
@@ -207,22 +199,27 @@ public class ReqSketch extends BaseReqSketch {
     return k;
   }
 
-  boolean getLtEq() {
+  @Override
+  public boolean getLtEq() {
     return lteq;
   }
 
-  @Override
-  public float getMin() {
-    return minValue;
+  int getMaxNomSize() {
+    return maxNomSize;
   }
 
   @Override
-  public float getMax() {
+  public float getMaxValue() {
     return maxValue;
   }
 
   @Override
-  public double getMaximumRSE(final int k) {
+  public float getMinValue() {
+    return minValue;
+  }
+
+  @Override
+  public double getMaxRSE(final int k) {
     return Math.sqrt(8.0 / INIT_NUMBER_OF_SECTIONS) / k;
   }
 
@@ -306,7 +303,7 @@ public class ReqSketch extends BaseReqSketch {
     }
     else {
       final double nRank = nnRank / getN();
-      return Math.floor( (1 - (numStdDev * getMaximumRSE(k)) ) * nRank);
+      return Math.floor( (1 - (numStdDev * getMaxRSE(k)) ) * nRank);
     }
   }
 
@@ -329,7 +326,7 @@ public class ReqSketch extends BaseReqSketch {
     }
     else {
       final double nRank = nnRank / getN();
-      return Math.ceil( (1 + (numStdDev * getMaximumRSE(k)) ) * nRank);
+      return Math.ceil( (1 + (numStdDev * getMaxRSE(k)) ) * nRank);
     }
   }
 
@@ -350,11 +347,13 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public int getRetainedEntries() { return size; }
+  public int getRetainedItems() { return retItems; }
 
   private void grow() {
-    compactors.add(new ReqCompactor(k, getNumLevels(), hra, debug));
+    compactors.add(new ReqCompactor(k, getNumLevels(), hra, reqDebug));
     updateMaxNomSize();
+    final int lgWeight = compactors.size() - 1;
+    if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
   }
 
   @Override
@@ -374,6 +373,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public ReqSketch merge(final ReqSketch other) {
+    totalN += other.totalN;
     //Grow until self has at least as many compactors as other
     while (getNumLevels() < other.getNumLevels()) { grow(); }
     //Merge the items in all height compactors
@@ -383,12 +383,17 @@ public class ReqSketch extends BaseReqSketch {
     updateRetainedItems();
     // After merging, we should not be lazy when compressing the sketch (as the maxNomSize bound may
     // be exceeded on many levels)
-    if (size >= maxNomSize) { compress(false); }
+    if (retItems >= maxNomSize) { compress(false); }
     updateRetainedItems();
-    totalN += other.totalN;
-    assert size < maxNomSize;
+
+    assert retItems < maxNomSize;
     aux = null;
     return this;
+  }
+
+  @Override
+  public void setLtEq(final boolean lteq) {
+    this.lteq = lteq;
   }
 
   @Override
@@ -396,7 +401,7 @@ public class ReqSketch extends BaseReqSketch {
     final StringBuilder sb = new StringBuilder();
     sb.append("**********Relative Error Quantiles Sketch Summary**********").append(LS);
     sb.append("  N               : " + totalN).append(LS);
-    sb.append("  Retained Items  : " + size).append(LS);
+    sb.append("  Retained Items  : " + retItems).append(LS);
     sb.append("  Max Nominal Size: " + maxNomSize).append(LS);
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
@@ -409,14 +414,17 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public String viewCompactorDetail(final String fmt) {
-    if (debug < 1) { return ""; }
+  public String viewCompactorDetail(final String fmt, final boolean allData) {
     final StringBuilder sb = new StringBuilder();
     sb.append("*********Relative Error Quantiles Compactor Detail*********").append(LS);
-    sb.append("Compactor Detail").append(LS);
+    sb.append("Compactor Detail: Ret Items: ").append(getRetainedItems())
+      .append("  N: ").append(getN());
+    sb.append(LS);
     for (int i = 0; i < getNumLevels(); i++) {
       final ReqCompactor c = compactors.get(i);
-      sb.append(c.toHorizontalList(fmt, 20, 16, debug));
+      sb.append(c.toListPrefix());
+      if (allData) { sb.append(c.getBuffer().toHorizList(fmt, 20, 16)).append(LS); }
+      else { sb.append(LS); }
     }
     sb.append("************************End Detail*************************").append(LS);
     return sb.toString();
@@ -430,11 +438,11 @@ public class ReqSketch extends BaseReqSketch {
     }
     final FloatBuffer buf = compactors.get(0).getBuffer();
     buf.append(item);
-    size++;
+    retItems++;
     totalN++;
     minValue = (item < minValue) ? item : minValue;
     maxValue = (item > maxValue) ? item : maxValue;
-    if (size >= maxNomSize) {
+    if (retItems >= maxNomSize) {
       buf.sort();
       compress(true);
     }
@@ -451,38 +459,12 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   /**
-   * Computes the size for the sketch.
+   * Computes the retItems for the sketch.
    */
   private void updateRetainedItems() {
     int count = 0;
     for (ReqCompactor c : compactors) { count += c.getBuffer().getLength(); }
-    size = count;
-  }
-
-  //debug print functions
-
-  private static void printAddCompactor(final int h, final int retEnt, final int nomCap) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("  ");
-    sb.append("Must Add Compactor: len(c[").append(h).append("]): ");
-    sb.append(retEnt).append(" >= c[").append(h).append("].nomCapacity(): ").append(nomCap);
-    println(sb.toString());
-  }
-
-  private void printStartCompress() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("COMPRESS: ");
-    sb.append("skSize: ").append(size).append(" >= ");
-    sb.append("MaxNomSize: ").append(maxNomSize);
-    sb.append("  N: ").append(totalN);
-    println(sb.toString());
-  }
-
-  private void printAllHorizList(final int debug) {
-    for (int h = 0; h < compactors.size(); h++) {
-      final ReqCompactor c = compactors.get(h);
-      print(c.toHorizontalList("%4.0f", 20, 16, debug));
-    }
+    retItems = count;
   }
 
 }

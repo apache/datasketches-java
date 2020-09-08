@@ -35,23 +35,10 @@ class ReqAuxiliary {
   private final boolean lteq;
 
   ReqAuxiliary(final ReqSketch sk) {
-    hra = sk.getHra();
+    hra = sk.getHighRanksAccuracy();
     lteq = sk.getLtEq();
     buildAuxTable(sk);
   }
-
-  //  /** //may need this later
-  //   * Copy constructor
-  //   * @param aux the ReqAuxiliary to be copied into this one
-  //   */
-  //  ReqAuxiliary(final ReqAuxiliary aux) {
-  //    items = aux.items.clone();
-  //    weights = aux.weights.clone();
-  //    normRanks = aux.normRanks.clone();
-  //    init = aux.init;
-  //    hra = aux.hra;
-  //    lteq = aux.lteq;
-  //  }
 
   //For testing only
   ReqAuxiliary(final int arrLen, final boolean hra, final boolean lteq) {
@@ -60,13 +47,12 @@ class ReqAuxiliary {
     items = new float[arrLen];
     weights = new long[arrLen];
     normRanks = new double[arrLen];
-
   }
 
   private void buildAuxTable(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
-    final int totalItems = sk.getRetainedEntries();
+    final int totalItems = sk.getRetainedItems();
     final long N = sk.getN();
     items = new float[totalItems];
     weights = new long[totalItems];
@@ -85,7 +71,6 @@ class ReqAuxiliary {
       sum += weights[i];
       normRanks[i] = sum / N;
     }
-
   }
 
   void mergeSortIn(final FloatBuffer bufIn, final long wt, final int auxCount) {

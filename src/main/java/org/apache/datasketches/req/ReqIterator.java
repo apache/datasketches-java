@@ -36,7 +36,7 @@ public class ReqIterator {
 
   ReqIterator(final ReqSketch sketch) {
     compactors = sketch.getCompactors();
-    retainedItems = sketch.getRetainedEntries();
+    retainedItems = sketch.getRetainedItems();
     currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;

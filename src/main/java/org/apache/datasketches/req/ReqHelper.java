@@ -31,8 +31,8 @@ class ReqHelper {
   static final String TAB = "\t";
 
   /**
-   * Binary Search for the index of the highest value in the given range that is either less-than or
-   * less-than or equal to the key, depending on the state of lteq.
+   * Binary Search for the index of the highest float value in the given range that is either
+   * less-than or less-than or equal to the key, depending on the state of lteq.
    * If -1 is returned there are no values in the range that are strictly less than or less-than or
    * equal to the key, depending on the state of lteq.
    * If there are duplicates in the array and the key is one of those values, the index returned
@@ -72,8 +72,8 @@ class ReqHelper {
   }
 
   /**
-   * Binary Search for the index of the highest value in the given range that is either less-than or
-   * less-than or equal to the key, depending on the state of lteq.
+   * Binary Search for the index of the highest double value in the given range that is either
+   * less-than or less-than or equal to the key, depending on the state of lteq.
    * If -1 is returned there are no values in the range that are strictly less than or less-than or
    * equal to the key, depending on the state of lteq.
    * If there are duplicates in the array and the key is one of those values, the index returned

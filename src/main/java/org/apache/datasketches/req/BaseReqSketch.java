@@ -51,16 +51,30 @@ abstract class BaseReqSketch {
   public abstract double[] getCDF(final float[] splitPoints);
 
   /**
-   * Gets the smallest value seen by this sketch
-   * @return the smallest value seen by this sketch
+   * If true, the high ranks are prioritized for better accuracy. Otherwise
+   * the low ranks are prioritized for better accuracy.  This state is chosen during sketch
+   * construction.
+   * @return the high ranks accuracy state.
    */
-  public abstract float getMin();
+  public abstract boolean getHighRanksAccuracy();
+
+  /**
+   * Returns the current state of the LtEq criterion
+   * @return the current state of the LtEq criterion
+   */
+  public abstract boolean getLtEq();
 
   /**
    * Gets the largest value seen by this sketch
    * @return the largest value seen by this sketch
    */
-  public abstract float getMax();
+  public abstract float getMaxValue();
+
+  /**
+   * Gets the smallest value seen by this sketch
+   * @return the smallest value seen by this sketch
+   */
+  public abstract float getMinValue();
 
   /**
    * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]),
@@ -73,7 +87,7 @@ abstract class BaseReqSketch {
    * @param k the given value of k
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
-  public abstract double getMaximumRSE(int k);
+  public abstract double getMaxRSE(int k);
 
   /**
    * Gets the total number of items offered to the sketch.
@@ -105,12 +119,8 @@ abstract class BaseReqSketch {
   public abstract double[] getPMF(final float[] splitPoints);
 
   /**
-   * Gets the quantile of the largest normalized rank that is less-than the given normalized rank;
-   * or, if lteq is true, this gets the quantile of the largest normalized rank that is less-than or
-   * equal to the given normalized rank.
+   * Gets the quantile of the largest normalized rank based on the lteq criterion.
    * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
-   * A given normalized rank of 0.0 will return the minimum value from the stream.
-   * A given normalized rank of 1.0 will return the maximum value from the stream.
    * @param normRank the given normalized rank
    * @return the largest quantile less than the given normalized rank.
    */
@@ -120,7 +130,7 @@ abstract class BaseReqSketch {
    * Gets an array of quantiles that correspond to the given array of normalized ranks.
    * @param normRanks the given array of normalized ranks.
    * @return the array of quantiles that correspond to the given array of normalized ranks.
-   * @see #getQuantile(float)
+   * @see #getQuantile(double)
    */
   public abstract float[] getQuantiles(final double[] normRanks);
 
@@ -158,12 +168,10 @@ abstract class BaseReqSketch {
   public abstract double getRankUpperBound(float value, int numStdDev);
 
   /**
-   * Gets the number of retained entries of this sketch
+   * Gets the number of retained items of this sketch
    * @return the number of retained entries of this sketch
    */
-  public abstract int getRetainedEntries();
-
-
+  public abstract int getRetainedItems();
 
   /**
    * Returns true if this sketch is empty.
@@ -191,6 +199,15 @@ abstract class BaseReqSketch {
   public abstract ReqSketch merge(final ReqSketch other);
 
   /**
+   * Sets the state of the LtEq criterion.
+   * if true, the compuation of rank and quantiles will be based on less-than or equals
+   * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than
+   * criterion, which is consistent with the other quantiles sketches in the library.
+   * @param lteq the state of the LtEq criterion
+   */
+  public abstract void setLtEq(final boolean lteq);
+
+  /**
    * Returns a summary of the key parameters of the sketch.
    * @return a summary of the key parameters of the sketch.
    */
@@ -199,11 +216,14 @@ abstract class BaseReqSketch {
 
   /**
    * A detailed, human readable view of the sketch compactors and their data.
-   * The sketch debug variable must be set &gt; 0. See {@link #setDebug(int)}.
-   * @param fmt the format string for the data items; example "%4.0f"
+   * Each compactor string is prepended by the compactor lgWeight, the current number of retained
+   * items of the compactor and the current nominal capacity of the compactor.
+   * @param fmt the format string for the data items; example: "%4.0f".
+   * @param allData all the retained items for the sketch will be output by
+   * compactory level.  Otherwise, just a summary will be output.
    * @return a detailed view of the compactors and their data
    */
-  public abstract String viewCompactorDetail(String fmt);
+  public abstract String viewCompactorDetail(String fmt, boolean allData);
 
   /**
    * Updates this sketch with the given item.

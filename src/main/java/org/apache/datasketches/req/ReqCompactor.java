@@ -20,10 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
-import static org.apache.datasketches.req.ReqHelper.LS;
-import static org.apache.datasketches.req.ReqHelper.TAB;
 import static org.apache.datasketches.req.ReqHelper.nearestEven;
-import static org.apache.datasketches.req.ReqHelper.println;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 
@@ -43,26 +40,26 @@ class ReqCompactor {
   private final int lgWeight;
   private boolean coin; //true or false at random for each compaction
   private boolean hra; //high rank accuracy
-  private final int debug;
   private FloatBuffer buf;
   private Random rand;
+  private ReqDebug reqDebug = null;
 
   /**
    * Constructor
    * @param sectionSize the value of k
    * @param lgWeight this compactor's lgWeight
-   * @param debug true for debug info
+   * @param reqDebug the debug signaling interface.
    */
   ReqCompactor(
       final int sectionSize,
       final int lgWeight,
       final boolean hra,
-      final int debug) {
+      final ReqDebug reqDebug) {
     this.sectionSize = sectionSize;
     sectionSizeDbl = sectionSize;
     this.lgWeight = lgWeight;
     this.hra = hra;
-    this.debug = debug;
+    this.reqDebug = reqDebug;
 
     numCompactions = 0;
     state = 0;
@@ -71,10 +68,10 @@ class ReqCompactor {
     final int nomCap = 2 * numSections * sectionSize; //nCap is always even
     buf = new FloatBuffer(2 * nomCap, 0, hra);
 
-    if (debug > 0) { rand = new Random(1); }
+    if (reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
 
-    if (debug > 0) { printNewCompactor(); }
+    //if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
   }
 
   /**
@@ -82,17 +79,19 @@ class ReqCompactor {
    * @param other the compactor to be copied into this one
    */
   ReqCompactor(final ReqCompactor other) {
-    sectionSizeDbl = other.sectionSizeDbl;
     sectionSize = other.sectionSize;
-    numSections = other.numSections;
+    lgWeight = other.lgWeight;
+    hra = other.hra;
+    reqDebug = other.reqDebug;
+
     numCompactions = other.numCompactions;
     state = other.state;
-    lgWeight = other.lgWeight;
     coin = other.coin;
-    debug = other.debug;
+    numSections = other.numSections;
+    sectionSizeDbl = other.sectionSizeDbl;
+
     buf = new FloatBuffer(other.buf);
-    if (debug > 0) { rand = new Random(1); }
-    else { rand = new Random(); }
+
   }
 
   /**
@@ -100,7 +99,8 @@ class ReqCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact() {
-    if (debug > 0) { printCompactingStart(); }
+    if (reqDebug != null) {
+      reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
 
     //choose a part of the buffer to compact
@@ -115,8 +115,10 @@ class ReqCompactor {
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
-    if (debug > 0) { printCompactionDetail(compactionStart, compactionEnd, secsToCompact,
-        promote.getLength()); }
+    if (reqDebug != null) {
+      reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
+          promote.getLength(), coin);
+    }
 
     buf.trimLength(buf.getLength() - (compactionEnd - compactionStart));
     numCompactions += 1;
@@ -125,10 +127,10 @@ class ReqCompactor {
     if (numCompactions >= (1 << (numSections - 1))) {
       adjustSectSizeNumSect();
       buf.ensureCapacity(4 * numSections * sectionSize);
-      if (debug > 0) { printAdjSecSizeNumSec(); }
+      if (reqDebug != null) { reqDebug.emitAdjSecSizeNumSec(lgWeight); }
     }
 
-    if (debug > 0) { printCompactionDone(); }
+    if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
 
     return promote;
   } //End Compact
@@ -138,6 +140,10 @@ class ReqCompactor {
    * @return a reference to this compactor's internal FloatBuffer
    */
   FloatBuffer getBuffer() { return buf; }
+
+  boolean getCoin() {
+    return coin;
+  }
 
   /**
    * Gets the lgWeight of this buffer
@@ -154,6 +160,22 @@ class ReqCompactor {
   int getNomCapacity() {
     final int nCap = 2 * numSections * sectionSize;
     return nCap;
+  }
+
+  int getNumCompactions() {
+    return numCompactions;
+  }
+
+  int getNumSections() {
+    return numSections;
+  }
+
+  int getSectionSize() {
+    return sectionSize;
+  }
+
+  int getState() {
+    return state;
   }
 
   /**
@@ -203,74 +225,17 @@ class ReqCompactor {
   //debug print functions
 
   /**
-   * Returns a printable formatted string of the values of this buffer separated by a single space.
-   * This string is prepended by the lgWeight and retained entries of this compactor. The debug
-   * parameter must be either 1 or 2.
-   * @param fmt The format for each printed item.
-   * @param width the number of items to print per line
-   * @param indent the number of spaces at the beginning of a new line
-   * @param debug if &gt; 0, debug printing will be enabled.
-   * If &gt; 1, extensive detail of compactor data will be printed, which is useful for
-   * very large streams.
-   * @return a printable, formatted string of the values of this buffer.
+   * Returns a printable formatted prefix string summarizing the list.
+   * The first number is the compactor height. the second number in brackets is the current length
+   * of the compactor buffer. The third number in brackets is the nominal capacity of the compactor.
+   * @return a printable formatted prefix string summarizing the list.
    */
-  String toHorizontalList(final String fmt, final int width, final int indent,
-      final int debug) {
-    if (debug < 1) { return null; }
+  String toListPrefix() {
     final int h = getLgWeight();
     final int len = buf.getLength();
     final int nomCap = getNomCapacity();
-
     final String prefix = String.format("%2d [%3d] [%3d]: ", h, len, nomCap);
-    final String list = buf.toHorizList(fmt, width, indent) + LS;
-    return (debug > 1) ? prefix + list : prefix + LS;
-  }
-
-  private void printNewCompactor() {
-    println("    New Compactor: height: " + lgWeight
-        + TAB + "sectionSize: " + sectionSize
-        + TAB + "numSections: " + numSections);
-  }
-
-  private void printAdjSecSizeNumSec() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("    ");
-    sb.append("Adjust: SectionSize: ").append(sectionSize);
-    sb.append(" NumSections: ").append(numSections);
-    println(sb.toString());
-  }
-
-  private void printCompactingStart() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append(LS + "  ");
-    sb.append("COMPACTING[").append(lgWeight).append("] ");
-    sb.append("NomCapacity: ").append(getNomCapacity());
-    sb.append(TAB + " SectionSize: ").append(sectionSize);
-    sb.append(TAB + " NumSections: ").append(numSections);
-    sb.append(TAB + " State(bin): ").append(Integer.toBinaryString(state));
-    sb.append(TAB + " BufCapacity: ").append(buf.getCapacity());
-    println(sb.toString());
-  }
-
-  private void printCompactionDetail(final int compactionStart, final int compactionEnd,
-      final int secsToCompact,
-      final int promoteLen) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("    ");
-    sb.append("SecsToCompact: ").append(secsToCompact);
-    sb.append(TAB + " CompactStart: ").append(compactionStart);
-    sb.append(TAB + " CompactEnd: ").append(compactionEnd).append(LS);
-    final int delete = compactionEnd - compactionStart;
-    final String oddOrEven = (coin) ? "Odds" : "Evens";
-    sb.append("    ");
-    sb.append("Promote: ").append(promoteLen);
-    sb.append(TAB + " Delete: ").append(delete);
-    sb.append(TAB + " Choose: ").append(oddOrEven);
-    println(sb.toString());
-  }
-
-  private void printCompactionDone() {
-    println("  COMPACTING DONE: NumCompactions: " + numCompactions + LS);
+    return prefix;
   }
 
 }
