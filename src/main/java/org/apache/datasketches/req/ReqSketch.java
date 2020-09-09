@@ -75,9 +75,9 @@ public class ReqSketch extends BaseReqSketch {
   private final static int DEFAULT_K = 50;
 
   private long totalN; //total items offered to sketch
-  private int k;
-  private int retItems; //number of retained items in the sketch
-  private int maxNomSize; //sum of nominal capacities of all compactors
+  private int k = 0;
+  private int retItems = 0; //number of retained items in the sketch
+  private int maxNomSize = 0; //sum of nominal capacities of all compactors
   private float minValue = Float.MAX_VALUE;
   private float maxValue = Float.MIN_VALUE;
   private final boolean hra;
@@ -404,6 +404,17 @@ public class ReqSketch extends BaseReqSketch {
     assert retItems < maxNomSize;
     aux = null;
     return this;
+  }
+
+  @Override
+  public void reset() {
+    totalN = 0;
+    retItems = 0;
+    maxNomSize = 0;
+    minValue = Float.MAX_VALUE;
+    maxValue = Float.MIN_VALUE;
+    aux = null;
+    compactors = new ArrayList<>();
   }
 
   @Override

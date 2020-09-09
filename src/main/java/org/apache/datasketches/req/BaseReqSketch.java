@@ -199,6 +199,13 @@ abstract class BaseReqSketch {
   public abstract ReqSketch merge(final ReqSketch other);
 
   /**
+   * Resets this sketch by removing all data and setting all data related variables to their
+   * virgin state.
+   * The parameters k, highRankAccuracy, reqDebug and lteq will not change.
+   */
+  public abstract void reset();
+
+  /**
    * Sets the state of the LtEq criterion.
    * if true, the compuation of rank and quantiles will be based on less-than or equals
    * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than
