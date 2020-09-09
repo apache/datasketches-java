@@ -246,8 +246,8 @@ public class KllFloatsSketch {
 
   // Specific to the floats sketch
   private float[] items_; // the continuous array of float items
-  private float minValue_ = Float.MAX_VALUE;
-  private float maxValue_ = Float.MIN_VALUE;
+  private float minValue_;
+  private float maxValue_;
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -279,8 +279,8 @@ public class KllFloatsSketch {
     numLevels_ = 1;
     levels_ = new int[] {k, k};
     items_ = new float[k];
-    minValue_ = Float.MAX_VALUE;
-    maxValue_ = Float.MIN_VALUE;
+    minValue_ = Float.NaN;
+    maxValue_ = Float.NaN;
     isLevelZeroSorted_ = false;
 
   }
@@ -301,8 +301,8 @@ public class KllFloatsSketch {
       isLevelZeroSorted_ = false;
       minK_ = k_;
       items_ = new float[k_];
-      minValue_ = Float.MAX_VALUE;
-      maxValue_ = Float.MIN_VALUE;
+      minValue_ = Float.NaN;
+      maxValue_ = Float.NaN;
     } else {
       if (isSingleItem) {
         n_ = 1;
@@ -765,8 +765,8 @@ public class KllFloatsSketch {
       mergeHigherLevels(other, finalN);
     }
     //update min, max values, n
-    if (!Float.isFinite(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
-    if (!Float.isFinite(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
+    if (Float.isNaN(minValue_) || (other.minValue_ < minValue_)) { minValue_ = other.minValue_; }
+    if (Float.isNaN(maxValue_) || (other.maxValue_ > maxValue_)) { maxValue_ = other.maxValue_; }
     n_ = finalN;
 
     assertCorrectTotalWeight();
@@ -887,9 +887,14 @@ public class KllFloatsSketch {
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final float value) {
-    if (!Float.isFinite(value)) { return; }
-    minValue_ = (value < minValue_) ? value : minValue_;
-    maxValue_ = (value > maxValue_) ? value : maxValue_;
+    if (Float.isNaN(value)) { return; }
+    if (isEmpty()) {
+      minValue_ = value;
+      maxValue_ = value;
+    } else {
+      if (value < minValue_) { minValue_ = value; }
+      if (value > maxValue_) { maxValue_ = value; }
+    }
     if (levels_[0] == 0) {
       compressWhileUpdating();
     }

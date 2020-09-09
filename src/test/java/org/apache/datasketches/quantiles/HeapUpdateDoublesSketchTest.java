@@ -899,7 +899,6 @@ public class HeapUpdateDoublesSketchTest {
   public void checkEvenlySpaced() {
     int n = 11;
     double[] es = org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, n);
-        //QuantilesHelper.getEvenlySpacedRanks(n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
