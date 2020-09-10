@@ -181,7 +181,7 @@ class ReqCompactor {
   ReqCompactor merge(final ReqCompactor other) {
     state |= other.state;
     numCompactions += other.numCompactions;
-    ensureEnoughSections();
+    while (ensureEnoughSections()) {}
     buf.sort();
     final FloatBuffer otherBuf = new FloatBuffer(other.buf);
     otherBuf.sort();
@@ -201,7 +201,7 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final double szd;
     final int ne;
-    if ((numSections >= (1 << (numSections - 1)))
+    if ((numCompactions >= (1 << (numSections - 1)))
         && ((ne = nearestEven(szd = sectionSizeDbl / SQRT2)) >= MIN_K))
     {
       sectionSizeDbl = szd;
