@@ -159,10 +159,8 @@ public class ReqSketch extends BaseReqSketch {
     aux = null;
   }
 
-  private void compress(final boolean lazy) {
+  private void compress() {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
-    //If lazy, choose the first compactor that is too large to compact.
-    //If !lazy, we will compact more compactors that are too large.
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
       final int retCompItems = c.getBuffer().getLength();
@@ -176,7 +174,7 @@ public class ReqSketch extends BaseReqSketch {
         final FloatBuffer promoted = c.compact();
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         updateRetainedItems();
-        if (lazy && (retCompItems < maxNomSize)) { break; }
+        if (retItems < maxNomSize) { break; }
       }
     }
     aux = null;
@@ -396,10 +394,7 @@ public class ReqSketch extends BaseReqSketch {
       compactors.get(i).merge(other.compactors.get(i));
     }
     updateRetainedItems();
-    // After merging, we should not be lazy when compressing the sketch (as the maxNomSize bound may
-    // be exceeded on many levels)
-    if (retItems >= maxNomSize) { compress(false); }
-    updateRetainedItems();
+    if (retItems >= maxNomSize) { compress(); }
 
     assert retItems < maxNomSize;
     aux = null;
@@ -470,7 +465,7 @@ public class ReqSketch extends BaseReqSketch {
     maxValue = (item > maxValue) ? item : maxValue;
     if (retItems >= maxNomSize) {
       buf.sort();
-      compress(true);
+      compress();
     }
     aux = null;
   }

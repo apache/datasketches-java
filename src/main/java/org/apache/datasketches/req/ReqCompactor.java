@@ -103,8 +103,8 @@ class ReqCompactor {
     if (reqDebug != null) {
       reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
-
-    //choose a part of the buffer to compact
+    //TODO if we are at minK no need to compute these ??
+    // choose a part of the buffer to compact
     final int secsToCompact = numberOfTrailingOnes(state) + 1;
     final long compactionRange = computeCompactionRange(secsToCompact);
     final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
@@ -124,15 +124,9 @@ class ReqCompactor {
     buf.trimLength(buf.getLength() - (compactionEnd - compactionStart));
     numCompactions += 1;
     state += 1;
-
-    if (numCompactions >= (1 << (numSections - 1))) {
-      adjustSectSizeNumSect();
-      buf.ensureCapacity(4 * numSections * sectionSize);
-      if (reqDebug != null) { reqDebug.emitAdjSecSizeNumSec(lgWeight); }
-    }
+    ensureEnoughSections();
 
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
-
     return promote;
   } //End Compact
 
@@ -187,24 +181,37 @@ class ReqCompactor {
   ReqCompactor merge(final ReqCompactor other) {
     state |= other.state;
     numCompactions += other.numCompactions;
+    ensureEnoughSections();
     buf.sort();
-    final FloatBuffer buf2 = new FloatBuffer(other.buf);
-    buf2.sort();
-    buf.mergeSortIn(buf2);
+    final FloatBuffer otherBuf = new FloatBuffer(other.buf);
+    otherBuf.sort();
+    if (otherBuf.getLength() > buf.getLength()) {
+      otherBuf.mergeSortIn(buf);
+      buf = otherBuf;
+    } else {
+      buf.mergeSortIn(otherBuf);
+    }
     return this;
   }
 
   /**
-   * This adjusts sectionSize and numSections and guarantees that the sectionSize
-   * will always be even and >= minK.
+   * Adjust the sectionSize and numSections if possible.
+   * @return true if the SectionSize and NumSections were adjusted.
    */
-  private void adjustSectSizeNumSect() {
-    final double newSectSizeDbl = sectionSizeDbl / SQRT2;
-    final int nearestEven = nearestEven(newSectSizeDbl);
-    if (nearestEven < MIN_K) { return; }
-    sectionSizeDbl = newSectSizeDbl;
-    sectionSize = nearestEven;
-    numSections <<= 1;
+  private boolean ensureEnoughSections() {
+    final double szd;
+    final int ne;
+    if ((numSections >= (1 << (numSections - 1)))
+        && ((ne = nearestEven(szd = sectionSizeDbl / SQRT2)) >= MIN_K))
+    {
+      sectionSizeDbl = szd;
+      sectionSize = ne;
+      numSections <<= 1;
+      buf.ensureCapacity(4 * numSections * sectionSize);
+      if (reqDebug != null) { reqDebug.emitAdjSecSizeNumSec(lgWeight); }
+      return true;
+    }
+    return false;
   }
 
   /**
