@@ -410,6 +410,7 @@ public class ReqSketch extends BaseReqSketch {
     maxValue = Float.MIN_VALUE;
     aux = null;
     compactors = new ArrayList<>();
+    grow();
   }
 
   @Override
