@@ -36,33 +36,8 @@ import org.testng.annotations.Test;
 public class ReqHelperTest {
   static Random rand = new Random(1);
 
-  static int randDelta() { return (rand.nextDouble() < 0.4) ? 0 : 1; }
-
-  static float[] buildRandArr(int len) {
-    float[] arr = new float[len];
-    float v = 1.0f;
-    for (int i = 0; i < len; i++) {
-      arr[i] = v;
-      v += randDelta();
-    }
-    return arr;
-  }
-
-
-  //@Test //visual testing only
-  public void checkBuildRandArr() {
-    int len = 10;
-    for (int i = 0; i < 10; i++) {
-      float[] tarr = buildRandArr(len);
-      for (int j = 0; j < len; j++) {
-        printf("%4.1f,", tarr[j]);
-      }
-      println("");
-    }
-  }
-
   @Test
-  public void checkBinSearchLT() {
+  public void checkBinSearchLTandLTEQ() {
     for (int len = 10; len < 13; len++) {
       float[] rarr = buildRandArr(len);
       float top = rarr[len - 1] + .5f;
@@ -72,15 +47,6 @@ public class ReqHelperTest {
         int idx2 = binarySearch(rarr, 0, len-1, v, false);
         assertEquals(idx1, idx2);
       }
-    }
-  }
-
-  @Test
-  public void checkBinSearchLTEQ() {
-    for (int len = 10; len < 13; len++) {
-      float[] rarr = buildRandArr(len);
-      float top = rarr[len - 1] + .5f;
-
       for (float v = 0.5f; v <= top; v += 0.5f) {
         int idx1 = linearSearch(rarr, 0, len-1, v, true);
         int idx2 = binarySearch(rarr, 0, len-1, v, true);
@@ -89,8 +55,38 @@ public class ReqHelperTest {
     }
   }
 
+  @Test
+  public void checkBinSearch() {
+    float[] arr = new float[] { 2,2,2,2,2,2,2,2,2 };
+    int len = arr.length;
+    float top = arr[len - 1] + .5f;
+    for (float v = 0.5f; v <= top; v += 0.5f) {
+      int idx1 = linearSearch(arr, 0, len-1, v, true);
+      int idx2 = binarySearch(arr, 0, len-1, v, true);
+      assertEquals(idx1, idx2);
+    }
+    for (float v = 0.5f; v <= top; v += 0.5f) {
+      int idx1 = linearSearch(arr, 0, len-1, v, false);
+      int idx2 = binarySearch(arr, 0, len-1, v, false);
+      assertEquals(idx1, idx2);
+    }
+  }
+
+  @Test
+  public void checkValidateSplits() {
+    float[] arr = {1,2,3,4,5};
+    validateSplits(arr);
+    try {
+      float[] arr1 = {1,2,4,3,5};
+      validateSplits(arr1);
+      fail();
+    }
+    catch (final SketchesArgumentException e) { }
+  }
+
   //@Test //visual checking only
-  public void checkLinearSearch() {
+  @SuppressWarnings("unused")
+  private static void checkLinearSearch() {
     // index        0  1  2  3, 4
     float[] arr1 = {1, 2, 2, 2, 3};
     boolean lteq = true;
@@ -107,18 +103,7 @@ public class ReqHelperTest {
     }
   }
 
-  @Test
-  public void checkValidateSplits() {
-    float[] arr = {1,2,3,4,5};
-    validateSplits(arr);
-    try {
-      float[] arr1 = {1,2,4,3,5};
-      validateSplits(arr1);
-      fail();
-    }
-    catch (final SketchesArgumentException e) { }
-  }
-
+  //This is a brute force search for comparison testing
   private static int linearSearch(final float[] arr, final int low, final int high,
       final float value, final boolean lteq) {
     if (lteq) {
@@ -138,11 +123,37 @@ public class ReqHelperTest {
     }
   }
 
-  static final void printf(final String format, final Object ...args) {
+
+  private static float[] buildRandArr(int len) {
+    float[] arr = new float[len];
+    float v = 1.0f;
+    for (int i = 0; i < len; i++) {
+      arr[i] = v;
+      v += randDelta();
+    }
+    return arr;
+  }
+
+  private static int randDelta() { return (rand.nextDouble() < 0.4) ? 0 : 1; }
+
+  //@Test //visual testing only
+  @SuppressWarnings("unused")
+  private static void checkBuildRandArr() {
+    int len = 10;
+    for (int i = 0; i < 10; i++) {
+      float[] tarr = buildRandArr(len);
+      for (int j = 0; j < len; j++) {
+        printf("%4.1f,", tarr[j]);
+      }
+      println("");
+    }
+  }
+
+  private static final void printf(final String format, final Object ...args) {
     System.out.printf(format, args);
   }
 
-  static final void print(final Object o) { System.out.print(o.toString()); }
+  private static final void print(final Object o) { System.out.print(o.toString()); }
 
-  static final void println(final Object o) { System.out.println(o.toString()); }
+  private static final void println(final Object o) { System.out.println(o.toString()); }
 }

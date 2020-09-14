@@ -307,15 +307,15 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double getRankLowerBound(final float value, final int numStdDev) {
-    final long nnRank = getCounts(new float[] { value })[0];
-    if (getNumLevels() == 1) { return nnRank / getN(); }
-    if (nnRank <= (k * INIT_NUMBER_OF_SECTIONS)) {
+  public double getRankLowerBound(final double rank, final int numStdDev) {
+    final float q = getQuantile(rank);
+    final long nnRank = getCounts(new float[] { q })[0];
+    if ((getNumLevels() == 1) || (nnRank <= (k * INIT_NUMBER_OF_SECTIONS))) {
       return nnRank / getN();
     }
-    else {
-      final double nRank = nnRank / getN();
-      return Math.floor( (1 - (numStdDev * getMaxRSE(k)) ) * nRank);
+    else { //TODO This doesn't work right
+      final double nnLB = Math.floor( (1 - (numStdDev * getMaxRSE(k)) ) * nnRank);
+      return nnLB / getN();
     }
   }
 
@@ -331,15 +331,15 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double getRankUpperBound(final float value, final int numStdDev) {
-    final long nnRank = getCounts(new float[] { value })[0];
-    if (getNumLevels() == 1) { return nnRank / getN(); }
-    if (nnRank <= (k * INIT_NUMBER_OF_SECTIONS)) {
+  public double getRankUpperBound(final double rank, final int numStdDev) {
+    final float q = getQuantile(rank);
+    final long nnRank = getCounts(new float[] { q })[0];
+    if ((getNumLevels() == 1) || (nnRank <= (k * INIT_NUMBER_OF_SECTIONS))) {
       return nnRank / getN();
     }
-    else {
-      final double nRank = nnRank / getN();
-      return Math.ceil( (1 + (numStdDev * getMaxRSE(k)) ) * nRank);
+    else { //TODO This doesn't work right
+      final double nnUB = Math.ceil( (1 + (numStdDev * getMaxRSE(k)) ) * nnRank);
+      return nnUB / getN();
     }
   }
 

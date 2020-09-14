@@ -144,12 +144,12 @@ abstract class BaseReqSketch {
   public abstract double getRank(final float value);
 
   /**
-   * returns an approximate lower bound rank of value + numStdDev * standard deviation.
-   * @param value the given value
+   * returns an approximate lower bound rank of the given noramalized rank.
+   * @param rank the given rank, a value between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
-   * @return an approximate lower bound rank of value + numStdDev * standard deviation.
+   * @return an approximate lower bound rank.
    */
-  public abstract double getRankLowerBound(float value, int numStdDev);
+  public abstract double getRankLowerBound(double rank, int numStdDev);
 
   /**
    * Gets an array of normalized ranks that correspond to the given array of values.
@@ -160,12 +160,12 @@ abstract class BaseReqSketch {
   public abstract double[] getRanks(final float[] values);
 
   /**
-   * returns an approximate upper bound rank of value + numStdDev * standard deviation.
-   * @param value the given value
+   * returns an approximate upper bound rank of the given rank.
+   * @param rank the given rank, a value between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
-   * @return an approximate upper bound rank of value + numStdDev * standard deviation.
+   * @return an approximate upper bound rank.
    */
-  public abstract double getRankUpperBound(float value, int numStdDev);
+  public abstract double getRankUpperBound(double rank, int numStdDev);
 
   /**
    * Gets the number of retained items of this sketch
