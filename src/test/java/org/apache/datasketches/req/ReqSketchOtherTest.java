@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.Criteria.GE;
+import static org.apache.datasketches.req.Criteria.GT;
+import static org.apache.datasketches.req.Criteria.LE;
+import static org.apache.datasketches.req.Criteria.LT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.fail;
@@ -32,6 +36,10 @@ import org.testng.annotations.Test;
 @SuppressWarnings({"javadoc", "unused"})
 public class ReqSketchOtherTest {
   final ReqSketchTest reqSketchTest = new ReqSketchTest();
+  static Criteria critLT = LT;
+  static Criteria critLE = LE;
+  static Criteria critGT = GT;
+  static Criteria critGE = GE;
 
   @Test
   public void checkConstructors() {
@@ -41,7 +49,8 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkCopyConstructors() {
-    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true,  true, 0);
+    Criteria criterion = LE;
+    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true,  criterion, 0);
     long n = sk.getN();
     float min = sk.getMinValue();
     float max = sk.getMaxValue();
@@ -62,7 +71,8 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkQuantilesExceedLimits() {
-    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 200,  true,  true,  true, 0);
+    Criteria criterion = LE;
+    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 200,  true,  true,  criterion, 0);
     try { sk.getQuantile(2.0f); fail(); } catch (SketchesArgumentException e) {}
     try { sk.getQuantile(-2.0f); fail(); } catch (SketchesArgumentException e) {}
   }
@@ -71,21 +81,21 @@ public class ReqSketchOtherTest {
   public void checkEstimationMode() {
     boolean up = true;
     boolean hra = true;
-    boolean lteq = true;
-    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  lteq, 0);
+    Criteria criterion = LE;
+    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  criterion, 0);
     assertEquals(sk.isEstimationMode(), false);
-    double lb = sk.getRankLowerBound(119, 1);
-    double ub = sk.getRankUpperBound(119, 1);
-    assertEquals(lb, 1.0);
-    assertEquals(ub, 1.0);
+    //    double lb = sk.getRankLowerBound(1.0, 1);
+    //    double ub = sk.getRankUpperBound(1.0, 1);
+    //    assertEquals(lb, 1.0);
+    //    assertEquals(ub, 1.0);
     int maxNomSize = sk.getMaxNomSize();
     assertEquals(maxNomSize, 120);
     sk.update(120);
     assertEquals(sk.isEstimationMode(), true);
-    lb = sk.getRankLowerBound(120, 1);
-    ub = sk.getRankUpperBound(120, 1);
-    assertEquals(lb, 0.0);
-    assertEquals(ub, 2.0);
+    //    lb = sk.getRankLowerBound(0, 1);
+    //    ub = sk.getRankUpperBound(1.0, 1);
+    //    assertEquals(lb, 0.0);
+    //    assertEquals(ub, 2.0);
     maxNomSize = sk.getMaxNomSize();
     assertEquals(maxNomSize, 240);
     float v = sk.getQuantile(1.0);
@@ -96,7 +106,8 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkNonFiniteUpdate() {
-    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 35,  true,  false,  false, 0);
+    Criteria criterion = LE;
+    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 35,  true,  false,  criterion, 0);
     try { sk.update(Float.POSITIVE_INFINITY); fail(); } catch (SketchesArgumentException e) {}
   }
 
@@ -110,10 +121,10 @@ public class ReqSketchOtherTest {
   @Test
   public void checkFlags() {
     ReqSketch sk = new ReqSketch();
-    sk.setLtEq(true);
-    assertEquals(sk.getLtEq(), true);
-    sk.setLtEq(false);
-    assertEquals(sk.getLtEq(), false);
+    sk.setCriterion(Criteria.LE);
+    assertEquals(sk.getCriterion(), Criteria.LE);
+    sk.setCriterion(Criteria.LT);
+    assertEquals(sk.getCriterion(), Criteria.LT);
   }
 
 

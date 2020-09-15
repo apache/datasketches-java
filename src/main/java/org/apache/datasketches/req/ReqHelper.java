@@ -72,45 +72,36 @@ class ReqHelper {
     return (hi < low) ? -1 : hi;
   }
 
-  /**
-   * Binary Search for the index of the highest double value in the given range that is either
-   * less-than or less-than or equal to the key, depending on the state of lteq.
-   * If -1 is returned there are no values in the range that are strictly less than or less-than or
-   * equal to the key, depending on the state of lteq.
-   * If there are duplicates in the array and the key is one of those values, the index returned
-   * will be the index of the next lower value prior to the sequence of duplicates if the criteria
-   * lteq = false, or the index of the highest value in the sequence of duplicates if the criteria
-   * lteq = true.
-   * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the range
-   * @param high the index of the highest value in the range
-   * @param key the value to search for.
-   * @param lteq if true, the terminating criteria is less-than or equals, otherwise the criteria
-   * is less-than.
-   * @return the index of the highest value in the given range that is strictly less than or
-   * less-than or equals to the key, based on the given lteq criteria.
-   */
-  static int binarySearch(final double[] arr, final int low, final int high, final double key,
-      final boolean lteq) {
-    int lo = low;
-    int mid = lo;
-    int hi = high;
-    while (lo <= hi) {
-      mid = lo + ((hi - lo) / 2);
-      if      (key < arr[mid]) { hi = mid - 1; }
-      else if (key > arr[mid]) { lo = mid + 1; }
-      else { //found
-        if (lteq) {
-          if (mid == high) { return high; }
-          while ((mid < high) && (arr[mid + 1] == arr[mid])) { ++mid; }
-          return mid;
-        }
-        if (mid == low) { return -1; }
-        while ((mid > low) && (arr[mid - 1] == arr[mid])) { --mid; }
-        return --mid;
-      }
-    } //not found
-    return (hi < low) ? -1 : hi;
+  //binary search for double values
+  static int binarySearchDouble(final double[] arr, final int low, final int high, final double v,
+      final Criteria crit) {
+    int loA = low;
+    int hiA = high - 1;
+    int ret;
+    while (loA <= hiA) {
+      final int midA = loA + ((hiA - loA) / 2);
+      ret = crit.compare(arr, midA, midA + 1, v);
+      if (ret == -1 ) { hiA = midA - 1; }
+      else if (ret == 1) { loA = midA + 1; }
+      else  { return crit.getIndex(midA, midA + 1); }
+    }
+    return crit.resolve(loA, hiA, low, high);
+  }
+
+  //binary search for float values
+  static int binarySearchFloat(final float[] arr, final int low, final int high, final float v,
+      final Criteria crit) {
+    int loA = low;
+    int hiA = high - 1;
+    int ret;
+    while (loA <= hiA) {
+      final int midA = loA + ((hiA - loA) / 2);
+      ret = crit.compare(arr, midA, midA + 1, v);
+      if (ret == -1 ) { hiA = midA - 1; }
+      else if (ret == 1) { loA = midA + 1; }
+      else  { return crit.getIndex(midA, midA + 1); }
+    }
+    return crit.resolve(loA, hiA, low, high);
   }
 
   /**
@@ -133,17 +124,15 @@ class ReqHelper {
   }
 
   /**
-   * Returns the nearest even integer to the given value.
+   * Returns the nearest even integer to the given value. Also used by test.
    * @param value the given value
    * @return the nearest even integer to the given value.
    */
-  //also used by test
   static final int nearestEven(final double value) {
     return ((int) round(value / 2.0)) << 1;
   }
 
   //used by other Req classes
-
   static final void print(final Object o) { System.out.print(o.toString()); }
 
   static final void println(final Object o) { System.out.println(o.toString()); }

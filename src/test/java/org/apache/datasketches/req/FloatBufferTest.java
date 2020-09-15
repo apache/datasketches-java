@@ -129,9 +129,9 @@ public class FloatBufferTest {
     buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
     FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountLtOrEq(4, false), 3);
+    assertEquals(buf2.getCountLtOrEq(4, Criteria.LT), 3);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountLtOrEq(4, false), 6);
+    assertEquals(buf2.getCountLtOrEq(4, Criteria.LT), 6);
     assertEquals(buf2.getLength(), 14);
     buf2.trimLength(12);
     assertEquals(buf2.getLength(), 12);
@@ -188,7 +188,7 @@ public class FloatBufferTest {
     buf.append(3); buf.append(2); buf.append(1);
     buf.trimLength(4);
     assertEquals(buf.getLength(), 3);
-    int cnt = buf.getCountLtOrEq(3.0f, true);
+    int cnt = buf.getCountLtOrEq(3.0f, Criteria.LE);
     assertEquals(cnt, 3);
     assertEquals(buf.getIndex(2), 3.0f);
     try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (SketchesArgumentException e) {}

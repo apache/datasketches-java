@@ -37,8 +37,8 @@ public class ReqAuxiliaryTest {
   }
 
   private static void checkMergeSortInImpl(boolean hra) {
-    boolean lteq = false;
-    ReqAuxiliary aux = new ReqAuxiliary(25, hra, lteq);
+    Criteria criterion = Criteria.LT;
+    ReqAuxiliary aux = new ReqAuxiliary(25, hra, criterion);
     FloatBuffer buf1 = new FloatBuffer(25, 0, hra);
     for (int i = 1; i < 12; i += 2) { buf1.append(i); } //6 items
     aux.mergeSortIn(buf1, 1, 0);

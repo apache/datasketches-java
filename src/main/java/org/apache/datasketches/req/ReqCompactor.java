@@ -32,6 +32,7 @@ import java.util.Random;
  * @author Lee Rhodes
  */
 class ReqCompactor {
+  private ReqSketch sk;
   private static final double SQRT2 = Math.sqrt(2.0);
   private double sectionSizeDbl;
   private int sectionSize; //initialized with k, minimum 4
@@ -40,10 +41,9 @@ class ReqCompactor {
   private int state; //State of the deterministic compaction schedule
   private final int lgWeight;
   private boolean coin; //true or false at random for each compaction
-  private boolean hra; //high rank accuracy
   private FloatBuffer buf;
   private Random rand;
-  private ReqDebug reqDebug = null;
+
 
   /**
    * Constructor
@@ -52,24 +52,22 @@ class ReqCompactor {
    * @param reqDebug the debug signaling interface.
    */
   ReqCompactor(
+      final ReqSketch sk,
       final int sectionSize,
-      final int lgWeight,
-      final boolean hra,
-      final ReqDebug reqDebug) {
+      final int lgWeight) {
+    this.sk = sk;
     this.sectionSize = sectionSize;
     sectionSizeDbl = sectionSize;
     this.lgWeight = lgWeight;
-    this.hra = hra;
-    this.reqDebug = reqDebug;
 
     numCompactions = 0;
     state = 0;
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
-    final int nomCap = 2 * numSections * sectionSize; //nCap is always even
-    buf = new FloatBuffer(2 * nomCap, 0, hra);
+    final int nomCap = getNomCapacity();
+    buf = new FloatBuffer(2 * nomCap, 0, sk.hra);
 
-    if (reqDebug != null) { rand = new Random(1); }
+    if (sk.reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
 
     //if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
@@ -82,8 +80,6 @@ class ReqCompactor {
   ReqCompactor(final ReqCompactor other) {
     sectionSize = other.sectionSize;
     lgWeight = other.lgWeight;
-    hra = other.hra;
-    reqDebug = other.reqDebug;
 
     numCompactions = other.numCompactions;
     state = other.state;
@@ -100,8 +96,8 @@ class ReqCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact() {
-    if (reqDebug != null) {
-      reqDebug.emitCompactingStart(lgWeight); }
+    if (sk.reqDebug != null) {
+      sk.reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
     //TODO if we are at minK no need to compute these ??
     // choose a part of the buffer to compact
@@ -116,8 +112,8 @@ class ReqCompactor {
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
-    if (reqDebug != null) {
-      reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
+    if (sk.reqDebug != null) {
+      sk.reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
           promote.getLength(), coin);
     }
 
@@ -126,7 +122,7 @@ class ReqCompactor {
     state += 1;
     ensureEnoughSections();
 
-    if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
+    if (sk.reqDebug != null) { sk.reqDebug.emitCompactionDone(lgWeight); }
     return promote;
   } //End Compact
 
@@ -207,8 +203,9 @@ class ReqCompactor {
       sectionSizeDbl = szd;
       sectionSize = ne;
       numSections <<= 1;
-      buf.ensureCapacity(4 * numSections * sectionSize);
-      if (reqDebug != null) { reqDebug.emitAdjSecSizeNumSec(lgWeight); }
+      buf.ensureCapacity(2 * getNomCapacity());
+      sk.updateMaxNomSize();
+      if (sk.reqDebug != null) { sk.reqDebug.emitAdjSecSizeNumSec(lgWeight); }
       return true;
     }
     return false;
@@ -225,8 +222,8 @@ class ReqCompactor {
     int nonCompact = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
     //make compacted region even:
     nonCompact = (((bufLen - nonCompact) & 1) == 1) ? nonCompact + 1 : nonCompact;
-    final long low =  (hra) ? 0                   : nonCompact;
-    final long high = (hra) ? bufLen - nonCompact : bufLen;
+    final long low =  (sk.hra) ? 0                   : nonCompact;
+    final long high = (sk.hra) ? bufLen - nonCompact : bufLen;
     return (high << 32) + low;
   }
 

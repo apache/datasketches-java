@@ -59,10 +59,10 @@ abstract class BaseReqSketch {
   public abstract boolean getHighRanksAccuracy();
 
   /**
-   * Returns the current state of the LtEq criterion
-   * @return the current state of the LtEq criterion
+   * Returns the current criterion of the enum Criteria
+   * @return the current criterion of the enum Criteria
    */
-  public abstract boolean getLtEq();
+  public abstract Criteria getCriterion();
 
   /**
    * Gets the largest value seen by this sketch
@@ -206,13 +206,11 @@ abstract class BaseReqSketch {
   public abstract void reset();
 
   /**
-   * Sets the state of the LtEq criterion.
-   * if true, the compuation of rank and quantiles will be based on less-than or equals
-   * criterion. Otherwise, the compuation of rank and quantiles will be based on less-than
-   * criterion, which is consistent with the other quantiles sketches in the library.
-   * @param lteq the state of the LtEq criterion
+   * Sets the chosen criterion of the enum Criteria.
+   *
+   * @param criterion the chosen criterion
    */
-  public abstract void setLtEq(final boolean lteq);
+  public abstract void setCriterion(final Criteria criterion);
 
   /**
    * Returns a summary of the key parameters of the sketch.

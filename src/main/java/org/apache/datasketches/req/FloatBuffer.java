@@ -172,18 +172,18 @@ class FloatBuffer {
    * Returns non-normalized rank of the given value.
    * This is the count of items less-than (or equal to) the given value.
    * @param value the given value
-   * @param lteq the less-than or less-than or equal to criterion.
+   * @param criterion the chosen criterion.
    * @return count of items less-than (or equal to) the given value.
    */
-  int getCountLtOrEq(final float value, final boolean lteq) {
+  int getCountLtOrEq(final float value, final Criteria criterion) {
     if (!sorted_) { sort(); } //we must be sorted!
     if (spaceAtBottom_) {
       final int low = capacity_ - count_;
       final int high = capacity_ - 1;
-      final int index = ReqHelper.binarySearch(arr_, low, high, value, lteq);
+      final int index = ReqHelper.binarySearchFloat(arr_, low, high, value, criterion);
       return (index == -1) ? 0 : (index + 1) - (capacity_ - count_);
     } else {
-      final int index = ReqHelper.binarySearch(arr_, 0, count_ - 1, value, lteq);
+      final int index = ReqHelper.binarySearchFloat(arr_, 0, count_ - 1, value, criterion);
       return (index == -1) ? 0 : index + 1;
     }
 
@@ -194,16 +194,16 @@ class FloatBuffer {
    * The counts will be the number of values that are &lt; or &le; to the given values, depending on
    * the state of <i>lteq</i>.
    * @param values the given values array
-   * @param lteq if true, the criterion for the counts.
+   * @param criterion the chosen criterion.
    * @return an array of counts corresponding to each of the values in the given array
    */
-  int[] getCountsLtOrEq(final float[] values, final boolean lteq) {
+  int[] getCountsLtOrEq(final float[] values, final Criteria criterion) {
     final int len = values.length;
     final int[] nnrArr = new int[len];
     for (int i = 0; i < len; i++) {
       final float v = values[i];
       assert Float.isFinite(v) : "Float values must be finite.";
-      nnrArr[i] = getCountLtOrEq(values[i], lteq);
+      nnrArr[i] = getCountLtOrEq(values[i], criterion);
     }
     return nnrArr;
   }

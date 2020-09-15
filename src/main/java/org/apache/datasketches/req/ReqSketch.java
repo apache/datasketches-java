@@ -80,13 +80,13 @@ public class ReqSketch extends BaseReqSketch {
   private int maxNomSize = 0; //sum of nominal capacities of all compactors
   private float minValue = Float.MAX_VALUE;
   private float maxValue = Float.MIN_VALUE;
-  private final boolean hra;
-  private boolean lteq = false; //default is less-than
+  final boolean hra;
+  private Criteria criterion = Criteria.LT; //default is less-than
   private ReqAuxiliary aux = null;
 
   private List<ReqCompactor> compactors = new ArrayList<>();
 
-  private ReqDebug reqDebug = null;
+  ReqDebug reqDebug = null;
 
   /**
    * Constructor with default k = 50, highRankAccuracy = true, reqDebug = null.
@@ -150,7 +150,7 @@ public class ReqSketch extends BaseReqSketch {
     minValue = other.minValue;
     maxValue = other.maxValue;
     hra = other.hra;
-    lteq = other.lteq;
+    criterion = other.criterion;
     reqDebug = other.reqDebug;
 
     for (int i = 0; i < other.getNumLevels(); i++) {
@@ -211,8 +211,8 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public boolean getLtEq() {
-    return lteq;
+  public Criteria getCriterion() {
+    return criterion;
   }
 
   int getMaxNomSize() {
@@ -351,7 +351,7 @@ public class ReqSketch extends BaseReqSketch {
       final ReqCompactor c = compactors.get(i);
       final int wt = 1 << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
-      final int[] countsArr = buf.getCountsLtOrEq(values, lteq);
+      final int[] countsArr = buf.getCountsLtOrEq(values, criterion);
       for (int j = 0; j < numValues; j++) {
         cumNnrArr[j] += countsArr[j] * wt;
       }
@@ -363,7 +363,7 @@ public class ReqSketch extends BaseReqSketch {
   public int getRetainedItems() { return retItems; }
 
   private void grow() {
-    compactors.add(new ReqCompactor(k, getNumLevels(), hra, reqDebug));
+    compactors.add(new ReqCompactor(this, k, getNumLevels()));
     updateMaxNomSize();
     final int lgWeight = compactors.size() - 1;
     if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
@@ -414,8 +414,8 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public void setLtEq(final boolean lteq) {
-    this.lteq = lteq;
+  public void setCriterion(final Criteria criterion) {
+    this.criterion = criterion;
   }
 
   @Override
@@ -428,7 +428,7 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
     sb.append("  Estimation Mode : " + isEstimationMode()).append(LS);
-    sb.append("  LtEq Criterion  : " + lteq).append(LS);
+    sb.append("  Criterion       : " + criterion).append(LS);
     sb.append("  High Rank Acc   : " + hra).append(LS);
     sb.append("  Levels          : " + compactors.size()).append(LS);
     sb.append("************************End Summary************************").append(LS);
@@ -474,7 +474,7 @@ public class ReqSketch extends BaseReqSketch {
   /**
    * Computes a new bound for determining when to compress the sketch.
    */
-  private void updateMaxNomSize() {
+  void updateMaxNomSize() {
     int cap = 0;
     for (ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
     maxNomSize = cap;

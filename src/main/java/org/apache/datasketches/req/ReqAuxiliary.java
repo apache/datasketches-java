@@ -20,7 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.req.ReqHelper.LS;
-import static org.apache.datasketches.req.ReqHelper.binarySearch;
+import static org.apache.datasketches.req.ReqHelper.binarySearchDouble;
 
 import java.util.List;
 
@@ -33,18 +33,18 @@ class ReqAuxiliary {
   private long[] weights;
   private double[] normRanks;
   private final boolean hra;
-  private final boolean lteq;
+  private final Criteria criterion;
 
   ReqAuxiliary(final ReqSketch sk) {
     hra = sk.getHighRanksAccuracy();
-    lteq = sk.getLtEq();
+    criterion = sk.getCriterion();
     buildAuxTable(sk);
   }
 
   //For testing only
-  ReqAuxiliary(final int arrLen, final boolean hra, final boolean lteq) {
+  ReqAuxiliary(final int arrLen, final boolean hra, final Criteria criterion) {
     this.hra = hra;
-    this.lteq = lteq;
+    this.criterion = criterion;
     items = new float[arrLen];
     weights = new long[arrLen];
     normRanks = new double[arrLen];
@@ -111,7 +111,7 @@ class ReqAuxiliary {
    */
   float getQuantile(final double normRank) {
     final int len = normRanks.length;
-    final int index = binarySearch(normRanks, 0, len - 1, normRank, lteq);
+    final int index = binarySearchDouble(normRanks, 0, len - 1, normRank, criterion);
     if (index == -1) { return Float.NaN; }
     return items[index];
   }

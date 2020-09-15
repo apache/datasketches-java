@@ -39,8 +39,8 @@ public class ReqCompactorTest {
   public void checkGetters() {
     boolean up = true;
     boolean hra = true;
-    boolean lteq = true;
-    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  lteq, 0);
+    Criteria criterion = Criteria.LE;
+    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  criterion, 0);
     ReqCompactor c = sk.getCompactors().get(0);
 
     c.getCoin();

@@ -19,7 +19,13 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.Criteria.GE;
+import static org.apache.datasketches.req.Criteria.GT;
+import static org.apache.datasketches.req.Criteria.LE;
+import static org.apache.datasketches.req.Criteria.LT;
 import static org.apache.datasketches.req.ReqHelper.binarySearch;
+import static org.apache.datasketches.req.ReqHelper.binarySearchDouble;
+import static org.apache.datasketches.req.ReqHelper.binarySearchFloat;
 import static org.apache.datasketches.req.ReqHelper.validateSplits;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
@@ -39,7 +45,7 @@ public class ReqHelperTest {
   @Test
   public void checkBinSearchLTandLTEQ() {
     for (int len = 10; len < 13; len++) {
-      float[] rarr = buildRandArr(len);
+      float[] rarr = buildRandFloatArr(len);
       float top = rarr[len - 1] + .5f;
 
       for (float v = 0.5f; v <= top; v += 0.5f) {
@@ -124,7 +130,7 @@ public class ReqHelperTest {
   }
 
 
-  private static float[] buildRandArr(int len) {
+  private static float[] buildRandFloatArr(int len) {
     float[] arr = new float[len];
     float v = 1.0f;
     for (int i = 0; i < len; i++) {
@@ -134,6 +140,17 @@ public class ReqHelperTest {
     return arr;
   }
 
+  private static double[] buildRandDoubleArr(int len) {
+    double[] arr = new double[len];
+    double v = 1.0;
+    for (int i = 0; i < len; i++) {
+      arr[i] = v;
+      v += randDelta();
+    }
+    return arr;
+  }
+
+
   private static int randDelta() { return (rand.nextDouble() < 0.4) ? 0 : 1; }
 
   //@Test //visual testing only
@@ -141,7 +158,7 @@ public class ReqHelperTest {
   private static void checkBuildRandArr() {
     int len = 10;
     for (int i = 0; i < 10; i++) {
-      float[] tarr = buildRandArr(len);
+      float[] tarr = buildRandFloatArr(len);
       for (int j = 0; j < len; j++) {
         printf("%4.1f,", tarr[j]);
       }
@@ -149,11 +166,135 @@ public class ReqHelperTest {
     }
   }
 
+  static Criteria critLT = LT;
+  static Criteria critLE = LE;
+  static Criteria critGT = GT;
+  static Criteria critGE = GE;
+
+  @Test
+  public void checkBinSearchDblLimits() {
+    for (int len = 10; len <= 13; len++) {
+      double[] tarr = buildRandDoubleArr(len);
+      int low = 2;
+      int high = len - 2;
+      checkBinarySearchDoubleLimits(tarr, low, high);
+    }
+  }
+
+  private static void checkBinarySearchDoubleLimits(double[] arr, int low, int high) {
+    double lowV = arr[low];
+    double highV = arr[high];
+    int res;
+    res = binarySearchDouble(arr, low, high, lowV - 1, LT);
+    assertEquals(res, -1);
+    res = binarySearchDouble(arr, low, high, lowV, LT);
+    assertEquals(res, -1);
+    res = binarySearchDouble(arr, low, high, highV + 1, LT);
+    assertEquals(res, high);
+
+    res = binarySearchDouble(arr, low, high, lowV - 1, LE);
+    assertEquals(res, -1);
+    res = binarySearchDouble(arr, low, high, highV, LE);
+    assertEquals(res, high);
+    res = binarySearchDouble(arr, low, high, highV + 1, LE);
+    assertEquals(res, high);
+
+    res = binarySearchDouble(arr, low, high, lowV - 1, GT);
+    assertEquals(res, low);
+    res = binarySearchDouble(arr, low, high, highV, GT);
+    assertEquals(res, -1);
+    res = binarySearchDouble(arr, low, high, highV + 1, GT);
+    assertEquals(res, -1);
+
+    res = binarySearchDouble(arr, low, high, lowV - 1, GE);
+    assertEquals(res, low);
+    res = binarySearchDouble(arr, low, high, lowV, GE);
+    assertEquals(res, low);
+    res = binarySearchDouble(arr, low, high, highV + 1, GE);
+    assertEquals(res, -1);
+  }
+
+  @Test
+  public void checkBinSearchFltLimits() {
+    for (int len = 10; len <= 13; len++) {
+      float[] tarr = buildRandFloatArr(len);
+      int low = 2;
+      int high = len - 2;
+      checkBinarySearchFloatLimits(tarr, low, high);
+    }
+  }
+
+  private static void checkBinarySearchFloatLimits(float[] arr, int low, int high) {
+    float lowV = arr[low];
+    float highV = arr[high];
+    int res;
+    res = binarySearchFloat(arr, low, high, lowV - 1, LT);
+    assertEquals(res, -1);
+    res = binarySearchFloat(arr, low, high, lowV, LT);
+    assertEquals(res, -1);
+    res = binarySearchFloat(arr, low, high, highV + 1, LT);
+    assertEquals(res, high);
+
+    res = binarySearchFloat(arr, low, high, lowV - 1, LE);
+    assertEquals(res, -1);
+    res = binarySearchFloat(arr, low, high, highV, LE);
+    assertEquals(res, high);
+    res = binarySearchFloat(arr, low, high, highV + 1, LE);
+    assertEquals(res, high);
+
+    res = binarySearchFloat(arr, low, high, lowV - 1, GT);
+    assertEquals(res, low);
+    res = binarySearchFloat(arr, low, high, highV, GT);
+    assertEquals(res, -1);
+    res = binarySearchFloat(arr, low, high, highV + 1, GT);
+    assertEquals(res, -1);
+
+    res = binarySearchFloat(arr, low, high, lowV - 1, GE);
+    assertEquals(res, low);
+    res = binarySearchFloat(arr, low, high, lowV, GE);
+    assertEquals(res, low);
+    res = binarySearchFloat(arr, low, high, highV + 1, GE);
+    assertEquals(res, -1);
+  }
+
+  //@Test visual only
+  public void exerciseBinSearch2() {
+    //                    0 1 2 3 4 5,6
+    final double[] arr = {1,1,3,3,4,5,5};
+    checkBinarySearchDouble(arr, LT);
+    checkBinarySearchDouble(arr, LE);
+    checkBinarySearchDouble(arr, GT);
+    checkBinarySearchDouble(arr, GE);
+  }
+
+  private static void checkBinarySearchDouble(double[] arr, Criteria crit) {
+    println("Criteria: " + crit.name());
+    final int len = arr.length;
+    for (double v = 0.5; v <= (arr[len - 1] + 0.5); v += .5)
+    //final double v = 0.5;
+    {
+      final int low = 0;
+      final int high = len - 1;
+      final int idx = binarySearchDouble(arr, low, high, v, crit);
+      if (idx == -1) {
+        println(v + " Not resolved, return -1.");
+      }
+      else {
+        println(crit.desc(arr, low, high, idx, v));
+      }
+    }
+    println("");
+  }
+
+
   private static final void printf(final String format, final Object ...args) {
     System.out.printf(format, args);
   }
 
   private static final void print(final Object o) { System.out.print(o.toString()); }
 
-  private static final void println(final Object o) { System.out.println(o.toString()); }
+  @SuppressWarnings("unused")
+  private static final void println(final Object o) {
+    System.out.println(o.toString());
+  }
 }

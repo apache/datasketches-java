@@ -20,6 +20,10 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.Util.evenlySpacedFloats;
+import static org.apache.datasketches.req.Criteria.GE;
+import static org.apache.datasketches.req.Criteria.GT;
+import static org.apache.datasketches.req.Criteria.LE;
+import static org.apache.datasketches.req.Criteria.LT;
 import static org.apache.datasketches.req.ReqHelper.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -37,24 +41,29 @@ public class ReqSketchTest {
   //To control debug printing:
   private int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
   private int iDebug = 0; // debug printing for individual tests below, same scale as above
+  static Criteria critLT = LT;
+  static Criteria critLE = LE;
+  static Criteria critGT = GT;
+  static Criteria critGE = GE;
+
 
   @Test
   public void bigTest() {
     //          k, min, max,    up,   hra,   lteq, skDebug
-    bigTestImpl(6, 1,   200,  true,  true,   true, skDebug);
-    bigTestImpl(6, 1,   200, false,  false,  true, skDebug);
-    bigTestImpl(6, 1,   200, false,   true, false, skDebug);
-    bigTestImpl(6, 1,   200,  true,  false,  true, skDebug);
+    bigTestImpl(6, 1,   200,  true,  true,   critLE, skDebug);
+    bigTestImpl(6, 1,   200, false,  false,  critLE, skDebug);
+    bigTestImpl(6, 1,   200, false,   true,  critLT, skDebug);
+    bigTestImpl(6, 1,   200,  true,  false,  critLE, skDebug);
   }
 
   public void bigTestImpl(int k, int min, int max, boolean up, boolean hra,
-      boolean lteq, int skDebug) {
+      Criteria criterion, int skDebug) {
     if (iDebug > 0) {
       println(LS + "*************************");
       println("k=" + k + " min=" + min + " max=" + max
-          + " up=" + up + " hra=" + hra + " lteq=" + lteq + LS);
+          + " up=" + up + " hra=" + hra + " criterion=" + criterion + LS);
     }
-    ReqSketch sk = loadSketch(k, min, max, up, hra, lteq, skDebug);
+    ReqSketch sk = loadSketch(k, min, max, up, hra, criterion, skDebug);
     checkToString(sk, iDebug);
     checkAux(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
@@ -223,10 +232,10 @@ public class ReqSketchTest {
 
   //Common loadSketch
   public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
-      boolean lteq, int skDebug) {
+      Criteria criterion, int skDebug) {
 
     ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug));
-    if (lteq) { sk.setLtEq(lteq); }
+    sk.setCriterion(criterion);
     if (up) {
       for (int i = min; i <= max; i++) {
         sk.update(i);
