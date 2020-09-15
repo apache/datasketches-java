@@ -47,9 +47,9 @@ class ReqCompactor {
 
   /**
    * Constructor
+   * @param sk the associated ReqSketch
    * @param sectionSize the value of k
    * @param lgWeight this compactor's lgWeight
-   * @param reqDebug the debug signaling interface.
    */
   ReqCompactor(
       final ReqSketch sk,
@@ -69,8 +69,6 @@ class ReqCompactor {
 
     if (sk.reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
-
-    //if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
   }
 
   /**
@@ -99,7 +97,6 @@ class ReqCompactor {
     if (sk.reqDebug != null) {
       sk.reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
-    //TODO if we are at minK no need to compute these ??
     // choose a part of the buffer to compact
     final int secsToCompact = numberOfTrailingOnes(state) + 1;
     final long compactionRange = computeCompactionRange(secsToCompact);
