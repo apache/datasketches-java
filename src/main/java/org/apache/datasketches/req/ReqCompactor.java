@@ -94,18 +94,17 @@ class ReqCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact() {
-    if (sk.reqDebug != null) {
-      sk.reqDebug.emitCompactingStart(lgWeight); }
+    if (sk.reqDebug != null) { sk.reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
     // choose a part of the buffer to compact
     final int secsToCompact = numberOfTrailingOnes(state) + 1;
     final long compactionRange = computeCompactionRange(secsToCompact);
     final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
     final int compactionEnd = (int) (compactionRange >>> 32); //high 32
-    assert (compactionEnd - compactionStart) >= 2;
+    assert compactionEnd - compactionStart >= 2;
 
     if ((numCompactions & 1) == 1) { coin = !coin; } //if numCompactions odd, flip coin;
-    else { coin = (rand.nextDouble() < 0.5); }       //random coin flip
+    else { coin = rand.nextDouble() < 0.5; }       //random coin flip
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
@@ -194,8 +193,8 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final double szd;
     final int ne;
-    if ((numCompactions >= (1 << (numSections - 1)))
-        && ((ne = nearestEven(szd = sectionSizeDbl / SQRT2)) >= MIN_K))
+    if (numCompactions >= 1 << numSections - 1
+        && (ne = nearestEven(szd = sectionSizeDbl / SQRT2)) >= MIN_K)
     {
       sectionSizeDbl = szd;
       sectionSize = ne;
@@ -216,11 +215,11 @@ class ReqCompactor {
    */
   private long computeCompactionRange(final int secsToCompact) {
     final int bufLen = buf.getLength();
-    int nonCompact = (getNomCapacity() / 2) + ((numSections - secsToCompact) * sectionSize);
+    int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
     //make compacted region even:
-    nonCompact = (((bufLen - nonCompact) & 1) == 1) ? nonCompact + 1 : nonCompact;
-    final long low =  (sk.hra) ? 0                   : nonCompact;
-    final long high = (sk.hra) ? bufLen - nonCompact : bufLen;
+    nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
+    final long low =  sk.hra ? 0                   : nonCompact;
+    final long high = sk.hra ? bufLen - nonCompact : bufLen;
     return (high << 32) + low;
   }
 

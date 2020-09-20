@@ -20,6 +20,9 @@
 package org.apache.datasketches.req;
 
 /**
+ * <b>NOTE:</b> This is an internal class and is public to allow characterization testing from
+ * another package. It is not intended to be used by normal users of the ReqSketch.
+ *
  * @author Lee Rhodes
  */
 public enum Criteria {
@@ -33,12 +36,12 @@ public enum Criteria {
   LT { //A < V <= B, return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
-      return  (v <= arr[a]) ? -1 : arr[b] < v ? 1 : 0;
+      return  v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
     }
 
     @Override
     int compare(final float[] arr, final int a, final int b, final float v) {
-      return  (v <= arr[a]) ? -1 : arr[b] < v ? 1 : 0;
+      return  v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
     }
 
     @Override //only if compare == 0
@@ -84,14 +87,14 @@ public enum Criteria {
   LE { //A <= V < B, return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
-      final int ret = (v < arr[a]) ? -1 : arr[b] <= v ? 1 : 0;
+      final int ret = v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
 
       return ret;
     }
 
     @Override
     int compare(final float[] arr, final int a, final int b, final float v) {
-      final int ret = (v < arr[a]) ? -1 : arr[b] <= v ? 1 : 0;
+      final int ret = v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
 
       return ret;
     }

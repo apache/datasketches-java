@@ -36,7 +36,7 @@ class ReqAuxiliary {
   private final Criteria criterion;
 
   ReqAuxiliary(final ReqSketch sk) {
-    hra = sk.getHighRanksAccuracy();
+    hra = sk.getHighRankAccuracy();
     criterion = sk.getCriterion();
     buildAuxTable(sk);
   }
@@ -74,6 +74,9 @@ class ReqAuxiliary {
     }
   }
 
+  //Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
+  // the ultimate array size has already been set.  However, this must simultaneously deal with
+  // sorting the weights as well.
   void mergeSortIn(final FloatBuffer bufIn, final long wt, final int auxCount) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
@@ -81,9 +84,9 @@ class ReqAuxiliary {
     final int totLen = auxCount + bufInLen;
     int i = auxCount - 1;
     int j = bufInLen - 1;
-    int h = (hra) ? bufIn.getCapacity() - 1 : bufInLen - 1;
+    int h = hra ? bufIn.getCapacity() - 1 : bufInLen - 1;
     for (int k = totLen; k-- > 0; ) {
-      if ((i >= 0) && (j >= 0)) { //both valid
+      if (i >= 0 && j >= 0) { //both valid
         if (items[i] >= arrIn[h]) {
           items[k] = items[i];
           weights[k] = weights[i--];

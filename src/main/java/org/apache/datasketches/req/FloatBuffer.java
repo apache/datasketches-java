@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.Criteria.GE;
+import static org.apache.datasketches.req.Criteria.GT;
+import static org.apache.datasketches.req.Criteria.LE;
+import static org.apache.datasketches.req.Criteria.LT;
 import static org.apache.datasketches.req.ReqHelper.LS;
 
 import java.util.Arrays;
@@ -143,7 +147,7 @@ class FloatBuffer {
    * @return this
    */
   private FloatBuffer ensureSpace(final int space) {
-    if ((count_ + space) > capacity_) {
+    if (count_ + space > capacity_) {
       final int newCap = count_ + space + delta_;
       ensureCapacity(newCap);
     }
@@ -168,42 +172,49 @@ class FloatBuffer {
     return capacity_;
   }
 
+  static Criteria critLT = LT;
+  static Criteria critLE = LE;
+  static Criteria critGT = GT;
+  static Criteria critGE = GE;
+
   /**
    * Returns non-normalized rank of the given value.
-   * This is the count of items less-than (or equal to) the given value.
+   * This is the count of items based on the given criteria.
+   * Also used in test.
    * @param value the given value
    * @param criterion the chosen criterion.
-   * @return count of items less-than (or equal to) the given value.
+   * @return count of items based on the given criteria.
    */
-  int getCountLtOrEq(final float value, final Criteria criterion) {
+  int getCountWithCriterion(final float value, final Criteria criterion) {
     if (!sorted_) { sort(); } //we must be sorted!
+    int low = 0;    //iniitalized to space at top
+    int high = count_ - 1;
     if (spaceAtBottom_) {
-      final int low = capacity_ - count_;
-      final int high = capacity_ - 1;
-      final int index = ReqHelper.binarySearchFloat(arr_, low, high, value, criterion);
-      return (index == -1) ? 0 : (index + 1) - (capacity_ - count_);
-    } else {
-      final int index = ReqHelper.binarySearchFloat(arr_, 0, count_ - 1, value, criterion);
-      return (index == -1) ? 0 : index + 1;
+      low = capacity_ - count_;
+      high = capacity_ - 1;
     }
-
+    final int index = ReqHelper.binarySearchFloat(arr_, low, high, value, criterion);
+    if (criterion == GT || criterion == GE) {
+      return index == -1 ? 0 : high - index + 1;
+    }
+    //LT or LE
+    return index == -1 ? 0 : index - low + 1;
   }
 
   /**
    * Returns an array of counts corresponding to each of the values in the given array.
-   * The counts will be the number of values that are &lt; or &le; to the given values, depending on
-   * the state of <i>lteq</i>.
+   * The counts will be the number of values based on the given criteria.
    * @param values the given values array
    * @param criterion the chosen criterion.
-   * @return an array of counts corresponding to each of the values in the given array
+   * @return an array of counts corresponding to each of the values in the given array.
    */
-  int[] getCountsLtOrEq(final float[] values, final Criteria criterion) {
+  int[] getCountsWithCriterion(final float[] values, final Criteria criterion) {
     final int len = values.length;
     final int[] nnrArr = new int[len];
     for (int i = 0; i < len; i++) {
       final float v = values[i];
-      assert Float.isFinite(v) : "Float values must be finite.";
-      nnrArr[i] = getCountLtOrEq(values[i], criterion);
+      assert !Float.isNaN(v) : "Float values must be finite.";
+      nnrArr[i] = getCountWithCriterion(values[i], criterion);
     }
     return nnrArr;
   }
@@ -220,8 +231,8 @@ class FloatBuffer {
    * @return the selected odds from the range
    */
   FloatBuffer getEvensOrOdds(final int startOffset, final int endOffset, final boolean odds) {
-    final int start = spaceAtBottom_ ? (capacity_ - count_) + startOffset : startOffset;
-    final int end = spaceAtBottom_ ? (capacity_ - count_) + endOffset : endOffset;
+    final int start = spaceAtBottom_ ? capacity_ - count_ + startOffset : startOffset;
+    final int end = spaceAtBottom_ ? capacity_ - count_ + endOffset : endOffset;
     Arrays.sort(arr_, start, end);
     final int range = endOffset - startOffset;
     if ((range & 1) == 1) {
@@ -251,7 +262,7 @@ class FloatBuffer {
    * @return an item given its offset
    */
   float getItem(final int offset) {
-    final int index = (spaceAtBottom_) ? (capacity_ - count_) + offset : offset;
+    final int index = spaceAtBottom_ ? capacity_ - count_ + offset : offset;
     return arr_[index];
   }
 
@@ -308,16 +319,16 @@ class FloatBuffer {
       throw new SketchesArgumentException("Both buffers must be sorted.");
     }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
-    final int inLen = bufIn.getLength();
-    ensureSpace(inLen);
-    final int totLen = count_ + inLen;
+    final int bufInLen = bufIn.getLength();
+    ensureSpace(bufInLen);
+    final int totLen = count_ + bufInLen;
     if (spaceAtBottom_) { //scan up, insert at bottom
       final int tgtStart = capacity_ - totLen;
       int i = capacity_ - count_;
       int j = bufIn.capacity_ - bufIn.count_;
       for (int k = tgtStart; k < capacity_; k++) {
-        if ((i < capacity_) && (j < bufIn.capacity_)) { //both valid
-          arr_[k] = (arr_[i] <= arrIn[j]) ? arr_[i++] : arrIn[j++];
+        if (i < capacity_ && j < bufIn.capacity_) { //both valid
+          arr_[k] = arr_[i] <= arrIn[j] ? arr_[i++] : arrIn[j++];
         } else if (i < capacity_) { //i is valid
           arr_[k] = arr_[i++];
         } else if (j <  bufIn.capacity_) { //j is valid
@@ -328,10 +339,10 @@ class FloatBuffer {
       }
     } else { //scan down, insert at top
       int i = count_ - 1;
-      int j = inLen - 1;
+      int j = bufInLen - 1;
       for (int k = totLen; k-- > 0; ) {
-        if ((i >= 0) && (j >= 0)) { //both valid
-          arr_[k] = (arr_[i] >= arrIn[j]) ? arr_[i--] : arrIn[j--];
+        if (i >= 0 && j >= 0) { //both valid
+          arr_[k] = arr_[i] >= arrIn[j] ? arr_[i--] : arrIn[j--];
         } else if (i >= 0) { //i is valid
           arr_[k] = arr_[i--];
         } else if (j >= 0) { //j is valid
@@ -341,7 +352,7 @@ class FloatBuffer {
         }
       }
     }
-    count_ += inLen;
+    count_ += bufInLen;
     sorted_ = true;
     return this;
   }
@@ -377,7 +388,7 @@ class FloatBuffer {
     for (int i = start; i < end; i++) {
       final float v = arr_[i];
       final String str = String.format(fmt, v);
-      if ((i > start) && ((++cnt % width) == 0)) { sb.append(LS).append(spaces); }
+      if (i > start && ++cnt % width == 0) { sb.append(LS).append(spaces); }
       sb.append(str);
     }
     return sb.toString();

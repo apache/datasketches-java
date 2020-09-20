@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.req.Criteria.GE;
+import static org.apache.datasketches.req.Criteria.GT;
+import static org.apache.datasketches.req.Criteria.LE;
+import static org.apache.datasketches.req.Criteria.LT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -57,7 +61,7 @@ public class FloatBufferTest {
   private static void checkGetEvensOrOddsImpl(boolean odds, boolean spaceAtBottom) {
     int cap = 16;
     FloatBuffer buf = new FloatBuffer(cap, 0, spaceAtBottom);
-    for (int i = 0; i < (cap/2); i++) {
+    for (int i = 0; i < cap/2; i++) {
       buf.append(i);
     }
     FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
@@ -124,17 +128,52 @@ public class FloatBufferTest {
   }
 
   private static void checkCountLessThanImpl(boolean spaceAtBottom) {
-    FloatBuffer buf = new FloatBuffer(14, 2, spaceAtBottom);
     float[] sortedArr = {1,2,3,4,5,6,7};
-    buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
+    FloatBuffer buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
     FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountLtOrEq(4, Criteria.LT), 3);
+    assertEquals(buf2.getCountWithCriterion(4, Criteria.LT), 3);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountLtOrEq(4, Criteria.LT), 6);
+    assertEquals(buf2.getCountWithCriterion(4, Criteria.LT), 6);
     assertEquals(buf2.getLength(), 14);
     buf2.trimLength(12);
     assertEquals(buf2.getLength(), 12);
+  }
+
+  @Test
+  public void checkCountWcriteria() {
+    int delta = 0;
+    int cap = 16;
+    for (int len = 5; len < 10; len++) {
+      iterateValues(createSortedFloatBuffer(cap, delta, true, len), len);
+      iterateValues(createSortedFloatBuffer(cap, delta, false, len), len);
+    }
+  }
+
+  private static void iterateValues(FloatBuffer buf, int len) {
+    for (float v = 0.5f; v <= len + 0.5f; v += 0.5f) {
+      checkCountWithCriteria(buf, v);
+    }
+  }
+
+  private static void checkCountWithCriteria(FloatBuffer buf, float v) {
+    int count;
+    int len = buf.getLength();
+    int iv = (int) v;
+    count = buf.getCountWithCriterion(v, LT);
+    assertEquals(count, v > len ? len : v <= 1 ? 0 : iv == v? iv - 1 : iv);
+    count = buf.getCountWithCriterion(v, LE);
+    assertEquals(count, v >= len ? len : v < 1 ? 0 : iv);
+    count = buf.getCountWithCriterion(v, GT);
+    assertEquals(count, v < 1 ? len : v >= len ? 0 : len - iv);
+    count = buf.getCountWithCriterion(v, GE);
+    assertEquals(count, v <= 1 ? len : v > len ? 0 : iv == v ? len - iv + 1 : len - iv);
+  }
+
+  private static FloatBuffer createSortedFloatBuffer(int cap, int delta, boolean sab, int len) {
+    FloatBuffer buf = new FloatBuffer(cap, delta, sab);
+    for (int i = 0; i < len; i++) { buf.append(i + 1); }
+    return buf;
   }
 
   @Test
@@ -188,7 +227,7 @@ public class FloatBufferTest {
     buf.append(3); buf.append(2); buf.append(1);
     buf.trimLength(4);
     assertEquals(buf.getLength(), 3);
-    int cnt = buf.getCountLtOrEq(3.0f, Criteria.LE);
+    int cnt = buf.getCountWithCriterion(3.0f, Criteria.LE);
     assertEquals(cnt, 3);
     assertEquals(buf.getIndex(2), 3.0f);
     try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (SketchesArgumentException e) {}

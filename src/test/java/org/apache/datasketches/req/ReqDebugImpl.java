@@ -22,7 +22,15 @@ package org.apache.datasketches.req;
 import java.util.List;
 
 /**
- * The implementation of the ReqDebug interface.
+ * The implementation of the ReqDebug interface. The current levels are
+ * implemented:
+ * <ul><li><b>Level 0: </b>The random generator in the compactor will be given a fixed
+ * seed which will make the sketch deterministic.</li>
+ * <li><b>Level 1: </b>Print summaries, but not the data retained by the sketch. This is useful
+ * when the sketch is large.</li>
+ * <li><b>Level 2: </b>Print summaries and all data retained by the sketch.</li>
+ * </ul>
+ *
  * @author Lee Rhodes
  */
 public class ReqDebugImpl implements ReqDebug{
@@ -157,7 +165,7 @@ public class ReqDebugImpl implements ReqDebug{
     sb.append(TAB + " CompactStart: ").append(compactionStart);
     sb.append(TAB + " CompactEnd: ").append(compactionEnd).append(LS);
     final int delete = compactionEnd - compactionStart;
-    final String oddOrEven = (coin) ? "Odds" : "Evens";
+    final String oddOrEven = coin ? "Odds" : "Evens";
     sb.append("    ");
     sb.append("Promote: ").append(promoteLen);
     sb.append(TAB + " Delete: ").append(delete);

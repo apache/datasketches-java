@@ -103,7 +103,7 @@ public class ReqSketchTest {
     String dfmt = "%10.2f%10.6f" + LS;
     String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }
-    double slope = (max - min) + min;
+    double slope = max - min + min;
     float va = 0;
     double ranka = 0;
     for (int i = 0; i < spArr.length; i++) {
@@ -176,7 +176,7 @@ public class ReqSketchTest {
     double[] cdf = sk.getCDF(spArr);
     if (iDebug > 0) {
       for (int i = 0; i < cdf.length; i++) {
-        float sp = (i == spArr.length) ? sk.getMaxValue() : spArr[i];
+        float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
         println("SP: " +sp + ", Den: " + cdf[i]);
       }
     }
@@ -189,7 +189,7 @@ public class ReqSketchTest {
     double[] pmf = sk.getPMF(spArr);
     if (iDebug > 0) {
       for (int i = 0; i < pmf.length; i++) {
-        float sp = (i == spArr.length) ? sk.getMaxValue() : spArr[i];
+        float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
         println("SP: " +sp + ", Mass: " + pmf[i]);
       }
     }
@@ -233,7 +233,6 @@ public class ReqSketchTest {
   //Common loadSketch
   public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
       Criteria criterion, int skDebug) {
-
     ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug));
     sk.setCriterion(criterion);
     if (up) {

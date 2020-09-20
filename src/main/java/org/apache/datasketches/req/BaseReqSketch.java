@@ -56,13 +56,14 @@ abstract class BaseReqSketch {
    * construction.
    * @return the high ranks accuracy state.
    */
-  public abstract boolean getHighRanksAccuracy();
+  public abstract boolean getHighRankAccuracy();
 
   /**
-   * Returns the current criterion of the enum Criteria
-   * @return the current criterion of the enum Criteria
+   * Returns the current comparison criterion. If true the value comparison criterion is
+   * &le;, otherwise it will be the default, which is &lt;.
+   * @return the current comparison criterion
    */
-  public abstract Criteria getCriterion();
+  public abstract boolean getLessThanOrEqual();
 
   /**
    * Gets the largest value seen by this sketch
@@ -160,7 +161,7 @@ abstract class BaseReqSketch {
   public abstract double[] getRanks(final float[] values);
 
   /**
-   * returns an approximate upper bound rank of the given rank.
+   * Returns an approximate upper bound rank of the given rank.
    * @param rank the given rank, a value between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate upper bound rank.
@@ -172,6 +173,14 @@ abstract class BaseReqSketch {
    * @return the number of retained entries of this sketch
    */
   public abstract int getRetainedItems();
+
+  /**
+   * Returns true if this sketch's treatment of getRank(0.0) and getRank(1.0) is compatible with
+   * the other quantiles sketches in the DataSketches library.
+   * @return true if this sketch's treatment of getRank(0.0) and getRank(1.0) is compatible with
+   * the other quantiles sketches in the DataSketches library.
+   */
+  public abstract boolean isCompatible();
 
   /**
    * Returns true if this sketch is empty.
@@ -202,15 +211,32 @@ abstract class BaseReqSketch {
    * Resets this sketch by removing all data and setting all data related variables to their
    * virgin state.
    * The parameters k, highRankAccuracy, reqDebug and lteq will not change.
+   * @return this
    */
-  public abstract void reset();
+  public abstract ReqSketch reset();
 
   /**
-   * Sets the chosen criterion of the enum Criteria.
-   *
-   * @param criterion the chosen criterion
+   * Sets the compatiblity mode. If true, this sketch's treatment of getRank(0.0) and getRank(1.0)
+   * will be compatible with the other quantiles sketches in the DataSketches library.
+   * Specifically, compatible means a getRank(0.0) returns the minimum value from the stream and
+   * a getRank(1.0) returns the maximum value from the stream. If false, a getRank(0.0) may return
+   * a Double.NaN and a getRank(1.0) will return the sketch's estimate of that rank, which may not
+   * be the maximum value of the stream.
+   * @param compatible if true, this sketch's treatment of getRank(0.0) and getRank(1.0)
+   * will be compatible with the other quantiles sketches in the DataSketches library.
+   * @return this
    */
-  public abstract void setCriterion(final Criteria criterion);
+  public abstract ReqSketch setCompatible(final boolean compatible);
+
+  /**
+   * Sets the chosen criterion for value comparison
+   *
+   * @param ltEq if true, the sketch will use the &le; criterion for comparing values.
+   * Otherwise, the default criterion is strictly &lt;.  This can be set anytime prior to a
+   * {@link #getRank(float)} or {@link #getQuantile(double)} or equivalent query.
+   * @return this
+   */
+  public abstract ReqSketch setLessThanOrEqual(final boolean ltEq);
 
   /**
    * Returns a summary of the key parameters of the sketch.

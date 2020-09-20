@@ -20,6 +20,8 @@
 package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
+import static org.apache.datasketches.req.Criteria.GE;
+import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.ReqHelper.LS;
 import static org.apache.datasketches.req.ReqHelper.validateSplits;
 
@@ -56,8 +58,8 @@ import org.apache.datasketches.SketchesArgumentException;
  * <p>This implementation provides a number of capabilites not discussed in the paper or provided
  * in the Python prototype.</p>
  * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
- * provides the user with the ability to choose either high rank accuracy or low rank accuracy at the
- * time of construction.</li>
+ * provides the user with the ability to choose either high rank accuracy or low rank accuracy at
+ * the time of construction.</li>
  * <li>The Python prototype only implemented a comparison criterion of "&le;". This implementation
  * allows the user to switch back and forth between the "&le;" criterion and the "&lt;" criterion.</li>
  * <li>This implementation provides extensive debug visibility into the operation of the sketch with
@@ -72,15 +74,14 @@ import org.apache.datasketches.SketchesArgumentException;
 public class ReqSketch extends BaseReqSketch {
   final static int INIT_NUMBER_OF_SECTIONS = 3;
   final static int MIN_K = 4;
-  private final static int DEFAULT_K = 50;
-
   private long totalN; //total items offered to sketch
   private int k = 0;
   private int retItems = 0; //number of retained items in the sketch
   private int maxNomSize = 0; //sum of nominal capacities of all compactors
-  private float minValue = Float.MAX_VALUE;
-  private float maxValue = Float.MIN_VALUE;
+  private float minValue = Float.NaN;
+  private float maxValue = Float.NaN;
   final boolean hra;
+  private boolean compatible = true;
   private Criteria criterion = Criteria.LT; //default is less-than
   private ReqAuxiliary aux = null;
 
@@ -89,42 +90,12 @@ public class ReqSketch extends BaseReqSketch {
   ReqDebug reqDebug = null;
 
   /**
-   * Constructor with default k = 50, highRankAccuracy = true, reqDebug = null.
-   * @see #ReqSketch(int, boolean, ReqDebug)
-   */
-  public ReqSketch() {
-    this(DEFAULT_K);
-  }
-
-  /**
-   * Constructor with given k, highRankAccuracy = true, and reqDebug = null.
-   * @param k Controls the size and error of the sketch. It must be even, if not, it will be
-   * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
-   * constant probability.
-   */
-  public ReqSketch(final int k) {
-    this(k, true);
-  }
-
-  /**
-   * Constructor with given k and highRankAccuracy, and reqDebug = null.
-   * @param k Controls the size and error of the sketch. It must be even, if not, it will be
-   * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
-   * constant probability
-   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy. Otherwise,
-   * the low ranks are prioritized for better accuracy.
-   */
-  public ReqSketch(final int k, final boolean highRankAccuracy) {
-    this(k, highRankAccuracy, null);
-  }
-
-  /**
    * Constructor.
    * @param k Controls the size and error of the sketch. It must be even, if not, it will be
-   * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
+   * rounded down by one. A value of 50 roughly corresponds to 1% relative error guarantee with
    * constant probability
-   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy. Otherwise
-   * the low ranks are prioritized for better accuracy.
+   * @param highRankAccuracy if true, the high ranks are prioritized for better accuracy.
+   * Otherwise the low ranks are prioritized for better accuracy.
    * @param reqDebug the debug signaling interface.
    */
   public ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug) {
@@ -159,6 +130,14 @@ public class ReqSketch extends BaseReqSketch {
     aux = null;
   }
 
+  /**
+   * Returns a new ReqSketchBuilder
+   * @return a new ReqSketchBuilder
+   */
+  public static final ReqSketchBuilder builder() {
+    return new ReqSketchBuilder();
+  }
+
   private void compress() {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
@@ -167,7 +146,7 @@ public class ReqSketch extends BaseReqSketch {
       final int nomCap = c.getNomCapacity();
 
       if (retCompItems >= nomCap) {
-        if ((h + 1) >= getNumLevels()) { //at the top?
+        if (h + 1 >= getNumLevels()) { //at the top?
           if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
         }
@@ -201,8 +180,12 @@ public class ReqSketch extends BaseReqSketch {
     return compactors;
   }
 
+  Criteria getCriterion() {
+    return criterion;
+  }
+
   @Override
-  public boolean getHighRanksAccuracy() {
+  public boolean getHighRankAccuracy() {
     return hra;
   }
 
@@ -211,8 +194,8 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public Criteria getCriterion() {
-    return criterion;
+  public boolean getLessThanOrEqual() {
+    return criterion == Criteria.LE;
   }
 
   int getMaxNomSize() {
@@ -277,17 +260,22 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getQuantile(final double normRank) {
-    if ((normRank < 0) || (normRank > 1.0)) {
+    if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
-    //if (normRank == 0.0) { return minValue; } //option for compat with other Q sketches
-    //if (normRank == 1.0) { return maxValue; }
+    if (compatible) {
+     if (normRank == 0.0) { return minValue; }
+     if (normRank == 1.0) { return maxValue; }
+    }
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
     final float q = aux.getQuantile(normRank);
-    //if (Float.isNaN(q)) { return minValue; }
+    if (compatible && Float.isNaN(q)) {
+      if (criterion == GT || criterion == GE ) { return maxValue; }
+      return minValue;
+    }
     return q;
   }
 
@@ -310,11 +298,11 @@ public class ReqSketch extends BaseReqSketch {
   public double getRankLowerBound(final double rank, final int numStdDev) {
     final float q = getQuantile(rank);
     final long nnRank = getCounts(new float[] { q })[0];
-    if ((getNumLevels() == 1) || (nnRank <= (k * INIT_NUMBER_OF_SECTIONS))) {
+    if (getNumLevels() == 1 || nnRank <= k * INIT_NUMBER_OF_SECTIONS) {
       return nnRank / getN();
     }
     else { //TODO This doesn't work right
-      final double nnLB = Math.floor( (1 - (numStdDev * getMaxRSE(k)) ) * nnRank);
+      final double nnLB = Math.floor( (1 - numStdDev * getMaxRSE(k) ) * nnRank);
       return nnLB / getN();
     }
   }
@@ -334,11 +322,11 @@ public class ReqSketch extends BaseReqSketch {
   public double getRankUpperBound(final double rank, final int numStdDev) {
     final float q = getQuantile(rank);
     final long nnRank = getCounts(new float[] { q })[0];
-    if ((getNumLevels() == 1) || (nnRank <= (k * INIT_NUMBER_OF_SECTIONS))) {
+    if (getNumLevels() == 1 || nnRank <= k * INIT_NUMBER_OF_SECTIONS) {
       return nnRank / getN();
     }
     else { //TODO This doesn't work right
-      final double nnUB = Math.ceil( (1 + (numStdDev * getMaxRSE(k)) ) * nnRank);
+      final double nnUB = Math.ceil( (1 + numStdDev * getMaxRSE(k) ) * nnRank);
       return nnUB / getN();
     }
   }
@@ -347,13 +335,18 @@ public class ReqSketch extends BaseReqSketch {
     final int numValues = values.length;
     final int numComp = compactors.size();
     final long[] cumNnrArr = new long[numValues];
-    for (int i = 0; i < numComp; i++) {
+    for (int i = 0; i < numComp; i++) { //cycle through compactors
       final ReqCompactor c = compactors.get(i);
       final int wt = 1 << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
-      final int[] countsArr = buf.getCountsLtOrEq(values, criterion);
+      final int[] countsArr = buf.getCountsWithCriterion(values, criterion);
       for (int j = 0; j < numValues; j++) {
         cumNnrArr[j] += countsArr[j] * wt;
+      }
+    }
+    if (criterion == GT || criterion == GE) {
+      for (int j = 0; j < numValues; j++) {
+        cumNnrArr[j] = totalN - cumNnrArr[j];
       }
     }
     return cumNnrArr;
@@ -367,6 +360,11 @@ public class ReqSketch extends BaseReqSketch {
     updateMaxNomSize();
     final int lgWeight = compactors.size() - 1;
     if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
+  }
+
+  @Override
+  public boolean isCompatible() {
+    return compatible;
   }
 
   @Override
@@ -386,7 +384,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public ReqSketch merge(final ReqSketch other) {
+    if (other == null || other.isEmpty()) { return this; }
     totalN += other.totalN;
+    //update min, max values, n
+    if (Float.isNaN(minValue) || other.minValue < minValue) { minValue = other.minValue; }
+    if (Float.isNaN(maxValue) || other.maxValue > maxValue) { maxValue = other.maxValue; }
     //Grow until self has at least as many compactors as other
     while (getNumLevels() < other.getNumLevels()) { grow(); }
     //Merge the items in all height compactors
@@ -402,20 +404,40 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public void reset() {
+  public ReqSketch reset() {
     totalN = 0;
     retItems = 0;
     maxNomSize = 0;
-    minValue = Float.MAX_VALUE;
-    maxValue = Float.MIN_VALUE;
+    minValue = Float.NaN;
+    maxValue = Float.NaN;
     aux = null;
     compactors = new ArrayList<>();
     grow();
+    return this;
   }
 
   @Override
-  public void setCriterion(final Criteria criterion) {
+  public ReqSketch setCompatible(final boolean compatible) {
+    this.compatible = compatible;
+    return this;
+  }
+
+  /**
+   * <b>NOTE:</b> This is public only to allow characterization testing from another
+   * package and is not intened for use by normal users of this class.
+   * @param criterion one of LT, LE, GT, GE.
+   * @return this
+   */
+  public ReqSketch setCriterion(final Criteria criterion) {
     this.criterion = criterion;
+    return this;
+  }
+
+  @Override
+  public ReqSketch setLessThanOrEqual(final boolean ltEq) {
+    if (ltEq) { setCriterion(Criteria.LE); }
+    else { setCriterion(Criteria.LT); }
+    return this;
   }
 
   @Override
@@ -455,15 +477,18 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public void update(final float item) {
-    if (!Float.isFinite(item)) {
-      throw new SketchesArgumentException("Input float values must be finite.");
+    if (Float.isNaN(item)) { return; }
+    if (isEmpty()) {
+      minValue = item;
+      maxValue = item;
+    } else {
+      if (item < minValue) { minValue = item; }
+      if (item > maxValue) { maxValue = item; }
     }
     final FloatBuffer buf = compactors.get(0).getBuffer();
     buf.append(item);
     retItems++;
     totalN++;
-    minValue = (item < minValue) ? item : minValue;
-    maxValue = (item > maxValue) ? item : maxValue;
     if (retItems >= maxNomSize) {
       buf.sort();
       compress();
