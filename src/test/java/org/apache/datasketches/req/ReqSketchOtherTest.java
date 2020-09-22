@@ -24,7 +24,8 @@ import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.Criteria.LE;
 import static org.apache.datasketches.req.Criteria.LT;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -85,24 +86,25 @@ public class ReqSketchOtherTest {
     Criteria criterion = LE;
     ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  criterion, 0);
     assertEquals(sk.isEstimationMode(), false);
-    //    double lb = sk.getRankLowerBound(1.0, 1);
-    //    double ub = sk.getRankUpperBound(1.0, 1);
-    //    assertEquals(lb, 1.0);
-    //    assertEquals(ub, 1.0);
+    double lb = sk.getRankLowerBound(1.0, 1);
+    double ub = sk.getRankUpperBound(1.0, 1);
+    assertEquals(lb, 1.0);
+    assertEquals(ub, 1.0);
     int maxNomSize = sk.getMaxNomSize();
     assertEquals(maxNomSize, 120);
     sk.update(120);
     assertEquals(sk.isEstimationMode(), true);
-    //    lb = sk.getRankLowerBound(0, 1);
-    //    ub = sk.getRankUpperBound(1.0, 1);
-    //    assertEquals(lb, 0.0);
-    //    assertEquals(ub, 2.0);
+    //  lb = sk.getRankLowerBound(0, 1);
+    //  ub = sk.getRankUpperBound(1.0, 1);
+    //  assertEquals(lb, 0.0);
+    //  assertEquals(ub, 2.0);
     maxNomSize = sk.getMaxNomSize();
     assertEquals(maxNomSize, 240);
     float v = sk.getQuantile(1.0);
     assertEquals(v, 120.0f);
     ReqAuxiliary aux = sk.getAux();
-    assertNull(aux);
+    assertNotNull(aux);
+    assertTrue(sk.getMaxRSE(sk.getK()) > 0);
   }
 
   @Test
@@ -124,10 +126,46 @@ public class ReqSketchOtherTest {
   public void checkFlags() {
     ReqSketch sk = ReqSketch.builder().build();
     sk.setCriterion(Criteria.LE);
+    assertEquals(sk.getLessThanOrEqual(), true);
     assertEquals(sk.getCriterion(), Criteria.LE);
+    assertEquals(sk.isCompatible(), true);
     sk.setCriterion(Criteria.LT);
+    sk.setCompatible(false);
+    assertEquals(sk.getLessThanOrEqual(), false);
     assertEquals(sk.getCriterion(), Criteria.LT);
+    assertEquals(sk.isCompatible(), false);
   }
+
+  @Test
+  public void checkEmpty() {
+    ReqSketch sk = ReqSketch.builder().build();
+    try { sk.getQuantile(0.5); fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void moreMergeTests1() {
+    ReqSketch sk1 = ReqSketch.builder().build();
+    ReqSketch sk2 = ReqSketch.builder().build();
+    for (int i = 5; i < 10; i++) {sk1.update(i); }
+    sk1.merge(sk2); //does nothing
+    for (int i = 1; i <= 15; i++) {sk2.update(i); }
+    sk1.merge(sk2);
+    assertEquals(sk1.getN(), 20);
+    for (int i = 16; i <= 300; i++) { sk2.update(i); }
+    sk1.merge(sk2);
+  }
+
+  @Test
+  public void checkCompatibleGT() {
+    ReqSketchBuilder bldr = ReqSketch.builder();
+    bldr.setK(6).setCompatible(true).setHighRankAccuracy(false);
+    ReqSketch sk = bldr.build();
+    sk.setCriterion(GT);
+    for (int i = 1; i <= 100; i++) { sk.update(i); }
+    float v = sk.getQuantile(1.0);
+    assertEquals(v, 100f);
+  }
+
 
   @Test
   public void checkComplementCriteria() {
@@ -137,16 +175,48 @@ public class ReqSketchOtherTest {
     int min = 1;
     int max = 100;
     ReqSketch sk= reqSketchTest.loadSketch( k,   min, max,  up,  hra, LE, 0);
+    sk.setCompatible(false);
 
     for (float v = 0.5f; v <= max + 0.5f; v += 0.5f) {
       //float v = 0.5f;
       double rle = sk.setCriterion(LE).getRank(v);
+      sk.setLessThanOrEqual(true);
+      float qrle = sk.getQuantile(rle);
       double rgt = sk.setCriterion(GT).getRank(v);
-      assertEquals(rle, rgt);
+      float qrgt = sk.getQuantile(rgt);
+      myAssertEquals(rle, rgt);
+      myAssertEquals(qrle, qrgt);
+      sk.setCriterion(LT);
       double rlt = sk.setCriterion(LT).getRank(v);
+      float qrlt = sk.getQuantile(rlt);
       double rge = sk.setCriterion(GE).getRank(v);
-      assertEquals(rlt, rge);
+      float qrge = sk.getQuantile(rge);
+      myAssertEquals(rlt, rge);
+      myAssertEquals(qrlt, qrge);
     }
+
+    float v1 = sk.getQuantile(1.0);
+    assertEquals(v1, (float)max);
+
+    sk.reset();
+    assertTrue(sk.isEmpty());
+    assertEquals(sk.getK(), k);
+    assertTrue(sk.getHighRankAccuracy());
+    assertFalse(sk.getLessThanOrEqual());
+    assertFalse(sk.isCompatible());
+
+  }
+
+  private static void myAssertEquals(double v1, double v2) {
+    if (Double.isNaN(v1) && Double.isNaN(v2)) { assert true; }
+    else if (v1 == v2) { assert true; }
+    else { assert false; }
+  }
+
+  private static void myAssertEquals(float v1, float v2) {
+    if (Float.isNaN(v1) && Float.isNaN(v2)) { assert true; }
+    else if (v1 == v2) { assert true; }
+    else { assert false; }
   }
 
 }

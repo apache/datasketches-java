@@ -27,7 +27,7 @@ package org.apache.datasketches.req;
  */
 public enum Criteria {
   /**
-   * Given an increasing sorted array of values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &lt; V &le; B</i>,
    * The returned value from the binary search algorithm will be the index of <i>A</i>
@@ -57,28 +57,34 @@ public enum Criteria {
 
     @Override
     String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
-      if (idx >= high) {
-        return "arr[" + idx + "]=" + arr[idx] + " < " + v
-            + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
-      return "arr[" + idx + "]=" + arr[idx] + " < " + v
-          + "  <= arr[" + (idx + 1) + "]=" + arr[idx + 1]
-          + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == high) {
+        return "LT: " + v + " > arr[" + high + "]=" + arr[high]
+            + "; return arr[" + high + "]=" + arr[high];
+      } //idx < high
+      return "LT: " + v
+      + ": arr[" + idx + "]=" + arr[idx] + " < " + v + " <= arr[" + (idx + 1) + "]=" + arr[idx + 1]
+      + "; return arr[" + idx + "]=" + arr[idx];
     }
 
     @Override
     String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
-      if (idx >= high) {
-        return "arr[" + idx + "]=" + arr[idx] + " < " + v
-            + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
-      return "arr[" + idx + "]=" + arr[idx] + " < " + v
-          + "  <= arr[" + (idx + 1) + "]=" + arr[idx + 1]
-          + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == high) {
+        return "LT: " + v + " > arr[" + high + "]=" + arr[high]
+            + "; return arr[" + high + "]=" + arr[high];
+      } //idx < high
+      return "LT: " + v
+      + ": arr[" + idx + "]=" + arr[idx] + " < " + v + " <= arr[" + (idx + 1) + "]=" + arr[idx + 1]
+      + "; return arr[" + idx + "]=" + arr[idx];
     }
   },
   /**
-   * Given an increasing sorted array of values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &le; V &lt; B</i>,
    * The returned value from the binary search algorithm will be the index of <i>A</i>
@@ -112,28 +118,34 @@ public enum Criteria {
 
     @Override
     String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
-      if (idx >= high) {
-        return "arr[" + idx + "]=" + arr[idx] + " <= " + v
-            + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
-      return "arr[" + idx + "]=" + arr[idx] + " <= " + v
-          + "  < arr[" + (idx + 1) + "]=" + arr[idx + 1]
+      if (idx == high) {
+        return "LE: " + v + " >= arr[" + high + "]=" + arr[high]
+            + "; return arr[" + high + "]=" + arr[high];
+      }
+      return "LE: " + v
+      + ": arr[" + idx + "]=" + arr[idx] + " <= " + v + " < arr[" + (idx + 1) + "]=" + arr[idx + 1]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
 
     @Override
     String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
-      if (idx >= high) {
-        return "arr[" + idx + "]=" + arr[idx] + " <= " + v
-            + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
-      return "arr[" + idx + "]=" + arr[idx] + " <= " + v
-          + "  < arr[" + (idx + 1) + "]=" + arr[idx + 1]
+      if (idx == high) {
+        return "LE: " + v + " >= arr[" + high + "]=" + arr[high]
+            + "; return arr[" + high + "]=" + arr[high];
+      }
+      return "LE: " + v
+      + ": arr[" + idx + "]=" + arr[idx] + " <= " + v + " < arr[" + (idx + 1) + "]=" + arr[idx + 1]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
   },
   /**
-   * Given an increasing sorted array of values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &le; V &lt; B</i>,
    * The returned value from the binary search algorithm will be the index of <i>B</i>
@@ -163,28 +175,34 @@ public enum Criteria {
 
     @Override
     String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
-      if (idx <= low) {
-        return v + " < arr[" + idx + "]=" + arr[idx]
-                 + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
-      return "arr[" + (idx - 1) + "]=" + arr[idx - 1] + " <= " + v
-          + "  < arr[" + idx + "]=" + arr[idx]
+      if (idx == low) {
+        return "GT: " + v + " < arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GT: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " <= " + v + " < arr[" + idx + "]=" + arr[idx]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
 
     @Override
     String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
-      if (idx <= low) {
-        return v + " < arr[" + idx + "]=" + arr[idx]
-                 + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
-      return "arr[" + (idx - 1) + "]=" + arr[idx - 1] + " <= " + v
-          + "  < arr[" + idx + "]=" + arr[idx]
+      if (idx == low) {
+        return "GT: " + v + " < arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GT: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " <= " + v + " < arr[" + idx + "]=" + arr[idx]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
   },
   /**
-   * Given an increasing sorted array of values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &lt; V &le; B</i>,
    * The returned value from the binary search algorithm will be the index of <i>B</i>
@@ -214,23 +232,29 @@ public enum Criteria {
 
     @Override
     String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
-      if (idx <= low) {
-        return v + " < arr[" + idx + "]=" + arr[idx]
-                 + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
-      return "arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v
-          + "  <= arr[" + idx + "]=" + arr[idx]
+      if (idx == low) {
+        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GE: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
 
     @Override
     String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
-      if (idx <= low) {
-        return v + " < arr[" + idx + "]=" + arr[idx]
-                 + "; return arr[" + idx + "]=" + arr[idx];
+      if (idx == -1) {
+        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
-      return "arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v
-          + "  <= arr[" + idx + "]=" + arr[idx]
+      if (idx == low) {
+        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GE: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
   };

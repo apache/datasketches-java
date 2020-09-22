@@ -260,21 +260,23 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getQuantile(final double normRank) {
+    if (isEmpty()) {
+      throw new SketchesArgumentException(
+          "Sketch is empty.");
+    }
     if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
-    }
-    if (compatible) {
-     if (normRank == 0.0) { return minValue; }
-     if (normRank == 1.0) { return maxValue; }
     }
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
     final float q = aux.getQuantile(normRank);
-    if (compatible && Float.isNaN(q)) {
-      if (criterion == GT || criterion == GE ) { return maxValue; }
-      return minValue;
+    if (Float.isNaN(q)) {
+      if (compatible) {
+        if (criterion == Criteria.LT || criterion == Criteria.LE) { return minValue; }
+        else { return maxValue; }
+      }
     }
     return q;
   }
@@ -423,7 +425,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   /**
-   * <b>NOTE:</b> This is public only to allow characterization testing from another
+   * <b>NOTE:</b> This is public only to allow testing from another
    * package and is not intened for use by normal users of this class.
    * @param criterion one of LT, LE, GT, GE.
    * @return this

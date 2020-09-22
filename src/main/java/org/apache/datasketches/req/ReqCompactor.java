@@ -97,7 +97,7 @@ class ReqCompactor {
     if (sk.reqDebug != null) { sk.reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
     // choose a part of the buffer to compact
-    final int secsToCompact = numberOfTrailingOnes(state) + 1;
+    final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
     final long compactionRange = computeCompactionRange(secsToCompact);
     final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
     final int compactionEnd = (int) (compactionRange >>> 32); //high 32

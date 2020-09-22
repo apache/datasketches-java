@@ -169,7 +169,9 @@ public class ReqSketchBuilder {
     sb.append("K:").append(TAB).append(bK).append(LS);
     sb.append("HRA:").append(TAB).append(bHRA).append(LS);
     sb.append("LtEq").append(TAB).append(bLtEq).append(LS);
-    sb.append("ReqDebug").append(TAB).append(bReqDebug).append(LS);
+    sb.append("Compatible:").append(TAB).append(bCompatible).append(LS);
+    final String v = bReqDebug != null ? "valid" : "invalid";
+    sb.append("ReqDebug:").append(TAB).append(v).append(LS);
     return sb.toString();
   }
 

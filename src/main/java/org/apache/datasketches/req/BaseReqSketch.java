@@ -175,10 +175,10 @@ abstract class BaseReqSketch {
   public abstract int getRetainedItems();
 
   /**
-   * Returns true if this sketch's treatment of getRank(0.0) and getRank(1.0) is compatible with
-   * the other quantiles sketches in the DataSketches library.
-   * @return true if this sketch's treatment of getRank(0.0) and getRank(1.0) is compatible with
-   * the other quantiles sketches in the DataSketches library.
+   * Returns true if this sketch's treatment of getQuantile() for values &lt; the minValue
+   * is compatible with the other quantiles sketches in the DataSketches library.
+   * @return true if this sketch's treatment of getQuantile() for values &lt; the minValue
+   * is compatible with the other quantiles sketches in the DataSketches library.
    */
   public abstract boolean isCompatible();
 
@@ -210,20 +210,17 @@ abstract class BaseReqSketch {
   /**
    * Resets this sketch by removing all data and setting all data related variables to their
    * virgin state.
-   * The parameters k, highRankAccuracy, reqDebug and lteq will not change.
+   * The parameters k, highRankAccuracy, reqDebug and LessThanOrEqual will not change.
    * @return this
    */
   public abstract ReqSketch reset();
 
   /**
-   * Sets the compatiblity mode. If true, this sketch's treatment of getRank(0.0) and getRank(1.0)
-   * will be compatible with the other quantiles sketches in the DataSketches library.
-   * Specifically, compatible means a getRank(0.0) returns the minimum value from the stream and
-   * a getRank(1.0) returns the maximum value from the stream. If false, a getRank(0.0) may return
-   * a Double.NaN and a getRank(1.0) will return the sketch's estimate of that rank, which may not
-   * be the maximum value of the stream.
-   * @param compatible if true, this sketch's treatment of getRank(0.0) and getRank(1.0)
-   * will be compatible with the other quantiles sketches in the DataSketches library.
+   * If true if this sketch's treatment of getQuantile() for values &lt; the minValue
+   * is compatible with the other quantiles sketches in the DataSketches library.
+   *
+   * @param compatible If true this sketch's treatment of getQuantile() for values &lt; the minValue
+   * is compatible with the other quantiles sketches in the DataSketches library.
    * @return this
    */
   public abstract ReqSketch setCompatible(final boolean compatible);

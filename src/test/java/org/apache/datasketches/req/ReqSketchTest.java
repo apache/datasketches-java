@@ -46,14 +46,13 @@ public class ReqSketchTest {
   static Criteria critGT = GT;
   static Criteria critGE = GE;
 
-
   @Test
   public void bigTest() {
     //          k, min, max,    up,   hra,   lteq, skDebug
-    bigTestImpl(6, 1,   200,  true,  true,   critLE, skDebug);
-    bigTestImpl(6, 1,   200, false,  false,  critLE, skDebug);
-    bigTestImpl(6, 1,   200, false,   true,  critLT, skDebug);
-    bigTestImpl(6, 1,   200,  true,  false,  critLE, skDebug);
+    bigTestImpl(6, 1,   200,  true,  true,   LE, skDebug);
+    bigTestImpl(6, 1,   200, false,  false,  LE, skDebug);
+    bigTestImpl(6, 1,   200, false,   true,  LT, skDebug);
+    bigTestImpl(6, 1,   200,  true,  false,  LE, skDebug);
   }
 
   public void bigTestImpl(int k, int min, int max, boolean up, boolean hra,
@@ -74,6 +73,23 @@ public class ReqSketchTest {
     checkIterator(sk, iDebug);
     checkMerge(sk, iDebug);
     printBoundary(skDebug);
+  }
+
+  //Common loadSketch
+  public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
+      Criteria criterion, int skDebug) {
+    ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug));
+    sk.setCriterion(criterion);
+    if (up) {
+      for (int i = min; i <= max; i++) {
+        sk.update(i);
+      }
+    } else { //down
+      for (int i = max + 1; i-- > min; ) {
+        sk.update(i);
+      }
+    }
+    return sk;
   }
 
   private static void printBoundary(int iDebug) {
@@ -228,23 +244,6 @@ public class ReqSketchTest {
   private static void outputCompactorDetail(ReqSketch sk, String fmt, boolean allData, String text) {
     println(text);
     println(sk.viewCompactorDetail(fmt, allData));
-  }
-
-  //Common loadSketch
-  public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
-      Criteria criterion, int skDebug) {
-    ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug));
-    sk.setCriterion(criterion);
-    if (up) {
-      for (int i = min; i <= max; i++) {
-        sk.update(i);
-      }
-    } else { //down
-      for (int i = max + 1; i-- > min; ) {
-        sk.update(i);
-      }
-    }
-    return sk;
   }
 
   private static final void printf(final String format, final Object ...args) {

@@ -23,7 +23,6 @@ import static org.apache.datasketches.req.Criteria.GE;
 import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.Criteria.LE;
 import static org.apache.datasketches.req.Criteria.LT;
-import static org.apache.datasketches.req.ReqHelper.binarySearch;
 import static org.apache.datasketches.req.ReqHelper.binarySearchDouble;
 import static org.apache.datasketches.req.ReqHelper.binarySearchFloat;
 import static org.apache.datasketches.req.ReqHelper.validateSplits;
@@ -41,42 +40,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class ReqHelperTest {
   static Random rand = new Random(1);
-
-  @Test
-  public void checkBinSearchLTandLTEQ() {
-    for (int len = 10; len < 13; len++) {
-      float[] rarr = buildRandFloatArr(len);
-      float top = rarr[len - 1] + .5f;
-
-      for (float v = 0.5f; v <= top; v += 0.5f) {
-        int idx1 = linearSearch(rarr, 0, len-1, v, false);
-        int idx2 = binarySearch(rarr, 0, len-1, v, false);
-        assertEquals(idx1, idx2);
-      }
-      for (float v = 0.5f; v <= top; v += 0.5f) {
-        int idx1 = linearSearch(rarr, 0, len-1, v, true);
-        int idx2 = binarySearch(rarr, 0, len-1, v, true);
-        assertEquals(idx1, idx2);
-      }
-    }
-  }
-
-  @Test
-  public void checkBinSearch() {
-    float[] arr = new float[] { 2,2,2,2,2,2,2,2,2 };
-    int len = arr.length;
-    float top = arr[len - 1] + .5f;
-    for (float v = 0.5f; v <= top; v += 0.5f) {
-      int idx1 = linearSearch(arr, 0, len-1, v, true);
-      int idx2 = binarySearch(arr, 0, len-1, v, true);
-      assertEquals(idx1, idx2);
-    }
-    for (float v = 0.5f; v <= top; v += 0.5f) {
-      int idx1 = linearSearch(arr, 0, len-1, v, false);
-      int idx2 = binarySearch(arr, 0, len-1, v, false);
-      assertEquals(idx1, idx2);
-    }
-  }
+  private static final String LS = System.getProperty("line.separator");
 
   @Test
   public void checkValidateSplits() {
@@ -89,46 +53,6 @@ public class ReqHelperTest {
     }
     catch (final SketchesArgumentException e) { }
   }
-
-  //@Test //visual checking only
-  @SuppressWarnings("unused")
-  private static void checkLinearSearch() {
-    // index        0  1  2  3, 4
-    float[] arr1 = {1, 2, 2, 2, 3};
-    boolean lteq = true;
-    int len = arr1.length;
-    for (int i = 0; i < len; i++) { print(arr1[i] + ", "); }
-    println("\n LTEQ: " + lteq);
-    float v;
-    printf("%10s, %10s, %10s\n", "Value","Index", "Rank");
-    for (v = .5f; v <= 3.5f; v += .5f) {
-      int idx = linearSearch(arr1, 0, len - 1, v, lteq);
-      double r = 0;
-      if (idx == -1) { r = 0; } else { r = (double) (idx + 1) / len; }
-      printf("%10.2f, %10d, %10.2f\n", v, idx, r);
-    }
-  }
-
-  //This is a brute force search for comparison testing
-  private static int linearSearch(final float[] arr, final int low, final int high,
-      final float value, final boolean lteq) {
-    if (lteq) {
-      if (value >= arr[high]) { return high; } // mass == 1.0
-      int i;
-      for (i = high + 1; i-- > low; ) {
-        if (value >= arr[i]) { return i; }
-      }
-      return -1; //when value <= arr[low].  Cannot return an index < low
-    }
-    else { //LT
-      if (value <= arr[low]) { return -1; } //mass == 0, Cannot return an index < low
-      for (int i = low + 1; i <= high; i++) {
-        if (value <=  arr[i]) { return i - 1; }
-      }
-      return high; //when value is > arr[high]
-    }
-  }
-
 
   private static float[] buildRandFloatArr(int len) {
     float[] arr = new float[len];
@@ -150,11 +74,10 @@ public class ReqHelperTest {
     return arr;
   }
 
+  private static int randDelta() { return rand.nextDouble() < 0.4 ? 0 : 1; }
 
-  private static int randDelta() { return (rand.nextDouble() < 0.4) ? 0 : 1; }
-
-  //@Test //visual testing only
-  @SuppressWarnings("unused")
+  @Test //visual testing only
+  //@SuppressWarnings("unused")
   private static void checkBuildRandArr() {
     int len = 10;
     for (int i = 0; i < 10; i++) {
@@ -171,12 +94,24 @@ public class ReqHelperTest {
   static Criteria critGT = GT;
   static Criteria critGE = GE;
 
+  private static String listDblArray(double[] arr, int low, int high) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(LS);
+    sb.append("arr: ");
+    for (int i = 0; i < arr.length; i++) {
+      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
+      else { sb.append(String.format("%.0f ", arr[i])); }
+    }
+    return sb.toString();
+  }
+
   @Test
   public void checkBinSearchDblLimits() {
     for (int len = 10; len <= 13; len++) {
       double[] tarr = buildRandDoubleArr(len);
       int low = 2;
       int high = len - 2;
+      println(listDblArray(tarr, low, high));
       checkBinarySearchDoubleLimits(tarr, low, high);
     }
   }
@@ -184,34 +119,78 @@ public class ReqHelperTest {
   private static void checkBinarySearchDoubleLimits(double[] arr, int low, int high) {
     double lowV = arr[low];
     double highV = arr[high];
+    double v;
     int res;
-    res = binarySearchDouble(arr, low, high, lowV - 1, LT);
-    assertEquals(res, -1);
-    res = binarySearchDouble(arr, low, high, lowV, LT);
-    assertEquals(res, -1);
-    res = binarySearchDouble(arr, low, high, highV + 1, LT);
-    assertEquals(res, high);
-
-    res = binarySearchDouble(arr, low, high, lowV - 1, LE);
-    assertEquals(res, -1);
-    res = binarySearchDouble(arr, low, high, highV, LE);
-    assertEquals(res, high);
-    res = binarySearchDouble(arr, low, high, highV + 1, LE);
-    assertEquals(res, high);
-
-    res = binarySearchDouble(arr, low, high, lowV - 1, GT);
-    assertEquals(res, low);
-    res = binarySearchDouble(arr, low, high, highV, GT);
-    assertEquals(res, -1);
-    res = binarySearchDouble(arr, low, high, highV + 1, GT);
+    v = lowV - 1;
+    res = binarySearchDouble(arr, low, high, v, LT);
+    println(LT.desc(arr, low, high, res, v));
     assertEquals(res, -1);
 
-    res = binarySearchDouble(arr, low, high, lowV - 1, GE);
-    assertEquals(res, low);
-    res = binarySearchDouble(arr, low, high, lowV, GE);
-    assertEquals(res, low);
-    res = binarySearchDouble(arr, low, high, highV + 1, GE);
+    v = lowV;
+    res = binarySearchDouble(arr, low, high, v, LT);
+    println(LT.desc(arr, low, high, res, v));
     assertEquals(res, -1);
+
+    v = highV + 1;
+    res = binarySearchDouble(arr, low, high, v, LT);
+    println(LT.desc(arr, low, high, res, v));
+    assertEquals(res, high);
+
+    v = lowV - 1;
+    res = binarySearchDouble(arr, low, high, v, LE);
+    println(LE.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = highV;
+    res = binarySearchDouble(arr, low, high, v, LE);
+    println(LE.desc(arr, low, high, res, v));
+    assertEquals(res, high);
+
+    v = highV + 1;
+    res = binarySearchDouble(arr, low, high, v, LE);
+    println(LE.desc(arr, low, high, res, v));
+    assertEquals(res, high);
+
+    v = lowV - 1;
+    res = binarySearchDouble(arr, low, high, v, GT);
+    println(GT.desc(arr, low, high, res, v));
+    assertEquals(res, low);
+
+    v = highV;
+    res = binarySearchDouble(arr, low, high, v, GT);
+    println(GT.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = highV + 1;
+    res = binarySearchDouble(arr, low, high, v, GT);
+    println(GT.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = lowV - 1;
+    res = binarySearchDouble(arr, low, high, v, GE);
+    println(GE.desc(arr, low, high, res, v));
+    assertEquals(res, low);
+
+    v = lowV;
+    res = binarySearchDouble(arr, low, high, v, GE);
+    println(GE.desc(arr, low, high, res, v));
+    assertEquals(res, low);
+
+    v = highV + 1;
+    res = binarySearchDouble(arr, low, high, v, GE);
+    println(GE.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+  }
+
+  private static String listFltArray(float[] arr, int low, int high) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(LS);
+    sb.append("arr: ");
+    for (int i = 0; i < arr.length; i++) {
+      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
+      else { sb.append(String.format("%.0f ", arr[i])); }
+    }
+    return sb.toString();
   }
 
   @Test
@@ -220,6 +199,7 @@ public class ReqHelperTest {
       float[] tarr = buildRandFloatArr(len);
       int low = 2;
       int high = len - 2;
+      println(listFltArray(tarr, low, high));
       checkBinarySearchFloatLimits(tarr, low, high);
     }
   }
@@ -227,38 +207,71 @@ public class ReqHelperTest {
   private static void checkBinarySearchFloatLimits(float[] arr, int low, int high) {
     float lowV = arr[low];
     float highV = arr[high];
+    float v;
     int res;
-    res = binarySearchFloat(arr, low, high, lowV - 1, LT);
-    assertEquals(res, -1);
-    res = binarySearchFloat(arr, low, high, lowV, LT);
-    assertEquals(res, -1);
-    res = binarySearchFloat(arr, low, high, highV + 1, LT);
-    assertEquals(res, high);
-
-    res = binarySearchFloat(arr, low, high, lowV - 1, LE);
-    assertEquals(res, -1);
-    res = binarySearchFloat(arr, low, high, highV, LE);
-    assertEquals(res, high);
-    res = binarySearchFloat(arr, low, high, highV + 1, LE);
-    assertEquals(res, high);
-
-    res = binarySearchFloat(arr, low, high, lowV - 1, GT);
-    assertEquals(res, low);
-    res = binarySearchFloat(arr, low, high, highV, GT);
-    assertEquals(res, -1);
-    res = binarySearchFloat(arr, low, high, highV + 1, GT);
+    v = lowV - 1;
+    res = binarySearchFloat(arr, low, high, v, LT);
+    println(LT.desc(arr, low, high, res, v));
     assertEquals(res, -1);
 
-    res = binarySearchFloat(arr, low, high, lowV - 1, GE);
+    v = lowV;
+    res = binarySearchFloat(arr, low, high, v, LT);
+    println(LT.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = highV + 1;
+    res = binarySearchFloat(arr, low, high, v, LT);
+    println(LT.desc(arr, low, high, res, v));
+    assertEquals(res, high);
+
+    v = lowV -1;
+    res = binarySearchFloat(arr, low, high, v, LE);
+    println(LE.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = highV;
+    res = binarySearchFloat(arr, low, high, v, LE);
+    println(LE.desc(arr, low, high, res, v));
+    assertEquals(res, high);
+
+    v = highV + 1;
+    res = binarySearchFloat(arr, low, high, v, LE);
+    println(LE.desc(arr, low, high, res, v));
+    assertEquals(res, high);
+
+    v = lowV - 1;
+    res = binarySearchFloat(arr, low, high, v, GT);
+    println(GT.desc(arr, low, high, res, v));
     assertEquals(res, low);
-    res = binarySearchFloat(arr, low, high, lowV, GE);
+
+    v = highV;
+    res = binarySearchFloat(arr, low, high, v, GT);
+    println(GT.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = highV + 1;
+    res = binarySearchFloat(arr, low, high, v, GT);
+    println(GT.desc(arr, low, high, res, v));
+    assertEquals(res, -1);
+
+    v = lowV - 1;
+    res = binarySearchFloat(arr, low, high, v, GE);
+    println(GE.desc(arr, low, high, res, v));
     assertEquals(res, low);
-    res = binarySearchFloat(arr, low, high, highV + 1, GE);
+
+    v = lowV;
+    res = binarySearchFloat(arr, low, high, v, GE);
+    println(GE.desc(arr, low, high, res, v));
+    assertEquals(res, low);
+
+    v = highV + 1;
+    res = binarySearchFloat(arr, low, high, v, GE);
+    println(GE.desc(arr, low, high, res, v));
     assertEquals(res, -1);
   }
 
-  //@Test visual only
-  public void exerciseBinSearch2() {
+  @Test // visual only
+  public void exerciseDblBinSearch() {
     //                    0 1 2 3 4 5,6
     final double[] arr = {1,1,3,3,4,5,5};
     checkBinarySearchDouble(arr, LT);
@@ -270,7 +283,7 @@ public class ReqHelperTest {
   private static void checkBinarySearchDouble(double[] arr, Criteria crit) {
     println("Criteria: " + crit.name());
     final int len = arr.length;
-    for (double v = 0.5; v <= (arr[len - 1] + 0.5); v += .5)
+    for (double v = 0.5; v <= arr[len - 1] + 0.5; v += .5)
     //final double v = 0.5;
     {
       final int low = 0;
@@ -286,15 +299,45 @@ public class ReqHelperTest {
     println("");
   }
 
-
-  private static final void printf(final String format, final Object ...args) {
-    System.out.printf(format, args);
+  @Test // visual only
+  public void exerciseFltBinSearch() {
+    //                    0 1 2 3 4 5,6
+    final float[] arr = {1,1,3,3,4,5,5};
+    checkBinarySearchFloat(arr, LT);
+    checkBinarySearchFloat(arr, LE);
+    checkBinarySearchFloat(arr, GT);
+    checkBinarySearchFloat(arr, GE);
   }
 
-  private static final void print(final Object o) { System.out.print(o.toString()); }
+  private static void checkBinarySearchFloat(float[] arr, Criteria crit) {
+    println("Criteria: " + crit.name());
+    final int len = arr.length;
+    for (float v = 0.5f; v <= arr[len - 1] + 0.5f; v += .5f)
+    //final double v = 0.5;
+    {
+      final int low = 0;
+      final int high = len - 1;
+      final int idx = binarySearchFloat(arr, low, high, v, crit);
+      if (idx == -1) {
+        println(v + " Not resolved, return -1.");
+      }
+      else {
+        println(crit.desc(arr, low, high, idx, v));
+      }
+    }
+    println("");
+  }
+
 
   @SuppressWarnings("unused")
-  private static final void println(final Object o) {
-    System.out.println(o.toString());
+  static final void printf(final String format, final Object ...args) {
+    //System.out.printf(format, args);
+  }
+
+  //static final void print(final Object o) { System.out.print(o.toString()); }
+
+  @SuppressWarnings("unused")
+  static final void println(final Object o) {
+    //System.out.println(o.toString());
   }
 }

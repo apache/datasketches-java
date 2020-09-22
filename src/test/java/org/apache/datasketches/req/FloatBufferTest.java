@@ -215,9 +215,14 @@ public class FloatBufferTest {
   private static void checkMergeSortInNotSorted() {
     float[] arr1 = {6,5,2,1};
     float[] arr2 = {8,7,4,3};
-    FloatBuffer buf1 = FloatBuffer.wrap(arr1, false, false);
-    FloatBuffer buf2 = FloatBuffer.wrap(arr2, false, false);
-    buf1.mergeSortIn(buf2);
+    FloatBuffer buf1 = new FloatBuffer(4, 0, false);
+    FloatBuffer buf2 = new FloatBuffer(4, 0, false);
+    for (int i = 0; i < 4; i++) {
+      buf1.append(arr1[i]);
+      buf2.append(arr2[i]);
+    }
+    try { buf1.mergeSortIn(buf2); fail(); }
+    catch (SketchesArgumentException e) { }
   }
 
   @Test
