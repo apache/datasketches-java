@@ -105,6 +105,7 @@ public class ReqSketchOtherTest {
     ReqAuxiliary aux = sk.getAux();
     assertNotNull(aux);
     assertTrue(sk.getMaxRSE(sk.getK()) > 0);
+    assertTrue(sk.getSerializationBytes() > 0);
   }
 
   @Test
@@ -116,7 +117,7 @@ public class ReqSketchOtherTest {
   }
 
   @Test
-  public void checkNonFinateGetRank() {
+  public void checkNonFiniteGetRank() {
     ReqSketch sk = ReqSketch.builder().build();
     sk.update(1);
     try { sk.getRank(Float.POSITIVE_INFINITY); fail(); } catch (AssertionError e) {}
@@ -143,7 +144,7 @@ public class ReqSketchOtherTest {
   }
 
   @Test
-  public void moreMergeTests1() {
+  public void moreMergeTests() {
     ReqSketch sk1 = ReqSketch.builder().build();
     ReqSketch sk2 = ReqSketch.builder().build();
     for (int i = 5; i < 10; i++) {sk1.update(i); }
@@ -165,7 +166,6 @@ public class ReqSketchOtherTest {
     float v = sk.getQuantile(1.0);
     assertEquals(v, 100f);
   }
-
 
   @Test
   public void checkComplementCriteria() {
@@ -204,6 +204,10 @@ public class ReqSketchOtherTest {
     assertTrue(sk.getHighRankAccuracy());
     assertFalse(sk.getLessThanOrEqual());
     assertFalse(sk.isCompatible());
+  }
+
+  @Test
+  public void checkSerializationBytes() {
 
   }
 

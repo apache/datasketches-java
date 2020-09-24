@@ -284,6 +284,15 @@ class FloatBuffer {
   }
 
   /**
+   * Serialize count, capacity, delta and data.
+   * Always serialize sorted.
+   * @return required bytes to serialize.
+   */
+  int getSerializationBytes() {
+    return 12 + 4 * count_;
+  }
+
+  /**
    * Gets available space, which is getCapacity() - getLength().
    * When spaceAtBottom is true this is the start position for active data, otherwise it is zero.
    * @return available space

@@ -149,6 +149,15 @@ class ReqCompactor {
     return nCap;
   }
 
+  /**
+   * Serialize sectionSize, numSections, numCompactions, state, lgWeight plus the
+   * buffer.
+   * @return required bytes to serialize.
+   */
+  int getSerializationBytes() {
+    return 4 * 5 + buf.getSerializationBytes();
+  }
+
   int getNumCompactions() {
     return numCompactions;
   }

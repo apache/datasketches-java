@@ -175,6 +175,12 @@ abstract class BaseReqSketch {
   public abstract int getRetainedItems();
 
   /**
+   * Gets the number of bytes when serialized.
+   * @return the number of bytes when serialized.
+   */
+  public abstract int getSerializationBytes();
+
+  /**
    * Returns true if this sketch's treatment of getQuantile() for values &lt; the minValue
    * is compatible with the other quantiles sketches in the DataSketches library.
    * @return true if this sketch's treatment of getQuantile() for values &lt; the minValue

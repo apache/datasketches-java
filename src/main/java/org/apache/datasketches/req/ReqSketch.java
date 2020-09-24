@@ -357,6 +357,20 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public int getRetainedItems() { return retItems; }
 
+  @Override
+  //Serialize totalN, k, minValue, maxValue.
+  // In preamble Flags keep: hra-bit, compatible-bit, criterion-bit (maybe 2?)
+  // plus compactors.
+  public int getSerializationBytes() {
+    int cBytes = 0;
+    for (int i = 0; i < compactors.size(); i++) {
+     cBytes += compactors.get(i).getSerializationBytes();
+    }
+    final int members = 20; //totalN, k, minValue, maxValue
+    final int preamble = 8;
+    return cBytes + members + preamble;
+  }
+
   private void grow() {
     compactors.add(new ReqCompactor(this, k, getNumLevels()));
     updateMaxNomSize();
