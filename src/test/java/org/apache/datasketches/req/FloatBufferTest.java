@@ -144,9 +144,10 @@ public class FloatBufferTest {
   public void checkCountWcriteria() {
     int delta = 0;
     int cap = 16;
+    boolean spaceAtBottom = true;
     for (int len = 5; len < 10; len++) {
-      iterateValues(createSortedFloatBuffer(cap, delta, true, len), len);
-      iterateValues(createSortedFloatBuffer(cap, delta, false, len), len);
+      iterateValues(createSortedFloatBuffer(cap, delta, spaceAtBottom, len), len);
+      iterateValues(createSortedFloatBuffer(cap, delta, !spaceAtBottom, len), len);
     }
   }
 
@@ -154,6 +155,15 @@ public class FloatBufferTest {
     for (float v = 0.5f; v <= len + 0.5f; v += 0.5f) {
       checkCountWithCriteria(buf, v);
     }
+  }
+
+  //@Test
+  public void checkCount() {
+    FloatBuffer buf = createSortedFloatBuffer(120, 0, true, 100);
+    println("LT: " + buf.getCountWithCriterion(100, Criteria.LT));
+    println("LE: " + buf.getCountWithCriterion(100, Criteria.LE));
+    println("GT: " + buf.getCountWithCriterion(100, Criteria.GT));
+    println("GE: " + buf.getCountWithCriterion(100, Criteria.GE));
   }
 
   private static void checkCountWithCriteria(FloatBuffer buf, float v) {

@@ -178,8 +178,7 @@ class FloatBuffer {
   static Criteria critGE = GE;
 
   /**
-   * Returns non-normalized rank of the given value.
-   * This is the count of items based on the given criteria.
+   * Returns the count of items based on the given criteria.
    * Also used in test.
    * @param value the given value
    * @param criterion the chosen criterion.
@@ -213,7 +212,7 @@ class FloatBuffer {
     final int[] nnrArr = new int[len];
     for (int i = 0; i < len; i++) {
       final float v = values[i];
-      assert !Float.isNaN(v) : "Float values must be finite.";
+      assert !Float.isNaN(v) : "Float values must not be NaN.";
       nnrArr[i] = getCountWithCriterion(values[i], criterion);
     }
     return nnrArr;

@@ -47,6 +47,7 @@ public class ReqSketchBuilderTest {
 
   }
 
+  @SuppressWarnings("unused")
   static void println(Object o) {
     //System.out.println(o.toString());
   }
