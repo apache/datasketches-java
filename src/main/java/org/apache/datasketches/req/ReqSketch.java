@@ -20,6 +20,7 @@
 package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 import static org.apache.datasketches.req.Criteria.GE;
 import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.ReqHelper.LS;
@@ -72,8 +73,10 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public class ReqSketch extends BaseReqSketch {
-  final static int INIT_NUMBER_OF_SECTIONS = 3;
-  final static int MIN_K = 4;
+  static final int INIT_NUMBER_OF_SECTIONS = 3;
+  static final int MIN_K = 4;
+  private static final double relRseFactor = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  private static final double fixRseFactor = .06;
   private long totalN; //total items offered to sketch
   private int k = 0;
   private int retItems = 0; //number of retained items in the sketch
@@ -180,6 +183,41 @@ public class ReqSketch extends BaseReqSketch {
     return compactors;
   }
 
+  private long getCount(final float value) {
+    final int numComp = compactors.size();
+    long cumNnr = 0;
+    for (int i = 0; i < numComp; i++) { //cycle through compactors
+      final ReqCompactor c = compactors.get(i);
+      final int wt = 1 << c.getLgWeight();
+      final FloatBuffer buf = c.getBuffer();
+      cumNnr += buf.getCountWithCriterion(value, criterion) * wt;
+    }
+    if (criterion == GT || criterion == GE) {
+      cumNnr = totalN - cumNnr;
+    }
+    return cumNnr;
+  }
+
+  private long[] getCounts(final float[] values) {
+    final int numValues = values.length;
+    final int numComp = compactors.size();
+    final long[] cumNnrArr = new long[numValues];
+    for (int i = 0; i < numComp; i++) { //cycle through compactors
+      final ReqCompactor c = compactors.get(i);
+      final int wt = 1 << c.getLgWeight();
+      final FloatBuffer buf = c.getBuffer();
+      for (int j = 0; j < numValues; j++) {
+        cumNnrArr[j] += buf.getCountWithCriterion(values[j], criterion) * wt;
+      }
+    }
+    if (criterion == GT || criterion == GE) {
+      for (int j = 0; j < numValues; j++) {
+        cumNnrArr[j] = totalN - cumNnrArr[j];
+      }
+    }
+    return cumNnrArr;
+  }
+
   Criteria getCriterion() {
     return criterion;
   }
@@ -210,11 +248,6 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public float getMinValue() {
     return minValue;
-  }
-
-  @Override
-  public double getRSE(final int k) {
-    return Math.sqrt(8.0 / INIT_NUMBER_OF_SECTIONS) / k;
   }
 
   @Override
@@ -308,69 +341,49 @@ public class ReqSketch extends BaseReqSketch {
     return rArr;
   }
 
-  @Override
-  public double getRankLowerBound(final double rank, final int numStdDev) {
-    if (getNumLevels() == 1) { return rank; }
-    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / getN();
+  private static double getRankLB(final int k, final int levels, final double rank, final int numStdDev,
+      final boolean hra, final long totalN) {
+    if (levels == 1) { return rank; }
+    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / totalN;
     if ( hra && rank >= 1.0 - thresh) { return rank; }
     if (!hra && rank <= thresh) { return rank; }
-    final double sloped = 0.1306395 / k * (hra ? 1.0 - rank : rank);
-    final double flat = .06 / k;
-    final double lbSloped = rank - numStdDev * sloped;
-    final double lbFlat = rank - numStdDev * flat;
-    return Math.max(lbSloped, lbFlat);
+    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double fixed = fixRseFactor / k;
+    final double lbRel = rank - numStdDev * relative;
+    final double lbFix = rank - numStdDev * fixed;
+    return Math.max(lbRel, lbFix);
+  }
+
+  @Override
+  public double getRankLowerBound(final double rank, final int numStdDev) {
+    return getRankLB(k, getNumLevels(), rank, numStdDev, hra, getN());
+  }
+
+  private static double getRankUB(final int k, final int levels, final double rank, final int numStdDev,
+      final boolean hra, final long totalN) {
+    if (levels == 1) { return rank; }
+    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / totalN;
+    if ( hra && rank >= 1.0 - thresh) { return rank; }
+    if (!hra && rank <= thresh) { return rank; }
+    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double fixed = fixRseFactor / k;
+    final double ubRel = rank + numStdDev * relative;
+    final double ubFix = rank + numStdDev * fixed;
+    return Math.min(ubRel, ubFix);
   }
 
   @Override
   public double getRankUpperBound(final double rank, final int numStdDev) {
-    if (getNumLevels() == 1) { return rank; }
-    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / getN();
-    if ( hra && rank >= 1.0 - thresh) { return rank; }
-    if (!hra && rank <= thresh) { return rank; }
-    final double sloped = 0.1306395 / k * (hra ? 1.0 - rank : rank);
-    final double flat = .06 / k;
-    final double ubSloped = rank + numStdDev * sloped;
-    final double ubFlat = rank + numStdDev * flat;
-    return Math.min(ubSloped, ubFlat);
-  }
-
-  private long getCount(final float value) {
-    final int numComp = compactors.size();
-    long cumNnr = 0;
-    for (int i = 0; i < numComp; i++) { //cycle through compactors
-      final ReqCompactor c = compactors.get(i);
-      final int wt = 1 << c.getLgWeight();
-      final FloatBuffer buf = c.getBuffer();
-      cumNnr += buf.getCountWithCriterion(value, criterion) * wt;
-    }
-    if (criterion == GT || criterion == GE) {
-      cumNnr = totalN - cumNnr;
-    }
-    return cumNnr;
-  }
-
-  private long[] getCounts(final float[] values) {
-    final int numValues = values.length;
-    final int numComp = compactors.size();
-    final long[] cumNnrArr = new long[numValues];
-    for (int i = 0; i < numComp; i++) { //cycle through compactors
-      final ReqCompactor c = compactors.get(i);
-      final int wt = 1 << c.getLgWeight();
-      final FloatBuffer buf = c.getBuffer();
-      for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] += buf.getCountWithCriterion(values[j], criterion) * wt;
-      }
-    }
-    if (criterion == GT || criterion == GE) {
-      for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] = totalN - cumNnrArr[j];
-      }
-    }
-    return cumNnrArr;
+    return getRankUB(k, getNumLevels(), rank, numStdDev, hra, getN());
   }
 
   @Override
   public int getRetainedItems() { return retItems; }
+
+  @Override
+  public double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
+    return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
+  }
 
   @Override
   //Serialize totalN, k, minValue, maxValue.
@@ -489,23 +502,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public String viewCompactorDetail(final String fmt, final boolean allData) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("*********Relative Error Quantiles Compactor Detail*********").append(LS);
-    sb.append("Compactor Detail: Ret Items: ").append(getRetainedItems())
-      .append("  N: ").append(getN());
-    sb.append(LS);
-    for (int i = 0; i < getNumLevels(); i++) {
-      final ReqCompactor c = compactors.get(i);
-      sb.append(c.toListPrefix()).append(LS);
-      if (allData) { sb.append(c.getBuffer().toHorizList(fmt, 20)).append(LS); }
-    }
-    sb.append("************************End Detail*************************").append(LS);
-    return sb.toString();
-  }
-
-
-  @Override
   public void update(final float item) {
     if (Float.isNaN(item)) { return; }
     if (isEmpty()) {
@@ -542,6 +538,22 @@ public class ReqSketch extends BaseReqSketch {
     int count = 0;
     for (ReqCompactor c : compactors) { count += c.getBuffer().getLength(); }
     retItems = count;
+  }
+
+  @Override
+  public String viewCompactorDetail(final String fmt, final boolean allData) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("*********Relative Error Quantiles Compactor Detail*********").append(LS);
+    sb.append("Compactor Detail: Ret Items: ").append(getRetainedItems())
+      .append("  N: ").append(getN());
+    sb.append(LS);
+    for (int i = 0; i < getNumLevels(); i++) {
+      final ReqCompactor c = compactors.get(i);
+      sb.append(c.toListPrefix()).append(LS);
+      if (allData) { sb.append(c.getBuffer().toHorizList(fmt, 20)).append(LS); }
+    }
+    sb.append("************************End Detail*************************").append(LS);
+    return sb.toString();
   }
 
 }

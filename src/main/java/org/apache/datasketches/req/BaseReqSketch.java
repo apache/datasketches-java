@@ -78,17 +78,17 @@ abstract class BaseReqSketch {
   public abstract float getMinValue();
 
   /**
-   * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]),
-   * calculated as sqrt(Var) / rank; note that it does not depend on the rank or n.
-   * An upper bound on Var of the error is taken from Lemma 12 in https://arxiv.org/abs/2004.01668v2
-   *  (taking a possible improvement by a factor of 2 into account).
-   * Still, this upper bound on RSE seems too pesimistic (by a factor of 3) and experiments suggest
-   * to replace the 8 below by approx. 1 (or even 0.9), at least when k is large enough
-   * (say, k &ge; 20; TODO: test this)
+   * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
+   * Derived from Lemma 12 in https://arxiv.org/abs/2004.01668v2, but the constant factors were
+   * modified based on empirical measurements.
+   *
    * @param k the given value of k
+   * @param rank the given normalized rank, a number in [0,1].
+   * @param hra if true High Rank Accuracy mode is being selected, otherwise, Low Rank Accuracy.
+   * @param totalN an estimate of the total number of items submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
-  public abstract double getRSE(int k);
+  public abstract double getRSE(int k, double rank, boolean hra, long totalN);
 
   /**
    * Gets the total number of items offered to the sketch.
