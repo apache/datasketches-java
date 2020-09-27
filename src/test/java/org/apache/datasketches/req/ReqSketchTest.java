@@ -78,7 +78,7 @@ public class ReqSketchTest {
   //Common loadSketch
   public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
       Criteria criterion, int skDebug) {
-    ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug));
+    ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug, "%4.0f"));
     sk.setCriterion(criterion);
     if (up) {
       for (int i = min; i <= max; i++) {
@@ -230,11 +230,11 @@ public class ReqSketchTest {
     if (summary) {
       println("Merge Test");
       println("Before Merge:");
-      outputCompactorDetail(sk, "%4.0f", allData, "Host Sketch:");
+      outputCompactorDetail(sk, "%5.0f", allData, "Host Sketch:");
     }
     ReqSketch sk2 = new ReqSketch(sk); //copy ctr
     if (summary) {
-      outputCompactorDetail(sk2, "%4.0f", allData, "Incoming Sketch:");
+      outputCompactorDetail(sk2, "%5.0f", allData, "Incoming Sketch:");
       println("Merge Process:");
     }
     sk.merge(sk2);

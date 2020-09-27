@@ -88,7 +88,7 @@ abstract class BaseReqSketch {
    * @param k the given value of k
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
-  public abstract double getMaxRSE(int k);
+  public abstract double getRSE(int k);
 
   /**
    * Gets the total number of items offered to the sketch.
@@ -122,6 +122,10 @@ abstract class BaseReqSketch {
   /**
    * Gets the quantile of the largest normalized rank based on the lteq criterion.
    * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
+   * If the given normRank is outside the range of ranks of values retained by the sketch the
+   * returned value will be a <i>NaN</i>, unless {@link #setCompatible(boolean)} has been
+   * set true, in which case the returned value will be the <i>minValue</i> or the <i>maxValue</i>
+   * captured from the stream.
    * @param normRank the given normalized rank
    * @return the largest quantile less than the given normalized rank.
    */

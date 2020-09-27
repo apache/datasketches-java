@@ -44,7 +44,6 @@ class ReqCompactor {
   private FloatBuffer buf;
   private Random rand;
 
-
   /**
    * Constructor
    * @param sk the associated ReqSketch
@@ -243,8 +242,9 @@ class ReqCompactor {
   String toListPrefix() {
     final int h = getLgWeight();
     final int len = buf.getLength();
-    final int nomCap = getNomCapacity();
-    final String prefix = String.format("%2d [%3d] [%3d]: ", h, len, nomCap);
+    final int nom = getNomCapacity();
+    final int num = getNumCompactions();
+    final String prefix = String.format("  C:%d Len:%d NomSz:%d NumCompactions:%d", h, len, nom, num);
     return prefix;
   }
 

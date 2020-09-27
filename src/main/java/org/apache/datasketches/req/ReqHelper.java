@@ -86,8 +86,8 @@ class ReqHelper {
   }
 
   /**
-   * This tests input float arrays to make sure they contain only finite values
-   * and are monotonically increasing in value.
+   * This tests the given float array to make sure that it contains only finite values
+   * and is monotonically increasing in value.
    * @param splits the given array
    */
   static void validateSplits(final float[] splits) {
@@ -103,6 +103,20 @@ class ReqHelper {
       }
     }
   }
+
+  /**
+   * This tests the given float array to make sure that it contains only finite values.
+   * @param arr the given array
+   */
+  static void validateFinite(final float[] arr) {
+    final int len = arr.length;
+    for (int i = 0; i < len; i++) {
+      if (!Float.isFinite(arr[i])) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+    }
+  }
+
 
   /**
    * Returns the nearest even integer to the given value. Also used by test.

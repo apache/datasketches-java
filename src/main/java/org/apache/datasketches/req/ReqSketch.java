@@ -87,7 +87,7 @@ public class ReqSketch extends BaseReqSketch {
 
   private List<ReqCompactor> compactors = new ArrayList<>();
 
-  ReqDebug reqDebug = null;
+  ReqDebug reqDebug = null; //read by compactor as well
 
   /**
    * Constructor.
@@ -213,7 +213,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double getMaxRSE(final int k) {
+  public double getRSE(final int k) {
     return Math.sqrt(8.0 / INIT_NUMBER_OF_SECTIONS) / k;
   }
 
@@ -272,7 +272,7 @@ public class ReqSketch extends BaseReqSketch {
       aux = new ReqAuxiliary(this);
     }
     final float q = aux.getQuantile(normRank);
-    if (Float.isNaN(q)) {
+    if (Float.isNaN(q)) { //possible result from aux.getQuantile()
       if (compatible) {
         if (criterion == Criteria.LT || criterion == Criteria.LE) { return minValue; }
         else { return maxValue; }
@@ -293,20 +293,8 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double getRank(final float value) {
-    return getRanks( new float[] { value } )[0];
-  }
-
-  @Override
-  public double getRankLowerBound(final double rank, final int numStdDev) {
-    final float q = getQuantile(rank);
-    final long nnRank = getCounts(new float[] { q })[0];
-    if (getNumLevels() == 1 || nnRank <= k * INIT_NUMBER_OF_SECTIONS) {
-      return nnRank / getN();
-    }
-    else { //TODO This doesn't work right
-      final double nnLB = Math.floor( (1 - numStdDev * getMaxRSE(k) ) * nnRank);
-      return nnLB / getN();
-    }
+    final long nnCount = getCount(value);
+    return (double)nnCount / totalN;
   }
 
   @Override
@@ -321,16 +309,44 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
+  public double getRankLowerBound(final double rank, final int numStdDev) {
+    if (getNumLevels() == 1) { return rank; }
+    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / getN();
+    if ( hra && rank >= 1.0 - thresh) { return rank; }
+    if (!hra && rank <= thresh) { return rank; }
+    final double sloped = 0.1306395 / k * (hra ? 1.0 - rank : rank);
+    final double flat = .06 / k;
+    final double lbSloped = rank - numStdDev * sloped;
+    final double lbFlat = rank - numStdDev * flat;
+    return Math.max(lbSloped, lbFlat);
+  }
+
+  @Override
   public double getRankUpperBound(final double rank, final int numStdDev) {
-    final float q = getQuantile(rank);
-    final long nnRank = getCounts(new float[] { q })[0];
-    if (getNumLevels() == 1 || nnRank <= k * INIT_NUMBER_OF_SECTIONS) {
-      return nnRank / getN();
+    if (getNumLevels() == 1) { return rank; }
+    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / getN();
+    if ( hra && rank >= 1.0 - thresh) { return rank; }
+    if (!hra && rank <= thresh) { return rank; }
+    final double sloped = 0.1306395 / k * (hra ? 1.0 - rank : rank);
+    final double flat = .06 / k;
+    final double ubSloped = rank + numStdDev * sloped;
+    final double ubFlat = rank + numStdDev * flat;
+    return Math.min(ubSloped, ubFlat);
+  }
+
+  private long getCount(final float value) {
+    final int numComp = compactors.size();
+    long cumNnr = 0;
+    for (int i = 0; i < numComp; i++) { //cycle through compactors
+      final ReqCompactor c = compactors.get(i);
+      final int wt = 1 << c.getLgWeight();
+      final FloatBuffer buf = c.getBuffer();
+      cumNnr += buf.getCountWithCriterion(value, criterion) * wt;
     }
-    else { //TODO This doesn't work right
-      final double nnUB = Math.ceil( (1 + numStdDev * getMaxRSE(k) ) * nnRank);
-      return nnUB / getN();
+    if (criterion == GT || criterion == GE) {
+      cumNnr = totalN - cumNnr;
     }
+    return cumNnr;
   }
 
   private long[] getCounts(final float[] values) {
@@ -341,9 +357,8 @@ public class ReqSketch extends BaseReqSketch {
       final ReqCompactor c = compactors.get(i);
       final int wt = 1 << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
-      final int[] countsArr = buf.getCountsWithCriterion(values, criterion);
       for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] += countsArr[j] * wt;
+        cumNnrArr[j] += buf.getCountWithCriterion(values[j], criterion) * wt;
       }
     }
     if (criterion == GT || criterion == GE) {
@@ -482,9 +497,8 @@ public class ReqSketch extends BaseReqSketch {
     sb.append(LS);
     for (int i = 0; i < getNumLevels(); i++) {
       final ReqCompactor c = compactors.get(i);
-      sb.append(c.toListPrefix());
-      if (allData) { sb.append(c.getBuffer().toHorizList(fmt, 20, 16)).append(LS); }
-      else { sb.append(LS); }
+      sb.append(c.toListPrefix()).append(LS);
+      if (allData) { sb.append(c.getBuffer().toHorizList(fmt, 20)).append(LS); }
     }
     sb.append("************************End Detail*************************").append(LS);
     return sb.toString();

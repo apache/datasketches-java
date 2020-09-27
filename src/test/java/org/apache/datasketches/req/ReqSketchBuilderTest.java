@@ -33,7 +33,7 @@ public class ReqSketchBuilderTest {
   @Test
   public void checkBldr() {
     ReqSketchBuilder bldr = new ReqSketchBuilder();
-    ReqDebugImpl rdi = new ReqDebugImpl(2);
+    ReqDebugImpl rdi = new ReqDebugImpl(2, "%4.0f");
     bldr.setK(50).setHighRankAccuracy(true).setLessThanOrEqual(false)
       .setCompatible(true).setReqDebug(rdi);
     assertEquals(bldr.getK(), 50);
@@ -44,7 +44,6 @@ public class ReqSketchBuilderTest {
     println(bldr.toString());
     bldr.setReqDebug(null);
     println(bldr.toString());
-
   }
 
   @SuppressWarnings("unused")

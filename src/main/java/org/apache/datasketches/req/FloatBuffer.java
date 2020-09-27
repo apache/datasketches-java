@@ -185,6 +185,7 @@ class FloatBuffer {
    * @return count of items based on the given criteria.
    */
   int getCountWithCriterion(final float value, final Criteria criterion) {
+    assert !Float.isNaN(value) : "Float values must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
     int low = 0;    //iniitalized to space at top
     int high = count_ - 1;
@@ -198,24 +199,6 @@ class FloatBuffer {
     }
     //LT or LE
     return index == -1 ? 0 : index - low + 1;
-  }
-
-  /**
-   * Returns an array of counts corresponding to each of the values in the given array.
-   * The counts will be the number of values based on the given criteria.
-   * @param values the given values array
-   * @param criterion the chosen criterion.
-   * @return an array of counts corresponding to each of the values in the given array.
-   */
-  int[] getCountsWithCriterion(final float[] values, final Criteria criterion) {
-    final int len = values.length;
-    final int[] nnrArr = new int[len];
-    for (int i = 0; i < len; i++) {
-      final float v = values[i];
-      assert !Float.isNaN(v) : "Float values must not be NaN.";
-      nnrArr[i] = getCountWithCriterion(values[i], criterion);
-    }
-    return nnrArr;
   }
 
   /**
@@ -383,16 +366,15 @@ class FloatBuffer {
    * Returns a printable formatted string of the values of this buffer separated by a single space.
    * @param fmt The format for each printed item.
    * @param width the number of items to print per line
-   * @param indent the number of spaces at the beginning of a new line
    * @return a printable, formatted string of the values of this buffer.
    */
-  String toHorizList(final String fmt, final int width, final int indent) {
+  String toHorizList(final String fmt, final int width) {
     final StringBuilder sb = new StringBuilder();
-    final char[] spaces = new char[indent];
-    Arrays.fill(spaces, ' ');
+    final String spaces = "  ";
     final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
     final int end   = spaceAtBottom_ ? capacity_ : count_;
     int cnt = 0;
+    sb.append(spaces);
     for (int i = start; i < end; i++) {
       final float v = arr_[i];
       final String str = String.format(fmt, v);

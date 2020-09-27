@@ -26,6 +26,7 @@ package org.apache.datasketches.req;
  * @author Lee Rhodes
  */
 public enum Criteria {
+
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
@@ -83,6 +84,7 @@ public enum Criteria {
       + "; return arr[" + idx + "]=" + arr[idx];
     }
   },
+
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
@@ -144,6 +146,65 @@ public enum Criteria {
           + "; return arr[" + idx + "]=" + arr[idx];
     }
   },
+
+  /**
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
+   * <i>A &lt; V &le; B</i>,
+   * The returned value from the binary search algorithm will be the index of <i>B</i>
+   * or -1, if the value <i>V</i> &gt; the the highest value in the selected range of the array.
+   */
+  GE { //A < V <= B, return B
+    @Override
+    int compare(final double[] arr, final int a, final int b, final double v) {
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
+    int compare(final float[] arr, final int a, final int b, final float v) {
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
+    int getIndex(final int a, final int b) {
+      return b;
+    }
+
+    @Override
+    int resolve(final int loA, final int hiA, final int low, final int high) {
+      if (hiA <= low) { return low; }
+      return -1;
+    }
+
+    @Override
+    String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
+      if (idx == -1) {
+        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
+      }
+      if (idx == low) {
+        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GE: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
+          + "; return arr[" + idx + "]=" + arr[idx];
+    }
+
+    @Override
+    String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
+      if (idx == -1) {
+        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
+      }
+      if (idx == low) {
+        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GE: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
+          + "; return arr[" + idx + "]=" + arr[idx];
+    }
+  },
+
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
@@ -200,63 +261,6 @@ public enum Criteria {
       + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " <= " + v + " < arr[" + idx + "]=" + arr[idx]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
-  },
-  /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
-   * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &lt; V &le; B</i>,
-   * The returned value from the binary search algorithm will be the index of <i>B</i>
-   * or -1, if the value <i>V</i> &gt; the the highest value in the selected range of the array.
-   */
-  GE { //A < B <= B, return B
-    @Override
-    int compare(final double[] arr, final int a, final int b, final double v) {
-      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
-    }
-
-    @Override
-    int compare(final float[] arr, final int a, final int b, final float v) {
-      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
-    }
-
-    @Override
-    int getIndex(final int a, final int b) {
-      return b;
-    }
-
-    @Override
-    int resolve(final int loA, final int hiA, final int low, final int high) {
-      if (hiA <= low) { return low; }
-      return -1;
-    }
-
-    @Override
-    String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
-      if (idx == -1) {
-        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
-      }
-      if (idx == low) {
-        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
-            + "; return arr[" + low + "]=" + arr[low];
-      } //idx > low
-      return "GE: " + v
-      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
-          + "; return arr[" + idx + "]=" + arr[idx];
-    }
-
-    @Override
-    String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
-      if (idx == -1) {
-        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
-      }
-      if (idx == low) {
-        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
-            + "; return arr[" + low + "]=" + arr[low];
-      } //idx > low
-      return "GE: " + v
-      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
-          + "; return arr[" + idx + "]=" + arr[idx];
-    }
   };
 
   /**
@@ -291,7 +295,7 @@ public enum Criteria {
   abstract int getIndex(int a, int b);
 
   /**
-   * Called to resolve what to do at the ends of the array
+   * Called to resolve what to do if not found
    * @param loA the current loA value
    * @param hiA the current hiA value
    * @param low the low index of the full range

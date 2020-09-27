@@ -104,7 +104,7 @@ public class ReqSketchOtherTest {
     assertEquals(v, 120.0f);
     ReqAuxiliary aux = sk.getAux();
     assertNotNull(aux);
-    assertTrue(sk.getMaxRSE(sk.getK()) > 0);
+    assertTrue(sk.getRSE(sk.getK()) > 0);
     assertTrue(sk.getSerializationBytes() > 0);
   }
 
