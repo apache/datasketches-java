@@ -253,6 +253,12 @@ abstract class BaseReqSketch {
   public abstract String toString();
 
   /**
+   * Updates this sketch with the given item.
+   * @param item the given item
+   */
+  public abstract void update(final float item);
+
+  /**
    * A detailed, human readable view of the sketch compactors and their data.
    * Each compactor string is prepended by the compactor lgWeight, the current number of retained
    * items of the compactor and the current nominal capacity of the compactor.
@@ -263,9 +269,4 @@ abstract class BaseReqSketch {
    */
   public abstract String viewCompactorDetail(String fmt, boolean allData);
 
-  /**
-   * Updates this sketch with the given item.
-   * @param item the given item
-   */
-  public abstract void update(final float item);
 }

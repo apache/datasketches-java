@@ -105,20 +105,6 @@ class ReqHelper {
   }
 
   /**
-   * This tests the given float array to make sure that it contains only finite values.
-   * @param arr the given array
-   */
-  static void validateFinite(final float[] arr) {
-    final int len = arr.length;
-    for (int i = 0; i < len; i++) {
-      if (!Float.isFinite(arr[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-    }
-  }
-
-
-  /**
    * Returns the nearest even integer to the given value. Also used by test.
    * @param value the given value
    * @return the nearest even integer to the given value.

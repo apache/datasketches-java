@@ -104,7 +104,7 @@ public class ReqSketchOtherTest {
     assertEquals(v, 120.0f);
     ReqAuxiliary aux = sk.getAux();
     assertNotNull(aux);
-    assertTrue(sk.getRSE(sk.getK()) > 0);
+    assertTrue(sk.getRSE(sk.getK(), .5, false, 120) > 0);
     assertTrue(sk.getSerializationBytes() > 0);
   }
 
@@ -174,7 +174,7 @@ public class ReqSketchOtherTest {
     boolean hra = true;
     int min = 1;
     int max = 100;
-    ReqSketch sk= reqSketchTest.loadSketch( k,   min, max,  up,  hra, LE, 0);
+    ReqSketch sk = reqSketchTest.loadSketch( k,   min, max,  up,  hra, LE, 0);
     sk.setCompatible(false);
 
     for (float v = 0.5f; v <= max + 0.5f; v += 0.5f) {
@@ -207,7 +207,31 @@ public class ReqSketchOtherTest {
   }
 
   @Test
-  public void checkSerializationBytes() {
+  public void checkGetRankUBLB() {
+    checkGetRank(true, LT);
+    checkGetRank(false, LE);
+    checkGetRank(true, GE);
+    checkGetRank(false, GT);
+  }
+
+  private void checkGetRank(boolean hra, Criteria criterion) {
+    int k = 12;
+    boolean up = true;
+    int min = 1;
+    int max = 1000;
+    int skDebug = 0;
+    ReqSketch sk = reqSketchTest.loadSketch(k, min, max, up, hra, criterion, skDebug);
+    double rLB = sk.getRankLowerBound(0.5, 1);
+    assertTrue(rLB > 0);
+    if (hra) { rLB = sk.getRankLowerBound(995.0/1000, 1); }
+    else { rLB = sk.getRankLowerBound(5.0/1000, 1); }
+    assertTrue(rLB > 0);
+    double rUB = sk.getRankUpperBound(0.5, 1);
+    assertTrue(rUB > 0);
+    if (hra) { rUB = sk.getRankUpperBound(995.0/1000, 1); }
+    else { rUB = sk.getRankUpperBound(5.0/1000, 1); }
+    assertTrue(rUB > 0);
+    double[] ranks = sk.getRanks(new float[] {5f, 100f});
 
   }
 

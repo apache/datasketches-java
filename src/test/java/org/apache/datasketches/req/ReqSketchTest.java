@@ -78,7 +78,7 @@ public class ReqSketchTest {
   //Common loadSketch
   public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
       Criteria criterion, int skDebug) {
-    ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug, "%4.0f"));
+    ReqSketch sk = new ReqSketch(k, hra, new ReqDebugImpl(skDebug, "%5.0f"));
     sk.setCriterion(criterion);
     if (up) {
       for (int i = min; i <= max; i++) {
