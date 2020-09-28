@@ -188,7 +188,7 @@ public class ReqSketch extends BaseReqSketch {
     long cumNnr = 0;
     for (int i = 0; i < numComp; i++) { //cycle through compactors
       final ReqCompactor c = compactors.get(i);
-      final int wt = 1 << c.getLgWeight();
+      final long wt = 1L << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
       cumNnr += buf.getCountWithCriterion(value, criterion) * wt;
     }
@@ -204,7 +204,7 @@ public class ReqSketch extends BaseReqSketch {
     final long[] cumNnrArr = new long[numValues];
     for (int i = 0; i < numComp; i++) { //cycle through compactors
       final ReqCompactor c = compactors.get(i);
-      final int wt = 1 << c.getLgWeight();
+      final long wt = 1L << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
       for (int j = 0; j < numValues; j++) {
         cumNnrArr[j] += buf.getCountWithCriterion(values[j], criterion) * wt;
