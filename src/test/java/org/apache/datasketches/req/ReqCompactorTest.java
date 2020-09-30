@@ -21,6 +21,7 @@ package org.apache.datasketches.req;
 
 import static org.testng.Assert.assertEquals;
 
+import org.apache.datasketches.Criteria;
 import org.testng.annotations.Test;
 
 /**

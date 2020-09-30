@@ -17,13 +17,14 @@
  * under the License.
  */
 
-package org.apache.datasketches.req;
+package org.apache.datasketches;
 
 /**
- * Contains binary search algorithms
+ * Contains binary search algorithms for &lt;, &le;, ==, &ge;, and &gt;.
+ *
  * @author Lee Rhodes
  */
-class BinarySearch {
+public final class BinarySearch {
 
   /**
    * Binary Search for the index of the double value in the given range that satisfies
@@ -37,7 +38,7 @@ class BinarySearch {
    * @param crit one of LT, LE, GT, GE
    * @return the index of the value in the given range that satisfies the criterion
    */
-  static int binarySearchDouble(final double[] arr, final int low, final int high, final double v,
+  public static int binarySearchDouble(final double[] arr, final int low, final int high, final double v,
       final Criteria crit) {
     int lo = low;
     int hi = high - 1;
@@ -47,7 +48,7 @@ class BinarySearch {
       ret = crit.compare(arr, midA, midA + 1, v);
       if (ret == -1 ) { hi = midA - 1; }
       else if (ret == 1) { lo = midA + 1; }
-      else  { return crit.getIndex(midA, midA + 1); }
+      else  { return crit.getIndex(arr, midA, midA + 1, v); }
     }
     return crit.resolve(lo, hi, low, high);
   }
@@ -64,7 +65,7 @@ class BinarySearch {
    * @param crit one of LT, LE, GT, GE
    * @return the index of the value in the given range that satisfies the criterion
    */
-  static int binarySearchFloat(final float[] arr, final int low, final int high, final float v,
+  public static int binarySearchFloat(final float[] arr, final int low, final int high, final float v,
       final Criteria crit) {
     int lo = low;
     int hi = high - 1;
@@ -74,7 +75,7 @@ class BinarySearch {
       ret = crit.compare(arr, midA, midA + 1, v);
       if (ret == -1 ) { hi = midA - 1; }
       else if (ret == 1) { lo = midA + 1; }
-      else  { return crit.getIndex(midA, midA + 1); }
+      else  { return crit.getIndex(arr, midA, midA + 1, v); }
     }
     return crit.resolve(lo, hi, low, high);
   }

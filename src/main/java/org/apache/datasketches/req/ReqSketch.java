@@ -21,13 +21,14 @@ package org.apache.datasketches.req;
 
 import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
-import static org.apache.datasketches.req.Criteria.GE;
-import static org.apache.datasketches.req.Criteria.GT;
+import static org.apache.datasketches.Criteria.GE;
+import static org.apache.datasketches.Criteria.GT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
 
 

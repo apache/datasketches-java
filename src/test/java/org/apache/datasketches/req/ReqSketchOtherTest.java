@@ -19,16 +19,17 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.req.Criteria.GE;
-import static org.apache.datasketches.req.Criteria.GT;
-import static org.apache.datasketches.req.Criteria.LE;
-import static org.apache.datasketches.req.Criteria.LT;
+import static org.apache.datasketches.Criteria.GE;
+import static org.apache.datasketches.Criteria.GT;
+import static org.apache.datasketches.Criteria.LE;
+import static org.apache.datasketches.Criteria.LT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 

@@ -17,14 +17,15 @@
  * under the License.
  */
 
-package org.apache.datasketches.req;
+package org.apache.datasketches;
 
-import static org.apache.datasketches.req.Criteria.GE;
-import static org.apache.datasketches.req.Criteria.GT;
-import static org.apache.datasketches.req.Criteria.LE;
-import static org.apache.datasketches.req.Criteria.LT;
-import static org.apache.datasketches.req.BinarySearch.binarySearchDouble;
-import static org.apache.datasketches.req.BinarySearch.binarySearchFloat;
+import static org.apache.datasketches.BinarySearch.binarySearchDouble;
+import static org.apache.datasketches.BinarySearch.binarySearchFloat;
+import static org.apache.datasketches.Criteria.EQ;
+import static org.apache.datasketches.Criteria.GE;
+import static org.apache.datasketches.Criteria.GT;
+import static org.apache.datasketches.Criteria.LE;
+import static org.apache.datasketches.Criteria.LT;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Random;
@@ -74,11 +75,6 @@ public class BinarySearchTest {
     }
   }
 
-  static Criteria critLT = LT;
-  static Criteria critLE = LE;
-  static Criteria critGT = GT;
-  static Criteria critGE = GE;
-
   @Test
   public void checkBinSearchDblLimits() {
     for (int len = 10; len <= 13; len++) {
@@ -108,62 +104,77 @@ public class BinarySearchTest {
     int res;
     v = lowV - 1;
     res = binarySearchDouble(arr, low, high, v, LT);
-    println(LT.desc(arr, low, high, res, v));
+    println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV;
     res = binarySearchDouble(arr, low, high, v, LT);
-    println(LT.desc(arr, low, high, res, v));
+    println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
     res = binarySearchDouble(arr, low, high, v, LT);
-    println(LT.desc(arr, low, high, res, v));
+    println(LT.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV - 1;
     res = binarySearchDouble(arr, low, high, v, LE);
-    println(LE.desc(arr, low, high, res, v));
+    println(LE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV;
     res = binarySearchDouble(arr, low, high, v, LE);
-    println(LE.desc(arr, low, high, res, v));
+    println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = highV + 1;
     res = binarySearchDouble(arr, low, high, v, LE);
-    println(LE.desc(arr, low, high, res, v));
+    println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV - 1;
+    res = binarySearchDouble(arr, low, high, v, EQ);
+    println(EQ.desc(arr, low, high, v, res));
+    assertEquals(res, -1);
+
+    v = highV;
+    res = binarySearchDouble(arr, low, high, v, EQ);
+    println(EQ.desc(arr, low, high, v, res));
+    assertEquals(arr[res], v);
+
+    v = highV + 1;
+    res = binarySearchDouble(arr, low, high, v, EQ);
+    println(EQ.desc(arr, low, high, v, res));
+    assertEquals(res, -1);
+
+    v = lowV - 1;
     res = binarySearchDouble(arr, low, high, v, GT);
-    println(GT.desc(arr, low, high, res, v));
+    println(GT.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV;
     res = binarySearchDouble(arr, low, high, v, GT);
-    println(GT.desc(arr, low, high, res, v));
+    println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
     res = binarySearchDouble(arr, low, high, v, GT);
-    println(GT.desc(arr, low, high, res, v));
+    println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV - 1;
     res = binarySearchDouble(arr, low, high, v, GE);
-    println(GE.desc(arr, low, high, res, v));
+    println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = lowV;
     res = binarySearchDouble(arr, low, high, v, GE);
-    println(GE.desc(arr, low, high, res, v));
+    println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV + 1;
     res = binarySearchDouble(arr, low, high, v, GE);
-    println(GE.desc(arr, low, high, res, v));
+    println(GE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
   }
 
@@ -196,62 +207,77 @@ public class BinarySearchTest {
     int res;
     v = lowV - 1;
     res = binarySearchFloat(arr, low, high, v, LT);
-    println(LT.desc(arr, low, high, res, v));
+    println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV;
     res = binarySearchFloat(arr, low, high, v, LT);
-    println(LT.desc(arr, low, high, res, v));
+    println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
     res = binarySearchFloat(arr, low, high, v, LT);
-    println(LT.desc(arr, low, high, res, v));
+    println(LT.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV -1;
     res = binarySearchFloat(arr, low, high, v, LE);
-    println(LE.desc(arr, low, high, res, v));
+    println(LE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV;
     res = binarySearchFloat(arr, low, high, v, LE);
-    println(LE.desc(arr, low, high, res, v));
+    println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = highV + 1;
     res = binarySearchFloat(arr, low, high, v, LE);
-    println(LE.desc(arr, low, high, res, v));
+    println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV - 1;
+    res = binarySearchFloat(arr, low, high, v, EQ);
+    println(EQ.desc(arr, low, high, v, res));
+    assertEquals(res, -1);
+
+    v = highV;
+    res = binarySearchFloat(arr, low, high, v, EQ);
+    println(EQ.desc(arr, low, high, v, res));
+    assertEquals(arr[res], v);
+
+    v = highV + 1;
+    res = binarySearchFloat(arr, low, high, v, EQ);
+    println(EQ.desc(arr, low, high, v, res));
+    assertEquals(res, -1);
+
+    v = lowV - 1;
     res = binarySearchFloat(arr, low, high, v, GT);
-    println(GT.desc(arr, low, high, res, v));
+    println(GT.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV;
     res = binarySearchFloat(arr, low, high, v, GT);
-    println(GT.desc(arr, low, high, res, v));
+    println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
     res = binarySearchFloat(arr, low, high, v, GT);
-    println(GT.desc(arr, low, high, res, v));
+    println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV - 1;
     res = binarySearchFloat(arr, low, high, v, GE);
-    println(GE.desc(arr, low, high, res, v));
+    println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = lowV;
     res = binarySearchFloat(arr, low, high, v, GE);
-    println(GE.desc(arr, low, high, res, v));
+    println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV + 1;
     res = binarySearchFloat(arr, low, high, v, GE);
-    println(GE.desc(arr, low, high, res, v));
+    println(GE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
   }
 
@@ -278,7 +304,7 @@ public class BinarySearchTest {
         println(v + " Not resolved, return -1.");
       }
       else {
-        println(crit.desc(arr, low, high, idx, v));
+        println(crit.desc(arr, low, high, v, idx));
       }
     }
     println("");
@@ -307,7 +333,7 @@ public class BinarySearchTest {
         println(v + " Not resolved, return -1.");
       }
       else {
-        println(crit.desc(arr, low, high, idx, v));
+        println(crit.desc(arr, low, high, v, idx));
       }
     }
     println("");
@@ -318,8 +344,6 @@ public class BinarySearchTest {
   static final void printf(final String format, final Object ...args) {
     //System.out.printf(format, args);
   }
-
-  //static final void print(final Object o) { System.out.print(o.toString()); }
 
   @SuppressWarnings("unused")
   static final void println(final Object o) {

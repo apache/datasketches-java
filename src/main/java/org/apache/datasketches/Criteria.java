@@ -17,11 +17,10 @@
  * under the License.
  */
 
-package org.apache.datasketches.req;
+package org.apache.datasketches;
 
 /**
- * <b>NOTE:</b> This is an internal class and is public to allow characterization testing from
- * another package. It is not intended to be used by normal users of the ReqSketch.
+ * This supports the BinarySearch class.
  *
  * @author Lee Rhodes
  */
@@ -30,7 +29,7 @@ public enum Criteria {
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &lt; V &le; B</i>,
+   * <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
    * or -1, if the value <i>V</i> &le; the the lowest value in the selected range of the array.
    */
@@ -46,7 +45,12 @@ public enum Criteria {
     }
 
     @Override
-    int getIndex(final int a, final int b) {
+    int getIndex(final double[] arr, final int a, final int b, final double v) {
+      return a;
+    }
+
+    @Override
+    int getIndex(final float[] arr, final int a, final int b, final float v) {
       return a;
     }
 
@@ -57,7 +61,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
+    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -71,7 +75,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
+    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -88,7 +92,7 @@ public enum Criteria {
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &le; V &lt; B</i>,
+   * <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
    * or -1, if the value <i>V</i> &lt; the the lowest value in the selected range of the array.
    */
@@ -104,7 +108,12 @@ public enum Criteria {
     }
 
     @Override
-    int getIndex(final int a, final int b) {
+    int getIndex(final double[] arr, final int a, final int b, final double v) {
+      return a;
+    }
+
+    @Override
+    int getIndex(final float[] arr, final int a, final int b, final float v) {
       return a;
     }
 
@@ -115,7 +124,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
+    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -129,7 +138,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
+    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -145,8 +154,70 @@ public enum Criteria {
 
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * binary search algorithm to find the adjacent pair of values <i>{A,B}</i> such that
+   * <i>A &le; V &le; B</i>.
+   * The returned value from the binary search algorithm will be the index of <i>A</i> or <i>B</i>,
+   * if one of them is equal to <i>V</i>, or -1 if V is not equal to either one.
+   */
+  EQ { //A <= V <= B, return A or B
+    @Override
+    int compare(final double[] arr, final int a, final int b, final double v) {
+      return v < arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
+    int compare(final float[] arr, final int a, final int b, final float v) {
+      return v < arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
+    int getIndex(final double[] arr, final int a, final int b, final double v) {
+      return v == arr[a] ? a : v == arr[b] ? b : -1;
+    }
+
+    @Override
+    int getIndex(final float[] arr, final int a, final int b, final float v) {
+      return v == arr[a] ? a : v == arr[b] ? b : -1;
+    }
+
+    @Override
+    int resolve(final int loA, final int hiA, final int low, final int high) {
+      return -1;
+    }
+
+    @Override
+    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
+      if (idx == -1) {
+        if (v > arr[high]) {
+          return "EQ: " + v + " > arr[" + high + "]; return -1";
+        }
+        if (v < arr[low]) {
+          return "EQ: " + v + " < arr[" + low + "]; return -1";
+        }
+        return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
+      }
+      return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+    }
+
+    @Override
+    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+      if (idx == -1) {
+        if (v > arr[high]) {
+          return "EQ: " + v + " > arr[" + high + "]; return -1";
+        }
+        if (v < arr[low]) {
+          return "EQ: " + v + " < arr[" + low + "]; return -1";
+        }
+        return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
+      }
+      return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+    }
+  },
+
+  /**
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &lt; V &le; B</i>,
+   * <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
    * or -1, if the value <i>V</i> &gt; the the highest value in the selected range of the array.
    */
@@ -162,7 +233,12 @@ public enum Criteria {
     }
 
     @Override
-    int getIndex(final int a, final int b) {
+    int getIndex(final double[] arr, final int a, final int b, final double v) {
+      return b;
+    }
+
+    @Override
+    int getIndex(final float[] arr, final int a, final int b, final float v) {
       return b;
     }
 
@@ -173,7 +249,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
+    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -187,7 +263,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
+    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -204,7 +280,7 @@ public enum Criteria {
   /**
    * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &le; V &lt; B</i>,
+   * <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
    * or -1, if the value <i>V</i> &ge; the the highest value in the selected range of the array.
    */
@@ -220,7 +296,12 @@ public enum Criteria {
     }
 
     @Override
-    int getIndex(final int a, final int b) {
+    int getIndex(final double[] arr, final int a, final int b, final double v) {
+      return b;
+    }
+
+    @Override
+    int getIndex(final float[] arr, final int a, final int b, final float v) {
       return b;
     }
 
@@ -231,7 +312,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final int idx, final double v) {
+    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -245,7 +326,7 @@ public enum Criteria {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final int idx, final float v) {
+    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -284,43 +365,56 @@ public enum Criteria {
   /**
    * If the compare operation returns 0, which means "found", this returns the index of the
    * found value that satisfies the selected criteria.
+   * @param arr the array being searched
    * @param a the lower index of the current pair
    * @param b the higer index of the current pair
+   * @param v the value being searched for.
    * @return the index of the found value that satisfies the selected criteria.
    */
-  abstract int getIndex(int a, int b);
+  abstract int getIndex(double[] arr, int a, int b, double v);
+
+  /**
+   * If the compare operation returns 0, which means "found", this returns the index of the
+   * found value that satisfies the selected criteria.
+   * @param arr the array being searched
+   * @param a the lower index of the current pair
+   * @param b the higer index of the current pair
+   * @param v the value being searched for.
+   * @return the index of the found value that satisfies the selected criteria.
+   */
+  abstract int getIndex(float[] arr, int a, int b, float v);
 
   /**
    * Called to resolve what to do if not found.
-   * @param loA the current loA value
-   * @param hiA the current hiA value
-   * @param low the low index of the full range
-   * @param high the high index of the full range
+   * @param lo the current lo value
+   * @param hi the current hi value
+   * @param low the low index of the range
+   * @param high the high index of the range
    * @return the index of the resolution or -1, if it cannot be resolved.
    */
-  abstract int resolve(int loA, int hiA, int low, int high);
+  abstract int resolve(int lo, int hi, int low, int high);
 
   /**
    * Optional call that describes the details of the results of the search.
    * Used primarily for debugging.
    * @param arr The underlying sorted array of double values
-   * @param low the low index of the full range
-   * @param high the high index of the full range
-   * @param idx the resolved index
+   * @param low the low index of the range
+   * @param high the high index of the range
    * @param v the double value to search for
+   * @param idx the resolved index from the search
    * @return the descriptive string.
    */
-  abstract String desc(double[] arr, int low, int high, int idx, double v);
+  abstract String desc(double[] arr, int low, int high, double v, int idx);
 
   /**
    * Optional call that describes the details of the results of the search.
    * Used primarily for debugging.
    * @param arr The underlying sorted array of double values
-   * @param low the low index of the full range
-   * @param high the high index of the full range
-   * @param idx the resolved index
+   * @param low the low index of the range
+   * @param high the high index of the range
    * @param v the double value to search for
+   * @param idx the resolved index from the search
    * @return the descriptive string.
    */
-  abstract String desc(float[] arr, int low, int high, int idx, float v);
+  abstract String desc(float[] arr, int low, int high, float v, int idx);
 }

@@ -19,10 +19,12 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.req.BinarySearch.binarySearchDouble;
+import static org.apache.datasketches.BinarySearch.binarySearchDouble;
 import static org.apache.datasketches.req.ReqSketch.LS;
 
 import java.util.List;
+
+import org.apache.datasketches.Criteria;
 
 /**
  * Supports searches for quantiles

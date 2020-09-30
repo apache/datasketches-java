@@ -21,6 +21,7 @@ package org.apache.datasketches.req;
 
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.Criteria;
 import org.apache.datasketches.req.ReqAuxiliary.Row;
 import org.testng.annotations.Test;
 

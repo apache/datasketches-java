@@ -19,14 +19,16 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.req.Criteria.GE;
-import static org.apache.datasketches.req.Criteria.GT;
-import static org.apache.datasketches.req.Criteria.LE;
-import static org.apache.datasketches.req.Criteria.LT;
+import static org.apache.datasketches.Criteria.GE;
+import static org.apache.datasketches.Criteria.GT;
+import static org.apache.datasketches.Criteria.LE;
+import static org.apache.datasketches.Criteria.LT;
 import static org.apache.datasketches.req.ReqSketch.LS;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.BinarySearch;
+import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
