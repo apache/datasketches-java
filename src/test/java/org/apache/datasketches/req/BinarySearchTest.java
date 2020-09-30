@@ -23,36 +23,21 @@ import static org.apache.datasketches.req.Criteria.GE;
 import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.Criteria.LE;
 import static org.apache.datasketches.req.Criteria.LT;
-import static org.apache.datasketches.req.ReqHelper.binarySearchDouble;
-import static org.apache.datasketches.req.ReqHelper.binarySearchFloat;
-import static org.apache.datasketches.req.ReqHelper.validateSplits;
+import static org.apache.datasketches.req.BinarySearch.binarySearchDouble;
+import static org.apache.datasketches.req.BinarySearch.binarySearchFloat;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
 
 import java.util.Random;
 
-import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class ReqHelperTest {
+public class BinarySearchTest {
   static Random rand = new Random(1);
   private static final String LS = System.getProperty("line.separator");
-
-  @Test
-  public void checkValidateSplits() {
-    float[] arr = {1,2,3,4,5};
-    validateSplits(arr);
-    try {
-      float[] arr1 = {1,2,4,3,5};
-      validateSplits(arr1);
-      fail();
-    }
-    catch (final SketchesArgumentException e) { }
-  }
 
   private static float[] buildRandFloatArr(int len) {
     float[] arr = new float[len];
@@ -94,17 +79,6 @@ public class ReqHelperTest {
   static Criteria critGT = GT;
   static Criteria critGE = GE;
 
-  private static String listDblArray(double[] arr, int low, int high) {
-    StringBuilder sb = new StringBuilder();
-    sb.append(LS);
-    sb.append("arr: ");
-    for (int i = 0; i < arr.length; i++) {
-      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
-      else { sb.append(String.format("%.0f ", arr[i])); }
-    }
-    return sb.toString();
-  }
-
   @Test
   public void checkBinSearchDblLimits() {
     for (int len = 10; len <= 13; len++) {
@@ -114,6 +88,17 @@ public class ReqHelperTest {
       println(listDblArray(tarr, low, high));
       checkBinarySearchDoubleLimits(tarr, low, high);
     }
+  }
+
+  private static String listDblArray(double[] arr, int low, int high) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(LS);
+    sb.append("arr: ");
+    for (int i = 0; i < arr.length; i++) {
+      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
+      else { sb.append(String.format("%.0f ", arr[i])); }
+    }
+    return sb.toString();
   }
 
   private static void checkBinarySearchDoubleLimits(double[] arr, int low, int high) {
@@ -182,17 +167,6 @@ public class ReqHelperTest {
     assertEquals(res, -1);
   }
 
-  private static String listFltArray(float[] arr, int low, int high) {
-    StringBuilder sb = new StringBuilder();
-    sb.append(LS);
-    sb.append("arr: ");
-    for (int i = 0; i < arr.length; i++) {
-      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
-      else { sb.append(String.format("%.0f ", arr[i])); }
-    }
-    return sb.toString();
-  }
-
   @Test
   public void checkBinSearchFltLimits() {
     for (int len = 10; len <= 13; len++) {
@@ -202,6 +176,17 @@ public class ReqHelperTest {
       println(listFltArray(tarr, low, high));
       checkBinarySearchFloatLimits(tarr, low, high);
     }
+  }
+
+  private static String listFltArray(float[] arr, int low, int high) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(LS);
+    sb.append("arr: ");
+    for (int i = 0; i < arr.length; i++) {
+      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
+      else { sb.append(String.format("%.0f ", arr[i])); }
+    }
+    return sb.toString();
   }
 
   private static void checkBinarySearchFloatLimits(float[] arr, int low, int high) {

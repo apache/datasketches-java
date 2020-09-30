@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.req.ReqHelper.LS;
-import static org.apache.datasketches.req.ReqHelper.binarySearchDouble;
+import static org.apache.datasketches.req.BinarySearch.binarySearchDouble;
+import static org.apache.datasketches.req.ReqSketch.LS;
 
 import java.util.List;
 

@@ -37,15 +37,15 @@ public enum Criteria {
   LT { //A < V <= B, return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
-      return  v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0; //-1,+1, 0
     }
 
     @Override
     int compare(final float[] arr, final int a, final int b, final float v) {
-      return  v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
     }
 
-    @Override //only if compare == 0
+    @Override
     int getIndex(final int a, final int b) {
       return a;
     }
@@ -95,16 +95,12 @@ public enum Criteria {
   LE { //A <= V < B, return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
-      final int ret = v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
-
-      return ret;
+      return v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
     }
 
     @Override
     int compare(final float[] arr, final int a, final int b, final float v) {
-      final int ret = v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
-
-      return ret;
+      return v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
     }
 
     @Override
@@ -112,7 +108,7 @@ public enum Criteria {
       return a;
     }
 
-    @Override //only if compare == -1
+    @Override
     int resolve(final int loA, final int hiA, final int low, final int high) {
       if (loA >= high) { return high; }
       return -1;
@@ -295,7 +291,7 @@ public enum Criteria {
   abstract int getIndex(int a, int b);
 
   /**
-   * Called to resolve what to do if not found
+   * Called to resolve what to do if not found.
    * @param loA the current loA value
    * @param hiA the current hiA value
    * @param low the low index of the full range

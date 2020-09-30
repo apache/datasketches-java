@@ -23,7 +23,7 @@ import static org.apache.datasketches.req.Criteria.GE;
 import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.Criteria.LE;
 import static org.apache.datasketches.req.Criteria.LT;
-import static org.apache.datasketches.req.ReqHelper.LS;
+import static org.apache.datasketches.req.ReqSketch.LS;
 
 import java.util.Arrays;
 
@@ -193,7 +193,7 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final int index = ReqHelper.binarySearchFloat(arr_, low, high, value, criterion);
+    final int index = BinarySearch.binarySearchFloat(arr_, low, high, value, criterion);
     if (criterion == GT || criterion == GE) {
       return index == -1 ? 0 : high - index + 1;
     }

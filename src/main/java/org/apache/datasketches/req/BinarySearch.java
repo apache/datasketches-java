@@ -19,17 +19,11 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.round;
-
-import org.apache.datasketches.SketchesArgumentException;
-
 /**
- * Contains some common algorithms
+ * Contains binary search algorithms
  * @author Lee Rhodes
  */
-class ReqHelper {
-  static final String LS = System.getProperty("line.separator");
-  static final String TAB = "\t";
+class BinarySearch {
 
   /**
    * Binary Search for the index of the double value in the given range that satisfies
@@ -45,17 +39,17 @@ class ReqHelper {
    */
   static int binarySearchDouble(final double[] arr, final int low, final int high, final double v,
       final Criteria crit) {
-    int loA = low;
-    int hiA = high - 1;
+    int lo = low;
+    int hi = high - 1;
     int ret;
-    while (loA <= hiA) {
-      final int midA = loA + (hiA - loA) / 2;
+    while (lo <= hi) {
+      final int midA = lo + (hi - lo) / 2;
       ret = crit.compare(arr, midA, midA + 1, v);
-      if (ret == -1 ) { hiA = midA - 1; }
-      else if (ret == 1) { loA = midA + 1; }
+      if (ret == -1 ) { hi = midA - 1; }
+      else if (ret == 1) { lo = midA + 1; }
       else  { return crit.getIndex(midA, midA + 1); }
     }
-    return crit.resolve(loA, hiA, low, high);
+    return crit.resolve(lo, hi, low, high);
   }
 
   /**
@@ -72,45 +66,17 @@ class ReqHelper {
    */
   static int binarySearchFloat(final float[] arr, final int low, final int high, final float v,
       final Criteria crit) {
-    int loA = low;
-    int hiA = high - 1;
+    int lo = low;
+    int hi = high - 1;
     int ret;
-    while (loA <= hiA) {
-      final int midA = loA + (hiA - loA) / 2;
+    while (lo <= hi) {
+      final int midA = lo + (hi - lo) / 2;
       ret = crit.compare(arr, midA, midA + 1, v);
-      if (ret == -1 ) { hiA = midA - 1; }
-      else if (ret == 1) { loA = midA + 1; }
+      if (ret == -1 ) { hi = midA - 1; }
+      else if (ret == 1) { lo = midA + 1; }
       else  { return crit.getIndex(midA, midA + 1); }
     }
-    return crit.resolve(loA, hiA, low, high);
-  }
-
-  /**
-   * This tests the given float array to make sure that it contains only finite values
-   * and is monotonically increasing in value.
-   * @param splits the given array
-   */
-  static void validateSplits(final float[] splits) {
-    final int len = splits.length;
-    for (int i = 0; i < len; i++) {
-      final float v = splits[i];
-      if (!Float.isFinite(v)) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < len - 1 && v >= splits[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
-    }
-  }
-
-  /**
-   * Returns the nearest even integer to the given value. Also used by test.
-   * @param value the given value
-   * @return the nearest even integer to the given value.
-   */
-  static final int nearestEven(final double value) {
-    return (int) round(value / 2.0) << 1;
+    return crit.resolve(lo, hi, low, high);
   }
 
 }

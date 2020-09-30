@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.req;
 
+import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
-import static org.apache.datasketches.req.ReqHelper.nearestEven;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 
@@ -229,6 +229,15 @@ class ReqCompactor {
     final long low =  sk.hra ? 0                   : nonCompact;
     final long high = sk.hra ? bufLen - nonCompact : bufLen;
     return (high << 32) + low;
+  }
+
+  /**
+   * Returns the nearest even integer to the given value. Also used by test.
+   * @param value the given value
+   * @return the nearest even integer to the given value.
+   */
+  static final int nearestEven(final double value) {
+    return (int) round(value / 2.0) << 1;
   }
 
   //debug print functions

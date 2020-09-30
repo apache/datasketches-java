@@ -23,8 +23,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 import static org.apache.datasketches.req.Criteria.GE;
 import static org.apache.datasketches.req.Criteria.GT;
-import static org.apache.datasketches.req.ReqHelper.LS;
-import static org.apache.datasketches.req.ReqHelper.validateSplits;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +71,7 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public class ReqSketch extends BaseReqSketch {
+  static final String LS = System.getProperty("line.separator");
   static final int INIT_NUMBER_OF_SECTIONS = 3;
   static final int MIN_K = 4;
   private static final double relRseFactor = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
@@ -538,6 +537,25 @@ public class ReqSketch extends BaseReqSketch {
     int count = 0;
     for (ReqCompactor c : compactors) { count += c.getBuffer().getLength(); }
     retItems = count;
+  }
+
+  /**
+   * This checks the given float array to make sure that it contains only finite values
+   * and is monotonically increasing in value.
+   * @param splits the given array
+   */
+  static void validateSplits(final float[] splits) {
+    final int len = splits.length;
+    for (int i = 0; i < len; i++) {
+      final float v = splits[i];
+      if (!Float.isFinite(v)) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+      if (i < len - 1 && v >= splits[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
+    }
   }
 
   @Override

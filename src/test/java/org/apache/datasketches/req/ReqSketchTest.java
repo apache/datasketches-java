@@ -24,10 +24,12 @@ import static org.apache.datasketches.req.Criteria.GE;
 import static org.apache.datasketches.req.Criteria.GT;
 import static org.apache.datasketches.req.Criteria.LE;
 import static org.apache.datasketches.req.Criteria.LT;
-import static org.apache.datasketches.req.ReqHelper.LS;
+import static org.apache.datasketches.req.ReqSketch.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import org.apache.datasketches.SketchesArgumentException;
 //import static org.apache.datasketches.req.FloatBuffer.TAB;
 import org.apache.datasketches.req.ReqAuxiliary.Row;
 import org.testng.annotations.Test;
@@ -240,6 +242,19 @@ public class ReqSketchTest {
     sk.merge(sk2);
     assertEquals(sk.getN(), 400);
   }
+
+  @Test
+  public void checkValidateSplits() {
+    float[] arr = {1,2,3,4,5};
+    ReqSketch.validateSplits(arr);
+    try {
+      float[] arr1 = {1,2,4,3,5};
+      ReqSketch.validateSplits(arr1);
+      fail();
+    }
+    catch (final SketchesArgumentException e) { }
+  }
+
 
   private static void outputCompactorDetail(ReqSketch sk, String fmt, boolean allData, String text) {
     println(text);
