@@ -208,7 +208,7 @@ public class JaccardSimilarityTest {
     double[] jResults = JaccardSimilarity.jaccard(measured, expected);
     boolean state = JaccardSimilarity.dissimilarityTest(measured, expected, threshold);
     println(state + "\t" + jaccardString(jResults));
-    //assertTrue(state);
+    assertTrue(state);
   }
 
   private static String jaccardString(double[] jResults) {
