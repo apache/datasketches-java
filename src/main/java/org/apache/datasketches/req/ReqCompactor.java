@@ -71,7 +71,7 @@ class ReqCompactor {
   }
 
   /**
-   * Copy Constuctor
+   * Copy Constructor
    * @param other the compactor to be copied into this one
    */
   ReqCompactor(final ReqCompactor other) {
@@ -216,7 +216,7 @@ class ReqCompactor {
   }
 
   /**
-   * Computes the size of the non-compated region, which is the start index of the
+   * Computes the size of the non-compacted region, which is the start index of the
    * compacted region
    * @param secsToCompact the number of contiguous sections to compact
    * @return the start index of the compacted region
