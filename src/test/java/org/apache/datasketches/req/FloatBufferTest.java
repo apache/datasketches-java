@@ -29,6 +29,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 /**
@@ -259,6 +260,34 @@ public class FloatBufferTest {
     assertEquals(buf.getIndex(0), 100f);
     assertEquals(buf.getCapacity(), 101);
     assertEquals(buf.getLength(), 101);
+  }
+
+  @Test
+  public void checkSerDe() {
+    checkSerDeImpl(true);
+    checkSerDeImpl(false);
+  }
+
+  private static void checkSerDeImpl(boolean hra) {
+    FloatBuffer buf = new FloatBuffer(100, 100, hra);
+    for (int i = 0; i <= 100; i++) { buf.append(i); }
+    int capacity = buf.getCapacity();
+    int count = buf.getLength();
+    int delta = buf.getDelta();
+    boolean sorted = buf.isSorted();
+    boolean sab = buf.isSpaceAtBottom();
+    assertEquals(buf.getIndex(100), 100.0f);
+    assertEquals(buf.getIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(buf.isSpaceAtBottom(), hra);
+    byte[] barr = buf.toByteArray();
+    FloatBuffer buf2 = FloatBuffer.heapify(Memory.wrap(barr).asBuffer());
+    assertEquals(buf2.getCapacity(), capacity);
+    assertEquals(buf2.getLength(), count);
+    assertEquals(buf2.getDelta(), delta);
+    assertEquals(buf2.isSorted(), sorted);
+    assertEquals(buf2.isSpaceAtBottom(), sab);
+    assertEquals(buf2.getIndex(100), 100.0f);
+    assertEquals(buf2.getIndex(hra ? 199 : 1), 1.0f);
   }
 
   static void print(Object o) { System.out.print(o.toString()); }

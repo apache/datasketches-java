@@ -156,7 +156,7 @@ public class ReqSketch extends BaseReqSketch {
     this.compactors = compactors;
   }
 
-  static ReqSketch heapify(final Memory mem) {
+  static ReqSketch heapify(final Memory mem) { //TODO PUBLIC
     final Buffer buff = mem.asBuffer();
     final byte preLongs = buff.getByte();
     assert preLongs == (byte)1;
@@ -179,7 +179,7 @@ public class ReqSketch extends BaseReqSketch {
       final long pos = buff.getPosition();
       final long end = pos + cBytes;
       buff.setStartPositionEnd(0, pos, end);
-      compactors.add(ReqCompactor.heapify(buff.region(), hra));
+      compactors.add(ReqCompactor.heapify(buff.region()));
       buff.setStartPositionEnd(0, pos + cBytes, buff.getCapacity());
     }
     final ReqSketch sk = new ReqSketch(k, hra, totalN, minValue, maxValue, compactors);
@@ -447,8 +447,8 @@ public class ReqSketch extends BaseReqSketch {
     for (int i = 0; i < compactors.size(); i++) {
      cBytes += compactors.get(i).getSerializationBytes() + 4; //int length before each one
     }
-    final int members = 20; //totalN, k, minValue, maxValue
-    final int preamble = 4;
+    final int members = 20; //totalN(8), minValue(4), maxValue(4), numCompactors(4)
+    final int preamble = 8; //includes k(4)
     return cBytes + members + preamble;
   }
 
@@ -500,10 +500,8 @@ public class ReqSketch extends BaseReqSketch {
     }
     updateMaxNomSize();
     updateRetainedItems();
-    while (retItems >= maxNomSize) {
+    if (retItems >= maxNomSize) {
       compress();
-      updateMaxNomSize();
-      updateRetainedItems();
     }
     assert retItems < maxNomSize;
     aux = null;
@@ -569,16 +567,16 @@ public class ReqSketch extends BaseReqSketch {
     wbuf.putByte((byte)1); //SerVer
     wbuf.putByte((byte)17); //Family ID
     wbuf.putByte((byte)flags);
-    wbuf.putInt(k); //end of 8 byte preamble
-    wbuf.putLong(totalN);
+    wbuf.putInt(k);        //end of 8 byte preamble
+    wbuf.putLong(totalN); //16
     wbuf.putFloat(minValue);
-    wbuf.putFloat(maxValue); //24 bytes
-    wbuf.putInt(compactors.size());
+    wbuf.putFloat(maxValue);
+    wbuf.putInt(compactors.size()); //28
     for (int i = 0; i < compactors.size(); i++) {
       final ReqCompactor c = compactors.get(i);
-      final byte[] cArr = c.toByteArray(hra);
-      wbuf.putInt(cArr.length);
-      wbuf.putByteArray(cArr, 0, cArr.length);
+      final byte[] cArr = c.toByteArray(); //+320
+      wbuf.putInt(cArr.length); //32
+      wbuf.putByteArray(cArr, 0, cArr.length); //352
     }
     assert wbuf.getPosition() == bytes;
     return arr;

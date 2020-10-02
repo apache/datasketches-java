@@ -117,24 +117,16 @@ class ReqCompactor {
     //ReqDebug left at null
   }
 
-  static ReqCompactor heapify(final Buffer buff, final boolean hra) {
+  static ReqCompactor heapify(final Buffer buff) {
     final double sectionSizeDbl = buff.getDouble();
     final int numSections = buff.getInt();
     final int numCompactions = buff.getInt();
     final int state = buff.getInt();
-    final int bufLen = buff.getInt();
-    final int bufCap = buff.getInt();
-    final int delta = buff.getInt();
     final byte lgWeight = buff.getByte();
     final boolean coin = buff.getBoolean();
-    buff.incrementPosition(2);
-    final float[] arr = new float[bufCap];
-    if (hra) {
-      buff.getFloatArray(arr, bufCap - bufLen, bufLen);
-    } else {
-      buff.getFloatArray(arr, 0, bufLen);
-    }
-    final FloatBuffer buf = new FloatBuffer(arr, bufLen, delta, bufCap, true, hra);
+    final boolean hra = buff.getBoolean();
+    buff.incrementPosition(1);
+    final FloatBuffer buf = FloatBuffer.heapify(buff.region());
     return new ReqCompactor(lgWeight, hra, buf, sectionSizeDbl, numSections, numCompactions, state,
         coin);
   }
@@ -200,12 +192,12 @@ class ReqCompactor {
   }
 
   /**
-   * Serialize sectionSizeDbl (8), numSections, numCompactions, state, lgWeight plus the
-   * buffer.
+   * Serialize sectionSizeDbl (8), numSections(4), numCompactions(4), state(4), =
+   * lgWeight(1), coin(1), hra(1), plus 1 byte gap.
    * @return required bytes to serialize.
    */
   int getSerializationBytes() {
-    return 8 + 3 * 4 + 1 + buf.getSerializationBytes(); //hra stored in sketch
+    return 8 + 3 * 4 + 4 + buf.getSerializationBytes(); //hra stored in sketch
   }
 
   int getNumCompactions() {
@@ -220,8 +212,16 @@ class ReqCompactor {
     return sectionSize;
   }
 
+  double getSectionSizeDbl() {
+    return sectionSizeDbl;
+  }
+
   int getState() {
     return state;
+  }
+
+  boolean isHighRankAccuracy() {
+    return hra;
   }
 
   /**
@@ -292,27 +292,20 @@ class ReqCompactor {
     return (int) round(value / 2.0) << 1;
   }
 
-  byte[] toByteArray(final boolean hra) {
-    final int bytes = getSerializationBytes();
+  byte[] toByteArray() {
+    final int bytes = getSerializationBytes(); //don't need sorted or hra from buffer
     final byte[] arr = new byte[bytes];
     final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
-    final int bufLen = buf.getLength();
-    final int bufCap = buf.getCapacity();
     wbuf.putDouble(sectionSizeDbl);
     wbuf.putInt(numSections);
-    wbuf.putInt(numCompactions);
-    wbuf.putInt(state);
-    wbuf.putInt(bufLen);
-    wbuf.putInt(bufCap);
-    wbuf.putInt(buf.getDelta());
+    wbuf.putInt(numCompactions);//16
+    wbuf.putInt(state); //20
     wbuf.putByte(lgWeight);
     wbuf.putBoolean(coin);
-    wbuf.incrementPosition(2);
-    if (hra) {
-      wbuf.putFloatArray(buf.getArray(), bufCap - bufLen, bufLen);
-    } else {
-      wbuf.putFloatArray(buf.getArray(), 0, bufLen);
-    }
+    wbuf.putBoolean(hra);
+    wbuf.incrementPosition(1); //24
+    buf.sort(); //sort if necessary
+    wbuf.putByteArray(buf.toByteArray(), 0, buf.getSerializationBytes());
     return arr;
   }
 

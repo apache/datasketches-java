@@ -28,6 +28,9 @@ import java.util.Arrays;
 import org.apache.datasketches.BinarySearch;
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Buffer;
+import org.apache.datasketches.memory.WritableBuffer;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * A special buffer of floats specifically designed to support the ReqCompactor class.
@@ -61,24 +64,6 @@ class FloatBuffer {
   }
 
   /**
-   * Constructor from elements
-   * @param arr the base array
-   * @param count active items count
-   * @param delta  add space in increments of this size
-   * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
-   * otherwise, create any extra space at the top of the buffer.
-   */
-  FloatBuffer(final float[] arr, final int count, final int capacity, final int delta,
-      final boolean spaceAtBottom) {
-    arr_ = arr;
-    count_ = count;
-    capacity_ = capacity;
-    delta_ = delta;
-    sorted_ = true;
-    spaceAtBottom_ = spaceAtBottom;
-  }
-
-  /**
    * Copy Constructor
    * @param buf the FloatBuffer to be copied into this one
    */
@@ -92,7 +77,7 @@ class FloatBuffer {
   }
 
   /**
-   * Private construction from elements
+   * Construction from elements
    * @param arr the array to be used directly as the internal array
    * @param count the number of active elements in the given array
    * @param delta add space in increments of this size
@@ -109,6 +94,21 @@ class FloatBuffer {
     delta_ = delta;
     sorted_ = sorted;
     spaceAtBottom_ = spaceAtBottom;
+  }
+
+  static FloatBuffer heapify(final Buffer buff) {
+    final int capacity = buff.getInt();
+    final int count = buff.getInt();
+    final int delta = buff.getInt();
+    final boolean sorted = buff.getBoolean();
+    final boolean sab = buff.getBoolean();
+    final float[] farr = new float[capacity];
+    if (sab) {
+      buff.getFloatArray(farr, capacity - count, count);
+    } else {
+      buff.getFloatArray(farr, 0, count);
+    }
+    return new FloatBuffer(farr, count, delta, capacity, sorted, sab);
   }
 
   /**
@@ -288,12 +288,12 @@ class FloatBuffer {
   }
 
   /**
-   * Serialize count, capacity, delta and data.
+   * Serialize count, capacity, delta and data, sorted, hra
    * Always serialize sorted. SpaceAtBottom derived from sketch hra;
    * @return required bytes to serialize.
    */
   int getSerializationBytes() {
-    return 12 + 4 * count_;
+    return 14 + 4 * count_;
   }
 
   /**
@@ -306,11 +306,36 @@ class FloatBuffer {
   }
 
   /**
+   * Returns the space at bottom flag
+   * @return the space at bottom flag
+   */
+  boolean isSpaceAtBottom() {
+    return spaceAtBottom_;
+  }
+
+  /**
    * Returns true if getLength() == 0.
    * @return true if getLength() == 0.
    */
   boolean isEmpty() {
     return count_ == 0;
+  }
+
+  /**
+   * Returns true iff this is exactly equal to that FloatBuffer.
+   * @param that the other buffer
+   * @return true iff this is exactly equal to that FloatBuffer.
+   */
+  boolean isEqualTo(final FloatBuffer that) {
+    if (capacity_ != that.capacity_
+        || count_ != that.count_
+        || delta_ != that.delta_
+        || sorted_ != that.sorted_
+        || spaceAtBottom_ != that.spaceAtBottom_) { return false; }
+    for (int i = 0; i < capacity_; i++) {
+      if (arr_[i] != that.arr_[i]) { return false; }
+    }
+    return true;
   }
 
   /**
@@ -381,6 +406,22 @@ class FloatBuffer {
       sorted_ = true;
     }
     return this;
+  }
+
+  byte[] toByteArray() {
+    final byte[] arr = new byte[getSerializationBytes()];
+    final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
+    wbuf.putInt(capacity_);
+    wbuf.putInt(count_);
+    wbuf.putInt(delta_);
+    wbuf.putBoolean(sorted_);
+    wbuf.putBoolean(spaceAtBottom_);
+    if (spaceAtBottom_) {
+      wbuf.putFloatArray(arr_, capacity_ - count_, count_);
+    } else {
+      wbuf.putFloatArray(arr_, 0, count_);
+    }
+    return arr;
   }
 
   /**

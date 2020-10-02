@@ -26,11 +26,13 @@ import static org.apache.datasketches.Criteria.LT;
 import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.apache.datasketches.req.ReqSketch.LS;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 //import static org.apache.datasketches.req.FloatBuffer.TAB;
 import org.apache.datasketches.req.ReqAuxiliary.Row;
 import org.testng.annotations.Test;
@@ -257,6 +259,23 @@ public class ReqSketchTest {
     catch (final SketchesArgumentException e) { }
   }
 
+  @Test
+  public void checkSerDe() {
+    checkSerDeImpl(12, false);
+    checkSerDeImpl(12, true);
+  }
+
+  private static void checkSerDeImpl(int k, boolean hra) {
+    ReqSketch sk1 = new ReqSketch(k, hra);
+    int exact = 2 * 3 * k;
+    for (int i = 1; i < exact; i++) { //71 for exact
+      sk1.update(i);
+    }
+    assertFalse(sk1.isEstimationMode());
+    byte[] sk1Arr = sk1.toByteArray();
+    Memory mem = Memory.wrap(sk1Arr);
+    ReqSketch sk2 = ReqSketch.heapify(mem);
+  }
 
   private static void outputCompactorDetail(ReqSketch sk, String fmt, boolean allData, String text) {
     println(text);
