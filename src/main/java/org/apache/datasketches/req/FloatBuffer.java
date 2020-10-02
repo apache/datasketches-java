@@ -114,7 +114,7 @@ class FloatBuffer {
   /**
    * Wraps the given array to use as the internal array; thus no copies. For internal use.
    * @param arr the given array
-   * @param isSorted set true, if incomming array is already sorted.
+   * @param isSorted set true, if incoming array is already sorted.
    * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
    * otherwise, create any extra space at the top of the buffer.
    * @return this, which will be sorted
@@ -200,7 +200,7 @@ class FloatBuffer {
   int getCountWithCriterion(final float value, final Criteria criterion) {
     assert !Float.isNaN(value) : "Float values must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
-    int low = 0;    //iniitalized to space at top
+    int low = 0;    //Initialized to space at top
     int high = count_ - 1;
     if (spaceAtBottom_) {
       low = capacity_ - count_;

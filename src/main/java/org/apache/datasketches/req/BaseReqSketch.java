@@ -41,7 +41,7 @@ abstract class BaseReqSketch {
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
    * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
+   * It is not necessary to include either the min or max values in these split points.
    *
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned

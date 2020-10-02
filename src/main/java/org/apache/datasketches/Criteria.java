@@ -27,7 +27,7 @@ package org.apache.datasketches;
 public enum Criteria {
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
@@ -90,7 +90,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
    * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
@@ -153,7 +153,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
    * binary search algorithm to find the adjacent pair of values <i>{A,B}</i> such that
    * <i>A &le; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i> or <i>B</i>,
@@ -215,7 +215,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
@@ -278,7 +278,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instucts the
+   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
    * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
    * <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
@@ -344,9 +344,9 @@ public enum Criteria {
    * The call to compare index a and index b with the value v.
    * @param arr The underlying sorted array of double values
    * @param a the lower index of the current pair
-   * @param b the higer index of the current pair
+   * @param b the higher index of the current pair
    * @param v the double value to search for
-   * @return +1, which means we must search higher in the aray, or -1, whicn means we must
+   * @return +1, which means we must search higher in the array, or -1, which means we must
    * search lower in the array, or 0, which means we have found the correct bounding pair.
    */
   abstract int compare(double[] arr, int a, int b, double v);
@@ -355,9 +355,9 @@ public enum Criteria {
    * The call to compare index a and index b with the value v.
    * @param arr The underlying sorted array of float values
    * @param a the lower index of the current pair
-   * @param b the higer index of the current pair
+   * @param b the higher index of the current pair
    * @param v the float value to search for
-   * @return +1, which means we must search higher in the aray, or -1, whicn means we must
+   * @return +1, which means we must search higher in the array, or -1, which means we must
    * search lower in the array, or 0, which means we have found the correct bounding pair.
    */
   abstract int compare(float[] arr, int a, int b, float v);
@@ -367,7 +367,7 @@ public enum Criteria {
    * found value that satisfies the selected criteria.
    * @param arr the array being searched
    * @param a the lower index of the current pair
-   * @param b the higer index of the current pair
+   * @param b the higher index of the current pair
    * @param v the value being searched for.
    * @return the index of the found value that satisfies the selected criteria.
    */
@@ -378,7 +378,7 @@ public enum Criteria {
    * found value that satisfies the selected criteria.
    * @param arr the array being searched
    * @param a the lower index of the current pair
-   * @param b the higer index of the current pair
+   * @param b the higher index of the current pair
    * @param v the value being searched for.
    * @return the index of the found value that satisfies the selected criteria.
    */

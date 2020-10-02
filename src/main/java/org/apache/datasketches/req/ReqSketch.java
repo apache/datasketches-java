@@ -61,7 +61,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * to allow for a tight mathematical analysis of the sketch.</li>
  * </ul>
  *
- * <p>This implementation provides a number of capabilites not discussed in the paper or provided
+ * <p>This implementation provides a number of capabilities not discussed in the paper or provided
  * in the Python prototype.</p>
  * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
  * provides the user with the ability to choose either high rank accuracy or low rank accuracy at
@@ -531,7 +531,7 @@ public class ReqSketch extends BaseReqSketch {
 
   /**
    * <b>NOTE:</b> This is public only to allow testing from another
-   * package and is not intened for use by normal users of this class.
+   * package and is not intended for use by normal users of this class.
    * @param criterion one of LT, LE, GT, GE.
    * @return this
    */
