@@ -80,8 +80,8 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * Gets the builder confibured value of High Rank Accuracy.
-   * @return the builder confibured value of High Rank Accuracy.
+   * Gets the builder configured value of High Rank Accuracy.
+   * @return the builder configured value of High Rank Accuracy.
    */
   public boolean getHighRankAccuracy() {
     return bHRA;
@@ -99,7 +99,7 @@ public class ReqSketchBuilder {
 
   /**
    * Gets the builder configured value of Less-Than-Or-Equal.
-   * @return the builder confibured value of Less-Than-Or-Equal
+   * @return the builder configured value of Less-Than-Or-Equal
    */
   public boolean getLessThanOrEqual() {
     return bLtEq;
