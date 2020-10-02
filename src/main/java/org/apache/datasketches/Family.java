@@ -135,7 +135,12 @@ public enum Family {
   /**
    * Compressed Probabilistic Counting (CPC) Sketch
    */
-  CPC(16, "CPC", 1, 5);
+  CPC(16, "CPC", 1, 5),
+
+  /**
+   * Relative Error Quantiles Sketch
+   */
+  REQ(17, "REQ", 1, 1);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();

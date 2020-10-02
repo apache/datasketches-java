@@ -117,7 +117,7 @@ public class ReqDebugImpl implements ReqDebug{
   //compactor signals
 
   @Override
-  public void emitCompactingStart(int lgWeight) {
+  public void emitCompactingStart(byte lgWeight) {
     if (debugLevel == 0) { return; }
     List<ReqCompactor> compactors = sk.getCompactors();
     ReqCompactor comp = compactors.get(lgWeight);
@@ -138,7 +138,7 @@ public class ReqDebugImpl implements ReqDebug{
   }
 
   @Override
-  public void emitNewCompactor(int lgWeight) {
+  public void emitNewCompactor(byte lgWeight) {
     if (debugLevel == 0) { return; }
     List<ReqCompactor> compactors = sk.getCompactors();
     ReqCompactor comp = compactors.get(lgWeight);
@@ -148,7 +148,7 @@ public class ReqDebugImpl implements ReqDebug{
   }
 
   @Override
-  public void emitAdjSecSizeNumSec(int lgWeight) {
+  public void emitAdjSecSizeNumSec(byte lgWeight) {
     if (debugLevel == 0) { return; }
     List<ReqCompactor> compactors = sk.getCompactors();
     ReqCompactor comp = compactors.get(lgWeight);
@@ -180,7 +180,7 @@ public class ReqDebugImpl implements ReqDebug{
   }
 
   @Override
-  public void emitCompactionDone(int lgWeight) {
+  public void emitCompactionDone(byte lgWeight) {
     if (debugLevel == 0) { return; }
     List<ReqCompactor> compactors = sk.getCompactors();
     ReqCompactor comp = compactors.get(lgWeight);

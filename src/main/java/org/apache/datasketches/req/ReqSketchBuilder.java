@@ -30,7 +30,7 @@ import static org.apache.datasketches.req.ReqSketch.MIN_K;
  * @author Lee Rhodes
  */
 public class ReqSketchBuilder {
-  private final static int DEFAULT_K = 50;
+  private final static int DEFAULT_K = 12;
   private int bK = DEFAULT_K;
   private boolean bHRA;
   private boolean bLtEq;
@@ -38,20 +38,7 @@ public class ReqSketchBuilder {
   private ReqDebug bReqDebug;
 
   /**
-   * Constructor for the ReqSketchBuilder. The default configuration is:
-   * <ul>
-   * <li><b>K = 50:</b> Controls the size and error of the sketch. It must be even and larger than
-   * or equal to 4. If not even, it will be rounded down by one.
-   * rounded down by one. A value of 50 roughly corresponds to 0.01-relative error guarantee with
-   * constant probability.</li>
-   * <li><b>High Rank Accuracy (HRA) = true:</b> The high ranks are prioritized for better accuracy.
-   * Otherwise, if false, the low ranks are prioritized for better accuracy.</li>
-   * <li><b>Less-Than-Or-Equals = false:</b> The sketch will use "&lt;" as the comparison criterion
-   * when computing ranks or quantiles. If true, the sketch will use "&le;" as the comparison
-   * criterion. This parameter can also be modified after the sketch has been constructed. It is
-   * included here for convenience.</li>
-   * <li><b>ReqDebug = null:</b> This is the debug signaling interface.
-   * </ul>
+   * Constructor for the ReqSketchBuilder.
    */
   public ReqSketchBuilder() {
     bK = DEFAULT_K;
@@ -62,57 +49,15 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * Gets the builder configured value of k.
-   * @return the builder configured value of k.
+   * Returns a new ReqSketch with the current configuration of the builder.
+   * @return a new ReqSketch
    */
-  public int getK() {
-    return bK;
-  }
-
-  /**
-   * This sets the parameter k.
-   * @param k See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
-   * @return this
-   */
-  public ReqSketchBuilder setK(final int k) {
-    bK = max(k & -2, MIN_K); //make even and no smaller than MIN_K
-    return this;
-  }
-
-  /**
-   * Gets the builder confibured value of High Rank Accuracy.
-   * @return the builder confibured value of High Rank Accuracy.
-   */
-  public boolean getHighRankAccuracy() {
-    return bHRA;
-  }
-
-  /**
-   * This sets the parameter highRankAccuracy.
-   * @param hra See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
-   * @return this
-   */
-  public ReqSketchBuilder setHighRankAccuracy(final boolean hra) {
-    bHRA = hra;
-    return this;
-  }
-
-  /**
-   * Gets the builder configured value of Less-Than-Or-Equal.
-   * @return the builder confibured value of Less-Than-Or-Equal
-   */
-  public boolean getLessThanOrEqual() {
-    return bLtEq;
-  }
-
-  /**
-   * Sets the parameter lessThanOrEqual
-   * @param ltEq See {@link ReqSketch#setLessThanOrEqual(boolean)}
-   * @return this
-   */
-  public ReqSketchBuilder setLessThanOrEqual(final boolean ltEq) {
-    bLtEq = ltEq;
-    return this;
+  public ReqSketch build() {
+    final ReqSketch sk = new ReqSketch(bK, bHRA);
+    sk.setLessThanOrEqual(bLtEq);
+    sk.setCompatible(bCompatible);
+    if (bReqDebug != null) { sk.setReqDebug(bReqDebug); }
+    return sk;
   }
 
   /**
@@ -124,13 +69,27 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * Sets the parameter compatible.
-   * @param compatible See {@link ReqSketch#setCompatible(boolean)}.
-   * @return this
+   * Gets the builder confibured value of High Rank Accuracy.
+   * @return the builder confibured value of High Rank Accuracy.
    */
-  public ReqSketchBuilder setCompatible(final boolean compatible) {
-    bCompatible = compatible;
-    return this;
+  public boolean getHighRankAccuracy() {
+    return bHRA;
+  }
+
+  /**
+   * Gets the builder configured value of k.
+   * @return the builder configured value of k.
+   */
+  public int getK() {
+    return bK;
+  }
+
+  /**
+   * Gets the builder configured value of Less-Than-Or-Equal.
+   * @return the builder confibured value of Less-Than-Or-Equal
+   */
+  public boolean getLessThanOrEqual() {
+    return bLtEq;
   }
 
   /**
@@ -142,24 +101,57 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * This sets the parameter reqDebug
-   * @param reqDebug See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
+   * Sets the parameter compatible. This parameter can also be modified after the sketch has
+   * been constructed. It is included here for convenience.
+   * @param compatible See {@link ReqSketch#setCompatible(boolean)}.
+   * @return this
+   */
+  public ReqSketchBuilder setCompatible(final boolean compatible) {
+    bCompatible = compatible;
+    return this;
+  }
+
+  /**
+   * This sets the parameter highRankAccuracy.
+   * @param hra See {@link ReqSketch#ReqSketch(int, boolean)}
+   * @return this
+   */
+  public ReqSketchBuilder setHighRankAccuracy(final boolean hra) {
+    bHRA = hra;
+    return this;
+  }
+
+  /**
+   * This sets the parameter k.
+   * @param k See {@link ReqSketch#ReqSketch(int, boolean)}
+   * @return this
+   */
+  public ReqSketchBuilder setK(final int k) {
+    bK = max(k & -2, MIN_K); //make even and no smaller than MIN_K
+    return this;
+  }
+
+  /**
+   * Sets the parameter lessThanOrEquals. This parameter can also be modified after the sketch has
+   * been constructed. It is included here for convenience.
+   * @param ltEq See {@link ReqSketch#setLessThanOrEqual(boolean)}
+   * @return this
+   */
+  public ReqSketchBuilder setLessThanOrEqual(final boolean ltEq) {
+    bLtEq = ltEq;
+    return this;
+  }
+
+  /**
+   * This sets the parameter reqDebug.
+   * This parameter can also be  modified after the sketch has been constructed.
+   * It is included here for convenience.
+   * @param reqDebug See {@link ReqSketch#setReqDebug(ReqDebug)}
    * @return this
    */
   public ReqSketchBuilder setReqDebug(final ReqDebug reqDebug) {
     bReqDebug = reqDebug;
     return this;
-  }
-
-  /**
-   * Returns a new ReqSketch with the current configuration of the builder.
-   * @return a new ReqSketch
-   */
-  public ReqSketch build() {
-    final ReqSketch sk = new ReqSketch(bK, bHRA, bReqDebug);
-    sk.setLessThanOrEqual(bLtEq);
-    sk.setCompatible(bCompatible);
-    return sk;
   }
 
   @Override
@@ -170,8 +162,8 @@ public class ReqSketchBuilder {
     sb.append("HRA:").append(TAB).append(bHRA).append(LS);
     sb.append("LtEq").append(TAB).append(bLtEq).append(LS);
     sb.append("Compatible:").append(TAB).append(bCompatible).append(LS);
-    final String v = bReqDebug != null ? "valid" : "invalid";
-    sb.append("ReqDebug:").append(TAB).append(v).append(LS);
+    final String valid = bReqDebug != null ? "valid" : "invalid";
+    sb.append("ReqDebug:").append(TAB).append(valid).append(LS);
     return sb.toString();
   }
 

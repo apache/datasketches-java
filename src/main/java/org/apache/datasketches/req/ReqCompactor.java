@@ -26,47 +26,54 @@ import static org.apache.datasketches.req.ReqSketch.MIN_K;
 
 import java.util.Random;
 
+import org.apache.datasketches.memory.Buffer;
+import org.apache.datasketches.memory.WritableBuffer;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The compactor class for the ReqSketch
  * @author Lee Rhodes
  */
 class ReqCompactor {
-  private ReqSketch sk;
+  //finals
   private static final double SQRT2 = Math.sqrt(2.0);
+  private final byte lgWeight;
+  private final boolean hra;
+  //state variables
   private double sectionSizeDbl;
   private int sectionSize; //initialized with k, minimum 4
   private int numSections; //# of sections, initial size 3
   private int numCompactions; //number of compaction operations performed
   private int state; //State of the deterministic compaction schedule
-  private final int lgWeight;
   private boolean coin; //true or false at random for each compaction
+  //objects
   private FloatBuffer buf;
+  private ReqDebug reqDebug = null;
   private Random rand;
 
   /**
-   * Constructor
-   * @param sk the associated ReqSketch
-   * @param sectionSize the value of k
-   * @param lgWeight this compactor's lgWeight
+   * Normal Constructor
+   * @param lgWeight the lgWeight of this compactor
+   * @param hra High Rank Accuracy
+   * @param sectionSize initially the value of k
+   * @param reqDebug The debug signaling interface
    */
   ReqCompactor(
-      final ReqSketch sk,
+      final byte lgWeight,
+      final boolean hra,
       final int sectionSize,
-      final int lgWeight) {
-    this.sk = sk;
+      final ReqDebug reqDebug) {
+    this.lgWeight = lgWeight;
+    this.hra = hra;
     this.sectionSize = sectionSize;
     sectionSizeDbl = sectionSize;
-    this.lgWeight = lgWeight;
-
     numCompactions = 0;
     state = 0;
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
     final int nomCap = getNomCapacity();
-    buf = new FloatBuffer(2 * nomCap, 0, sk.hra);
-
-    if (sk.reqDebug != null) { rand = new Random(1); }
+    buf = new FloatBuffer(2 * nomCap, 0, hra); //TODO configure delta?
+    if (reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
   }
 
@@ -75,17 +82,61 @@ class ReqCompactor {
    * @param other the compactor to be copied into this one
    */
   ReqCompactor(final ReqCompactor other) {
-    sectionSize = other.sectionSize;
     lgWeight = other.lgWeight;
-
+    hra = other.hra;
+    sectionSizeDbl = other.sectionSizeDbl;
+    numSections = other.numSections;
+    sectionSize = other.sectionSize;
     numCompactions = other.numCompactions;
     state = other.state;
     coin = other.coin;
-    numSections = other.numSections;
-    sectionSizeDbl = other.sectionSizeDbl;
-
     buf = new FloatBuffer(other.buf);
+  }
 
+  /**
+   * Construct from elements. The buffer will need to be constructed first
+   */
+  private ReqCompactor(
+      final byte lgWeight,
+      final boolean hra,
+      final FloatBuffer buf,
+      final double sectionSizeDbl,
+      final int numSections,
+      final int numCompactions,
+      final int state,
+      final boolean coin) {
+    this.lgWeight = lgWeight;
+    this.hra = hra;
+    this.buf = buf;
+    this.sectionSizeDbl = sectionSizeDbl;
+    this.numSections = numSections;
+    this.numCompactions = numCompactions;
+    this.state = state;
+    this.coin = coin;
+    sectionSize = nearestEven(sectionSizeDbl);
+    //ReqDebug left at null
+  }
+
+  static ReqCompactor heapify(final Buffer buff, final boolean hra) {
+    final double sectionSizeDbl = buff.getDouble();
+    final int numSections = buff.getInt();
+    final int numCompactions = buff.getInt();
+    final int state = buff.getInt();
+    final int bufLen = buff.getInt();
+    final int bufCap = buff.getInt();
+    final int delta = buff.getInt();
+    final byte lgWeight = buff.getByte();
+    final boolean coin = buff.getBoolean();
+    buff.incrementPosition(2);
+    final float[] arr = new float[bufCap];
+    if (hra) {
+      buff.getFloatArray(arr, bufCap - bufLen, bufLen);
+    } else {
+      buff.getFloatArray(arr, 0, bufLen);
+    }
+    final FloatBuffer buf = new FloatBuffer(arr, bufLen, delta, bufCap, true, hra);
+    return new ReqCompactor(lgWeight, hra, buf, sectionSizeDbl, numSections, numCompactions, state,
+        coin);
   }
 
   /**
@@ -93,7 +144,7 @@ class ReqCompactor {
    * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact() {
-    if (sk.reqDebug != null) { sk.reqDebug.emitCompactingStart(lgWeight); }
+    if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
     // choose a part of the buffer to compact
     final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
@@ -107,8 +158,8 @@ class ReqCompactor {
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
-    if (sk.reqDebug != null) {
-      sk.reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
+    if (reqDebug != null) {
+      reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
           promote.getLength(), coin);
     }
 
@@ -117,7 +168,7 @@ class ReqCompactor {
     state += 1;
     ensureEnoughSections();
 
-    if (sk.reqDebug != null) { sk.reqDebug.emitCompactionDone(lgWeight); }
+    if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;
   } //End Compact
 
@@ -135,7 +186,7 @@ class ReqCompactor {
    * Gets the lgWeight of this buffer
    * @return the lgWeight of this buffer
    */
-  int getLgWeight() {
+  byte getLgWeight() {
     return lgWeight;
   }
 
@@ -149,12 +200,12 @@ class ReqCompactor {
   }
 
   /**
-   * Serialize sectionSize, numSections, numCompactions, state, lgWeight plus the
+   * Serialize sectionSizeDbl (8), numSections, numCompactions, state, lgWeight plus the
    * buffer.
    * @return required bytes to serialize.
    */
   int getSerializationBytes() {
-    return 4 * 5 + buf.getSerializationBytes();
+    return 8 + 3 * 4 + 1 + buf.getSerializationBytes(); //hra stored in sketch
   }
 
   int getNumCompactions() {
@@ -174,11 +225,13 @@ class ReqCompactor {
   }
 
   /**
-   * Merge the other given compactor into this one
+   * Merge the other given compactor into this one. They both must have the
+   * same lgWeight
    * @param other the other given compactor
    * @return this
    */
   ReqCompactor merge(final ReqCompactor other) {
+    assert lgWeight == other.lgWeight;
     state |= other.state;
     numCompactions += other.numCompactions;
     while (ensureEnoughSections()) {}
@@ -208,8 +261,7 @@ class ReqCompactor {
       sectionSize = ne;
       numSections <<= 1;
       buf.ensureCapacity(2 * getNomCapacity());
-      sk.updateMaxNomSize();
-      if (sk.reqDebug != null) { sk.reqDebug.emitAdjSecSizeNumSec(lgWeight); }
+      if (reqDebug != null) { reqDebug.emitAdjSecSizeNumSec(lgWeight); }
       return true;
     }
     return false;
@@ -226,8 +278,8 @@ class ReqCompactor {
     int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
     //make compacted region even:
     nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
-    final long low =  sk.hra ? 0                   : nonCompact;
-    final long high = sk.hra ? bufLen - nonCompact : bufLen;
+    final long low =  hra ? 0                   : nonCompact;
+    final long high = hra ? bufLen - nonCompact : bufLen;
     return (high << 32) + low;
   }
 
@@ -240,7 +292,29 @@ class ReqCompactor {
     return (int) round(value / 2.0) << 1;
   }
 
-  //debug print functions
+  byte[] toByteArray(final boolean hra) {
+    final int bytes = getSerializationBytes();
+    final byte[] arr = new byte[bytes];
+    final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
+    final int bufLen = buf.getLength();
+    final int bufCap = buf.getCapacity();
+    wbuf.putDouble(sectionSizeDbl);
+    wbuf.putInt(numSections);
+    wbuf.putInt(numCompactions);
+    wbuf.putInt(state);
+    wbuf.putInt(bufLen);
+    wbuf.putInt(bufCap);
+    wbuf.putInt(buf.getDelta());
+    wbuf.putByte(lgWeight);
+    wbuf.putBoolean(coin);
+    wbuf.incrementPosition(2);
+    if (hra) {
+      wbuf.putFloatArray(buf.getArray(), bufCap - bufLen, bufLen);
+    } else {
+      wbuf.putFloatArray(buf.getArray(), 0, bufLen);
+    }
+    return arr;
+  }
 
   /**
    * Returns a printable formatted prefix string summarizing the list.

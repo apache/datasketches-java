@@ -59,13 +59,6 @@ abstract class BaseReqSketch {
   public abstract boolean getHighRankAccuracy();
 
   /**
-   * Returns the current comparison criterion. If true the value comparison criterion is
-   * &le;, otherwise it will be the default, which is &lt;.
-   * @return the current comparison criterion
-   */
-  public abstract boolean getLessThanOrEqual();
-
-  /**
    * Gets the largest value seen by this sketch
    * @return the largest value seen by this sketch
    */
@@ -205,6 +198,13 @@ abstract class BaseReqSketch {
   public abstract boolean isEstimationMode();
 
   /**
+   * Returns the current comparison criterion. If true the value comparison criterion is
+   * &le;, otherwise it will be the default, which is &lt;.
+   * @return the current comparison criterion
+   */
+  public abstract boolean isLessThanOrEqual();
+
+  /**
    * Returns an iterator for all the items in this sketch.
    * @return an iterator for all the items in this sketch.
    */
@@ -226,8 +226,10 @@ abstract class BaseReqSketch {
   public abstract ReqSketch reset();
 
   /**
-   * If true if this sketch's treatment of getQuantile() for values &lt; the minValue
-   * is compatible with the other quantiles sketches in the DataSketches library.
+   * If true, the default, relates to this sketch's treatment of <i>getRank(v)</i> for <i>v</i> &lt;
+   * the smallest retained value. In this case the sketch will return the minValue of the stream.
+   * This is compatible with the other quantiles sketches in the DataSketches library.
+   * Otherwise, if false, the sketch will return a <i>Float.NaN</i>.
    *
    * @param compatible If true this sketch's treatment of getQuantile() for values &lt; the minValue
    * is compatible with the other quantiles sketches in the DataSketches library.
@@ -238,12 +240,19 @@ abstract class BaseReqSketch {
   /**
    * Sets the chosen criterion for value comparison
    *
-   * @param ltEq if true, the sketch will use the &le; criterion for comparing values.
-   * Otherwise, the default criterion is strictly &lt;.  This can be set anytime prior to a
-   * {@link #getRank(float)} or {@link #getQuantile(double)} or equivalent query.
+   * @param ltEq (Less-than-or Equals) If true, the sketch will use the &le; criterion for comparing
+   * values.  Otherwise, the criterion is strictly &lt;, the default.
+   * This can be set anytime prior to a {@link #getRank(float)} or {@link #getQuantile(double)} or
+   * equivalent query.
    * @return this
    */
   public abstract ReqSketch setLessThanOrEqual(final boolean ltEq);
+
+  /**
+   * Returns a byte array representation of this sketch.
+   * @return a byte array representation of this sketch.
+   */
+  public abstract byte[] toByteArray();
 
   /**
    * Returns a summary of the key parameters of the sketch.

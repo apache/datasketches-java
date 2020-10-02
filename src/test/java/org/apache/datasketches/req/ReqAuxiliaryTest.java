@@ -42,10 +42,10 @@ public class ReqAuxiliaryTest {
     ReqAuxiliary aux = new ReqAuxiliary(25, hra, criterion);
     FloatBuffer buf1 = new FloatBuffer(25, 0, hra);
     for (int i = 1; i < 12; i += 2) { buf1.append(i); } //6 items
-    aux.mergeSortIn(buf1, 1, 0);
+    aux.mergeSortIn(buf1, (byte)0, 0);
     FloatBuffer buf2 = new FloatBuffer(25, 0, hra);
     for (int i = 2; i <= 12; i += 2) { buf2.append(i); } //6 items
-    aux.mergeSortIn(buf2, 2, 6);
+    aux.mergeSortIn(buf2, (byte)1, 6);
     println(aux.toString(3, 12));
     Row row = aux.getRow(0);
     for (int i = 1; i < 12; i++) {

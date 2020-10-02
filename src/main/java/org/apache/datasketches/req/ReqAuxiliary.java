@@ -32,7 +32,7 @@ import org.apache.datasketches.Criteria;
  */
 class ReqAuxiliary {
   private float[] items;
-  private long[] weights;
+  private byte[] lgWeights;
   private double[] normRanks;
   private final boolean hra;
   private final Criteria criterion;
@@ -48,7 +48,7 @@ class ReqAuxiliary {
     this.hra = hra;
     this.criterion = criterion;
     items = new float[arrLen];
-    weights = new long[arrLen];
+    lgWeights = new byte[arrLen];
     normRanks = new double[arrLen];
   }
 
@@ -58,20 +58,20 @@ class ReqAuxiliary {
     final int totalItems = sk.getRetainedItems();
     final long N = sk.getN();
     items = new float[totalItems];
-    weights = new long[totalItems];
+    lgWeights = new byte[totalItems];
     normRanks = new double[totalItems];
     int auxCount = 0;
     for (int i = 0; i < numComp; i++) {
       final ReqCompactor c = compactors.get(i);
       final FloatBuffer bufIn = c.getBuffer();
-      final long wt = 1L << c.getLgWeight();
+      final byte lgWeight = c.getLgWeight();
       final int bufInLen = bufIn.getLength();
-      mergeSortIn(bufIn, wt, auxCount);
+      mergeSortIn(bufIn, lgWeight, auxCount);
       auxCount += bufInLen;
     }
     float sum = 0;
     for (int i = 0; i < totalItems; i++) {
-      sum += weights[i];
+      sum += 1 << lgWeights[i];
       normRanks[i] = sum / N;
     }
   }
@@ -79,7 +79,7 @@ class ReqAuxiliary {
   //Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
   // the ultimate array size has already been set.  However, this must simultaneously deal with
   // sorting the weights as well.
-  void mergeSortIn(final FloatBuffer bufIn, final long wt, final int auxCount) {
+  void mergeSortIn(final FloatBuffer bufIn, final byte lgWeight, final int auxCount) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
     final int bufInLen = bufIn.getLength();
@@ -91,17 +91,17 @@ class ReqAuxiliary {
       if (i >= 0 && j >= 0) { //both valid
         if (items[i] >= arrIn[h]) {
           items[k] = items[i];
-          weights[k] = weights[i--];
+          lgWeights[k] = lgWeights[i--];
         } else {
           items[k] = arrIn[h--]; j--;
-          weights[k] = wt;
+          lgWeights[k] = lgWeight;
         }
       } else if (i >= 0) { //i is valid
         items[k] = items[i];
-        weights[k] = weights[i--];
+        lgWeights[k] = lgWeights[i--];
       } else if (j >= 0) { //j is valid
         items[k] = arrIn[h--]; j--;
-        weights[k] = wt;
+        lgWeights[k] = lgWeight;
       } else {
         break;
       }
@@ -124,17 +124,17 @@ class ReqAuxiliary {
   //used for testing
 
   Row getRow(final int index) {
-    return new Row(items[index], weights[index], normRanks[index]);
+    return new Row(items[index], lgWeights[index], normRanks[index]);
   }
 
   class Row {
     float item;
-    long weight;
+    byte lgWeight;
     double normRank;
 
-    Row(final float item, final long weight, final double normRank) {
+    Row(final float item, final byte lgWeight, final double normRank) {
       this.item = item;
-      this.weight = weight;
+      this.lgWeight = lgWeight;
       this.normRank = normRank;
     }
   }
@@ -153,7 +153,7 @@ class ReqAuxiliary {
     final int totalCount = items.length;
     for (int i = 0; i < totalCount; i++) {
       final Row row = getRow(i);
-      sb.append(String.format(dfmt, row.item, row.weight, row.normRank));
+      sb.append(String.format(dfmt, row.item, 1 << row.lgWeight, row.normRank));
     }
     return sb.toString();
   }

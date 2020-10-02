@@ -21,8 +21,6 @@ package org.apache.datasketches.req;
 
 import static org.apache.datasketches.Criteria.GE;
 import static org.apache.datasketches.Criteria.GT;
-import static org.apache.datasketches.Criteria.LE;
-import static org.apache.datasketches.Criteria.LT;
 import static org.apache.datasketches.req.ReqSketch.LS;
 
 import java.util.Arrays;
@@ -42,10 +40,10 @@ class FloatBuffer {
   private int capacity_;
   private int delta_;
   private boolean sorted_;
-  private boolean spaceAtBottom_;
+  private boolean spaceAtBottom_; //tied to hra
 
   /**
-   * Constructs an empty FloatBuffer with an initial capacity specified by
+   * Constructs an new empty FloatBuffer with an initial capacity specified by
    * the <code>capacity</code> argument.
    *
    * @param capacity the initial capacity.
@@ -56,6 +54,24 @@ class FloatBuffer {
   FloatBuffer(final int capacity, final int delta, final boolean spaceAtBottom) {
     arr_ = new float[capacity];
     count_ = 0;
+    capacity_ = capacity;
+    delta_ = delta;
+    sorted_ = true;
+    spaceAtBottom_ = spaceAtBottom;
+  }
+
+  /**
+   * Constructor from elements
+   * @param arr the base array
+   * @param count active items count
+   * @param delta  add space in increments of this size
+   * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
+   * otherwise, create any extra space at the top of the buffer.
+   */
+  FloatBuffer(final float[] arr, final int count, final int capacity, final int delta,
+      final boolean spaceAtBottom) {
+    arr_ = arr;
+    count_ = count;
     capacity_ = capacity;
     delta_ = delta;
     sorted_ = true;
@@ -85,7 +101,7 @@ class FloatBuffer {
    * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
    * otherwise, create any extra space at the top of the buffer.
    */
-  private FloatBuffer(final float[] arr, final int count, final int delta, final int capacity,
+  FloatBuffer(final float[] arr, final int count, final int delta, final int capacity,
       final boolean sorted, final boolean spaceAtBottom) {
     arr_ = arr;
     count_ = count;
@@ -174,11 +190,6 @@ class FloatBuffer {
     return capacity_;
   }
 
-  static Criteria critLT = LT;
-  static Criteria critLE = LE;
-  static Criteria critGT = GT;
-  static Criteria critGE = GE;
-
   /**
    * Returns the count of items based on the given criteria.
    * Also used in test.
@@ -260,6 +271,14 @@ class FloatBuffer {
   }
 
   /**
+   * Returns the delta margin
+   * @return the delta margin
+   */
+  int getDelta() {
+    return delta_;
+  }
+
+  /**
    * Returns the active length = item count.
    *
    * @return the active length of this buffer.
@@ -270,7 +289,7 @@ class FloatBuffer {
 
   /**
    * Serialize count, capacity, delta and data.
-   * Always serialize sorted.
+   * Always serialize sorted. SpaceAtBottom derived from sketch hra;
    * @return required bytes to serialize.
    */
   int getSerializationBytes() {

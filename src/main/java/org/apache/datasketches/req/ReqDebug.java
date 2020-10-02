@@ -25,6 +25,7 @@ package org.apache.datasketches.req;
  * The signaling interface that allows comprehensive analysis of the ReqSketch and ReqCompactor
  * while eliminating code clutter in the main classes. The implementation of this interface can be
  * found in the test tree.
+ *
  * @author Lee Rhodes
  */
 public interface ReqDebug {
@@ -63,19 +64,19 @@ public interface ReqDebug {
    * Emit Compaction Start.
    * @param lgWeight compactor lgWeight or height
    */
-  public void emitCompactingStart(int lgWeight);
+  public void emitCompactingStart(byte lgWeight);
 
   /**
    * Emit new compactor configuration
    * @param lgWeight the log weight
    */
-  public void emitNewCompactor(int lgWeight);
+  public void emitNewCompactor(byte lgWeight);
 
   /**
    * Emit adjusting section size and number of sections.
    * @param lgWeight the log weight
    */
-  public void emitAdjSecSizeNumSec(int lgWeight);
+  public void emitAdjSecSizeNumSec(byte lgWeight);
 
   /**
    * Emit Compaction details.
@@ -92,6 +93,6 @@ public interface ReqDebug {
    * Emit compaction done and number of compactions so far.
    * @param lgWeight the log weight
    */
-  public void emitCompactionDone(int lgWeight);
+  public void emitCompactionDone(byte lgWeight);
 
 }

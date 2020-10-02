@@ -47,7 +47,7 @@ public class ReqSketchOtherTest {
   @Test
   public void checkConstructors() {
     ReqSketch sk = ReqSketch.builder().build();
-    assertEquals(sk.getK(), 50);
+    assertEquals(sk.getK(), 12);
   }
 
   @Test
@@ -128,12 +128,12 @@ public class ReqSketchOtherTest {
   public void checkFlags() {
     ReqSketch sk = ReqSketch.builder().build();
     sk.setCriterion(Criteria.LE);
-    assertEquals(sk.getLessThanOrEqual(), true);
+    assertEquals(sk.isLessThanOrEqual(), true);
     assertEquals(sk.getCriterion(), Criteria.LE);
     assertEquals(sk.isCompatible(), true);
     sk.setCriterion(Criteria.LT);
     sk.setCompatible(false);
-    assertEquals(sk.getLessThanOrEqual(), false);
+    assertEquals(sk.isLessThanOrEqual(), false);
     assertEquals(sk.getCriterion(), Criteria.LT);
     assertEquals(sk.isCompatible(), false);
   }
@@ -203,7 +203,7 @@ public class ReqSketchOtherTest {
     assertTrue(sk.isEmpty());
     assertEquals(sk.getK(), k);
     assertTrue(sk.getHighRankAccuracy());
-    assertFalse(sk.getLessThanOrEqual());
+    assertFalse(sk.isLessThanOrEqual());
     assertFalse(sk.isCompatible());
   }
 
