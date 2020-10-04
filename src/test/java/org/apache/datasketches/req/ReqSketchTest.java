@@ -19,14 +19,11 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.Criteria.GE;
-import static org.apache.datasketches.Criteria.GT;
 import static org.apache.datasketches.Criteria.LE;
 import static org.apache.datasketches.Criteria.LT;
 import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.apache.datasketches.req.ReqSketch.LS;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -46,10 +43,6 @@ public class ReqSketchTest {
   //To control debug printing:
   private int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
   private int iDebug = 0; // debug printing for individual tests below, same scale as above
-  static Criteria critLT = LT;
-  static Criteria critLE = LE;
-  static Criteria critGT = GT;
-  static Criteria critGE = GE;
 
   @Test
   public void bigTest() {
@@ -261,17 +254,19 @@ public class ReqSketchTest {
 
   @Test
   public void checkSerDe() {
-    checkSerDeImpl(12, false);
-    checkSerDeImpl(12, true);
+    int k = 12;
+    int exact = 2 * 3 * k - 1;
+    checkSerDeImpl(12, false, exact);
+    checkSerDeImpl(12, true, exact);
+    checkSerDeImpl(12, false, 2 * exact); //more than one compactor
+    checkSerDeImpl(12, true, 2 * exact);
   }
 
-  private static void checkSerDeImpl(int k, boolean hra) {
+  private static void checkSerDeImpl(int k, boolean hra, int count) {
     ReqSketch sk1 = new ReqSketch(k, hra);
-    int exact = 2 * 3 * k;
-    for (int i = 1; i < exact; i++) { //71 for exact
+    for (int i = 1; i <= count; i++) {
       sk1.update(i);
     }
-    assertFalse(sk1.isEstimationMode());
     byte[] sk1Arr = sk1.toByteArray();
     Memory mem = Memory.wrap(sk1Arr);
     ReqSketch sk2 = ReqSketch.heapify(mem);

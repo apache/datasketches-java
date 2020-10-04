@@ -409,7 +409,8 @@ class FloatBuffer {
   }
 
   byte[] toByteArray() {
-    final byte[] arr = new byte[getSerializationBytes()];
+    final int bytes = getSerializationBytes();
+    final byte[] arr = new byte[bytes];
     final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
     wbuf.putInt(capacity_);
     wbuf.putInt(count_);
@@ -421,6 +422,7 @@ class FloatBuffer {
     } else {
       wbuf.putFloatArray(arr_, 0, count_);
     }
+    assert wbuf.getPosition() == bytes;
     return arr;
   }
 

@@ -306,6 +306,7 @@ class ReqCompactor {
     wbuf.incrementPosition(1); //24
     buf.sort(); //sort if necessary
     wbuf.putByteArray(buf.toByteArray(), 0, buf.getSerializationBytes());
+    assert wbuf.getPosition() == bytes;
     return arr;
   }
 
