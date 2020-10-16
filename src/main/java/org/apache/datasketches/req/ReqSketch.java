@@ -156,7 +156,12 @@ public class ReqSketch extends BaseReqSketch {
     this.compactors = compactors;
   }
 
-  static ReqSketch heapify(final Memory mem) { //TODO PUBLIC
+  /**
+   * Deserializes the byte stream of the given Memory object and places it on the Java heap.
+   * @param mem the given Memory object
+   * @return a ReqSketch on the Java heap.
+   */
+  public static ReqSketch heapify(final Memory mem) {
     final Buffer buff = mem.asBuffer();
     final byte preLongs = buff.getByte();
     assert preLongs == (byte)1;
