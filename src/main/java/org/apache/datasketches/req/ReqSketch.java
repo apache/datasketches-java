@@ -79,7 +79,7 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public class ReqSketch extends BaseReqSketch {
   //static finals
-  static final String LS = System.getProperty("line.separator");
+  private static final String LS = System.getProperty("line.separator");
   static final int INIT_NUMBER_OF_SECTIONS = 3;
   static final int MIN_K = 4;
   private static final double relRseFactor = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);

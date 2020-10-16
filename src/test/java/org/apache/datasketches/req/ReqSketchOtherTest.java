@@ -175,7 +175,7 @@ public class ReqSketchOtherTest {
     boolean hra = true;
     int min = 1;
     int max = 100;
-    ReqSketch sk = reqSketchTest.loadSketch( k,   min, max,  up,  hra, LE, 0);
+    ReqSketch sk = reqSketchTest.loadSketch( k, min, max,  up,  hra, LE, 0);
     sk.setCompatible(false);
 
     for (float v = 0.5f; v <= max + 0.5f; v += 0.5f) {
@@ -205,6 +205,30 @@ public class ReqSketchOtherTest {
     assertTrue(sk.getHighRankAccuracy());
     assertFalse(sk.isLessThanOrEqual());
     assertFalse(sk.isCompatible());
+  }
+
+  @Test
+  public void simpleTest() {
+    ReqSketch sk;
+    final ReqSketchBuilder bldr = ReqSketch.builder();
+    bldr.setK(50).setHighRankAccuracy(false);
+    bldr.setCompatible(false);
+    bldr.setReqDebug(null);
+    sk = bldr.build();
+    final float[] vArr = { 5, 5, 5, 6, 6, 6, 7, 8, 8, 8 };
+    for (int i = 0; i < vArr.length; i++) { sk.update(vArr[i]); }
+    sk.setCriterion(Criteria.LT);
+    final double[] rArrLT = {0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 0.6, 0.7, 0.7, 0.7};
+    for (int i = 0; i < vArr.length; i++) {
+      assertEquals(sk.getRank(vArr[i]), rArrLT[i]);
+      //System.out.println("v:" + vArr[i] + " r:" + sk.getRank(vArr[i]));
+    }
+    sk.setCriterion(Criteria.LE);
+    final double[] rArrLE = {0.3, 0.3, 0.3, 0.6, 0.6, 0.6, 0.7, 1.0, 1.0, 1.0};
+    for (int i = 0; i < vArr.length; i++) {
+      assertEquals(sk.getRank(vArr[i]), rArrLE[i]);
+      //System.out.println("v:" + vArr[i] + " r:" + sk.getRank(vArr[i]));
+    }
   }
 
   @Test

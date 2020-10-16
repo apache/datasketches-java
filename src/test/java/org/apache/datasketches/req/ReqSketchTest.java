@@ -22,7 +22,6 @@ package org.apache.datasketches.req;
 import static org.apache.datasketches.Criteria.LE;
 import static org.apache.datasketches.Criteria.LT;
 import static org.apache.datasketches.Util.evenlySpacedFloats;
-import static org.apache.datasketches.req.ReqSketch.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -39,7 +38,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings({"javadoc", "unused"})
 public class ReqSketchTest {
-
+  private static final String LS = System.getProperty("line.separator");
   //To control debug printing:
   private int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
   private int iDebug = 0; // debug printing for individual tests below, same scale as above
@@ -281,8 +280,12 @@ public class ReqSketchTest {
     System.out.printf(format, args);
   }
 
-  private static final void print(final Object o) { System.out.print(o.toString()); }
+  private static final void print(final Object o) {
+    System.out.print(o.toString());
+  }
 
-  private static final void println(final Object o) { System.out.println(o.toString()); }
+  private static final void println(final Object o) {
+    System.out.println(o.toString());
+  }
 
 }

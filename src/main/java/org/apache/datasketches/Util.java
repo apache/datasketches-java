@@ -138,10 +138,10 @@ public final class Util {
    * @return an int extracted from a Little-Endian byte array.
    */
   public static int bytesToInt(final byte[] arr) {
-    return (((arr[3]       ) << 24)
-          | ((arr[2] & 0xff) << 16)
-          | ((arr[1] & 0xff) <<  8)
-          | ((arr[0] & 0xff)      ));
+    return arr[3] << 24
+          | (arr[2] & 0xff) << 16
+          | (arr[1] & 0xff) <<  8
+          | arr[0] & 0xff;
   }
 
   /**
@@ -150,14 +150,14 @@ public final class Util {
    * @return a long extracted from a Little-Endian byte array.
    */
   public static long bytesToLong(final byte[] arr) {
-    return ((((long)arr[7]       ) << 56)
-          | (((long)arr[6] & 0xff) << 48)
-          | (((long)arr[5] & 0xff) << 40)
-          | (((long)arr[4] & 0xff) << 32)
-          | (((long)arr[3] & 0xff) << 24)
-          | (((long)arr[2] & 0xff) << 16)
-          | (((long)arr[1] & 0xff) <<  8)
-          | (((long)arr[0] & 0xff)      ));
+    return (long)arr[7] << 56
+          | ((long)arr[6] & 0xff) << 48
+          | ((long)arr[5] & 0xff) << 40
+          | ((long)arr[4] & 0xff) << 32
+          | ((long)arr[3] & 0xff) << 24
+          | ((long)arr[2] & 0xff) << 16
+          | ((long)arr[1] & 0xff) <<  8
+          | (long)arr[0] & 0xff;
   }
 
   /**
@@ -170,7 +170,7 @@ public final class Util {
     arr[3] = (byte) (v >>> 24);
     arr[2] = (byte) (v >>> 16);
     arr[1] = (byte) (v >>>  8);
-    arr[0] = (byte) (v       );
+    arr[0] = (byte) v;
     return arr;
   }
 
@@ -188,7 +188,7 @@ public final class Util {
     arr[3] = (byte) (v >>> 24);
     arr[2] = (byte) (v >>> 16);
     arr[1] = (byte) (v >>>  8);
-    arr[0] = (byte) (v       );
+    arr[0] = (byte) v;
     return arr;
   }
 
@@ -203,7 +203,7 @@ public final class Util {
     final long mask = 0XFFL;
     final StringBuilder sb = new StringBuilder();
     for (int i = 8; i-- > 0; ) {
-      final String s = Long.toHexString((v >>> (i * 8)) & mask);
+      final String s = Long.toHexString(v >>> i * 8 & mask);
       sb.append(zeroPad(s, 2)).append(" ");
     }
     return sb.toString();
@@ -220,10 +220,10 @@ public final class Util {
   public static String bytesToString(
       final byte[] arr, final boolean signed, final boolean littleEndian, final String sep) {
     final StringBuilder sb = new StringBuilder();
-    final int mask = (signed) ? 0XFFFFFFFF : 0XFF;
+    final int mask = signed ? 0XFFFFFFFF : 0XFF;
     final int arrLen = arr.length;
     if (littleEndian) {
-      for (int i = 0; i < (arrLen - 1); i++) {
+      for (int i = 0; i < arrLen - 1; i++) {
         sb.append(arr[i] & mask).append(sep);
       }
       sb.append(arr[arrLen - 1] & mask);
@@ -243,8 +243,8 @@ public final class Util {
    */
   public static String nanoSecToString(final long nS) {
     final long rem_nS = (long)(nS % 1000.0);
-    final long rem_uS = (long)((nS / 1000.0) % 1000.0);
-    final long rem_mS = (long)((nS / 1000000.0) % 1000.0);
+    final long rem_uS = (long)(nS / 1000.0 % 1000.0);
+    final long rem_mS = (long)(nS / 1000000.0 % 1000.0);
     final long sec    = (long)(nS / 1000000000.0);
     final String nSstr = zeroPad(Long.toString(rem_nS), 3);
     final String uSstr = zeroPad(Long.toString(rem_uS), 3);
@@ -259,8 +259,8 @@ public final class Util {
    */
   public static String milliSecToString(final long mS) {
     final long rem_mS = (long)(mS % 1000.0);
-    final long rem_sec = (long)((mS / 1000.0) % 60.0);
-    final long rem_min = (long)((mS / 60000.0) % 60.0);
+    final long rem_sec = (long)(mS / 1000.0 % 60.0);
+    final long rem_min = (long)(mS / 60000.0 % 60.0);
     final long hr  =     (long)(mS / 3600000.0);
     final String mSstr = zeroPad(Long.toString(rem_mS), 3);
     final String secStr = zeroPad(Long.toString(rem_sec), 2);
@@ -345,7 +345,7 @@ public final class Util {
    */
   public static short computeSeedHash(final long seed) {
     final long[] seedArr = {seed};
-    final short seedHash = (short)((hash(seedArr, 0L)[0]) & 0xFFFFL);
+    final short seedHash = (short)(hash(seedArr, 0L)[0] & 0xFFFFL);
     if (seedHash == 0) {
       throw new SketchesArgumentException(
           "The given seed: " + seed + " produced a seedHash of zero. "
@@ -362,7 +362,7 @@ public final class Util {
    * @param argName This name will be part of the error message if the check fails.
    */
   public static void checkIfMultipleOf8AndGT0(final long v, final String argName) {
-    if (((v & 0X7L) == 0L) && (v > 0L)) {
+    if ((v & 0X7L) == 0L && v > 0L) {
       return;
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
@@ -375,7 +375,7 @@ public final class Util {
    * @return true if v is a multiple of 8 and greater than zero
    */
   public static boolean isMultipleOf8AndGT0(final long v) {
-    return (((v & 0X7L) == 0L) && (v > 0L));
+    return (v & 0X7L) == 0L && v > 0L;
   }
 
   //Powers of 2 related
@@ -413,7 +413,7 @@ public final class Util {
    * @return true if argument is exactly a positive power of 2 and greater than zero.
    */
   public static boolean isPowerOf2(final int v) {
-    return (v > 0) && ((v & (v - 1)) == 0); //or (v > 0) && ((v & -v) == v)
+    return v > 0 && (v & v - 1) == 0; //or (v > 0) && ((v & -v) == v)
   }
 
   /**
@@ -424,7 +424,7 @@ public final class Util {
    * @param argName Used in the thrown exception.
    */
   public static void checkIfPowerOf2(final int v, final String argName) {
-    if ((v > 0) && ((v & (v - 1)) == 0)) {
+    if (v > 0 && (v & v - 1) == 0) {
       return;
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
@@ -462,7 +462,7 @@ public final class Util {
   public static int ceilingPowerOf2(final int n) {
     if (n <= 1) { return 1; }
     final int topPwrOf2 = 1 << 30;
-    return (n >= topPwrOf2) ? topPwrOf2 : Integer.highestOneBit((n - 1) << 1);
+    return n >= topPwrOf2 ? topPwrOf2 : Integer.highestOneBit(n - 1 << 1);
   }
 
   /**
@@ -483,7 +483,7 @@ public final class Util {
 
     final double delta = (max - min) / (num - 1);
 
-    for (int i = 1; i < (num - 1); i++) { out[i] = i * delta; }
+    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + min; }
     return out;
   }
 
@@ -505,7 +505,7 @@ public final class Util {
 
     final float delta = (max - min) / (num - 1);
 
-    for (int i = 1; i < (num - 1); i++) { out[i] = i * delta; }
+    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + min; }
     return out;
   }
 
@@ -522,7 +522,7 @@ public final class Util {
     if (num < 2) {
       throw new SketchesArgumentException("num must be >= 2");
     }
-    if ((min <= 0) || (max <= 0)) {
+    if (min <= 0 || max <= 0) {
       throw new SketchesArgumentException("min and max must be > 0.");
     }
 
@@ -581,8 +581,8 @@ public final class Util {
    * @return  the inverse integer power of 2: 1/(2^e) = 2^(-e)
    */
   public static double invPow2(final int e) {
-    assert (e | (1024 - e - 1)) >= 0 : "e cannot be negative or greater than 1023: " + e;
-    return Double.longBitsToDouble((1023L - e) << 52);
+    assert (e | 1024 - e - 1) >= 0 : "e cannot be negative or greater than 1023: " + e;
+    return Double.longBitsToDouble(1023L - e << 52);
   }
 
   /**
@@ -607,7 +607,7 @@ public final class Util {
    * @return the next point in the power series.
    */
   public static final int pwr2LawNext(final int ppo, final int curPoint) {
-    final int cur = (curPoint < 1) ? 1 : curPoint;
+    final int cur = curPoint < 1 ? 1 : curPoint;
     int gi = (int)round(log2(cur) * ppo); //current generating index
     int next;
     do {
@@ -666,7 +666,7 @@ public final class Util {
    */
   public static int simpleLog2OfLong(final long x) {
     final int exp = Long.numberOfTrailingZeros(x);
-    if (x != (1L << exp)) {
+    if (x != 1L << exp) {
       throw new SketchesArgumentException("Argument x must be a positive power of 2.");
     }
     return exp;
@@ -684,7 +684,7 @@ public final class Util {
    */
   public static final int startingSubMultiple(final int lgTarget, final int lgRF,
       final int lgMin) {
-    return (lgTarget <= lgMin) ? lgMin : (lgRF == 0) ? lgTarget : ((lgTarget - lgMin) % lgRF) + lgMin;
+    return lgTarget <= lgMin ? lgMin : lgRF == 0 ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
 
   //log_base or power_base related
@@ -700,7 +700,7 @@ public final class Util {
    * @return the ceiling power of B as a double and equal to a mathematical integer.
    */
   public static double ceilingPowerOfBdouble(final double b, final double n) {
-    final double x = (n < 1.0) ? 1.0 : n;
+    final double x = n < 1.0 ? 1.0 : n;
     return pow(b, ceil(logB(b, x)));
   }
 
@@ -715,7 +715,7 @@ public final class Util {
    * @return the floor power of 2 and equal to a mathematical integer.
    */
   public static double floorPowerOfBdouble(final double b, final double n) {
-    final double x = (n < 1.0) ? 1.0 : n;
+    final double x = n < 1.0 ? 1.0 : n;
     return pow(b, floor(logB(b, x)));
   }
 
@@ -755,8 +755,8 @@ public final class Util {
    */
   public static final double pwrLawNextDouble(final int ppo, final double curPoint,
       final boolean roundToInt, final double logBase) {
-    final double cur = (curPoint < 1.0) ? 1.0 : curPoint;
-    double gi = round((logB(logBase, cur) * ppo) ); //current generating index
+    final double cur = curPoint < 1.0 ? 1.0 : curPoint;
+    double gi = round(logB(logBase, cur) * ppo ); //current generating index
     double next;
     do {
       final double n = pow(logBase, ++gi / ppo);
@@ -774,7 +774,7 @@ public final class Util {
    */
   public static final int checkNomLongs(final int nomLongs) {
     final int lgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomLongs));
-    if ((lgNomLongs > MAX_LG_NOM_LONGS) || (lgNomLongs < MIN_LG_NOM_LONGS)) {
+    if (lgNomLongs > MAX_LG_NOM_LONGS || lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomLongs);
     }
@@ -792,7 +792,7 @@ public final class Util {
    * @param argName Used in the thrown exception.
    */
   public static void checkProbability(final double p, final String argName) {
-    if ((p >= 0.0) && (p <= 1.0)) {
+    if (p >= 0.0 && p <= 1.0) {
       return;
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
@@ -806,7 +806,7 @@ public final class Util {
    * @return true if n1 &gt; n2.
    */
   public static boolean isLessThanUnsigned(final long n1, final long n2) {
-    return (n1 < n2) ^ ((n1 < 0) != (n2 < 0));
+    return n1 < n2 ^ n1 < 0 != n2 < 0;
   }
 
   //Resources
@@ -869,7 +869,7 @@ public final class Util {
       if (!Float.isFinite(values[i])) {
         throw new SketchesArgumentException("Values must be finite");
       }
-      if ((i < (values.length - 1)) && (values[i] >= values[i + 1])) {
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
         throw new SketchesArgumentException(
           "Values must be unique and monotonically increasing");
       }

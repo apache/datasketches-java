@@ -31,6 +31,7 @@ import static org.apache.datasketches.Util.checkIfPowerOf2;
 import static org.apache.datasketches.Util.checkProbability;
 import static org.apache.datasketches.Util.evenlyLogSpaced;
 import static org.apache.datasketches.Util.evenlySpaced;
+import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.Util.floorPowerOfBdouble;
 import static org.apache.datasketches.Util.getResourceBytes;
@@ -139,9 +140,9 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2(3), 2);
     Assert.assertEquals(floorPowerOf2(4), 4);
 
-    Assert.assertEquals(floorPowerOf2((1 << 30) - 1), (1 << 29));
-    Assert.assertEquals(floorPowerOf2((1 << 30)), (1 << 30));
-    Assert.assertEquals(floorPowerOf2((1 << 30) + 1), (1 << 30));
+    Assert.assertEquals(floorPowerOf2((1 << 30) - 1), 1 << 29);
+    Assert.assertEquals(floorPowerOf2(1 << 30), 1 << 30);
+    Assert.assertEquals(floorPowerOf2((1 << 30) + 1), 1 << 30);
   }
   @Test
   public void checkFloorPowerOf2Long() {
@@ -152,9 +153,9 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2(3L), 2L);
     Assert.assertEquals(floorPowerOf2(4L), 4L);
 
-    Assert.assertEquals(floorPowerOf2((1L << 63) - 1L), (1L << 62));
-    Assert.assertEquals(floorPowerOf2((1L << 62)), (1L << 62));
-    Assert.assertEquals(floorPowerOf2((1L << 62) + 1L), (1L << 62));
+    Assert.assertEquals(floorPowerOf2((1L << 63) - 1L), 1L << 62);
+    Assert.assertEquals(floorPowerOf2(1L << 62), 1L << 62);
+    Assert.assertEquals(floorPowerOf2((1L << 62) + 1L), 1L << 62);
   }
   @Test
   public void checkFloorPowerOf2double() {
@@ -235,10 +236,26 @@ public class UtilTest {
 
   @Test
   public void checkEvenlySpaced() {
-    final double[] arr = evenlySpaced(0, 1, 3);
+    double[] arr = evenlySpaced(0, 1, 3);
     assertEquals(arr[0], 0.0);
     assertEquals(arr[1], 0.5);
     assertEquals(arr[2], 1.0);
+    arr = evenlySpaced(3, 7, 3);
+    assertEquals(arr[0], 3.0);
+    assertEquals(arr[1], 5.0);
+    assertEquals(arr[2], 7.0);
+  }
+
+  @Test
+  public void checkEvenlySpacedFloats() {
+    float[] arr = evenlySpacedFloats(0, 1, 3);
+    assertEquals(arr[0], 0.0f);
+    assertEquals(arr[1], 0.5f);
+    assertEquals(arr[2], 1.0f);
+    arr = evenlySpacedFloats(3, 7, 3);
+    assertEquals(arr[0], 3.0f);
+    assertEquals(arr[1], 5.0f);
+    assertEquals(arr[2], 7.0f);
   }
 
   @Test
@@ -309,7 +326,7 @@ public class UtilTest {
 
   @Test
   public void checkMsecToString() {
-    final long nS = (60L * 60L * 1000L) + (60L * 1000L) + 1000L + 1L;
+    final long nS = 60L * 60L * 1000L + 60L * 1000L + 1000L + 1L;
     final String result = milliSecToString(nS);
     final String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);

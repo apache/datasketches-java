@@ -19,10 +19,6 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.Criteria.GE;
-import static org.apache.datasketches.Criteria.GT;
-import static org.apache.datasketches.req.ReqSketch.LS;
-
 import java.util.Arrays;
 
 import org.apache.datasketches.BinarySearch;
@@ -38,6 +34,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 class FloatBuffer {
+  private static final String LS = System.getProperty("line.separator");
   private float[] arr_;
   private int count_;
   private int capacity_;
@@ -206,8 +203,8 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final int index = BinarySearch.binarySearchFloat(arr_, low, high, value, criterion);
-    if (criterion == GT || criterion == GE) {
+    final int index = BinarySearch.find(arr_, low, high, value, criterion);
+    if (criterion == Criteria.GT || criterion == Criteria.GE) {
       return index == -1 ? 0 : high - index + 1;
     }
     //LT or LE

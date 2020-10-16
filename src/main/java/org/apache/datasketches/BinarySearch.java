@@ -27,19 +27,19 @@ package org.apache.datasketches;
 public final class BinarySearch {
 
   /**
-   * Binary Search for the index of the double value in the given range that satisfies
+   * Binary Search for the index of the double value in the given search range that satisfies
    * the given comparison criterion.
-   * If -1 is returned there are no values in the range that satisfy the criterion.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
    * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the range
-   * @param high the index of the highest value in the range
+   * @param low the index of the lowest value in the search range
+   * @param high the index of the highest value in the search range
    * @param v the value to search for.
    * @param crit one of LT, LE, GT, GE
-   * @return the index of the value in the given range that satisfies the criterion
+   * @return the index of the value in the given search range that satisfies the criterion
    */
-  public static int binarySearchDouble(final double[] arr, final int low, final int high, final double v,
-      final Criteria crit) {
+  public static int find(final double[] arr, final int low, final int high,
+      final double v, final Criteria crit) {
     int lo = low;
     int hi = high - 1;
     int ret;
@@ -54,19 +54,19 @@ public final class BinarySearch {
   }
 
   /**
-   * Binary Search for the index of the float value in the given range that satisfies
+   * Binary Search for the index of the float value in the given search range that satisfies
    * the given comparison criterion.
-   * If -1 is returned there are no values in the range that satisfy the criterion.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
    * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the range
-   * @param high the index of the highest value in the range
+   * @param low the index of the lowest value in the search range
+   * @param high the index of the highest value in the search range
    * @param v the value to search for.
    * @param crit one of LT, LE, GT, GE
-   * @return the index of the value in the given range that satisfies the criterion
+   * @return the index of the value in the given search range that satisfies the criterion
    */
-  public static int binarySearchFloat(final float[] arr, final int low, final int high, final float v,
-      final Criteria crit) {
+  public static int find(final float[] arr, final int low, final int high,
+      final float v, final Criteria crit) {
     int lo = low;
     int hi = high - 1;
     int ret;
@@ -78,6 +78,52 @@ public final class BinarySearch {
       else  { return crit.getIndex(arr, midA, midA + 1, v); }
     }
     return crit.resolve(lo, hi, low, high);
+  }
+
+  /**
+   * Binary Search for the index of the exact float value in the given search range.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
+   * @param arr The given array to search.
+   * @param low the index of the lowest value of the search range
+   * @param high the index of the higest value of the search range
+   * @param v the value to search for
+   * @return return the index of the value, if found, otherwise, return -1;
+   */
+  public static int find(final float[] arr, final int low, final int high, final float v) {
+    int lo = low;
+    int hi = high;
+    while (lo <= hi) {
+      final int mid = lo + (hi - lo) / 2;
+      if (v < arr[mid]) { hi = mid - 1; }
+      else {
+        if (v > arr[mid]) { lo = mid + 1; }
+        else { return mid; }
+      }
+    }
+    return -1;
+  }
+
+  /**
+   * Binary Search for the index of the exact double value in the given search range.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
+   * @param arr The given array to search.
+   * @param low the index of the lowest value of the search range
+   * @param high the index of the higest value of the search range
+   * @param v the value to search for
+   * @return return the index of the value, if found, otherwise, return -1;
+   */
+  public static int find(final double[] arr, final int low, final int high, final double v) {
+    int lo = low;
+    int hi = high;
+    while (lo <= hi) {
+      final int mid = lo + (hi - lo) / 2;
+      if (v < arr[mid]) { hi = mid - 1; }
+      else {
+        if (v > arr[mid]) { lo = mid + 1; }
+        else { return mid; }
+      }
+    }
+    return -1;
   }
 
 }

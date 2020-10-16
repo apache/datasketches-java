@@ -19,11 +19,9 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.BinarySearch.binarySearchDouble;
-import static org.apache.datasketches.req.ReqSketch.LS;
-
 import java.util.List;
 
+import org.apache.datasketches.BinarySearch;
 import org.apache.datasketches.Criteria;
 
 /**
@@ -31,6 +29,7 @@ import org.apache.datasketches.Criteria;
  * @author Lee Rhodes
  */
 class ReqAuxiliary {
+  private static final String LS = System.getProperty("line.separator");
   private float[] items;
   private byte[] lgWeights;
   private double[] normRanks;
@@ -116,7 +115,7 @@ class ReqAuxiliary {
    */
   float getQuantile(final double normRank) {
     final int len = normRanks.length;
-    final int index = binarySearchDouble(normRanks, 0, len - 1, normRank, criterion);
+    final int index = BinarySearch.find(normRanks, 0, len - 1, normRank, criterion);
     if (index == -1) { return Float.NaN; }
     return items[index];
   }

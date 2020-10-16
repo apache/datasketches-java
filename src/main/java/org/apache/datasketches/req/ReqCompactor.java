@@ -320,8 +320,12 @@ class ReqCompactor {
     final int h = getLgWeight();
     final int len = buf.getLength();
     final int nom = getNomCapacity();
+    final int secSz = getSectionSize();
+    final int numSec = getNumSections();
     final int num = getNumCompactions();
-    final String prefix = String.format("  C:%d Len:%d NomSz:%d NumCompactions:%d", h, len, nom, num);
+    final String prefix = String.format(
+      "  C:%d Len:%d NomSz:%d SecSz:%d NumSec:%d NumCompactions:%d",
+           h, len, nom, secSz, numSec, num);
     return prefix;
   }
 
