@@ -189,8 +189,8 @@ public class ReqSketch extends BaseReqSketch {
       buff.setStartPositionEnd(0, pos + cBytes, buff.getCapacity());
     }
     final ReqSketch sk = new ReqSketch(k, hra, totalN, minValue, maxValue, compactors);
-    sk.updateMaxNomSize();
-    sk.updateRetainedItems();
+    sk.maxNomSize = sk.computeMaxNomSize();
+    sk.retItems = sk.computeTotalRetainedItems();
     sk.setCompatible(compatible);
     sk.setLessThanOrEqual(ltEq);
     return sk;
@@ -209,10 +209,10 @@ public class ReqSketch extends BaseReqSketch {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      final int retCompItems = c.getBuffer().getLength();
-      final int nomCap = c.getNomCapacity();
+      final int compRetItems = c.getBuffer().getLength();
+      final int compNomCap = c.getNomCapacity();
 
-      if (retCompItems >= nomCap) {
+      if (compRetItems >= compNomCap) {
         if (h + 1 >= getNumLevels()) { //at the top?
           if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
@@ -220,11 +220,10 @@ public class ReqSketch extends BaseReqSketch {
         final FloatBuffer promoted = c.compact(cReturn);
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
-        maxNomSize += cReturn.deltaNomSize;
         if (retItems < maxNomSize) { break; }
       }
     }
-    updateMaxNomSize();
+    maxNomSize += cReturn.deltaNomSize;
     aux = null;
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
   }
@@ -464,7 +463,7 @@ public class ReqSketch extends BaseReqSketch {
     final byte lgWeight = (byte)getNumLevels();
     if (lgWeight == 0 && reqDebug != null) { reqDebug.emitStart(this); }
     compactors.add(new ReqCompactor(lgWeight, hra, k, reqDebug));
-    updateMaxNomSize();
+    maxNomSize = computeMaxNomSize();
     if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
   }
 
@@ -506,8 +505,8 @@ public class ReqSketch extends BaseReqSketch {
     for (int i = 0; i < getNumLevels(); i++) {
       compactors.get(i).merge(other.compactors.get(i));
     }
-    updateMaxNomSize();
-    updateRetainedItems();
+    maxNomSize = computeMaxNomSize();
+    retItems = computeTotalRetainedItems();
     if (retItems >= maxNomSize) {
       compress();
     }
@@ -632,19 +631,21 @@ public class ReqSketch extends BaseReqSketch {
   /**
    * Computes a new bound for determining when to compress the sketch.
    */
-  void updateMaxNomSize() {
+  int computeMaxNomSize() {
     int cap = 0;
     for (ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
-    maxNomSize = cap;
+    return cap;
   }
 
   /**
    * Computes the retItems for the sketch.
    */
-  private void updateRetainedItems() {
+  private int computeTotalRetainedItems() {
     int count = 0;
-    for (ReqCompactor c : compactors) { count += c.getBuffer().getLength(); }
-    retItems = count;
+    for (ReqCompactor c : compactors) {
+      count += c.getBuffer().getLength();
+    }
+    return count;
   }
 
   /**

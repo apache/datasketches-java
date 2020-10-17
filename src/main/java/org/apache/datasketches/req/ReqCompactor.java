@@ -128,8 +128,8 @@ class ReqCompactor {
     final boolean hra = buff.getBoolean();
     buff.incrementPosition(1);
     final FloatBuffer buf = FloatBuffer.heapify(buff.region());
-    return new ReqCompactor(lgWeight, hra, buf, sectionSizeDbl, numSections, numCompactions, state,
-        coin);
+    return new ReqCompactor(
+        lgWeight, hra, buf, sectionSizeDbl, numSections, numCompactions, state, coin);
   }
 
   /**
@@ -162,7 +162,7 @@ class ReqCompactor {
     numCompactions += 1;
     state += 1;
     ensureEnoughSections();
-    cReturn.deltaRetItems = buf.getLength() - startRetItems;
+    cReturn.deltaRetItems = buf.getLength() - startRetItems + promote.getLength();
     cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;
