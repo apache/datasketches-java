@@ -29,6 +29,7 @@ import java.util.Random;
 import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.req.ReqSketch.CompactorReturn;
 
 /**
  * The compactor class for the ReqSketch
@@ -135,9 +136,11 @@ class ReqCompactor {
    * Perform a compaction operation on this compactor
    * @return the array of items to be promoted to the next level compactor
    */
-  FloatBuffer compact() {
+  FloatBuffer compact(final CompactorReturn cReturn) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
+    final int startRetItems = buf.getLength();
+    final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
     final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
     final long compactionRange = computeCompactionRange(secsToCompact);
@@ -159,7 +162,8 @@ class ReqCompactor {
     numCompactions += 1;
     state += 1;
     ensureEnoughSections();
-
+    cReturn.deltaRetItems = buf.getLength() - startRetItems;
+    cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;
   } //End Compact

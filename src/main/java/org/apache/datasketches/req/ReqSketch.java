@@ -100,6 +100,7 @@ public class ReqSketch extends BaseReqSketch {
   private ReqAuxiliary aux = null;
   private List<ReqCompactor> compactors = new ArrayList<>();
   ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
+  CompactorReturn cReturn = null;
 
   /**
    * Public Constructor.
@@ -204,6 +205,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   private void compress() {
+    if (cReturn == null) { cReturn = new CompactorReturn(); }
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
@@ -215,9 +217,10 @@ public class ReqSketch extends BaseReqSketch {
           if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
         }
-        final FloatBuffer promoted = c.compact();
+        final FloatBuffer promoted = c.compact(cReturn);
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
-        updateRetainedItems();
+        retItems += cReturn.deltaRetItems;
+        maxNomSize += cReturn.deltaNomSize;
         if (retItems < maxNomSize) { break; }
       }
     }
@@ -677,6 +680,11 @@ public class ReqSketch extends BaseReqSketch {
     }
     sb.append("************************End Detail*************************").append(LS);
     return sb.toString();
+  }
+
+  class CompactorReturn {
+    int deltaRetItems;
+    int deltaNomSize;
   }
 
 }
