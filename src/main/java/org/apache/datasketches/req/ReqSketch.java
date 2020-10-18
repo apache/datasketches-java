@@ -401,12 +401,9 @@ public class ReqSketch extends BaseReqSketch {
     return rArr;
   }
 
-  private static double getRankLB(final int k, final int levels, final double rank, final int numStdDev,
-      final boolean hra, final long totalN) {
-    if (levels == 1) { return rank; }
-    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / totalN;
-    if ( hra && rank >= 1.0 - thresh) { return rank; }
-    if (!hra && rank <= thresh) { return rank; }
+  private static double getRankLB(final int k, final int levels, final double rank,
+      final int numStdDev, final boolean hra, final long totalN) {
+    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
     final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
     final double fixed = fixRseFactor / k;
     final double lbRel = rank - numStdDev * relative;
@@ -419,17 +416,22 @@ public class ReqSketch extends BaseReqSketch {
     return getRankLB(k, getNumLevels(), rank, numStdDev, hra, getN());
   }
 
-  private static double getRankUB(final int k, final int levels, final double rank, final int numStdDev,
-      final boolean hra, final long totalN) {
-    if (levels == 1) { return rank; }
-    final double thresh = (double)k * INIT_NUMBER_OF_SECTIONS / totalN;
-    if ( hra && rank >= 1.0 - thresh) { return rank; }
-    if (!hra && rank <= thresh) { return rank; }
+  private static double getRankUB(final int k, final int levels, final double rank,
+      final int numStdDev, final boolean hra, final long totalN) {
+    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
     final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
     final double fixed = fixRseFactor / k;
     final double ubRel = rank + numStdDev * relative;
     final double ubFix = rank + numStdDev * fixed;
     return Math.min(ubRel, ubFix);
+  }
+
+  private static boolean exactRank(final int k, final int levels, final double rank,
+      final boolean hra, final long totalN) {
+    final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
+    if (levels == 1 || totalN <= baseCap) { return true; }
+    final double exactRankThresh = (double)baseCap / totalN;
+    return hra && rank >= 1.0 - exactRankThresh || !hra && rank <= exactRankThresh;
   }
 
   @Override

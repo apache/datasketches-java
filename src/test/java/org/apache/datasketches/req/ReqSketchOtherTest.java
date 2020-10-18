@@ -257,7 +257,6 @@ public class ReqSketchOtherTest {
     else { rUB = sk.getRankUpperBound(5.0/1000, 1); }
     assertTrue(rUB > 0);
     double[] ranks = sk.getRanks(new float[] {5f, 100f});
-
   }
 
   private static void myAssertEquals(double v1, double v2) {
