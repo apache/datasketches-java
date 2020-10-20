@@ -20,20 +20,55 @@
 package org.apache.datasketches;
 
 /**
- * This supports the BinarySearch class.
+ * This supports the BinarySearch class by providing efficient, unique and unambiguous searching for
+ * comparison criteria for ordered arrays of values that may include duplicate values. These
+ * searching criteria include &lt;, &le;, ==, &ge;, &gt;. We also would like to be able to use the
+ * same search algorithm for all the criteria.
+ *
+ * <p>In order to make the searching unique and unambiguous, we modified the traditional binary
+ * search algorithm to search for adjacent pairs of values <i>{A, B}</i> in the values array
+ * instead of just a single value, where <i>A</i> and <i>B</i> are the array indicies of two
+ * adjacent values in the array. We then define the searching criteria,
+ * given an array of values <i>arr[]</i> and the search key value <i>v</i>, as follows:</p>
+ * <ul>
+ * <li><b>LT:</b> Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
+ * <i>arr[A] < v <= arr[B]</i>. Normally we return the index <i>A</i>. However if the
+ * search algorithm reaches the ends of the search range, the search algorithm calls the
+ * <i>resolve()</i> method to determine what to return to the caller.
+ * </li>
+ * <li><b>LE:</b>  Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
+ * <i>arr[A] <= v < arr[B]</i>. Normally we return the index <i>A</i>. However if the
+ * search algorithm reaches the ends of the search range, the search algorithm calls the
+ * <i>resolve()</i> method to determine what to return to the caller.
+ * </li>
+ * <li><b>EQ:</b>  Find the adjacent pair <i>{A, B}</i> such that:<br>
+ * <i>arr[A] <= v <= arr[B]</i>. We return the index <i>A</i> or <i>B</i> whichever
+ * equals <i>v</i>, otherwise we return -1.
+ * </li>
+ * <li><b>GE:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
+ * <i>arr[A] < v <= arr[B]</i>. Normally we return the index <i>B</i>. However if the
+ * search algorithm reaches the ends of the search range, the search algorithm calls the
+ * <i>resolve()</i> method to determine what to return to the caller.
+ * </li>
+ * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
+ * <i>arr[A] <= v <= arr[B]</i>. Normally we return the index <i>B</i>. However if the
+ * search algorithm reaches the ends of the search range, the search algorithm calls the
+ * <i>resolve()</i> method to determine what to return to the caller.
+ * </li>
+ * </ul>
  *
  * @author Lee Rhodes
  */
 public enum Criteria {
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
-   * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &lt; V &le; B</i>.
+   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * this criterion instructs the binary search algorithm to find the highest adjacent pair of
+   * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
    * or -1, if the value <i>V</i> &le; the the lowest value in the selected range of the array.
    */
-  LT { //A < V <= B, return A
+  LT { //arr[A] < V <= arr[B], return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
       return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0; //-1,+1, 0
@@ -55,8 +90,8 @@ public enum Criteria {
     }
 
     @Override
-    int resolve(final int loA, final int hiA, final int low, final int high) {
-      if (loA == high) { return high; }
+    int resolve(final int lo, final int hi, final int low, final int high) {
+      if (lo == high) { return high; }
       return -1;
     }
 
@@ -90,13 +125,13 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
-   * binary search algorithm to find the highest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &le; V &lt; B</i>.
+   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * this criterion instructs the binary search algorithm to find the highest adjacent pair of
+   * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
    * or -1, if the value <i>V</i> &lt; the the lowest value in the selected range of the array.
    */
-  LE { //A <= V < B, return A
+  LE { //arr[A] <= V < arr[B], return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
       return v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
@@ -118,8 +153,8 @@ public enum Criteria {
     }
 
     @Override
-    int resolve(final int loA, final int hiA, final int low, final int high) {
-      if (loA >= high) { return high; }
+    int resolve(final int lo, final int hi, final int low, final int high) {
+      if (lo >= high) { return high; }
       return -1;
     }
 
@@ -153,13 +188,13 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
-   * binary search algorithm to find the adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &le; V &le; B</i>.
+   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * this criterion instructs the binary search algorithm to find the adjacent pair of
+   * values <i>{A,B}</i> such that <i>A &le; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i> or <i>B</i>,
    * if one of them is equal to <i>V</i>, or -1 if V is not equal to either one.
    */
-  EQ { //A <= V <= B, return A or B
+  EQ { //arr[A] <= V <= arr[B], return A or B
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
       return v < arr[a] ? -1 : arr[b] < v ? 1 : 0;
@@ -181,7 +216,7 @@ public enum Criteria {
     }
 
     @Override
-    int resolve(final int loA, final int hiA, final int low, final int high) {
+    int resolve(final int lo, final int hi, final int low, final int high) {
       return -1;
     }
 
@@ -215,13 +250,13 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
-   * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &lt; V &le; B</i>.
+   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
+   * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
    * or -1, if the value <i>V</i> &gt; the the highest value in the selected range of the array.
    */
-  GE { //A < V <= B, return B
+  GE { //arr[A] < V <= arr[B], return B
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
       return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
@@ -243,8 +278,8 @@ public enum Criteria {
     }
 
     @Override
-    int resolve(final int loA, final int hiA, final int low, final int high) {
-      if (hiA <= low) { return low; }
+    int resolve(final int lo, final int hi, final int low, final int high) {
+      if (hi <= low) { return low; }
       return -1;
     }
 
@@ -278,13 +313,13 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values and a value <i>V</i>, this criterion instructs the
-   * binary search algorithm to find the lowest adjacent pair of values <i>{A,B}</i> such that
-   * <i>A &le; V &lt; B</i>.
+   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
+   * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
    * or -1, if the value <i>V</i> &ge; the the highest value in the selected range of the array.
    */
-  GT { //A <= V < B, return B
+  GT { //arr[A] <= V < arr[B], return B
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
       return v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
@@ -306,8 +341,8 @@ public enum Criteria {
     }
 
     @Override
-    int resolve(final int loA, final int hiA, final int low, final int high) {
-      if (hiA <= low) { return low; }
+    int resolve(final int lo, final int hi, final int low, final int high) {
+      if (hi <= low) { return low; }
       return -1;
     }
 
@@ -385,7 +420,10 @@ public enum Criteria {
   abstract int getIndex(float[] arr, int a, int b, float v);
 
   /**
-   * Called to resolve what to do if not found.
+   * Called to resolve what to do if not found. In the search algorithm this occurs when the
+   * <i>lo</i> and <i>hi</i> indices become inverted at the ends of the array.
+   * This resolve method then determines what to do to resolve what to return based on the
+   * criterion.
    * @param lo the current lo value
    * @param hi the current hi value
    * @param low the low index of the range

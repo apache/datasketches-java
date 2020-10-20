@@ -328,7 +328,7 @@ public class BinarySearchTest {
       final int high = len - 1;
       final int idx = BinarySearch.find(arr, low, high, v, crit);
       if (idx == -1) {
-        println(v + " Not resolved, return -1.");
+        println("LT: " + v + " Not resolved, return -1.");
       }
       else {
         println(crit.desc(arr, low, high, v, idx));
