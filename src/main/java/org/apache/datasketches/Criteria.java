@@ -62,7 +62,7 @@ package org.apache.datasketches;
 public enum Criteria {
 
   /**
-   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
@@ -125,7 +125,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
@@ -188,7 +188,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i> or <i>B</i>,
@@ -250,7 +250,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
@@ -313,7 +313,7 @@ public enum Criteria {
   },
 
   /**
-   * Given an sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>

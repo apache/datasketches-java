@@ -596,6 +596,7 @@ public class ReqSketch extends BaseReqSketch {
   public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("**********Relative Error Quantiles Sketch Summary**********").append(LS);
+    sb.append("  K               : " + k).append(LS);
     sb.append("  N               : " + totalN).append(LS);
     sb.append("  Retained Items  : " + retItems).append(LS);
     sb.append("  Max Nominal Size: " + maxNomSize).append(LS);
