@@ -370,12 +370,17 @@ public class BinarySearchTest {
   }
 
 
-  @SuppressWarnings("unused")
+  /**
+   * @param format the format
+   * @param args the args
+   */
   static final void printf(final String format, final Object ...args) {
     //System.out.printf(format, args);
   }
 
-  @SuppressWarnings("unused")
+  /**
+   * @param o the Object to print
+   */
   static final void println(final Object o) {
     //System.out.println(o.toString());
   }

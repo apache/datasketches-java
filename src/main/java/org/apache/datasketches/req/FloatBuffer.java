@@ -225,7 +225,7 @@ class FloatBuffer {
   FloatBuffer getEvensOrOdds(final int startOffset, final int endOffset, final boolean odds) {
     final int start = spaceAtBottom_ ? capacity_ - count_ + startOffset : startOffset;
     final int end = spaceAtBottom_ ? capacity_ - count_ + endOffset : endOffset;
-    Arrays.sort(arr_, start, end);
+    sort();
     final int range = endOffset - startOffset;
     if ((range & 1) == 1) {
       throw new SketchesArgumentException("Input range size must be even");

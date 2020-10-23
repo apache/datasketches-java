@@ -71,7 +71,7 @@ public enum Criteria {
   LT { //arr[A] < V <= arr[B], return A
     @Override
     int compare(final double[] arr, final int a, final int b, final double v) {
-      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0; //-1,+1, 0
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
     }
 
     @Override
@@ -91,7 +91,7 @@ public enum Criteria {
 
     @Override
     int resolve(final int lo, final int hi, final int low, final int high) {
-      if (lo == high) { return high; }
+      if (lo >= high) { return high; }
       return -1;
     }
 
