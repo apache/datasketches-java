@@ -141,7 +141,6 @@ class FloatBuffer {
    * Ensures that the capacity of this FloatBuffer is at least newCapacity.
    * If newCapacity &lt; capacity(), no action is taken.
    * @param newCapacity the new desired capacity
-   * at the top.
    * @return this
    */
   FloatBuffer ensureCapacity(final int newCapacity) {
@@ -244,7 +243,7 @@ class FloatBuffer {
    * @param index the given index
    * @return a value given its backing array index
    */
-  float getIndex(final int index) {
+  float getItemFromIndex(final int index) {
     return arr_[index];
   }
 
@@ -256,15 +255,6 @@ class FloatBuffer {
   float getItem(final int offset) {
     final int index = spaceAtBottom_ ? capacity_ - count_ + offset : offset;
     return arr_[index];
-  }
-
-  /**
-   * Returns the item count.
-   *
-   * @return the number of active items currently in this array.
-   */
-  int getItemCount() {
-    return count_;
   }
 
   /**
@@ -396,12 +386,11 @@ class FloatBuffer {
    * @return this
    */
   FloatBuffer sort() {
-    if (!sorted_) {
-      final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
-      final int end = spaceAtBottom_ ? capacity_ : count_;
-      Arrays.sort(arr_, start, end);
-      sorted_ = true;
-    }
+    if (sorted_) { return this; }
+    final int start = spaceAtBottom_ ? capacity_ - count_ : 0;
+    final int end = spaceAtBottom_ ? capacity_ : count_;
+    Arrays.sort(arr_, start, end);
+    sorted_ = true;
     return this;
   }
 

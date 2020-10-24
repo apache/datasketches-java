@@ -47,9 +47,9 @@ public class FloatBufferTest {
   private static void checkTrimLengthImpl(boolean spaceAtBottom) {
     FloatBuffer buf = new FloatBuffer(16, 4, spaceAtBottom);
     for (int i = 0; i < 8; i++) { buf.append(i+1); }
-    assertEquals(buf.getItemCount(), 8);
+    assertEquals(buf.getLength(), 8);
     buf.trimLength(4);
-    assertEquals(buf.getItemCount(), 4);
+    assertEquals(buf.getLength(), 4);
   }
 
   @Test
@@ -90,17 +90,14 @@ public class FloatBufferTest {
     assertEquals(buf.getSpace(), 2);
     buf.append(1);
     assertEquals(buf.getLength(), 1);
-    assertEquals(buf.getItemCount(), 1);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 1);
     buf.append(2);
     assertEquals(buf.getLength(), 2);
-    assertEquals(buf.getItemCount(), 2);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 0);
     buf.append(3);
     assertEquals(buf.getLength(), 3);
-    assertEquals(buf.getItemCount(), 3);
     assertEquals(buf.getCapacity(), 5);
     assertEquals(buf.getSpace(), 2);
   }
@@ -246,7 +243,7 @@ public class FloatBufferTest {
     assertEquals(buf.getLength(), 3);
     int cnt = buf.getCountWithCriterion(3.0f, Criteria.LE);
     assertEquals(cnt, 3);
-    assertEquals(buf.getIndex(2), 3.0f);
+    assertEquals(buf.getItemFromIndex(2), 3.0f);
     try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (SketchesArgumentException e) {}
   }
 
@@ -257,7 +254,7 @@ public class FloatBufferTest {
     assertEquals(buf.getCapacity(), 201);
     assertEquals(buf.getLength(), 101);
     buf.trimCapacity();
-    assertEquals(buf.getIndex(0), 100f);
+    assertEquals(buf.getItemFromIndex(0), 100f);
     assertEquals(buf.getCapacity(), 101);
     assertEquals(buf.getLength(), 101);
   }
@@ -276,8 +273,8 @@ public class FloatBufferTest {
     int delta = buf.getDelta();
     boolean sorted = buf.isSorted();
     boolean sab = buf.isSpaceAtBottom();
-    assertEquals(buf.getIndex(100), 100.0f);
-    assertEquals(buf.getIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(buf.getItemFromIndex(100), 100.0f);
+    assertEquals(buf.getItemFromIndex(hra ? 199 : 1), 1.0f);
     assertEquals(buf.isSpaceAtBottom(), hra);
     byte[] barr = buf.toByteArray();
     FloatBuffer buf2 = FloatBuffer.heapify(Memory.wrap(barr).asBuffer());
@@ -286,8 +283,8 @@ public class FloatBufferTest {
     assertEquals(buf2.getDelta(), delta);
     assertEquals(buf2.isSorted(), sorted);
     assertEquals(buf2.isSpaceAtBottom(), sab);
-    assertEquals(buf2.getIndex(100), 100.0f);
-    assertEquals(buf2.getIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(buf2.getItemFromIndex(100), 100.0f);
+    assertEquals(buf2.getItemFromIndex(hra ? 199 : 1), 1.0f);
   }
 
   static void print(Object o) { System.out.print(o.toString()); }
