@@ -51,7 +51,7 @@ package org.apache.datasketches;
  * <i>resolve()</i> method to determine what to return to the caller.
  * </li>
  * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v <= arr[B]</i>. Normally we return the index <i>B</i>. However if the
+ * <i>arr[A] <= v < arr[B]</i>. Normally we return the index <i>B</i>. However if the
  * search algorithm reaches the ends of the search range, the search algorithm calls the
  * <i>resolve()</i> method to determine what to return to the caller.
  * </li>
@@ -66,7 +66,7 @@ public enum Criteria {
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
-   * or -1, if the value <i>V</i> &le; the the lowest value in the selected range of the array.
+   * or -1, if the value <i>V</i> &le; the lowest value in the selected range of the array.
    */
   LT { //arr[A] < V <= arr[B], return A
     @Override
@@ -129,7 +129,7 @@ public enum Criteria {
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>A</i>
-   * or -1, if the value <i>V</i> &lt; the the lowest value in the selected range of the array.
+   * or -1, if the value <i>V</i> &lt; the lowest value in the selected range of the array.
    */
   LE { //arr[A] <= V < arr[B], return A
     @Override
@@ -254,7 +254,7 @@ public enum Criteria {
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
-   * or -1, if the value <i>V</i> &gt; the the highest value in the selected range of the array.
+   * or -1, if the value <i>V</i> &gt; the highest value in the selected range of the array.
    */
   GE { //arr[A] < V <= arr[B], return B
     @Override
@@ -317,7 +317,7 @@ public enum Criteria {
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
    * The returned value from the binary search algorithm will be the index of <i>B</i>
-   * or -1, if the value <i>V</i> &ge; the the highest value in the selected range of the array.
+   * or -1, if the value <i>V</i> &ge; the highest value in the selected range of the array.
    */
   GT { //arr[A] <= V < arr[B], return B
     @Override

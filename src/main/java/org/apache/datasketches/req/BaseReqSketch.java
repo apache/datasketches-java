@@ -31,8 +31,8 @@ abstract class BaseReqSketch {
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
    * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
    *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError(false) function.
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained, a priori,
+   * from the {@link #getRSE(int, double, boolean, long)} function.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
@@ -93,8 +93,8 @@ abstract class BaseReqSketch {
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
    * given a set of splitPoints (values).
    *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError(true) function.
+   * <p>The resulting approximations have a probabilistic guarantee that be obtained, a priori,
+   * from the {@link #getRSE(int, double, boolean, long)} function.
    *
    * <p>If the sketch is empty this returns null.</p>
    *

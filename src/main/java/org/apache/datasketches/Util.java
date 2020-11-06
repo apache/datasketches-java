@@ -275,7 +275,7 @@ public final class Util {
    * @param fieldLength desired total field length including the given string
    * @return the given string prepended with zeros.
    */
-  public static final String zeroPad(final String s, final int fieldLength) {
+  public static String zeroPad(final String s, final int fieldLength) {
     return characterPad(s, fieldLength, '0', false);
   }
 
@@ -290,7 +290,7 @@ public final class Util {
    * @return prepended or postpended given string with the given character to fill the given field
    * length.
    */
-  public static final String characterPad(final String s, final int fieldLength, final char padChar,
+  public static String characterPad(final String s, final int fieldLength, final char padChar,
       final boolean postpend) {
     final char[] chArr = s.toCharArray();
     final int sLen = chArr.length;
@@ -327,7 +327,7 @@ public final class Util {
    * @param seedHashB the seedHash B
    * @return seedHashA if they are equal
    */
-  public static final short checkSeedHashes(final short seedHashA, final short seedHashB) {
+  public static short checkSeedHashes(final short seedHashA, final short seedHashB) {
     if (seedHashA != seedHashB) {
       throw new SketchesArgumentException(
           "Incompatible Seed Hashes. " + Integer.toHexString(seedHashA & 0XFFFF)
@@ -394,7 +394,7 @@ public final class Util {
   }
 
   /**
-   * Returns the number of one bits preceding the highest-order ("leftmost") one-bit in the
+   * Returns the number of one bits preceding the highest-order ("leftmost") zero-bit in the
    * two's complement binary representation of the specified long value, or 64 if the value is equal
    * to minus one.
    * @param v the value whose number of leading ones is to be computed.
@@ -466,67 +466,72 @@ public final class Util {
   }
 
   /**
-   * Returns a double array of evenly spaced double values between min and max inclusive.
-   * @param min the lowest returned value
-   * @param max the highest returned value
-   * @param num the total number of values including min and max. Must be 2 or greater.
-   * @return a double array of evenly spaced values between min and max inclusive.
+   * Returns a double array of evenly spaced values between value1 and value2 inclusive.
+   * If value2 &gt; value1, the resulting sequence will be increasing.
+   * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * @param value1 will be in index 0 of the returned array
+   * @param value2 will be in the highest index of the returned array
+   * @param num the total number of values including value1 and value2. Must be 2 or greater.
+   * @return a double array of evenly spaced values between value1 and value2 inclusive.
    */
-  public static double[] evenlySpaced(final double min, final double max, final int num) {
+  public static double[] evenlySpaced(final double value1, final double value2, final int num) {
     if (num < 2) {
       throw new SketchesArgumentException("num must be >= 2");
     }
     final double[] out = new double[num];
-    out[0] = min;
-    out[num - 1] = max;
+    out[0] = value1;
+    out[num - 1] = value2;
     if (num == 2) { return out; }
 
-    final double delta = (max - min) / (num - 1);
+    final double delta = (value2 - value1) / (num - 1);
 
-    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + min; }
+    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
     return out;
   }
 
   /**
-   * Returns a double array of evenly spaced float values between min and max inclusive.
-   * @param min the lowest returned value
-   * @param max the highest returned value
-   * @param num the total number of values including min and max. Must be 2 or greater.
-   * @return a double array of evenly spaced values between min and max inclusive.
+   * Returns a float array of evenly spaced values between value1 and value2 inclusive.
+   * If value2 &gt; value1, the resulting sequence will be increasing.
+   * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * @param value1 will be in index 0 of the returned array
+   * @param value2 will be in the highest index of the returned array
+   * @param num the total number of values including value1 and value2. Must be 2 or greater.
+   * @return a float array of evenly spaced values between value1 and value2 inclusive.
    */
-  public static float[] evenlySpacedFloats(final float min, final float max, final int num) {
+  public static float[] evenlySpacedFloats(final float value1, final float value2, final int num) {
     if (num < 2) {
       throw new SketchesArgumentException("num must be >= 2");
     }
     final float[] out = new float[num];
-    out[0] = min;
-    out[num - 1] = max;
+    out[0] = value1;
+    out[num - 1] = value2;
     if (num == 2) { return out; }
 
-    final float delta = (max - min) / (num - 1);
+    final float delta = (value2 - value1) / (num - 1);
 
-    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + min; }
+    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
     return out;
   }
 
   /**
    * Returns a double array of values between min and max inclusive where the log of the
    * returned values are evenly spaced.
-   *
-   * @param min the lowest returned value, must be greater than zero.
-   * @param max the highest returned value, must be greater than zero.
-   * @param num the total number of values including min and max. Must be 2 or greater
-   * @return a double array of exponentially spaced values between min and max inclusive.
+   * If value2 &gt; value1, the resulting sequence will be increasing.
+   * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * @param value1 will be in index 0 of the returned array, and must be greater than zero.
+   * @param value2 will be in the highest index of the returned array, and must be greater than zero.
+   * @param num the total number of values including value1 and value2. Must be 2 or greater
+   * @return a double array of exponentially spaced values between value1 and value2 inclusive.
    */
-  public static double[] evenlyLogSpaced(final double min, final double max, final int num) {
+  public static double[] evenlyLogSpaced(final double value1, final double value2, final int num) {
     if (num < 2) {
       throw new SketchesArgumentException("num must be >= 2");
     }
-    if (min <= 0 || max <= 0) {
-      throw new SketchesArgumentException("min and max must be > 0.");
+    if (value1 <= 0 || value2 <= 0) {
+      throw new SketchesArgumentException("value1 and value2 must be > 0.");
     }
 
-    final double[] arr = evenlySpaced(log(min) / LOG2, log(max) / LOG2, num);
+    final double[] arr = evenlySpaced(log(value1) / LOG2, log(value2) / LOG2, num);
     for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
     return arr;
   }
@@ -606,7 +611,7 @@ public final class Util {
    * @param curPoint the current point of the series. Must be &ge; 1.
    * @return the next point in the power series.
    */
-  public static final int pwr2LawNext(final int ppo, final int curPoint) {
+  public static int pwr2LawNext(final int ppo, final int curPoint) {
     final int cur = curPoint < 1 ? 1 : curPoint;
     int gi = (int)round(log2(cur) * ppo); //current generating index
     int next;
@@ -638,7 +643,7 @@ public final class Util {
    * @return the previous, smaller point in the power series.
    * A returned value of zero terminates the series.
    */
-  public static final int pwr2LawPrev(final int ppo, final int curPoint) {
+  public static int pwr2LawPrev(final int ppo, final int curPoint) {
     if (curPoint <= 1) { return 0; }
     int gi = (int)round(log2(curPoint) * ppo); //current generating index
     int prev;
@@ -654,7 +659,7 @@ public final class Util {
    * @param value the given value
    * @return The log base 2 of the value
    */
-  public static final double log2(final double value) {
+  public static double log2(final double value) {
     return log(value) / LOG2;
   }
 
@@ -682,7 +687,7 @@ public final class Util {
    * @param lgMin Log2 of the minimum allowed starting size
    * @return The Log2 of the starting size
    */
-  public static final int startingSubMultiple(final int lgTarget, final int lgRF,
+  public static int startingSubMultiple(final int lgTarget, final int lgRF,
       final int lgMin) {
     return lgTarget <= lgMin ? lgMin : lgRF == 0 ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
   }
@@ -725,7 +730,7 @@ public final class Util {
    * @param x the given value
    * @return the logarithm_logBase of x: Example: logB(2.0, x) = log(x) / log(2.0).
    */
-  public static final double logB(final double logBase, final double x) {
+  public static double logB(final double logBase, final double x) {
     return log(x) / log(logBase);
   }
 
@@ -753,7 +758,7 @@ public final class Util {
    * @param logBase the desired base of the logarithms
    * @return the next point in the power series.
    */
-  public static final double pwrLawNextDouble(final int ppo, final double curPoint,
+  public static double pwrLawNextDouble(final int ppo, final double curPoint,
       final boolean roundToInt, final double logBase) {
     final double cur = curPoint < 1.0 ? 1.0 : curPoint;
     double gi = round(logB(logBase, cur) * ppo ); //current generating index
@@ -772,7 +777,7 @@ public final class Util {
    * 67108864, inclusive.
    * @return The Log2 of the ceiling power of 2 of the given nomLongs.
    */
-  public static final int checkNomLongs(final int nomLongs) {
+  public static int checkNomLongs(final int nomLongs) {
     final int lgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomLongs));
     if (lgNomLongs > MAX_LG_NOM_LONGS || lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
@@ -864,7 +869,7 @@ public final class Util {
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of values
    */
-  public static final void validateValues(final float[] values) {
+  public static void validateValues(final float[] values) {
     for (int i = 0; i < values.length; i++) {
       if (!Float.isFinite(values[i])) {
         throw new SketchesArgumentException("Values must be finite");

@@ -68,7 +68,7 @@ class ReqAuxiliary {
       mergeSortIn(bufIn, lgWeight, auxCount);
       auxCount += bufInLen;
     }
-    float sum = 0;
+    double sum = 0;
     for (int i = 0; i < totalItems; i++) {
       sum += 1 << lgWeights[i];
       normRanks[i] = sum / N;

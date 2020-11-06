@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.req;
 
-//import org.apache.datasketches.req.ReqCompactor;
-
 /**
  * The signaling interface that allows comprehensive analysis of the ReqSketch and ReqCompactor
  * while eliminating code clutter in the main classes. The implementation of this interface can be
@@ -36,27 +34,27 @@ public interface ReqDebug {
    * Emit the start signal
    * @param sk the sketch
    */
-  public void emitStart(ReqSketch sk);
+  void emitStart(ReqSketch sk);
 
   /**
    * Emit Start Compress
    */
-  public void emitStartCompress();
+  void emitStartCompress();
 
   /**
    * Emit compress done.
    */
-  public void emitCompressDone();
+  void emitCompressDone();
 
   /**
    * Emit all horizontal lists
    */
-  public void emitAllHorizList();
+  void emitAllHorizList();
 
   /**
    * Emit Must add compactor
    */
-  public void emitMustAddCompactor();
+  void emitMustAddCompactor();
 
   //Compactor signals
 
@@ -64,19 +62,19 @@ public interface ReqDebug {
    * Emit Compaction Start.
    * @param lgWeight compactor lgWeight or height
    */
-  public void emitCompactingStart(byte lgWeight);
+  void emitCompactingStart(byte lgWeight);
 
   /**
    * Emit new compactor configuration
    * @param lgWeight the log weight
    */
-  public void emitNewCompactor(byte lgWeight);
+  void emitNewCompactor(byte lgWeight);
 
   /**
    * Emit adjusting section size and number of sections.
    * @param lgWeight the log weight
    */
-  public void emitAdjSecSizeNumSec(byte lgWeight);
+  void emitAdjSecSizeNumSec(byte lgWeight);
 
   /**
    * Emit Compaction details.
@@ -86,13 +84,13 @@ public interface ReqDebug {
    * @param promoteLen the length of the promotion field
    * @param coin the state of the random coin.
    */
-  public void emitCompactionDetail(int compactionStart, int compactionEnd,
+  void emitCompactionDetail(int compactionStart, int compactionEnd,
       int secsToCompact, int promoteLen, boolean coin);
 
   /**
    * Emit compaction done and number of compactions so far.
    * @param lgWeight the log weight
    */
-  public void emitCompactionDone(byte lgWeight);
+  void emitCompactionDone(byte lgWeight);
 
 }
