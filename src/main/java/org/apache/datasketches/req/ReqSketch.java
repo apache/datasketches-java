@@ -234,10 +234,10 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getCDF(final float[] splitPoints) {
-    if (isEmpty()) { return new double[0]; }
-    final long[] buckets = getPMForCDF(splitPoints);
-    final int numBkts = buckets.length;
+    if (isEmpty()) { return null; }
+    final int numBkts = splitPoints.length + 1;
     final double[] outArr = new double[numBkts];
+    final long[] buckets = getPMForCDF(splitPoints);
     for (int j = 0; j < numBkts; j++) {
       outArr[j] = (double)buckets[j] / getN();
     }
@@ -249,6 +249,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   private long getCount(final float value) {
+    if (isEmpty()) { return 0; }
     final int numComp = compactors.size();
     long cumNnr = 0;
     for (int i = 0; i < numComp; i++) { //cycle through compactors
@@ -267,6 +268,7 @@ public class ReqSketch extends BaseReqSketch {
     final int numValues = values.length;
     final int numComp = compactors.size();
     final long[] cumNnrArr = new long[numValues];
+    if (isEmpty()) { return cumNnrArr; }
     for (int i = 0; i < numComp; i++) { //cycle through compactors
       final ReqCompactor c = compactors.get(i);
       final long wt = 1L << c.getLgWeight();
@@ -325,10 +327,10 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getPMF(final float[] splitPoints) {
-    if (isEmpty()) { return new double[0]; }
-    final long[] buckets = getPMForCDF(splitPoints);
-    final int numBkts = buckets.length;
+    if (isEmpty()) { return null; }
+    final int numBkts = splitPoints.length + 1;
     final double[] outArr = new double[numBkts];
+    final long[] buckets = getPMForCDF(splitPoints);
     outArr[0] = (double)buckets[0] / getN();
     for (int j = 1; j < numBkts; j++) {
       outArr[j] = (double)(buckets[j] - buckets[j - 1]) / getN();
@@ -353,10 +355,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getQuantile(final double normRank) {
-    if (isEmpty()) {
-      throw new SketchesArgumentException(
-          "Sketch is empty.");
-    }
+    if (isEmpty()) { return Float.NaN; }
     if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
@@ -376,6 +375,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float[] getQuantiles(final double[] normRanks) {
+    if (isEmpty()) { return null; }
     final int len = normRanks.length;
     final float[] qArr = new float[len];
     for (int i = 0; i < len; i++) {
@@ -386,12 +386,14 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double getRank(final float value) {
+    if (isEmpty()) { return Double.NaN; }
     final long nnCount = getCount(value);
     return (double)nnCount / totalN;
   }
 
   @Override
   public double[] getRanks(final float[] values) {
+    if (isEmpty()) { return null; }
     final long[] cumNnrArr = getCounts(values);
     final int numValues = values.length;
     final double[] rArr = new double[numValues];
@@ -636,7 +638,7 @@ public class ReqSketch extends BaseReqSketch {
    */
   int computeMaxNomSize() {
     int cap = 0;
-    for (ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
+    for (final ReqCompactor c : compactors) { cap += c.getNomCapacity(); }
     return cap;
   }
 
@@ -645,7 +647,7 @@ public class ReqSketch extends BaseReqSketch {
    */
   private int computeTotalRetainedItems() {
     int count = 0;
-    for (ReqCompactor c : compactors) {
+    for (final ReqCompactor c : compactors) {
       count += c.getBuffer().getLength();
     }
     return count;

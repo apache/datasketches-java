@@ -26,6 +26,7 @@ import static org.apache.datasketches.Criteria.LT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -46,49 +47,50 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkConstructors() {
-    ReqSketch sk = ReqSketch.builder().build();
+    final ReqSketch sk = ReqSketch.builder().build();
     assertEquals(sk.getK(), 12);
   }
 
   @Test
   public void checkCopyConstructors() {
-    Criteria criterion = LE;
-    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true,  criterion, 0);
-    long n = sk.getN();
-    float min = sk.getMinValue();
-    float max = sk.getMaxValue();
-    ReqSketch sk2 = new ReqSketch(sk);
+    final Criteria criterion = LE;
+    final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true,  criterion, 0);
+    final long n = sk.getN();
+    final float min = sk.getMinValue();
+    final float max = sk.getMaxValue();
+    final ReqSketch sk2 = new ReqSketch(sk);
     assertEquals(sk2.getMinValue(), min);
     assertEquals(sk2.getMaxValue(), max);
   }
 
   @Test
-  public void checkEmptyPMF_CDF() {
-    ReqSketch sk = ReqSketch.builder().build();
-    float[] sp = new float[] {0, 1};
-    assertEquals(sk.getCDF(sp), new double[0]);
-    assertEquals(sk.getPMF(sp), new double[0]);
+  public void checkNonFinitePMF_CDF() {
+    final ReqSketch sk = ReqSketch.builder().build();
     sk.update(1);
-    try {sk.getCDF(new float[] { Float.NaN }); fail(); } catch (SketchesArgumentException e) {}
+    try { //splitpoint values must be finite
+      sk.getCDF(new float[] { Float.NaN });
+      fail();
+    }
+    catch (final SketchesArgumentException e) {}
   }
 
   @Test
   public void checkQuantilesExceedLimits() {
-    Criteria criterion = LE;
-    ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 200,  true,  true,  criterion, 0);
-    try { sk.getQuantile(2.0f); fail(); } catch (SketchesArgumentException e) {}
-    try { sk.getQuantile(-2.0f); fail(); } catch (SketchesArgumentException e) {}
+    final Criteria criterion = LE;
+    final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 200,  true,  true,  criterion, 0);
+    try { sk.getQuantile(2.0f); fail(); } catch (final SketchesArgumentException e) {}
+    try { sk.getQuantile(-2.0f); fail(); } catch (final SketchesArgumentException e) {}
   }
 
   @Test
   public void checkEstimationMode() {
-    boolean up = true;
-    boolean hra = true;
-    Criteria criterion = LE;
-    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  criterion, 0);
+    final boolean up = true;
+    final boolean hra = true;
+    final Criteria criterion = LE;
+    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  criterion, 0);
     assertEquals(sk.isEstimationMode(), false);
-    double lb = sk.getRankLowerBound(1.0, 1);
-    double ub = sk.getRankUpperBound(1.0, 1);
+    final double lb = sk.getRankLowerBound(1.0, 1);
+    final double ub = sk.getRankUpperBound(1.0, 1);
     assertEquals(lb, 1.0);
     assertEquals(ub, 1.0);
     int maxNomSize = sk.getMaxNomSize();
@@ -101,9 +103,9 @@ public class ReqSketchOtherTest {
     //  assertEquals(ub, 2.0);
     maxNomSize = sk.getMaxNomSize();
     assertEquals(maxNomSize, 240);
-    float v = sk.getQuantile(1.0);
+    final float v = sk.getQuantile(1.0);
     assertEquals(v, 120.0f);
-    ReqAuxiliary aux = sk.getAux();
+    final ReqAuxiliary aux = sk.getAux();
     assertNotNull(aux);
     assertTrue(sk.getRSE(sk.getK(), .5, false, 120) > 0);
     assertTrue(sk.getSerializationBytes() > 0);
@@ -111,22 +113,22 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkNaNUpdate() {
-    Criteria criterion = LE;
-    ReqSketch sk = ReqSketch.builder().build();
+    final Criteria criterion = LE;
+    final ReqSketch sk = ReqSketch.builder().build();
     sk.update(Float.NaN);
     assertTrue(sk.isEmpty());
   }
 
   @Test
   public void checkNonFiniteGetRank() {
-    ReqSketch sk = ReqSketch.builder().build();
+    final ReqSketch sk = ReqSketch.builder().build();
     sk.update(1);
-    try { sk.getRank(Float.POSITIVE_INFINITY); fail(); } catch (AssertionError e) {}
+    try { sk.getRank(Float.POSITIVE_INFINITY); fail(); } catch (final AssertionError e) {}
   }
 
   @Test
   public void checkFlags() {
-    ReqSketch sk = ReqSketch.builder().build();
+    final ReqSketch sk = ReqSketch.builder().build();
     sk.setCriterion(Criteria.LE);
     assertEquals(sk.isLessThanOrEqual(), true);
     assertEquals(sk.getCriterion(), Criteria.LE);
@@ -139,15 +141,9 @@ public class ReqSketchOtherTest {
   }
 
   @Test
-  public void checkEmpty() {
-    ReqSketch sk = ReqSketch.builder().build();
-    try { sk.getQuantile(0.5); fail(); } catch (SketchesArgumentException e) { }
-  }
-
-  @Test
   public void moreMergeTests() {
-    ReqSketch sk1 = ReqSketch.builder().build();
-    ReqSketch sk2 = ReqSketch.builder().build();
+    final ReqSketch sk1 = ReqSketch.builder().build();
+    final ReqSketch sk2 = ReqSketch.builder().build();
     for (int i = 5; i < 10; i++) {sk1.update(i); }
     sk1.merge(sk2); //does nothing
     for (int i = 1; i <= 15; i++) {sk2.update(i); }
@@ -159,44 +155,44 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkCompatibleGT() {
-    ReqSketchBuilder bldr = ReqSketch.builder();
+    final ReqSketchBuilder bldr = ReqSketch.builder();
     bldr.setK(6).setCompatible(true).setHighRankAccuracy(false);
-    ReqSketch sk = bldr.build();
+    final ReqSketch sk = bldr.build();
     sk.setCriterion(GT);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
-    float v = sk.getQuantile(1.0);
+    final float v = sk.getQuantile(1.0);
     assertEquals(v, 100f);
   }
 
   @Test
   public void checkComplementCriteria() {
-    int k = 24;
-    boolean up = false;
-    boolean hra = true;
-    int min = 1;
-    int max = 100;
-    ReqSketch sk = reqSketchTest.loadSketch( k, min, max,  up,  hra, LE, 0);
+    final int k = 24;
+    final boolean up = false;
+    final boolean hra = true;
+    final int min = 1;
+    final int max = 100;
+    final ReqSketch sk = reqSketchTest.loadSketch( k, min, max,  up,  hra, LE, 0);
     sk.setCompatible(false);
 
     for (float v = 0.5f; v <= max + 0.5f; v += 0.5f) {
       //float v = 0.5f;
-      double rle = sk.setCriterion(LE).getRank(v);
+      final double rle = sk.setCriterion(LE).getRank(v);
       sk.setLessThanOrEqual(true);
-      float qrle = sk.getQuantile(rle);
-      double rgt = sk.setCriterion(GT).getRank(v);
-      float qrgt = sk.getQuantile(rgt);
+      final float qrle = sk.getQuantile(rle);
+      final double rgt = sk.setCriterion(GT).getRank(v);
+      final float qrgt = sk.getQuantile(rgt);
       myAssertEquals(rle, rgt);
       myAssertEquals(qrle, qrgt);
       sk.setCriterion(LT);
-      double rlt = sk.setCriterion(LT).getRank(v);
-      float qrlt = sk.getQuantile(rlt);
-      double rge = sk.setCriterion(GE).getRank(v);
-      float qrge = sk.getQuantile(rge);
+      final double rlt = sk.setCriterion(LT).getRank(v);
+      final float qrlt = sk.getQuantile(rlt);
+      final double rge = sk.setCriterion(GE).getRank(v);
+      final float qrge = sk.getQuantile(rge);
       myAssertEquals(rlt, rge);
       myAssertEquals(qrlt, qrge);
     }
 
-    float v1 = sk.getQuantile(1.0);
+    final float v1 = sk.getQuantile(1.0);
     assertEquals(v1, (float)max);
 
     sk.reset();
@@ -239,13 +235,29 @@ public class ReqSketchOtherTest {
     checkGetRank(false, GT);
   }
 
-  private void checkGetRank(boolean hra, Criteria criterion) {
-    int k = 12;
-    boolean up = true;
-    int min = 1;
-    int max = 1000;
-    int skDebug = 0;
-    ReqSketch sk = reqSketchTest.loadSketch(k, min, max, up, hra, criterion, skDebug);
+  @Test
+  public void checkEmpty() {
+    final ReqSketchBuilder bldr = new ReqSketchBuilder();
+    bldr.setCompatible(false);
+    bldr.setLessThanOrEqual(false);
+    final ReqSketch sk = new ReqSketchBuilder().build();
+    assertEquals(sk.getRank(1f), Double.NaN);
+    assertNull(sk.getRanks(new float[] { 1f }));
+    assertEquals(sk.getQuantile(0.5), Float.NaN);
+    assertNull(sk.getQuantiles(new double[] {0.5}));
+    assertNull(sk.getPMF(new float[] { 1f }));
+    assertNull(sk.getCDF(new float[] { 1f }));
+    assertTrue(sk.getRSE(50, 0.5, true, 0) > 0);
+    assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
+  }
+
+  private void checkGetRank(final boolean hra, final Criteria criterion) {
+    final int k = 12;
+    final boolean up = true;
+    final int min = 1;
+    final int max = 1000;
+    final int skDebug = 0;
+    final ReqSketch sk = reqSketchTest.loadSketch(k, min, max, up, hra, criterion, skDebug);
     double rLB = sk.getRankLowerBound(0.5, 1);
     assertTrue(rLB > 0);
     if (hra) { rLB = sk.getRankLowerBound(995.0/1000, 1); }
@@ -256,16 +268,16 @@ public class ReqSketchOtherTest {
     if (hra) { rUB = sk.getRankUpperBound(995.0/1000, 1); }
     else { rUB = sk.getRankUpperBound(5.0/1000, 1); }
     assertTrue(rUB > 0);
-    double[] ranks = sk.getRanks(new float[] {5f, 100f});
+    final double[] ranks = sk.getRanks(new float[] {5f, 100f});
   }
 
-  private static void myAssertEquals(double v1, double v2) {
+  private static void myAssertEquals(final double v1, final double v2) {
     if (Double.isNaN(v1) && Double.isNaN(v2)) { assert true; }
     else if (v1 == v2) { assert true; }
     else { assert false; }
   }
 
-  private static void myAssertEquals(float v1, float v2) {
+  private static void myAssertEquals(final float v1, final float v2) {
     if (Float.isNaN(v1) && Float.isNaN(v2)) { assert true; }
     else if (v1 == v2) { assert true; }
     else { assert false; }
