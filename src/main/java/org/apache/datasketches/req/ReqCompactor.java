@@ -49,7 +49,7 @@ class ReqCompactor {
   private boolean coin; //true or false at random for each compaction
   //objects
   private FloatBuffer buf;
-  private ReqDebug reqDebug = null;
+  private final ReqDebug reqDebug = null;
   private Random rand;
 
   /**
@@ -73,7 +73,7 @@ class ReqCompactor {
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
     final int nomCap = getNomCapacity();
-    buf = new FloatBuffer(2 * nomCap, 0, hra); //TODO configure delta?
+    buf = new FloatBuffer(2 * nomCap, nomCap, hra);
     if (reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
   }

@@ -38,9 +38,9 @@ class FloatBuffer {
   private float[] arr_;
   private int count_;
   private int capacity_;
-  private int delta_;
+  private final int delta_;
   private boolean sorted_;
-  private boolean spaceAtBottom_; //tied to hra
+  private final boolean spaceAtBottom_; //tied to hra
 
   /**
    * Constructs an new empty FloatBuffer with an initial capacity specified by
