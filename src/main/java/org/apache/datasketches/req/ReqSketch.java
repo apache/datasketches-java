@@ -100,7 +100,7 @@ public class ReqSketch extends BaseReqSketch {
   private ReqAuxiliary aux = null;
   private List<ReqCompactor> compactors = new ArrayList<>();
   ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
-  CompactorReturn cReturn = null;
+  CompactorReturn cReturn = new CompactorReturn();
 
   /**
    * Public Constructor.
@@ -205,7 +205,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   private void compress() {
-    if (cReturn == null) { cReturn = new CompactorReturn(); }
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
@@ -567,6 +566,83 @@ public class ReqSketch extends BaseReqSketch {
     return this;
   }
 
+  /*
+   * SERIALIZATION FORMAT.
+   *
+   * <p>Low significance bytes of this data structure are on the right just for visualization.
+   * The multi-byte values are stored in native byte order.
+   * The <i>byte</i> values are treated as unsigned. Multibyte values are indicated with "*" and
+   * their size depends on the specific implementation.</p>
+   *
+   * <p>The normal binary format for an estimating sketch with &gt; one value: </p>
+   *
+   * <pre>
+   * Normal Binary Format:
+   * PreInts=4
+   * Empty=false
+   * SingleItem=false
+   * # Constructors=C0 to whatever is required
+   *
+   * Long Adr / Byte Offset
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+   *  0   || (empty)| #Ctors |        K        | Flags  |FamID=17| SerVer |     PreInts = 4    |
+   *
+   *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+   *  1   ||-----------------------------------N-----------------------------------------------|
+   *
+   *      ||        |        |        |        |        |        |        |    16              |
+   *      ||--------------MaxValue*---------------------|--------------MinValue*---------------|
+   *
+   *      ||        |        |        |        |        |        |        |                    |
+   *      ||----------------C1*-------------------------|----------------C0*-------------------|
+   * </pre>
+   *
+   * <p>An exact-mode sketch has only one compactor: </p>
+   *
+   * <pre>
+   * PreInts=2
+   * Empty=false
+   * SingleItem=false
+   * # Constructors=C0=1
+   *
+   * Long Adr / Byte Offset
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+   *  0   || (empty)|    1   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
+   *
+   *      ||        |        |        |        |        |        |        |     8              |
+   *  1   ||                                   |-------------------------C0*-------------------|
+   * </pre>
+   *
+   * <p>A single item sketch has only one value: </p>
+   *
+   * <pre>
+   * PreInts=2
+   * Empty=false
+   * SingleItem=true
+   * # Constructors=0
+   *
+   * Long Adr / Byte Offset
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+   *  0   || (empty)|    0   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
+   *
+   *      ||        |        |        |        |        |        |        |     8              |
+   *  1   ||                                   |------------------------Value*-----------------|
+   * </pre>
+   *
+   * <p>An empty sketch has only 8 bytes including a reserved empty byte:
+   *
+   * <pre>
+   * PreInts=2
+   * Empty=true
+   * SingleItem=false
+   * # Constructors=0
+   *
+   * Long Adr / Byte Offset
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
+   *  0   || (empty)|    0   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
+   * </pre>
+   */
+
   @Override
   public byte[] toByteArray() {
     final int bytes = getSerializationBytes();
@@ -688,7 +764,7 @@ public class ReqSketch extends BaseReqSketch {
     return sb.toString();
   }
 
-  class CompactorReturn {
+  static class CompactorReturn {
     int deltaRetItems;
     int deltaNomSize;
   }

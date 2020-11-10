@@ -140,7 +140,7 @@ public enum Family {
   /**
    * Relative Error Quantiles Sketch
    */
-  REQ(17, "REQ", 1, 1);
+  REQ(17, "REQ", 1, 2);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
@@ -150,7 +150,7 @@ public enum Family {
   private int maxPreLongs_;
 
   static {
-    for (Family f : values()) {
+    for (final Family f : values()) {
       lookupID.put(f.getID(), f);
       lookupFamName.put(f.getFamilyName().toUpperCase(), f);
     }

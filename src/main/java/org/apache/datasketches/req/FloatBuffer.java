@@ -275,7 +275,7 @@ class FloatBuffer {
   }
 
   /**
-   * Serialize count, capacity, delta and data, sorted, hra
+   * Serialize count(4), capacity(4), delta(4) and data, sorted, hra
    * Always serialize sorted. SpaceAtBottom derived from sketch hra;
    * @return required bytes to serialize.
    */
