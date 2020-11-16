@@ -40,8 +40,8 @@ import org.testng.annotations.Test;
 public class ReqSketchTest {
   private static final String LS = System.getProperty("line.separator");
   //To control debug printing:
-  private int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
-  private int iDebug = 0; // debug printing for individual tests below, same scale as above
+  private final int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
+  private final int iDebug = 0; // debug printing for individual tests below, same scale as above
 
   @Test
   public void bigTest() {
@@ -52,14 +52,14 @@ public class ReqSketchTest {
     bigTestImpl(6, 1,   200,  true,  false,  LE, skDebug);
   }
 
-  public void bigTestImpl(int k, int min, int max, boolean up, boolean hra,
-      Criteria criterion, int skDebug) {
+  public void bigTestImpl(final int k, final int min, final int max, final boolean up, final boolean hra,
+      final Criteria criterion, final int skDebug) {
     if (iDebug > 0) {
       println(LS + "*************************");
       println("k=" + k + " min=" + min + " max=" + max
           + " up=" + up + " hra=" + hra + " criterion=" + criterion + LS);
     }
-    ReqSketch sk = loadSketch(k, min, max, up, hra, criterion, skDebug);
+    final ReqSketch sk = loadSketch(k, min, max, up, hra, criterion, skDebug);
     checkToString(sk, iDebug);
     checkAux(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
@@ -73,9 +73,9 @@ public class ReqSketchTest {
   }
 
   //Common loadSketch
-  public ReqSketch loadSketch(int k, int min, int max, boolean up, boolean hra,
-      Criteria criterion, int skDebug) {
-    ReqSketch sk = new ReqSketch(k, hra);
+  public ReqSketch loadSketch(final int k, final int min, final int max, final boolean up, final boolean hra,
+      final Criteria criterion, final int skDebug) {
+    final ReqSketch sk = new ReqSketch(k, hra);
     sk.setReqDebug(new ReqDebugImpl(skDebug, "%5.0f"));
     sk.setCriterion(criterion);
     if (up) {
@@ -90,17 +90,17 @@ public class ReqSketchTest {
     return sk;
   }
 
-  private static void printBoundary(int iDebug) {
+  private static void printBoundary(final int iDebug) {
     if (iDebug > 0) {
       println("===========================================================");
     }
   }
 
-  private static void checkToString(ReqSketch sk, int iDebug) {
-    boolean summary = iDebug == 1;
-    boolean allData = iDebug == 2;
-    String brief = sk.toString();
-    String all = sk.viewCompactorDetail("%4.0f", true);
+  private static void checkToString(final ReqSketch sk, final int iDebug) {
+    final boolean summary = iDebug == 1;
+    final boolean allData = iDebug == 2;
+    final String brief = sk.toString();
+    final String all = sk.viewCompactorDetail("%4.0f", true);
     if (summary) {
       println(brief);
       println(sk.viewCompactorDetail("%4.0f", false));
@@ -111,18 +111,18 @@ public class ReqSketchTest {
     }
   }
 
-  private static void checkGetRank(ReqSketch sk, int min, int max, int iDebug) {
+  private static void checkGetRank(final ReqSketch sk, final int min, final int max, final int iDebug) {
     if (iDebug > 0) { println("GetRank Test:"); }
-    float[] spArr = evenlySpacedFloats(0, max, 11);
-    String dfmt = "%10.2f%10.6f" + LS;
-    String sfmt = "%10s%10s" + LS;
+    final float[] spArr = evenlySpacedFloats(0, max, 11);
+    final String dfmt = "%10.2f%10.6f" + LS;
+    final String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }
-    double slope = max - min + min;
+    final double slope = max - min + min;
     float va = 0;
     double ranka = 0;
     for (int i = 0; i < spArr.length; i++) {
-      float v = spArr[i];
-      double rank = sk.getRank(v);
+      final float v = spArr[i];
+      final double rank = sk.getRank(v);
       if (iDebug > 0) { printf(dfmt, v, rank); }
       if (i == 0) {
         va = v;
@@ -137,28 +137,28 @@ public class ReqSketchTest {
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkGetRanks(ReqSketch sk, int max, int iDebug) {
+  private static void checkGetRanks(final ReqSketch sk, final int max, final int iDebug) {
     if (iDebug > 0) { println("GetRanks Test:"); }
-    float[] sp = evenlySpacedFloats(0, max, 11);
-    String dfmt = "%10.2f%10.6f" + LS;
-    String sfmt = "%10s%10s" + LS;
+    final float[] sp = evenlySpacedFloats(0, max, 11);
+    final String dfmt = "%10.2f%10.6f" + LS;
+    final String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }
-    double[] nRanks = sk.getRanks(sp);
+    final double[] nRanks = sk.getRanks(sp);
     for (int i = 0; i < nRanks.length; i++) {
       if (iDebug > 0) { printf(dfmt, sp[i], nRanks[i]); }
     }
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkAux(ReqSketch sk, int iDebug) {
-    ReqAuxiliary aux = new ReqAuxiliary(sk);
+  private static void checkAux(final ReqSketch sk, final int iDebug) {
+    final ReqAuxiliary aux = new ReqAuxiliary(sk);
     if (iDebug > 0) { println(aux.toString(3,12)); }
 
     final int totalCount = sk.getRetainedItems();
     float item = 0;
     double normRank = 0;
     for (int i = 0; i < totalCount; i++) {
-      Row row = aux.getRow(i);
+      final Row row = aux.getRow(i);
       if (i == 0) {
         item = row.item;
         normRank = row.normRank;
@@ -171,66 +171,66 @@ public class ReqSketchTest {
     }
   }
 
-  private static void checkGetQuantiles(ReqSketch sk, int iDebug) {
+  private static void checkGetQuantiles(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("GetQuantiles() Test"); }
-    double[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
-    float[] qOut = sk.getQuantiles(rArr);
+    final double[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
+    final float[] qOut = sk.getQuantiles(rArr);
     if (iDebug > 0) {
       for (int i = 0; i < qOut.length; i++) {
-        String r = String.format("%6.3f", rArr[i]);
+        final String r = String.format("%6.3f", rArr[i]);
         println("nRank: " + r + ", q: " + qOut[i]);
       }
     }
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkGetCDF(ReqSketch sk, int iDebug) {
+  private static void checkGetCDF(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("GetCDF() Test"); }
-    float[] spArr = { 20, 40, 60, 80, 100, 120, 140, 160, 180 };
-    double[] cdf = sk.getCDF(spArr);
+    final float[] spArr = { 20, 40, 60, 80, 100, 120, 140, 160, 180 };
+    final double[] cdf = sk.getCDF(spArr);
     if (iDebug > 0) {
       for (int i = 0; i < cdf.length; i++) {
-        float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
+        final float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
         println("SP: " +sp + ", Den: " + cdf[i]);
       }
     }
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkGetPMF(ReqSketch sk, int iDebug) {
+  private static void checkGetPMF(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("GetPMF() Test"); }
-    float[] spArr = { 20, 40, 60, 80, 100, 120, 140, 160, 180 };
-    double[] pmf = sk.getPMF(spArr);
+    final float[] spArr = { 20, 40, 60, 80, 100, 120, 140, 160, 180 };
+    final double[] pmf = sk.getPMF(spArr);
     if (iDebug > 0) {
       for (int i = 0; i < pmf.length; i++) {
-        float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
+        final float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
         println("SP: " +sp + ", Mass: " + pmf[i]);
       }
     }
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkIterator(ReqSketch sk, int iDebug) {
+  private static void checkIterator(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("iterator() Test"); }
-    ReqIterator itr = sk.iterator();
+    final ReqIterator itr = sk.iterator();
     while (itr.next()) {
-      float v = itr.getValue();
-      long wt = itr.getWeight();
-      int cnt = itr.getCount();
+      final float v = itr.getValue();
+      final long wt = itr.getWeight();
+      final int cnt = itr.getCount();
       if (iDebug > 0) { println("count=" + cnt +" v=" + v + " wt=" +wt); }
     }
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkMerge(ReqSketch sk, int iDebug) {
-    boolean allData = iDebug > 1;
-    boolean summary = iDebug > 0;
+  private static void checkMerge(final ReqSketch sk, final int iDebug) {
+    final boolean allData = iDebug > 1;
+    final boolean summary = iDebug > 0;
     if (summary) {
       println("Merge Test");
       println("Before Merge:");
       outputCompactorDetail(sk, "%5.0f", allData, "Host Sketch:");
     }
-    ReqSketch sk2 = new ReqSketch(sk); //copy ctr
+    final ReqSketch sk2 = new ReqSketch(sk); //copy ctr
     if (summary) {
       outputCompactorDetail(sk2, "%5.0f", allData, "Incoming Sketch:");
       println("Merge Process:");
@@ -241,10 +241,10 @@ public class ReqSketchTest {
 
   @Test
   public void checkValidateSplits() {
-    float[] arr = {1,2,3,4,5};
+    final float[] arr = {1,2,3,4,5};
     ReqSketch.validateSplits(arr);
     try {
-      float[] arr1 = {1,2,4,3,5};
+      final float[] arr1 = {1,2,4,3,5};
       ReqSketch.validateSplits(arr1);
       fail();
     }
@@ -253,25 +253,25 @@ public class ReqSketchTest {
 
   @Test
   public void checkSerDe() {
-    int k = 12;
-    int exact = 2 * 3 * k - 1;
+    final int k = 12;
+    final int exact = 2 * 3 * k - 1;
     checkSerDeImpl(12, false, exact);
     checkSerDeImpl(12, true, exact);
     checkSerDeImpl(12, false, 2 * exact); //more than one compactor
     checkSerDeImpl(12, true, 2 * exact);
   }
 
-  private static void checkSerDeImpl(int k, boolean hra, int count) {
-    ReqSketch sk1 = new ReqSketch(k, hra);
+  private static void checkSerDeImpl(final int k, final boolean hra, final int count) {
+    final ReqSketch sk1 = new ReqSketch(k, hra);
     for (int i = 1; i <= count; i++) {
       sk1.update(i);
     }
-    byte[] sk1Arr = sk1.toByteArray();
-    Memory mem = Memory.wrap(sk1Arr);
-    ReqSketch sk2 = ReqSketch.heapify(mem);
+    final byte[] sk1Arr = sk1.toByteArray();
+    final Memory mem = Memory.wrap(sk1Arr);
+    final ReqSketch sk2 = ReqSketch.heapify(mem);
   }
 
-  private static void outputCompactorDetail(ReqSketch sk, String fmt, boolean allData, String text) {
+  private static void outputCompactorDetail(final ReqSketch sk, final String fmt, final boolean allData, final String text) {
     println(text);
     println(sk.viewCompactorDetail(fmt, allData));
   }

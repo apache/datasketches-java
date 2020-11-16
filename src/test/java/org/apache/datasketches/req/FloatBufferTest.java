@@ -29,7 +29,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 /**
@@ -44,8 +44,8 @@ public class FloatBufferTest {
     checkTrimLengthImpl(false);
   }
 
-  private static void checkTrimLengthImpl(boolean spaceAtBottom) {
-    FloatBuffer buf = new FloatBuffer(16, 4, spaceAtBottom);
+  private static void checkTrimLengthImpl(final boolean spaceAtBottom) {
+    final FloatBuffer buf = new FloatBuffer(16, 4, spaceAtBottom);
     for (int i = 0; i < 8; i++) { buf.append(i+1); }
     assertEquals(buf.getLength(), 8);
     buf.trimLength(4);
@@ -60,16 +60,16 @@ public class FloatBufferTest {
     checkGetEvensOrOddsImpl(true, true);
   }
 
-  private static void checkGetEvensOrOddsImpl(boolean odds, boolean spaceAtBottom) {
-    int cap = 16;
-    FloatBuffer buf = new FloatBuffer(cap, 0, spaceAtBottom);
+  private static void checkGetEvensOrOddsImpl(final boolean odds, final boolean spaceAtBottom) {
+    final int cap = 16;
+    final FloatBuffer buf = new FloatBuffer(cap, 0, spaceAtBottom);
     for (int i = 0; i < cap/2; i++) {
       buf.append(i);
     }
-    FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
+    final FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
     //println("odds: " + odds + ", spaceAtBottom: " + spaceAtBottom);
     for (int i = 0; i < out.getLength(); i++) {
-      int v = (int)out.getItem(i);
+      final int v = (int)out.getItem(i);
       if (odds) { assertTrue((v & 1) == 1); }
       else { assertTrue((v & 1) == 0); }
       //print(v + " ");
@@ -83,8 +83,8 @@ public class FloatBufferTest {
     checkAppendAndSpaceImpl(false);
   }
 
-  private static void checkAppendAndSpaceImpl(boolean spaceAtBottom) {
-    FloatBuffer buf = new FloatBuffer(2, 2, spaceAtBottom);
+  private static void checkAppendAndSpaceImpl(final boolean spaceAtBottom) {
+    final FloatBuffer buf = new FloatBuffer(2, 2, spaceAtBottom);
     assertEquals(buf.getLength(), 0);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 2);
@@ -108,8 +108,8 @@ public class FloatBufferTest {
     checkEnsureCapacityImpl(false);
   }
 
-  private static void checkEnsureCapacityImpl(boolean spaceAtBottom) {
-    FloatBuffer buf = new FloatBuffer(4, 2, spaceAtBottom);
+  private static void checkEnsureCapacityImpl(final boolean spaceAtBottom) {
+    final FloatBuffer buf = new FloatBuffer(4, 2, spaceAtBottom);
     buf.append(2);
     buf.append(1);
     buf.append(3);
@@ -126,10 +126,10 @@ public class FloatBufferTest {
     checkCountLessThanImpl(false);
   }
 
-  private static void checkCountLessThanImpl(boolean spaceAtBottom) {
-    float[] sortedArr = {1,2,3,4,5,6,7};
-    FloatBuffer buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
-    FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
+  private static void checkCountLessThanImpl(final boolean spaceAtBottom) {
+    final float[] sortedArr = {1,2,3,4,5,6,7};
+    final FloatBuffer buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
+    final FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
     assertEquals(buf2.getCountWithCriterion(4, Criteria.LT), 3);
     buf2.mergeSortIn(buf);
@@ -141,16 +141,16 @@ public class FloatBufferTest {
 
   @Test
   public void checkCountWcriteria() {
-    int delta = 0;
-    int cap = 16;
-    boolean spaceAtBottom = true;
+    final int delta = 0;
+    final int cap = 16;
+    final boolean spaceAtBottom = true;
     for (int len = 5; len < 10; len++) {
       iterateValues(createSortedFloatBuffer(cap, delta, spaceAtBottom, len), len);
       iterateValues(createSortedFloatBuffer(cap, delta, !spaceAtBottom, len), len);
     }
   }
 
-  private static void iterateValues(FloatBuffer buf, int len) {
+  private static void iterateValues(final FloatBuffer buf, final int len) {
     for (float v = 0.5f; v <= len + 0.5f; v += 0.5f) {
       checkCountWithCriteria(buf, v);
     }
@@ -158,17 +158,17 @@ public class FloatBufferTest {
 
   //@Test
   public void checkCount() {
-    FloatBuffer buf = createSortedFloatBuffer(120, 0, true, 100);
+    final FloatBuffer buf = createSortedFloatBuffer(120, 0, true, 100);
     println("LT: " + buf.getCountWithCriterion(100, Criteria.LT));
     println("LE: " + buf.getCountWithCriterion(100, Criteria.LE));
     println("GT: " + buf.getCountWithCriterion(100, Criteria.GT));
     println("GE: " + buf.getCountWithCriterion(100, Criteria.GE));
   }
 
-  private static void checkCountWithCriteria(FloatBuffer buf, float v) {
+  private static void checkCountWithCriteria(final FloatBuffer buf, final float v) {
     int count;
-    int len = buf.getLength();
-    int iv = (int) v;
+    final int len = buf.getLength();
+    final int iv = (int) v;
     count = buf.getCountWithCriterion(v, LT);
     assertEquals(count, v > len ? len : v <= 1 ? 0 : iv == v? iv - 1 : iv);
     count = buf.getCountWithCriterion(v, LE);
@@ -179,8 +179,8 @@ public class FloatBufferTest {
     assertEquals(count, v <= 1 ? len : v > len ? 0 : iv == v ? len - iv + 1 : len - iv);
   }
 
-  private static FloatBuffer createSortedFloatBuffer(int cap, int delta, boolean sab, int len) {
-    FloatBuffer buf = new FloatBuffer(cap, delta, sab);
+  private static FloatBuffer createSortedFloatBuffer(final int cap, final int delta, final boolean sab, final int len) {
+    final FloatBuffer buf = new FloatBuffer(cap, delta, sab);
     for (int i = 0; i < len; i++) { buf.append(i + 1); }
     return buf;
   }
@@ -191,11 +191,11 @@ public class FloatBufferTest {
     checkMergeSortInImpl(false);
   }
 
-  private static void checkMergeSortInImpl(boolean spaceAtBottom) {
-    float[] arr1 = {1,2,5,6}; //both must be sorted
-    float[] arr2 = {3,4,7,8};
-    FloatBuffer buf1 = new FloatBuffer(12, 0, spaceAtBottom);
-    FloatBuffer buf2 = new FloatBuffer(12, 0, spaceAtBottom);
+  private static void checkMergeSortInImpl(final boolean spaceAtBottom) {
+    final float[] arr1 = {1,2,5,6}; //both must be sorted
+    final float[] arr2 = {3,4,7,8};
+    final FloatBuffer buf1 = new FloatBuffer(12, 0, spaceAtBottom);
+    final FloatBuffer buf2 = new FloatBuffer(12, 0, spaceAtBottom);
     for (int i = 0; i < arr1.length; i++) { buf1.append(arr1[i]); }
     for (int i = 0; i < arr2.length; i++) { buf2.append(arr2[i]); }
 
@@ -209,11 +209,11 @@ public class FloatBufferTest {
     buf1.mergeSortIn(buf2);
 
     assertEquals(buf1.getSpace(), 4);
-    int len = buf1.getLength();
+    final int len = buf1.getLength();
     assertEquals(len, 8);
 
     for (int i = 0; i < len; i++) {
-      int item = (int)buf1.getItem(i);
+      final int item = (int)buf1.getItem(i);
       assertEquals(item, i+1);
       //print(item + " ");
     }
@@ -222,34 +222,34 @@ public class FloatBufferTest {
 
   @Test
   private static void checkMergeSortInNotSorted() {
-    float[] arr1 = {6,5,2,1};
-    float[] arr2 = {8,7,4,3};
-    FloatBuffer buf1 = new FloatBuffer(4, 0, false);
-    FloatBuffer buf2 = new FloatBuffer(4, 0, false);
+    final float[] arr1 = {6,5,2,1};
+    final float[] arr2 = {8,7,4,3};
+    final FloatBuffer buf1 = new FloatBuffer(4, 0, false);
+    final FloatBuffer buf2 = new FloatBuffer(4, 0, false);
     for (int i = 0; i < 4; i++) {
       buf1.append(arr1[i]);
       buf2.append(arr2[i]);
     }
     try { buf1.mergeSortIn(buf2); fail(); }
-    catch (SketchesArgumentException e) { }
+    catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkGetCountLtOrEqOddRange() {
-    FloatBuffer buf = new FloatBuffer(8, 0, false);
+    final FloatBuffer buf = new FloatBuffer(8, 0, false);
     assertTrue(buf.isEmpty());
     buf.append(3); buf.append(2); buf.append(1);
     buf.trimLength(4);
     assertEquals(buf.getLength(), 3);
-    int cnt = buf.getCountWithCriterion(3.0f, Criteria.LE);
+    final int cnt = buf.getCountWithCriterion(3.0f, Criteria.LE);
     assertEquals(cnt, 3);
     assertEquals(buf.getItemFromIndex(2), 3.0f);
-    try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (SketchesArgumentException e) {}
+    try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (final SketchesArgumentException e) {}
   }
 
   @Test
   public void checkTrimCapacityToLength() {
-    FloatBuffer buf = new FloatBuffer(100, 100, true);
+    final FloatBuffer buf = new FloatBuffer(100, 100, true);
     for (int i = 0; i <= 100; i++) { buf.append(i); }
     assertEquals(buf.getCapacity(), 201);
     assertEquals(buf.getLength(), 101);
@@ -265,29 +265,33 @@ public class FloatBufferTest {
     checkSerDeImpl(false);
   }
 
-  private static void checkSerDeImpl(boolean hra) {
-    FloatBuffer buf = new FloatBuffer(100, 100, hra);
+  private static void checkSerDeImpl(final boolean hra) {
+    final FloatBuffer buf = new FloatBuffer(100, 100, hra);
     for (int i = 0; i <= 100; i++) { buf.append(i); }
-    int capacity = buf.getCapacity();
-    int count = buf.getLength();
-    int delta = buf.getDelta();
-    boolean sorted = buf.isSorted();
-    boolean sab = buf.isSpaceAtBottom();
+    final int capacity = buf.getCapacity();
+    final int count = buf.getLength();
+    final int delta = buf.getDelta();
+    final boolean sorted = buf.isSorted();
+    final boolean sab = buf.isSpaceAtBottom();
     assertEquals(buf.getItemFromIndex(100), 100.0f);
     assertEquals(buf.getItemFromIndex(hra ? 199 : 1), 1.0f);
     assertEquals(buf.isSpaceAtBottom(), hra);
-    byte[] barr = buf.toByteArray();
-    FloatBuffer buf2 = FloatBuffer.heapify(Memory.wrap(barr).asBuffer());
+    //uses the serialization method
+    final WritableMemory wmem = WritableMemory.wrap(buf.floatsToBytes());
+    final float[] farr2 = new float[101];
+    wmem.getFloatArray(0, farr2, 0, 101);
+    //uses the deserialization method
+    final FloatBuffer buf2 = FloatBuffer.reconstruct(farr2, count, capacity, delta, sorted, sab);
     assertEquals(buf2.getCapacity(), capacity);
     assertEquals(buf2.getLength(), count);
     assertEquals(buf2.getDelta(), delta);
     assertEquals(buf2.isSorted(), sorted);
-    assertEquals(buf2.isSpaceAtBottom(), sab);
     assertEquals(buf2.getItemFromIndex(100), 100.0f);
     assertEquals(buf2.getItemFromIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(buf2.isSpaceAtBottom(), sab);
   }
 
-  static void print(Object o) { System.out.print(o.toString()); }
+  static void print(final Object o) { System.out.print(o.toString()); }
 
-  static void println(Object o) { System.out.println(o.toString()); }
+  static void println(final Object o) { System.out.println(o.toString()); }
 }

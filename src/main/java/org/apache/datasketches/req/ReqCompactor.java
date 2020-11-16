@@ -26,7 +26,6 @@ import static org.apache.datasketches.req.ReqSketch.MIN_K;
 
 import java.util.Random;
 
-import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.req.ReqSketch.CompactorReturn;
@@ -41,11 +40,10 @@ class ReqCompactor {
   private final byte lgWeight;
   private final boolean hra;
   //state variables
-  private double sectionSizeDbl;
+  private long state; //State of the deterministic compaction schedule
+  private float sectionSizeFlt;
   private int sectionSize; //initialized with k, minimum 4
-  private int numSections; //# of sections, initial size 3
-  private int numCompactions; //number of compaction operations performed
-  private int state; //State of the deterministic compaction schedule
+  private byte numSections; //# of sections, initial size 3
   private boolean coin; //true or false at random for each compaction
   //objects
   private FloatBuffer buf;
@@ -67,12 +65,11 @@ class ReqCompactor {
     this.lgWeight = lgWeight;
     this.hra = hra;
     this.sectionSize = sectionSize;
-    sectionSizeDbl = sectionSize;
-    numCompactions = 0;
+    sectionSizeFlt = sectionSize;
     state = 0;
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
-    final int nomCap = getNomCapacity();
+    final int nomCap = getNomCapacity(); //2 * numSections * sectionSize;
     buf = new FloatBuffer(2 * nomCap, nomCap, hra);
     if (reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
@@ -85,10 +82,9 @@ class ReqCompactor {
   ReqCompactor(final ReqCompactor other) {
     lgWeight = other.lgWeight;
     hra = other.hra;
-    sectionSizeDbl = other.sectionSizeDbl;
+    sectionSizeFlt = other.sectionSizeFlt;
     numSections = other.numSections;
     sectionSize = other.sectionSize;
-    numCompactions = other.numCompactions;
     state = other.state;
     coin = other.coin;
     buf = new FloatBuffer(other.buf);
@@ -97,39 +93,23 @@ class ReqCompactor {
   /**
    * Construct from elements. The buffer will need to be constructed first
    */
-  private ReqCompactor(
+  ReqCompactor(
       final byte lgWeight,
       final boolean hra,
-      final FloatBuffer buf,
-      final double sectionSizeDbl,
-      final int numSections,
-      final int numCompactions,
-      final int state,
-      final boolean coin) {
+      final long state,
+      final float sectionSizeFlt,
+      final byte numSections,
+      final FloatBuffer buf) {
+    rand = new Random();
     this.lgWeight = lgWeight;
     this.hra = hra;
     this.buf = buf;
-    this.sectionSizeDbl = sectionSizeDbl;
+    this.sectionSizeFlt = sectionSizeFlt;
     this.numSections = numSections;
-    this.numCompactions = numCompactions;
     this.state = state;
-    this.coin = coin;
-    sectionSize = nearestEven(sectionSizeDbl);
+    coin = rand.nextDouble() < 0.5;
+    sectionSize = nearestEven(sectionSizeFlt);
     //ReqDebug left at null
-  }
-
-  static ReqCompactor heapify(final Buffer buff) {
-    final double sectionSizeDbl = buff.getDouble();
-    final int numSections = buff.getInt();
-    final int numCompactions = buff.getInt();
-    final int state = buff.getInt();
-    final byte lgWeight = buff.getByte();
-    final boolean coin = buff.getBoolean();
-    final boolean hra = buff.getBoolean();
-    buff.incrementPosition(1);
-    final FloatBuffer buf = FloatBuffer.heapify(buff.region());
-    return new ReqCompactor(
-        lgWeight, hra, buf, sectionSizeDbl, numSections, numCompactions, state, coin);
   }
 
   /**
@@ -148,7 +128,7 @@ class ReqCompactor {
     final int compactionEnd = (int) (compactionRange >>> 32); //high 32
     assert compactionEnd - compactionStart >= 2;
 
-    if ((numCompactions & 1) == 1) { coin = !coin; } //if numCompactions odd, flip coin;
+    if ((state & 1L) == 1L) { coin = !coin; } //if numCompactions odd, flip coin;
     else { coin = rand.nextDouble() < 0.5; }       //random coin flip
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
@@ -159,7 +139,6 @@ class ReqCompactor {
     }
 
     buf.trimLength(buf.getLength() - (compactionEnd - compactionStart));
-    numCompactions += 1;
     state += 1;
     ensureEnoughSections();
     cReturn.deltaRetItems = buf.getLength() - startRetItems + promote.getLength();
@@ -196,16 +175,12 @@ class ReqCompactor {
   }
 
   /**
-   * Serialize sectionSizeDbl (8), numSections(4), numCompactions(4), state(4), =
-   * lgWeight(1), coin(1), hra(1), plus 1 byte gap.
+   * Serialize state(8) sectionSizeFlt(4), numSections(1), lgWeight(1), pad(2), count(4) + floatArr
    * @return required bytes to serialize.
    */
   int getSerializationBytes() {
-    return 8 + 3 * 4 + 4 + buf.getSerializationBytes(); //hra stored in sketch
-  }
-
-  int getNumCompactions() {
-    return numCompactions;
+    final int count = buf.getLength();
+    return 8 + 4 + 1 + 1 + 2 + 4 + count * Float.BYTES; // 20 + array
   }
 
   int getNumSections() {
@@ -216,11 +191,11 @@ class ReqCompactor {
     return sectionSize;
   }
 
-  double getSectionSizeDbl() {
-    return sectionSizeDbl;
+  float getSectionSizeFlt() {
+    return sectionSizeFlt;
   }
 
-  int getState() {
+  long getState() {
     return state;
   }
 
@@ -237,7 +212,6 @@ class ReqCompactor {
   ReqCompactor merge(final ReqCompactor other) {
     assert lgWeight == other.lgWeight;
     state |= other.state;
-    numCompactions += other.numCompactions;
     while (ensureEnoughSections()) {}
     buf.sort();
     final FloatBuffer otherBuf = new FloatBuffer(other.buf);
@@ -256,12 +230,12 @@ class ReqCompactor {
    * @return true if the SectionSize and NumSections were adjusted.
    */
   private boolean ensureEnoughSections() {
-    final double szd;
+    final float szf;
     final int ne;
-    if (numCompactions >= 1 << numSections - 1
-        && (ne = nearestEven(szd = sectionSizeDbl / SQRT2)) >= MIN_K)
+    if (state >= 1L << numSections - 1
+        && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
     {
-      sectionSizeDbl = szd;
+      sectionSizeFlt = szf;
       sectionSize = ne;
       numSections <<= 1;
       buf.ensureCapacity(2 * getNomCapacity());
@@ -292,24 +266,47 @@ class ReqCompactor {
    * @param value the given value
    * @return the nearest even integer to the given value.
    */
-  static final int nearestEven(final double value) {
+  static final int nearestEven(final float value) {
     return (int) round(value / 2.0) << 1;
   }
 
+  /**
+   * ReqCompactor SERIALIZATION FORMAT.
+   *
+   * <p>Low significance bytes of this data structure are on the right just for visualization.
+   * The multi-byte values are stored in native byte order.
+   * The <i>byte</i> values are treated as unsigned. Multibyte values are indicated with "*" and
+   * their size depends on the specific implementation.</p>
+   *
+   * <p>The binary format for a compactor: </p>
+   *
+   * <pre>
+   * Binary Format. Starting offset is either 24 or 8, both are 8-byte aligned.
+   *
+   * +Long Adr / +Byte Offset
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |    0   |
+   *  0   ||-----------------------------state-------------------------------------|
+   *
+   *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |    8   |
+   *  1   ||----(empty)------|-#Sects-|--lgWt--|------------sectionSizeFlt---------|
+   *
+   *      ||        |        |        |        |        |        |        |   16   |
+   *  2   ||--------------floats[]-------------|---------------count---------------|
+   *
+   * </pre>
+   */
   byte[] toByteArray() {
-    final int bytes = getSerializationBytes(); //don't need sorted or hra from buffer
+    final int bytes = getSerializationBytes();
     final byte[] arr = new byte[bytes];
     final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
-    wbuf.putDouble(sectionSizeDbl);
-    wbuf.putInt(numSections);
-    wbuf.putInt(numCompactions);//16
-    wbuf.putInt(state); //20
+    wbuf.putLong(state);
+    wbuf.putFloat(sectionSizeFlt);
     wbuf.putByte(lgWeight);
-    wbuf.putBoolean(coin);
-    wbuf.putBoolean(hra);
-    wbuf.incrementPosition(1); //24
-    buf.sort(); //sort if necessary
-    wbuf.putByteArray(buf.toByteArray(), 0, buf.getSerializationBytes());
+    wbuf.putByte(numSections);
+    wbuf.incrementPosition(2); //pad 2
+    //buf.sort(); //sort if necessary
+    wbuf.putInt(buf.getLength()); //count
+    wbuf.putByteArray(buf.floatsToBytes(), 0, Float.BYTES * buf.getLength());
     assert wbuf.getPosition() == bytes;
     return arr;
   }
@@ -326,9 +323,9 @@ class ReqCompactor {
     final int nom = getNomCapacity();
     final int secSz = getSectionSize();
     final int numSec = getNumSections();
-    final int num = getNumCompactions();
+    final long num = getState();
     final String prefix = String.format(
-      "  C:%d Len:%d NomSz:%d SecSz:%d NumSec:%d NumCompactions:%d",
+      "  C:%d Len:%d NomSz:%d SecSz:%d NumSec:%d State:%d",
            h, len, nom, secSz, numSec, num);
     return prefix;
   }

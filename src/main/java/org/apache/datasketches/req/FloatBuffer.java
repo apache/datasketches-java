@@ -24,7 +24,6 @@ import java.util.Arrays;
 import org.apache.datasketches.BinarySearch;
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -74,16 +73,17 @@ class FloatBuffer {
   }
 
   /**
-   * Construction from elements
+   * Exact construction from elements.
+   * The active region must be properly positioned in the array.
    * @param arr the array to be used directly as the internal array
    * @param count the number of active elements in the given array
-   * @param delta add space in increments of this size
    * @param capacity the initial capacity
+   * @param delta add space in increments of this size
    * @param sorted true if already sorted
    * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
    * otherwise, create any extra space at the top of the buffer.
    */
-  FloatBuffer(final float[] arr, final int count, final int delta, final int capacity,
+  private FloatBuffer(final float[] arr, final int count, final int capacity, final int delta,
       final boolean sorted, final boolean spaceAtBottom) {
     arr_ = arr;
     count_ = count;
@@ -93,19 +93,32 @@ class FloatBuffer {
     spaceAtBottom_ = spaceAtBottom;
   }
 
-  static FloatBuffer heapify(final Buffer buff) {
-    final int capacity = buff.getInt();
-    final int count = buff.getInt();
-    final int delta = buff.getInt();
-    final boolean sorted = buff.getBoolean();
-    final boolean sab = buff.getBoolean();
+  /**
+   * Used by ReqSerDe. The array is only the active region and will be positioned
+   * based on capacity, delta, and sab. This copies over the sorted flag.
+   * @param arr the active items extracted from the deserialization.
+   * @param count the number of active items
+   * @param capacity the capacity of the internal array
+   * @param delta add space in this increment
+   * @param sorted if the incoming array is sorted
+   * @param sab equivalent to the HRA flag, e.g., space-at-bottom.
+   * @return a new FloatBuffer
+   */
+  static FloatBuffer reconstruct(
+      final float[] arr,
+      final int count,
+      final int capacity,
+      final int delta,
+      final boolean sorted,
+      final boolean sab //hra
+      ) {
     final float[] farr = new float[capacity];
     if (sab) {
-      buff.getFloatArray(farr, capacity - count, count);
+      System.arraycopy(arr, 0, farr, capacity - count, count);
     } else {
-      buff.getFloatArray(farr, 0, count);
+      System.arraycopy(arr, 0, farr, 0, count);
     }
-    return new FloatBuffer(farr, count, delta, capacity, sorted, sab);
+    return new FloatBuffer(farr, count, capacity, delta, sorted, sab);
   }
 
   /**
@@ -117,7 +130,7 @@ class FloatBuffer {
    * @return this, which will be sorted
    */
   static FloatBuffer wrap(final float[] arr, final boolean isSorted, final boolean spaceAtBottom) {
-    final FloatBuffer buf = new FloatBuffer(arr, arr.length, 0, arr.length, isSorted, spaceAtBottom);
+    final FloatBuffer buf = new FloatBuffer(arr, arr.length, arr.length, 0, isSorted, spaceAtBottom);
     buf.sort();
     return buf;
   }
@@ -275,15 +288,6 @@ class FloatBuffer {
   }
 
   /**
-   * Serialize count(4), capacity(4), delta(4) and data, sorted, hra
-   * Always serialize sorted. SpaceAtBottom derived from sketch hra;
-   * @return required bytes to serialize.
-   */
-  int getSerializationBytes() {
-    return 14 + 4 * count_;
-  }
-
-  /**
    * Gets available space, which is getCapacity() - getLength().
    * When spaceAtBottom is true this is the start position for active data, otherwise it is zero.
    * @return available space
@@ -394,15 +398,11 @@ class FloatBuffer {
     return this;
   }
 
-  byte[] toByteArray() {
-    final int bytes = getSerializationBytes();
+  // This only serializes count * floats
+  byte[] floatsToBytes() {
+    final int bytes = Float.BYTES * count_;
     final byte[] arr = new byte[bytes];
     final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
-    wbuf.putInt(capacity_);
-    wbuf.putInt(count_);
-    wbuf.putInt(delta_);
-    wbuf.putBoolean(sorted_);
-    wbuf.putBoolean(spaceAtBottom_);
     if (spaceAtBottom_) {
       wbuf.putFloatArray(arr_, capacity_ - count_, count_);
     } else {

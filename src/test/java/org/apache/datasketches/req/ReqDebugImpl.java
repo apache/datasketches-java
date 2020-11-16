@@ -45,13 +45,13 @@ public class ReqDebugImpl implements ReqDebug{
    * @param debugLevel sets the debug level of detail
    * @param fmt string format to use when printing values
    */
-  public ReqDebugImpl(int debugLevel, String fmt) {
+  public ReqDebugImpl(final int debugLevel, final String fmt) {
     this.debugLevel = debugLevel;
     this.fmt = fmt;
   }
 
   @Override
-  public void emitStart(ReqSketch sk) {
+  public void emitStart(final ReqSketch sk) {
     if (debugLevel == 0) { return; }
     this.sk = sk;
     println("START");
@@ -60,9 +60,9 @@ public class ReqDebugImpl implements ReqDebug{
   @Override
   public void emitStartCompress() {
     if (debugLevel == 0) { return; }
-    int retItems = sk.getRetainedItems();
-    int maxNomSize = sk.getMaxNomSize();
-    long totalN = sk.getN();
+    final int retItems = sk.getRetainedItems();
+    final int maxNomSize = sk.getMaxNomSize();
+    final long totalN = sk.getN();
     final StringBuilder sb = new StringBuilder();
     sb.append("COMPRESS: ");
     sb.append("skRetItems: ").append(retItems).append(" >= ");
@@ -75,8 +75,8 @@ public class ReqDebugImpl implements ReqDebug{
   @Override
   public void emitCompressDone() {
     if (debugLevel == 0) { return; }
-    int retItems = sk.getRetainedItems();
-    int maxNomSize = sk.getMaxNomSize();
+    final int retItems = sk.getRetainedItems();
+    final int maxNomSize = sk.getMaxNomSize();
     emitAllHorizList();
     println("COMPRESS: DONE: SketchSize: " + retItems + TAB
         + " MaxNomSize: " + maxNomSize + LS + LS);
@@ -85,7 +85,7 @@ public class ReqDebugImpl implements ReqDebug{
   @Override
   public void emitAllHorizList() {
     if (debugLevel == 0) { return; }
-    List<ReqCompactor> compactors = sk.getCompactors();
+    final List<ReqCompactor> compactors = sk.getCompactors();
     for (int h = 0; h < sk.getCompactors().size(); h++) {
       final ReqCompactor c = compactors.get(h);
       println(c.toListPrefix());
@@ -100,12 +100,12 @@ public class ReqDebugImpl implements ReqDebug{
   @Override
   public void emitMustAddCompactor() {
     if (debugLevel == 0) { return; }
-    int curLevels = sk.getNumLevels();
-    List<ReqCompactor> compactors = sk.getCompactors();
-    ReqCompactor topC = compactors.get(curLevels - 1);
-    int lgWt = topC.getLgWeight();
-    int retCompItems = topC.getBuffer().getLength();
-    int nomCap = topC.getNomCapacity();
+    final int curLevels = sk.getNumLevels();
+    final List<ReqCompactor> compactors = sk.getCompactors();
+    final ReqCompactor topC = compactors.get(curLevels - 1);
+    final int lgWt = topC.getLgWeight();
+    final int retCompItems = topC.getBuffer().getLength();
+    final int nomCap = topC.getNomCapacity();
     final StringBuilder sb = new StringBuilder();
     sb.append("  ");
     sb.append("Must Add Compactor: len(c[").append(lgWt).append("]): ");
@@ -117,43 +117,43 @@ public class ReqDebugImpl implements ReqDebug{
   //compactor signals
 
   @Override
-  public void emitCompactingStart(byte lgWeight) {
+  public void emitCompactingStart(final byte lgWeight) {
     if (debugLevel == 0) { return; }
-    List<ReqCompactor> compactors = sk.getCompactors();
-    ReqCompactor comp = compactors.get(lgWeight);
-    int nomCap = comp.getNomCapacity();
-    int secSize = comp.getSectionSize();
-    int numSec = comp.getNumSections();
-    int state = comp.getState();
-    int bufCap = comp.getBuffer().getCapacity();  //TODO ?? do I want this or length
+    final List<ReqCompactor> compactors = sk.getCompactors();
+    final ReqCompactor comp = compactors.get(lgWeight);
+    final int nomCap = comp.getNomCapacity();
+    final int secSize = comp.getSectionSize();
+    final int numSec = comp.getNumSections();
+    final long state = comp.getState();
+    final int bufCap = comp.getBuffer().getCapacity();  //TODO ?? do I want this or length
     final StringBuilder sb = new StringBuilder();
     sb.append(LS + "  ");
     sb.append("COMPACTING[").append(lgWeight).append("] ");
     sb.append("NomCapacity: ").append(nomCap);
     sb.append(TAB + " SectionSize: ").append(secSize);
     sb.append(TAB + " NumSections: ").append(numSec);
-    sb.append(TAB + " State(bin): ").append(Integer.toBinaryString(state));
+    sb.append(TAB + " State(bin): ").append(Long.toBinaryString(state));
     sb.append(TAB + " BufCapacity: ").append(bufCap);
     println(sb.toString());
   }
 
   @Override
-  public void emitNewCompactor(byte lgWeight) {
+  public void emitNewCompactor(final byte lgWeight) {
     if (debugLevel == 0) { return; }
-    List<ReqCompactor> compactors = sk.getCompactors();
-    ReqCompactor comp = compactors.get(lgWeight);
+    final List<ReqCompactor> compactors = sk.getCompactors();
+    final ReqCompactor comp = compactors.get(lgWeight);
     println("    New Compactor: lgWeight: " + comp.getLgWeight()
         + TAB + "sectionSize: " + comp.getSectionSize()
         + TAB + "numSections: " + comp.getNumSections());
   }
 
   @Override
-  public void emitAdjSecSizeNumSec(byte lgWeight) {
+  public void emitAdjSecSizeNumSec(final byte lgWeight) {
     if (debugLevel == 0) { return; }
-    List<ReqCompactor> compactors = sk.getCompactors();
-    ReqCompactor comp = compactors.get(lgWeight);
-    int secSize = comp.getSectionSize();
-    int numSec = comp.getNumSections();
+    final List<ReqCompactor> compactors = sk.getCompactors();
+    final ReqCompactor comp = compactors.get(lgWeight);
+    final int secSize = comp.getSectionSize();
+    final int numSec = comp.getNumSections();
     final StringBuilder sb = new StringBuilder();
     sb.append("    ");
     sb.append("Adjust: SectionSize: ").append(secSize);
@@ -162,8 +162,8 @@ public class ReqDebugImpl implements ReqDebug{
   }
 
   @Override
-  public void emitCompactionDetail(int compactionStart, int compactionEnd,
-      int secsToCompact, int promoteLen, boolean coin) {
+  public void emitCompactionDetail(final int compactionStart, final int compactionEnd,
+      final int secsToCompact, final int promoteLen, final boolean coin) {
     if (debugLevel == 0) { return; }
     final StringBuilder sb = new StringBuilder();
     sb.append("    ");
@@ -180,12 +180,12 @@ public class ReqDebugImpl implements ReqDebug{
   }
 
   @Override
-  public void emitCompactionDone(byte lgWeight) {
+  public void emitCompactionDone(final byte lgWeight) {
     if (debugLevel == 0) { return; }
-    List<ReqCompactor> compactors = sk.getCompactors();
-    ReqCompactor comp = compactors.get(lgWeight);
-    int numCompactions = comp.getNumCompactions();
-    println("  COMPACTING DONE: NumCompactions: " + numCompactions + LS);
+    final List<ReqCompactor> compactors = sk.getCompactors();
+    final ReqCompactor comp = compactors.get(lgWeight);
+    final long state = comp.getState();
+    println("  COMPACTING DONE: NumCompactions: " + state + LS);
   }
 
   static final void printf(final String format, final Object ...args) {

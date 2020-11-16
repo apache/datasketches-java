@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.req.ReqSerDe.Compactor;
 import org.testng.annotations.Test;
 
 /**
@@ -36,23 +37,22 @@ public class ReqCompactorTest {
 
   @Test
   public void checkNearestEven() {
-    assertEquals(ReqCompactor.nearestEven(-0.9), 0);
+    assertEquals(ReqCompactor.nearestEven(-0.9f), 0);
   }
 
   @Test
   public void checkGetters() {
-    boolean up = true;
-    boolean hra = true;
-    Criteria criterion = Criteria.LE;
-    ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  criterion, 0);
-    ReqCompactor c = sk.getCompactors().get(0);
+    final boolean up = true;
+    final boolean hra = true;
+    final Criteria criterion = Criteria.LE;
+    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  criterion, 0);
+    final ReqCompactor c = sk.getCompactors().get(0);
 
     c.getCoin();
-    int numCompacts = c.getNumCompactions();
-    assertEquals(numCompacts, 1);
+    final long state = c.getState();
+    assertEquals(state, 1L);
     assertEquals(c.getNumSections(), 3);
     assertEquals(c.getSectionSize(), 20);
-    assertEquals(c.getState(), numCompacts);
   }
 
   @Test
@@ -61,36 +61,42 @@ public class ReqCompactorTest {
     checkSerDeImpl(12, true);
   }
 
-  private static void checkSerDeImpl(int k, boolean hra) {
-    ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
-    FloatBuffer buf = c1.getBuffer();
-    int exact = 2 * 3 * k;
-    for (int i = 1; i <= exact; i++) {
-      buf.append(i);
+  private static void checkSerDeImpl(final int k, final boolean hra) {
+    final ReqCompactor c1 = new ReqCompactor((byte)0, hra, k, null);
+    final int nomCap = 2 * 3 * k;
+    final int cap = 2 * nomCap;
+    final int delta = nomCap;
+    final FloatBuffer buf = c1.getBuffer();
+
+    for (int i = 1; i <= nomCap; i++) {
+      buf.append(i); //compactor doesn't have a direct update() method
     }
-    double sectionSizeDbl = c1.getSectionSizeDbl();
-    int sectionSize = c1.getSectionSize();
-    int numSections = c1.getNumSections();
-    int numCompactions = c1.getNumCompactions();
-    int state = c1.getState();
-    int lgWeight = c1.getLgWeight();
-    boolean coin = c1.getCoin();
-    boolean c1hra = c1.isHighRankAccuracy();
-    FloatBuffer buf1 = c1.getBuffer();
-
-    byte[] c1ser = c1.toByteArray();
-    Buffer buff = Memory.wrap(c1ser).asBuffer();
-    ReqCompactor c2 = ReqCompactor.heapify(buff);
-
-    assertEquals(c2.getSectionSizeDbl(), sectionSizeDbl);
+    final float minV = 1;
+    final float maxV = nomCap;
+    final float sectionSizeFlt = c1.getSectionSizeFlt();
+    final int sectionSize = c1.getSectionSize();
+    final int numSections = c1.getNumSections();
+    final long state = c1.getState();
+    final int lgWeight = c1.getLgWeight();
+    final boolean c1hra = c1.isHighRankAccuracy();
+    final boolean sorted = buf.isSorted();
+    final byte[] c1ser = c1.toByteArray();
+    //now deserialize
+    final Buffer buff = Memory.wrap(c1ser).asBuffer();
+    final Compactor compactor = ReqSerDe.extractCompactor(buff, sorted, c1hra);
+    final ReqCompactor c2 = compactor.reqCompactor;
+    assertEquals(compactor.minVal, minV);
+    assertEquals(compactor.maxVal, maxV);
+    assertEquals(compactor.count, nomCap);
+    assertEquals(c2.getSectionSizeFlt(), sectionSizeFlt);
     assertEquals(c2.getSectionSize(), sectionSize);
     assertEquals(c2.getNumSections(), numSections);
-    assertEquals(c2.getNumCompactions(), numCompactions);
     assertEquals(c2.getState(), state);
     assertEquals(c2.getLgWeight(), lgWeight);
-    assertEquals(c2.getCoin(), coin);
     assertEquals(c2.isHighRankAccuracy(), c1hra);
-    FloatBuffer buf2 = c2.getBuffer();
-    assertTrue(buf1.isEqualTo(buf2));
+    final FloatBuffer buf2 = c2.getBuffer();
+    assertEquals(buf2.getCapacity(), cap);
+    assertEquals(buf2.getDelta(), delta);
+    assertTrue(buf.isEqualTo(buf2));
   }
 }

@@ -75,10 +75,10 @@ public class UtilTest {
   public void numTrailingOnes() {
     long mask = 1L;
     for (int i = 0; i <= 64; i++) {
-      long v = ~mask & -1L;
+      final long v = ~mask & -1L;
       mask <<= 1;
-      int numT1s = numberOfTrailingOnes(v);
-      int numL1s = numberOfLeadingOnes(v);
+      final int numT1s = numberOfTrailingOnes(v);
+      final int numL1s = numberOfLeadingOnes(v);
       assertEquals(Long.numberOfTrailingZeros(~v), numT1s);
       assertEquals(Long.numberOfLeadingZeros(~v), numL1s);
       //println(zeroPad(Long.toBinaryString(v),64) + ", " + numL1s + ", " + numT1s);

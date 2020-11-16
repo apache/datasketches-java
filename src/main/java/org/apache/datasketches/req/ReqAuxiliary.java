@@ -77,7 +77,7 @@ class ReqAuxiliary {
 
   //Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
   // the ultimate array size has already been set.  However, this must simultaneously deal with
-  // sorting the weights as well.
+  // sorting the weights as well.  Also used in test.
   void mergeSortIn(final FloatBuffer bufIn, final byte lgWeight, final int auxCount) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.

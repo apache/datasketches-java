@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 import static org.apache.datasketches.Criteria.GE;
 import static org.apache.datasketches.Criteria.GT;
@@ -32,10 +31,7 @@ import java.util.List;
 
 import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableBuffer;
-import org.apache.datasketches.memory.WritableMemory;
 
 
 /**
@@ -86,7 +82,7 @@ public class ReqSketch extends BaseReqSketch {
   private static final double fixRseFactor = .06;
   //finals
   private final int k;  //user config, default is 12 (1% @ 95% Conf)
-  final boolean hra;    //user config, default is true
+  private final boolean hra;    //user config, default is true
   //state variables
   private boolean compatible = true; //user config, default: true, can be set after construction
   private Criteria criterion = LT; //user config, default: LT, can be set after construction
@@ -99,19 +95,20 @@ public class ReqSketch extends BaseReqSketch {
   //Objects
   private ReqAuxiliary aux = null;
   private List<ReqCompactor> compactors = new ArrayList<>();
-  ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
-  CompactorReturn cReturn = new CompactorReturn();
+  private ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
+  private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
 
   /**
    * Public Constructor.
-   * @param k Controls the size and error of the sketch. It must be even and larger than or equal
-   * to 4. If odd, it will be rounded down by one.
+   * @param k Controls the size and error of the sketch. It must be even and in the range
+   * [4, 1024], inclusive.
    * The default value of 12 roughly corresponds to 1% relative error guarantee at 95% confidence.
    * @param highRankAccuracy if true, the default, the high ranks are prioritized for better
    * accuracy. Otherwise the low ranks are prioritized for better accuracy.
    */
   public ReqSketch(final int k, final boolean highRankAccuracy) {
-    this.k = max(k & -2, MIN_K); //rounds down one if odd
+    checkK(k);
+    this.k = k;
     hra = highRankAccuracy;
     retItems = 0;
     maxNomSize = 0;
@@ -158,42 +155,12 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   /**
-   * Deserializes the byte stream of the given Memory object and places it on the Java heap.
-   * @param mem the given Memory object
-   * @return a ReqSketch on the Java heap.
+   * Returns an ReqSketch on the heap from a Memory image of the sketch.
+   * @param mem The Memory object holding a valid image of an ReqSketch
+   * @return an ReqSketch on the heap from a Memory image of the sketch.
    */
   public static ReqSketch heapify(final Memory mem) {
-    final Buffer buff = mem.asBuffer();
-    final byte preLongs = buff.getByte();
-    assert preLongs == (byte)1;
-    final byte serVer = buff.getByte();
-    assert serVer == (byte)1;
-    final byte familyId = buff.getByte();
-    assert familyId == 17;
-    final int flags = buff.getByte() & 0xFFFF;
-    final boolean hra = (flags & 8) > 0;
-    final boolean compatible = (flags & 16) > 0;
-    final boolean ltEq = (flags & 32) > 0;
-    final int k = buff.getInt();
-    final long totalN = buff.getLong();
-    final float minValue = buff.getFloat();
-    final float maxValue = buff.getFloat();
-    final List<ReqCompactor> compactors = new ArrayList<>();
-    final int numCompactors = buff.getInt();
-    for (int i = 0; i < numCompactors; i++) {
-      final int cBytes = buff.getInt();
-      final long pos = buff.getPosition();
-      final long end = pos + cBytes;
-      buff.setStartPositionEnd(0, pos, end);
-      compactors.add(ReqCompactor.heapify(buff.region()));
-      buff.setStartPositionEnd(0, pos + cBytes, buff.getCapacity());
-    }
-    final ReqSketch sk = new ReqSketch(k, hra, totalN, minValue, maxValue, compactors);
-    sk.maxNomSize = sk.computeMaxNomSize();
-    sk.retItems = sk.computeTotalRetainedItems();
-    sk.setCompatible(compatible);
-    sk.setLessThanOrEqual(ltEq);
-    return sk;
+    return ReqSerDe.heapify(mem);
   }
 
   /**
@@ -449,17 +416,9 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  //Serialize totalN, k, minValue, maxValue = 20
-  // In preamble Flags keep: hra-bit, compatible-bit, criterion-bit
-  // plus compactors.
   public int getSerializationBytes() {
-    int cBytes = 0;
-    for (int i = 0; i < compactors.size(); i++) {
-     cBytes += compactors.get(i).getSerializationBytes() + 4; //int length before each one
-    }
-    final int members = 20; //totalN(8), minValue(4), maxValue(4), numCompactors(4)
-    final int preamble = 8; //includes k(4)
-    return cBytes + members + preamble;
+    final ReqSerDe.SerDeFormat serDeFormat = ReqSerDe.getSerFormat(this);
+    return ReqSerDe.getSerBytes(this, serDeFormat);
   }
 
   private void grow() {
@@ -566,109 +525,10 @@ public class ReqSketch extends BaseReqSketch {
     return this;
   }
 
-  /*
-   * SERIALIZATION FORMAT.
-   *
-   * <p>Low significance bytes of this data structure are on the right just for visualization.
-   * The multi-byte values are stored in native byte order.
-   * The <i>byte</i> values are treated as unsigned. Multibyte values are indicated with "*" and
-   * their size depends on the specific implementation.</p>
-   *
-   * <p>The normal binary format for an estimating sketch with &gt; one value: </p>
-   *
-   * <pre>
-   * Normal Binary Format:
-   * PreInts=4
-   * Empty=false
-   * SingleItem=false
-   * # Constructors=C0 to whatever is required
-   *
-   * Long Adr / Byte Offset
-   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-   *  0   || (empty)| #Ctors |        K        | Flags  |FamID=17| SerVer |     PreInts = 4    |
-   *
-   *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
-   *  1   ||-----------------------------------N-----------------------------------------------|
-   *
-   *      ||        |        |        |        |        |        |        |    16              |
-   *      ||--------------MaxValue*---------------------|--------------MinValue*---------------|
-   *
-   *      ||        |        |        |        |        |        |        |                    |
-   *      ||----------------C1*-------------------------|----------------C0*-------------------|
-   * </pre>
-   *
-   * <p>An exact-mode sketch has only one compactor: </p>
-   *
-   * <pre>
-   * PreInts=2
-   * Empty=false
-   * SingleItem=false
-   * # Constructors=C0=1
-   *
-   * Long Adr / Byte Offset
-   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-   *  0   || (empty)|    1   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
-   *
-   *      ||        |        |        |        |        |        |        |     8              |
-   *  1   ||                                   |-------------------------C0*-------------------|
-   * </pre>
-   *
-   * <p>A single item sketch has only one value: </p>
-   *
-   * <pre>
-   * PreInts=2
-   * Empty=false
-   * SingleItem=true
-   * # Constructors=0
-   *
-   * Long Adr / Byte Offset
-   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-   *  0   || (empty)|    0   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
-   *
-   *      ||        |        |        |        |        |        |        |     8              |
-   *  1   ||                                   |------------------------Value*-----------------|
-   * </pre>
-   *
-   * <p>An empty sketch has only 8 bytes including a reserved empty byte:
-   *
-   * <pre>
-   * PreInts=2
-   * Empty=true
-   * SingleItem=false
-   * # Constructors=0
-   *
-   * Long Adr / Byte Offset
-   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-   *  0   || (empty)|    0   |        K        | Flags  |FamID=17| SerVer |     PreInts = 2    |
-   * </pre>
-   */
-
   @Override
   public byte[] toByteArray() {
-    final int bytes = getSerializationBytes();
-    final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
-    final int flags = (isEmpty() ? 4 : 0) | (hra ? 8 : 0) | (compatible ? 16 : 0)
-        | (criterion == LE ? 32 : 0);
-    wbuf.putByte((byte)1); //PreLongs
-    wbuf.putByte((byte)1); //SerVer
-    wbuf.putByte((byte)17); //Family ID
-    wbuf.putByte((byte)flags);
-    wbuf.putInt(k);        //end of 8 byte preamble
-    wbuf.putLong(totalN); //16
-    wbuf.putFloat(minValue);
-    wbuf.putFloat(maxValue);
-    wbuf.putInt(compactors.size()); //28
-    for (int i = 0; i < compactors.size(); i++) {
-      final ReqCompactor c = compactors.get(i);
-      final byte[] cArr = c.toByteArray(); //+320
-      wbuf.putInt(cArr.length); //32
-      wbuf.putByteArray(cArr, 0, cArr.length); //352
-    }
-    assert wbuf.getPosition() == bytes;
-    return arr;
+    return ReqSerDe.toByteArray(this);
   }
-
 
   @Override
   public String toString() {
@@ -677,7 +537,6 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("  K               : " + k).append(LS);
     sb.append("  N               : " + totalN).append(LS);
     sb.append("  Retained Items  : " + retItems).append(LS);
-    sb.append("  Max Nominal Size: " + maxNomSize).append(LS);
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
     sb.append("  Estimation Mode : " + isEstimationMode()).append(LS);
@@ -718,15 +577,23 @@ public class ReqSketch extends BaseReqSketch {
     return cap;
   }
 
+  void setMaxNomSize(final int maxNomSize) {
+    this.maxNomSize = maxNomSize;
+  }
+
   /**
    * Computes the retItems for the sketch.
    */
-  private int computeTotalRetainedItems() {
+  int computeTotalRetainedItems() {
     int count = 0;
     for (final ReqCompactor c : compactors) {
       count += c.getBuffer().getLength();
     }
     return count;
+  }
+
+  void setRetainedItems(final int retItems) {
+    this.retItems = retItems;
   }
 
   /**
@@ -762,6 +629,13 @@ public class ReqSketch extends BaseReqSketch {
     }
     sb.append("************************End Detail*************************").append(LS);
     return sb.toString();
+  }
+
+  static void checkK(final int k) {
+    if ((k & 1) > 0 || k < 4 || k > 1024) {
+      throw new SketchesArgumentException(
+          "<i>K</i> must be even and in the range [4, 1024], inclusive: " + k );
+    }
   }
 
   static class CompactorReturn {
