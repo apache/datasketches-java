@@ -186,10 +186,10 @@ public class ReqSketch extends BaseReqSketch {
         final FloatBuffer promoted = c.compact(cReturn);
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
+        maxNomSize += cReturn.deltaNomSize;
         if (retItems < maxNomSize) { break; }
       }
     }
-    maxNomSize += cReturn.deltaNomSize;
     aux = null;
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
   }
