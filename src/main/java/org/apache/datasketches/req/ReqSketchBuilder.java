@@ -53,10 +53,9 @@ public class ReqSketchBuilder {
    * @return a new ReqSketch
    */
   public ReqSketch build() {
-    final ReqSketch sk = new ReqSketch(bK, bHRA);
+    final ReqSketch sk = new ReqSketch(bK, bHRA, bReqDebug);
     sk.setLessThanOrEqual(bLtEq);
     sk.setCompatible(bCompatible);
-    if (bReqDebug != null) { sk.setReqDebug(bReqDebug); }
     return sk;
   }
 

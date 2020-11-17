@@ -39,6 +39,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings({"javadoc", "unused"})
 public class ReqSketchTest {
   private static final String LS = System.getProperty("line.separator");
+
   //To control debug printing:
   private final int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
   private final int iDebug = 0; // debug printing for individual tests below, same scale as above
@@ -75,8 +76,11 @@ public class ReqSketchTest {
   //Common loadSketch
   public ReqSketch loadSketch(final int k, final int min, final int max, final boolean up, final boolean hra,
       final Criteria criterion, final int skDebug) {
-    final ReqSketch sk = new ReqSketch(k, hra);
-    sk.setReqDebug(new ReqDebugImpl(skDebug, "%5.0f"));
+    final ReqSketchBuilder bldr = ReqSketch.builder();
+    bldr.setReqDebug(new ReqDebugImpl(skDebug, "%5.0f"));
+    bldr.setK(k);
+    bldr.setHighRankAccuracy(hra);
+    final ReqSketch sk = bldr.build();
     sk.setCriterion(criterion);
     if (up) {
       for (int i = min; i <= max; i++) {
@@ -262,7 +266,7 @@ public class ReqSketchTest {
   }
 
   private static void checkSerDeImpl(final int k, final boolean hra, final int count) {
-    final ReqSketch sk1 = new ReqSketch(k, hra);
+    final ReqSketch sk1 = ReqSketch.builder().setK(k).setHighRankAccuracy(hra).build();
     for (int i = 1; i <= count; i++) {
       sk1.update(i);
     }

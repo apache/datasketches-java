@@ -99,20 +99,22 @@ public class ReqSketch extends BaseReqSketch {
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
 
   /**
-   * Public Constructor.
+   * Normal Constructor used by ReqSketchBuilder.
    * @param k Controls the size and error of the sketch. It must be even and in the range
    * [4, 1024], inclusive.
    * The default value of 12 roughly corresponds to 1% relative error guarantee at 95% confidence.
    * @param highRankAccuracy if true, the default, the high ranks are prioritized for better
    * accuracy. Otherwise the low ranks are prioritized for better accuracy.
+   * @param reqDebug the debug handler. It may be null.
    */
-  public ReqSketch(final int k, final boolean highRankAccuracy) {
+  ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug) {
     checkK(k);
     this.k = k;
     hra = highRankAccuracy;
     retItems = 0;
     maxNomSize = 0;
     totalN = 0;
+    this.reqDebug = reqDebug;
     grow();
   }
 
@@ -504,17 +506,6 @@ public class ReqSketch extends BaseReqSketch {
    */
   public ReqSketch setCriterion(final Criteria criterion) {
     this.criterion = criterion;
-    return this;
-  }
-
-  /**
-   * <b>NOTE:</b> This is public only to allow testing from another
-   * package and is not intened for use by normal users of this class.
-   * @param reqDebug the ReqDebug implementation
-   * @return this
-   */
-  public ReqSketch setReqDebug(final ReqDebug reqDebug) {
-    this.reqDebug = reqDebug;
     return this;
   }
 

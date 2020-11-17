@@ -171,9 +171,10 @@ public class ReqSketchOtherTest {
     final boolean hra = true;
     final int min = 1;
     final int max = 100;
-    final ReqSketch sk = reqSketchTest.loadSketch( k, min, max,  up,  hra, LE, 0);
-    sk.setCompatible(false);
 
+    final ReqSketch sk = reqSketchTest.loadSketch( k, min, max,  up,  hra, LE, 0);
+    assertEquals(sk.getK(), k);
+    sk.setCompatible(false);
     for (float v = 0.5f; v <= max + 0.5f; v += 0.5f) {
       //float v = 0.5f;
       final double rle = sk.setCriterion(LE).getRank(v);
@@ -197,7 +198,7 @@ public class ReqSketchOtherTest {
 
     sk.reset();
     assertTrue(sk.isEmpty());
-    assertEquals(sk.getK(), k);
+    //assertEquals(sk.getK(), k);
     assertTrue(sk.getHighRankAccuracy());
     assertFalse(sk.isLessThanOrEqual());
     assertFalse(sk.isCompatible());

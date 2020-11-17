@@ -151,11 +151,11 @@ class ReqSerDe {
     switch (deserFormat) {
       case EMPTY: {
         assert preInts == 2;
-        return new ReqSketch(k, hra);
+        return new ReqSketch(k, hra, null);
       }
       case RAWITEMS: {
         assert preInts == 2;
-        final ReqSketch sk = new ReqSketch(k, hra);
+        final ReqSketch sk = new ReqSketch(k, hra, null);
         for (int i = 0; i < numRawItems; i++) { sk.update(buff.getFloat()); }
         return sk;
       }

@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author Lee Rhodes
  */
-public class ReqDebugImpl implements ReqDebug{
+public class ReqDebugImpl implements ReqDebug {
   private static final String LS = System.getProperty("line.separator");
   private static final String TAB = "\t";
   private ReqSketch sk;
