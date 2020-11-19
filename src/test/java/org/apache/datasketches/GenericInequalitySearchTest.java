@@ -19,25 +19,25 @@
 
 package org.apache.datasketches;
 
-import static org.apache.datasketches.InequalitySearch.find;
-import static org.apache.datasketches.InequalitySearch.Inequality.EQ;
-import static org.apache.datasketches.InequalitySearch.Inequality.GE;
-import static org.apache.datasketches.InequalitySearch.Inequality.GT;
-import static org.apache.datasketches.InequalitySearch.Inequality.LE;
-import static org.apache.datasketches.InequalitySearch.Inequality.LT;
+import static org.apache.datasketches.GenericInequalitySearch.find;
+import static org.apache.datasketches.GenericInequalitySearch.Inequality.EQ;
+import static org.apache.datasketches.GenericInequalitySearch.Inequality.GE;
+import static org.apache.datasketches.GenericInequalitySearch.Inequality.GT;
+import static org.apache.datasketches.GenericInequalitySearch.Inequality.LE;
+import static org.apache.datasketches.GenericInequalitySearch.Inequality.LT;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Comparator;
 import java.util.Random;
 
-import org.apache.datasketches.InequalitySearch.Inequality;
+import org.apache.datasketches.GenericInequalitySearch.Inequality;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class InequalitySearchTest {
+public class GenericInequalitySearchTest {
   static Random rand = new Random(1);
   private static final String LS = System.getProperty("line.separator");
   private static int randDelta() { return rand.nextDouble() < 0.4 ? 0 : 1; }
@@ -181,7 +181,7 @@ public class InequalitySearchTest {
     checkFindFloat(GE);
   }
 
-  private void checkFindFloat(InequalitySearch.Inequality inequality) {
+  private void checkFindFloat(GenericInequalitySearch.Inequality inequality) {
     println("Inequality: " + inequality.name());
     //                   0  1  2  3  4  5  6  7  8  9
     final Float[] arr = {5f,5f,5f,6f,6f,6f,7f,8f,8f,8f};

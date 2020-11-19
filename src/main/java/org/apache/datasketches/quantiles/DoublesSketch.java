@@ -220,8 +220,8 @@ public abstract class DoublesSketch {
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
-    //if      (fraction == 0.0) { return getMinValue(); }
-    //if (fraction == 1.0) { return getMaxValue(); }
+    if      (fraction == 0.0) { return getMinValue(); }
+    if (fraction == 1.0) { return getMaxValue(); }
     final DoublesAuxiliary aux = new DoublesAuxiliary(this);
     return aux.getQuantile(fraction);
   }

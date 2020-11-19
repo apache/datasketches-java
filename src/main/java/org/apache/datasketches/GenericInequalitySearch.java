@@ -61,7 +61,7 @@ import java.util.Comparator;
  *
  * @author Lee Rhodes
  */
-public class InequalitySearch {
+public class GenericInequalitySearch {
 
   /**
    * The enumerator of inequalities
@@ -97,7 +97,7 @@ public class InequalitySearch {
   /**
    * Constructs this class
    */
-  public InequalitySearch() { }
+  public GenericInequalitySearch() { }
 
   /**
    * Binary Search for the index of the generic value in the given search range that satisfies

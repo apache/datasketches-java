@@ -30,10 +30,10 @@ import org.apache.datasketches.QuantilesHelper;
  */
 final class KllFloatsQuantileCalculator {
 
-  private long n_;
-  private float[] items_;
-  private long[] weights_;
-  private int[] levels_;
+  private final long n_;
+  private final float[] items_;
+  private final long[] weights_;
+  private final int[] levels_; //comes in as weights, converted to cumulative weights
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
@@ -49,7 +49,7 @@ final class KllFloatsQuantileCalculator {
     QuantilesHelper.convertToPrecedingCummulative(weights_);
   }
 
-  float getQuantile(final double phi) {
+  float getQuantile(final double phi) { //phi is normalized rank [0,1].
     final long pos = QuantilesHelper.posOfPhi(phi, n_);
     return approximatelyAnswerPositonalQuery(pos);
   }
@@ -126,7 +126,7 @@ final class KllFloatsQuantileCalculator {
     int iSrc2 = fromIndex2;
     int iDst = fromIndex1;
 
-    while ((iSrc1 < toIndex1) && (iSrc2 < toIndex2)) {
+    while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
       if (itemsSrc[iSrc1] < itemsSrc[iSrc2]) {
         itemsDst[iDst] = itemsSrc[iSrc1];
         weightsDst[iDst] = weightsSrc[iSrc1];

@@ -80,12 +80,22 @@ public enum Criteria {
     }
 
     @Override
+    int compare(final long[] arr, final int a, final int b, final long v) {
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
     int getIndex(final double[] arr, final int a, final int b, final double v) {
       return a;
     }
 
     @Override
     int getIndex(final float[] arr, final int a, final int b, final float v) {
+      return a;
+    }
+
+    @Override
+    int getIndex(final long[] arr, final int a, final int b, final long v) {
       return a;
     }
 
@@ -111,6 +121,20 @@ public enum Criteria {
 
     @Override
     String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+      if (idx == -1) {
+        return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
+      }
+      if (idx == high) {
+        return "LT: " + v + " > arr[" + high + "]=" + arr[high]
+            + "; return arr[" + high + "]=" + arr[high];
+      } //idx < high
+      return "LT: " + v
+      + ": arr[" + idx + "]=" + arr[idx] + " < " + v + " <= arr[" + (idx + 1) + "]=" + arr[idx + 1]
+      + "; return arr[" + idx + "]=" + arr[idx];
+    }
+
+    @Override
+    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -143,12 +167,22 @@ public enum Criteria {
     }
 
     @Override
+    int compare(final long[] arr, final int a, final int b, final long v) {
+      return v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
+    }
+
+    @Override
     int getIndex(final double[] arr, final int a, final int b, final double v) {
       return a;
     }
 
     @Override
     int getIndex(final float[] arr, final int a, final int b, final float v) {
+      return a;
+    }
+
+    @Override
+    int getIndex(final long[] arr, final int a, final int b, final long v) {
       return a;
     }
 
@@ -185,6 +219,20 @@ public enum Criteria {
       + ": arr[" + idx + "]=" + arr[idx] + " <= " + v + " < arr[" + (idx + 1) + "]=" + arr[idx + 1]
           + "; return arr[" + idx + "]=" + arr[idx];
     }
+
+    @Override
+    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
+      if (idx == -1) {
+        return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
+      }
+      if (idx == high) {
+        return "LE: " + v + " >= arr[" + high + "]=" + arr[high]
+            + "; return arr[" + high + "]=" + arr[high];
+      }
+      return "LE: " + v
+      + ": arr[" + idx + "]=" + arr[idx] + " <= " + v + " < arr[" + (idx + 1) + "]=" + arr[idx + 1]
+          + "; return arr[" + idx + "]=" + arr[idx];
+    }
   },
 
   /**
@@ -206,12 +254,22 @@ public enum Criteria {
     }
 
     @Override
+    int compare(final long[] arr, final int a, final int b, final long v) {
+      return v < arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
     int getIndex(final double[] arr, final int a, final int b, final double v) {
       return v == arr[a] ? a : v == arr[b] ? b : -1;
     }
 
     @Override
     int getIndex(final float[] arr, final int a, final int b, final float v) {
+      return v == arr[a] ? a : v == arr[b] ? b : -1;
+    }
+
+    @Override
+    int getIndex(final long[] arr, final int a, final int b, final long v) {
       return v == arr[a] ? a : v == arr[b] ? b : -1;
     }
 
@@ -236,6 +294,20 @@ public enum Criteria {
 
     @Override
     String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+      if (idx == -1) {
+        if (v > arr[high]) {
+          return "EQ: " + v + " > arr[" + high + "]; return -1";
+        }
+        if (v < arr[low]) {
+          return "EQ: " + v + " < arr[" + low + "]; return -1";
+        }
+        return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
+      }
+      return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+    }
+
+    @Override
+    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         if (v > arr[high]) {
           return "EQ: " + v + " > arr[" + high + "]; return -1";
@@ -268,12 +340,22 @@ public enum Criteria {
     }
 
     @Override
+    int compare(final long[] arr, final int a, final int b, final long v) {
+      return v <= arr[a] ? -1 : arr[b] < v ? 1 : 0;
+    }
+
+    @Override
     int getIndex(final double[] arr, final int a, final int b, final double v) {
       return b;
     }
 
     @Override
     int getIndex(final float[] arr, final int a, final int b, final float v) {
+      return b;
+    }
+
+    @Override
+    int getIndex(final long[] arr, final int a, final int b, final long v) {
       return b;
     }
 
@@ -299,6 +381,20 @@ public enum Criteria {
 
     @Override
     String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+      if (idx == -1) {
+        return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
+      }
+      if (idx == low) {
+        return "GE: " + v + " <= arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GE: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " < " + v + " <= arr[" + idx + "]=" + arr[idx]
+          + "; return arr[" + idx + "]=" + arr[idx];
+    }
+
+    @Override
+    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -331,12 +427,22 @@ public enum Criteria {
     }
 
     @Override
+    int compare(final long[] arr, final int a, final int b, final long v) {
+      return v < arr[a] ? -1 : arr[b] <= v ? 1 : 0;
+    }
+
+    @Override
     int getIndex(final double[] arr, final int a, final int b, final double v) {
       return b;
     }
 
     @Override
     int getIndex(final float[] arr, final int a, final int b, final float v) {
+      return b;
+    }
+
+    @Override
+    int getIndex(final long[] arr, final int a, final int b, final long v) {
       return b;
     }
 
@@ -362,6 +468,20 @@ public enum Criteria {
 
     @Override
     String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+      if (idx == -1) {
+        return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
+      }
+      if (idx == low) {
+        return "GT: " + v + " < arr[" + low + "]=" + arr[low]
+            + "; return arr[" + low + "]=" + arr[low];
+      } //idx > low
+      return "GT: " + v
+      + ": arr[" + (idx - 1) + "]=" + arr[idx - 1] + " <= " + v + " < arr[" + idx + "]=" + arr[idx]
+          + "; return arr[" + idx + "]=" + arr[idx];
+    }
+
+    @Override
+    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -398,6 +518,18 @@ public enum Criteria {
   abstract int compare(float[] arr, int a, int b, float v);
 
   /**
+   * The call to compare index a and index b with the value v.
+   * @param arr The underlying sorted array of long values
+   * @param a the lower index of the current pair
+   * @param b the higher index of the current pair
+   * @param v the long value to search for
+   * @return +1, which means we must search higher in the array, or -1, which means we must
+   * search lower in the array, or 0, which means we have found the correct bounding pair.
+   */
+  abstract int compare(long[] arr, int a, int b, long v);
+
+
+  /**
    * If the compare operation returns 0, which means "found", this returns the index of the
    * found value that satisfies the selected criteria.
    * @param arr the array being searched
@@ -418,6 +550,18 @@ public enum Criteria {
    * @return the index of the found value that satisfies the selected criteria.
    */
   abstract int getIndex(float[] arr, int a, int b, float v);
+
+  /**
+   * If the compare operation returns 0, which means "found", this returns the index of the
+   * found value that satisfies the selected criteria.
+   * @param arr the array being searched
+   * @param a the lower index of the current pair
+   * @param b the higher index of the current pair
+   * @param v the value being searched for.
+   * @return the index of the found value that satisfies the selected criteria.
+   */
+  abstract int getIndex(long[] arr, int a, int b, long v);
+
 
   /**
    * Called to resolve what to do if not found. In the search algorithm this occurs when the
@@ -455,4 +599,16 @@ public enum Criteria {
    * @return the descriptive string.
    */
   abstract String desc(float[] arr, int low, int high, float v, int idx);
+
+  /**
+   * Optional call that describes the details of the results of the search.
+   * Used primarily for debugging.
+   * @param arr The underlying sorted array of double values
+   * @param low the low index of the range
+   * @param high the high index of the range
+   * @param v the double value to search for
+   * @param idx the resolved index from the search
+   * @return the descriptive string.
+   */
+  abstract String desc(long[] arr, int low, int high, long v, int idx);
 }

@@ -42,7 +42,7 @@ import org.apache.datasketches.memory.WritableMemory;
    * The <i>byte</i> values are treated as unsigned. Multibyte values are indicated with "*" and
    * their size depends on the specific implementation.</p>
    *
-   * <p>The NORMAL binary format for an estimating sketch with &gt; one value: </p>
+   * <p>The ESTIMATION binary format for an estimating sketch with &gt; one value: </p>
    *
    * <pre>
    * Normal Binary Format:
@@ -115,15 +115,16 @@ import org.apache.datasketches.memory.WritableMemory;
    * Bit 1 : ReadOnly, reserved
    * Bit 2 : Empty
    * Bit 3 : HRA
-   * Bit 5 : Raw Items
-   * Bit 6 : L0 Sorted
+   * Bit 4 : Raw Items
+   * Bit 5 : L0 Sorted
+   * Bit 6 : reserved
    * Bit 7 : reserved
    * </pre>
  *
  * @author Lee Rhodes
  */
 class ReqSerDe {
-  enum SerDeFormat { EMPTY, RAWITEMS, EXACT, NORMAL }
+  enum SerDeFormat { EMPTY, RAWITEMS, EXACT, ESTIMATION }
 
   private static final byte SER_VER = 1;
   private static final byte FAMILY_ID = 17;
@@ -173,7 +174,7 @@ class ReqSerDe {
         sk.setRetainedItems(sk.computeTotalRetainedItems());
         return sk;
       }
-      default: { //NORMAL
+      default: { //ESTIMATION
         assert preInts == 4;
         final long totalN = buff.getLong();
         final float minValue = buff.getFloat();
@@ -248,7 +249,7 @@ class ReqSerDe {
     if (sk.isEmpty()) { return SerDeFormat.EMPTY; }
     if (sk.getN() <= ReqSketch.MIN_K) { return SerDeFormat.RAWITEMS; }
     if (sk.getNumLevels() == 1) { return SerDeFormat.EXACT; }
-    return SerDeFormat.NORMAL;
+    return SerDeFormat.ESTIMATION;
   }
 
   private static SerDeFormat getDeserFormat(final boolean empty, final boolean rawItems,
@@ -258,7 +259,7 @@ class ReqSerDe {
       if (rawItems) { return SerDeFormat.RAWITEMS; }
       return SerDeFormat.EXACT;
     }
-    return SerDeFormat.NORMAL;
+    return SerDeFormat.ESTIMATION;
   }
 
   static byte[] toByteArray(final ReqSketch sk) {
@@ -266,7 +267,7 @@ class ReqSerDe {
     final int bytes = getSerBytes(sk, serDeFormat);
     final byte[] arr = new byte[bytes];
     final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
-    final byte preInts = (byte)(serDeFormat == SerDeFormat.NORMAL ? 4 : 2);
+    final byte preInts = (byte)(serDeFormat == SerDeFormat.ESTIMATION ? 4 : 2);
     final byte flags = getFlags(sk);
     final byte numCompactors = sk.isEmpty() ? 0 : (byte) sk.getNumLevels();
     final byte numRawItems = sk.getN() <= 4 ? (byte) sk.getN() : 0;
@@ -321,7 +322,7 @@ class ReqSerDe {
       case EXACT: {
         return sk.getCompactors().get(0).getSerializationBytes() + 8;
       }
-      default: { //NORMAL
+      default: { //ESTIMATION
        int cBytes = 0;
        for (int i = 0; i < sk.getNumLevels(); i++) {
          cBytes += sk.getCompactors().get(i).getSerializationBytes();
