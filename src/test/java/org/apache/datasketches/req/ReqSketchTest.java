@@ -19,14 +19,11 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.Criteria.LE;
-import static org.apache.datasketches.Criteria.LT;
 import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 //import static org.apache.datasketches.req.FloatBuffer.TAB;
@@ -47,20 +44,20 @@ public class ReqSketchTest {
   @Test
   public void bigTest() {
     //          k, min, max,    up,   hra,   lteq, skDebug
-    bigTestImpl(6, 1,   200,  true,  true,   LE, skDebug);
-    bigTestImpl(6, 1,   200, false,  false,  LE, skDebug);
-    bigTestImpl(6, 1,   200, false,   true,  LT, skDebug);
-    bigTestImpl(6, 1,   200,  true,  false,  LE, skDebug);
+    bigTestImpl(6, 1,   200,  true,  true,   true, skDebug);
+    bigTestImpl(6, 1,   200, false,  false,  true, skDebug);
+    bigTestImpl(6, 1,   200, false,   true,  false, skDebug);
+    bigTestImpl(6, 1,   200,  true,  false,  true, skDebug);
   }
 
   public void bigTestImpl(final int k, final int min, final int max, final boolean up, final boolean hra,
-      final Criteria criterion, final int skDebug) {
+      final boolean ltEq, final int skDebug) {
     if (iDebug > 0) {
       println(LS + "*************************");
       println("k=" + k + " min=" + min + " max=" + max
-          + " up=" + up + " hra=" + hra + " criterion=" + criterion + LS);
+          + " up=" + up + " hra=" + hra + " criterion=" + ltEq + LS);
     }
-    final ReqSketch sk = loadSketch(k, min, max, up, hra, criterion, skDebug);
+    final ReqSketch sk = loadSketch(k, min, max, up, hra, ltEq, skDebug);
     checkToString(sk, iDebug);
     checkAux(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
@@ -74,14 +71,14 @@ public class ReqSketchTest {
   }
 
   //Common loadSketch
-  public ReqSketch loadSketch(final int k, final int min, final int max, final boolean up, final boolean hra,
-      final Criteria criterion, final int skDebug) {
+  public ReqSketch loadSketch(final int k, final int min, final int max, final boolean up,
+      final boolean hra, final boolean ltEq, final int skDebug) {
     final ReqSketchBuilder bldr = ReqSketch.builder();
     bldr.setReqDebug(new ReqDebugImpl(skDebug, "%5.0f"));
     bldr.setK(k);
     bldr.setHighRankAccuracy(hra);
     final ReqSketch sk = bldr.build();
-    sk.setCriterion(criterion);
+    sk.setLessThanOrEqual(ltEq);
     if (up) {
       for (int i = min; i <= max; i++) {
         sk.update(i);
@@ -160,17 +157,17 @@ public class ReqSketchTest {
 
     final int totalCount = sk.getRetainedItems();
     float item = 0;
-    double normRank = 0;
+    long wt = 0;
     for (int i = 0; i < totalCount; i++) {
       final Row row = aux.getRow(i);
       if (i == 0) {
         item = row.item;
-        normRank = row.normRank;
+        wt = row.weight;
       } else {
         assertTrue(row.item >= item);
-        assertTrue(row.normRank >= normRank);
+        assertTrue(row.weight >= wt);
         item = row.item;
-        normRank = row.normRank;
+        wt = row.weight;
       }
     }
   }

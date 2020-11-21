@@ -203,10 +203,10 @@ class FloatBuffer {
    * Returns the count of items based on the given criteria.
    * Also used in test.
    * @param value the given value
-   * @param criterion the chosen criterion.
-   * @return count of items based on the given criteria.
+   * @param ltEq the chosen criterion: LT or LE
+   * @return count of items based on the given criterion.
    */
-  int getCountWithCriterion(final float value, final Criteria criterion) {
+  int getCountWithCriterion(final float value, final boolean ltEq) {
     assert !Float.isNaN(value) : "Float values must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
     int low = 0;    //Initialized to space at top
@@ -215,11 +215,8 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final int index = BinarySearch.find(arr_, low, high, value, criterion);
-    if (criterion == Criteria.GT || criterion == Criteria.GE) {
-      return index == -1 ? 0 : high - index + 1;
-    }
-    //LT or LE
+    final Criteria crit = ltEq ? Criteria.LE : Criteria.LT;
+    final int index = BinarySearch.find(arr_, low, high, value, crit);
     return index == -1 ? 0 : index - low + 1;
   }
 

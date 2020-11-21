@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.req;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.datasketches.BinarySearch;
@@ -31,54 +32,83 @@ import org.apache.datasketches.Criteria;
 class ReqAuxiliary {
   private static final String LS = System.getProperty("line.separator");
   private float[] items;
-  private byte[] lgWeights;
-  private double[] normRanks;
-  private final boolean hra;
-  private final Criteria criterion;
+  private long[] weights;
+  private final boolean hra; //used in merge
+  private final long N;
 
   ReqAuxiliary(final ReqSketch sk) {
     hra = sk.getHighRankAccuracy();
-    criterion = sk.getCriterion();
+    N = sk.getN();
     buildAuxTable(sk);
   }
 
   //For testing only
-  ReqAuxiliary(final int arrLen, final boolean hra, final Criteria criterion) {
+  ReqAuxiliary(final int arrLen, final boolean hra, final long N) {
     this.hra = hra;
-    this.criterion = criterion;
+    this.N = N;
     items = new float[arrLen];
-    lgWeights = new byte[arrLen];
-    normRanks = new double[arrLen];
+    weights = new long[arrLen];
   }
 
   private void buildAuxTable(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
     final int totalItems = sk.getRetainedItems();
-    final long N = sk.getN();
     items = new float[totalItems];
-    lgWeights = new byte[totalItems];
-    normRanks = new double[totalItems];
+    weights = new long[totalItems];
     int auxCount = 0;
     for (int i = 0; i < numComp; i++) {
       final ReqCompactor c = compactors.get(i);
       final FloatBuffer bufIn = c.getBuffer();
-      final byte lgWeight = c.getLgWeight();
+      final long weight = 1 << c.getLgWeight();
       final int bufInLen = bufIn.getLength();
-      mergeSortIn(bufIn, lgWeight, auxCount);
+      mergeSortIn(bufIn, weight, auxCount);
       auxCount += bufInLen;
     }
-    double sum = 0;
-    for (int i = 0; i < totalItems; i++) {
-      sum += 1 << lgWeights[i];
-      normRanks[i] = sum / N;
+    createCumulativeWeights();
+    dedup();
+  }
+
+  private void createCumulativeWeights() {
+    final int len = items.length;
+    for (int i = 1; i < len; i++) {
+      weights[i] +=  weights[i - 1];
     }
+    assert weights[len - 1] == N;
+  }
+
+  void dedup() {
+    final int itemsLen = items.length;
+    final float[] itemsB = new float[itemsLen];
+    final long[] wtsB = new long[itemsLen];
+    int bidx = 0;
+    int i = 0;
+    while (i < itemsLen) {
+      int j = i + 1;
+      int hidup = j;
+      while (j < itemsLen && items[i] == items[j]) {
+        hidup = j++;
+      }
+      if (j - i == 1) { //no dups
+        itemsB[bidx] = items[i];
+        wtsB[bidx++] = weights[i];
+        i++;
+        continue;
+      } else {
+        itemsB[bidx] = items[hidup];
+        wtsB[bidx++] = weights[hidup];
+        i = j;
+        continue;
+      }
+    }
+    items = Arrays.copyOf(itemsB, bidx);
+    weights = Arrays.copyOf(wtsB, bidx);
   }
 
   //Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
   // the ultimate array size has already been set.  However, this must simultaneously deal with
   // sorting the weights as well.  Also used in test.
-  void mergeSortIn(final FloatBuffer bufIn, final byte lgWeight, final int auxCount) {
+  void mergeSortIn(final FloatBuffer bufIn, final long weight, final int auxCount) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
     final int bufInLen = bufIn.getLength();
@@ -90,17 +120,17 @@ class ReqAuxiliary {
       if (i >= 0 && j >= 0) { //both valid
         if (items[i] >= arrIn[h]) {
           items[k] = items[i];
-          lgWeights[k] = lgWeights[i--];
+          weights[k] = weights[i--];
         } else {
           items[k] = arrIn[h--]; j--;
-          lgWeights[k] = lgWeight;
+          weights[k] = weight;
         }
       } else if (i >= 0) { //i is valid
         items[k] = items[i];
-        lgWeights[k] = lgWeights[i--];
+        weights[k] = weights[i--];
       } else if (j >= 0) { //j is valid
         items[k] = arrIn[h--]; j--;
-        lgWeights[k] = lgWeight;
+        weights[k] = weight;
       } else {
         break;
       }
@@ -113,28 +143,36 @@ class ReqAuxiliary {
    * @param normRank the given normalized rank
    * @return the largest quantile less than the given normalized rank.
    */
-  float getQuantile(final double normRank) {
-    final int len = normRanks.length;
-    final int index = BinarySearch.find(normRanks, 0, len - 1, normRank, criterion);
-    if (index == -1) { return Float.NaN; }
+  float getQuantile(final double normRank, final boolean ltEq) {
+    final int len = weights.length;
+    final long rank = (int)(normRank * N);
+    final int index;
+    final Criteria crit;
+    if (ltEq) { //less-than or equals
+      crit = Criteria.GE;
+      index = BinarySearch.find(weights, 0, len - 1, rank, crit);
+      if (index == -1) { return items[len - 1]; }
+    } else { //less-than
+      crit = Criteria.GT;
+      index = BinarySearch.find(weights, 0, len - 1, rank, crit);
+      if (index == -1) { return items[len - 1]; }
+    }
     return items[index];
   }
 
   //used for testing
 
   Row getRow(final int index) {
-    return new Row(items[index], lgWeights[index], normRanks[index]);
+    return new Row(items[index], weights[index]);
   }
 
   class Row {
     float item;
-    byte lgWeight;
-    double normRank;
+    long weight;
 
-    Row(final float item, final byte lgWeight, final double normRank) {
+    Row(final float item, final long weight) {
       this.item = item;
-      this.lgWeight = lgWeight;
-      this.normRank = normRank;
+      this.weight = weight;
     }
   }
 
@@ -145,14 +183,14 @@ class ReqAuxiliary {
     final String ff = "%" + z + "." + p + "f";
     final String sf = "%" + z + "s";
     final String df = "%"  + z + "d";
-    final String dfmt = ff + df + ff + LS;
-    final String sfmt = sf + sf + sf + LS;
+    final String dfmt = ff + df + LS;
+    final String sfmt = sf + sf + LS;
     sb.append("Aux Detail").append(LS);
-    sb.append(String.format(sfmt, "Item", "Weight", "NormRank"));
+    sb.append(String.format(sfmt, "Item", "Weight"));
     final int totalCount = items.length;
     for (int i = 0; i < totalCount; i++) {
       final Row row = getRow(i);
-      sb.append(String.format(dfmt, row.item, 1 << row.lgWeight, row.normRank));
+      sb.append(String.format(dfmt, row.item, row.weight));
     }
     return sb.toString();
   }

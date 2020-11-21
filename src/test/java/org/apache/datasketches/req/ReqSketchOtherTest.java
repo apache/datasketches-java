@@ -24,7 +24,6 @@ import static org.apache.datasketches.Criteria.GT;
 import static org.apache.datasketches.Criteria.LE;
 import static org.apache.datasketches.Criteria.LT;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
@@ -53,8 +52,8 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkCopyConstructors() {
-    final Criteria criterion = LE;
-    final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true,  criterion, 0);
+    final boolean ltEq = true;
+    final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true,  ltEq, 0);
     final long n = sk.getN();
     final float min = sk.getMinValue();
     final float max = sk.getMaxValue();
@@ -76,8 +75,8 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkQuantilesExceedLimits() {
-    final Criteria criterion = LE;
-    final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 200,  true,  true,  criterion, 0);
+    final boolean ltEq = true;
+    final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 200,  true,  true,  ltEq, 0);
     try { sk.getQuantile(2.0f); fail(); } catch (final SketchesArgumentException e) {}
     try { sk.getQuantile(-2.0f); fail(); } catch (final SketchesArgumentException e) {}
   }
@@ -86,8 +85,8 @@ public class ReqSketchOtherTest {
   public void checkEstimationMode() {
     final boolean up = true;
     final boolean hra = true;
-    final Criteria criterion = LE;
-    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  criterion, 0);
+    final boolean ltEq = true;
+    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 119,  up,  hra,  ltEq, 0);
     assertEquals(sk.isEstimationMode(), false);
     final double lb = sk.getRankLowerBound(1.0, 1);
     final double ub = sk.getRankUpperBound(1.0, 1);
@@ -129,14 +128,12 @@ public class ReqSketchOtherTest {
   @Test
   public void checkFlags() {
     final ReqSketch sk = ReqSketch.builder().build();
-    sk.setCriterion(Criteria.LE);
+    sk.setLessThanOrEqual(true);
     assertEquals(sk.isLessThanOrEqual(), true);
-    assertEquals(sk.getCriterion(), Criteria.LE);
     assertEquals(sk.isCompatible(), true);
-    sk.setCriterion(Criteria.LT);
+    sk.setLessThanOrEqual(false); //LT
     sk.setCompatible(false);
     assertEquals(sk.isLessThanOrEqual(), false);
-    assertEquals(sk.getCriterion(), Criteria.LT);
     assertEquals(sk.isCompatible(), false);
   }
 
@@ -154,57 +151,6 @@ public class ReqSketchOtherTest {
   }
 
   @Test
-  public void checkCompatibleGT() {
-    final ReqSketchBuilder bldr = ReqSketch.builder();
-    bldr.setK(6).setCompatible(true).setHighRankAccuracy(false);
-    final ReqSketch sk = bldr.build();
-    sk.setCriterion(GT);
-    for (int i = 1; i <= 100; i++) { sk.update(i); }
-    final float v = sk.getQuantile(1.0);
-    assertEquals(v, 100f);
-  }
-
-  @Test
-  public void checkComplementCriteria() {
-    final int k = 24;
-    final boolean up = false;
-    final boolean hra = true;
-    final int min = 1;
-    final int max = 100;
-
-    final ReqSketch sk = reqSketchTest.loadSketch( k, min, max,  up,  hra, LE, 0);
-    assertEquals(sk.getK(), k);
-    sk.setCompatible(false);
-    for (float v = 0.5f; v <= max + 0.5f; v += 0.5f) {
-      //float v = 0.5f;
-      final double rle = sk.setCriterion(LE).getRank(v);
-      sk.setLessThanOrEqual(true);
-      final float qrle = sk.getQuantile(rle);
-      final double rgt = sk.setCriterion(GT).getRank(v);
-      final float qrgt = sk.getQuantile(rgt);
-      myAssertEquals(rle, rgt);
-      myAssertEquals(qrle, qrgt);
-      sk.setCriterion(LT);
-      final double rlt = sk.setCriterion(LT).getRank(v);
-      final float qrlt = sk.getQuantile(rlt);
-      final double rge = sk.setCriterion(GE).getRank(v);
-      final float qrge = sk.getQuantile(rge);
-      myAssertEquals(rlt, rge);
-      myAssertEquals(qrlt, qrge);
-    }
-
-    final float v1 = sk.getQuantile(1.0);
-    assertEquals(v1, (float)max);
-
-    sk.reset();
-    assertTrue(sk.isEmpty());
-    //assertEquals(sk.getK(), k);
-    assertTrue(sk.getHighRankAccuracy());
-    assertFalse(sk.isLessThanOrEqual());
-    assertFalse(sk.isCompatible());
-  }
-
-  @Test
   public void simpleTest() {
     ReqSketch sk;
     final ReqSketchBuilder bldr = ReqSketch.builder();
@@ -214,13 +160,13 @@ public class ReqSketchOtherTest {
     sk = bldr.build();
     final float[] vArr = { 5, 5, 5, 6, 6, 6, 7, 8, 8, 8 };
     for (int i = 0; i < vArr.length; i++) { sk.update(vArr[i]); }
-    sk.setCriterion(Criteria.LT);
+    sk.setLessThanOrEqual(false);
     final double[] rArrLT = {0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 0.6, 0.7, 0.7, 0.7};
     for (int i = 0; i < vArr.length; i++) {
       assertEquals(sk.getRank(vArr[i]), rArrLT[i]);
       //System.out.println("v:" + vArr[i] + " r:" + sk.getRank(vArr[i]));
     }
-    sk.setCriterion(Criteria.LE);
+    sk.setLessThanOrEqual(true);
     final double[] rArrLE = {0.3, 0.3, 0.3, 0.6, 0.6, 0.6, 0.7, 1.0, 1.0, 1.0};
     for (int i = 0; i < vArr.length; i++) {
       assertEquals(sk.getRank(vArr[i]), rArrLE[i]);
@@ -230,10 +176,8 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkGetRankUBLB() {
-    checkGetRank(true, LT);
-    checkGetRank(false, LE);
-    checkGetRank(true, GE);
-    checkGetRank(false, GT);
+    checkGetRank(true, false);
+    checkGetRank(false, true);
   }
 
   @Test
@@ -252,13 +196,13 @@ public class ReqSketchOtherTest {
     assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
   }
 
-  private void checkGetRank(final boolean hra, final Criteria criterion) {
+  private void checkGetRank(final boolean hra, final boolean ltEq) {
     final int k = 12;
     final boolean up = true;
     final int min = 1;
     final int max = 1000;
     final int skDebug = 0;
-    final ReqSketch sk = reqSketchTest.loadSketch(k, min, max, up, hra, criterion, skDebug);
+    final ReqSketch sk = reqSketchTest.loadSketch(k, min, max, up, hra, ltEq, skDebug);
     double rLB = sk.getRankLowerBound(0.5, 1);
     assertTrue(rLB > 0);
     if (hra) { rLB = sk.getRankLowerBound(995.0/1000, 1); }

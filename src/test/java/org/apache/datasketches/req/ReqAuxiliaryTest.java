@@ -21,7 +21,6 @@ package org.apache.datasketches.req;
 
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.Criteria;
 import org.apache.datasketches.req.ReqAuxiliary.Row;
 import org.testng.annotations.Test;
 
@@ -37,25 +36,29 @@ public class ReqAuxiliaryTest {
     checkMergeSortInImpl(false);
   }
 
-  private static void checkMergeSortInImpl(boolean hra) {
-    Criteria criterion = Criteria.LT;
-    ReqAuxiliary aux = new ReqAuxiliary(25, hra, criterion);
-    FloatBuffer buf1 = new FloatBuffer(25, 0, hra);
+  private static void checkMergeSortInImpl(final boolean hra) {
+    final FloatBuffer buf1 = new FloatBuffer(25, 0, hra);
     for (int i = 1; i < 12; i += 2) { buf1.append(i); } //6 items
-    aux.mergeSortIn(buf1, (byte)0, 0);
-    FloatBuffer buf2 = new FloatBuffer(25, 0, hra);
+    final FloatBuffer buf2 = new FloatBuffer(25, 0, hra);
     for (int i = 2; i <= 12; i += 2) { buf2.append(i); } //6 items
-    aux.mergeSortIn(buf2, (byte)1, 6);
+    final long N = 12;
+
+    final ReqAuxiliary aux = new ReqAuxiliary(25, hra, N);
+    aux.mergeSortIn(buf1, 1, 0);
+    aux.mergeSortIn(buf2, 2, 6);
     println(aux.toString(3, 12));
     Row row = aux.getRow(0);
     for (int i = 1; i < 12; i++) {
-      Row rowi = aux.getRow(i);
+      final Row rowi = aux.getRow(i);
       assertTrue(rowi.item >= row.item);
       row = rowi;
     }
   }
 
-  @SuppressWarnings("unused")
+  /**
+   * output
+   * @param o object
+   */
   static final void println(final Object o) {
     //System.out.println(o.toString());
   }

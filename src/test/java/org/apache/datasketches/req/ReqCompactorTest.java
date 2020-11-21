@@ -22,7 +22,6 @@ package org.apache.datasketches.req;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.Criteria;
 import org.apache.datasketches.memory.Buffer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.req.ReqSerDe.Compactor;
@@ -44,8 +43,8 @@ public class ReqCompactorTest {
   public void checkGetters() {
     final boolean up = true;
     final boolean hra = true;
-    final Criteria criterion = Criteria.LE;
-    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  criterion, 0);
+    final boolean ltEq = true;
+    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  ltEq, 0);
     final ReqCompactor c = sk.getCompactors().get(0);
 
     c.getCoin();

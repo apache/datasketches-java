@@ -20,16 +20,11 @@
 package org.apache.datasketches.req;
 
 import static java.lang.Math.sqrt;
-import static org.apache.datasketches.Criteria.GE;
-import static org.apache.datasketches.Criteria.GT;
-import static org.apache.datasketches.Criteria.LE;
-import static org.apache.datasketches.Criteria.LT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.datasketches.Criteria;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
@@ -85,7 +80,7 @@ public class ReqSketch extends BaseReqSketch {
   private final boolean hra;    //user config, default is true
   //state variables
   private boolean compatible = true; //user config, default: true, can be set after construction
-  private Criteria criterion = LT; //user config, default: LT, can be set after construction
+  private boolean ltEq = false; //user config, default: LT, can be set after construction
   private long totalN;
   private float minValue = Float.NaN;
   private float maxValue = Float.NaN;
@@ -133,7 +128,7 @@ public class ReqSketch extends BaseReqSketch {
     maxValue = other.maxValue;
 
     compatible = other.compatible;
-    criterion = other.criterion;
+    ltEq = other.ltEq;
     reqDebug = other.reqDebug;
     //aux does not need to be copied
 
@@ -224,10 +219,7 @@ public class ReqSketch extends BaseReqSketch {
       final ReqCompactor c = compactors.get(i);
       final long wt = 1L << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
-      cumNnr += buf.getCountWithCriterion(value, criterion) * wt;
-    }
-    if (criterion == GT || criterion == GE) {
-      cumNnr = totalN - cumNnr;
+      cumNnr += buf.getCountWithCriterion(value, ltEq) * wt;
     }
     return cumNnr;
   }
@@ -242,19 +234,14 @@ public class ReqSketch extends BaseReqSketch {
       final long wt = 1L << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
       for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] += buf.getCountWithCriterion(values[j], criterion) * wt;
-      }
-    }
-    if (criterion == GT || criterion == GE) {
-      for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] = totalN - cumNnrArr[j];
+        cumNnrArr[j] += buf.getCountWithCriterion(values[j], ltEq) * wt;
       }
     }
     return cumNnrArr;
   }
 
-  Criteria getCriterion() {
-    return criterion;
+  boolean getLtEq() {
+    return ltEq;
   }
 
   @Override
@@ -331,11 +318,10 @@ public class ReqSketch extends BaseReqSketch {
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
-    final float q = aux.getQuantile(normRank);
+    final float q = aux.getQuantile(normRank, ltEq);
     if (Float.isNaN(q)) { //possible result from aux.getQuantile()
       if (compatible) {
-        if (criterion == LT || criterion == LE) { return minValue; }
-        else { return maxValue; }
+        return minValue;
       }
     }
     return q;
@@ -448,7 +434,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public boolean isLessThanOrEqual() {
-    return criterion == LE;
+    return ltEq;
   }
 
   @Override
@@ -498,21 +484,9 @@ public class ReqSketch extends BaseReqSketch {
     return this;
   }
 
-  /**
-   * <b>NOTE:</b> This is public only to allow testing from another
-   * package and is not intended for use by normal users of this class.
-   * @param criterion one of LT, LE, GT, GE.
-   * @return this
-   */
-  public ReqSketch setCriterion(final Criteria criterion) {
-    this.criterion = criterion;
-    return this;
-  }
-
   @Override
   public ReqSketch setLessThanOrEqual(final boolean ltEq) {
-    if (ltEq) { setCriterion(LE); }
-    else { setCriterion(LT); }
+    this.ltEq = ltEq;
     return this;
   }
 
@@ -531,7 +505,7 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
     sb.append("  Estimation Mode : " + isEstimationMode()).append(LS);
-    sb.append("  Criterion       : " + criterion).append(LS);
+    sb.append("  LtEQ            : " + ltEq).append(LS);
     sb.append("  High Rank Acc   : " + hra).append(LS);
     sb.append("  Levels          : " + compactors.size()).append(LS);
     sb.append("************************End Summary************************").append(LS);
