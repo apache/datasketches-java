@@ -26,8 +26,8 @@ public class QuantilesHelper {
 
   /**
    * Convert the weights into totals of the weights preceding each item.
-   * An array of {1,1,1,1} becomes {0,1,2,3}
-   * @param array of weights
+   * An array of {1,1,1,0} becomes {0,1,2,3}
+   * @param array of weights where first element is zero
    * @return total weight
    */
   public static long convertToPrecedingCummulative(final long[] array) {

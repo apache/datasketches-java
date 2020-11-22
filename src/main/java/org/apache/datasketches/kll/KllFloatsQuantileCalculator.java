@@ -32,8 +32,8 @@ final class KllFloatsQuantileCalculator {
 
   private final long n_;
   private final float[] items_;
-  private final long[] weights_;
-  private final int[] levels_; //comes in as weights, converted to cumulative weights
+  private final long[] weights_; //comes in as weights, converted to cumulative weights
+  private final int[] levels_;
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
@@ -47,6 +47,15 @@ final class KllFloatsQuantileCalculator {
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
     QuantilesHelper.convertToPrecedingCummulative(weights_);
+  }
+
+  //For testing only. Allows testing of getQuantile without a sketch.
+  KllFloatsQuantileCalculator(final float[] items, final long[] weights, final long n) {
+    n_ = n;
+    items_ = items;
+    weights_ = weights; //must be size of items + 1
+    levels_ = null;  //not used
+    numLevels_ = 0;  //not used
   }
 
   float getQuantile(final double phi) { //phi is normalized rank [0,1].

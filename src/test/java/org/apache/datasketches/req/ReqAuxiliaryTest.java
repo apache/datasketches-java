@@ -43,7 +43,10 @@ public class ReqAuxiliaryTest {
     for (int i = 2; i <= 12; i += 2) { buf2.append(i); } //6 items
     final long N = 12;
 
-    final ReqAuxiliary aux = new ReqAuxiliary(25, hra, N);
+    final float[] items = new float[25];
+    final long[] weights = new long[25];
+
+    final ReqAuxiliary aux = new ReqAuxiliary(items, weights, hra, N);
     aux.mergeSortIn(buf1, 1, 0);
     aux.mergeSortIn(buf2, 2, 6);
     println(aux.toString(3, 12));

@@ -42,12 +42,12 @@ class ReqAuxiliary {
     buildAuxTable(sk);
   }
 
-  //For testing only
-  ReqAuxiliary(final int arrLen, final boolean hra, final long N) {
+  //Testing only! Allows testing of support methods without a sketch.
+  ReqAuxiliary(final float[] items, final long[] weights, final boolean hra, final long N) {
     this.hra = hra;
     this.N = N;
-    items = new float[arrLen];
-    weights = new long[arrLen];
+    this.items = items;
+    this.weights = weights;
   }
 
   private void buildAuxTable(final ReqSketch sk) {
@@ -138,10 +138,11 @@ class ReqAuxiliary {
   }
 
   /**
-   * Gets the quantile of the largest normalized rank that is less than the given normalized rank,
-   * which must be in the range [0.0, 1.0], inclusive, inclusive
+   * Gets the quantile based on the given normalized rank,
+   * which must be in the range [0.0, 1.0], inclusive.
    * @param normRank the given normalized rank
-   * @return the largest quantile less than the given normalized rank.
+   * @param ltEq determines the search method used.
+   * @return the quantile based on given normalized rank and ltEq.
    */
   float getQuantile(final double normRank, final boolean ltEq) {
     final int len = weights.length;
@@ -196,4 +197,3 @@ class ReqAuxiliary {
   }
 
 }
-
