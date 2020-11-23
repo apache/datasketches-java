@@ -71,11 +71,11 @@ public final class BinarySearch {
     int hi = high - 1;
     int ret;
     while (lo <= hi) {
-      final int midA = lo + (hi - lo) / 2;
-      ret = crit.compare(arr, midA, midA + 1, v);
-      if (ret == -1 ) { hi = midA - 1; }
-      else if (ret == 1) { lo = midA + 1; }
-      else  { return crit.getIndex(arr, midA, midA + 1, v); }
+      final int mid = lo + (hi - lo) / 2;
+      ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid - 1; }
+      else if (ret == 1) { lo = mid + 1; }
+      else  { return crit.getIndex(arr, mid, mid + 1, v); }
     }
     return crit.resolve(lo, hi, low, high);
   }
@@ -98,11 +98,11 @@ public final class BinarySearch {
     int hi = high - 1;
     int ret;
     while (lo <= hi) {
-      final int midA = lo + (hi - lo) / 2;
-      ret = crit.compare(arr, midA, midA + 1, v);
-      if (ret == -1 ) { hi = midA - 1; }
-      else if (ret == 1) { lo = midA + 1; }
-      else  { return crit.getIndex(arr, midA, midA + 1, v); }
+      final int mid = lo + (hi - lo) / 2;
+      ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid - 1; }
+      else if (ret == 1) { lo = mid + 1; }
+      else  { return crit.getIndex(arr, mid, mid + 1, v); }
     }
     return crit.resolve(lo, hi, low, high);
   }
