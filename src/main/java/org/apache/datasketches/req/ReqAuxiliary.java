@@ -95,7 +95,7 @@ class ReqAuxiliary {
         i++;
         continue;
       } else {
-        itemsB[bidx] = items[hidup];
+        itemsB[bidx] = items[hidup]; //lgtm [java/index-out-of-bounds] false positive
         wtsB[bidx++] = weights[hidup];
         i = j;
         continue;
