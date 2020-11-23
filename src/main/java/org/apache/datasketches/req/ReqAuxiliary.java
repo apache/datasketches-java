@@ -155,7 +155,7 @@ class ReqAuxiliary {
       if (index == -1) { return items[len - 1]; }
     } else { //less-than
       crit = Criteria.GT;
-      index = BinarySearch.find(weights, 0, len - 1, rank, crit);
+      index = BinarySearch.find(weights, 0, len - 1, rank - 1, crit);
       if (index == -1) { return items[len - 1]; }
     }
     return items[index];
