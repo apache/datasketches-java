@@ -22,8 +22,7 @@ package org.apache.datasketches.req;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.datasketches.BinarySearch;
-import org.apache.datasketches.Criteria;
+import org.apache.datasketches.InequalitySearch;
 
 /**
  * Supports searches for quantiles
@@ -148,14 +147,14 @@ class ReqAuxiliary {
     final int len = weights.length;
     final long rank = (int)(normRank * N);
     final int index;
-    final Criteria crit;
+    final InequalitySearch crit;
     if (ltEq) { //less-than or equals
-      crit = Criteria.GE;
-      index = BinarySearch.find(weights, 0, len - 1, rank, crit);
+      crit = InequalitySearch.GE;
+      index = InequalitySearch.find(weights, 0, len - 1, rank, crit);
       if (index == -1) { return items[len - 1]; }
     } else { //less-than
-      crit = Criteria.GT;
-      index = BinarySearch.find(weights, 0, len - 1, rank - 1, crit);
+      crit = InequalitySearch.GT;
+      index = InequalitySearch.find(weights, 0, len - 1, rank - 1, crit);
       if (index == -1) { return items[len - 1]; }
     }
     return items[index];

@@ -20,46 +20,42 @@
 package org.apache.datasketches;
 
 /**
- * This supports the BinarySearch class by providing efficient, unique and unambiguous searching for
- * comparison criteria for ordered arrays of values that may include duplicate values. These
- * searching criteria include &lt;, &le;, ==, &ge;, &gt;. We also would like to be able to use the
- * same search algorithm for all the criteria.
+ * This provides efficient, unique and unambiguous binary searching for inequality comparison criteria
+ * for ordered arrays of values that may include duplicate values. The inequality criteria include
+ * &lt;, &le;, ==, &ge;, &gt;. All the inequality criteria use the same search algorithm.
+ * (Although == is not an inequality, it is included for convenience.)
  *
  * <p>In order to make the searching unique and unambiguous, we modified the traditional binary
  * search algorithm to search for adjacent pairs of values <i>{A, B}</i> in the values array
  * instead of just a single value, where <i>A</i> and <i>B</i> are the array indicies of two
- * adjacent values in the array. We then define the searching criteria,
- * given an array of values <i>arr[]</i> and the search key value <i>v</i>, as follows:</p>
+ * adjacent values in the array. For all the search criteria, if the algorithm reaches the ends of
+ * the search range, the algorithm calls the <i>resolve()</i> method to determine what to
+ * return to the caller. If the key value cannot be resolved, it returns a -1 to the caller.
+ *
+ * <p>Given an array of values <i>arr[]</i> and the search key value <i>v</i>, the algorithms for
+ * the searching criteria are as follows:</p>
  * <ul>
  * <li><b>LT:</b> Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] < v <= arr[B]</i>. Normally we return the index <i>A</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
+ * <i>arr[A] < v <= arr[B]</i>. The normal return is the index <i>A</i>.
  * </li>
  * <li><b>LE:</b>  Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v < arr[B]</i>. Normally we return the index <i>A</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
+ * <i>arr[A] <= v < arr[B]</i>. The normal return is the index <i>A</i>.
  * </li>
  * <li><b>EQ:</b>  Find the adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v <= arr[B]</i>. We return the index <i>A</i> or <i>B</i> whichever
- * equals <i>v</i>, otherwise we return -1.
+ * <i>arr[A] <= v <= arr[B]</i>. The normal return is the index <i>A</i> or <i>B</i> whichever
+ * equals <i>v</i>, otherwise it returns -1.
  * </li>
  * <li><b>GE:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] < v <= arr[B]</i>. Normally we return the index <i>B</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
+ * <i>arr[A] < v <= arr[B]</i>. The normal return is the index <i>B</i>.
  * </li>
  * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v < arr[B]</i>. Normally we return the index <i>B</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
+ * <i>arr[A] <= v < arr[B]</i>. The normal return is the index <i>B</i>.
  * </li>
  * </ul>
  *
  * @author Lee Rhodes
  */
-public enum Criteria {
+public enum InequalitySearch {
 
   /**
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
@@ -611,4 +607,85 @@ public enum Criteria {
    * @return the descriptive string.
    */
   abstract String desc(long[] arr, int low, int high, long v, int idx);
+
+  /**
+   * Binary Search for the index of the double value in the given search range that satisfies
+   * the given InequalitySearch criterion.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
+   *
+   * @param arr the given array that must be sorted.
+   * @param low the index of the lowest value in the search range
+   * @param high the index of the highest value in the search range
+   * @param v the value to search for.
+   * @param crit one of LT, LE, EQ, GT, GE
+   * @return the index of the value in the given search range that satisfies the criterion
+   */
+  public static int find(final double[] arr, final int low, final int high,
+      final double v, final InequalitySearch crit) {
+    int lo = low;
+    int hi = high - 1;
+    int ret;
+    while (lo <= hi) {
+      final int midA = lo + (hi - lo) / 2;
+      ret = crit.compare(arr, midA, midA + 1, v);
+      if (ret == -1 ) { hi = midA - 1; }
+      else if (ret == 1) { lo = midA + 1; }
+      else  { return crit.getIndex(arr, midA, midA + 1, v); }
+    }
+    return crit.resolve(lo, hi, low, high);
+  }
+
+  /**
+   * Binary Search for the index of the float value in the given search range that satisfies
+   * the given InequalitySearch criterion.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
+   *
+   * @param arr the given array that must be sorted.
+   * @param low the index of the lowest value in the search range
+   * @param high the index of the highest value in the search range
+   * @param v the value to search for.
+   * @param crit one of LT, LE, EQ, GT, GE
+   * @return the index of the value in the given search range that satisfies the criterion
+   */
+  public static int find(final float[] arr, final int low, final int high,
+      final float v, final InequalitySearch crit) {
+    int lo = low;
+    int hi = high - 1;
+    int ret;
+    while (lo <= hi) {
+      final int mid = lo + (hi - lo) / 2;
+      ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid - 1; }
+      else if (ret == 1) { lo = mid + 1; }
+      else  { return crit.getIndex(arr, mid, mid + 1, v); }
+    }
+    return crit.resolve(lo, hi, low, high);
+  }
+
+  /**
+   * Binary Search for the index of the long value in the given search range that satisfies
+   * the given InequalitySearch criterion.
+   * If -1 is returned there are no values in the search range that satisfy the criterion.
+   *
+   * @param arr the given array that must be sorted.
+   * @param low the index of the lowest value in the search range
+   * @param high the index of the highest value in the search range
+   * @param v the value to search for.
+   * @param crit one of LT, LE, EQ, GT, GE
+   * @return the index of the value in the given search range that satisfies the criterion
+   */
+  public static int find(final long[] arr, final int low, final int high,
+      final long v, final InequalitySearch crit) {
+    int lo = low;
+    int hi = high - 1;
+    int ret;
+    while (lo <= hi) {
+      final int mid = lo + (hi - lo) / 2;
+      ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid - 1; }
+      else if (ret == 1) { lo = mid + 1; }
+      else  { return crit.getIndex(arr, mid, mid + 1, v); }
+    }
+    return crit.resolve(lo, hi, low, high);
+  }
 }

@@ -19,17 +19,17 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.Criteria.GE;
-import static org.apache.datasketches.Criteria.GT;
-import static org.apache.datasketches.Criteria.LE;
-import static org.apache.datasketches.Criteria.LT;
+import static org.apache.datasketches.InequalitySearch.GE;
+import static org.apache.datasketches.InequalitySearch.GT;
+import static org.apache.datasketches.InequalitySearch.LE;
+import static org.apache.datasketches.InequalitySearch.LT;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.Criteria;
+import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
@@ -39,10 +39,10 @@ import org.testng.annotations.Test;
 @SuppressWarnings({"javadoc", "unused"})
 public class ReqSketchOtherTest {
   final ReqSketchTest reqSketchTest = new ReqSketchTest();
-  static Criteria critLT = LT;
-  static Criteria critLE = LE;
-  static Criteria critGT = GT;
-  static Criteria critGE = GE;
+  static InequalitySearch critLT = LT;
+  static InequalitySearch critLE = LE;
+  static InequalitySearch critGT = GT;
+  static InequalitySearch critGE = GE;
 
   @Test
   public void checkConstructors() {
@@ -112,7 +112,7 @@ public class ReqSketchOtherTest {
 
   @Test
   public void checkNaNUpdate() {
-    final Criteria criterion = LE;
+    final InequalitySearch criterion = LE;
     final ReqSketch sk = ReqSketch.builder().build();
     sk.update(Float.NaN);
     assertTrue(sk.isEmpty());

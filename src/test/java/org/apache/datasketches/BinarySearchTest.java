@@ -19,11 +19,11 @@
 
 package org.apache.datasketches;
 
-import static org.apache.datasketches.Criteria.EQ;
-import static org.apache.datasketches.Criteria.GE;
-import static org.apache.datasketches.Criteria.GT;
-import static org.apache.datasketches.Criteria.LE;
-import static org.apache.datasketches.Criteria.LT;
+import static org.apache.datasketches.InequalitySearch.EQ;
+import static org.apache.datasketches.InequalitySearch.GE;
+import static org.apache.datasketches.InequalitySearch.GT;
+import static org.apache.datasketches.InequalitySearch.LE;
+import static org.apache.datasketches.InequalitySearch.LT;
 import static org.testng.Assert.assertEquals;
 
 import java.util.Random;
@@ -38,8 +38,8 @@ public class BinarySearchTest {
   static Random rand = new Random(1);
   private static final String LS = System.getProperty("line.separator");
 
-  private static float[] buildRandFloatArr(int len) {
-    float[] arr = new float[len];
+  private static float[] buildRandFloatArr(final int len) {
+    final float[] arr = new float[len];
     float v = 1.0f;
     for (int i = 0; i < len; i++) {
       arr[i] = v;
@@ -48,8 +48,8 @@ public class BinarySearchTest {
     return arr;
   }
 
-  private static double[] buildRandDoubleArr(int len) {
-    double[] arr = new double[len];
+  private static double[] buildRandDoubleArr(final int len) {
+    final double[] arr = new double[len];
     double v = 1.0;
     for (int i = 0; i < len; i++) {
       arr[i] = v;
@@ -63,9 +63,9 @@ public class BinarySearchTest {
   @Test //visual testing only
   //@SuppressWarnings("unused")
   private static void checkBuildRandArr() {
-    int len = 10;
+    final int len = 10;
     for (int i = 0; i < 10; i++) {
-      float[] tarr = buildRandFloatArr(len);
+      final float[] tarr = buildRandFloatArr(len);
       for (int j = 0; j < len; j++) {
         printf("%4.1f,", tarr[j]);
       }
@@ -76,16 +76,16 @@ public class BinarySearchTest {
   @Test
   public void checkBinSearchDblLimits() {
     for (int len = 10; len <= 13; len++) {
-      double[] tarr = buildRandDoubleArr(len);
-      int low = 2;
-      int high = len - 2;
+      final double[] tarr = buildRandDoubleArr(len);
+      final int low = 2;
+      final int high = len - 2;
       println(listDblArray(tarr, low, high));
       checkBinarySearchDoubleLimits(tarr, low, high);
     }
   }
 
-  private static String listDblArray(double[] arr, int low, int high) {
-    StringBuilder sb = new StringBuilder();
+  private static String listDblArray(final double[] arr, final int low, final int high) {
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("arr: ");
     for (int i = 0; i < arr.length; i++) {
@@ -95,83 +95,83 @@ public class BinarySearchTest {
     return sb.toString();
   }
 
-  private static void checkBinarySearchDoubleLimits(double[] arr, int low, int high) {
-    double lowV = arr[low];
-    double highV = arr[high];
+  private static void checkBinarySearchDoubleLimits(final double[] arr, final int low, final int high) {
+    final double lowV = arr[low];
+    final double highV = arr[high];
     double v;
     int res;
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, LT);
+    res = InequalitySearch.find(arr, low, high, v, LT);
     println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV;
-    res = BinarySearch.find(arr, low, high, v, LT);
+    res = InequalitySearch.find(arr, low, high, v, LT);
     println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, LT);
+    res = InequalitySearch.find(arr, low, high, v, LT);
     println(LT.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, LE);
+    res = InequalitySearch.find(arr, low, high, v, LE);
     println(LE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV;
-    res = BinarySearch.find(arr, low, high, v, LE);
+    res = InequalitySearch.find(arr, low, high, v, LE);
     println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, LE);
+    res = InequalitySearch.find(arr, low, high, v, LE);
     println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, EQ);
+    res = InequalitySearch.find(arr, low, high, v, EQ);
     println(EQ.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV;
-    res = BinarySearch.find(arr, low, high, v, EQ);
+    res = InequalitySearch.find(arr, low, high, v, EQ);
     println(EQ.desc(arr, low, high, v, res));
     assertEquals(arr[res], v);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, EQ);
+    res = InequalitySearch.find(arr, low, high, v, EQ);
     println(EQ.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, GT);
+    res = InequalitySearch.find(arr, low, high, v, GT);
     println(GT.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV;
-    res = BinarySearch.find(arr, low, high, v, GT);
+    res = InequalitySearch.find(arr, low, high, v, GT);
     println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, GT);
+    res = InequalitySearch.find(arr, low, high, v, GT);
     println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, GE);
+    res = InequalitySearch.find(arr, low, high, v, GE);
     println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = lowV;
-    res = BinarySearch.find(arr, low, high, v, GE);
+    res = InequalitySearch.find(arr, low, high, v, GE);
     println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, GE);
+    res = InequalitySearch.find(arr, low, high, v, GE);
     println(GE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
   }
@@ -179,16 +179,16 @@ public class BinarySearchTest {
   @Test
   public void checkBinSearchFltLimits() {
     for (int len = 10; len <= 13; len++) {
-      float[] tarr = buildRandFloatArr(len);
-      int low = 2;
-      int high = len - 2;
+      final float[] tarr = buildRandFloatArr(len);
+      final int low = 2;
+      final int high = len - 2;
       println(listFltArray(tarr, low, high));
       checkBinarySearchFloatLimits(tarr, low, high);
     }
   }
 
-  private static String listFltArray(float[] arr, int low, int high) {
-    StringBuilder sb = new StringBuilder();
+  private static String listFltArray(final float[] arr, final int low, final int high) {
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("arr: ");
     for (int i = 0; i < arr.length; i++) {
@@ -198,83 +198,83 @@ public class BinarySearchTest {
     return sb.toString();
   }
 
-  private static void checkBinarySearchFloatLimits(float[] arr, int low, int high) {
-    float lowV = arr[low];
-    float highV = arr[high];
+  private static void checkBinarySearchFloatLimits(final float[] arr, final int low, final int high) {
+    final float lowV = arr[low];
+    final float highV = arr[high];
     float v;
     int res;
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, LT);
+    res = InequalitySearch.find(arr, low, high, v, LT);
     println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV;
-    res = BinarySearch.find(arr, low, high, v, LT);
+    res = InequalitySearch.find(arr, low, high, v, LT);
     println(LT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, LT);
+    res = InequalitySearch.find(arr, low, high, v, LT);
     println(LT.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV -1;
-    res = BinarySearch.find(arr, low, high, v, LE);
+    res = InequalitySearch.find(arr, low, high, v, LE);
     println(LE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV;
-    res = BinarySearch.find(arr, low, high, v, LE);
+    res = InequalitySearch.find(arr, low, high, v, LE);
     println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, LE);
+    res = InequalitySearch.find(arr, low, high, v, LE);
     println(LE.desc(arr, low, high, v, res));
     assertEquals(res, high);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, EQ);
+    res = InequalitySearch.find(arr, low, high, v, EQ);
     println(EQ.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV;
-    res = BinarySearch.find(arr, low, high, v, EQ);
+    res = InequalitySearch.find(arr, low, high, v, EQ);
     println(EQ.desc(arr, low, high, v, res));
     assertEquals(arr[res], v);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, EQ);
+    res = InequalitySearch.find(arr, low, high, v, EQ);
     println(EQ.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, GT);
+    res = InequalitySearch.find(arr, low, high, v, GT);
     println(GT.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV;
-    res = BinarySearch.find(arr, low, high, v, GT);
+    res = InequalitySearch.find(arr, low, high, v, GT);
     println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, GT);
+    res = InequalitySearch.find(arr, low, high, v, GT);
     println(GT.desc(arr, low, high, v, res));
     assertEquals(res, -1);
 
     v = lowV - 1;
-    res = BinarySearch.find(arr, low, high, v, GE);
+    res = InequalitySearch.find(arr, low, high, v, GE);
     println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = lowV;
-    res = BinarySearch.find(arr, low, high, v, GE);
+    res = InequalitySearch.find(arr, low, high, v, GE);
     println(GE.desc(arr, low, high, v, res));
     assertEquals(res, low);
 
     v = highV + 1;
-    res = BinarySearch.find(arr, low, high, v, GE);
+    res = InequalitySearch.find(arr, low, high, v, GE);
     println(GE.desc(arr, low, high, v, res));
     assertEquals(res, -1);
   }
@@ -289,15 +289,15 @@ public class BinarySearchTest {
     checkFindDouble(arr, GE);
   }
 
-  private static void checkFindDouble(double[] arr, Criteria crit) {
-    println("Criteria: " + crit.name());
+  private static void checkFindDouble(final double[] arr, final InequalitySearch crit) {
+    println("InequalitySearch: " + crit.name());
     final int len = arr.length;
     for (double v = 0.5; v <= arr[len - 1] + 0.5; v += .5)
     //final double v = 0.5;
     {
       final int low = 0;
       final int high = len - 1;
-      final int idx = BinarySearch.find(arr, low, high, v, crit);
+      final int idx = InequalitySearch.find(arr, low, high, v, crit);
       if (idx == -1) {
         println(v + " Not resolved, return -1.");
       }
@@ -318,15 +318,15 @@ public class BinarySearchTest {
     checkFindFloat(arr, GE);
   }
 
-  private static void checkFindFloat(float[] arr, Criteria crit) {
-    println("Criteria: " + crit.name());
+  private static void checkFindFloat(final float[] arr, final InequalitySearch crit) {
+    println("InequalitySearch: " + crit.name());
     final int len = arr.length;
     for (float v = 0.5f; v <= arr[len - 1] + 0.5f; v += .5f)
     //final double v = 0.5;
     {
       final int low = 0;
       final int high = len - 1;
-      final int idx = BinarySearch.find(arr, low, high, v, crit);
+      final int idx = InequalitySearch.find(arr, low, high, v, crit);
       if (idx == -1) {
         println("LT: " + v + " Not resolved, return -1.");
       }
@@ -340,7 +340,7 @@ public class BinarySearchTest {
   @Test
   public void checkSimpleFindFloat() {
     final int len = 10;
-    float[] arr = new float[len];
+    final float[] arr = new float[len];
     for (int i = 0; i < len; i++) { arr[i] = i; }
     int idx;
     for (int i = 0; i < len; i++) {
@@ -356,7 +356,7 @@ public class BinarySearchTest {
   @Test
   public void checkSimpleFindDouble() {
     final int len = 11;
-    double[] arr = new double[len];
+    final double[] arr = new double[len];
     for (int i = 0; i < len; i++) { arr[i] = i; }
     int idx;
     for (int i = 0; i < len; i++) {

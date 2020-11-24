@@ -21,8 +21,7 @@ package org.apache.datasketches.req;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.BinarySearch;
-import org.apache.datasketches.Criteria;
+import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -215,8 +214,8 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final Criteria crit = ltEq ? Criteria.LE : Criteria.LT;
-    final int index = BinarySearch.find(arr_, low, high, value, crit);
+    final InequalitySearch crit = ltEq ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(arr_, low, high, value, crit);
     return index == -1 ? 0 : index - low + 1;
   }
 
