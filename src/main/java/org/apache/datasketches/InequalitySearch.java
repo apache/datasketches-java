@@ -36,20 +36,20 @@ package org.apache.datasketches;
  * the searching criteria are as follows:</p>
  * <ul>
  * <li><b>LT:</b> Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] < v <= arr[B]</i>. The normal return is the index <i>A</i>.
+ * <i>arr[A] &lt; v &le; arr[B]</i>. The normal return is the index <i>A</i>.
  * </li>
  * <li><b>LE:</b>  Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v < arr[B]</i>. The normal return is the index <i>A</i>.
+ * <i>arr[A] &le; v &lt; arr[B]</i>. The normal return is the index <i>A</i>.
  * </li>
  * <li><b>EQ:</b>  Find the adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v <= arr[B]</i>. The normal return is the index <i>A</i> or <i>B</i> whichever
+ * <i>arr[A] &le; v &le; arr[B]</i>. The normal return is the index <i>A</i> or <i>B</i> whichever
  * equals <i>v</i>, otherwise it returns -1.
  * </li>
  * <li><b>GE:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] < v <= arr[B]</i>. The normal return is the index <i>B</i>.
+ * <i>arr[A] &lt; v &le; arr[B]</i>. The normal return is the index <i>B</i>.
  * </li>
  * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v < arr[B]</i>. The normal return is the index <i>B</i>.
+ * <i>arr[A] &le; v &lt; arr[B]</i>. The normal return is the index <i>B</i>.
  * </li>
  * </ul>
  *

@@ -130,11 +130,8 @@ public class ReqSketchOtherTest {
     final ReqSketch sk = ReqSketch.builder().build();
     sk.setLessThanOrEqual(true);
     assertEquals(sk.isLessThanOrEqual(), true);
-    assertEquals(sk.isCompatible(), true);
     sk.setLessThanOrEqual(false); //LT
-    sk.setCompatible(false);
     assertEquals(sk.isLessThanOrEqual(), false);
-    assertEquals(sk.isCompatible(), false);
   }
 
   @Test
@@ -155,7 +152,6 @@ public class ReqSketchOtherTest {
     ReqSketch sk;
     final ReqSketchBuilder bldr = ReqSketch.builder();
     bldr.setK(50).setHighRankAccuracy(false);
-    bldr.setCompatible(false);
     bldr.setReqDebug(null);
     sk = bldr.build();
     final float[] vArr = { 5, 5, 5, 6, 6, 6, 7, 8, 8, 8 };
@@ -183,7 +179,6 @@ public class ReqSketchOtherTest {
   @Test
   public void checkEmpty() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
-    bldr.setCompatible(false);
     bldr.setLessThanOrEqual(false);
     final ReqSketch sk = new ReqSketchBuilder().build();
     assertEquals(sk.getRank(1f), Double.NaN);

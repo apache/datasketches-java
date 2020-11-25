@@ -68,6 +68,7 @@ public class ReqSketchTest {
     checkIterator(sk, iDebug);
     checkMerge(sk, iDebug);
     printBoundary(skDebug);
+    sk.reset();
   }
 
   //Common loadSketch
@@ -256,6 +257,10 @@ public class ReqSketchTest {
   public void checkSerDe() {
     final int k = 12;
     final int exact = 2 * 3 * k - 1;
+    checkSerDeImpl(12, false, 0);
+    checkSerDeImpl(12, true, 0);
+    checkSerDeImpl(12, false, 4);
+    checkSerDeImpl(12, true, 4);
     checkSerDeImpl(12, false, exact);
     checkSerDeImpl(12, true, exact);
     checkSerDeImpl(12, false, 2 * exact); //more than one compactor
@@ -270,6 +275,35 @@ public class ReqSketchTest {
     final byte[] sk1Arr = sk1.toByteArray();
     final Memory mem = Memory.wrap(sk1Arr);
     final ReqSketch sk2 = ReqSketch.heapify(mem);
+    assertEquals(sk2.getRetainedItems(), sk1.getRetainedItems());
+    assertEquals(sk2.getMinValue(), sk1.getMinValue());
+    assertEquals(sk2.getMaxValue(), sk1.getMaxValue());
+    assertEquals(sk2.getN(), sk1.getN());
+    assertEquals(sk2.getHighRankAccuracy(),sk1.getHighRankAccuracy());
+    assertEquals(sk2.getK(), sk1.getK());
+    assertEquals(sk2.getMaxNomSize(), sk1.getMaxNomSize());
+    assertEquals(sk2.getLtEq(), sk1.getLtEq());
+    assertEquals(sk2.getNumLevels(), sk1.getNumLevels());
+    assertEquals(sk2.getSerializationBytes(), sk1.getSerializationBytes());
+  }
+
+  @Test
+  public void checkK() {
+    try {
+      final ReqSketch sk1 = ReqSketch.builder().setK(1).build();
+      fail();
+    } catch (final SketchesArgumentException e) {}
+  }
+
+  @Test
+  public void checkAuxDeDup() {
+    final ReqSketch sk1 = ReqSketch.builder().setK(8).build();
+    final float[] arr = {1, 2, 2, 3, 3, 4, 4};
+    for (final float i : arr) {sk1.update(i); }
+    float q = sk1.getQuantile(.5);
+    assertEquals(q, 2.0f);
+    q = sk1.getQuantile(1.0);
+    assertEquals(q, 4.0f);
   }
 
   private static void outputCompactorDetail(final ReqSketch sk, final String fmt, final boolean allData, final String text) {

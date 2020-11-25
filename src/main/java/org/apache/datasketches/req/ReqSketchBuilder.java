@@ -19,10 +19,8 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.max;
 import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.TAB;
-import static org.apache.datasketches.req.ReqSketch.MIN_K;
 
 /**
  * For building a new ReqSketch
@@ -34,7 +32,6 @@ public class ReqSketchBuilder {
   private int bK = DEFAULT_K;
   private boolean bHRA;
   private boolean bLtEq;
-  private boolean bCompatible;
   private ReqDebug bReqDebug;
 
   /**
@@ -44,7 +41,6 @@ public class ReqSketchBuilder {
     bK = DEFAULT_K;
     bHRA = true;
     bLtEq = false;
-    bCompatible = true;
     bReqDebug = null;
   }
 
@@ -55,16 +51,7 @@ public class ReqSketchBuilder {
   public ReqSketch build() {
     final ReqSketch sk = new ReqSketch(bK, bHRA, bReqDebug);
     sk.setLessThanOrEqual(bLtEq);
-    sk.setCompatible(bCompatible);
     return sk;
-  }
-
-  /**
-   * gets the builder configured value of compatible.
-   * @return the builder configured value of compatible.
-   */
-  public boolean getCompatible() {
-    return bCompatible;
   }
 
   /**
@@ -100,19 +87,8 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * Sets the parameter compatible. This parameter can also be modified after the sketch has
-   * been constructed. It is included here for convenience.
-   * @param compatible See {@link ReqSketch#setCompatible(boolean)}.
-   * @return this
-   */
-  public ReqSketchBuilder setCompatible(final boolean compatible) {
-    bCompatible = compatible;
-    return this;
-  }
-
-  /**
    * This sets the parameter highRankAccuracy.
-   * @param hra See {@link ReqSketch#ReqSketch(int, boolean)}
+   * @param hra See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
    * @return this
    */
   public ReqSketchBuilder setHighRankAccuracy(final boolean hra) {
@@ -122,11 +98,11 @@ public class ReqSketchBuilder {
 
   /**
    * This sets the parameter k.
-   * @param k See {@link ReqSketch#ReqSketch(int, boolean)}
+   * @param k See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
    * @return this
    */
   public ReqSketchBuilder setK(final int k) {
-    bK = max(k & -2, MIN_K); //make even and no smaller than MIN_K
+    bK = k;
     return this;
   }
 
@@ -143,9 +119,7 @@ public class ReqSketchBuilder {
 
   /**
    * This sets the parameter reqDebug.
-   * This parameter can also be  modified after the sketch has been constructed.
-   * It is included here for convenience.
-   * @param reqDebug See {@link ReqSketch#setReqDebug(ReqDebug)}
+   * @param reqDebug See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
    * @return this
    */
   public ReqSketchBuilder setReqDebug(final ReqDebug reqDebug) {
@@ -160,7 +134,6 @@ public class ReqSketchBuilder {
     sb.append("K:").append(TAB).append(bK).append(LS);
     sb.append("HRA:").append(TAB).append(bHRA).append(LS);
     sb.append("LtEq").append(TAB).append(bLtEq).append(LS);
-    sb.append("Compatible:").append(TAB).append(bCompatible).append(LS);
     final String valid = bReqDebug != null ? "valid" : "invalid";
     sb.append("ReqDebug:").append(TAB).append(valid).append(LS);
     return sb.toString();

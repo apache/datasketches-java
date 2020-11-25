@@ -113,14 +113,10 @@ abstract class BaseReqSketch {
   public abstract double[] getPMF(final float[] splitPoints);
 
   /**
-   * Gets the quantile of the largest normalized rank based on the lteq criterion.
+   * Gets the approximate quantile of the given normalized rank based on the lteq criterion.
    * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
-   * If the given normRank is outside the range of ranks of values retained by the sketch the
-   * returned value will be a <i>NaN</i>, unless {@link #setCompatible(boolean)} has been
-   * set true, in which case the returned value will be the <i>minValue</i> or the <i>maxValue</i>
-   * captured from the stream.
    * @param normRank the given normalized rank
-   * @return the largest quantile less than the given normalized rank.
+   * @return the approximate quantile given the normalized rank.
    */
   public abstract float getQuantile(final double normRank);
 
@@ -178,14 +174,6 @@ abstract class BaseReqSketch {
   public abstract int getSerializationBytes();
 
   /**
-   * Returns true if this sketch's treatment of getQuantile() for values &lt; the minValue
-   * is compatible with the other quantiles sketches in the DataSketches library.
-   * @return true if this sketch's treatment of getQuantile() for values &lt; the minValue
-   * is compatible with the other quantiles sketches in the DataSketches library.
-   */
-  public abstract boolean isCompatible();
-
-  /**
    * Returns true if this sketch is empty.
    * @return empty flag
    */
@@ -224,18 +212,6 @@ abstract class BaseReqSketch {
    * @return this
    */
   public abstract ReqSketch reset();
-
-  /**
-   * If true, the default, relates to this sketch's treatment of <i>getRank(v)</i> for <i>v</i> &lt;
-   * the smallest retained value. In this case the sketch will return the minValue of the stream.
-   * This is compatible with the other quantiles sketches in the DataSketches library.
-   * Otherwise, if false, the sketch will return a <i>Float.NaN</i>.
-   *
-   * @param compatible If true this sketch's treatment of getQuantile() for values &lt; the minValue
-   * is compatible with the other quantiles sketches in the DataSketches library.
-   * @return this
-   */
-  public abstract ReqSketch setCompatible(final boolean compatible);
 
   /**
    * Sets the chosen criterion for value comparison

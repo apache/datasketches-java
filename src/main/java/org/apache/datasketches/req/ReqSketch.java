@@ -79,7 +79,6 @@ public class ReqSketch extends BaseReqSketch {
   private final int k;  //user config, default is 12 (1% @ 95% Conf)
   private final boolean hra;    //user config, default is true
   //state variables
-  private boolean compatible = true; //user config, default: true, can be set after construction
   private boolean ltEq = false; //user config, default: LT, can be set after construction
   private long totalN;
   private float minValue = Float.NaN;
@@ -126,8 +125,6 @@ public class ReqSketch extends BaseReqSketch {
     maxNomSize = other.maxNomSize;
     minValue = other.minValue;
     maxValue = other.maxValue;
-
-    compatible = other.compatible;
     ltEq = other.ltEq;
     reqDebug = other.reqDebug;
     //aux does not need to be copied
@@ -143,6 +140,7 @@ public class ReqSketch extends BaseReqSketch {
    */
   ReqSketch(final int k, final boolean hra, final long totalN, final float minValue,
       final float maxValue, final List<ReqCompactor> compactors) {
+    checkK(k);
     this.k = k;
     this.hra = hra;
     this.totalN = totalN;
@@ -318,13 +316,7 @@ public class ReqSketch extends BaseReqSketch {
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
-    final float q = aux.getQuantile(normRank, ltEq);
-    if (Float.isNaN(q)) { //possible result from aux.getQuantile()
-      if (compatible) {
-        return minValue;
-      }
-    }
-    return q;
+    return aux.getQuantile(normRank, ltEq);
   }
 
   @Override
@@ -418,11 +410,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public boolean isCompatible() {
-    return compatible;
-  }
-
-  @Override
   public boolean isEmpty() {
     return totalN == 0;
   }
@@ -475,12 +462,6 @@ public class ReqSketch extends BaseReqSketch {
     aux = null;
     compactors = new ArrayList<>();
     grow();
-    return this;
-  }
-
-  @Override
-  public ReqSketch setCompatible(final boolean compatible) {
-    this.compatible = compatible;
     return this;
   }
 

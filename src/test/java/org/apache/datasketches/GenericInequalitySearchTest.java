@@ -42,12 +42,12 @@ public class GenericInequalitySearchTest {
   private static final String LS = System.getProperty("line.separator");
   private static int randDelta() { return rand.nextDouble() < 0.4 ? 0 : 1; }
 
-  private Comparator<Float> comparator = Comparator.naturalOrder();
+  private final Comparator<Float> comparator = Comparator.naturalOrder();
 
 
-  private static Float[] buildRandFloatArr(int len) {
-    Float[] arr = new Float[len];
-    Float v = 1.0f;
+  private static Float[] buildRandFloatArr(final int len) {
+    final Float[] arr = new Float[len];
+    Float v = 1.0f; //lgtm [java/non-null-boxed-variable]
     for (int i = 0; i < len; i++) {
       arr[i] = v;
       v += randDelta();
@@ -58,9 +58,9 @@ public class GenericInequalitySearchTest {
   @Test //visual testing only
   //@SuppressWarnings("unused")
   private static void checkBuildRandArr() {
-    int len = 10;
+    final int len = 10;
     for (int i = 0; i < 10; i++) {
-      Float[] tarr = buildRandFloatArr(len);
+      final Float[] tarr = buildRandFloatArr(len);
       for (int j = 0; j < len; j++) {
         printf("%4.1f,", tarr[j]);
       }
@@ -68,8 +68,8 @@ public class GenericInequalitySearchTest {
     }
   }
 
-  private static String listFltArray(Float[] arr, int low, int high) {
-    StringBuilder sb = new StringBuilder();
+  private static String listFltArray(final Float[] arr, final int low, final int high) {
+    final StringBuilder sb = new StringBuilder();
     sb.append(LS);
     sb.append("arr: ");
     for (int i = 0; i < arr.length; i++) {
@@ -82,17 +82,17 @@ public class GenericInequalitySearchTest {
   @Test
   public void checkBinSearchFltLimits() {
     for (int len = 10; len <= 13; len++) {
-      Float[] tarr = buildRandFloatArr(len);
-      int low = 2;
-      int high = len - 2;
+      final Float[] tarr = buildRandFloatArr(len);
+      final int low = 2;
+      final int high = len - 2;
       println(listFltArray(tarr, low, high));
       checkBinarySearchFloatLimits(tarr, low, high);
     }
   }
 
-  private void checkBinarySearchFloatLimits(Float[] arr, int low, int high) {
-    Float lowV = arr[low];
-    Float highV = arr[high];
+  private void checkBinarySearchFloatLimits(final Float[] arr, final int low, final int high) {
+    final Float lowV = arr[low];
+    final Float highV = arr[high];
     Float v;
     int res;
     v = lowV - 1f;
@@ -181,12 +181,12 @@ public class GenericInequalitySearchTest {
     checkFindFloat(GE);
   }
 
-  private void checkFindFloat(GenericInequalitySearch.Inequality inequality) {
+  private void checkFindFloat(final GenericInequalitySearch.Inequality inequality) {
     println("Inequality: " + inequality.name());
     //                   0  1  2  3  4  5  6  7  8  9
     final Float[] arr = {5f,5f,5f,6f,6f,6f,7f,8f,8f,8f};
     final int len = arr.length;
-    for (Float v = 0.5f; v <= arr[len - 1] + 0.5f; v += .5f) {
+    for (Float v = 0.5f; v <= arr[len - 1] + 0.5f; v += .5f) { //lgtm [java/non-null-boxed-variable]
       final int low = 0;
       final int high = len - 1;
       final int idx = find(arr, low, high, v, inequality, comparator);

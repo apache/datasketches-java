@@ -34,26 +34,26 @@ import java.util.Comparator;
  * given an array of values <i>arr[]</i> and the search key value <i>v</i>, as follows:</p>
  * <ul>
  * <li><b>LT:</b> Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] < v <= arr[B]</i>. Normally we return the index <i>A</i>. However if the
+ * <i>arr[A] &lt; v &le; arr[B]</i>. Normally we return the index <i>A</i>. However if the
  * search algorithm reaches the ends of the search range, the search algorithm calls the
  * <i>resolve()</i> method to determine what to return to the caller.
  * </li>
  * <li><b>LE:</b>  Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v < arr[B]</i>. Normally we return the index <i>A</i>. However if the
+ * <i>arr[A] &le; v &lt; arr[B]</i>. Normally we return the index <i>A</i>. However if the
  * search algorithm reaches the ends of the search range, the search algorithm calls the
  * <i>resolve()</i> method to determine what to return to the caller.
  * </li>
  * <li><b>EQ:</b>  Find the adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v <= arr[B]</i>. We return the index <i>A</i> or <i>B</i> whichever
+ * <i>arr[A] &le; v &lt; arr[B]</i>. We return the index <i>A</i> or <i>B</i> whichever
  * equals <i>v</i>, otherwise we return -1.
  * </li>
  * <li><b>GE:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] < v <= arr[B]</i>. Normally we return the index <i>B</i>. However if the
+ * <i>arr[A] &lt; v &le; arr[B]</i>. Normally we return the index <i>B</i>. However if the
  * search algorithm reaches the ends of the search range, the search algorithm calls the
  * <i>resolve()</i> method to determine what to return to the caller.
  * </li>
  * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] <= v <= arr[B]</i>. Normally we return the index <i>B</i>. However if the
+ * <i>arr[A] &le; v &lt; arr[B]</i>. Normally we return the index <i>B</i>. However if the
  * search algorithm reaches the ends of the search range, the search algorithm calls the
  * <i>resolve()</i> method to determine what to return to the caller.
  * </li>
