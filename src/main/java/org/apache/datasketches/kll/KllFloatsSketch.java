@@ -272,7 +272,7 @@ public class KllFloatsSketch {
    * @param k configured size of sketch. Range [m, 2^16]
    * @param compatible if true, compatible with quantiles sketch.
    */
-  public KllFloatsSketch(final int k, final boolean compatible) {
+  KllFloatsSketch(final int k, final boolean compatible) {
     this(k, DEFAULT_M, compatible);
   }
 

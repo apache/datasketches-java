@@ -94,7 +94,7 @@ class ReqAuxiliary {
         i++;
         continue;
       } else {
-        itemsB[bidx] = items[hidup]; //lgtm [java/index-out-of-bounds] false positive
+        itemsB[bidx] = items[hidup]; //lgtm [java/index-out-of-bounds]
         wtsB[bidx++] = weights[hidup];
         i = j;
         continue;
@@ -154,7 +154,7 @@ class ReqAuxiliary {
       if (index == -1) { return items[len - 1]; }
     } else { //less-than
       crit = InequalitySearch.GT;
-      index = InequalitySearch.find(weights, 0, len - 1, rank - 1, crit);
+      index = InequalitySearch.find(weights, 0, len - 1, rank, crit);
       if (index == -1) { return items[len - 1]; }
     }
     return items[index];
