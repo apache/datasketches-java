@@ -297,11 +297,15 @@ public class ReqSketchTest {
 
   @Test
   public void checkAuxDeDup() {
+    final ReqSketchBuilder bldr = ReqSketch.builder();
+    bldr.setK(8);
+    bldr.setLessThanOrEqual(false);
+    bldr.setHighRankAccuracy(true);
     final ReqSketch sk1 = ReqSketch.builder().setK(8).build();
     final float[] arr = {1, 2, 2, 3, 3, 4, 4};
     for (final float i : arr) {sk1.update(i); }
     float q = sk1.getQuantile(.5);
-    assertEquals(q, 2.0f);
+    assertEquals(q, 3.0f);
     q = sk1.getQuantile(1.0);
     assertEquals(q, 4.0f);
   }
