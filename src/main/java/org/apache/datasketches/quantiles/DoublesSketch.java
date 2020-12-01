@@ -27,7 +27,6 @@ import static org.apache.datasketches.quantiles.Util.checkIsCompactMemory;
 import java.util.Random;
 
 import org.apache.datasketches.Family;
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.kll.KllFloatsSketch;
 import org.apache.datasketches.memory.Memory;
@@ -218,15 +217,13 @@ public abstract class DoublesSketch {
    */
   public double getQuantile(final double fraction) {
     if (isEmpty()) { return Double.NaN; }
-    if ((fraction < 0.0) || (fraction > 1.0)) {
+    if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return getMinValue(); }
-    else if (fraction == 1.0) { return getMaxValue(); }
-    else {
-      final DoublesAuxiliary aux = new DoublesAuxiliary(this);
-      return aux.getQuantile(fraction);
-    }
+    if (fraction == 1.0) { return getMaxValue(); }
+    final DoublesAuxiliary aux = new DoublesAuxiliary(this);
+    return aux.getQuantile(fraction);
   }
 
   /**
@@ -294,7 +291,7 @@ public abstract class DoublesSketch {
    * <p>If the sketch is empty this returns null.
    *
    * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
-   * This must be a positive integer greater than 0. A value of 1 will return the min value.
+   * This must be a positive integer greater than 1.
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
    *
@@ -303,7 +300,7 @@ public abstract class DoublesSketch {
    */
   public double[] getQuantiles(final int evenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(QuantilesHelper.getEvenlySpacedRanks(evenlySpaced));
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, evenlySpaced));
   }
 
   /**
@@ -523,7 +520,7 @@ public abstract class DoublesSketch {
    * @return true if this sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return getN() >= (2L * k_);
+    return getN() >= 2L * k_;
   }
 
   /**
@@ -644,7 +641,7 @@ public abstract class DoublesSketch {
   public static int getCompactStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    return ((metaPreLongs + Util.computeRetainedItems(k, n)) << 3);
+    return metaPreLongs + Util.computeRetainedItems(k, n) << 3;
   }
 
 
@@ -681,9 +678,9 @@ public abstract class DoublesSketch {
     final int totLevels = Util.computeNumLevelsNeeded(k, n);
     if (n <= k) {
       final int ceil = Math.max(ceilingPowerOf2((int)n), DoublesSketch.MIN_K * 2);
-      return (metaPre + ceil) << 3;
+      return metaPre + ceil << 3;
     }
-    return (metaPre + ((2 + totLevels) * k)) << 3;
+    return metaPre + (2 + totLevels) * k << 3;
   }
 
   /**
@@ -705,7 +702,7 @@ public abstract class DoublesSketch {
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    if (isDirect() && (isCompact() == compact)) {
+    if (isDirect() && isCompact() == compact) {
       final Memory srcMem = getMemory();
       srcMem.copyTo(0, dstMem, 0, getStorageBytes());
     } else {
@@ -737,7 +734,7 @@ public abstract class DoublesSketch {
    */
   UpdateDoublesSketch downSampleInternal(final DoublesSketch srcSketch, final int smallerK,
                                          final WritableMemory dstMem) {
-    final UpdateDoublesSketch newSketch = (dstMem == null)
+    final UpdateDoublesSketch newSketch = dstMem == null
             ? HeapUpdateDoublesSketch.newInstance(smallerK)
             : DirectUpdateDoublesSketch.newInstance(smallerK, dstMem);
     if (srcSketch.isEmpty()) { return newSketch; }

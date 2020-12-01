@@ -61,7 +61,7 @@ class DoublesPmfCdfImpl {
     final double[] counters = new double[numCounters];
 
     long weight = 1;
-    sketchAccessor.setLevel(DoublesSketchAccessor.BB_LVL_IDX);
+    sketchAccessor.setLevel(DoublesSketchAccessor.BB_LVL_IDX); //base-buffer level index
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
       DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
@@ -75,7 +75,7 @@ class DoublesPmfCdfImpl {
 
     long myBitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
-    assert myBitPattern == sketch.getN() / (2L * k); // internal consistency check
+    assert myBitPattern == (sketch.getN() / (2L * k)); // internal consistency check
     for (int lvl = 0; myBitPattern != 0L; lvl++, myBitPattern >>>= 1) {
       weight <<= 1; // double the weight
       if ((myBitPattern & 1L) > 0L) { //valid level exists
@@ -99,7 +99,7 @@ class DoublesPmfCdfImpl {
    */
   static void bilinearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples, final long weight,
       final double[] splitPoints, final double[] counters) {
-    assert (splitPoints.length + 1 == counters.length);
+    assert ((splitPoints.length + 1) == counters.length);
     for (int i = 0; i < samples.numItems(); i++) {
       final double sample = samples.get(i);
       int j;
@@ -132,7 +132,7 @@ class DoublesPmfCdfImpl {
       final double[] splitPoints, final double[] counters) {
     int i = 0;
     int j = 0;
-    while (i < samples.numItems() && j < splitPoints.length) {
+    while ((i < samples.numItems()) && (j < splitPoints.length)) {
       if (samples.get(i) < splitPoints[j]) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static java.lang.Math.floor;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
@@ -26,7 +27,6 @@ import static org.apache.datasketches.quantiles.Util.LS;
 import static org.apache.datasketches.quantiles.Util.computeCombinedBufferItemCapacity;
 import static org.apache.datasketches.quantiles.Util.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.Util.lg;
-import static java.lang.Math.floor;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -35,14 +35,13 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteOrder;
 
+import org.apache.datasketches.QuantilesHelper;
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.QuantilesHelper;
-import org.apache.datasketches.SketchesArgumentException;
 
 @SuppressWarnings("javadoc")
 public class HeapUpdateDoublesSketchTest {
@@ -899,11 +898,11 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkEvenlySpaced() {
     int n = 11;
-    double[] es = QuantilesHelper.getEvenlySpacedRanks(n);
+    double[] es = org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
-      assertEquals(f, j/10.0, 0.0);
+      assertEquals(f, j/10.0, (j/10.0) * 0.001);
       print(es[j]+", ");
     }
     println("");

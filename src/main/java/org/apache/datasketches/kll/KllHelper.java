@@ -24,8 +24,6 @@ import static org.apache.datasketches.Util.floorPowerOf2;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.apache.datasketches.SketchesArgumentException;
-
 /**
  * Static methods to support KllSketch
  * @author Kevin Lang
@@ -41,23 +39,6 @@ class KllHelper {
 
   static boolean isOdd(final int value) {
     return (value & 1) == 1;
-  }
-
-  /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of values
-   */
-  static final void validateValues(final float[] values) {
-    for (int i = 0; i < values.length ; i++) {
-      if (Float.isNaN(values[i])) {
-        throw new SketchesArgumentException("Values must not be NaN");
-      }
-      if ((i < (values.length - 1)) && (values[i] >= values[i + 1])) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
-    }
   }
 
   /**

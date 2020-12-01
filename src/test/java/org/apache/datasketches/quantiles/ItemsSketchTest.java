@@ -25,17 +25,16 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Function;
 
-import org.testng.Assert;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.ArrayOfDoublesSerDe;
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ItemsSketchTest {
@@ -137,7 +136,7 @@ public class ItemsSketchTest {
     Assert.assertEquals(quantiles2[1], Integer.valueOf(500), 17); // median
     Assert.assertEquals(quantiles2[2], Integer.valueOf(750), 17); // max value
 
-    quantiles = sketch.getQuantiles(1);
+    quantiles = sketch.getQuantiles(2);
     Assert.assertEquals(quantiles[0], Integer.valueOf(1));
 
     quantiles = sketch.getQuantiles(3);

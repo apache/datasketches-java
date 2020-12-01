@@ -29,7 +29,9 @@ import static org.apache.datasketches.Util.characterPad;
 import static org.apache.datasketches.Util.checkIfMultipleOf8AndGT0;
 import static org.apache.datasketches.Util.checkIfPowerOf2;
 import static org.apache.datasketches.Util.checkProbability;
-import static org.apache.datasketches.Util.evenlyLgSpaced;
+import static org.apache.datasketches.Util.evenlyLogSpaced;
+import static org.apache.datasketches.Util.evenlySpaced;
+import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.Util.floorPowerOfBdouble;
 import static org.apache.datasketches.Util.getResourceBytes;
@@ -40,11 +42,14 @@ import static org.apache.datasketches.Util.isMultipleOf8AndGT0;
 import static org.apache.datasketches.Util.isPowerOf2;
 import static org.apache.datasketches.Util.milliSecToString;
 import static org.apache.datasketches.Util.nanoSecToString;
+import static org.apache.datasketches.Util.numberOfLeadingOnes;
+import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.Util.pwr2LawNext;
 import static org.apache.datasketches.Util.pwr2LawPrev;
 import static org.apache.datasketches.Util.pwrLawNextDouble;
 import static org.apache.datasketches.Util.simpleLog2OfLong;
 import static org.apache.datasketches.Util.zeroPad;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -63,6 +68,22 @@ public class UtilTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPowerOf2() {
     checkIfPowerOf2(31, "31");
+  }
+
+
+  @Test
+  public void numTrailingOnes() {
+    long mask = 1L;
+    for (int i = 0; i <= 64; i++) {
+      final long v = ~mask & -1L;
+      mask <<= 1;
+      final int numT1s = numberOfTrailingOnes(v);
+      final int numL1s = numberOfLeadingOnes(v);
+      assertEquals(Long.numberOfTrailingZeros(~v), numT1s);
+      assertEquals(Long.numberOfLeadingZeros(~v), numL1s);
+      //println(zeroPad(Long.toBinaryString(v),64) + ", " + numL1s + ", " + numT1s);
+      continue;
+    }
   }
 
   @Test
@@ -119,9 +140,9 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2(3), 2);
     Assert.assertEquals(floorPowerOf2(4), 4);
 
-    Assert.assertEquals(floorPowerOf2((1 << 30) - 1), (1 << 29));
-    Assert.assertEquals(floorPowerOf2((1 << 30)), (1 << 30));
-    Assert.assertEquals(floorPowerOf2((1 << 30) + 1), (1 << 30));
+    Assert.assertEquals(floorPowerOf2((1 << 30) - 1), 1 << 29);
+    Assert.assertEquals(floorPowerOf2(1 << 30), 1 << 30);
+    Assert.assertEquals(floorPowerOf2((1 << 30) + 1), 1 << 30);
   }
   @Test
   public void checkFloorPowerOf2Long() {
@@ -132,9 +153,9 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOf2(3L), 2L);
     Assert.assertEquals(floorPowerOf2(4L), 4L);
 
-    Assert.assertEquals(floorPowerOf2((1L << 63) - 1L), (1L << 62));
-    Assert.assertEquals(floorPowerOf2((1L << 62)), (1L << 62));
-    Assert.assertEquals(floorPowerOf2((1L << 62) + 1L), (1L << 62));
+    Assert.assertEquals(floorPowerOf2((1L << 63) - 1L), 1L << 62);
+    Assert.assertEquals(floorPowerOf2(1L << 62), 1L << 62);
+    Assert.assertEquals(floorPowerOf2((1L << 62) + 1L), 1L << 62);
   }
   @Test
   public void checkFloorPowerOf2double() {
@@ -214,29 +235,51 @@ public class UtilTest {
   }
 
   @Test
-  public void checkEvenlyLgSpaced() {
-    final int lgStart = 0;
-    final int lgEnd = 4;
-    final int ppo = 1;
-    final int points = (ppo * (lgEnd - lgStart)) + 1;
-    int[] pts = evenlyLgSpaced(lgStart, lgEnd, points);
-    Assert.assertEquals(pts[0], 1);
-    Assert.assertEquals(pts[1], 2);
-    Assert.assertEquals(pts[2], 4);
-    Assert.assertEquals(pts[3], 8);
-    Assert.assertEquals(pts[4], 16);
-    pts = evenlyLgSpaced(lgStart, lgEnd, 1);
-    Assert.assertEquals(pts[0], 1);
+  public void checkEvenlySpaced() {
+    double[] arr = evenlySpaced(0, 1, 3);
+    assertEquals(arr[0], 0.0);
+    assertEquals(arr[1], 0.5);
+    assertEquals(arr[2], 1.0);
+    arr = evenlySpaced(3, 7, 3);
+    assertEquals(arr[0], 3.0);
+    assertEquals(arr[1], 5.0);
+    assertEquals(arr[2], 7.0);
+  }
+
+  @Test
+  public void checkEvenlySpacedFloats() {
+    float[] arr = evenlySpacedFloats(0, 1, 3);
+    assertEquals(arr[0], 0.0f);
+    assertEquals(arr[1], 0.5f);
+    assertEquals(arr[2], 1.0f);
+    arr = evenlySpacedFloats(3, 7, 3);
+    assertEquals(arr[0], 3.0f);
+    assertEquals(arr[1], 5.0f);
+    assertEquals(arr[2], 7.0f);
+  }
+
+  @Test
+  public void checkEvenlyLogSpaced() {
+    final double[] arr = evenlyLogSpaced(1, 8, 4);
+    assertEquals(arr[0], 1.0);
+    assertEquals(arr[1], 2.0);
+    assertEquals(arr[2], 4.0);
+    assertEquals(arr[3], 8.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkEvenlyLgSpacedExcep1() {
-    evenlyLgSpaced(1, 2, -1);
+  public void checkEvenlySpacedExcep() {
+    evenlySpaced(1, 2, 1);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkEvenlyLgSpacedExcep2() {
-    evenlyLgSpaced(-1, 2, 3);
+  public void checkEvenlyLogSpacedExcep1() {
+    evenlyLogSpaced(1, 2, 1);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkEvenlyLogSpacedExcep2() {
+    evenlyLogSpaced(-1, 2, 2);
   }
 
   @Test
@@ -283,7 +326,7 @@ public class UtilTest {
 
   @Test
   public void checkMsecToString() {
-    final long nS = (60L * 60L * 1000L) + (60L * 1000L) + 1000L + 1L;
+    final long nS = 60L * 60L * 1000L + 60L * 1000L + 1000L + 1L;
     final String result = milliSecToString(nS);
     final String expected = "1:01:01.001";
     Assert.assertEquals(result, expected);

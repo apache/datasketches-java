@@ -25,8 +25,9 @@ package org.apache.datasketches;
 public class QuantilesHelper {
 
   /**
-   * Convert the weights into totals of the weights preceding each item
-   * @param array of weights
+   * Convert the weights into totals of the weights preceding each item.
+   * An array of {1,1,1,0} becomes {0,1,2,3}
+   * @param array of weights where first element is zero
    * @return total weight
    */
   public static long convertToPrecedingCummulative(final long[] array) {
@@ -48,29 +49,29 @@ public class QuantilesHelper {
    */
   public static long posOfPhi(final double phi, final long n) {
     final long pos = (long) Math.floor(phi * n);
-    return (pos == n) ? n - 1 : pos;
+    return pos == n ? n - 1 : pos; //avoids ArrayIndexOutOfBoundException
   }
 
   /**
    * This is written in terms of a plain array to facilitate testing.
-   * @param arr the chunk containing the position
+   * @param wtArr the cumlative weights array consisting of chunks
    * @param pos the position
    * @return the index of the chunk containing the position
    */
-  public static int chunkContainingPos(final long[] arr, final long pos) {
-    final int nominalLength = arr.length - 1; /* remember, arr contains an "extra" position */
+  public static int chunkContainingPos(final long[] wtArr, final long pos) {
+    final int nominalLength = wtArr.length - 1; /* remember, wtArr contains an "extra" position */
     assert nominalLength > 0;
-    final long n = arr[nominalLength];
+    final long n = wtArr[nominalLength];
     assert 0 <= pos;
     assert pos < n;
-    final int l = 0;
-    final int r = nominalLength;
+    final int l = 0; //left
+    final int r = nominalLength; //right
     // the following three asserts should probably be retained since they ensure
     // that the necessary invariants hold at the beginning of the search
     assert l < r;
-    assert arr[l] <= pos;
-    assert pos < arr[r];
-    return searchForChunkContainingPos(arr, pos, l, r);
+    assert wtArr[l] <= pos;
+    assert pos < wtArr[r];
+    return searchForChunkContainingPos(wtArr, pos, l, r);
   }
 
   // Let m_i denote the minimum position of the length=n "full" sorted sequence
@@ -99,28 +100,6 @@ public class QuantilesHelper {
       return searchForChunkContainingPos(arr, pos, m, r);
     }
     return searchForChunkContainingPos(arr, pos, l, m);
-  }
-
-  /**
-   * Compute an array of evenly spaced normalized ranks from 0 to 1 inclusive.
-   * A value of 1 will result in [0], 2 will result in [0, 1],
-   * 3 will result in [0, .5, 1] and so on.
-   * @param n number of ranks needed (must be greater than 0)
-   * @return array of ranks
-   */
-  public static double[] getEvenlySpacedRanks(final int n) {
-    if (n <= 0) {
-      throw new SketchesArgumentException("n must be > 0");
-    }
-    final double[] fractions = new double[n];
-    fractions[0] = 0.0;
-    for (int i = 1; i < n; i++) {
-      fractions[i] = (double) i / (n - 1);
-    }
-    if (n > 1) {
-      fractions[n - 1] = 1.0;
-    }
-    return fractions;
   }
 
 }
