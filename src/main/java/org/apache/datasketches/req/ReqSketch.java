@@ -71,8 +71,20 @@ import org.apache.datasketches.memory.Memory;
 public class ReqSketch extends BaseReqSketch {
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static final int INIT_NUMBER_OF_SECTIONS = 3;
-  static final int MIN_K = 4;
+  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: return final
+  static float NOM_CAPACITY_MULTIPLIER = 2f; // should be at least 2 // PV: TMP: FOR TESTING PURPOSES
+  static int MIN_K = 4;
+  static boolean LAZY_COMPRESSION = true; // PV: TMP: FOR TESTING PURPOSES
+  
+  @Override
+  public void set_INIT_NUMBER_OF_SECTIONS(final byte val) { INIT_NUMBER_OF_SECTIONS = val; }
+  @Override
+  public void set_NOM_CAPACITY_MULTIPLIER(final float val) { NOM_CAPACITY_MULTIPLIER = val; }
+  @Override
+  public void set_MIN_K(final int val) { MIN_K = val; }
+  @Override
+  public void set_LAZY_COMPRESSION(final boolean val) { LAZY_COMPRESSION = val; }
+  
   private static final double relRseFactor = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
   private static final double fixRseFactor = .06;
   //finals
@@ -125,6 +137,7 @@ public class ReqSketch extends BaseReqSketch {
     maxNomSize = other.maxNomSize;
     minValue = other.minValue;
     maxValue = other.maxValue;
+
     ltEq = other.ltEq;
     reqDebug = other.reqDebug;
     //aux does not need to be copied
@@ -182,7 +195,7 @@ public class ReqSketch extends BaseReqSketch {
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
-        if (retItems < maxNomSize) { break; }
+        if (LAZY_COMPRESSION && retItems < maxNomSize) { break; } 
       }
     }
     aux = null;

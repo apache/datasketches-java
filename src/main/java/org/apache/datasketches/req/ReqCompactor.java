@@ -22,6 +22,7 @@ package org.apache.datasketches.req;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
+import static org.apache.datasketches.req.ReqSketch.NOM_CAPACITY_MULTIPLIER;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 
 import java.util.Random;
@@ -122,6 +123,7 @@ class ReqCompactor {
     final int startRetItems = buf.getLength();
     final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
+    
     final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
     final long compactionRange = computeCompactionRange(secsToCompact);
     final int compactionStart = (int) (compactionRange & 0xFFFF_FFFFL); //low 32
@@ -169,8 +171,8 @@ class ReqCompactor {
    * Sets the current nominal capacity of this compactor.
    * @return the current maximum capacity of this compactor.
    */
-  int getNomCapacity() {
-    final int nCap = 2 * numSections * sectionSize;
+  int getNomCapacity() { // TODO implement caching the result?
+    final int nCap = (int)(NOM_CAPACITY_MULTIPLIER * numSections * sectionSize);
     return nCap;
   }
 
@@ -232,7 +234,7 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final float szf;
     final int ne;
-    if (state >= 1L << numSections - 1
+    if (state >= 1L << numSections - 1 //TODO try adding: && sectionSize > MIN_K
         && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
     {
       sectionSizeFlt = szf;
@@ -254,6 +256,7 @@ class ReqCompactor {
   private long computeCompactionRange(final int secsToCompact) {
     final int bufLen = buf.getLength();
     int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
+    // TODO: alternative: int nonCompact = (2 * numSections - secsToCompact) * sectionSize;
     //make compacted region even:
     nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
     final long low =  hra ? 0                   : nonCompact;
