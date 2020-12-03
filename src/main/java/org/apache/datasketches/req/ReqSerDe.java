@@ -317,7 +317,7 @@ class ReqSerDe {
         return 8;
       }
       case RAWITEMS: {
-        return sk.getCompactors().get(0).getBuffer().getLength() * Float.BYTES + 8;
+        return sk.getCompactors().get(0).getBuffer().getCount() * Float.BYTES + 8;
       }
       case EXACT: {
         return sk.getCompactors().get(0).getSerializationBytes() + 8;

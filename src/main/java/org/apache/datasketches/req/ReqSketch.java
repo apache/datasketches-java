@@ -56,7 +56,7 @@ import org.apache.datasketches.memory.Memory;
  * in the Python prototype.</p>
  * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
  * provides the user with the ability to choose either high rank accuracy or low rank accuracy at
- * the time of construction.</li>
+ * the time of sketch construction.</li>
  * <li>The Python prototype only implemented a comparison criterion of "&le;". This implementation
  * allows the user to switch back and forth between the "&le;" criterion and the "&lt;" criterion.</li>
  * <li>This implementation provides extensive debug visibility into the operation of the sketch with
@@ -170,7 +170,7 @@ public class ReqSketch extends BaseReqSketch {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      final int compRetItems = c.getBuffer().getLength();
+      final int compRetItems = c.getBuffer().getCount();
       final int compNomCap = c.getNomCapacity();
 
       if (compRetItems >= compNomCap) {
@@ -533,7 +533,7 @@ public class ReqSketch extends BaseReqSketch {
   int computeTotalRetainedItems() {
     int count = 0;
     for (final ReqCompactor c : compactors) {
-      count += c.getBuffer().getLength();
+      count += c.getBuffer().getCount();
     }
     return count;
   }
