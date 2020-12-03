@@ -37,6 +37,7 @@ import org.apache.datasketches.req.ReqSketch.CompactorReturn;
 class ReqCompactor {
   //finals
   private static final double SQRT2 = Math.sqrt(2.0);
+  private static final int NOM_CAP_MULT = 2;
   private final byte lgWeight;
   private final boolean hra;
   //state variables
@@ -69,7 +70,7 @@ class ReqCompactor {
     state = 0;
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
-    final int nomCap = getNomCapacity(); //2 * numSections * sectionSize;
+    final int nomCap = getNomCapacity(); //NOM_CAP_MULT * numSections * sectionSize;
     buf = new FloatBuffer(2 * nomCap, nomCap, hra);
     if (reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
@@ -119,7 +120,7 @@ class ReqCompactor {
   FloatBuffer compact(final CompactorReturn cReturn) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
     buf.sort();
-    final int startRetItems = buf.getLength();
+    final int startRetItems = buf.getCount();
     final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
     final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
@@ -135,13 +136,13 @@ class ReqCompactor {
 
     if (reqDebug != null) {
       reqDebug.emitCompactionDetail(compactionStart, compactionEnd, secsToCompact,
-          promote.getLength(), coin);
+          promote.getCount(), coin);
     }
 
-    buf.trimLength(buf.getLength() - (compactionEnd - compactionStart));
+    buf.trimCount(buf.getCount() - (compactionEnd - compactionStart));
     state += 1;
     ensureEnoughSections();
-    cReturn.deltaRetItems = buf.getLength() - startRetItems + promote.getLength();
+    cReturn.deltaRetItems = buf.getCount() - startRetItems + promote.getCount();
     cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;
@@ -167,11 +168,10 @@ class ReqCompactor {
 
   /**
    * Sets the current nominal capacity of this compactor.
-   * @return the current maximum capacity of this compactor.
+   * @return the current nominal capacity of this compactor.
    */
   int getNomCapacity() {
-    final int nCap = 2 * numSections * sectionSize;
-    return nCap;
+    return NOM_CAP_MULT * numSections * sectionSize;
   }
 
   /**
@@ -179,7 +179,7 @@ class ReqCompactor {
    * @return required bytes to serialize.
    */
   int getSerializationBytes() {
-    final int count = buf.getLength();
+    final int count = buf.getCount();
     return 8 + 4 + 1 + 1 + 2 + 4 + count * Float.BYTES; // 20 + array
   }
 
@@ -216,7 +216,7 @@ class ReqCompactor {
     buf.sort();
     final FloatBuffer otherBuf = new FloatBuffer(other.buf);
     otherBuf.sort();
-    if (otherBuf.getLength() > buf.getLength()) {
+    if (otherBuf.getCount() > buf.getCount()) {
       otherBuf.mergeSortIn(buf);
       buf = otherBuf;
     } else {
@@ -246,13 +246,12 @@ class ReqCompactor {
   }
 
   /**
-   * Computes the size of the non-compacted region, which is the start index of the
-   * compacted region
+   * Computes the start and end indices of the compacted region
    * @param secsToCompact the number of contiguous sections to compact
-   * @return the start index of the compacted region
+   * @return the  start and end indices of the compacted region
    */
   private long computeCompactionRange(final int secsToCompact) {
-    final int bufLen = buf.getLength();
+    final int bufLen = buf.getCount();
     int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
     //make compacted region even:
     nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
@@ -305,21 +304,21 @@ class ReqCompactor {
     wbuf.putByte(numSections);
     wbuf.incrementPosition(2); //pad 2
     //buf.sort(); //sort if necessary
-    wbuf.putInt(buf.getLength()); //count
-    wbuf.putByteArray(buf.floatsToBytes(), 0, Float.BYTES * buf.getLength());
+    wbuf.putInt(buf.getCount()); //count
+    wbuf.putByteArray(buf.floatsToBytes(), 0, Float.BYTES * buf.getCount());
     assert wbuf.getPosition() == bytes;
     return arr;
   }
 
   /**
    * Returns a printable formatted prefix string summarizing the list.
-   * The first number is the compactor height. the second number in brackets is the current length
+   * The first number is the compactor height. the second number in brackets is the current count
    * of the compactor buffer. The third number in brackets is the nominal capacity of the compactor.
    * @return a printable formatted prefix string summarizing the list.
    */
   String toListPrefix() {
     final int h = getLgWeight();
-    final int len = buf.getLength();
+    final int len = buf.getCount();
     final int nom = getNomCapacity();
     final int secSz = getSectionSize();
     final int numSec = getNumSections();

@@ -51,10 +51,10 @@ public class ReqIterator {
    */
   public boolean next() {
     if ((retainedItems == 0)
-        || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getLength() - 1)))) {
+        || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {
       return false;
     }
-    if (bIndex == (currentBuf.getLength() - 1)) {
+    if (bIndex == (currentBuf.getCount() - 1)) {
       cIndex++;
       currentBuf = compactors.get(cIndex).getBuffer();
       bIndex = 0;

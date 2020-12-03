@@ -104,7 +104,7 @@ public class ReqDebugImpl implements ReqDebug {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final ReqCompactor topC = compactors.get(curLevels - 1);
     final int lgWt = topC.getLgWeight();
-    final int retCompItems = topC.getBuffer().getLength();
+    final int retCompItems = topC.getBuffer().getCount();
     final int nomCap = topC.getNomCapacity();
     final StringBuilder sb = new StringBuilder();
     sb.append("  ");
@@ -125,7 +125,7 @@ public class ReqDebugImpl implements ReqDebug {
     final int secSize = comp.getSectionSize();
     final int numSec = comp.getNumSections();
     final long state = comp.getState();
-    final int bufCap = comp.getBuffer().getCapacity();  //TODO ?? do I want this or length
+    final int bufCap = comp.getBuffer().getCapacity();
     final StringBuilder sb = new StringBuilder();
     sb.append(LS + "  ");
     sb.append("COMPACTING[").append(lgWeight).append("] ");

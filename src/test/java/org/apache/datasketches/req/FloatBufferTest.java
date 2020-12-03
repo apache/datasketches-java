@@ -34,17 +34,17 @@ import org.testng.annotations.Test;
 public class FloatBufferTest {
 
   @Test
-  public void checkTrimLength() {
-    checkTrimLengthImpl(true);
-    checkTrimLengthImpl(false);
+  public void checkTrimCount() {
+    checkTrimCountImpl(true);
+    checkTrimCountImpl(false);
   }
 
-  private static void checkTrimLengthImpl(final boolean spaceAtBottom) {
+  private static void checkTrimCountImpl(final boolean spaceAtBottom) {
     final FloatBuffer buf = new FloatBuffer(16, 4, spaceAtBottom);
     for (int i = 0; i < 8; i++) { buf.append(i+1); }
-    assertEquals(buf.getLength(), 8);
-    buf.trimLength(4);
-    assertEquals(buf.getLength(), 4);
+    assertEquals(buf.getCount(), 8);
+    buf.trimCount(4);
+    assertEquals(buf.getCount(), 4);
   }
 
   @Test
@@ -63,7 +63,7 @@ public class FloatBufferTest {
     }
     final FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
     //println("odds: " + odds + ", spaceAtBottom: " + spaceAtBottom);
-    for (int i = 0; i < out.getLength(); i++) {
+    for (int i = 0; i < out.getCount(); i++) {
       final int v = (int)out.getItem(i);
       if (odds) { assertTrue((v & 1) == 1); }
       else { assertTrue((v & 1) == 0); }
@@ -80,19 +80,19 @@ public class FloatBufferTest {
 
   private static void checkAppendAndSpaceImpl(final boolean spaceAtBottom) {
     final FloatBuffer buf = new FloatBuffer(2, 2, spaceAtBottom);
-    assertEquals(buf.getLength(), 0);
+    assertEquals(buf.getCount(), 0);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 2);
     buf.append(1);
-    assertEquals(buf.getLength(), 1);
+    assertEquals(buf.getCount(), 1);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 1);
     buf.append(2);
-    assertEquals(buf.getLength(), 2);
+    assertEquals(buf.getCount(), 2);
     assertEquals(buf.getCapacity(), 2);
     assertEquals(buf.getSpace(), 0);
     buf.append(3);
-    assertEquals(buf.getLength(), 3);
+    assertEquals(buf.getCount(), 3);
     assertEquals(buf.getCapacity(), 5);
     assertEquals(buf.getSpace(), 2);
   }
@@ -129,9 +129,9 @@ public class FloatBufferTest {
     assertEquals(buf2.getCountWithCriterion(4, false), 3);
     buf2.mergeSortIn(buf);
     assertEquals(buf2.getCountWithCriterion(4, false), 6);
-    assertEquals(buf2.getLength(), 14);
-    buf2.trimLength(12);
-    assertEquals(buf2.getLength(), 12);
+    assertEquals(buf2.getCount(), 14);
+    buf2.trimCount(12);
+    assertEquals(buf2.getCount(), 12);
   }
 
   @Test
@@ -160,7 +160,7 @@ public class FloatBufferTest {
 
   private static void checkCountWithCriteria(final FloatBuffer buf, final float v) {
     int count;
-    final int len = buf.getLength();
+    final int len = buf.getCount();
     final int iv = (int) v;
     count = buf.getCountWithCriterion(v, false);
     assertEquals(count, v > len ? len : v <= 1 ? 0 : iv == v? iv - 1 : iv);
@@ -191,15 +191,15 @@ public class FloatBufferTest {
 
     assertEquals(buf1.getSpace(), 8);
     assertEquals(buf2.getSpace(), 8);
-    assertEquals(buf1.getLength(), 4);
-    assertEquals(buf2.getLength(), 4);
+    assertEquals(buf1.getCount(), 4);
+    assertEquals(buf2.getCount(), 4);
 
     buf1.sort();
     buf2.sort();
     buf1.mergeSortIn(buf2);
 
     assertEquals(buf1.getSpace(), 4);
-    final int len = buf1.getLength();
+    final int len = buf1.getCount();
     assertEquals(len, 8);
 
     for (int i = 0; i < len; i++) {
@@ -229,8 +229,8 @@ public class FloatBufferTest {
     final FloatBuffer buf = new FloatBuffer(8, 0, false);
     assertTrue(buf.isEmpty());
     buf.append(3); buf.append(2); buf.append(1);
-    buf.trimLength(4);
-    assertEquals(buf.getLength(), 3);
+    buf.trimCount(4);
+    assertEquals(buf.getCount(), 3);
     final int cnt = buf.getCountWithCriterion(3.0f, true);
     assertEquals(cnt, 3);
     assertEquals(buf.getItemFromIndex(2), 3.0f);
@@ -238,15 +238,15 @@ public class FloatBufferTest {
   }
 
   @Test
-  public void checkTrimCapacityToLength() {
+  public void checkTrimCapacityToCount() {
     final FloatBuffer buf = new FloatBuffer(100, 100, true);
     for (int i = 0; i <= 100; i++) { buf.append(i); }
     assertEquals(buf.getCapacity(), 201);
-    assertEquals(buf.getLength(), 101);
+    assertEquals(buf.getCount(), 101);
     buf.trimCapacity();
     assertEquals(buf.getItemFromIndex(0), 100f);
     assertEquals(buf.getCapacity(), 101);
-    assertEquals(buf.getLength(), 101);
+    assertEquals(buf.getCount(), 101);
   }
 
   @Test
@@ -259,7 +259,7 @@ public class FloatBufferTest {
     final FloatBuffer buf = new FloatBuffer(100, 100, hra);
     for (int i = 0; i <= 100; i++) { buf.append(i); }
     final int capacity = buf.getCapacity();
-    final int count = buf.getLength();
+    final int count = buf.getCount();
     final int delta = buf.getDelta();
     final boolean sorted = buf.isSorted();
     final boolean sab = buf.isSpaceAtBottom();
@@ -273,7 +273,7 @@ public class FloatBufferTest {
     //uses the deserialization method
     final FloatBuffer buf2 = FloatBuffer.reconstruct(farr2, count, capacity, delta, sorted, sab);
     assertEquals(buf2.getCapacity(), capacity);
-    assertEquals(buf2.getLength(), count);
+    assertEquals(buf2.getCount(), count);
     assertEquals(buf2.getDelta(), delta);
     assertEquals(buf2.isSorted(), sorted);
     assertEquals(buf2.getItemFromIndex(100), 100.0f);

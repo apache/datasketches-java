@@ -60,7 +60,7 @@ class ReqAuxiliary {
       final ReqCompactor c = compactors.get(i);
       final FloatBuffer bufIn = c.getBuffer();
       final long weight = 1 << c.getLgWeight();
-      final int bufInLen = bufIn.getLength();
+      final int bufInLen = bufIn.getCount();
       mergeSortIn(bufIn, weight, auxCount);
       auxCount += bufInLen;
     }
@@ -110,7 +110,7 @@ class ReqAuxiliary {
   void mergeSortIn(final FloatBuffer bufIn, final long weight, final int auxCount) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
-    final int bufInLen = bufIn.getLength();
+    final int bufInLen = bufIn.getCount();
     final int totLen = auxCount + bufInLen;
     int i = auxCount - 1;
     int j = bufInLen - 1;
