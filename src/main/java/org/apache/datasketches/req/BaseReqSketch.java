@@ -254,8 +254,4 @@ abstract class BaseReqSketch {
    */
   public abstract String viewCompactorDetail(String fmt, boolean allData);
 
-  public void set_INIT_NUMBER_OF_SECTIONS(final byte val) {}
-  public void set_NOM_CAPACITY_MULTIPLIER(final float val){}
-  public void set_MIN_K(final int val){}
-  public void set_LAZY_COMPRESSION(final boolean val) {}
 }

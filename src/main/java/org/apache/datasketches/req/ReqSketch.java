@@ -56,7 +56,7 @@ import org.apache.datasketches.memory.Memory;
  * in the Python prototype.</p>
  * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
  * provides the user with the ability to choose either high rank accuracy or low rank accuracy at
- * the time of construction.</li>
+ * the time of sketch construction.</li>
  * <li>The Python prototype only implemented a comparison criterion of "&le;". This implementation
  * allows the user to switch back and forth between the "&le;" criterion and the "&lt;" criterion.</li>
  * <li>This implementation provides extensive debug visibility into the operation of the sketch with
@@ -71,21 +71,11 @@ import org.apache.datasketches.memory.Memory;
 public class ReqSketch extends BaseReqSketch {
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: return final
-  static float NOM_CAPACITY_MULTIPLIER = 2f; // should be at least 2 // PV: TMP: FOR TESTING PURPOSES
-  static int MIN_K = 4;
-  static boolean LAZY_COMPRESSION = true; // PV: TMP: FOR TESTING PURPOSES
-  
-  @Override
-  public void set_INIT_NUMBER_OF_SECTIONS(final byte val) { INIT_NUMBER_OF_SECTIONS = val; }
-  @Override
-  public void set_NOM_CAPACITY_MULTIPLIER(final float val) { NOM_CAPACITY_MULTIPLIER = val; }
-  @Override
-  public void set_MIN_K(final int val) { MIN_K = val; }
-  @Override
-  public void set_LAZY_COMPRESSION(final boolean val) { LAZY_COMPRESSION = val; }
-  
-  private static final double relRseFactor = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: restore to final after eval
+  static int MIN_K = 4; // TODO: restore to final after eval
+  static float NOM_CAP_MULT = 2f; // TODO: restore to final after eval
+  private static boolean LAZY_COMPRESSION = true; //TODO: restore to final after eval
+  private static double relRseFactor; //TODO: restore final: = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
   private static final double fixRseFactor = .06;
   //finals
   private final int k;  //user config, default is 12 (1% @ 95% Conf)
@@ -103,6 +93,34 @@ public class ReqSketch extends BaseReqSketch {
   private List<ReqCompactor> compactors = new ArrayList<>();
   private ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
+
+  /**
+   * Temporary ctor for evaluation
+   * @param k blah
+   * @param highRankAccuracy blah
+   * @param reqDebug blah
+   * @param initNumSections blah
+   * @param minK blah
+   * @param nomCapMult blah
+   * @param lazyCompression blah
+   */
+  public ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug,
+      final byte initNumSections, final int minK, final float nomCapMult,
+      final boolean lazyCompression) {
+    checkK(k);
+    this.k = k;
+    hra = highRankAccuracy;
+    retItems = 0;
+    maxNomSize = 0;
+    totalN = 0;
+    this.reqDebug = reqDebug;
+    INIT_NUMBER_OF_SECTIONS = initNumSections; //was 3
+    relRseFactor = sqrt(0.0512 / initNumSections);
+    MIN_K = minK; //was 4
+    NOM_CAP_MULT = nomCapMult; //was 2
+    LAZY_COMPRESSION = lazyCompression; //was true
+    grow();
+  }
 
   /**
    * Normal Constructor used by ReqSketchBuilder.
@@ -137,7 +155,6 @@ public class ReqSketch extends BaseReqSketch {
     maxNomSize = other.maxNomSize;
     minValue = other.minValue;
     maxValue = other.maxValue;
-
     ltEq = other.ltEq;
     reqDebug = other.reqDebug;
     //aux does not need to be copied
@@ -183,7 +200,7 @@ public class ReqSketch extends BaseReqSketch {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      final int compRetItems = c.getBuffer().getLength();
+      final int compRetItems = c.getBuffer().getCount();
       final int compNomCap = c.getNomCapacity();
 
       if (compRetItems >= compNomCap) {
@@ -195,7 +212,7 @@ public class ReqSketch extends BaseReqSketch {
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
-        if (LAZY_COMPRESSION && retItems < maxNomSize) { break; } 
+        if (LAZY_COMPRESSION && retItems < maxNomSize) { break; }
       }
     }
     aux = null;
@@ -546,7 +563,7 @@ public class ReqSketch extends BaseReqSketch {
   int computeTotalRetainedItems() {
     int count = 0;
     for (final ReqCompactor c : compactors) {
-      count += c.getBuffer().getLength();
+      count += c.getBuffer().getCount();
     }
     return count;
   }

@@ -126,7 +126,7 @@ class FloatBuffer {
    * @param isSorted set true, if incoming array is already sorted.
    * @param spaceAtBottom if true, create any extra space at the bottom of the buffer,
    * otherwise, create any extra space at the top of the buffer.
-   * @return this, which will be sorted
+   * @return this, which will be sorted, if necessary.
    */
   static FloatBuffer wrap(final float[] arr, final boolean isSorted, final boolean spaceAtBottom) {
     final FloatBuffer buf = new FloatBuffer(arr, arr.length, arr.length, 0, isSorted, spaceAtBottom);
@@ -135,7 +135,7 @@ class FloatBuffer {
   }
 
   /**
-   * Appends the given item to the active array and increments length().
+   * Appends the given item to the active array and increments the active count.
    * This will expand the array if necessary.
    * @param item the given item
    * @return this
@@ -168,7 +168,7 @@ class FloatBuffer {
   }
 
   /**
-   * Ensures that the space remaining (capacity() - length()) is at least the given space.
+   * Ensures that the space remaining (capacity() - getCount()) is at least the given space.
    * @param space the requested space remaining
    * @return this
    */
@@ -275,16 +275,16 @@ class FloatBuffer {
   }
 
   /**
-   * Returns the active length = item count.
+   * Returns the active item count.
    *
-   * @return the active length of this buffer.
+   * @return the active item count of this buffer.
    */
-  int getLength() {
+  int getCount() {
     return count_;
   }
 
   /**
-   * Gets available space, which is getCapacity() - getLength().
+   * Gets available space, which is getCapacity() - getCount().
    * When spaceAtBottom is true this is the start position for active data, otherwise it is zero.
    * @return available space
    */
@@ -301,8 +301,8 @@ class FloatBuffer {
   }
 
   /**
-   * Returns true if getLength() == 0.
-   * @return true if getLength() == 0.
+   * Returns true if getCount() == 0.
+   * @return true if getCount() == 0.
    */
   boolean isEmpty() {
     return count_ == 0;
@@ -343,7 +343,7 @@ class FloatBuffer {
       throw new SketchesArgumentException("Both buffers must be sorted.");
     }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
-    final int bufInLen = bufIn.getLength();
+    final int bufInLen = bufIn.getCount();
     ensureSpace(bufInLen);
     final int totLen = count_ + bufInLen;
     if (spaceAtBottom_) { //scan up, insert at bottom
@@ -431,7 +431,7 @@ class FloatBuffer {
   }
 
   /**
-   * Trims the capacity of this FloatBuffer to length().
+   * Trims the capacity of this FloatBuffer to the active count.
    * @return this
    */
   FloatBuffer trimCapacity() {
@@ -446,16 +446,16 @@ class FloatBuffer {
   }
 
   /**
-   * Trims the length to newLength. If newLength &gt; length() this does nothing and returns.
-   * Otherwise, the internal length is reduced to the given length. There is no clearing of
+   * Trims the count_ to newCount. If newCount &gt; count_ this does nothing and returns.
+   * Otherwise, the internal count_ is reduced to the given newCount. There is no clearing of
    * the remainder of the capacity. Any values there are considered garbage.
    *
-   * @param newLength the new length
+   * @param newCount the new active count
    * @return this
    */
-  FloatBuffer trimLength(final int newLength) {
-    if (newLength < count_) {
-      count_ = newLength;
+  FloatBuffer trimCount(final int newCount) {
+    if (newCount < count_) {
+      count_ = newCount;
     }
     return this;
   }
