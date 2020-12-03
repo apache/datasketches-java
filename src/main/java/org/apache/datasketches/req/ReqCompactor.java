@@ -38,6 +38,7 @@ import org.apache.datasketches.req.ReqSketch.CompactorReturn;
 class ReqCompactor {
   //finals
   private static final double SQRT2 = Math.sqrt(2.0);
+  //private static final int NOM_CAP_MULT = 2;
   private final byte lgWeight;
   private final boolean hra;
   //state variables
