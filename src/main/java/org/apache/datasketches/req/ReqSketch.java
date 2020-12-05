@@ -439,7 +439,7 @@ public class ReqSketch extends BaseReqSketch {
     //Grow until self has at least as many compactors as other
     while (getNumLevels() < other.getNumLevels()) { grow(); }
     //Merge the items in all height compactors
-    for (int i = 0; i < getNumLevels(); i++) {
+    for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.get(i).merge(other.compactors.get(i));
     }
     maxNomSize = computeMaxNomSize();
