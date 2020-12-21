@@ -242,6 +242,26 @@ public class ReqSketchTest {
   }
 
   @Test
+  public void merge() {
+    final ReqSketch s1 = ReqSketch.builder().setK(12).build();
+    for (int i = 0; i < 40; i++) {
+      s1.update(i);
+    }
+    final ReqSketch s2 = ReqSketch.builder().setK(12).build();
+    for (int i = 0; i < 40; i++) {
+      s2.update(i);
+    }
+    final ReqSketch s3 = ReqSketch.builder().setK(12).build();
+    for (int i = 0; i < 40; i++) {
+      s3.update(i);
+    }
+    final ReqSketch s = ReqSketch.builder().setK(12).build();
+    s.merge(s1);
+    s.merge(s2);
+    s.merge(s3);
+  }
+
+  @Test
   public void checkValidateSplits() {
     final float[] arr = {1,2,3,4,5};
     ReqSketch.validateSplits(arr);
