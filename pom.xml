@@ -27,14 +27,14 @@ under the License.
     <version>21</version>
   </parent>
   <groupId>org.apache.datasketches</groupId>
-  
+
   <!-- UNIQUE FOR THIS JAVA COMPONENT -->
   <artifactId>datasketches-java</artifactId>
   <version>1.4.0-incubating-SNAPSHOT</version>
   <description>Core sketch algorithms used alone 
     and by other Java repositories in the DataSketches library.</description>
   <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
-  
+
   <url>https://datasketches.apache.org/</url>
   <name>${project.artifactId}</name>
   <inceptionYear>2015</inceptionYear>
@@ -46,7 +46,7 @@ under the License.
          and not work properly. So this will stay for the time being. 
   -->
   <prerequisites>
-    <maven>3.2.0</maven>
+    <maven>3.0</maven>
   </prerequisites>
   <licenses>
     <license>
@@ -93,14 +93,14 @@ under the License.
     </developer>
   </developers>
   <properties>
-    
+
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <datasketches-memory.version>1.2.0-incubating</datasketches-memory.version>
     <slf4j-simple.version>1.7.30</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
-    
+
     <!-- Test -->
-    <testng.version>6.14.3</testng.version>
+    <testng.version>7.3.0</testng.version>
     <!-- System-wide properties -->
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
     <charset.encoding>UTF-8</charset.encoding>
@@ -121,7 +121,7 @@ under the License.
     <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
     <maven-release-plugin.version>3.0.0-M1</maven-release-plugin.version>
-    <maven-remote-resources-plugin.version>[1.7.0,)</maven-remote-resources-plugin.version>
+    <maven-remote-resources-plugin.version>[1.0,)</maven-remote-resources-plugin.version>
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version>
     <!-- Apache Plugins -->

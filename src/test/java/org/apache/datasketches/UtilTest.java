@@ -166,9 +166,9 @@ public class UtilTest {
     Assert.assertEquals(floorPowerOfBdouble(2.0, 3.0), 2.0);
     Assert.assertEquals(floorPowerOfBdouble(2.0, 4.0), 4.0);
 
-    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) - 1), (double)(1 << 29));
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 1 << 30), (double)(1 << 30));
-    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) + 1.0), (double)(1L << 30));
+    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) - 1), 1 << 29);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, 1 << 30), 1 << 30);
+    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) + 1.0), 1L << 30);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

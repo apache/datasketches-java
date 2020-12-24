@@ -21,12 +21,11 @@ package org.apache.datasketches.quantiles;
 
 import java.util.Comparator;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.ArrayOfDoublesSerDe;
 import org.apache.datasketches.ArrayOfItemsSerDe;
+import org.apache.datasketches.memory.Memory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SerDeCompatibilityTest {
@@ -68,8 +67,8 @@ public class SerDeCompatibilityTest {
     for (int i = 501; i <= 1000; i++) { sketch2.update((double) i); }
     Assert.assertEquals(sketch2.getN(), 1000);
     Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals(sketch2.getMinValue(), 1.0);
-    Assert.assertEquals(sketch2.getMaxValue(), 1000.0);
+    Assert.assertEquals((double)sketch2.getMinValue(), 1.0);
+    Assert.assertEquals((double)sketch2.getMaxValue(), 1000.0);
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch2.getQuantile(0.5), 500.0, 17);
   }
