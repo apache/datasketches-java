@@ -142,7 +142,7 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aC, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), k);
+    assertEquals(result.getEstimate(), (double)k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
@@ -162,7 +162,7 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aO, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), k);
+    assertEquals(result.getEstimate(), (double)k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
@@ -182,7 +182,7 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aHT, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), k);
+    assertEquals(result.getEstimate(), (double)k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 

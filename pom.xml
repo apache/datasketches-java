@@ -89,10 +89,10 @@ under the License.
     <datasketches-memory.version>1.2.0-incubating</datasketches-memory.version>
     <slf4j-simple.version>1.7.30</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
-    
+
     <!-- Test -->
     <testng.version>6.14.3</testng.version>
-    
+
     <!-- System-wide properties -->
     <maven.version>3.0.0</maven.version>
     <java.version>1.8</java.version>
@@ -439,7 +439,7 @@ under the License.
         </pluginManagement>
       </build>
     </profile>
-    
+
     <profile>
       <id>strict</id>
       <build>
@@ -467,7 +467,7 @@ under the License.
         </pluginManagement>
       </build>
     </profile>
-    
+
     <!--  This profile is used to release signed jars to the Apache Nexus repository. 
           This must be executed from a git repository set at the proper Release branch (e.g., 1.1.X-incubating) 
           and at a Release Candidate tag (e.g., 1.1.0-incubating-RC1).
@@ -522,7 +522,7 @@ under the License.
                 </gitDescribe>
               </configuration>
             </plugin>
-            
+
             <!-- Extends Apache Parent pom, pluginManagement-->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -564,7 +564,7 @@ under the License.
                 </archive>
               </configuration>
             </plugin>
-            
+
             <!-- We want to sign the artifacts, POM, and all attached artifacts -->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -589,7 +589,7 @@ under the License.
             </plugin>
           </plugins>
         </pluginManagement>
-        
+
         <plugins>
           <plugin>
             <groupId>pl.project13.maven</groupId>

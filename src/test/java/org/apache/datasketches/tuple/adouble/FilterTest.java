@@ -94,7 +94,7 @@ public class FilterTest {
 
         final Sketch<DoubleSummary> filteredSketch = filter.filter(sketch);
 
-        Assert.assertEquals(filteredSketch.getEstimate(), numberOfElements);
+        Assert.assertEquals(filteredSketch.getEstimate(), (double)numberOfElements);
         Assert.assertEquals(filteredSketch.getThetaLong(), sketch.getThetaLong());
         Assert.assertFalse(filteredSketch.isEmpty());
         Assert.assertTrue(filteredSketch.getLowerBound(1) <= filteredSketch.getEstimate());

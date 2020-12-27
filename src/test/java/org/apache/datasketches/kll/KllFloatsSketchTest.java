@@ -106,8 +106,8 @@ public class KllFloatsSketchTest {
 
     assertEquals(sketch.getMinValue(), 0f); // min value is exact
     assertEquals(sketch.getQuantile(0), 0f); // min value is exact
-    assertEquals(sketch.getMaxValue(), n - 1); // max value is exact
-    assertEquals(sketch.getQuantile(1), n - 1); // max value is exact
+    assertEquals(sketch.getMaxValue(), n - 1f); // max value is exact
+    assertEquals(sketch.getQuantile(1), n - 1f); // max value is exact
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
@@ -162,17 +162,17 @@ public class KllFloatsSketchTest {
     }
 
     assertEquals(sketch1.getMinValue(), 0.0f);
-    assertEquals(sketch1.getMaxValue(), n - 1);
+    assertEquals(sketch1.getMaxValue(), n - 1f);
 
-    assertEquals(sketch2.getMinValue(), n);
-    assertEquals(sketch2.getMaxValue(), 2 * n - 1);
+    assertEquals(sketch2.getMinValue(), (float)n);
+    assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
 
     sketch1.merge(sketch2);
 
     assertFalse(sketch1.isEmpty());
-    assertEquals(sketch1.getN(), 2 * n);
+    assertEquals(sketch1.getN(), 2L * n);
     assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), 2 * n - 1);
+    assertEquals(sketch1.getMaxValue(), 2f * n - 1);
     assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_256);
   }
 
@@ -187,10 +187,10 @@ public class KllFloatsSketchTest {
     }
 
     assertEquals(sketch1.getMinValue(), 0.0f);
-    assertEquals(sketch1.getMaxValue(), n - 1);
+    assertEquals(sketch1.getMaxValue(), n - 1f);
 
-    assertEquals(sketch2.getMinValue(), n);
-    assertEquals(sketch2.getMaxValue(), 2 * n - 1);
+    assertEquals(sketch2.getMinValue(), (float)n);
+    assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -203,7 +203,7 @@ public class KllFloatsSketchTest {
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
     assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), 2 * n - 1);
+    assertEquals(sketch1.getMaxValue(), 2f * n - 1f);
     assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_128);
   }
 
@@ -224,16 +224,16 @@ public class KllFloatsSketchTest {
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
     assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), n - 1);
-    assertEquals(sketch1.getQuantile(0.5), n / 2, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMaxValue(), n - 1f);
+    assertEquals(sketch1.getQuantile(0.5), n / 2f, n / 2 * PMF_EPS_FOR_K_256);
 
     //merge the other way
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
     assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), n - 1);
-    assertEquals(sketch1.getQuantile(0.5), n / 2, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMaxValue(), n - 1f);
+    assertEquals(sketch1.getQuantile(0.5), n / 2f, n / 2 * PMF_EPS_FOR_K_256);
   }
 
   @Test

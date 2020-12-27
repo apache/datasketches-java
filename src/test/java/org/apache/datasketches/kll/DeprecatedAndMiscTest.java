@@ -59,9 +59,9 @@ public class DeprecatedAndMiscTest {
       kll.update(i);
     }
     final double eps = kll.getNormalizedRankError(false);
-    final double est = kll.getQuantile(0.5);
-    final double ub = kll.getQuantileUpperBound(0.5);
-    final double lb = kll.getQuantileLowerBound(0.5);
+    final float est = kll.getQuantile(0.5);
+    final float ub = kll.getQuantileUpperBound(0.5);
+    final float lb = kll.getQuantileLowerBound(0.5);
     assertEquals(ub, kll.getQuantile(.5 + eps));
     assertEquals(lb, kll.getQuantile(0.5 - eps));
     println("Ext     : " + est);

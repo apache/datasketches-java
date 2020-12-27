@@ -121,20 +121,20 @@ public class DirectIntersectionTest {
     final boolean ordered = true;
 
     rsk1 = inter.getResult(!ordered, null);
-    assertEquals(rsk1.getEstimate(), k);
+    assertEquals(rsk1.getEstimate(), (double)k);
 
     rsk1 = inter.getResult(ordered, null);
-    assertEquals(rsk1.getEstimate(), k);
+    assertEquals(rsk1.getEstimate(), (double)k);
 
     final int bytes = rsk1.getCompactBytes();
     final byte[] byteArray = new byte[bytes];
     final WritableMemory mem = WritableMemory.wrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem); //executed twice to fully exercise the internal state machine
-    assertEquals(rsk1.getEstimate(), k);
+    assertEquals(rsk1.getEstimate(), (double)k);
 
     rsk1 = inter.getResult(ordered, mem);
-    assertEquals(rsk1.getEstimate(), k);
+    assertEquals(rsk1.getEstimate(), (double)k);
   }
 
   @Test

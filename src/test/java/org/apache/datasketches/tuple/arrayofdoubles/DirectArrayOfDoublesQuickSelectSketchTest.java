@@ -59,8 +59,8 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
     Assert.assertEquals(
-        sketch.getThetaLong() / (double) Long.MAX_VALUE, samplingProbability);
-    Assert.assertEquals(sketch.getTheta(), samplingProbability);
+        (float)(sketch.getThetaLong() / (double) Long.MAX_VALUE), samplingProbability);
+    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
   }
 
   @Test
@@ -80,8 +80,8 @@ public class DirectArrayOfDoublesQuickSelectSketchTest {
     Assert.assertTrue(sketch.getUpperBound(1) > 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0, 0.0000001);
     Assert.assertEquals(
-        sketch.getThetaLong() / (double) Long.MAX_VALUE, samplingProbability);
-    Assert.assertEquals(sketch.getTheta(), samplingProbability);
+        (float)(sketch.getThetaLong() / (double) Long.MAX_VALUE), samplingProbability);
+    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
   }
 
   @Test

@@ -53,8 +53,8 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
-    Assert.assertEquals(sketch.getThetaLong() / (double) Long.MAX_VALUE, samplingProbability);
-    Assert.assertEquals(sketch.getTheta(), samplingProbability);
+    Assert.assertEquals((float)(sketch.getThetaLong() / (double) Long.MAX_VALUE), samplingProbability);
+    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
   }
 
   @Test
@@ -67,8 +67,8 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertTrue(sketch.getUpperBound(1) > 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0, 0.0000001);
-    Assert.assertEquals(sketch.getThetaLong() / (double) Long.MAX_VALUE, samplingProbability);
-    Assert.assertEquals(sketch.getTheta(), samplingProbability);
+    Assert.assertEquals((float)(sketch.getThetaLong() / (double) Long.MAX_VALUE), samplingProbability);
+    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
   }
 
   @Test
