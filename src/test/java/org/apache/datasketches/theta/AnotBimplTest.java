@@ -39,19 +39,19 @@ public class AnotBimplTest {
 
   @Test
   public void checkExactAnotB_AvalidNoOverlap() {
-    int k = 512;
+    final int k = 512;
 
-    UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
-    UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch usk1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch usk2 = UpdateSketch.builder().setNominalEntries(k).build();
 
-    for (int i=0; i<(k/2); i++) {
+    for (int i=0; i<k/2; i++) {
       usk1.update(i);
     }
     for (int i=k/2; i<k; i++) {
       usk2.update(i);
     }
 
-    AnotB aNb = SetOperation.builder().buildANotB();
+    final AnotB aNb = SetOperation.builder().buildANotB();
     assertTrue(aNb.isEmpty());  //only applies to stateful
     assertTrue(aNb.getCache().length == 0); //only applies to stateful
     assertEquals(aNb.getThetaLong(), Long.MAX_VALUE); //only applies to stateful
@@ -71,8 +71,8 @@ public class AnotBimplTest {
     rsk1 = aNb.getResult(true, null, true); //ordered, reset
     assertEquals(rsk1.getEstimate(), k/2.0);
 
-    int bytes = rsk1.getCurrentBytes();
-    WritableMemory wmem = WritableMemory.allocate(bytes);
+    final int bytes = rsk1.getCurrentBytes();
+    final WritableMemory wmem = WritableMemory.allocate(bytes);
 
     aNb.setA(usk1);
     aNb.notB(usk2);
@@ -87,39 +87,39 @@ public class AnotBimplTest {
 
   @Test
   public void checkCombinations() {
-    int k = 512;
-    UpdateSketch aNull = null;
-    UpdateSketch bNull = null;
-    UpdateSketch aEmpty = UpdateSketch.builder().setNominalEntries(k).build();
-    UpdateSketch bEmpty = UpdateSketch.builder().setNominalEntries(k).build();
+    final int k = 512;
+    final UpdateSketch aNull = null;
+    final UpdateSketch bNull = null;
+    final UpdateSketch aEmpty = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch bEmpty = UpdateSketch.builder().setNominalEntries(k).build();
 
-    UpdateSketch aHT = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch aHT = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       aHT.update(i);
     }
-    CompactSketch aC = aHT.compact(false, null);
-    CompactSketch aO = aHT.compact(true,  null);
+    final CompactSketch aC = aHT.compact(false, null);
+    final CompactSketch aO = aHT.compact(true,  null);
 
-    UpdateSketch bHT = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<(k+(k/2)); i++) {
+    final UpdateSketch bHT = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=k/2; i<k+k/2; i++) {
       bHT.update(i); //overlap is k/2
     }
-    CompactSketch bC = bHT.compact(false, null);
-    CompactSketch bO = bHT.compact(true,  null);
+    final CompactSketch bC = bHT.compact(false, null);
+    final CompactSketch bO = bHT.compact(true,  null);
 
     CompactSketch result;
     AnotB aNb;
-    boolean ordered = true;
+    final boolean ordered = true;
 
     aNb = SetOperation.builder().buildANotB();
 
-    try { aNb.setA(aNull); fail();} catch (SketchesArgumentException e) {}
+    try { aNb.setA(aNull); fail();} catch (final SketchesArgumentException e) {}
 
     aNb.notB(bNull); //ok
 
-    try { aNb.aNotB(aNull, bNull); fail(); } catch (SketchesArgumentException e) {}
-    try { aNb.aNotB(aNull, bEmpty); fail(); } catch (SketchesArgumentException e) {}
-    try { aNb.aNotB(aEmpty, bNull); fail(); } catch (SketchesArgumentException e) {}
+    try { aNb.aNotB(aNull, bNull); fail(); } catch (final SketchesArgumentException e) {}
+    try { aNb.aNotB(aNull, bEmpty); fail(); } catch (final SketchesArgumentException e) {}
+    try { aNb.aNotB(aEmpty, bNull); fail(); } catch (final SketchesArgumentException e) {}
 
     result = aNb.aNotB(aEmpty, bEmpty, !ordered, null);
     assertEquals(result.getEstimate(), 0.0);
@@ -142,7 +142,7 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aC, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k);
+    assertEquals(result.getEstimate(), (double)k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
@@ -162,7 +162,7 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aO, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k);
+    assertEquals(result.getEstimate(), (double)k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
@@ -182,7 +182,7 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aHT, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k);
+    assertEquals(result.getEstimate(), (double)k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
@@ -204,26 +204,26 @@ public class AnotBimplTest {
 
   @Test
   public void checkAnotBnotC() {
-    int k = 1024;
-    boolean ordered = true;
+    final int k = 1024;
+    final boolean ordered = true;
 
-    UpdateSketch aU = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch aU = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { aU.update(i); }  //All 1024
 
-    UpdateSketch bU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(k/2); i++) { bU.update(i); } //first 512
+    final UpdateSketch bU = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=0; i<k/2; i++) { bU.update(i); } //first 512
 
-    UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<((3*k)/4); i++) { cU.update(i); } //third 256
+    final UpdateSketch cU = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=k/2; i<3*k/4; i++) { cU.update(i); } //third 256
 
-    int memBytes = Sketch.getMaxUpdateSketchBytes(k);
+    final int memBytes = Sketch.getMaxUpdateSketchBytes(k);
     CompactSketch result1, result2, result3;
 
-    WritableMemory wmem1 = WritableMemory.allocate(memBytes);
-    WritableMemory wmem2 = WritableMemory.allocate(memBytes);
-    WritableMemory wmem3 = WritableMemory.allocate(memBytes);
+    final WritableMemory wmem1 = WritableMemory.allocate(memBytes);
+    final WritableMemory wmem2 = WritableMemory.allocate(memBytes);
+    final WritableMemory wmem3 = WritableMemory.allocate(memBytes);
 
-    AnotB aNb = SetOperation.builder().buildANotB();
+    final AnotB aNb = SetOperation.builder().buildANotB();
 
     //Note: stateful and stateless operations can be interleaved, they are independent.
 
@@ -237,34 +237,34 @@ public class AnotBimplTest {
 
     aNb.notB(cU);                                     //stateful
 
-    double est2 = result2.getEstimate();              //stateless result
+    final double est2 = result2.getEstimate();              //stateless result
     println("est: "+est2);
     assertEquals(est2, k/4.0, 0.0);
 
     result3 = aNb.getResult(ordered, wmem3, true);    //stateful result, then reset
-    double est3 = result3.getEstimate();
+    final double est3 = result3.getEstimate();
     assertEquals(est3, k/4.0, 0.0);
   }
 
   @Test
   public void checkAnotBnotC_sameMemory() {
-    int k = 1024;
-    boolean ordered = true;
+    final int k = 1024;
+    final boolean ordered = true;
 
-    UpdateSketch a = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch a = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { a.update(i); }       //All 1024
 
-    UpdateSketch b = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=0; i<(k/2); i++) { b.update(i); }     //first 512
+    final UpdateSketch b = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=0; i<k/2; i++) { b.update(i); }     //first 512
 
-    UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
-    for (int i=k/2; i<((3*k)/4); i++) { c.update(i); }  //third 256
+    final UpdateSketch c = UpdateSketch.builder().setNominalEntries(k).build();
+    for (int i=k/2; i<3*k/4; i++) { c.update(i); }  //third 256
 
-    int memBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
-    WritableMemory mem = WritableMemory.allocate(memBytes);
+    final int memBytes = Sketch.getMaxCompactSketchBytes(a.getRetainedEntries(true));
+    final WritableMemory mem = WritableMemory.allocate(memBytes);
 
     CompactSketch result1, result2;
-    AnotB aNb = SetOperation.builder().buildANotB();
+    final AnotB aNb = SetOperation.builder().buildANotB();
 
     //Note: stateful and stateless operations can be interleaved, they are independent.
 
@@ -280,44 +280,44 @@ public class AnotBimplTest {
 
     result2 = aNb.getResult(ordered, mem, true);    //stateful result, then reset
 
-    double est1 = result1.getEstimate();            //check stateless result
+    final double est1 = result1.getEstimate();            //check stateless result
     println("est: "+est1);
     assertEquals(est1, k/4.0, 0.0);
 
-    double est2 = result2.getEstimate();            //check stateful result
+    final double est2 = result2.getEstimate();            //check stateful result
     assertEquals(est2, k/4.0, 0.0);
   }
 
   @Test
   public void checkAnotBsimple() {
-    UpdateSketch skA = Sketches.updateSketchBuilder().build();
-    UpdateSketch skB = Sketches.updateSketchBuilder().build();
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    CompactSketch csk = aNotB.aNotB(skA, skB);
+    final UpdateSketch skA = Sketches.updateSketchBuilder().build();
+    final UpdateSketch skB = Sketches.updateSketchBuilder().build();
+    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final CompactSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test
   public void checkGetResult() {
-    UpdateSketch skA = Sketches.updateSketchBuilder().build();
-    UpdateSketch skB = Sketches.updateSketchBuilder().build();
+    final UpdateSketch skA = Sketches.updateSketchBuilder().build();
+    final UpdateSketch skB = Sketches.updateSketchBuilder().build();
 
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    CompactSketch csk = aNotB.aNotB(skA, skB);
+    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final CompactSketch csk = aNotB.aNotB(skA, skB);
     assertEquals(csk.getCurrentBytes(), 8);
   }
 
   @Test
   public void checkGetFamily() {
     //cheap trick
-    AnotBimpl anotb = new AnotBimpl(Util.DEFAULT_UPDATE_SEED);
+    final AnotBimpl anotb = new AnotBimpl(Util.DEFAULT_UPDATE_SEED);
     assertEquals(anotb.getFamily(), Family.A_NOT_B);
   }
 
   @Test
   public void checkGetMaxBytes() {
-    int bytes = Sketches.getMaxAnotBResultBytes(10);
-    assertEquals(bytes, (16 * 15) + 24);
+    final int bytes = Sketches.getMaxAnotBResultBytes(10);
+    assertEquals(bytes, 16 * 15 + 24);
   }
 
   @Test
@@ -328,7 +328,7 @@ public class AnotBimplTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 
