@@ -142,62 +142,62 @@ public class AnotBimplTest {
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aC, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), (double)k);
+    assertEquals(result.getEstimate(), k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aC, bC, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aC, bO, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aC, bHT, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aO, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), (double)k);
+    assertEquals(result.getEstimate(), k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aO, bC, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aO, bO, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result =  aNb.aNotB(aO, bHT, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aHT, bEmpty, !ordered, null);
-    assertEquals(result.getEstimate(), (double)k);
+    assertEquals(result.getEstimate(), k);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aHT, bC, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aHT, bO, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
 
     result = aNb.aNotB(aHT, bHT, !ordered, null);
-    assertEquals(result.getEstimate(), (double) k/2);
+    assertEquals(result.getEstimate(), k / 2.0);
     assertFalse(result.isEmpty());
     assertEquals(result.getThetaLong(), Long.MAX_VALUE);
   }

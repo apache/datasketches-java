@@ -164,7 +164,7 @@ public class KllFloatsSketchTest {
     assertEquals(sketch1.getMinValue(), 0.0f);
     assertEquals(sketch1.getMaxValue(), n - 1f);
 
-    assertEquals(sketch2.getMinValue(), (float)n);
+    assertEquals(sketch2.getMinValue(), n);
     assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
 
     sketch1.merge(sketch2);
@@ -189,7 +189,7 @@ public class KllFloatsSketchTest {
     assertEquals(sketch1.getMinValue(), 0.0f);
     assertEquals(sketch1.getMaxValue(), n - 1f);
 
-    assertEquals(sketch2.getMinValue(), (float)n);
+    assertEquals(sketch2.getMinValue(), n);
     assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
