@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,56 +18,31 @@ KIND, either express or implied.  See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.apache</groupId>
     <artifactId>apache</artifactId>
-    <version>21</version>
+    <version>23</version>
   </parent>
+
   <groupId>org.apache.datasketches</groupId>
-  
+
   <!-- UNIQUE FOR THIS JAVA COMPONENT -->
   <artifactId>datasketches-java</artifactId>
-  <version>1.4.0-incubating-SNAPSHOT</version>
+  <version>1.4.0-SNAPSHOT</version>
   <description>Core sketch algorithms used alone 
     and by other Java repositories in the DataSketches library.</description>
   <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
-  
+
   <url>https://datasketches.apache.org/</url>
   <name>${project.artifactId}</name>
   <inceptionYear>2015</inceptionYear>
-  <packaging>jar</packaging>
-  <!-- jar is the default -->
-  <!-- With the 3.6.1 version of Maven this causes a warning to obsolete this in
-         favor of using the enforcer plugin (which we do).  But removing this
-         causes the command "mvn versions:display-plugin-updates" to issue an error 
-         and not work properly. So this will stay for the time being. 
-  -->
-  <prerequisites>
-    <maven>3.2.0</maven>
-  </prerequisites>
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <scm>
-    <connection>scm:git:ssh://git@github.com/apache/incubator-${project.artifactId}.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/apache/incubator-${project.artifactId}.git</developerConnection>
-    <url>https://github.com/apache/incubator-${project.artifactId}</url>
-    <tag>HEAD</tag>
-  </scm>
-  <issueManagement>
-    <!-- <system>jira</system>
-      <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
-    <system>GitHub</system>
-    <url>https://github.com/apache/incubator-${project.artifactId}/issues</url>
-  </issueManagement>
+  <packaging>jar</packaging> <!-- jar is the default -->
+
   <mailingLists>
     <mailingList>
       <name>DataSketches Developers</name>
@@ -83,6 +59,21 @@ under the License.
       <post>mailto:sketches-user@googlegroups.com</post>
     </mailingList>
   </mailingLists>
+
+  <scm>
+    <connection>scm:git:ssh://git@github.com/apache/${project.artifactId}.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/apache/${project.artifactId}.git</developerConnection>
+    <url>https://github.com/apache/${project.artifactId}</url>
+    <tag>HEAD</tag>
+  </scm>
+
+  <issueManagement>
+    <!-- <system>jira</system>
+      <url>https://issues.apache.org/jira/browse/DATASKETCHES</url> -->
+    <system>GitHub</system>
+    <url>https://github.com/apache/${project.artifactId}/issues</url>
+  </issueManagement>
+
   <developers>
     <developer>
       <name>The Apache DataSketches Team</name>
@@ -92,48 +83,52 @@ under the License.
       <organizationUrl>http://www.apache.org</organizationUrl>
     </developer>
   </developers>
+
   <properties>
-    
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <datasketches-memory.version>1.2.0-incubating</datasketches-memory.version>
-    <slf4j-simple.version>1.7.27</slf4j-simple.version>
+    <slf4j-simple.version>1.7.30</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
-    
+
     <!-- Test -->
-    <testng.version>6.14.3</testng.version>
+    <testng.version>7.1.0</testng.version>
+
     <!-- System-wide properties -->
+    <maven.version>3.0.0</maven.version>
+    <java.version>1.8</java.version>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
     <project.build.resourceEncoding>${charset.encoding}</project.build.resourceEncoding>
     <project.reporting.outputEncoding>${charset.encoding}</project.reporting.outputEncoding>
-    <java.version>1.8</java.version>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
+
     <!-- org.codehaus.plexus used for strict profile testing-->
-    <plexus-compiler-javac-errorprone.version>2.8.5</plexus-compiler-javac-errorprone.version>
+    <plexus-compiler-javac-errorprone.version>2.8.8</plexus-compiler-javac-errorprone.version>
     <!--  Maven Plugins -->
-    <maven-assembly-plugin.version>3.1.1</maven-assembly-plugin.version>
-    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-    <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version>
-    <maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
-    <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-    <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
-    <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
-    <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
-    <maven-remote-resources-plugin.version>[1.0,)</maven-remote-resources-plugin.version>
-    <maven-source-plugin.version>3.1.0</maven-source-plugin.version>
-    <maven-surefire-plugin.version>3.0.0-M3</maven-surefire-plugin.version>
+    <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version> <!-- overrides parent -->
+    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version> <!-- overrides parent -->
+    <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version> <!-- overrides parent -->
+    <maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version> <!-- overrides parent -->
+    <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version> <!-- overrides parent -->
+    <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version> <!-- overrides parent -->
+    <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version> <!-- overrides parent -->
+    <maven-release-plugin.version>3.0.0-M1</maven-release-plugin.version> <!-- overrides parent -->
+    <maven-remote-resources-plugin.version>[1.7.0,)</maven-remote-resources-plugin.version> <!-- overrides parent -->
+    <maven-source-plugin.version>3.2.1</maven-source-plugin.version> <!-- overrides parent -->
+    <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version> <!-- overrides parent -->
     <!-- Apache Plugins -->
-    <apache-rat-plugin.version>0.13</apache-rat-plugin.version>
+    <apache-rat-plugin.version>0.13</apache-rat-plugin.version> <!-- overrides parent -->
     <!-- org.jacoco Maven Plugins -->
-    <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
     <!-- org.eluder Maven Plugins -->
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <git-commit-id-plugin.version>3.0.0</git-commit-id-plugin.version>
   </properties>
+
   <repositories>
     <repository>
       <id>apache.snapshots</id>
@@ -158,8 +153,8 @@ under the License.
       </snapshots>
     </repository>
   </repositories>
+
   <dependencies>
-    
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <dependency>
       <groupId>org.apache.datasketches</groupId>
@@ -174,7 +169,7 @@ under the License.
       <scope>test</scope>
     </dependency>
     <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
-    
+
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>
@@ -183,6 +178,7 @@ under the License.
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <build>
     <pluginManagement>
       <plugins>
@@ -253,10 +249,10 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>1.8.0</version>
+                    <version>${java.version}</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
-                    <version>3.2,</version>
+                    <version>${maven.version},</version>
                   </requireMavenVersion>
                   <bannedDependencies>
                     <excludes>
@@ -292,7 +288,6 @@ under the License.
               <exclude>**/test/resources/**/*.txt</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
-              <exclude>DISCLAIMER-WIP</exclude>
             </excludes>
           </configuration>
         </plugin>
@@ -443,6 +438,7 @@ under the License.
         </pluginManagement>
       </build>
     </profile>
+
     <profile>
       <id>strict</id>
       <build>
@@ -470,11 +466,12 @@ under the License.
         </pluginManagement>
       </build>
     </profile>
+
     <!--  This profile is used to release signed jars to the Apache Nexus repository. 
-          This must be executed from a git repository set at the proper Release branch (e.g., 1.1.X-incubating) 
-          and at a Release Candidate tag (e.g., 1.1.0-incubating-RC1).
-          The pom version in the release branch must be properly set to something like: "1.1.0-incubating".
-          The pom version in the master would be set to something like: "1.2.0-incubating-SNAPSHOT".
+          This must be executed from a git repository set at the proper Release branch (e.g., 1.1.X) 
+          and at a Release Candidate tag (e.g., 1.1.0-RC1).
+          The pom version in the release branch must be properly set to something like: "1.1.0".
+          The pom version in the master would be set to something like: "1.2.0-SNAPSHOT".
           Test Command: mvn clean verify -Pnexus-jars -DskipTests=true
           Command: mvn clean deploy -Dnexus-jars
           Verify Command (from terminal): gpg -v &#45;&#45;verify $ASC $FILE # dashdashverify
@@ -524,6 +521,7 @@ under the License.
                 </gitDescribe>
               </configuration>
             </plugin>
+
             <!-- Extends Apache Parent pom, pluginManagement-->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -565,6 +563,7 @@ under the License.
                 </archive>
               </configuration>
             </plugin>
+
             <!-- We want to sign the artifacts, POM, and all attached artifacts -->
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>
@@ -589,6 +588,7 @@ under the License.
             </plugin>
           </plugins>
         </pluginManagement>
+
         <plugins>
           <plugin>
             <groupId>pl.project13.maven</groupId>
