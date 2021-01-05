@@ -288,7 +288,6 @@ under the License.
               <exclude>**/test/resources/**/*.txt</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
-              <exclude>DISCLAIMER-WIP</exclude>
             </excludes>
           </configuration>
         </plugin>
