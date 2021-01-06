@@ -432,6 +432,10 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public ReqSketch merge(final ReqSketch other) {
     if (other == null || other.isEmpty()) { return this; }
+    if (other.hra != hra) {
+      throw new SketchesArgumentException(
+          "Both sketches must have the same HighRankAccuracy setting.");
+    }
     totalN += other.totalN;
     //update min, max values, n
     if (Float.isNaN(minValue) || other.minValue < minValue) { minValue = other.minValue; }
