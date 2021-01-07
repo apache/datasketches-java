@@ -185,7 +185,6 @@ public class ReqSketch extends BaseReqSketch {
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
-        if (retItems < maxNomSize) { break; }
       }
     }
     aux = null;
