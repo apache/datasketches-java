@@ -515,7 +515,6 @@ public class ReqSketch extends BaseReqSketch {
     retItems++;
     totalN++;
     if (retItems >= maxNomSize) {
-      buf.sort();
       compress();
     }
     aux = null;

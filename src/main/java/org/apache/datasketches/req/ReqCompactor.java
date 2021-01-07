@@ -119,7 +119,6 @@ class ReqCompactor {
    */
   FloatBuffer compact(final CompactorReturn cReturn) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
-    buf.sort();
     final int startRetItems = buf.getCount();
     final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
