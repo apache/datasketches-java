@@ -232,6 +232,7 @@ class ReqCompactor {
     final float szf;
     final int ne;
     if (state >= 1L << numSections - 1
+        && sectionSize > MIN_K
         && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
     {
       sectionSizeFlt = szf;
