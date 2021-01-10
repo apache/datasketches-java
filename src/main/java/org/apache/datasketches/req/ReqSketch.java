@@ -77,7 +77,7 @@ public class ReqSketch extends BaseReqSketch {
   static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: restore to final after eval
   static int MIN_K = 4; // TODO: restore to final after eval
   static float NOM_CAP_MULT = 2f; // TODO: restore to final after eval
-  private static boolean LAZY_COMPRESSION = true; //TODO: restore to final after eval
+  private static boolean LAZY_COMPRESSION = false; //TODO: restore to final after eval
   private static double relRseFactor; //TODO: restore final: = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
   private static final double fixRseFactor = .06;
   //finals
