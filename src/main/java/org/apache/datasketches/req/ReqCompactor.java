@@ -120,7 +120,6 @@ class ReqCompactor {
    */
   FloatBuffer compact(final CompactorReturn cReturn) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
-    buf.sort();
     final int startRetItems = buf.getCount();
     final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
@@ -233,7 +232,12 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final float szf;
     final int ne;
+<<<<<<< HEAD
     if (state >= 1L << numSections - 1 //TODO try adding: && sectionSize > MIN_K
+=======
+    if (state >= 1L << numSections - 1
+        && sectionSize > MIN_K
+>>>>>>> refs/heads/master
         && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
     {
       sectionSizeFlt = szf;

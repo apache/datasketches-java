@@ -39,14 +39,17 @@ import org.apache.datasketches.memory.Memory;
  * <ul>
  * <li>The algorithm requires no upper bound on the stream length.
  * Instead, each relative-compactor counts the number of compaction operations performed
- * so far (variable numCompactions). Initially, the relative-compactor starts with 3 sections.
- * Each time the numCompactions exceeds 2^{numSections - 1}, we double numSections.</li>
+ * so far (via variable state). Initially, the relative-compactor starts with INIT_NUMBER_OF_SECTIONS.
+ * Each time the number of compactions (variable state) exceeds 2^{numSections - 1}, we double 
+ * numSections. Note that after merging the sketch with another one variable state may not correspond 
+ * to the number of compactions performed at a particular level, however, since the state variable 
+ * never exceeds the number of compactions, the guarantees of the sketch remain valid.</li>
  *
  * <li>The size of each section (variable k and sectionSize in the code and parameter k in
  * the paper) is initialized with a value set by the user via variable k.
  * When the number of sections doubles, we decrease sectionSize by a factor of sqrt(2).
  * This is applied at each level separately. Thus, when we double the number of sections, the
- * nominal compactor size increases by a factor of sqrt(2) (up to +-1 after rounding).</li>
+ * nominal compactor size increases by a factor of approx. sqrt(2) (+- rounding).</li>
  *
  * <li>The merge operation here does not perform "special compactions", which are used in the paper
  * to allow for a tight mathematical analysis of the sketch.</li>
@@ -212,7 +215,7 @@ public class ReqSketch extends BaseReqSketch {
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
-        if (LAZY_COMPRESSION && retItems < maxNomSize) { break; }
+        //if (LAZY_COMPRESSION && retItems < maxNomSize) { break; }
       }
     }
     aux = null;
@@ -462,6 +465,10 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public ReqSketch merge(final ReqSketch other) {
     if (other == null || other.isEmpty()) { return this; }
+    if (other.hra != hra) {
+      throw new SketchesArgumentException(
+          "Both sketches must have the same HighRankAccuracy setting.");
+    }
     totalN += other.totalN;
     //update min, max values, n
     if (Float.isNaN(minValue) || other.minValue < minValue) { minValue = other.minValue; }
