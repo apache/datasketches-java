@@ -23,6 +23,7 @@ import static java.lang.Math.round;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.ReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
+import static org.apache.datasketches.req.ReqSketch.NOM_CAP_MULT;
 
 import java.util.Random;
 
@@ -37,7 +38,7 @@ import org.apache.datasketches.req.ReqSketch.CompactorReturn;
 class ReqCompactor {
   //finals
   private static final double SQRT2 = Math.sqrt(2.0);
-  private static final int NOM_CAP_MULT = 2;
+  //private static final int NOM_CAP_MULT = 2;
   private final byte lgWeight;
   private final boolean hra;
   //state variables
@@ -170,7 +171,7 @@ class ReqCompactor {
    * @return the current nominal capacity of this compactor.
    */
   int getNomCapacity() {
-    return NOM_CAP_MULT * numSections * sectionSize;
+    return (int)(NOM_CAP_MULT * numSections * sectionSize);
   }
 
   /**
@@ -231,7 +232,7 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final float szf;
     final int ne;
-    if (state >= 1L << numSections - 1
+    if (state >= 1L << numSections - 1 //TODO try adding: && sectionSize > MIN_K
         && sectionSize > MIN_K
         && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
     {
@@ -253,6 +254,7 @@ class ReqCompactor {
   private long computeCompactionRange(final int secsToCompact) {
     final int bufLen = buf.getCount();
     int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
+    // TODO: alternative: int nonCompact = (2 * numSections - secsToCompact) * sectionSize;
     //make compacted region even:
     nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
     final long low =  hra ? 0                   : nonCompact;
