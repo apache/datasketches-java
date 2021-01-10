@@ -39,17 +39,17 @@ import org.apache.datasketches.memory.Memory;
  * <ul>
  * <li>The algorithm requires no upper bound on the stream length.
  * Instead, each relative-compactor counts the number of compaction operations performed
- * so far (via variable state). Initially, the relative-compactor starts with 3 sections.
- * Each time the number of compactions (variable state) exceeds 2^{numSections - 1}, we double numSections.
- * Note that after merging the sketch with another one variable state may not correspond to the number of
- * compactions performed at a particular level, however, since the state variable never exceeds
- * the number of compactions, the guarantees of the sketch remain valid.</li>
+ * so far (via variable state). Initially, the relative-compactor starts with INIT_NUMBER_OF_SECTIONS.
+ * Each time the number of compactions (variable state) exceeds 2^{numSections - 1}, we double
+ * numSections. Note that after merging the sketch with another one variable state may not correspond
+ * to the number of compactions performed at a particular level, however, since the state variable
+ * never exceeds the number of compactions, the guarantees of the sketch remain valid.</li>
  *
  * <li>The size of each section (variable k and sectionSize in the code and parameter k in
  * the paper) is initialized with a value set by the user via variable k.
  * When the number of sections doubles, we decrease sectionSize by a factor of sqrt(2).
  * This is applied at each level separately. Thus, when we double the number of sections, the
- * nominal compactor size increases by a factor of approx. sqrt(2) (up to rounding issues).</li>
+ * nominal compactor size increases by a factor of approx. sqrt(2) (+/- rounding).</li>
  *
  * <li>The merge operation here does not perform "special compactions", which are used in the paper
  * to allow for a tight mathematical analysis of the sketch.</li>
@@ -74,9 +74,11 @@ import org.apache.datasketches.memory.Memory;
 public class ReqSketch extends BaseReqSketch {
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static final int INIT_NUMBER_OF_SECTIONS = 3;
-  static final int MIN_K = 4;
-  private static final double relRseFactor = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: restore to final after eval
+  static int MIN_K = 4; // TODO: restore to final after eval
+  static float NOM_CAP_MULT = 2f; // TODO: restore to final after eval
+  private static boolean LAZY_COMPRESSION = true; //TODO: restore to final after eval
+  private static double relRseFactor; //TODO: restore final: = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
   private static final double fixRseFactor = .06;
   //finals
   private final int k;  //user config, default is 12 (1% @ 95% Conf)
@@ -94,6 +96,34 @@ public class ReqSketch extends BaseReqSketch {
   private List<ReqCompactor> compactors = new ArrayList<>();
   private ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
+
+  /**
+   * Temporary ctor for evaluation
+   * @param k blah
+   * @param highRankAccuracy blah
+   * @param reqDebug blah
+   * @param initNumSections blah
+   * @param minK blah
+   * @param nomCapMult blah
+   * @param lazyCompression blah
+   */
+  public ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug,
+      final byte initNumSections, final int minK, final float nomCapMult,
+      final boolean lazyCompression) {
+    checkK(k);
+    this.k = k;
+    hra = highRankAccuracy;
+    retItems = 0;
+    maxNomSize = 0;
+    totalN = 0;
+    this.reqDebug = reqDebug;
+    INIT_NUMBER_OF_SECTIONS = initNumSections; //was 3
+    relRseFactor = sqrt(0.0512 / initNumSections);
+    MIN_K = minK; //was 4
+    NOM_CAP_MULT = nomCapMult; //was 2
+    LAZY_COMPRESSION = lazyCompression; //was true
+    grow();
+  }
 
   /**
    * Normal Constructor used by ReqSketchBuilder.
@@ -185,6 +215,7 @@ public class ReqSketch extends BaseReqSketch {
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
+        if (LAZY_COMPRESSION && retItems < maxNomSize) { break; }
       }
     }
     aux = null;
@@ -514,6 +545,7 @@ public class ReqSketch extends BaseReqSketch {
     retItems++;
     totalN++;
     if (retItems >= maxNomSize) {
+      buf.sort();
       compress();
     }
     aux = null;
