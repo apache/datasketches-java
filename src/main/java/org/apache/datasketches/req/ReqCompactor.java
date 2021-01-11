@@ -171,7 +171,7 @@ class ReqCompactor {
    * @return the current nominal capacity of this compactor.
    */
   int getNomCapacity() {
-    return (int)(NOM_CAP_MULT * numSections * sectionSize);
+    return nearestEven(NOM_CAP_MULT * numSections * sectionSize);
   }
 
   /**

@@ -74,12 +74,13 @@ import org.apache.datasketches.memory.Memory;
 public class ReqSketch extends BaseReqSketch {
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: restore to final after eval
-  static int MIN_K = 4; // TODO: restore to final after eval
-  static float NOM_CAP_MULT = 2f; // TODO: restore to final after eval
-  private static boolean LAZY_COMPRESSION = false; //TODO: restore to final after eval
-  private static double relRseFactor; //TODO: restore final: = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
-  private static final double fixRseFactor = .06;
+  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: convert to final after eval
+  static int MIN_K = 4; // TODO: convert to final after eval
+  static float NOM_CAP_MULT = 2f; // TODO: convert to final after eval
+  private static boolean LAZY_COMPRESSION = false; //TODO: convert to final after eval
+  //These two factors are used by upper and lower bounds
+  private static double relRseFactor; //TODO: convert final: = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  private static final double fixRseFactor = .06; //TODO decide what this should be.
   //finals
   private final int k;  //user config, default is 12 (1% @ 95% Conf)
   private final boolean hra;    //user config, default is true
@@ -120,8 +121,8 @@ public class ReqSketch extends BaseReqSketch {
     INIT_NUMBER_OF_SECTIONS = initNumSections; //was 3
     relRseFactor = sqrt(0.0512 / initNumSections);
     MIN_K = minK; //was 4
-    NOM_CAP_MULT = nomCapMult; //was 2
-    LAZY_COMPRESSION = lazyCompression; //was true
+    NOM_CAP_MULT = nomCapMult; //was 2; now can be any fraction
+    LAZY_COMPRESSION = lazyCompression; //was true, now false
     grow();
   }
 
