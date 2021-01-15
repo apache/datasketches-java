@@ -38,7 +38,6 @@ import org.apache.datasketches.req.ReqSketch.CompactorReturn;
 class ReqCompactor {
   //finals
   private static final double SQRT2 = Math.sqrt(2.0);
-  //private static final int NOM_CAP_MULT = 2;
   private final byte lgWeight;
   private final boolean hra;
   //state variables
@@ -71,7 +70,7 @@ class ReqCompactor {
     state = 0;
     coin = false;
     numSections = INIT_NUMBER_OF_SECTIONS;
-    final int nomCap = getNomCapacity(); //NOM_CAP_MULT * numSections * sectionSize;
+    final int nomCap = getNomCapacity();
     buf = new FloatBuffer(2 * nomCap, nomCap, hra);
     if (reqDebug != null) { rand = new Random(1); }
     else { rand = new Random(); }
@@ -171,7 +170,7 @@ class ReqCompactor {
    * @return the current nominal capacity of this compactor.
    */
   int getNomCapacity() {
-    return nearestEven(NOM_CAP_MULT * numSections * sectionSize);
+    return NOM_CAP_MULT * numSections * sectionSize;
   }
 
   /**
