@@ -232,7 +232,7 @@ class ReqCompactor {
   private boolean ensureEnoughSections() {
     final float szf;
     final int ne;
-    if (state >= 1L << numSections - 1 //TODO try adding: && sectionSize > MIN_K
+    if (state >= 1L << numSections - 1
         && sectionSize > MIN_K
         && (ne = nearestEven(szf = (float)(sectionSizeFlt / SQRT2))) >= MIN_K)
     {
@@ -254,7 +254,6 @@ class ReqCompactor {
   private long computeCompactionRange(final int secsToCompact) {
     final int bufLen = buf.getCount();
     int nonCompact = getNomCapacity() / 2 + (numSections - secsToCompact) * sectionSize;
-    // TODO: alternative: int nonCompact = (2 * numSections - secsToCompact) * sectionSize;
     //make compacted region even:
     nonCompact = (bufLen - nonCompact & 1) == 1 ? nonCompact + 1 : nonCompact;
     final long low =  hra ? 0                   : nonCompact;

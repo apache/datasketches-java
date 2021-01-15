@@ -5,6 +5,7 @@
 .checkstyle
 
 # IntelliJ project files
+*.idea
 *.iml
 *.ipr
 *.iws
@@ -40,7 +41,6 @@ bin/
 hs_err_pid*
 
 #Test config and output
-/target/
 test-output/
 local/
 reports/
@@ -48,12 +48,12 @@ reports/
 tmp/
 
 # Build artifacts
+target/
 out/
 build/
 jarsIn/
 *.jar
 build.xml
-.idea
 *.properties
 *.releaseBackup
 *.next

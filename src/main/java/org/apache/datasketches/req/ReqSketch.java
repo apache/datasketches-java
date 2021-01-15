@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.req;
 
-import static java.lang.Math.sqrt;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -74,18 +72,17 @@ import org.apache.datasketches.memory.Memory;
 public class ReqSketch extends BaseReqSketch {
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static byte INIT_NUMBER_OF_SECTIONS = 3; // TODO: convert to final after eval
-  static int MIN_K = 4; // TODO: convert to final after eval
-  static float NOM_CAP_MULT = 2f; // TODO: convert to final after eval
-  private static boolean LAZY_COMPRESSION = false; //TODO: convert to final after eval
+  static final byte INIT_NUMBER_OF_SECTIONS = 3;
+  static final byte MIN_K = 4;
+  static final byte NOM_CAP_MULT = 2;
   //These two factors are used by upper and lower bounds
-  private static double relRseFactor; //TODO: convert final: = sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
-  private static final double fixRseFactor = .06; //TODO decide what this should be.
+  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  private static final double fixRseFactor = .06;
   //finals
-  private final int k;  //user config, default is 12 (1% @ 95% Conf)
-  private final boolean hra;    //user config, default is true
+  private final int k; //default is 12 (1% @ 95% Conf)
+  private final boolean hra; //default is true
   //state variables
-  private boolean ltEq = false; //user config, default: LT, can be set after construction
+  private boolean ltEq = false; //default: LT, can be set after construction
   private long totalN;
   private float minValue = Float.NaN;
   private float maxValue = Float.NaN;
@@ -97,34 +94,6 @@ public class ReqSketch extends BaseReqSketch {
   private List<ReqCompactor> compactors = new ArrayList<>();
   private ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
-
-  /**
-   * Temporary ctor for evaluation
-   * @param k blah
-   * @param highRankAccuracy blah
-   * @param reqDebug blah
-   * @param initNumSections blah
-   * @param minK blah
-   * @param nomCapMult blah
-   * @param lazyCompression blah
-   */
-  public ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug,
-      final byte initNumSections, final int minK, final float nomCapMult,
-      final boolean lazyCompression) {
-    checkK(k);
-    this.k = k;
-    hra = highRankAccuracy;
-    retItems = 0;
-    maxNomSize = 0;
-    totalN = 0;
-    this.reqDebug = reqDebug;
-    INIT_NUMBER_OF_SECTIONS = initNumSections; //was 3
-    relRseFactor = sqrt(0.0512 / initNumSections);
-    MIN_K = minK; //was 4
-    NOM_CAP_MULT = nomCapMult; //was 2; now can be any fraction
-    LAZY_COMPRESSION = lazyCompression; //was true, now false
-    grow();
-  }
 
   /**
    * Normal Constructor used by ReqSketchBuilder.
@@ -216,7 +185,7 @@ public class ReqSketch extends BaseReqSketch {
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
-        if (LAZY_COMPRESSION && retItems < maxNomSize) { break; }
+        //we specifically decided not to do lazy compression.
       }
     }
     aux = null;
