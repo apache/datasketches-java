@@ -77,7 +77,7 @@ public class ReqSketch extends BaseReqSketch {
   static final byte NOM_CAP_MULT = 2;
   //These two factors are used by upper and lower bounds
   private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
-  private static final double fixRseFactor = .06;
+  private static final double fixRseFactor = .084;
   //finals
   private final int k; //default is 12 (1% @ 95% Conf)
   private final boolean hra; //default is true
