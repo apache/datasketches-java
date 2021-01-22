@@ -116,7 +116,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   /**
-   * Copy Constructor
+   * Copy Constructor.  Only used in test.
    * @param other the other sketch to be deep copied into this one.
    */
   ReqSketch(final ReqSketch other) {
@@ -140,6 +140,7 @@ public class ReqSketch extends BaseReqSketch {
 
   /**
    * Construct from elements. After sketch is constructed, retItems and maxNomSize must be computed.
+   * Used by ReqSerDe.
    */
   ReqSketch(final int k, final boolean hra, final long totalN, final float minValue,
       final float maxValue, final List<ReqCompactor> compactors) {
