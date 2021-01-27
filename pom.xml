@@ -21,6 +21,7 @@ under the License.
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -30,18 +31,14 @@ under the License.
   </parent>
 
   <groupId>org.apache.datasketches</groupId>
-
-  <!-- UNIQUE FOR THIS JAVA COMPONENT -->
   <artifactId>datasketches-java</artifactId>
   <version>1.4.0-SNAPSHOT</version>
-  <description>Core sketch algorithms used alone 
-    and by other Java repositories in the DataSketches library.</description>
-  <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
+  <packaging>jar</packaging>
 
-  <url>https://datasketches.apache.org/</url>
   <name>${project.artifactId}</name>
+  <description>Core sketch algorithms used alone and by other Java repositories in the DataSketches library.</description>
+  <url>https://datasketches.apache.org/</url>
   <inceptionYear>2015</inceptionYear>
-  <packaging>jar</packaging> <!-- jar is the default -->
 
   <mailingLists>
     <mailingList>
@@ -86,7 +83,7 @@ under the License.
 
   <properties>
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
-    <datasketches-memory.version>1.2.0-incubating</datasketches-memory.version>
+    <datasketches-memory.version>1.3.0</datasketches-memory.version>
     <slf4j-simple.version>1.7.30</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
@@ -185,12 +182,14 @@ under the License.
   <build>
     <pluginManagement>
       <plugins>
+
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
           <version>${versions-maven-plugin.version}</version>
         </plugin>
         <plugin>
+
           <!-- We want to deploy the artifacts to a staging location for perusal -->
           <!-- Apache Parent pom: apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
@@ -201,12 +200,14 @@ under the License.
             <!-- see maven-install-plugin -->
           </configuration>
         </plugin>
+
         <plugin>
           <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-release-plugin</artifactId>
           <version>${maven-release-plugin.version}</version>
         </plugin>
+
         <plugin>
           <!-- Extends Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
@@ -227,6 +228,7 @@ under the License.
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <!-- Extends Apache Parent pom, apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
@@ -244,6 +246,7 @@ under the License.
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
@@ -274,6 +277,7 @@ under the License.
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.rat</groupId>
@@ -300,6 +304,7 @@ under the License.
             </excludes>
           </configuration>
         </plugin>
+
         <plugin>
           <!-- Extends Apache Parent pom, apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
@@ -322,6 +327,7 @@ under the License.
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <!-- Apache Parent pom, pluginManagement-->
           <groupId>org.apache.maven.plugins</groupId>
@@ -333,6 +339,7 @@ under the License.
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
           </configuration>
         </plugin>
+
         <plugin>
           <!-- Generates code coverage report from website. -->
           <groupId>org.jacoco</groupId>
@@ -347,6 +354,7 @@ under the License.
             </execution>
           </executions>
         </plugin>
+
         <plugin>
           <!-- Submit code coverage report to Coveralls.io. -->
           <groupId>org.eluder.coveralls</groupId>
@@ -356,6 +364,7 @@ under the License.
             <!-- Since we use Travis CI we do not have to put a Coveralls token here. -->
           </configuration>
         </plugin>
+
       </plugins>
     </pluginManagement>
     <plugins>
