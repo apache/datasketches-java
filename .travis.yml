@@ -32,7 +32,7 @@ script:
  - mvn clean compile test -q -Dgpg.skip=true
 
 after_success: 
- - mvn clean test jacoco:report coveralls:report -q -DrepoToken=$coveralls_token
+ - mvn clean test jacoco:report coveralls:report -q -DrepoToken=$coveralls_token -DisDebugEnabled=true
 
 notifications:
   email: false
