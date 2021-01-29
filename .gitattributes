@@ -33,4 +33,4 @@ NOTICE text
 .gitattributes export-ignore
 .gitignore export-ignore
 .travis.yml export-ignore
-
+.github/ export-ignore
