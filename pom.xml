@@ -297,7 +297,8 @@ under the License.
             <useDefaultExcludes>true</useDefaultExcludes>
             <excludes>
               <!-- rat uses .gitignore for excludes by default -->
-              <exclude>.asf.yaml</exclude>
+              <exclude>**/*.yaml</exclude>
+              <exclude>***/*.yml</exclude>
               <exclude>**/test/resources/**/*.txt</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
