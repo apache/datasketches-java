@@ -6,10 +6,12 @@ on:
     pull_request:
         branches: [ master ]
 
+env: MAVEN_OPTS="-Xmx4g -Xms1g"
+
 jobs:
     build:
+        name: Build Job
         runs-on: ubuntu-latest
-        env: MAVEN_OPTS="-Xmx4g -Xms1g"
         
         steps:
         - name: Checkout
@@ -21,9 +23,10 @@ jobs:
               java-version: 1.8  #OR 8.0.212 | 16.0.0-ea.28 (.28 is build #)
 
         - name: Maven clean test
-          run: mvn clean test jacoco:report coveralls:report -q -Dgpg.skip=true -DisDebugEnabled=true --batch-mode
+          run: mvn clean test jacoco:report coveralls:report -q -Dgpg.skip=true -DisDebugEnabled=true --batch-mode --file=pom.xml
 
         - name: Coveralls
+          if: ${{ success() }}
           uses: coverallsapp/github-action@master
           with:
               github-token: ${{ secrets.github_token }}
