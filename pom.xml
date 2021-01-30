@@ -355,17 +355,17 @@ under the License.
             </execution>
           </executions>
         </plugin>
-
+        <!--
         <plugin>
-          <!-- Submit code coverage report to Coveralls.io. -->
+          # Submit code coverage report to Coveralls.io. 
           <groupId>org.eluder.coveralls</groupId>
           <artifactId>coveralls-maven-plugin</artifactId>
           <version>${coveralls-maven-plugin.version}</version>
           <configuration>
-            <!-- Since we use Travis CI we do not have to put a Coveralls token here. -->
+            # Since we use Travis CI we do not have to put a Coveralls token here. 
           </configuration>
         </plugin>
-
+      -->
       </plugins>
     </pluginManagement>
     <plugins>
