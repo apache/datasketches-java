@@ -6,7 +6,8 @@ on:
     pull_request:
         branches: [ master ]
 
-env: MAVEN_OPTS: -Xmx4g -Xms1g
+env:
+    MAVEN_OPTS: -Xmx4g -Xms1g
 
 jobs:
     build:
