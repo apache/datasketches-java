@@ -24,7 +24,7 @@ jobs:
               java-version: 1.8  #OR 8.0.212 | 16.0.0-ea.28 (.28 is build #)
 
         - name: Maven clean test
-          run: mvn clean test jacoco:report coveralls:report -q -Dgpg.skip=true -DisDebugEnabled=true --batch-mode --file=pom.xml
+          run: mvn clean test jacoco:report coveralls:report -q -Dgpg.skip=true -DisDebugEnabled=true --batch-mode --file=pom.xml -DrepoToken=$coveralls_token
 
         - name: Coveralls
           if: ${{ success() }}
