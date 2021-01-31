@@ -91,6 +91,7 @@ under the License.
     <testng.version>7.1.0</testng.version>
 
     <!-- System-wide properties -->
+    <jar.creation>package</jar.creation>
     <maven.version>3.5.0</maven.version>
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -123,6 +124,7 @@ under the License.
     <!-- org.jacoco Maven Plugins -->
     <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
     <!-- org.eluder Maven Plugins -->
+    <coveralls-repo-token></coveralls-repo-token>
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
@@ -216,12 +218,14 @@ under the License.
           <executions>
             <execution>
               <id>default-jar</id>
+              <phase>${jar.creation}</phase>
               <goals>
                 <goal>jar</goal>
               </goals>
             </execution>
             <execution>
               <id>default-test-jar</id>
+              <phase>${jar.creation}</phase>
               <goals>
                 <goal>test-jar</goal>
               </goals>
@@ -315,14 +319,14 @@ under the License.
           <executions>
             <execution>
               <id>attach-sources</id>
-              <phase>package</phase>
+              <phase>${jar.creation}</phase>
               <goals>
                 <goal>jar-no-fork</goal>
               </goals>
             </execution>
             <execution>
               <id>attach-test-sources</id>
-              <phase>package</phase>
+              <phase>${jar.creation}</phase>
               <goals>
                 <goal>test-jar-no-fork</goal>
               </goals>
@@ -369,7 +373,7 @@ under the License.
           <artifactId>coveralls-maven-plugin</artifactId>
           <version>${coveralls-maven-plugin.version}</version>
           <configuration>
-            <repoToken>z2NyvKNpclvuc31m2yfZrpzrPr1cnLjSd</repoToken>
+            <repoToken>${coveralls-repo-token}</repoToken>
           </configuration>
         </plugin>
 

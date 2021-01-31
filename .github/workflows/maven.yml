@@ -8,6 +8,7 @@ on:
 
 env:
     MAVEN_OPTS: -Xmx4g -Xms1g
+    repo_token: z2NyvKNpclvuc31m2yfZrpzrPr1cnLjSd
 
 jobs:
     build:
@@ -35,8 +36,8 @@ jobs:
               targets: 'JDK_8;JAVA_HOME'
 
         - name: Install Dependencies
-          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V -q --toolchains .github/workflows/.toolchains.xml
+          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Djar.creation=false -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
 
         - name: Test & Report
           if: ${{ success() }}
-          run: mvn verify jacoco:prepare-agent jacoco:report coveralls:report -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
+          run: mvn verify coveralls:report -Dcoveralls-repo-token=${repo_token} -Dmaven.javadoc.skip=true -Djar.creation=false -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
