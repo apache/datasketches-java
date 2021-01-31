@@ -348,24 +348,30 @@ under the License.
           <version>${jacoco-maven-plugin.version}</version>
           <executions>
             <execution>
-              <id>prepare-agent</id>
+              <id>default-prepare-agent</id>
               <goals>
                 <goal>prepare-agent</goal>
               </goals>
             </execution>
+            <execution>
+              <id>default-report</id>
+              <goals>
+                <goal>report</goal>
+              </goals>
+            </execution>  
           </executions>
         </plugin>
-        <!--
+
         <plugin>
-          # Submit code coverage report to Coveralls.io. 
+          <!-- Submit code coverage report to Coveralls.io. -->
           <groupId>org.eluder.coveralls</groupId>
           <artifactId>coveralls-maven-plugin</artifactId>
           <version>${coveralls-maven-plugin.version}</version>
           <configuration>
-            # Since we use Travis CI we do not have to put a Coveralls token here. 
+            <repoToken>z2NyvKNpclvuc31m2yfZrpzrPr1cnLjSd</repoToken>
           </configuration>
         </plugin>
-      -->
+
       </plugins>
     </pluginManagement>
     <plugins>
