@@ -36,8 +36,8 @@ jobs:
               targets: 'JDK_8;JAVA_HOME'
 
         - name: Install Dependencies
-          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Djar.creation=false -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
+          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
 
         - name: Test & Report
           if: ${{ success() }}
-          run: mvn verify coveralls:report -Dcoveralls-repo-token=${repo_token} -Dmaven.javadoc.skip=true -Djar.creation=false -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
+          run: mvn verify coveralls:report -Dcoveralls-repo-token=${repo_token} -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml

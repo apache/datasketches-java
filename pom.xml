@@ -91,7 +91,6 @@ under the License.
     <testng.version>7.1.0</testng.version>
 
     <!-- System-wide properties -->
-    <jar.creation>package</jar.creation>
     <maven.version>3.5.0</maven.version>
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
@@ -218,14 +217,14 @@ under the License.
           <executions>
             <execution>
               <id>default-jar</id>
-              <phase>${jar.creation}</phase>
+              <phase>package</phase>
               <goals>
                 <goal>jar</goal>
               </goals>
             </execution>
             <execution>
               <id>default-test-jar</id>
-              <phase>${jar.creation}</phase>
+              <phase>package</phase>
               <goals>
                 <goal>test-jar</goal>
               </goals>
@@ -319,14 +318,14 @@ under the License.
           <executions>
             <execution>
               <id>attach-sources</id>
-              <phase>${jar.creation}</phase>
+              <phase>package</phase>
               <goals>
                 <goal>jar-no-fork</goal>
               </goals>
             </execution>
             <execution>
               <id>attach-test-sources</id>
-              <phase>${jar.creation}</phase>
+              <phase>package</phase>
               <goals>
                 <goal>test-jar-no-fork</goal>
               </goals>
