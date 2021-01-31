@@ -299,6 +299,7 @@ under the License.
               <!-- rat uses .gitignore for excludes by default -->
               <exclude>**/*.yaml</exclude>
               <exclude>**/*.yml</exclude>
+              <exclude>**/.*</exclude>
               <exclude>**/test/resources/**/*.txt</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
