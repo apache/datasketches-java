@@ -16,8 +16,10 @@ jobs:
         runs-on: ubuntu-latest
         
         steps:
-        - name: Checkout
+        - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
           uses: actions/checkout@v2
+          with:
+              persist-ccredentials: false
 
         - name: Cache local Maven repository
           uses: actions/cache@v2
@@ -36,8 +38,8 @@ jobs:
               targets: 'JDK_8;JAVA_HOME'
 
         - name: Install Dependencies
-          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
+          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V -q --toolchains .github/workflows/.toolchains.xml
 
         - name: Test & Report
           if: ${{ success() }}
-          run: mvn verify coveralls:report -Dcoveralls-repo-token=${repo_token} -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V --toolchains .github/workflows/.toolchains.xml
+          run: mvn verify coveralls:report -Dcoveralls-repo-token=${repo_token} -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V -q --toolchains .github/workflows/.toolchains.xml
