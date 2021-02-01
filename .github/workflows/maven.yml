@@ -19,7 +19,7 @@ jobs:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
           uses: actions/checkout@v2
           with:
-              persist-ccredentials: false
+              persist-credentials: false
 
         - name: Cache local Maven repository
           uses: actions/cache@v2
