@@ -8,7 +8,7 @@ on:
 
 env:
     MAVEN_OPTS: -Xmx4g -Xms1g
-    repo_token: z2NyvKNpclvuc31m2yfZrpzrPr1cnLjSd
+    repo_token: ${{secrets.coveralls_token}}
 
 jobs:
     build:
