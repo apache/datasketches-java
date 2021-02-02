@@ -1,9 +1,8 @@
-name: Java CI with Maven, Coveralls
+name: Java Test Coverage with Maven, Coveralls
 
 on:
-    push:
-        branches: [ master ]
     pull_request:
+    push:
         branches: [ master ]
 
 env:
@@ -24,10 +23,9 @@ jobs:
         - name: Cache local Maven repository
           uses: actions/cache@v2
           with:
-            path: ~/.m2/repository
-            key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            restore-keys: |
-              build-${{ runner.os }}-maven-
+              path: ~/.m2/repository
+              key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+              restore-keys: build-${{ runner.os }}-maven-
 
         - name: Install JDK
           uses: AdoptOpenJDK/install-jdk@v1
@@ -38,8 +36,18 @@ jobs:
               targets: 'JDK_8;JAVA_HOME'
 
         - name: Install Dependencies
-          run: mvn clean install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V -q --toolchains .github/workflows/.toolchains.xml
+          run: >
+              mvn clean install -B -V -q
+              -DskipTests=true
+              -Dmaven.javadoc.skip=true
+              -Dgpg.skip=true
+              --toolchains .github/workflows/.toolchains.xml
 
         - name: Test & Report
           if: ${{ success() }}
-          run: mvn verify coveralls:report -Dcoveralls-repo-token=${repo_token} -Dmaven.javadoc.skip=true -Dgpg.skip=true -B -V -q --toolchains .github/workflows/.toolchains.xml
+          run: >
+              mvn verify coveralls:report -B -V -q
+              -Dcoveralls-repo-token=${repo_token}
+              -Dmaven.javadoc.skip=true
+              -Dgpg.skip=true
+              --toolchains .github/workflows/.toolchains.xml
