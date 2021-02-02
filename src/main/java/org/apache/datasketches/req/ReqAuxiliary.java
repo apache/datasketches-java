@@ -166,7 +166,7 @@ class ReqAuxiliary {
     return new Row(items[index], weights[index]);
   }
 
-  class Row {
+  static class Row {
     float item;
     long weight;
 

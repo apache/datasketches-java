@@ -180,7 +180,7 @@ public class ReqSketchOtherTest {
   public void checkEmpty() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
     bldr.setLessThanOrEqual(false);
-    final ReqSketch sk = new ReqSketchBuilder().build();
+    final ReqSketch sk = bldr.build();
     assertEquals(sk.getRank(1f), Double.NaN);
     assertNull(sk.getRanks(new float[] { 1f }));
     assertEquals(sk.getQuantile(0.5), Float.NaN);

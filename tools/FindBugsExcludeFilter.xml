@@ -34,12 +34,17 @@ under the License.
   <!-- False positive.  In this case we want to ignore the exceptions -->
   <Match>
     <Bug pattern="DE_MIGHT_IGNORE" />
-    <Class name="org.apache.datasketches.theta.PairwiseCornerCasesTest" />
-    <Method name="checkNotOrdered" />
+    <Class name="org.apache.datasketches.theta.SetOpsCornerCasesTest" />
+    <Method name="checkSeedHash" />
   </Match>
   
   <Match>   <!-- Exclude for test classes; too many False Positives. -->
     <Bug pattern="NP_NULL_PARAM_DEREF_NONVIRTUAL" />
+    <Class name="~.*\.*Test" />
+  </Match>
+  
+  <Match>   <!-- Exclude for test classes; too many False Positives. -->
+    <Bug pattern="NP_LOAD_OF_KNOWN_NULL_VALUE" />
     <Class name="~.*\.*Test" />
   </Match>
   

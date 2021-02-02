@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.testng.Assert.assertTrue;
+
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
@@ -34,9 +36,11 @@ public class MiscTest {
   @Test
   public void checkUpdatableSketchBuilderReset() {
     final DoubleSummary.Mode mode = Mode.Sum;
-    UpdatableSketchBuilder<Double, DoubleSummary> bldr =
+    final UpdatableSketchBuilder<Double, DoubleSummary> bldr =
         new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode));
     bldr.reset();
+    final UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
+    assertTrue(sk.isEmpty());
   }
 
   @Test

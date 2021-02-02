@@ -38,8 +38,8 @@ public class ReqSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
   //To control debug printing:
-  private final int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
-  private final int iDebug = 0; // debug printing for individual tests below, same scale as above
+  private final static int skDebug = 0; // sketch debug printing: 0 = none, 1 = summary, 2 = extensive detail
+  private final static int iDebug = 0;  // debug printing for individual tests below, same scale as above
 
   @Test
   public void bigTest() {
