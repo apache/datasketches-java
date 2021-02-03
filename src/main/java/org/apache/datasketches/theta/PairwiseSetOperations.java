@@ -29,7 +29,7 @@ import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
  * Heap-based or Direct.
  *
  * @author Lee Rhodes
- * @deprecated  This class has been deprecated as equivalent functionality has been added to the
+ * @deprecated v2.0.0. This class has been deprecated as equivalent functionality has been added to the
  * SetOperation classes: {@link Union}, {@link Intersection} and {@link AnotB}.
  */
 @Deprecated
@@ -43,7 +43,7 @@ public class PairwiseSetOperations {
    * @param skA The first Sketch argument.
    * @param skB The second Sketch argument.
    * @return the result as an ordered CompactSketch on the heap.
-   * @deprecated Use {@link Intersection#intersect(Sketch, Sketch)} instead, which has more
+   * @deprecated v2.0.0. Use {@link Intersection#intersect(Sketch, Sketch)} instead, which has more
    * complete seed handling.
    */
   @Deprecated
@@ -60,7 +60,7 @@ public class PairwiseSetOperations {
    * @param skA The first Sketch argument.
    * @param skB The second Sketch argument.
    * @return the result as an ordered CompactSketch on the heap.
-   * @deprecated Use {@link AnotB#aNotB(Sketch, Sketch)} instead, which has more
+   * @deprecated v2.0.0. Use {@link AnotB#aNotB(Sketch, Sketch)} instead, which has more
    * complete seed handling.
    */
   @Deprecated
@@ -80,7 +80,7 @@ public class PairwiseSetOperations {
    * @param skA The first ordered, CompactSketch argument.
    * @param skB The second ordered, CompactSketch argument
    * @return the result as an ordered CompactSketch.
-   * @deprecated Please use {@link Union#union(Sketch, Sketch)} instead, which has more
+   * @deprecated v2.0.0. Please use {@link Union#union(Sketch, Sketch)} instead, which has more
    * complete seed handling.
    */
   @Deprecated
@@ -101,7 +101,7 @@ public class PairwiseSetOperations {
    * @param skB The second ordered, CompactSketch argument
    * @param k The upper bound of the number of entries to be retained by the sketch
    * @return the result as an ordered CompactSketch.
-   * @deprecated Please use {@link Union#union(Sketch, Sketch)} instead, which has more
+   * @deprecated v2.0.0. Please use {@link Union#union(Sketch, Sketch)} instead, which has more
    * complete seed handling.
    */
   @Deprecated

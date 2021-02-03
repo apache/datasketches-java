@@ -444,7 +444,7 @@ public abstract class DoublesSketch {
    * returned quantile values.
    *
    * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
+   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(boolean)}
    */
   @Deprecated
   public double getNormalizedRankError() {
@@ -466,7 +466,7 @@ public abstract class DoublesSketch {
    * Static method version of {@link #getNormalizedRankError()}
    * @param k the configuration parameter of a DoublesSketch
    * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
+   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(int, boolean)}
    */
   @Deprecated
   public static double getNormalizedRankError(final int k) {

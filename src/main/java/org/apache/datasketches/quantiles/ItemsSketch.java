@@ -185,7 +185,7 @@ public final class ItemsSketch<T> {
 
     ItemsUtil.checkItemsSerVer(serVer);
 
-    if ((serVer == 3) && ((flags & COMPACT_FLAG_MASK) == 0)) {
+    if (serVer == 3 && (flags & COMPACT_FLAG_MASK) == 0) {
       throw new SketchesArgumentException("Non-compact Memory images are not supported.");
     }
 
@@ -244,15 +244,15 @@ public final class ItemsSketch<T> {
     // this method only uses the base buffer part of the combined buffer
 
     if (dataItem == null) { return; }
-    if ((maxValue_ == null) || (comparator_.compare(dataItem, maxValue_) > 0)) { maxValue_ = dataItem; }
-    if ((minValue_ == null) || (comparator_.compare(dataItem, minValue_) < 0)) { minValue_ = dataItem; }
+    if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
+    if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
 
-    if ((baseBufferCount_ + 1) > combinedBufferItemCapacity_) {
+    if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
       ItemsSketch.growBaseBuffer(this);
     }
     combinedBuffer_[baseBufferCount_++] = dataItem;
     n_++;
-    if (baseBufferCount_ == (2 * k_)) {
+    if (baseBufferCount_ == 2 * k_) {
       ItemsUtil.processFullBaseBuffer(this);
     }
   }
@@ -274,7 +274,7 @@ public final class ItemsSketch<T> {
    * @return the approximation to the value at the above fraction
    */
   public T getQuantile(final double fraction) {
-    if ((fraction < 0.0) || (fraction > 1.0)) {
+    if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return minValue_; }
@@ -503,7 +503,7 @@ public final class ItemsSketch<T> {
    * returned quantile values.
    *
    * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
+   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(boolean)}
    */
   @Deprecated
   public double getNormalizedRankError() {
@@ -525,7 +525,7 @@ public final class ItemsSketch<T> {
    * Static method version of {@link #getNormalizedRankError()}
    * @param k the configuration parameter of a ItemsSketch
    * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
+   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(int, boolean)}
    */
   @Deprecated
   public static double getNormalizedRankError(final int k) {
@@ -578,7 +578,7 @@ public final class ItemsSketch<T> {
    * @return true if in estimation mode
    */
   public boolean isEstimationMode() {
-    return getN() >= (2L * k_);
+    return getN() >= 2L * k_;
   }
 
   /**
@@ -775,7 +775,7 @@ public final class ItemsSketch<T> {
     final Object[] baseBuffer = sketch.getCombinedBuffer();
     final int oldSize = sketch.getCombinedBufferAllocatedCount();
     final int k = sketch.getK();
-    assert oldSize < (2 * k);
+    assert oldSize < 2 * k;
     final int newSize = Math.max(Math.min(2 * k, 2 * oldSize), 1);
     sketch.combinedBufferItemCapacity_ = newSize;
     sketch.combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);

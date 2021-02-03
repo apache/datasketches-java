@@ -23,10 +23,9 @@ import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketchTest.buil
 
 import java.util.Comparator;
 
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -37,22 +36,22 @@ public class DeprecatedAndMiscTest {
   @SuppressWarnings({ "deprecation", "unused" })
   @Test
   public void checkDeprecatedRankError() {
-    DoublesSketch ds = buildAndLoadQS(64, 64);
-    double err = ds.getNormalizedRankError();
-    err = DoublesSketch.getNormalizedRankError(64);
-    DoublesUnion du1 = DoublesUnionBuilder.heapify(ds);
+    final DoublesSketch ds = buildAndLoadQS(64, 64);
+    double err = ds.getNormalizedRankError(); //v2.0.0.
+    err = DoublesSketch.getNormalizedRankError(64); //v2.0.0.
+    final DoublesUnion du1 = DoublesUnionBuilder.heapify(ds); //v2.0.0.
 
-    Memory mem = Memory.wrap(ds.toByteArray());
-    DoublesUnion du2 = DoublesUnionBuilder.heapify(mem);
+    final Memory mem = Memory.wrap(ds.toByteArray());
+    final DoublesUnion du2 = DoublesUnionBuilder.heapify(mem); //v2.0.0.
 
-    DoublesUnion du3 = DoublesUnionBuilder.wrap(mem);
+    final DoublesUnion du3 = DoublesUnionBuilder.wrap(mem); //v2.0.0.
 
-    WritableMemory wmem = WritableMemory.wrap(ds.toByteArray());
-    DoublesUnion du4 = DoublesUnionBuilder.wrap(wmem);
+    final WritableMemory wmem = WritableMemory.wrap(ds.toByteArray());
+    final DoublesUnion du4 = DoublesUnionBuilder.wrap(wmem); //v2.0.0.
 
-    ItemsSketch<String> is = ItemsSketch.getInstance(64, Comparator.naturalOrder());
-    err = is.getNormalizedRankError();
-    err = ItemsSketch.getNormalizedRankError(64);
+    final ItemsSketch<String> is = ItemsSketch.getInstance(64, Comparator.naturalOrder());
+    err = is.getNormalizedRankError(); //v2.0.0.
+    err = ItemsSketch.getNormalizedRankError(64); //v2.0.0.
   }
 
 }

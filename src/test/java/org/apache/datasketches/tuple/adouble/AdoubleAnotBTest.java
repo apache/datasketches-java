@@ -54,14 +54,14 @@ public class AdoubleAnotBTest {
   {
     CompactSketch<DoubleSummary> result;
 
-    //Deprecated, Stateless, A = Tuple, B = Tuple
+    //Deprecated v2.0.0., Stateless, A = Tuple, B = Tuple
     //Old behavior is tolerant of nulls
     aNotB.update(skA, skB);
     result = aNotB.getResult();
     results.check(result);
 
     //Stateless A = Tuple, B = Tuple
-    if ((skA == null) || (skB == null)) {
+    if (skA == null || skB == null) {
       try {
         result = AnotB.aNotB(skA, skB);
         fail();
@@ -73,7 +73,7 @@ public class AdoubleAnotBTest {
     }
 
     //Stateless A = Tuple, B = Theta
-    if ((skA == null) || (skThetaB == null)) {
+    if (skA == null || skThetaB == null) {
       try { result = AnotB.aNotB(skA, skThetaB); fail(); }
       catch (final SketchesArgumentException e) { }
     } else {
@@ -129,7 +129,7 @@ public class AdoubleAnotBTest {
       assertEquals(result.getRetainedEntries(), retEnt);
       assertEquals(result.isEmpty(), empty);
       if (result.getTheta() < 1.0) {
-        double est = result.getEstimate();
+        final double est = result.getEstimate();
         assertEquals(est, expect, expect * tol);
         assertTrue(result.getUpperBound(1) > est);
         assertTrue(result.getLowerBound(1) <= est);
@@ -138,7 +138,7 @@ public class AdoubleAnotBTest {
         assertEquals(result.getUpperBound(1), expect, 0.0);
         assertEquals(result.getLowerBound(1), expect, 0.0);
       }
-      SketchIterator<DoubleSummary> it = result.iterator();
+      final SketchIterator<DoubleSummary> it = result.iterator();
       while (it.next()) {
         Assert.assertEquals(it.getSummary().getValue(), sum);
       }
@@ -158,13 +158,13 @@ public class AdoubleAnotBTest {
   @SuppressWarnings("deprecation")
   @Test
   public void aNotBNullEmptyCombinations() {
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     // calling getResult() before calling update() should yield an empty set
-    CompactSketch<DoubleSummary> result = aNotB.getResult();
+    final CompactSketch<DoubleSummary> result = aNotB.getResult();
     results.set(0, true, 0.0, 0.0, 0.0).check(result);
 
-    UpdatableSketch<Double, DoubleSummary> sketch = buildUpdatableTuple();
-    UpdateSketch skTheta = buildUpdateTheta();
+    final UpdatableSketch<Double, DoubleSummary> sketch = buildUpdatableTuple();
+    final UpdateSketch skTheta = buildUpdateTheta();
 
     threeMethodsWithTheta(aNotB, null, null, null, results);
     threeMethodsWithTheta(aNotB, sketch, null, null, results);
@@ -178,11 +178,11 @@ public class AdoubleAnotBTest {
 
   @Test
   public void aNotBCheckDoubleSetAs() {
-    UpdatableSketch<Double, DoubleSummary> skA = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> skA = buildUpdatableTuple();
     skA.update(1, 1.0);
     skA.update(2, 1.0);
-    UpdatableSketch<Double, DoubleSummary> skA2 = buildUpdatableTuple();
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final UpdatableSketch<Double, DoubleSummary> skA2 = buildUpdatableTuple();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     aNotB.setA(skA);
     assertEquals(aNotB.getResult(false).isEmpty(), false);
     aNotB.setA(skA2);
@@ -191,28 +191,28 @@ public class AdoubleAnotBTest {
 
   @Test
   public void aNotBEmptyExact() {
-    UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
-    UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
     sketchB.update(1, 1.0);
     sketchB.update(2, 1.0);
-    UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdateSketch skThetaB = buildUpdateTheta();
     skThetaB.update(1);
     skThetaB.update(2);
 
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     results.set(0, true, 0.0, 0.0, 0.0);
     threeMethodsWithTheta(aNotB, sketchA, sketchB, skThetaB, results);
   }
 
   @Test
   public void aNotBExactEmpty() {
-    UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
     sketchA.update(1, 1.0);
     sketchA.update(2, 1.0);
-    UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
-    UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
+    final UpdateSketch skThetaB = buildUpdateTheta();
 
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     results.set(2, false, 2.0, 0.0, 1.0);
     threeMethodsWithTheta(aNotB, sketchA, sketchB, skThetaB, results);
 
@@ -222,45 +222,45 @@ public class AdoubleAnotBTest {
 
   @Test
   public void aNotBExactOverlap() {
-    UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
     sketchA.update(1, 1.0);
     sketchA.update(1, 1.0);
     sketchA.update(2, 1.0);
     sketchA.update(2, 1.0);
 
-    UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
     sketchB.update(2, 1.0);
     sketchB.update(2, 1.0);
     sketchB.update(3, 1.0);
     sketchB.update(3, 1.0);
 
-    UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdateSketch skThetaB = buildUpdateTheta();
     skThetaB.update(2);
     skThetaB.update(3);
 
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     results.set(1, false, 1.0, 0.0, 2.0);
     threeMethodsWithTheta(aNotB, sketchA, sketchB, skThetaB, results);
   }
 
   @Test
   public void aNotBEstimationOverlap() {
-    UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
     for (int i = 0; i < 8192; i++) {
       sketchA.update(i, 1.0);
     }
 
-    UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
     for (int i = 0; i < 4096; i++) {
       sketchB.update(i, 1.0);
     }
 
-    UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdateSketch skThetaB = buildUpdateTheta();
     for (int i = 0; i < 4096; i++) {
       skThetaB.update(i);
     }
 
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     results.set(2123, false, 4096.0, 0.03, 1.0);
     threeMethodsWithTheta(aNotB, sketchA, sketchB, skThetaB, results);
 
@@ -270,23 +270,23 @@ public class AdoubleAnotBTest {
 
   @Test
   public void aNotBEstimationOverlapLargeB() {
-    UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchA = buildUpdatableTuple();
     for (int i = 0; i < 10_000; i++) {
       sketchA.update(i, 1.0);
     }
 
-    UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
+    final UpdatableSketch<Double, DoubleSummary> sketchB = buildUpdatableTuple();
     for (int i = 0; i < 100_000; i++) {
       sketchB.update(i + 8000, 1.0);
     }
 
-    UpdateSketch skThetaB = buildUpdateTheta();
+    final UpdateSketch skThetaB = buildUpdateTheta();
     for (int i = 0; i < 100_000; i++) {
       skThetaB.update(i + 8000);
     }
 
     final int expected = 8_000;
-    AnotB<DoubleSummary> aNotB = new AnotB<>();
+    final AnotB<DoubleSummary> aNotB = new AnotB<>();
     results.set(376, false, expected, 0.1, 1.0);
     threeMethodsWithTheta(aNotB, sketchA, sketchB, skThetaB, results);
 

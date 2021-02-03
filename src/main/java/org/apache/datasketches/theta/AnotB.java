@@ -202,7 +202,7 @@ public abstract class AnotB extends SetOperation {
    *
    * @param skA The incoming sketch for the first argument
    * @param skB The incoming sketch for the second argument
-   * @deprecated Instead use {@link #aNotB(Sketch, Sketch)}.
+   * @deprecated v2.0.0. Instead use {@link #aNotB(Sketch, Sketch)}.
    */
   @Deprecated
   public abstract void update(Sketch skA, Sketch skB);
@@ -212,7 +212,7 @@ public abstract class AnotB extends SetOperation {
    * as an ordered CompactSketch on the Java heap.
    * This clears the state of this operator after the result is returned.
    * @return the result of the stateful operations as an ordered CompactSketch on the Java heap.
-   * @deprecated Instead use {@link #getResult(boolean)} or
+   * @deprecated v2.0.0. Instead use {@link #getResult(boolean)} or
    * {@link #getResult(boolean, WritableMemory, boolean)}.
    */
   @Deprecated
@@ -230,7 +230,7 @@ public abstract class AnotB extends SetOperation {
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    *
    * @return the result of this set operation as a CompactSketch of the chosen form.
-   * @deprecated Instead use {@link #getResult(boolean)} or
+   * @deprecated v2.0.0. Instead use {@link #getResult(boolean)} or
    * {@link #getResult(boolean, WritableMemory, boolean)}.
    */
   @Deprecated

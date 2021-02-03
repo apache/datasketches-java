@@ -60,7 +60,7 @@ public class HeapIntersectionTest {
     final Intersection inter = SetOperation.builder().buildIntersection();
 
     inter.intersect(usk1);
-    inter.update(usk2); //check deprecated
+    inter.update(usk2); //check deprecated v2.0.0.
 
     CompactSketch rsk1;
     final boolean ordered = true;

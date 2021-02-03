@@ -135,7 +135,7 @@ public abstract class Sketch {
     final Family family = Family.idToFamily(familyID);
     switch (family) {
       case QUICKSELECT: { //Hash Table structure
-        if ((serVer == 3) && (preLongs == 3)) {
+        if (serVer == 3 && preLongs == 3) {
           return DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
         } else {
           throw new SketchesArgumentException(
@@ -233,7 +233,7 @@ public abstract class Sketch {
    * Gets the number of hash values less than the given theta.
    * @param theta the given theta as a double between zero and one.
    * @return the number of hash values less than the given theta.
-   * @deprecated Use {@link #getCountLessThanThetaLong(long)}. It is more accurate.
+   * @deprecated v2.0.0. Use {@link #getCountLessThanThetaLong(long)}. It is more accurate.
    */
   @Deprecated
   public int getCountLessThanTheta(final double theta) {
@@ -255,7 +255,7 @@ public abstract class Sketch {
    * @param compact if true, returns the bytes required for compact form.
    * If this sketch is already in compact form this parameter is ignored.
    * @return the number of storage bytes required for this sketch
-   * @deprecated use either {@link #getCompactBytes()} or {@link #getCurrentBytes()}.
+   * @deprecated v2.0.0. use either {@link #getCompactBytes()} or {@link #getCurrentBytes()}.
    */
   @Deprecated
   public int getCurrentBytes(final boolean compact) {
@@ -290,7 +290,7 @@ public abstract class Sketch {
    * @return the lower bound.
    */
   public double getLowerBound(final int numStdDev) {
-    return (isEstimationMode())
+    return isEstimationMode()
         ? lowerBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
   }
@@ -372,7 +372,7 @@ public abstract class Sketch {
    * @return the upper bound.
    */
   public double getUpperBound(final int numStdDev) {
-    return (isEstimationMode())
+    return isEstimationMode()
         ? upperBound(getRetainedEntries(true), getThetaLong(), numStdDev, isEmpty())
         : getRetainedEntries(true);
   }
@@ -475,7 +475,7 @@ public abstract class Sketch {
     int arrLongs = cache.length;
     float p = 0;
     int rf = 0;
-    final boolean updateSketch = (this instanceof UpdateSketch);
+    final boolean updateSketch = this instanceof UpdateSketch;
 
     final long thetaLong = getThetaLong();
     final int curCount = this.getRetainedEntries(true);
@@ -489,17 +489,17 @@ public abstract class Sketch {
     }
 
     if (dataDetail) {
-      final int w = (width > 0) ? width : 8; // default is 8 wide
+      final int w = width > 0 ? width : 8; // default is 8 wide
       if (curCount > 0) {
         sb.append("### SKETCH DATA DETAIL");
         for (int i = 0, j = 0; i < arrLongs; i++ ) {
           final long h;
           h = cache[i];
-          if ((h <= 0) || (h >= thetaLong)) {
+          if (h <= 0 || h >= thetaLong) {
             continue;
           }
-          if ((j % w) == 0) {
-            sb.append(LS).append(String.format("   %6d", (j + 1)));
+          if (j % w == 0) {
+            sb.append(LS).append(String.format("   %6d", j + 1));
           }
           if (hexMode) {
             sb.append(" " + zeroPad(Long.toHexString(h), 16) + ",");
@@ -612,9 +612,9 @@ public abstract class Sketch {
    * @return true if given Family id is one of the theta sketches
    */
   static final boolean isValidSketchID(final int id) {
-    return (id == Family.ALPHA.getID())
-        || (id == Family.QUICKSELECT.getID())
-        || (id == Family.COMPACT.getID());
+    return id == Family.ALPHA.getID()
+        || id == Family.QUICKSELECT.getID()
+        || id == Family.COMPACT.getID();
   }
 
   /**
@@ -625,11 +625,11 @@ public abstract class Sketch {
     final Memory mem = sketch.getMemory();
     if (mem == null) { return; }
     final int flags = PreambleUtil.extractFlags(mem);
-    if (((flags & COMPACT_FLAG_MASK) > 0) ^ sketch.isCompact()) {
+    if ((flags & COMPACT_FLAG_MASK) > 0 ^ sketch.isCompact()) {
       throw new SketchesArgumentException("Possible corruption: "
           + "Memory Compact Flag inconsistent with Sketch");
     }
-    if (((flags & ORDERED_FLAG_MASK) > 0) ^ sketch.isOrdered()) {
+    if ((flags & ORDERED_FLAG_MASK) > 0 ^ sketch.isOrdered()) {
       throw new SketchesArgumentException("Possible corruption: "
           + "Memory Ordered Flag inconsistent with Sketch");
     }
@@ -652,7 +652,7 @@ public abstract class Sketch {
   }
 
   private static final boolean estMode(final long thetaLong, final boolean empty) {
-    return (thetaLong < Long.MAX_VALUE) && !empty;
+    return thetaLong < Long.MAX_VALUE && !empty;
   }
 
   /**

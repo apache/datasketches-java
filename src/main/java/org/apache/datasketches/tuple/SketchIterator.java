@@ -25,8 +25,8 @@ package org.apache.datasketches.tuple;
  */
 public class SketchIterator<S extends Summary> {
 
-  private long[] hashArrTbl_; //could be either hashArr or hashTable
-  private S[] summaryArrTbl_; //could be either summaryArr or summaryTable
+  private final long[] hashArrTbl_; //could be either hashArr or hashTable
+  private final S[] summaryArrTbl_; //could be either summaryArr or summaryTable
   private int i_;
 
   SketchIterator(final long[] hashes, final S[] summaries) {
@@ -57,7 +57,7 @@ public class SketchIterator<S extends Summary> {
    * retained. Don't call this before calling next() for the first time
    * or after getting false from next().
    * @return hash from the current entry
-   * @deprecated Please use {@link #getHash()}
+   * @deprecated v2.0.0. Please use {@link #getHash()}
    */
   @Deprecated
   public long getKey() {

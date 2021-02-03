@@ -106,7 +106,7 @@ public abstract class Intersection extends SetOperation {
    * If the given sketch is null the internal state becomes the empty sketch.
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
-   * @deprecated Use {@link #intersect(Sketch)} instead.
+   * @deprecated v2.0.0. Use {@link #intersect(Sketch)} instead.
    */
   @Deprecated
   public void update(final Sketch sketchIn) {
@@ -190,7 +190,7 @@ public abstract class Intersection extends SetOperation {
     int j = 0;
     for (int i = 0; i < len; i++) {
       final long v = srcCache[i];
-      if ((v <= 0L) || (v >= thetaLong) ) { continue; }
+      if (v <= 0L || v >= thetaLong ) { continue; }
       cacheOut[j++] = v;
     }
     assert curCount == j;

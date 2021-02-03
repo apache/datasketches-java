@@ -486,7 +486,7 @@ public class KllFloatsSketch {
    * sketch normalized as a fraction between zero and one.
    *
    * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated replaced by {@link #getNormalizedRankError(boolean)}
+   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(boolean)}
    * @see KllFloatsSketch
    */
   @Deprecated
@@ -512,7 +512,7 @@ public class KllFloatsSketch {
    * @param k the configuration parameter
    * @return the normalized "double-sided" rank error as a function of <em>k</em>.
    * @see KllFloatsSketch
-   * @deprecated replaced by {@link #getNormalizedRankError(int, boolean)}
+   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(int, boolean)}
    */
   @Deprecated
   public static double getNormalizedRankError(final int k) {

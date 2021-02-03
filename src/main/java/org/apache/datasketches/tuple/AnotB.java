@@ -144,7 +144,7 @@ public final class AnotB<S extends Summary> {
    * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
   public void notB(final Sketch<S> skB) {
-    if (empty_ || (skB == null) || skB.isEmpty() || (hashArr_ == null)) { return; }
+    if (empty_ || skB == null || skB.isEmpty() || hashArr_ == null) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
@@ -155,7 +155,7 @@ public final class AnotB<S extends Summary> {
     summaryArr_ = daB.summaryArr;
 
     curCount_ = hashArr_.length;
-    empty_ = (curCount_ == 0) && (thetaLong_ == Long.MAX_VALUE);
+    empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
   /**
@@ -178,7 +178,7 @@ public final class AnotB<S extends Summary> {
    * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
   public void notB(final org.apache.datasketches.theta.Sketch skB) {
-    if (empty_ || (skB == null) || skB.isEmpty()) { return; }
+    if (empty_ || skB == null || skB.isEmpty()) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
@@ -189,7 +189,7 @@ public final class AnotB<S extends Summary> {
     summaryArr_ = daB.summaryArr;
 
     curCount_ = hashArr_.length;
-    empty_ = (curCount_ == 0) && (thetaLong_ == Long.MAX_VALUE);
+    empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
   /**
@@ -237,7 +237,7 @@ public final class AnotB<S extends Summary> {
    */
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final Sketch<S> skB) {
-    if ((skA == null) || (skB == null)) {
+    if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
     if (skA.isEmpty()) { return skA.compact(); }
@@ -257,7 +257,7 @@ public final class AnotB<S extends Summary> {
     final long[] hashArr = daB.hashArr;
     final S[] summaryArr = daB.summaryArr;
     final int curCountOut = hashArr.length;
-    final boolean empty = ((curCountOut == 0) && (minThetaLong == Long.MAX_VALUE));
+    final boolean empty = curCountOut == 0 && minThetaLong == Long.MAX_VALUE;
 
     final CompactSketch<S> result = new CompactSketch<>(hashArr, summaryArr, minThetaLong, empty);
     return result;
@@ -289,7 +289,7 @@ public final class AnotB<S extends Summary> {
    */
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final org.apache.datasketches.theta.Sketch skB) {
-    if ((skA == null) || (skB == null)) {
+    if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
     //Both skA & skB are not null
@@ -311,7 +311,7 @@ public final class AnotB<S extends Summary> {
     final long[] hashArr = daB.hashArr;
     final S[] summaryArr = daB.summaryArr;
     final int countOut = hashArr.length;
-    final boolean empty = (countOut == 0) && (minThetaLong == Long.MAX_VALUE);
+    final boolean empty = countOut == 0 && minThetaLong == Long.MAX_VALUE;
 
     final CompactSketch<S> result = new CompactSketch<>(hashArr, summaryArr, minThetaLong, empty);
     return result;
@@ -370,7 +370,7 @@ public final class AnotB<S extends Summary> {
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];
-      if ((hash != 0) && (hash < minThetaLong)) { //skips hashes of A >= minTheta
+      if (hash != 0 && hash < minThetaLong) { //skips hashes of A >= minTheta
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
@@ -418,7 +418,7 @@ public final class AnotB<S extends Summary> {
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];
-      if ((hash != 0) && (hash < minThetaLong)) { //skips hashes of A >= minTheta
+      if (hash != 0 && hash < minThetaLong) { //skips hashes of A >= minTheta
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
@@ -455,7 +455,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param skA The incoming sketch for the first argument
    * @param skB The incoming sketch for the second argument
-   * @deprecated Instead please use {@link #aNotB(Sketch, Sketch)}.
+   * @deprecated v2.0.0. Instead please use {@link #aNotB(Sketch, Sketch)}.
    */
   @Deprecated
   public void update(final Sketch<S> skA, final Sketch<S> skB) {
@@ -471,7 +471,7 @@ public final class AnotB<S extends Summary> {
    * Gets the result of this operation. This clears the state of this operator after the result is
    * returned.
    * @return the result of this operation as a CompactSketch
-   * @deprecated Instead use {@link #getResult(boolean)}.
+   * @deprecated v2.0.0. Instead use {@link #getResult(boolean)}.
    */
   @Deprecated
   public CompactSketch<S> getResult() {
