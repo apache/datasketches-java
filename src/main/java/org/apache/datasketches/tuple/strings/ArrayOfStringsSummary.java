@@ -90,11 +90,11 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
   //From UpdatableSummary
 
   @Override
-  public void update(final String[] value) {
+  public ArrayOfStringsSummary update(final String[] value) {
     if (nodesArr == null) {
       nodesArr = value.clone();
     }
-    //otherwise do not update.
+    return this;
   }
 
   //From Object
@@ -106,7 +106,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
 
   @Override
   public boolean equals(final Object summary) {
-    if ((summary == null) || !(summary instanceof ArrayOfStringsSummary)) {
+    if (summary == null || !(summary instanceof ArrayOfStringsSummary)) {
       return false;
     }
     final String thatStr = stringConcat(((ArrayOfStringsSummary) summary).nodesArr);
@@ -152,7 +152,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
         nodeLengthsArr_[i] = nodeBytesArr_[i].length;
         sumNodeBytes += nodeLengthsArr_[i];
       }
-      totBytes_ = sumNodeBytes + ((numNodes_ + 1) * Integer.BYTES) + 1;
+      totBytes_ = sumNodeBytes + (numNodes_ + 1) * Integer.BYTES + 1;
     }
   }
 

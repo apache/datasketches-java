@@ -37,7 +37,7 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
   /**
    * The aggregation modes for this Summary
    */
-  public static enum Mode {
+  public enum Mode {
 
     /**
      * The aggregation mode is the summation function.
@@ -96,13 +96,8 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
     }
   }
 
-  /**
-   * Updates an instance of IntegerSummary with the given value.
-   * This should not be called by the user.
-   * @param value The given value.
-   */
   @Override
-  public void update(final Integer value) {
+  public IntegerSummary update(final Integer value) {
     switch (mode_) {
     case Sum:
       value_ += value;
@@ -117,6 +112,7 @@ public class IntegerSummary implements UpdatableSummary<Integer> {
       value_ = 1;
       break;
     }
+    return this;
   }
 
   @Override

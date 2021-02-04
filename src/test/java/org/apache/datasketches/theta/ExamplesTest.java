@@ -29,10 +29,10 @@ public class ExamplesTest {
 
   @Test
   public void simpleCountingSketch() {
-    int k = 4096;
-    int u = 1000000;
+    final int k = 4096;
+    final int u = 1000000;
 
-    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build();
+    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i < u; i++) {
       sketch.update(i);
     }
@@ -60,6 +60,57 @@ public class ExamplesTest {
   */
 
   @Test
+  public void theta2dot0Examples() {
+    //Load source sketches
+    final UpdateSketchBuilder bldr = UpdateSketch.builder();
+    final UpdateSketch skA = bldr.build();
+    final UpdateSketch skB = bldr.build();
+    for (int i = 1; i <= 1000; i++) {
+      skA.update(i);
+      skB.update(i + 250);
+    }
+
+    //Union Stateless:
+    Union union = SetOperation.builder().buildUnion();
+    CompactSketch csk = union.union(skA, skB);
+    assert csk.getEstimate() == 1250;
+
+    //Union Stateful:
+    union = SetOperation.builder().buildUnion();
+    union.update(skA); //first call
+    union.update(skB); //2nd through nth calls
+    //...
+    csk = union.getResult();
+    assert csk.getEstimate() == 1250;
+
+    //Intersection Stateless:
+    Intersection inter = SetOperation.builder().buildIntersection();
+    csk = inter.intersect(skA, skB);
+    assert csk.getEstimate() == 750;
+
+    //Intersection Stateful:
+    inter = SetOperation.builder().buildIntersection();
+    inter.intersect(skA); //first call
+    inter.intersect(skB); //2nd through nth calls
+    //...
+    csk = inter.getResult();
+    assert csk.getEstimate() == 750;
+
+    //AnotB Stateless:
+    AnotB diff = SetOperation.builder().buildANotB();
+    csk = diff.aNotB(skA, skB);
+    assert csk.getEstimate() == 250;
+
+    //AnotB Stateful:
+    diff = SetOperation.builder().buildANotB();
+    diff.setA(skA); //first call
+    diff.notB(skB); //2nd through nth calls
+    //...
+    csk = diff.getResult(true);
+    assert csk.getEstimate() == 250;
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
@@ -67,7 +118,7 @@ public class ExamplesTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //enable/disable here
   }
 

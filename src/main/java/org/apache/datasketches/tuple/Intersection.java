@@ -47,7 +47,7 @@ public class Intersection<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
   private boolean empty_;
   private long thetaLong_;
-  private HashTables hashTables_;
+  private final HashTables hashTables_;
   private boolean firstCall_;
 
   /**
@@ -76,7 +76,7 @@ public class Intersection<S extends Summary> {
     final int countIn = sketchIn.getRetainedEntries();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
     // Empty rule extended in case incoming sketch does not have empty bit properly set
-    empty_ |= (countIn == 0) && (thetaLongIn == Long.MAX_VALUE);
+    empty_ |= countIn == 0 && thetaLongIn == Long.MAX_VALUE;
     if (countIn == 0) {
       hashTables_.clear();
       return;
@@ -128,7 +128,7 @@ public class Intersection<S extends Summary> {
    * Updates the internal set by intersecting it with the given Theta sketch.
    * @param sketchIn input Theta Sketch to intersect with the internal state. It may not be null.
    * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
-   * It may not be null.
+   * It will be copied for each matching index. It may not be null.
    */
   public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
     if (sketchIn == null) { throw new SketchesArgumentException("Sketch may not be null"); }
@@ -140,7 +140,7 @@ public class Intersection<S extends Summary> {
     final int countIn = sketchIn.getRetainedEntries(true);
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
     // Empty rule extended in case incoming sketch does not have empty bit properly set
-    empty_ |= (countIn == 0) && (thetaLongIn == Long.MAX_VALUE);
+    empty_ |= countIn == 0 && thetaLongIn == Long.MAX_VALUE;
     if (countIn == 0) {
       hashTables_.clear();
       return;
@@ -180,7 +180,7 @@ public class Intersection<S extends Summary> {
           matchSummaries = (S[]) Array.newInstance(summaryType, maxMatchSize);
         }
         matchHashArr[matchCount] = hash;
-        matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, (S)mySummary.copy());
+        matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, (S)summary.copy());
         matchCount++;
       }
       hashTables_.fromArrays(matchHashArr, matchSummaries, matchCount);
@@ -207,7 +207,7 @@ public class Intersection<S extends Summary> {
     int cnt = 0;
     for (int i = 0; i < tableSize; i++) {
       final long hash = hashTables_.hashTable_[i];
-      if ((hash == 0) || (hash > thetaLong_)) { continue; }
+      if (hash == 0 || hash > thetaLong_) { continue; }
       final S summary = hashTables_.summaryTable_[i];
       if (summaries == null) {
         summaries = (S[]) Array.newInstance(summaryType, hashTables_.count_);
