@@ -219,7 +219,7 @@ class IntersectionImpl extends Intersection {
   @Override
   public CompactSketch intersect(final Sketch a, final Sketch b, final boolean dstOrdered,
      final WritableMemory dstMem) {
-    if ((wmem_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
+    if (wmem_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
     hardReset();
     intersect(a);
     intersect(b);
@@ -233,7 +233,7 @@ class IntersectionImpl extends Intersection {
     if (sketchIn == null) {
       throw new SketchesArgumentException("Intersection argument must not be null.");
     }
-    if ((wmem_ != null) && readOnly_) { throw new SketchesReadOnlyException(); }
+    if (wmem_ != null && readOnly_) { throw new SketchesReadOnlyException(); }
     if (empty_ || sketchIn.isEmpty()) { //empty rule
       //Because of the def of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make our local empty.
@@ -262,14 +262,14 @@ class IntersectionImpl extends Intersection {
     final int sketchInEntries = sketchIn.getRetainedEntries(true);
 
     //states 1,2,3,6
-    if ((curCount_ == 0) || (sketchInEntries == 0)) {
+    if (curCount_ == 0 || sketchInEntries == 0) {
       curCount_ = 0;
       if (wmem_ != null) { insertCurCount(wmem_, 0); }
       hashTable_ = null; //No need for a HT. Don't bother clearing mem if valid
     } //end of states 1,2,3,6
 
     // state 5
-    else if ((curCount_ < 0) && (sketchInEntries > 0)) {
+    else if (curCount_ < 0 && sketchInEntries > 0) {
       curCount_ = sketchIn.getRetainedEntries(true);
       final int requiredLgArrLongs = minLgHashTableSize(curCount_, REBUILD_THRESHOLD);
       final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
@@ -295,7 +295,7 @@ class IntersectionImpl extends Intersection {
     } //end of state 5
 
     //state 7
-    else if ((curCount_ > 0) && (sketchInEntries > 0)) {
+    else if (curCount_ > 0 && sketchInEntries > 0) {
       //Sets resulting hashTable, curCount and adjusts lgArrLongs
       performIntersect(sketchIn);
     } //end of state 7
@@ -340,6 +340,16 @@ class IntersectionImpl extends Intersection {
   }
 
   @Override
+  public boolean hasResult() {
+    return wmem_ != null ? wmem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
+  }
+
+  @Override
+  public boolean isSameResource(final Memory that) {
+    return wmem_ != null ? wmem_.isSameResource(that) : false;
+  }
+
+  @Override
   public void reset() {
     hardReset();
   }
@@ -347,7 +357,7 @@ class IntersectionImpl extends Intersection {
   @Override
   public byte[] toByteArray() {
     final int preBytes = CONST_PREAMBLE_LONGS << 3;
-    final int dataBytes = (curCount_ > 0) ? 8 << lgArrLongs_ : 0;
+    final int dataBytes = curCount_ > 0 ? 8 << lgArrLongs_ : 0;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
     if (wmem_ != null) {
       wmem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
@@ -376,16 +386,6 @@ class IntersectionImpl extends Intersection {
     return byteArrOut;
   }
 
-  @Override
-  public boolean hasResult() {
-    return (wmem_ != null) ? wmem_.getInt(RETAINED_ENTRIES_INT) >= 0 : curCount_ >= 0;
-  }
-
-  @Override
-  public boolean isSameResource(final Memory that) {
-    return (wmem_ != null) ? wmem_.isSameResource(that) : false;
-  }
-
   //restricted
 
   /**
@@ -405,7 +405,7 @@ class IntersectionImpl extends Intersection {
   @Override
   long[] getCache() {
     if (wmem_ == null) {
-      return (hashTable_ != null) ? hashTable_ : new long[0];
+      return hashTable_ != null ? hashTable_ : new long[0];
     }
     //Direct
     final int arrLongs = 1 << lgArrLongs_;
@@ -426,7 +426,7 @@ class IntersectionImpl extends Intersection {
 
   private void performIntersect(final Sketch sketchIn) {
     // curCount and input data are nonzero, match against HT
-    assert ((curCount_ > 0) && (!empty_));
+    assert curCount_ > 0 && !empty_;
     final long[] cacheIn = sketchIn.getCache();
     final int arrLongsIn = cacheIn.length;
     final long[] hashTable;
@@ -458,7 +458,7 @@ class IntersectionImpl extends Intersection {
       //either unordered compact or hash table
       for (int i = 0; i < arrLongsIn; i++ ) {
         final long hashIn = cacheIn[i];
-        if ((hashIn <= 0L) || (hashIn >= thetaLong_)) { continue; }
+        if (hashIn <= 0L || hashIn >= thetaLong_) { continue; }
         final int foundIdx = hashSearch(hashTable, lgArrLongs_, hashIn);
         if (foundIdx == -1) { continue; }
         matchSet[matchSetCount++] = hashIn;
@@ -505,7 +505,7 @@ class IntersectionImpl extends Intersection {
         tmpCnt++;
       }
     }
-    assert (tmpCnt == count) : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
+    assert tmpCnt == count : "Intersection Count Check: got: " + tmpCnt + ", expected: " + count;
   }
 
   private void hardReset() {

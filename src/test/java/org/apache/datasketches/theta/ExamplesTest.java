@@ -77,8 +77,8 @@ public class ExamplesTest {
 
     //Union Stateful:
     union = SetOperation.builder().buildUnion();
-    union.update(skA); //first call
-    union.update(skB); //2nd through nth calls
+    union.union(skA); //first call
+    union.union(skB); //2nd through nth calls
     //...
     csk = union.getResult();
     assert csk.getEstimate() == 1250;

@@ -50,7 +50,10 @@ public abstract class Intersection extends SetOperation {
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.
-   * The {@link #intersect(Sketch)} method must have been called at least once.
+   * This does not disturb the underlying data structure of this intersection.
+   * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
+   * exception will be thrown. This is because a virgin Intersection object represents the
+   * Universal Set, which has an infinite number of values.
    * @return the result of this operation as an ordered CompactSketch on the Java heap
    */
   public CompactSketch getResult() {
@@ -58,7 +61,8 @@ public abstract class Intersection extends SetOperation {
   }
 
   /**
-   * Gets the result of this operation as a CompactSketch of the chosen form.
+   * Gets the result of this operation as a CompactSketch in the given dstMem.
+   * This does not disturb the underlying data structure of this intersection.
    * The {@link #intersect(Sketch)} method must have been called at least once, otherwise an
    * exception will be thrown. This is because a virgin Intersection object represents the
    * Universal Set, which has an infinite number of values.
@@ -70,14 +74,14 @@ public abstract class Intersection extends SetOperation {
    *
    * <p>Presenting an intersection with a null argument will throw an exception.</p>
    *
-   *
    * @param dstOrdered
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    *
    * @param dstMem
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    *
-   * @return the result of this operation as a CompactSketch of the chosen form
+   * @return the result of this operation as a CompactSketch stored in the given dstMem,
+   * which can be either on or off-heap..
    */
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
@@ -90,7 +94,7 @@ public abstract class Intersection extends SetOperation {
   /**
    * Resets this Intersection for stateful operations only.
    * The seed remains intact, otherwise reverts to
-   * the Universal Set, theta of 1.0 and empty = false.
+   * the Universal Set: theta = 1.0, no retained data and empty = false.
    */
   public abstract void reset();
 

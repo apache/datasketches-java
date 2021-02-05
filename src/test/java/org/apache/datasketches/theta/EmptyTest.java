@@ -41,11 +41,11 @@ public class EmptyTest {
 
   @Test
   public void checkEmpty() {
-    UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
-    UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
+    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
 
-    int u = 100;
+    final int u = 100;
     for (int i = 0; i < u; i++) { //disjoint
       sk1.update(i);
       sk2.update(i + u);
@@ -53,24 +53,24 @@ public class EmptyTest {
     inter.intersect(sk1);
     inter.intersect(sk2);
 
-    CompactSketch csk = inter.getResult();
+    final CompactSketch csk = inter.getResult();
     //The intersection of two disjoint, exact-mode sketches is empty, T == 1.0.
     println(csk.toString());
     assertTrue(csk.isEmpty());
 
-    AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    CompactSketch csk2 = aNotB.aNotB(csk, sk1);
+    final AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
+    final CompactSketch csk2 = aNotB.aNotB(csk, sk1);
     //The AnotB of an empty, T == 1.0 sketch with another exact-mode sketch is empty, T == 1.0
     assertTrue(csk2.isEmpty());
   }
 
   @Test
   public void checkNotEmpty() {
-    UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
-    UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
-    Intersection inter = Sketches.setOperationBuilder().buildIntersection();
+    final UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk2 = Sketches.updateSketchBuilder().build();
+    final Intersection inter = Sketches.setOperationBuilder().buildIntersection();
 
-    int u = 10000; //estimating
+    final int u = 10000; //estimating
     for (int i = 0; i < u; i++) { //disjoint
       sk1.update(i);
       sk2.update(i + u);
@@ -78,20 +78,20 @@ public class EmptyTest {
     inter.intersect(sk1);
     inter.intersect(sk2);
 
-    CompactSketch csk = inter.getResult();
+    final CompactSketch csk = inter.getResult();
     println(csk.toString());
     //The intersection of two disjoint, est-mode sketches is not-empty, T < 1.0.
     assertFalse(csk.isEmpty());
 
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    CompactSketch csk2 = aNotB.aNotB(csk, sk1); //empty, T < 1.0; with est-mode sketch
+    final CompactSketch csk2 = aNotB.aNotB(csk, sk1); //empty, T < 1.0; with est-mode sketch
     println(csk2.toString());
     //The AnotB of an empty, T < 1.0 sketch with another exact-mode sketch is not-empty.
     assertFalse(csk2.isEmpty());
 
-    UpdateSketch sk3 = Sketches.updateSketchBuilder().build();
+    final UpdateSketch sk3 = Sketches.updateSketchBuilder().build();
     aNotB = Sketches.setOperationBuilder().buildANotB();
-    CompactSketch csk3 = aNotB.aNotB(sk3, sk1); //empty, T == 1.0; with est-mode sketch
+    final CompactSketch csk3 = aNotB.aNotB(sk3, sk1); //empty, T == 1.0; with est-mode sketch
     println(csk3.toString());
     //the AnotB of an empty, T == 1.0 sketch with another est-mode sketch is empty, T < 1.0
     assertTrue(csk3.isEmpty());
@@ -99,7 +99,7 @@ public class EmptyTest {
 
   @Test
   public void checkPsampling() {
-    UpdateSketch sk1 = Sketches.updateSketchBuilder().setP(.5F).build();
+    final UpdateSketch sk1 = Sketches.updateSketchBuilder().setP(.5F).build();
     assertTrue(sk1.isEmpty());
     //An empty P-sampling sketch where T < 1.0 and has never seen data is also empty
     // and will have a full preamble of 24 bytes.  But when compacted, theta returns to 1.0, so
@@ -113,34 +113,34 @@ public class EmptyTest {
   public void checkBackwardCompatibility1() {
     final int k = 16;
     final int bytes = Sketches.getMaxUnionBytes(k); //288
-    Union union = SetOperation.builder().buildUnion(WritableMemory.allocate(bytes));
-    Memory mem = badEmptySk();
-    Sketch wsk = Sketches.wrapSketch(mem);
-    union.update(wsk); //union has memory
+    final Union union = SetOperation.builder().buildUnion(WritableMemory.allocate(bytes));
+    final Memory mem = badEmptySk();
+    final Sketch wsk = Sketches.wrapSketch(mem);
+    union.union(wsk); //union has memory
   }
 
   @Test
   public void checkBackwardCompatibility2() {
-    Union union = SetOperation.builder().setNominalEntries(16).buildUnion();
-    Memory mem = badEmptySk();
-    Sketch wsk = Sketches.wrapSketch(mem);
-    union.update(wsk); //heap union
+    final Union union = SetOperation.builder().setNominalEntries(16).buildUnion();
+    final Memory mem = badEmptySk();
+    final Sketch wsk = Sketches.wrapSketch(mem);
+    union.union(wsk); //heap union
   }
 
   @Test
   public void checkBackwardCompatibility3() {
-    Memory mem = badEmptySk();
+    final Memory mem = badEmptySk();
     Sketches.heapifySketch(mem);
   }
 
   @Test
   public void checkEmptyToCompact() {
-    UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
-    CompactSketch csk = sk1.compact();
+    final UpdateSketch sk1 = Sketches.updateSketchBuilder().build();
+    final CompactSketch csk = sk1.compact();
     assertTrue(csk instanceof EmptyCompactSketch);
-    CompactSketch csk2 = csk.compact();
+    final CompactSketch csk2 = csk.compact();
     assertTrue(csk2 instanceof EmptyCompactSketch);
-    CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(8));
+    final CompactSketch csk3 = csk.compact(true, WritableMemory.allocate(8));
     assertTrue(csk3 instanceof DirectCompactSketch);
     assertEquals(csk2.getCurrentPreambleLongs(), 1);
   }
@@ -151,11 +151,11 @@ public class EmptyTest {
     final long preLongs = 1;
     final long serVer = 2;
     final long family = 3; //compact
-    final long flags = (ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK);
+    final long flags = ORDERED_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK;
     final long seedHash = 0x93CC;
-    final long badEmptySk = (seedHash << 48) | (flags << 40)
-        | (family << 16) | (serVer << 8) | preLongs;
-    WritableMemory wmem =  WritableMemory.allocate(8);
+    final long badEmptySk = seedHash << 48 | flags << 40
+        | family << 16 | serVer << 8 | preLongs;
+    final WritableMemory wmem =  WritableMemory.allocate(8);
     wmem.putLong(0, badEmptySk);
     return wmem;
   }
@@ -163,7 +163,7 @@ public class EmptyTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 

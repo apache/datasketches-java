@@ -51,7 +51,8 @@ public class Intersection<S extends Summary> {
   private boolean firstCall_;
 
   /**
-   * Creates new instance
+   * Creates new Intersection instance with instructions on how to process two summaries that
+   * intersect.
    * @param summarySetOps instance of SummarySetOperations
    */
   public Intersection(final SummarySetOperations<S> summarySetOps) {
@@ -188,7 +189,7 @@ public class Intersection<S extends Summary> {
   }
 
   /**
-   * Gets the internal set as a CompactSketch
+   * Gets the internal set as an unordered CompactSketch
    * @return result of the intersections so far
    */
   public CompactSketch<S> getResult() {

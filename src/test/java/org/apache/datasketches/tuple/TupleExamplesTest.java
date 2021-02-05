@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.testng.Assert.assertEquals;
+
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.aninteger.IntegerSummary;
@@ -59,10 +61,16 @@ public class TupleExamplesTest {
     println("Union: " + entries);
     final SketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
+    int twos = 0;
+    int ones = 0;
     while (uiter.next()) {
       final int i = uiter.getSummary().getValue();
       println(counter++ + ", " + i); //9 entries = 2, 6 entries = 1
+      if (i == 1) { ones++; }
+      if (i == 2) { twos++; }
     }
+    assertEquals(ones, 6);
+    assertEquals(twos, 9);
 
     //Intersection
     final Intersection<IntegerSummary> inter = new Intersection<>(isso);
@@ -76,6 +84,7 @@ public class TupleExamplesTest {
     while (iiter.next()) {
       final int i = iiter.getSummary().getValue();
       println(counter++ + ", " + i); //9 entries = 1
+      assertEquals(i, 1);
     }
   }
 
@@ -88,6 +97,6 @@ public class TupleExamplesTest {
    * @param s value to print
    */
   static void println(final String s) {
-    System.out.println(s); //enable/disable here
+    //System.out.println(s); //enable/disable here
   }
 }
