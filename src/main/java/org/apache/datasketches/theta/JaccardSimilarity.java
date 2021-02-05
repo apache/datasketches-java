@@ -54,7 +54,7 @@ public final class JaccardSimilarity {
    */
   public static double[] jaccard(final Sketch sketchA, final Sketch sketchB) {
     //Corner case checks
-    if ((sketchA == null) || (sketchB == null)) { return ZEROS.clone(); }
+    if (sketchA == null || sketchB == null) { return ZEROS.clone(); }
     if (sketchA == sketchB) { return ONES.clone(); }
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return ONES.clone(); }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return ZEROS.clone(); }
@@ -68,8 +68,8 @@ public final class JaccardSimilarity {
     final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
     final Union union =
         SetOperation.builder().setNominalEntries(newK).buildUnion();
-    union.update(sketchA);
-    union.update(sketchB);
+    union.union(sketchA);
+    union.union(sketchB);
     final Sketch unionAB = union.getResult(false, null);
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
@@ -77,8 +77,8 @@ public final class JaccardSimilarity {
     final int countUAB = unionAB.getRetainedEntries(true);
 
     //Check for identical data
-    if ((countUAB == countA) && (countUAB == countB)
-        && (thetaLongUAB == thetaLongA) && (thetaLongUAB == thetaLongB)) {
+    if (countUAB == countA && countUAB == countB
+        && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
       return ONES.clone();
     }
 
@@ -105,7 +105,7 @@ public final class JaccardSimilarity {
    */
   public static boolean exactlyEqual(final Sketch sketchA, final Sketch sketchB) {
     //Corner case checks
-    if ((sketchA == null) || (sketchB == null)) { return false; }
+    if (sketchA == null || sketchB == null) { return false; }
     if (sketchA == sketchB) { return true; }
     if (sketchA.isEmpty() && sketchB.isEmpty()) { return true; }
     if (sketchA.isEmpty() || sketchB.isEmpty()) { return false; }
@@ -116,8 +116,8 @@ public final class JaccardSimilarity {
     //Create the Union
     final Union union =
         SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
-    union.update(sketchA);
-    union.update(sketchB);
+    union.union(sketchA);
+    union.union(sketchB);
     final Sketch unionAB = union.getResult();
     final long thetaLongUAB = unionAB.getThetaLong();
     final long thetaLongA = sketchA.getThetaLong();
@@ -125,8 +125,8 @@ public final class JaccardSimilarity {
     final int countUAB = unionAB.getRetainedEntries(true);
 
     //Check for identical counts and thetas
-    if ((countUAB == countA) && (countUAB == countB)
-        && (thetaLongUAB == thetaLongA) && (thetaLongUAB == thetaLongB)) {
+    if (countUAB == countA && countUAB == countB
+        && thetaLongUAB == thetaLongA && thetaLongUAB == thetaLongB) {
       return true;
     }
     return false;

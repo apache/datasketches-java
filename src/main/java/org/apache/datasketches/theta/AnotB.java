@@ -108,20 +108,21 @@ public abstract class AnotB extends SetOperation {
   public abstract void notB(Sketch skB);
 
   /**
-   * Gets the result of the mutistep, stateful operation AnotB that have been executed with calls
+   * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
    * to {@link #setA(Sketch)} and ({@link #notB(Sketch)} or
    * {@link #notB(org.apache.datasketches.theta.Sketch)}).
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
+   *
    * @return the result of this operation as an ordered, on-heap {@link CompactSketch}.
    */
   public abstract CompactSketch getResult(boolean reset);
 
   /**
-   * Gets the result of this stateful set operation as a CompactSketch of the form based on
-   * the input arguments.
-   * The stateful input operations are {@link #setA(Sketch)} and {@link #notB(Sketch)}.
+   * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
+   * to {@link #setA(Sketch)} and ({@link #notB(Sketch)} or
+   * {@link #notB(org.apache.datasketches.theta.Sketch)}).
    *
    * @param dstOrdered If <i>true</i>, the result will be an ordered {@link CompactSketch}.
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>.
@@ -132,7 +133,7 @@ public abstract class AnotB extends SetOperation {
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
    *
-   * @return the result of this operation as a {@link CompactSketch} of the chosen form.
+   * @return the result of this operation as a {@link CompactSketch} in the given dstMem.
    */
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem, boolean reset);
 

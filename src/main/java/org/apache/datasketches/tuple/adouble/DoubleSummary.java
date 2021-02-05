@@ -37,7 +37,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   /**
    * The aggregation modes for this Summary
    */
-  public static enum Mode {
+  public enum Mode {
 
     /**
      * The aggregation mode is the summation function.
@@ -97,10 +97,10 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
   }
 
   @Override
-  public void update(final Double value) {
+  public DoubleSummary update(final Double value) {
     switch (mode_) {
     case Sum:
-      value_ += value.doubleValue();
+      value_ += value;
       break;
     case Min:
       if (value < value_) { value_ = value; }
@@ -112,6 +112,7 @@ public final class DoubleSummary implements UpdatableSummary<Double> {
       value_ = 1.0;
       break;
     }
+    return this;
   }
 
   @Override

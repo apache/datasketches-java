@@ -36,6 +36,14 @@ public abstract class Union extends SetOperation {
   }
 
   /**
+   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
+   * This does not disturb the underlying data structure of the union.
+   * Therefore, it is OK to continue updating the union after this operation.
+   * @return the result of this operation as an ordered CompactSketch on the Java heap
+   */
+  public abstract CompactSketch getResult();
+
+  /**
    * Gets the result of this operation as a CompactSketch of the chosen form.
    * This does not disturb the underlying data structure of the union.
    * Therefore, it is OK to continue updating the union after this operation.
@@ -49,14 +57,6 @@ public abstract class Union extends SetOperation {
    * @return the result of this operation as a CompactSketch of the chosen form
    */
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
-
-  /**
-   * Gets the result of this operation as an ordered CompactSketch on the Java heap.
-   * This does not disturb the underlying data structure of the union.
-   * Therefore, it is OK to continue updating the union after this operation.
-   * @return the result of this operation as an ordered CompactSketch on the Java heap
-   */
-  public abstract CompactSketch getResult();
 
   /**
    * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.
@@ -108,6 +108,20 @@ public abstract class Union extends SetOperation {
    *
    * @param sketchIn The incoming sketch.
    */
+  public abstract void union(Sketch sketchIn);
+
+
+  /**
+   * Perform a Union operation with <i>this</i> union and the given on-heap sketch of the Theta Family.
+   * This method is not valid for the older SetSketch, which was prior to Open Source (August, 2015).
+   *
+   * <p>This method can be repeatedly called.
+   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
+   * @param sketchIn The incoming sketch.
+   * @deprecated 2.0.0.  Use {@link #union(Sketch)} instead.
+   */
+  @Deprecated
   public abstract void update(Sketch sketchIn);
 
   /**
@@ -120,6 +134,20 @@ public abstract class Union extends SetOperation {
    *
    * @param mem Memory image of sketch to be merged
    */
+  public abstract void union(Memory mem);
+
+  /**
+   * Perform a Union operation with <i>this</i> union and the given Memory image of any sketch of the
+   * Theta Family. The input image may be from earlier versions of the Theta Compact Sketch,
+   * called the SetSketch (circa 2012), which was prior to Open Source and are compact and ordered.
+   *
+   * <p>This method can be repeatedly called.
+   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
+   * @param mem Memory image of sketch to be merged
+   * @deprecated 2.0.0. Use {@link #union(Memory)} instead.
+   */
+  @Deprecated
   public abstract void update(Memory mem);
 
   /**

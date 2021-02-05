@@ -41,7 +41,8 @@ public class Union<S extends Summary> {
   private boolean empty_;
 
   /**
-   * Creates new instance with default nominal entries
+   * Creates new Intersection instance with instructions on how to process two summaries that
+   * overlap. This will have the default nominal entries (K).
    * @param summarySetOps instance of SummarySetOperations
    */
   public Union(final SummarySetOperations<S> summarySetOps) {
@@ -49,8 +50,10 @@ public class Union<S extends Summary> {
   }
 
   /**
+   * Creates new Intersection instance with instructions on how to process two summaries that
+   * overlap.
    * Creates new instance
-   * @param nomEntries nominal number of entries. Forced to the nearest power of 2 greater than
+   * @param nomEntries nominal entries (K). Forced to the nearest power of 2 greater than
    * given value.
    * @param summarySetOps instance of SummarySetOperations
    */
@@ -67,7 +70,7 @@ public class Union<S extends Summary> {
    * If null or empty, it is ignored.
    */
   public void update(final Sketch<S> sketchIn) {
-    if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
+    if (sketchIn == null || sketchIn.isEmpty()) { return; }
     empty_ = false;
     if (sketchIn.thetaLong_ < thetaLong_) { thetaLong_ = sketchIn.thetaLong_; }
     final SketchIterator<S> it = sketchIn.iterator();
@@ -91,7 +94,7 @@ public class Union<S extends Summary> {
   public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
-    if ((sketchIn == null) || sketchIn.isEmpty()) { return; }
+    if (sketchIn == null || sketchIn.isEmpty()) { return; }
     empty_ = false;
     final long thetaIn = sketchIn.getThetaLong();
     if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
@@ -105,7 +108,7 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Gets the internal set as a CompactSketch
+   * Gets the internal set as an unordered CompactSketch
    * @return result of the unions so far
    */
   @SuppressWarnings("unchecked")
@@ -113,7 +116,7 @@ public class Union<S extends Summary> {
     if (empty_) {
       return qsk_.compact();
     }
-    if ((thetaLong_ >= qsk_.thetaLong_) && (qsk_.getRetainedEntries() <= qsk_.getNominalEntries())) {
+    if (thetaLong_ >= qsk_.thetaLong_ && qsk_.getRetainedEntries() <= qsk_.getNominalEntries()) {
       return qsk_.compact();
     }
     long theta = min(thetaLong_, qsk_.thetaLong_);

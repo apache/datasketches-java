@@ -27,9 +27,10 @@ public interface UpdatableSummary<U> extends Summary {
 
   /**
    * This is to provide a method of updating summaries.
-   * This should not be called by the user.
+   * This is primarily used internally.
    * @param value update value
+   * @return this
    */
-  public void update(U value);
+  UpdatableSummary<U> update(U value);
 
 }

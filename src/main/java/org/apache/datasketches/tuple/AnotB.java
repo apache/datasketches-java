@@ -199,7 +199,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param reset If <i>true</i>, clears this operator to the empty state after this result is
    * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
-   * @return the result of this operation as a {@link CompactSketch}.
+   * @return the result of this operation as an unordered {@link CompactSketch}.
    */
   public CompactSketch<S> getResult(final boolean reset) {
     if (curCount_ == 0) {
@@ -233,7 +233,7 @@ public final class AnotB<S extends Summary> {
    * @param skA The incoming Tuple sketch for the first argument
    * @param skB The incoming Tuple sketch for the second argument
    * @param <S> Type of Summary
-   * @return the result as a compact sketch
+   * @return the result as an unordered {@link CompactSketch}
    */
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final Sketch<S> skB) {
@@ -285,7 +285,7 @@ public final class AnotB<S extends Summary> {
    * @param skA The incoming Tuple sketch for the first argument
    * @param skB The incoming Theta sketch for the second argument
    * @param <S> Type of Summary
-   * @return the result as a compact sketch
+   * @return the result as an unordered {@link CompactSketch}
    */
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final org.apache.datasketches.theta.Sketch skB) {
@@ -470,7 +470,7 @@ public final class AnotB<S extends Summary> {
   /**
    * Gets the result of this operation. This clears the state of this operator after the result is
    * returned.
-   * @return the result of this operation as a CompactSketch
+   * @return the result of this operation as an unordered {@link CompactSketch}
    * @deprecated v2.0.0. Instead use {@link #getResult(boolean)}.
    */
   @Deprecated

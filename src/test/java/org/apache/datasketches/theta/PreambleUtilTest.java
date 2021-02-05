@@ -70,13 +70,13 @@ public class PreambleUtilTest {
 
   @Test
   public void checkToString() {
-    int k = 4096;
-    int u = 2*k;
-    int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
-    byte[] byteArray = new byte[bytes];
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    final int k = 4096;
+    final int u = 2*k;
+    final int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
+    final byte[] byteArray = new byte[bytes];
+    final WritableMemory mem = WritableMemory.wrap(byteArray);
 
-    UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(mem);
+    final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(mem);
     println(Sketch.toString(byteArray));
 
     Assert.assertTrue(quick1.isEmpty());
@@ -91,21 +91,21 @@ public class PreambleUtilTest {
     println(quick1.toString());
     println(PreambleUtil.preambleToString(mem));
 
-    WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
-    Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
-    union.update(quick1);
+    final WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
+    final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
+    union.union(quick1);
     println(PreambleUtil.preambleToString(uMem));
   }
 
   @Test
   public void checkToStringWithPrelongsOf2() {
-    int k = 16;
-    int u = k;
-    UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build();
+    final int k = 16;
+    final int u = k;
+    final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build();
     for (int i = 0; i< u; i++) {
       quick1.update(i);
     }
-    byte[] bytes = quick1.compact().toByteArray();
+    final byte[] bytes = quick1.compact().toByteArray();
     println(Sketch.toString(bytes));
   }
 
@@ -115,7 +115,7 @@ public class PreambleUtilTest {
     try { //check preLongs < 8 fails
       Sketch.toString(byteArr);
       fail("Did not throw SketchesArgumentException.");
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
     byteArr = new byte[8];
@@ -123,7 +123,7 @@ public class PreambleUtilTest {
     try { //check preLongs == 2 fails
       Sketch.toString(Memory.wrap(byteArr));
       fail("Did not throw SketchesArgumentException.");
-    } catch (SketchesArgumentException e) {
+    } catch (final SketchesArgumentException e) {
       //expected
     }
   }
@@ -136,7 +136,7 @@ public class PreambleUtilTest {
 
   @Test
   public void checkPreLongs() {
-    UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
+    final UpdateSketch sketch = UpdateSketch.builder().setNominalEntries(16).build();
     CompactSketch comp = sketch.compact(false, null);
     byte[] byteArr = comp.toByteArray();
     println(Sketch.toString(byteArr)); //PreLongs = 1
@@ -156,8 +156,8 @@ public class PreambleUtilTest {
 
   @Test
   public void checkInsertsAndExtracts() {
-    byte[] arr = new byte[32];
-    WritableMemory wmem = WritableMemory.wrap(arr);
+    final byte[] arr = new byte[32];
+    final WritableMemory wmem = WritableMemory.wrap(arr);
 
     int v = 0;
     insertPreLongs(wmem, ++v);
@@ -225,7 +225,7 @@ public class PreambleUtilTest {
   /**
    * @param s value to print
    */
-  static void println(String s) {
+  static void println(final String s) {
     //System.out.println(s); //disable here
   }
 
