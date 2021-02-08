@@ -34,7 +34,7 @@ final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {
   }
 
   @Override
-  public void update(final ArrayOfDoublesSketch sketchIn) {
+  public void union(final ArrayOfDoublesSketch tupleSketch) {
     throw new SketchesReadOnlyException();
   }
 

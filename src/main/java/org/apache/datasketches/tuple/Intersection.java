@@ -34,7 +34,8 @@ import org.apache.datasketches.SketchesStateException;
 
 
 /**
- * Computes an intersection of two or more generic tuple sketches.
+ * Computes an intersection of two or more generic tuple sketches or generic tuple sketches
+ * combined with theta sketches.
  * A new instance represents the Universal Set. Because the Universal Set
  * cannot be realized a <i>getResult()</i> on a new instance will produce an error.
  * Every update() computes an intersection with the internal state, which will never
@@ -64,20 +65,66 @@ public class Intersection<S extends Summary> {
   }
 
   /**
-   * Updates the internal state by intersecting it with the given sketch.
-   * @param sketchIn input sketch to intersect with the internal state. It may not be null.
+   * Perform a stateless intersect set operation on the two given tuple sketches and returns the
+   * result as an unordered CompactSketch on the heap.
+   * @param tupleSketchA The first sketch argument.  It must not be null.
+   * @param tupleSketchB The second sketch argument.  It must not be null.
+   * @return an unordered CompactSketch on the heap
    */
-  public void update(final Sketch<S> sketchIn) {
-    if (sketchIn == null) { throw new SketchesArgumentException("Sketch may not be null"); }
+  public CompactSketch<S> intersect(final Sketch<S> tupleSketchA, final Sketch<S> tupleSketchB) {
+    reset();
+    intersect(tupleSketchA);
+    intersect(tupleSketchB);
+    final CompactSketch<S> csk = getResult();
+    reset();
+    return csk;
+  }
+
+  /**
+   * Perform a stateless intersect set operation on a tuple sketch and a theta sketch and returns the
+   * result as an unordered CompactSketch on the heap.
+   * @param tupleSketch The first sketch argument. It must not be null.
+   * @param thetaSketch The second sketch argument. It must not be null.
+   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * This must not be null.
+   * @return an unordered CompactSketch on the heap
+   */
+  public CompactSketch<S> intersect(final Sketch<S> tupleSketch,
+      final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+    reset();
+    intersect(tupleSketch);
+    intersect(thetaSketch, summary);
+    final CompactSketch<S> csk = getResult();
+    reset();
+    return csk;
+  }
+
+  /**
+   * Performs a stateful intersection of the internal set with the given tupleSketch.
+   * @param tupleSketch input sketch to intersect with the internal state. It must not be null.
+   * @deprecated 2.0.0. Please use {@link #intersect(Sketch)}.
+   */
+  @Deprecated
+  public void update(final Sketch<S> tupleSketch) {
+    intersect(tupleSketch);
+  }
+
+  /**
+   * Performs a stateful intersection of the internal set with the given tupleSketch.
+   * @param tupleSketch input sketch to intersect with the internal state. It must not be null.
+   */
+  public void intersect(final Sketch<S> tupleSketch) {
+    if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
 
     // input sketch could be first or next call
-    final long thetaLongIn = sketchIn.getThetaLong();
-    final int countIn = sketchIn.getRetainedEntries();
+    final long thetaLongIn = tupleSketch.getThetaLong();
+    final int countIn = tupleSketch.getRetainedEntries();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
     // Empty rule extended in case incoming sketch does not have empty bit properly set
-    empty_ |= countIn == 0 && thetaLongIn == Long.MAX_VALUE;
+    final boolean emptyIn = countIn == 0 && thetaLongIn == Long.MAX_VALUE;
+    empty_ |= emptyIn; //empty rule
     if (countIn == 0) {
       hashTables_.clear();
       return;
@@ -85,7 +132,7 @@ public class Intersection<S extends Summary> {
     // input sketch will have valid entries > 0
 
     if (firstCall) {
-      final Sketch<S> firstSketch = sketchIn;
+      final Sketch<S> firstSketch = tupleSketch;
       //Copy firstSketch data into local instance hashTables_
       hashTables_.fromSketch(firstSketch);
     }
@@ -95,7 +142,7 @@ public class Intersection<S extends Summary> {
       if (hashTables_.count_ == 0) {
         return;
       }
-      final Sketch<S> nextSketch = sketchIn;
+      final Sketch<S> nextSketch = tupleSketch;
       //Match nextSketch data with local instance data, filtering by theta
       final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries());
 
@@ -126,29 +173,47 @@ public class Intersection<S extends Summary> {
   }
 
   /**
-   * Updates the internal set by intersecting it with the given Theta sketch.
-   * @param sketchIn input Theta Sketch to intersect with the internal state. It may not be null.
-   * @param summary the given proxy summary for the Theta Sketch, which doesn't have one.
-   * It will be copied for each matching index. It may not be null.
+   * Performs a stateful intersection of the internal set with the given thetaSketch by combining entries
+   * using the hashes from the theta sketch and summary values from the given summary and rules
+   * from the summarySetOps defined by the Intersection constructor.
+   * @param thetaSketch input theta sketch to intersect with the internal state. It must not be null.
+   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * It will be copied for each matching index. It must not be null.
+   * @deprecated 2.0.0. Please use intersect(org.apache.datasketches.theta.Sketch, S).
    */
-  public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
-    if (sketchIn == null) { throw new SketchesArgumentException("Sketch may not be null"); }
+  @Deprecated //note the {at_link} does not work in the above
+  public void update(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+    intersect(thetaSketch, summary);
+  }
+
+  /**
+   * Performs a stateful intersection of the internal set with the given thetaSketch by combining entries
+   * using the hashes from the theta sketch and summary values from the given summary and rules
+   * from the summarySetOps defined by the Intersection constructor.
+   * @param thetaSketch input theta sketch to intersect with the internal state. It must not be null.
+   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * It will be copied for each matching index. It must not be null.
+   */
+  public void intersect(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+    if (thetaSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
+
     // input sketch is not null, could be first or next call
-    final long thetaLongIn = sketchIn.getThetaLong();
-    final int countIn = sketchIn.getRetainedEntries(true);
+    final long thetaLongIn = thetaSketch.getThetaLong();
+    final int countIn = thetaSketch.getRetainedEntries(true);
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
     // Empty rule extended in case incoming sketch does not have empty bit properly set
-    empty_ |= countIn == 0 && thetaLongIn == Long.MAX_VALUE;
+    final boolean emptyIn = countIn == 0 && thetaLongIn == Long.MAX_VALUE;
+    empty_ |= emptyIn; //empty rule
     if (countIn == 0) {
       hashTables_.clear();
       return;
     }
     // input sketch will have valid entries > 0
     if (firstCall) {
-      final org.apache.datasketches.theta.Sketch firstSketch = sketchIn;
+      final org.apache.datasketches.theta.Sketch firstSketch = thetaSketch;
       //Copy firstSketch data into local instance hashTables_
       hashTables_.fromSketch(firstSketch, summary);
     }
@@ -158,7 +223,7 @@ public class Intersection<S extends Summary> {
       if (hashTables_.count_ == 0) {
         return;
       }
-      final org.apache.datasketches.theta.Sketch nextSketch = sketchIn;
+      final org.apache.datasketches.theta.Sketch nextSketch = thetaSketch;
       //Match nextSketch data with local instance data, filtering by theta
       final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries(true));
 
@@ -166,7 +231,7 @@ public class Intersection<S extends Summary> {
       S[] matchSummaries = null;
       int matchCount = 0;
 
-      final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
+      final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
       final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
       while (it.next()) {
         final long hash = it.get();
@@ -219,6 +284,14 @@ public class Intersection<S extends Summary> {
     }
     assert cnt == hashTables_.count_;
     return new CompactSketch<>(hashArr, summaries, thetaLong_, empty_);
+  }
+
+  /**
+   * Returns true if there is a valid intersection result available
+   * @return true if there is a valid intersection result available
+   */
+  public boolean hasResult() {
+    return !firstCall_;
   }
 
   /**

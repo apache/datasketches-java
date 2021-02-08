@@ -37,7 +37,26 @@ public final class DoubleSummarySetOperations implements SummarySetOperations<Do
   private final Mode intersectionSummaryMode_;
 
   /**
-   * Creates a new instance with two modes
+   * Creates an instance with default mode of <i>sum</i> for both union and intersection.
+   * This exists for backward compatibility.
+   */
+  public DoubleSummarySetOperations() {
+    unionSummaryMode_ = DoubleSummary.Mode.Sum;
+    intersectionSummaryMode_ = DoubleSummary.Mode.Sum;
+  }
+
+  /**
+   * Creates an instance given a DoubleSummary update mode where the mode is the same for both
+   * union and intersection. This exists for backward compatibility.
+   * @param summaryMode DoubleSummary update mode.
+   */
+  public DoubleSummarySetOperations(final Mode summaryMode) {
+    unionSummaryMode_ = summaryMode;
+    intersectionSummaryMode_ = summaryMode;
+  }
+
+  /**
+   * Creates an instance with two modes.
    * @param unionSummaryMode for unions
    * @param intersectionSummaryMode for intersections
    */

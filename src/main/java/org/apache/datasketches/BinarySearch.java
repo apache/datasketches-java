@@ -30,7 +30,7 @@ public final class BinarySearch {
   /**
    * Binary Search for the index of the exact float value in the given search range.
    * If -1 is returned there are no values in the search range that equals the given value.
-   * @param arr The given array to search.
+   * @param arr The given ordered array to search.
    * @param low the index of the lowest value of the search range
    * @param high the index of the highest value of the search range
    * @param v the value to search for
@@ -53,7 +53,7 @@ public final class BinarySearch {
   /**
    * Binary Search for the index of the exact double value in the given search range.
    * If -1 is returned there are no values in the search range that equals the given value.
-   * @param arr The given array to search.
+   * @param arr The given ordered array to search.
    * @param low the index of the lowest value of the search range
    * @param high the index of the highest value of the search range
    * @param v the value to search for
@@ -76,7 +76,7 @@ public final class BinarySearch {
   /**
    * Binary Search for the index of the exact long value in the given search range.
    * If -1 is returned there are no values in the search range that equals the given value.
-   * @param arr The given array to search.
+   * @param arr The given ordered array to search.
    * @param low the index of the lowest value of the search range
    * @param high the index of the highest value of the search range
    * @param v the value to search for

@@ -24,7 +24,8 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * The API for Union operations
+ * Compute the union of two or more theta sketches.
+ * A new instance represents an empty set.
  *
  * @author Lee Rhodes
  */
@@ -59,7 +60,7 @@ public abstract class Union extends SetOperation {
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
-   * Resets this Union. The seed remains intact, otherwise reverts back to its virgin state.
+   * Resets this Union. The seed remains intact, everything else reverts back to its virgin state.
    */
   public abstract void reset();
 
@@ -71,7 +72,7 @@ public abstract class Union extends SetOperation {
 
   /**
    * This implements a stateless, pair-wise union operation. The returned sketch will be cutback to
-   * k if required, similar to the regular Union operation.
+   * the smaller of the two k values if required.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
@@ -104,7 +105,8 @@ public abstract class Union extends SetOperation {
    * This method is not valid for the older SetSketch, which was prior to Open Source (August, 2015).
    *
    * <p>This method can be repeatedly called.
-   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param sketchIn The incoming sketch.
    */
@@ -116,7 +118,8 @@ public abstract class Union extends SetOperation {
    * This method is not valid for the older SetSketch, which was prior to Open Source (August, 2015).
    *
    * <p>This method can be repeatedly called.
-   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param sketchIn The incoming sketch.
    * @deprecated 2.0.0.  Use {@link #union(Sketch)} instead.
@@ -130,7 +133,8 @@ public abstract class Union extends SetOperation {
    * called the SetSketch (circa 2012), which was prior to Open Source and are compact and ordered.
    *
    * <p>This method can be repeatedly called.
-   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param mem Memory image of sketch to be merged
    */
@@ -142,7 +146,8 @@ public abstract class Union extends SetOperation {
    * called the SetSketch (circa 2012), which was prior to Open Source and are compact and ordered.
    *
    * <p>This method can be repeatedly called.
-   * If the given sketch is null it is interpreted as an empty sketch.</p>
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
    *
    * @param mem Memory image of sketch to be merged
    * @deprecated 2.0.0. Use {@link #union(Memory)} instead.
