@@ -86,8 +86,8 @@ public abstract class Intersection extends SetOperation {
   public abstract CompactSketch getResult(boolean dstOrdered, WritableMemory dstMem);
 
   /**
-   * Returns true if there is an intersection result available
-   * @return true if there is an intersection result available
+   * Returns true if there is a valid intersection result available
+   * @return true if there is a valid intersection result available
    */
   public abstract boolean hasResult();
 

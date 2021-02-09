@@ -28,10 +28,8 @@ import org.apache.datasketches.QuickSelect;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * Compute a union of two or more tuple sketches.
- * A new instance represents an empty set.
- * Every update() computes a union with the internal set
- * and can only grow the internal set.
+ * Compute the union of two or more generic tuple sketches or generic tuple sketches combined with
+ * theta sketches. A new instance represents an empty set.
  * @param <S> Type of Summary
  */
 public class Union<S extends Summary> {
@@ -41,7 +39,7 @@ public class Union<S extends Summary> {
   private boolean empty_;
 
   /**
-   * Creates new Intersection instance with instructions on how to process two summaries that
+   * Creates new Union instance with instructions on how to process two summaries that
    * overlap. This will have the default nominal entries (K).
    * @param summarySetOps instance of SummarySetOperations
    */
@@ -50,9 +48,8 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Creates new Intersection instance with instructions on how to process two summaries that
+   * Creates new Union instance with instructions on how to process two summaries that
    * overlap.
-   * Creates new instance
    * @param nomEntries nominal entries (K). Forced to the nearest power of 2 greater than
    * given value.
    * @param summarySetOps instance of SummarySetOperations
@@ -65,15 +62,70 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Updates the internal set by adding entries from the given sketch
-   * @param sketchIn input sketch to add to the internal set.
-   * If null or empty, it is ignored.
+   * Perform a stateless, pair-wise union operation between two tuple sketches.
+   * The returned sketch will be cutback to the smaller of the two k values if required.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @param tupleSketchA The first argument
+   * @param tupleSketchB The second argument
+   * @return the result ordered CompactSketch on the heap.
    */
-  public void update(final Sketch<S> sketchIn) {
-    if (sketchIn == null || sketchIn.isEmpty()) { return; }
+  public CompactSketch<S> union(final Sketch<S> tupleSketchA, final Sketch<S> tupleSketchB) {
+    reset();
+    union(tupleSketchA);
+    union(tupleSketchB);
+    final CompactSketch<S> csk = getResult();
+    reset();
+    return csk;
+  }
+
+  /**
+   * Perform a stateless, pair-wise union operation between a tupleSketch and a thetaSketch.
+   * The returned sketch will be cutback to the smaller of the two k values if required.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @param tupleSketch The first argument
+   * @param thetaSketch The second argument
+   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
+   * This may not be null.
+   * @return the result ordered CompactSketch on the heap.
+   */
+  public CompactSketch<S> union(final Sketch<S> tupleSketch,
+      final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+    reset();
+    union(tupleSketch);
+    union(thetaSketch, summary);
+    final CompactSketch<S> csk = getResult();
+    reset();
+    return csk;
+  }
+
+  /**
+   * Performs a stateful union of the internal set with the given tupleSketch.
+   * @param tupleSketch input tuple sketch to add to the internal set.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @deprecated 2.0.0. Please use {@link #union(org.apache.datasketches.tuple.Sketch)}.
+   */
+  @Deprecated
+  public void update(final Sketch<S> tupleSketch) {
+    union(tupleSketch);
+  }
+
+  /**
+   * Performs a stateful union of the internal set with the given tupleSketch.
+   * @param tupleSketch input tuple sketch to merge with the internal set.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   */
+  public void union(final Sketch<S> tupleSketch) {
+    if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
     empty_ = false;
-    if (sketchIn.thetaLong_ < thetaLong_) { thetaLong_ = sketchIn.thetaLong_; }
-    final SketchIterator<S> it = sketchIn.iterator();
+    if (tupleSketch.thetaLong_ < thetaLong_) { thetaLong_ = tupleSketch.thetaLong_; }
+    final SketchIterator<S> it = tupleSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.getHash(), it.getSummary(), summarySetOps_);
     }
@@ -83,22 +135,36 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Updates the internal set by combining entries using the hashes from the Theta Sketch and
-   * summary values from the given summary and rules from the summarySetOps defined by the
-   * Union constructor.
-   * @param sketchIn the given Theta Sketch input. If null or empty, it is ignored.
-   * @param summary the given proxy summary for the Theta Sketch, which doesn't have one. This may
+   * Performs a stateful union of the internal set with the given thetaSketch by combining entries
+   * using the hashes from the theta sketch and summary values from the given summary and rules
+   * from the summarySetOps defined by the Union constructor.
+   * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
+   * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
+   * not be null.
+   * @deprecated 2.0.0. Please use union(org.apache.datasketches.theta.Sketch, S).
+   */
+  @Deprecated //note the {at_link} does not work in the above
+  public void update(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+    union(thetaSketch, summary);
+  }
+
+  /**
+   * Performs a stateful union of the internal set with the given thetaSketch by combining entries
+   * using the hashes from the theta sketch and summary values from the given summary and rules
+   * from the summarySetOps defined by the Union constructor.
+   * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
+   * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
    * not be null.
    */
   @SuppressWarnings("unchecked")
-  public void update(final org.apache.datasketches.theta.Sketch sketchIn, final S summary) {
+  public void union(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
-    if (sketchIn == null || sketchIn.isEmpty()) { return; }
+    if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
     empty_ = false;
-    final long thetaIn = sketchIn.getThetaLong();
+    final long thetaIn = thetaSketch.getThetaLong();
     if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
-    final org.apache.datasketches.theta.HashIterator it = sketchIn.iterator();
+    final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.get(), (S)summary.copy(), summarySetOps_);
     }
@@ -108,8 +174,8 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Gets the internal set as an unordered CompactSketch
-   * @return result of the unions so far
+   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactSketch
+   * @return result of the stateful unions so far
    */
   @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
@@ -159,7 +225,8 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Resets the internal set to the initial state, which represents an empty set
+   * Resets the internal set to the initial state, which represents an empty set. This is only useful
+   * after sequences of stateful union operations.
    */
   public void reset() {
     qsk_.reset();

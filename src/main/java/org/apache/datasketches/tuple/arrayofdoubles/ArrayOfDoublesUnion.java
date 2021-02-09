@@ -119,21 +119,37 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Updates the union by adding a set of entries from a given sketch
-   * @param sketchIn sketch to add to the union
+   * Performs a stateful union of the internal set with the given tupleSketch.
+   * @param tupleSketch input tuple sketch to add to the internal set.
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @deprecated 2.0.0. Please use {@link #union(ArrayOfDoublesSketch)}.
    */
-  public void update(final ArrayOfDoublesSketch sketchIn) {
-    if (sketchIn == null) { return; }
-    Util.checkSeedHashes(sketch_.getSeedHash(), sketchIn.getSeedHash());
-    if (sketch_.getNumValues() != sketchIn.getNumValues()) {
+  @Deprecated
+  public void update(final ArrayOfDoublesSketch tupleSketch) {
+    union(tupleSketch);
+  }
+
+  /**
+   * Updates the union by adding a set of entries from a given sketch
+   *
+   * <p>Nulls and empty sketches are ignored.</p>
+   *
+   * @param tupleSketch sketch to add to the union
+   */
+  public void union(final ArrayOfDoublesSketch tupleSketch) {
+    if (tupleSketch == null) { return; }
+    Util.checkSeedHashes(sketch_.getSeedHash(), tupleSketch.getSeedHash());
+    if (sketch_.getNumValues() != tupleSketch.getNumValues()) {
       throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
-          + sketch_.getNumValues() + " and " + sketchIn.getNumValues());
+          + sketch_.getNumValues() + " and " + tupleSketch.getNumValues());
     }
-    if (sketchIn.isEmpty()) { return; }
-    if (sketchIn.getThetaLong() < theta_) {
-      setThetaLong(sketchIn.getThetaLong());
+    if (tupleSketch.isEmpty()) { return; }
+    if (tupleSketch.getThetaLong() < theta_) {
+      setThetaLong(tupleSketch.getThetaLong());
     }
-    final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
+    final ArrayOfDoublesSketchIterator it = tupleSketch.iterator();
     while (it.next()) {
       if (it.getKey() < theta_) {
         sketch_.merge(it.getKey(), it.getValues());

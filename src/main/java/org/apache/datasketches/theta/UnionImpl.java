@@ -272,9 +272,12 @@ final class UnionImpl extends Union {
   @Override
   public CompactSketch union(final Sketch sketchA, final Sketch sketchB, final boolean dstOrdered,
       final WritableMemory dstMem) {
-    update(sketchA);
-    update(sketchB);
-    return getResult(dstOrdered, dstMem);
+    reset();
+    union(sketchA);
+    union(sketchB);
+    final CompactSketch csk = getResult(dstOrdered, dstMem);
+    reset();
+    return csk;
   }
 
   @Deprecated
@@ -369,13 +372,13 @@ final class UnionImpl extends Union {
     if (serVer == 2) { //older Sketch, which is compact and ordered
       Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
       final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem, DEFAULT_UPDATE_SEED);
-      update(csk);
+      union(csk);
       return;
     }
 
     if (serVer == 1) { //much older Sketch, which is compact and ordered
       final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, DEFAULT_UPDATE_SEED);
-      update(csk);
+      union(csk);
       return;
     }
 

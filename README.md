@@ -25,7 +25,7 @@
 
 =================
 
-# DataSketches Core Java Library Component
+# Apache<sup>&reg;</sup> DataSketches&trade; Core Java Library Component
 This is the core Java component of the DataSketches library.  It contains all of the sketching algorithms and can be accessed directly from user applications. 
 
 This component is also a dependency of other components of the library that create adaptors for target systems, such as Hadoop Pig and Hadoop Hive.

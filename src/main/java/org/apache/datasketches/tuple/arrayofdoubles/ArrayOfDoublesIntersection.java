@@ -51,37 +51,48 @@ public abstract class ArrayOfDoublesIntersection {
   }
 
   /**
-   * Updates the internal set by intersecting it with the given sketch.
-   * @param sketchIn Input sketch to intersect with the internal set.
+   * Performs a stateful intersection of the internal set with the given tupleSketch.
+   * @param tupleSketch Input sketch to intersect with the internal set.
+   * @param combiner Method of combining two arrays of double values
+   * @deprecated 2.0.0 Please use {@link #intersect(ArrayOfDoublesSketch, ArrayOfDoublesCombiner)}.
+   */
+  @Deprecated
+  public void  update(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
+    intersect(tupleSketch, combiner);
+  }
+
+  /**
+   * Performs a stateful intersection of the internal set with the given tupleSketch.
+   * @param tupleSketch Input sketch to intersect with the internal set.
    * @param combiner Method of combining two arrays of double values
    */
-  public void update(final ArrayOfDoublesSketch sketchIn, final ArrayOfDoublesCombiner combiner) {
+  public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
     final boolean isFirstCall = isFirstCall_;
     isFirstCall_ = false;
-    if (sketchIn == null) {
+    if (tupleSketch == null) {
       isEmpty_ = true;
       sketch_ = null;
       return;
     }
-    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
-    theta_ = min(theta_, sketchIn.getThetaLong());
-    isEmpty_ |= sketchIn.isEmpty();
-    if (isEmpty_ || sketchIn.getRetainedEntries() == 0) {
+    Util.checkSeedHashes(seedHash_, tupleSketch.getSeedHash());
+    theta_ = min(theta_, tupleSketch.getThetaLong());
+    isEmpty_ |= tupleSketch.isEmpty();
+    if (isEmpty_ || tupleSketch.getRetainedEntries() == 0) {
       sketch_ = null;
       return;
     }
     if (isFirstCall) {
-      sketch_ = createSketch(sketchIn.getRetainedEntries(), numValues_, seed_);
-      final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
+      sketch_ = createSketch(tupleSketch.getRetainedEntries(), numValues_, seed_);
+      final ArrayOfDoublesSketchIterator it = tupleSketch.iterator();
       while (it.next()) {
         sketch_.insert(it.getKey(), it.getValues());
       }
     } else { //not the first call
-      final int matchSize = min(sketch_.getRetainedEntries(), sketchIn.getRetainedEntries());
+      final int matchSize = min(sketch_.getRetainedEntries(), tupleSketch.getRetainedEntries());
       final long[] matchKeys = new long[matchSize];
       final double[][] matchValues = new double[matchSize][];
       int matchCount = 0;
-      final ArrayOfDoublesSketchIterator it = sketchIn.iterator();
+      final ArrayOfDoublesSketchIterator it = tupleSketch.iterator();
       while (it.next()) {
         final double[] values = sketch_.find(it.getKey());
         if (values != null) {

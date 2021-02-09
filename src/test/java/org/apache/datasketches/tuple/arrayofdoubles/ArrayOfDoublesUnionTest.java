@@ -34,23 +34,23 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void heapExactMode() {
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
-    union.update(sketch1);
-    union.update(sketch2);
-    int maxBytes = ArrayOfDoublesUnion.getMaxBytes(
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union.union(sketch1);
+    union.union(sketch2);
+    final int maxBytes = ArrayOfDoublesUnion.getMaxBytes(
         ArrayOfDoublesSetOperationBuilder.DEFAULT_NOMINAL_ENTRIES,
         ArrayOfDoublesSetOperationBuilder.DEFAULT_NUMBER_OF_VALUES);
     Assert.assertEquals(maxBytes, 131120); // 48 bytes preamble + 2 * nominal entries * (key size + value size)
@@ -61,8 +61,8 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(values[1][0], 3.0);
     Assert.assertEquals(values[2][0], 3.0);
 
-    WritableMemory wmem = WritableMemory.wrap(union.toByteArray());
-    ArrayOfDoublesUnion wrappedUnion = ArrayOfDoublesSketches.wrapUnion(wmem);
+    final WritableMemory wmem = WritableMemory.wrap(union.toByteArray());
+    final ArrayOfDoublesUnion wrappedUnion = ArrayOfDoublesSketches.wrapUnion(wmem);
     result = wrappedUnion.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
     values = result.getValues();
@@ -84,20 +84,20 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapEstimationMode() {
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
-    union.update(sketch1);
-    union.update(sketch2);
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union.union(sketch1);
+    union.union(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertTrue(result.isEstimationMode());
@@ -116,28 +116,28 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapEstimationModeFullOverlapTwoValuesAndDownsizing() {
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0, 2.0});
     }
 
     key = 0; // full overlap
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0, 2.0});
     }
 
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setNumberOfValues(2).setNominalEntries(1024).buildUnion();
-    union.update(sketch1);
-    union.update(sketch2);
-    ArrayOfDoublesCompactSketch result = union.getResult();
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setNumberOfValues(2).setNominalEntries(1024).buildUnion();
+    union.union(sketch1);
+    union.union(sketch2);
+    final ArrayOfDoublesCompactSketch result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertTrue(result.isEstimationMode());
     Assert.assertEquals(result.getEstimate(), 8192.0, 8192 * 0.01);
     Assert.assertEquals(result.getRetainedEntries(), 1024); // union was downsampled
 
-    ArrayOfDoublesSketchIterator it = result.iterator();
-    double[] expected = {2, 4};
+    final ArrayOfDoublesSketchIterator it = result.iterator();
+    final double[] expected = {2, 4};
     while (it.next()) {
       Assert.assertEquals(it.getValues(), expected, Arrays.toString(it.getValues()) + " != " + Arrays.toString(expected));
     }
@@ -146,21 +146,21 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapMixedMode() {
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 1000; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 500; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.2f).build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.2f).build();
     for (int i = 0; i < 20000; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
-    union.update(sketch1);
-    union.update(sketch2);
-    ArrayOfDoublesCompactSketch result = union.getResult();
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union.union(sketch1);
+    union.union(sketch2);
+    final ArrayOfDoublesCompactSketch result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertTrue(result.isEstimationMode());
     Assert.assertEquals(result.getEstimate(), 20500.0, 20500 * 0.01);
@@ -169,22 +169,22 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void heapSerializeDeserialize() {
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
-    union1.update(sketch1);
-    union1.update(sketch2);
+    final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union1.union(sketch1);
+    union1.union(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()));
     ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
 
@@ -196,7 +196,7 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(result.getUpperBound(1), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getTheta(), 1.0);
-    double[][] values = result.getValues();
+    final double[][] values = result.getValues();
     for (int i = 0; i < values.length; i++) {
       Assert.assertEquals(values[i][0], 2.0);
     }
@@ -216,50 +216,50 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void heapSerializeDeserializeWithSeed() {
-    long seed = 1;
+    final long seed = 1;
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed).build();
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildUnion();
-    union1.update(sketch1);
-    union1.update(sketch2);
+    final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setSeed(seed).buildUnion();
+    union1.union(sketch1);
+    union1.union(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()), seed);
-    ArrayOfDoublesCompactSketch result = union2.getResult();
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.heapify(Memory.wrap(union1.toByteArray()), seed);
+    final ArrayOfDoublesCompactSketch result = union2.getResult();
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   }
 
   @Test
   public void directSerializeDeserialize() {
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(
         WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(
         WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion(
+    final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().buildUnion(
         WritableMemory.wrap(new byte[1000000]));
-    union1.update(sketch1);
-    union1.update(sketch2);
+    union1.union(sketch1);
+    union1.union(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(union1.toByteArray()));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(union1.toByteArray()));
     ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
 
@@ -271,7 +271,7 @@ public class ArrayOfDoublesUnionTest {
     Assert.assertEquals(result.getUpperBound(1), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getTheta(), 1.0);
-    double[][] values = result.getValues();
+    final double[][] values = result.getValues();
     for (int i = 0; i < values.length; i++) {
       Assert.assertEquals(values[i][0], 2.0);
     }
@@ -279,52 +279,52 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directSerializeDeserializeWithSeed() {
-    long seed = 1;
+    final long seed = 1;
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed)
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed)
         .build(WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed)
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(seed)
         .build(WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setSeed(seed)
+    final ArrayOfDoublesUnion union1 = new ArrayOfDoublesSetOperationBuilder().setSeed(seed)
         .buildUnion(WritableMemory.wrap(new byte[1000000]));
-    union1.update(sketch1);
-    union1.update(sketch2);
+    union1.union(sketch1);
+    union1.union(sketch2);
 
-    ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(union1.toByteArray()), seed);
-    ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.wrap(new byte[1000000]));
+    final ArrayOfDoublesUnion union2 = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(union1.toByteArray()), seed);
+    final ArrayOfDoublesCompactSketch result = union2.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
   }
 
   @Test
   public void directExactMode() {
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
-    union.update(sketch1);
-    union.update(sketch2);
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
+    union.union(sketch1);
+    union.union(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 3.0);
-    double[][] values = result.getValues();
+    final double[][] values = result.getValues();
     Assert.assertEquals(values[0][0], 3.0);
     Assert.assertEquals(values[1][0], 3.0);
     Assert.assertEquals(values[2][0], 3.0);
@@ -342,20 +342,20 @@ public class ArrayOfDoublesUnionTest {
   @Test
   public void directEstimationMode() {
     int key = 0;
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch1.update(key++, new double[] {1.0});
     }
 
     key -= 4096; // overlap half of the entries
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       sketch2.update(key++, new double[] {1.0});
     }
 
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
-    union.update(sketch1);
-    union.update(sketch2);
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
+    union.union(sketch1);
+    union.union(sketch2);
     ArrayOfDoublesCompactSketch result = union.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertEquals(result.getEstimate(), 12288.0, 12288 * 0.01);
 
@@ -371,29 +371,29 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void heapToDirect() {
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion heapUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion();
-    heapUnion.update(sketch1);
+    final ArrayOfDoublesUnion heapUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    heapUnion.union(sketch1);
 
-    ArrayOfDoublesUnion directUnion = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(heapUnion.toByteArray()));
-    directUnion.update(sketch2);
+    final ArrayOfDoublesUnion directUnion = ArrayOfDoublesUnion.wrap(WritableMemory.wrap(heapUnion.toByteArray()));
+    directUnion.union(sketch2);
 
-    ArrayOfDoublesCompactSketch result = directUnion.getResult(WritableMemory.wrap(new byte[1000000]));
+    final ArrayOfDoublesCompactSketch result = directUnion.getResult(WritableMemory.wrap(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 3.0);
-    double[][] values = result.getValues();
+    final double[][] values = result.getValues();
     Assert.assertEquals(values.length, 3);
     Assert.assertEquals(values[0][0], 3.0);
     Assert.assertEquals(values[1][0], 3.0);
@@ -402,29 +402,29 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directToHeap() {
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(1, new double[] {1.0});
     sketch1.update(2, new double[] {1.0});
 
-    ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch2.update(2, new double[] {1.0});
     sketch2.update(2, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
     sketch2.update(3, new double[] {1.0});
 
-    ArrayOfDoublesUnion directUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
-    directUnion.update(sketch1);
+    final ArrayOfDoublesUnion directUnion = new ArrayOfDoublesSetOperationBuilder().buildUnion(WritableMemory.wrap(new byte[1000000]));
+    directUnion.union(sketch1);
 
-    ArrayOfDoublesUnion heapUnion = ArrayOfDoublesUnion.heapify(Memory.wrap(directUnion.toByteArray()));
-    heapUnion.update(sketch2);
+    final ArrayOfDoublesUnion heapUnion = ArrayOfDoublesUnion.heapify(Memory.wrap(directUnion.toByteArray()));
+    heapUnion.union(sketch2);
 
-    ArrayOfDoublesCompactSketch result = heapUnion.getResult();
+    final ArrayOfDoublesCompactSketch result = heapUnion.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 3.0);
-    double[][] values = result.getValues();
+    final double[][] values = result.getValues();
     Assert.assertEquals(values.length, 3);
     Assert.assertEquals(values[0][0], 3.0);
     Assert.assertEquals(values[1][0], 3.0);
@@ -433,23 +433,23 @@ public class ArrayOfDoublesUnionTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleSeeds() {
-    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildUnion();
-    union.update(sketch);
+    final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setSeed(1).build();
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setSeed(2).buildUnion();
+    union.union(sketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleInputSketchFewerValues() {
-    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setNumberOfValues(2).buildUnion();
-    union.update(sketch);
+    final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().setNumberOfValues(2).buildUnion();
+    union.union(sketch);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void incompatibleInputSketchMoreValues() {
-    ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
-    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
-    union.update(sketch);
+    final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
+    final ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
+    union.union(sketch);
   }
 
   @Test
@@ -465,9 +465,9 @@ public class ArrayOfDoublesUnionTest {
     sketch.trim(); // pretend this is a result from a union
 
     // as Druid wraps memory
-    ArrayOfDoublesSketches.wrapUnion(mem).update(sketch.compact(WritableMemory.wrap(new byte[1000000])));
+    ArrayOfDoublesSketches.wrapUnion(mem).union(sketch.compact(WritableMemory.wrap(new byte[1000000])));
 
-    ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
+    final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
     Assert.assertEquals(result.getEstimate(), sketch.getEstimate());
     Assert.assertEquals(result.isEstimationMode(), sketch.isEstimationMode());
   }
@@ -485,7 +485,7 @@ public class ArrayOfDoublesUnionTest {
       sketch1.update(key++, new double[] {1.0});
     }
     // as Druid wraps memory
-    ArrayOfDoublesSketches.wrapUnion(mem).update(sketch1.compact(WritableMemory.wrap(new byte[1000000])));
+    ArrayOfDoublesSketches.wrapUnion(mem).union(sketch1.compact(WritableMemory.wrap(new byte[1000000])));
 
     final int n2 = 1000000; // estimation mode
     final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
@@ -493,7 +493,7 @@ public class ArrayOfDoublesUnionTest {
       sketch2.update(key++, new double[] {1.0});
     }
     // as Druid wraps memory
-    ArrayOfDoublesSketches.wrapUnion(mem).update(sketch2.compact(WritableMemory.wrap(new byte[1000000])));
+    ArrayOfDoublesSketches.wrapUnion(mem).union(sketch2.compact(WritableMemory.wrap(new byte[1000000])));
 
     // build one sketch that must be the same as union
     key = 0; // reset to have the same keys
@@ -504,7 +504,7 @@ public class ArrayOfDoublesUnionTest {
     }
     expected.trim(); // union result is trimmed, so we need to trim this sketch for valid comparison
 
-    ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
+    final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
     Assert.assertEquals(result.getEstimate(), expected.getEstimate());
     Assert.assertEquals(result.isEstimationMode(), expected.isEstimationMode());
     Assert.assertEquals(result.getUpperBound(1), expected.getUpperBound(1));

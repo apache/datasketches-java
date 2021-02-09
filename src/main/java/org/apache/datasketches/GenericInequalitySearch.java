@@ -95,11 +95,6 @@ public class GenericInequalitySearch {
   }
 
   /**
-   * Constructs this class
-   */
-  public GenericInequalitySearch() { }
-
-  /**
    * Binary Search for the index of the generic value in the given search range that satisfies
    * the given inequality.
    * If -1 is returned there are no values in the search range that satisfy the inequality.
