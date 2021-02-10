@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.LS;
 
 import org.apache.datasketches.BinomialBoundsN;
@@ -144,6 +145,13 @@ public abstract class Sketch<S extends Summary> {
    * @return number of retained entries
    */
   public abstract int getRetainedEntries();
+
+  /**
+   * Gets the number of hash values less than the given theta expressed as a long.
+   * @param thetaLong the given theta as a long between zero and <i>Long.MAX_VALUE</i>.
+   * @return the number of hash values less than the given thetaLong.
+   */
+  public abstract int getCountLessThanThetaLong(final long thetaLong);
 
   /**
    * Gets the value of theta as a double between zero and one

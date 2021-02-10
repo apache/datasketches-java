@@ -27,6 +27,8 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
+import static org.apache.datasketches.HashOperations.count;
+
 /**
  * CompactSketches are never created directly. They are created as a result of
  * the compact() method of an UpdatableSketch or as a result of the getResult()
@@ -137,6 +139,11 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   @Override
   public int getRetainedEntries() {
     return hashArr_ == null ? 0 : hashArr_.length;
+  }
+
+  @Override
+  public int getCountLessThanThetaLong(long thetaLong) {
+    return count(hashArr_, thetaLong);
   }
 
   // Layout of first 8 bytes:

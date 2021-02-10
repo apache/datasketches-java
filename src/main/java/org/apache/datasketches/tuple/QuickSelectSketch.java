@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
@@ -208,6 +209,11 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @Override
   public int getRetainedEntries() {
     return count_;
+  }
+
+  @Override
+  public int getCountLessThanThetaLong(long thetaLong) {
+    return count(hashTable_, thetaLong);
   }
 
   S[] getSummaryTable() {
