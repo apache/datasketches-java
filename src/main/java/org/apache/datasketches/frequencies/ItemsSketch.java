@@ -306,6 +306,15 @@ public class ItemsSketch<T> {
   }
 
   /**
+  * Returns which are the active keys currently in the sketch.
+  *
+  */
+  public T[] getKeyswhichAreActive(){
+    return hashMap.getActiveKeys();
+  }
+
+  
+  /**
    * Returns epsilon used to compute <i>a priori</i> error.
    * This is just the value <i>3.5 / maxMapSize</i>.
    * @param maxMapSize the planned map size to be used when constructing this sketch.
