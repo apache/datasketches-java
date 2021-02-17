@@ -71,7 +71,7 @@ class ReversePurgeItemHashMap<T> {
    * @return true if the cell in the array contains an active key
    */
   boolean isActive(final int probe) {
-    return (states[probe] > 0);
+    return states[probe] > 0;
   }
 
   /**
@@ -84,7 +84,7 @@ class ReversePurgeItemHashMap<T> {
     if (key == null) { return 0; }
     final int probe = hashProbe(key);
     if (states[probe] > 0) {
-      assert (keys[probe]).equals(key);
+      assert keys[probe].equals(key);
       return values[probe];
     }
     return 0;
@@ -92,7 +92,7 @@ class ReversePurgeItemHashMap<T> {
 
   /**
    * Increments the value mapped to the key if the key is present in the map. Otherwise,
-   * the key is inserted with the putAmount.
+   * the key is inserted with the adjustAmount.
    *
    * @param key the key of the value to increment
    * @param adjustAmount the amount by which to increment the value
@@ -102,15 +102,15 @@ class ReversePurgeItemHashMap<T> {
     int probe = (int) hash(key.hashCode()) & arrayMask;
     int drift = 1;
     while (states[probe] != 0 && !keys[probe].equals(key)) {
-      probe = (probe + 1) & arrayMask;
+      probe = probe + 1 & arrayMask;
       drift++;
       //only used for theoretical analysis
-      assert (drift < DRIFT_LIMIT) : "drift: " + drift + " >= DRIFT_LIMIT";
+      assert drift < DRIFT_LIMIT : "drift: " + drift + " >= DRIFT_LIMIT";
     }
 
     if (states[probe] == 0) {
       // adding the key to the table the value
-      assert (numActive <= loadThreshold)
+      assert numActive <= loadThreshold
         : "numActive: " + numActive + " > loadThreshold: " + loadThreshold;
       keys[probe] = key;
       values[probe] = adjustAmount;
@@ -118,7 +118,7 @@ class ReversePurgeItemHashMap<T> {
       numActive++;
     } else {
       // adjusting the value of an existing key
-      assert (keys[probe].equals(key));
+      assert keys[probe].equals(key);
       values[probe] += adjustAmount;
     }
   }
@@ -178,7 +178,7 @@ class ReversePurgeItemHashMap<T> {
         j++;
       }
     }
-    assert (j == numActive) : "j: " + j + " != numActive: " + numActive;
+    assert j == numActive : "j: " + j + " != numActive: " + numActive;
     return returnedKeys;
   }
 
@@ -195,7 +195,7 @@ class ReversePurgeItemHashMap<T> {
         j++;
       }
     }
-    assert (j == numActive);
+    assert j == numActive;
     return returnedValues;
   }
 
@@ -306,7 +306,7 @@ class ReversePurgeItemHashMap<T> {
     states[deleteProbe] = 0; //mark as empty
     int drift = 1;
     final int arrayMask = keys.length - 1;
-    int probe = (deleteProbe + drift) & arrayMask; //map length must be a power of 2
+    int probe = deleteProbe + drift & arrayMask; //map length must be a power of 2
     // advance until you find a free location replacing locations as needed
     while (states[probe] != 0) {
       if (states[probe] > drift) {
@@ -319,10 +319,10 @@ class ReversePurgeItemHashMap<T> {
         drift = 0;
         deleteProbe = probe;
       }
-      probe = (probe + 1) & arrayMask;
+      probe = probe + 1 & arrayMask;
       drift++;
       //only used for theoretical analysis
-      assert (drift < DRIFT_LIMIT) : "drift: " + drift + " >= DRIFT_LIMIT";
+      assert drift < DRIFT_LIMIT : "drift: " + drift + " >= DRIFT_LIMIT";
     }
   }
 
@@ -330,13 +330,13 @@ class ReversePurgeItemHashMap<T> {
     final int arrayMask = keys.length - 1;
     int probe = (int) hash(key.hashCode()) & arrayMask;
     while (states[probe] > 0 && !keys[probe].equals(key)) {
-      probe = (probe + 1) & arrayMask;
+      probe = probe + 1 & arrayMask;
     }
     return probe;
   }
 
   Iterator<T> iterator() {
-    return new Iterator<T>(keys, values, states, numActive);
+    return new Iterator<>(keys, values, states, numActive);
   }
 
   // This iterator uses strides based on golden ratio to avoid clustering during merge
@@ -364,13 +364,13 @@ class ReversePurgeItemHashMap<T> {
     }
 
     boolean next() {
-      i_ = (i_ + stride_) & mask_;
+      i_ = i_ + stride_ & mask_;
       while (count_ < numActive_) {
         if (states_[i_] > 0) {
           count_++;
           return true;
         }
-        i_ = (i_ + stride_) & mask_;
+        i_ = i_ + stride_ & mask_;
       }
       return false;
     }
