@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.LS;
 
 import org.apache.datasketches.BinomialBoundsN;
@@ -138,7 +137,7 @@ public abstract class Sketch<S extends Summary> {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return ((thetaLong_ < Long.MAX_VALUE) && !isEmpty());
+    return thetaLong_ < Long.MAX_VALUE && !isEmpty();
   }
 
   /**

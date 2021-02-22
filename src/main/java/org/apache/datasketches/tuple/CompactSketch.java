@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.HashOperations.count;
+
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
@@ -26,8 +28,6 @@ import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-
-import static org.apache.datasketches.HashOperations.count;
 
 /**
  * CompactSketches are never created directly. They are created as a result of
@@ -81,19 +81,19 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     SerializerDeserializer
       .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
     final byte flags = mem.getByte(offset++);
-    final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
+    final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    final boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
+    empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+    final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
     if (isThetaIncluded) {
       thetaLong_ = mem.getLong(offset);
       offset += Long.BYTES;
     } else {
       thetaLong_ = Long.MAX_VALUE;
     }
-    final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
+    final boolean hasEntries = (flags & 1 << Flags.HAS_ENTRIES.ordinal()) > 0;
     if (hasEntries) {
       int classNameLength = 0;
       if (version == serialVersionWithSummaryClassNameUID) {
@@ -142,7 +142,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   @Override
-  public int getCountLessThanThetaLong(long thetaLong) {
+  public int getCountLessThanThetaLong(final long thetaLong) {
     return count(hashArr_, thetaLong);
   }
 
@@ -178,7 +178,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     if (count > 0) {
       sizeBytes +=
         + Integer.BYTES // count
-        + (Long.BYTES * count) + summariesBytesLength;
+        + Long.BYTES * count + summariesBytesLength;
     }
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;

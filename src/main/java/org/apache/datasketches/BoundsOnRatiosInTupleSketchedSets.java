@@ -19,10 +19,10 @@
 
 package org.apache.datasketches;
 
+import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
+
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.Summary;
-
-import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 
 /**
  * This class is used to compute the bounds on the estimate of the ratio <i>B / A</i>, where:
@@ -54,15 +54,18 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    * Gets the approximate lower bound for B over A based on a 95% confidence interval
    * @param sketchA the Tuple sketch A with summary type <i>S</i>
    * @param sketchB the Tuple sketch B with summary type <i>S</i>
+   * @param <S> Summary
    * @return the approximate lower bound for B over A
    */
-  public static <S extends Summary>double getLowerBoundForBoverA(final Sketch<S> sketchA, final Sketch<S> sketchB) {
+  public static <S extends Summary> double getLowerBoundForBoverA(
+      final Sketch<S> sketchA,
+      final Sketch<S> sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries();
-    final int countA = (thetaLongB == thetaLongA)
+    final int countA = thetaLongB == thetaLongA
         ? sketchA.getRetainedEntries()
         : sketchA.getCountLessThanThetaLong(thetaLongB);
 
@@ -75,15 +78,18 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    * Gets the approximate lower bound for B over A based on a 95% confidence interval
    * @param sketchA the Tuple sketch A with summary type <i>S</i>
    * @param sketchB the Theta sketch B
+   * @param <S> Summary
    * @return the approximate lower bound for B over A
    */
-  public static <S extends Summary>double getLowerBoundForBoverA(final Sketch<S> sketchA, final org.apache.datasketches.theta.Sketch sketchB) {
+  public static <S extends Summary> double getLowerBoundForBoverA(
+      final Sketch<S> sketchA,
+      final org.apache.datasketches.theta.Sketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries();
-    final int countA = (thetaLongB == thetaLongA)
+    final int countA = thetaLongB == thetaLongA
             ? sketchA.getRetainedEntries()
             : sketchA.getCountLessThanThetaLong(thetaLongB);
 
@@ -96,15 +102,18 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    * Gets the approximate upper bound for B over A based on a 95% confidence interval
    * @param sketchA the Tuple sketch A with summary type <i>S</i>
    * @param sketchB the Tuple sketch B with summary type <i>S</i>
+   * @param <S> Summary
    * @return the approximate upper bound for B over A
    */
-  public static <S extends Summary>double getUpperBoundForBoverA(final Sketch<S> sketchA, final Sketch<S> sketchB) {
+  public static <S extends Summary> double getUpperBoundForBoverA(
+      final Sketch<S> sketchA,
+      final Sketch<S> sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries();
-    final int countA = (thetaLongB == thetaLongA)
+    final int countA = thetaLongB == thetaLongA
             ? sketchA.getRetainedEntries()
             : sketchA.getCountLessThanThetaLong(thetaLongB);
 
@@ -117,15 +126,18 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    * Gets the approximate upper bound for B over A based on a 95% confidence interval
    * @param sketchA the Tuple sketch A with summary type <i>S</i>
    * @param sketchB the Theta sketch B
+   * @param <S> Summary
    * @return the approximate upper bound for B over A
    */
-  public static <S extends Summary>double getUpperBoundForBoverA(final Sketch<S> sketchA, final org.apache.datasketches.theta.Sketch sketchB) {
+  public static <S extends Summary> double getUpperBoundForBoverA(
+      final Sketch<S> sketchA,
+      final org.apache.datasketches.theta.Sketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries(true);
-    final int countA = (thetaLongB == thetaLongA)
+    final int countA = thetaLongB == thetaLongA
         ? sketchA.getRetainedEntries()
         : sketchA.getCountLessThanThetaLong(thetaLongB);
 
@@ -138,15 +150,18 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    * Gets the estimate for B over A
    * @param sketchA the Tuple sketch A with summary type <i>S</i>
    * @param sketchB the Tuple sketch B with summary type <i>S</i>
+   * @param <S> Summary
    * @return the estimate for B over A
    */
-  public static <S extends Summary>double getEstimateOfBoverA(final Sketch<S> sketchA, final Sketch<S> sketchB) {
+  public static <S extends Summary> double getEstimateOfBoverA(
+      final Sketch<S> sketchA,
+      final Sketch<S> sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries();
-    final int countA = (thetaLongB == thetaLongA)
+    final int countA = thetaLongB == thetaLongA
         ? sketchA.getRetainedEntries()
         : sketchA.getCountLessThanThetaLong(thetaLongB);
 
@@ -159,15 +174,18 @@ public final class BoundsOnRatiosInTupleSketchedSets {
    * Gets the estimate for B over A
    * @param sketchA the Tuple sketch A with summary type <i>S</i>
    * @param sketchB the Theta sketch B
+   * @param <S> Summary
    * @return the estimate for B over A
    */
-  public static <S extends Summary>double getEstimateOfBoverA(final Sketch<S> sketchA, final org.apache.datasketches.theta.Sketch sketchB) {
+  public static <S extends Summary> double getEstimateOfBoverA(
+      final Sketch<S> sketchA,
+      final org.apache.datasketches.theta.Sketch sketchB) {
     final long thetaLongA = sketchA.getThetaLong();
     final long thetaLongB = sketchB.getThetaLong();
     checkThetas(thetaLongA, thetaLongB);
 
     final int countB = sketchB.getRetainedEntries(true);
-    final int countA = (thetaLongB == thetaLongA)
+    final int countA = thetaLongB == thetaLongA
             ? sketchA.getRetainedEntries()
             : sketchA.getCountLessThanThetaLong(thetaLongB);
 
