@@ -137,13 +137,20 @@ public abstract class Sketch<S extends Summary> {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return ((thetaLong_ < Long.MAX_VALUE) && !isEmpty());
+    return thetaLong_ < Long.MAX_VALUE && !isEmpty();
   }
 
   /**
    * @return number of retained entries
    */
   public abstract int getRetainedEntries();
+
+  /**
+   * Gets the number of hash values less than the given theta expressed as a long.
+   * @param thetaLong the given theta as a long between zero and <i>Long.MAX_VALUE</i>.
+   * @return the number of hash values less than the given thetaLong.
+   */
+  public abstract int getCountLessThanThetaLong(final long thetaLong);
 
   /**
    * Gets the value of theta as a double between zero and one
