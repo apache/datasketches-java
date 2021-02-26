@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.apache.datasketches.HashOperations.count;
+
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
@@ -79,19 +81,19 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     SerializerDeserializer
       .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
     final byte flags = mem.getByte(offset++);
-    final boolean isBigEndian = (flags & (1 << Flags.IS_BIG_ENDIAN.ordinal())) > 0;
+    final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Byte order mismatch");
     }
-    empty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    final boolean isThetaIncluded = (flags & (1 << Flags.IS_THETA_INCLUDED.ordinal())) > 0;
+    empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+    final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
     if (isThetaIncluded) {
       thetaLong_ = mem.getLong(offset);
       offset += Long.BYTES;
     } else {
       thetaLong_ = Long.MAX_VALUE;
     }
-    final boolean hasEntries = (flags & (1 << Flags.HAS_ENTRIES.ordinal())) > 0;
+    final boolean hasEntries = (flags & 1 << Flags.HAS_ENTRIES.ordinal()) > 0;
     if (hasEntries) {
       int classNameLength = 0;
       if (version == serialVersionWithSummaryClassNameUID) {
@@ -139,6 +141,11 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     return hashArr_ == null ? 0 : hashArr_.length;
   }
 
+  @Override
+  public int getCountLessThanThetaLong(final long thetaLong) {
+    return count(hashArr_, thetaLong);
+  }
+
   // Layout of first 8 bytes:
   // Long || Start Byte Adr:
   // Adr:
@@ -171,7 +178,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     if (count > 0) {
       sizeBytes +=
         + Integer.BYTES // count
-        + (Long.BYTES * count) + summariesBytesLength;
+        + Long.BYTES * count + summariesBytesLength;
     }
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
