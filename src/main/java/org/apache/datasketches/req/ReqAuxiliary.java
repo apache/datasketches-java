@@ -146,16 +146,11 @@ class ReqAuxiliary {
   float getQuantile(final double normRank, final boolean ltEq) {
     final int len = weights.length;
     final long rank = (int)(normRank * N);
-    final int index;
-    final InequalitySearch crit;
-    if (ltEq) { //less-than or equals
-      crit = InequalitySearch.GE;
-      index = InequalitySearch.find(weights, 0, len - 1, rank, crit);
-      if (index == -1) { return items[len - 1]; }
-    } else { //less-than
-      crit = InequalitySearch.GT;
-      index = InequalitySearch.find(weights, 0, len - 1, rank, crit);
-      if (index == -1) { return items[len - 1]; }
+    //Note that when ltEq=false, GT matches KLL & Quantiles behavior.
+    final InequalitySearch crit = ltEq ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(weights, 0, len - 1, rank, crit);
+    if (index == -1) {
+      return items[len - 1]; //resolves high end (GE & GT) -1 only!
     }
     return items[index];
   }

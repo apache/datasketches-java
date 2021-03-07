@@ -39,7 +39,7 @@ under the License.
   <property name="fileExtensions" value="java"/>
 
   <module name="BeforeExecutionExclusionFileFilter">
-    <property name="fileNamePattern" value="src/test/java/.+$"/> 
+    <property name="fileNamePattern" value="src/test/java/.+$"/>
   </module>
 
   <module name="FileTabCharacter">

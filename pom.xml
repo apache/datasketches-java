@@ -189,8 +189,8 @@ under the License.
           <artifactId>versions-maven-plugin</artifactId>
           <version>${versions-maven-plugin.version}</version>
         </plugin>
-        <plugin>
 
+        <plugin>
           <!-- We want to deploy the artifacts to a staging location for perusal -->
           <!-- Apache Parent pom: apache-release profile -->
           <groupId>org.apache.maven.plugins</groupId>
@@ -362,7 +362,7 @@ under the License.
               <goals>
                 <goal>report</goal>
               </goals>
-            </execution>  
+            </execution>
           </executions>
         </plugin>
 

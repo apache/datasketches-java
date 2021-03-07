@@ -4,6 +4,7 @@ on:
     pull_request:
     push:
         branches: [ master ]
+    workflow_dispatch:
 
 env:
     MAVEN_OPTS: -Xmx4g -Xms1g
