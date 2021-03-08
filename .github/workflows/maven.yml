@@ -43,11 +43,6 @@ jobs:
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
               --toolchains .github/workflows/.toolchains.xml
-
-        - name: Update Configs
-          run: >
-              curl https://dist.apache.org/repos/dist/dev/datasketches/configs/SketchesCheckstyle.xml 
-              --silent --output ./tools/SketchesCheckstyle.xml 
         
         - name: Test & Report
           if: ${{ success() }}
