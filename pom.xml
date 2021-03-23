@@ -196,10 +196,6 @@ under the License.
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>${maven-deploy-plugin.version}</version>
-          <configuration>
-            <updateReleaseInfo>true</updateReleaseInfo>
-            <!-- see maven-install-plugin -->
-          </configuration>
         </plugin>
 
         <plugin>
@@ -571,7 +567,6 @@ under the License.
                 </execution>
               </executions>
               <configuration>
-                <injectAllReactorProjects>true</injectAllReactorProjects>
                 <archive>
                   <manifest>
                     <addDefaultEntries>false</addDefaultEntries>
