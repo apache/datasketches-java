@@ -319,7 +319,7 @@ public final class AnotB<S extends Summary> {
 
   //restricted
 
-  private static class DataArrays<S extends Summary> {
+  static class DataArrays<S extends Summary> {
     long[] hashArr;
     S[] summaryArr;
   }
