@@ -304,7 +304,7 @@ public class Intersection<S extends Summary> {
     firstCall_ = true;
   }
 
-  private static int getLgTableSize(final int count) {
+  static int getLgTableSize(final int count) {
     final int tableSize = max(ceilingPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
   }

@@ -48,11 +48,11 @@ import java.util.NoSuchElementException;
  */
 public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
 
-  private final VarOptItemsSketch<T> sketch_;
-  private VarOptItemsSketch<T>.Result sampleLists;
-  private final long n_;
-  private final int h_;
-  private final double rWeight_;
+  final VarOptItemsSketch<T> sketch_;
+  VarOptItemsSketch<T>.Result sampleLists;
+  final long n_;
+  final int h_;
+  final double rWeight_;
 
   /**
    * A convenience class to allow easy iterator access to a VarOpt sample.
@@ -61,12 +61,12 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
     private final int idx_;
     private double adjustedWeight_;
 
-    private WeightedSample(final int i) {
+    WeightedSample(final int i) {
       idx_ = i;
       adjustedWeight_ = Double.NaN;
     }
 
-    private WeightedSample(final int i, final double adjustedWeight) {
+    WeightedSample(final int i, final double adjustedWeight) {
       idx_ = i;
       adjustedWeight_ = adjustedWeight;
     }
