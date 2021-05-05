@@ -26,6 +26,8 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.WritableMemory;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Lee Rhodes
  *
@@ -40,6 +42,10 @@ public class BaseHllSketchTest {
     sk.update(byteArr);
     sk.update(new byte[] {});
     sk.update(new byte[] {0, 1, 2, 3});
+    ByteBuffer byteBuf = null;
+    sk.update(byteBuf);
+    sk.update(ByteBuffer.wrap(new byte[] {}));
+    sk.update(ByteBuffer.wrap(new byte[] {0, 1, 2, 3}));
     char[] charArr = null;
     sk.update(charArr);
     sk.update(new char[] {});
@@ -66,6 +72,10 @@ public class BaseHllSketchTest {
     u.update(byteArr1);
     u.update(new byte[] {});
     u.update(new byte[] {0, 1, 2, 3});
+    ByteBuffer byteBuf1 = null;
+    u.update(byteBuf1);
+    u.update(ByteBuffer.wrap(new byte[] {}));
+    u.update(ByteBuffer.wrap(new byte[] {0, 1, 2, 3}));
     char[] charArr1 = null;
     u.update(charArr1);
     u.update(new char[] {});
