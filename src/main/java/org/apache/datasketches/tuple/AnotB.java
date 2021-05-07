@@ -324,7 +324,6 @@ public final class AnotB<S extends Summary> {
     S[] summaryArr;
   }
 
-  @SuppressWarnings("synthetic-access")
   private static <S extends Summary> DataArrays<S> getDataArraysA(final Sketch<S> skA) {
     final CompactSketch<S> cskA;
     final DataArrays<S> da = new DataArrays<>();
@@ -340,7 +339,7 @@ public final class AnotB<S extends Summary> {
     return da;
   }
 
-  @SuppressWarnings({ "unchecked", "synthetic-access" })
+  @SuppressWarnings({ "unchecked"})
   private static <S extends Summary> DataArrays<S> getResultArraysTuple(
       final long minThetaLong,
       final int countA,
@@ -386,7 +385,7 @@ public final class AnotB<S extends Summary> {
   }
 
 
-  @SuppressWarnings({ "unchecked", "synthetic-access" })
+  @SuppressWarnings({ "unchecked"})
   private static <S extends Summary> DataArrays<S> getResultArraysTheta(
       final long minThetaLong,
       final int countA,

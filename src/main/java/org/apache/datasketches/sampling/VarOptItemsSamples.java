@@ -46,7 +46,6 @@ import java.util.NoSuchElementException;
  *
  * @author Jon Malkin
  */
-@SuppressWarnings("synthetic-access")
 public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.WeightedSample> {
 
   final VarOptItemsSketch<T> sketch_;
