@@ -20,6 +20,8 @@
 package org.apache.datasketches.hash;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 /**
@@ -177,6 +179,57 @@ public final class MurmurHash3 implements Serializable {
     return hashState.finalMix128(k1, k2, chars << 1); //convert to bytes
   }
 
+  //--Hash of ByteBuffer------------------------------------------------
+  /**
+   * Returns a long array of size 2, which is a 128-bit hash of the input.
+   *
+   * @param buf The input byte buffer. Must be non-null and non-empty.
+   * @param seed A long valued seed.
+   * @return the hash.
+   */
+  public static long[] hash(final ByteBuffer buf, final long seed) {
+    final HashState hashState = new HashState(seed, seed);
+    final ByteBuffer littleEndianBuf;
+
+    if (buf.order() == ByteOrder.LITTLE_ENDIAN) {
+      littleEndianBuf = buf;
+    } else {
+      littleEndianBuf = buf.duplicate().order(ByteOrder.LITTLE_ENDIAN);
+    }
+
+    final int bytes = littleEndianBuf.remaining(); //in bytes
+    final int offset = littleEndianBuf.position();
+
+    // Number of full 128-bit blocks of 16 bytes.
+    // Possible exclusion of a remainder of up to 15 bytes.
+    final int nblocks = bytes >>> 4; //bytes / 16
+
+    // Process the 128-bit blocks (the body) into the hash
+    for (int i = 0; i < nblocks; i++ ) { //16 bytes per block
+      final long k1 = getLong(littleEndianBuf, offset + (i << 4), 8); //0, 16, 32, ...
+      final long k2 = getLong(littleEndianBuf, offset + (i << 4) + 8, 8); //8, 24, 40, ...
+      hashState.blockMix128(k1, k2);
+    }
+
+    // Get the tail index, remainder length
+    final int tail = nblocks << 4; //16 bytes per block
+    final int rem = bytes - tail; // remainder bytes: 0,1,...,15
+
+    // Get the tail
+    final long k1;
+    final long k2;
+    if (rem > 8) { //k1 -> whole; k2 -> partial
+      k1 = getLong(littleEndianBuf, offset + tail, 8);
+      k2 = getLong(littleEndianBuf, offset + tail + 8, rem - 8);
+    }
+    else { //k1 -> whole, partial or 0; k2 == 0
+      k1 = (rem == 0) ? 0 : getLong(littleEndianBuf, offset + tail, rem);
+      k2 = 0;
+    }
+    // Mix the tail into the hash and return
+    return hashState.finalMix128(k1, k2, bytes);
+  }
+
   //--Hash of byte[]----------------------------------------------------
   /**
    * Returns a long array of size 2, which is a 128-bit hash of the input.
@@ -306,6 +359,43 @@ public final class MurmurHash3 implements Serializable {
       k2 *= C1;
       return k2;
     }
+  }
+
+  //--Helper methods----------------------------------------------------
+  /**
+   * Gets a long from the given byte buffer starting at the given position index and continuing for
+   * remainder (rem) bytes. The buffer must be in little-endian order. The bytes are extracted in
+   * little-endian order. The buffer endianness and limit are not checked.
+   *
+   * @param buf The given input byte buffer.
+   * @param index Zero-based index from the start of the byte array.
+   * @param rem Remainder bytes. An integer in the range [1,8].
+   * @return long
+   */
+  private static long getLong(final ByteBuffer buf, final int index, final int rem) {
+    long out = 0L;
+
+    switch (rem) {
+      case 8:
+        out = buf.getLong(index);
+        break;
+      case 7:
+        out ^= (buf.get(index + 6) & 0xFFL) << 48;
+      case 6:
+        out ^= (buf.get(index + 5) & 0xFFL) << 40;
+      case 5:
+        out ^= (buf.get(index + 4) & 0xFFL) << 32;
+      case 4:
+        out ^= (buf.get(index + 3) & 0xFFL) << 24;
+      case 3:
+        out ^= (buf.get(index + 2) & 0xFFL) << 16;
+      case 2:
+        out ^= (buf.get(index + 1) & 0xFFL) << 8;
+      case 1:
+        out ^= buf.get(index) & 0xFFL;
+    }
+
+    return out;
   }
 
   //--Helper methods----------------------------------------------------
