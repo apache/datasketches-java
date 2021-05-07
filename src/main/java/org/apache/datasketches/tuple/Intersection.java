@@ -317,6 +317,7 @@ public class Intersection<S extends Summary> {
 
     HashTables() { }
 
+    @SuppressWarnings("synthetic-access")
     void fromSketch(final Sketch<S> sketch) {
       count_ = sketch.getRetainedEntries();
       lgTableSize_ = getLgTableSize(count_);
@@ -335,6 +336,7 @@ public class Intersection<S extends Summary> {
       }
     }
 
+    @SuppressWarnings("synthetic-access")
     void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
       count_ = sketch.getRetainedEntries(true);
       lgTableSize_ = getLgTableSize(count_);
@@ -354,6 +356,7 @@ public class Intersection<S extends Summary> {
     }
 
 
+    @SuppressWarnings("synthetic-access")
     void fromArrays(final long[] hashArr, final S[] summaryArr, final int count) {
       count_ = count;
       lgTableSize_ = getLgTableSize(count);
