@@ -73,52 +73,9 @@ final class Util {
    * @param sketch2 Input DoubleSketch 2
    * @return the raw delta area between two quantile sketches
    */
-  public static double computeKSDelta(final DoublesSketch sketch1,
-      final DoublesSketch sketch2) {
-    final DoublesAuxiliary p = new DoublesAuxiliary(sketch1);
-    final DoublesAuxiliary q = new DoublesAuxiliary(sketch2);
-
-    final double[] pSamplesArr = p.auxSamplesArr_;
-    final double[] qSamplesArr = q.auxSamplesArr_;
-    final long[] pCumWtsArr = p.auxCumWtsArr_;
-    final long[] qCumWtsArr = q.auxCumWtsArr_;
-    final int pSamplesArrLen = pSamplesArr.length;
-    final int qSamplesArrLen = qSamplesArr.length;
-
-    final double n1 = sketch1.getN();
-    final double n2 = sketch2.getN();
-
-    //Compute D from the two distributions
-    double deltaArea = 0.0;
-    int i = getNextIndex(pSamplesArr, -1);
-    int j = getNextIndex(qSamplesArr, -1);
-
-    // We're done if either array reaches the end
-    while ((i < pSamplesArrLen) && (j < qSamplesArrLen)) {
-      final double pSample = pSamplesArr[i];
-      final double qSample = qSamplesArr[j];
-      final long pWt = pCumWtsArr[i];
-      final long qWt = qCumWtsArr[j];
-      final double pNormWt = pWt / n1;
-      final double qNormWt = qWt / n2;
-      final double pMinusQ = Math.abs(pNormWt - qNormWt);
-      final double curD = deltaArea;
-      deltaArea = Math.max(curD, pMinusQ);
-
-      //Increment i or j or both
-      if (pSample == qSample) {
-        i = getNextIndex(pSamplesArr, i);
-        j = getNextIndex(qSamplesArr, j);
-      } else if (pSample < qSample) {
-        i = getNextIndex(pSamplesArr, i);
-      } else {
-        j = getNextIndex(qSamplesArr, j);
-      }
-    }
-
-    //This is D, the delta difference in area of the two distributions
-    deltaArea = Math.max(deltaArea, Math.abs((pCumWtsArr[i] / n1) - (qCumWtsArr[j] / n2)));
-    return deltaArea;
+  @Deprecated
+  public static double computeKSDelta(final DoublesSketch sketch1, final DoublesSketch sketch2) {
+    return KolmogorovSmirnov.computeKSDelta(sketch1, sketch2);
   }
 
   /**
@@ -132,19 +89,11 @@ final class Util {
    * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
    * @return the adjusted threshold to be compared with the raw delta area.
    */
+  @Deprecated
   public static double computeKSThreshold(final DoublesSketch sketch1,
                                            final DoublesSketch sketch2,
                                            final double tgtPvalue) {
-    final double r1 = sketch1.getRetainedItems();
-    final double r2 = sketch2.getRetainedItems();
-    final double alpha = tgtPvalue;
-    final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
-    final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));
-    final double eps1 = Util.getNormalizedRankError(sketch1.getK(), false);
-    final double eps2 = Util.getNormalizedRankError(sketch2.getK(), false);
-
-    final double adjDeltaAreaThreshold = deltaAreaThreshold + eps1 + eps2;
-    return adjDeltaAreaThreshold;
+	  return KolmogorovSmirnov.computeKSThreshold(sketch1, sketch2, tgtPvalue);
   }
 
   /**
@@ -157,32 +106,15 @@ final class Util {
    * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
    * reflect the same underlying distribution) using the provided tgtPValue.
    */
+  @Deprecated
   public static boolean kolmogorovSmirnovTest(final DoublesSketch sketch1,
       final DoublesSketch sketch2, final double tgtPvalue) {
-    final double delta = computeKSDelta(sketch1, sketch2);
-    final double thresh = computeKSThreshold(sketch1, sketch2, tgtPvalue);
-    return delta > thresh;
-  }
-
-  private static final int getNextIndex(final double[] samplesArr, final int stIdx) {
-    int idx = stIdx + 1;
-    final int samplesArrLen = samplesArr.length;
-
-    if (idx >= samplesArrLen) { return samplesArrLen; }
-
-    // if we have a sequence of equal values, use the last one of the sequence
-    final double val = samplesArr[idx];
-    int nxtIdx = idx + 1;
-    while ((nxtIdx < samplesArrLen) && (samplesArr[nxtIdx] == val)) {
-      idx = nxtIdx;
-      ++nxtIdx;
-    }
-    return idx;
+	  return KolmogorovSmirnov.kolmogorovSmirnovTest(sketch1, sketch2, tgtPvalue);
   }
 
   /**
    * Gets the normalized rank error given k and pmf for the Quantiles DoubleSketch and ItemsSketch.
-   * @param k the configuation parameter
+   * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
