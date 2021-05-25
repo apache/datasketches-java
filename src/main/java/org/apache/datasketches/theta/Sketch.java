@@ -535,6 +535,7 @@ public abstract class Sketch {
       sb.append("   Theta (long) hex        : ").append(thetaHex).append(LS);
       sb.append("   EstMode?                : ").append(isEstimationMode()).append(LS);
       sb.append("   Empty?                  : ").append(isEmpty()).append(LS);
+      sb.append("   Ordered?                : ").append(isOrdered()).append(LS);
       if (updateSketch) {
         sb.append("   Resize Factor           : ").append(rf).append(LS);
         sb.append("   Array Size Entries      : ").append(arrLongs).append(LS);
