@@ -46,7 +46,7 @@ public class DeprecatedAndMiscTest {
 
     final DoublesUnion du3 = DoublesUnionBuilder.wrap(mem); //v2.0.0.
 
-    final WritableMemory wmem = WritableMemory.wrap(ds.toByteArray());
+    final WritableMemory wmem = WritableMemory.writableWrap(ds.toByteArray());
     final DoublesUnion du4 = DoublesUnionBuilder.wrap(wmem); //v2.0.0.
 
     final ItemsSketch<String> is = ItemsSketch.getInstance(64, Comparator.naturalOrder());

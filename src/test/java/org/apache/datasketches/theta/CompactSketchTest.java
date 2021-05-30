@@ -79,7 +79,7 @@ public class CompactSketchTest {
     int bytes = usk.getCompactBytes(); //for Compact
 
     try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes)) {
-      WritableMemory directMem = wdh.get();
+      WritableMemory directMem = wdh.getWritable();
 
       /**Via CompactSketch.compact**/
       refSk = usk.compact(ordered, directMem);
@@ -90,6 +90,8 @@ public class CompactSketchTest {
       /**Via CompactSketch.compact**/
       testSk = (CompactSketch)Sketch.wrap(directMem);
       checkByRange(refSk, testSk, u, ordered);
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -193,7 +195,7 @@ public class CompactSketchTest {
 
     int bytes = usk.getCompactBytes();
     byte[] byteArray = new byte[bytes -8]; //too small
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     usk.compact(ordered, mem);
   }
 
@@ -209,7 +211,7 @@ public class CompactSketchTest {
 
     int bytes = usk.getCompactBytes();
     byte[] byteArray = new byte[bytes -8]; //too small
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     usk.compact(ordered, mem);
   }
 

@@ -38,7 +38,7 @@ public class DoublesSketchBuilderTest {
     println(bldr.toString());
     int bytes = DoublesSketch.getUpdatableStorageBytes(k, 0);
     byte[] byteArr = new byte[bytes];
-    WritableMemory mem = WritableMemory.wrap(byteArr);
+    WritableMemory mem = WritableMemory.writableWrap(byteArr);
     DoublesSketch ds = bldr.build(mem);
     assertTrue(ds.isDirect());
     println(bldr.toString());

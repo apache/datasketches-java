@@ -398,7 +398,7 @@ class FloatBuffer {
   byte[] floatsToBytes() {
     final int bytes = Float.BYTES * count_;
     final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
+    final WritableBuffer wbuf = WritableMemory.writableWrap(arr).asWritableBuffer();
     if (spaceAtBottom_) {
       wbuf.putFloatArray(arr_, capacity_ - count_, count_);
     } else {

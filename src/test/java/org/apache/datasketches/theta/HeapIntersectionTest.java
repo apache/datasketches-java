@@ -74,7 +74,7 @@ public class HeapIntersectionTest {
 
     final int bytes = rsk1.getCompactBytes();
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem);
     assertEquals(rsk1.getEstimate(), 0.0);
@@ -116,7 +116,7 @@ public class HeapIntersectionTest {
 
     final int bytes = rsk1.getCompactBytes();
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
 
     rsk1 = inter.getResult(!ordered, mem); //executed twice to fully exercise the internal state machine
     assertEquals(rsk1.getEstimate(), k);
@@ -356,7 +356,7 @@ public class HeapIntersectionTest {
 
     //Put the intersection into memory
     final byte[] byteArray = inter.toByteArray();
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //Heapify
     final Intersection inter2 = (Intersection) SetOperation.heapify(mem);
     final CompactSketch heapifiedSk = inter2.getResult(false, null);
@@ -428,7 +428,7 @@ public class HeapIntersectionTest {
   public void checkBadPreambleLongs() {
     final Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     final byte[] byteArray = inter1.toByteArray();
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2); //RF not used = 0
     SetOperation.heapify(mem);
@@ -438,7 +438,7 @@ public class HeapIntersectionTest {
   public void checkBadSerVer() {
     final Intersection inter1 = SetOperation.builder().buildIntersection(); //virgin
     final byte[] byteArray = inter1.toByteArray();
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.putByte(SER_VER_BYTE, (byte) 2);
     SetOperation.heapify(mem);
@@ -462,7 +462,7 @@ public class HeapIntersectionTest {
     final UpdateSketch sk = Sketches.updateSketchBuilder().build();
     inter1.intersect(sk); //initializes to a true empty intersection.
     final byte[] byteArray = inter1.toByteArray();
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.putInt(RETAINED_ENTRIES_INT, 1);
     SetOperation.heapify(mem);

@@ -187,7 +187,7 @@ public class HeapArrayOfDoublesQuickSelectSketchTest {
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().build();
     sketch1.update(1, new double[] {1.0});
 
-    final ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(WritableMemory.wrap(sketch1.toByteArray()));
+    final ArrayOfDoublesUpdatableSketch sketch2 = ArrayOfDoublesUpdatableSketch.heapify(WritableMemory.writableWrap(sketch1.toByteArray()));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
     final double[][] values = sketch2.getValues();

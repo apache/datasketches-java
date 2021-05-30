@@ -50,8 +50,8 @@ public class PreambleUtilTest {
   public void checkInsertsAndExtracts() {
     final int bytes = 32;
     try (WritableDirectHandle offHeapMemHandler = WritableMemory.allocateDirect(bytes)) {
-      final WritableMemory offHeapMem = offHeapMemHandler.get();
-      final WritableMemory onHeapMem = WritableMemory.wrap(new byte[bytes]);
+      final WritableMemory offHeapMem = offHeapMemHandler.getWritable();
+      final WritableMemory onHeapMem = WritableMemory.writableWrap(new byte[bytes]);
 
       onHeapMem.clear();
       offHeapMem.clear();
@@ -157,6 +157,8 @@ public class PreambleUtilTest {
       assertEquals(offHD, vD);
       onHeapMem.clear();
       offHeapMem.clear();
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

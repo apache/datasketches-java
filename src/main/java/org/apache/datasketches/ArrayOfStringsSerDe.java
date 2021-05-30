@@ -45,7 +45,7 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
       length += itemsBytes[i].length + Integer.BYTES;
     }
     final byte[] bytes = new byte[length];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putInt(offsetBytes, itemsBytes[i].length);

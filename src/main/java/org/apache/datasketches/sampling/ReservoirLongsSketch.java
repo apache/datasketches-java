@@ -402,7 +402,7 @@ public final class ReservoirLongsSketch {
       outBytes = (preLongs + numItems) << 3; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.wrap(outArr);
+    final WritableMemory mem = WritableMemory.writableWrap(outArr);
 
     // build first preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                 // Byte 0

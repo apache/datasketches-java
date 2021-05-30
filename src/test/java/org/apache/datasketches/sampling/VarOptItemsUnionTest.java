@@ -48,7 +48,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
     final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
@@ -63,7 +63,7 @@ public class VarOptItemsUnionTest {
     final VarOptItemsUnion<Long> union = VarOptItemsUnion.newInstance(k);
     union.update(getUnweightedLongsVIS(k, n));
     final byte[] bytes = union.toByteArray(new ArrayOfLongsSerDe());
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     // corrupt the preLongs count to 0
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));

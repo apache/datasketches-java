@@ -199,7 +199,7 @@ public abstract class ArrayOfDoublesUnion {
   public byte[] toByteArray() {
     final int sizeBytes = PREAMBLE_SIZE_BYTES + sketch_.getSerializedSizeBytes();
     final byte[] byteArray = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
     mem.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());

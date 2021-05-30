@@ -243,7 +243,7 @@ public class ArrayOfDoublesAnotBTest {
 
     // same operation, but compact sketches and off-heap result
     aNotB.update(sketchA.compact(), sketchB.compact());
-    result = aNotB.getResult(WritableMemory.wrap(new byte[1000000]));
+    result = aNotB.getResult(WritableMemory.writableWrap(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
@@ -283,7 +283,7 @@ public class ArrayOfDoublesAnotBTest {
 
     // same operation, but compact sketches and off-heap result
     aNotB.update(sketchA.compact(), sketchB.compact());
-    result = aNotB.getResult(WritableMemory.wrap(new byte[1000000]));
+    result = aNotB.getResult(WritableMemory.writableWrap(new byte[1000000]));
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getEstimate(), expected, expected * 0.1); // crude estimate of RSE(95%) = 2 / sqrt(result.getRetainedEntries())
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());

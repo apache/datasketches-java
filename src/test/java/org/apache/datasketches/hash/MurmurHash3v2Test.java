@@ -66,7 +66,7 @@ public class MurmurHash3v2Test {
     for (int j = 1; j < bytes; j++) {
       byte[] in = new byte[bytes];
 
-      WritableMemory wmem = WritableMemory.wrap(in);
+      WritableMemory wmem = WritableMemory.writableWrap(in);
       for (int i = 0; i < j; i++) { wmem.putByte(i, (byte) (-128 + i)); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
@@ -90,7 +90,7 @@ public class MurmurHash3v2Test {
     for (int j = 1; j < chars; j++) {
       char[] in = new char[chars];
 
-      WritableMemory wmem = WritableMemory.wrap(in);
+      WritableMemory wmem = WritableMemory.writableWrap(in);
       for (int i = 0; i < j; i++) { wmem.putInt(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
@@ -114,7 +114,7 @@ public class MurmurHash3v2Test {
     for (int j = 1; j < ints; j++) {
       int[] in = new int[ints];
 
-      WritableMemory wmem = WritableMemory.wrap(in);
+      WritableMemory wmem = WritableMemory.writableWrap(in);
       for (int i = 0; i < j; i++) { wmem.putInt(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
@@ -138,7 +138,7 @@ public class MurmurHash3v2Test {
     for (int j = 1; j < longs; j++) {
       long[] in = new long[longs];
 
-      WritableMemory wmem = WritableMemory.wrap(in);
+      WritableMemory wmem = WritableMemory.writableWrap(in);
       for (int i = 0; i < j; i++) { wmem.putLong(i, i); }
 
       long[] hash1 = MurmurHash3.hash(in, 0);
@@ -158,7 +158,7 @@ public class MurmurHash3v2Test {
 
     long[] hash2 = new long[2];
     long[] in = { 1 };
-    WritableMemory wmem = WritableMemory.wrap(in);
+    WritableMemory wmem = WritableMemory.writableWrap(in);
 
     long[] hash1 = MurmurHash3.hash(in, 0);
     hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
@@ -231,7 +231,7 @@ public class MurmurHash3v2Test {
     final long data = Double.doubleToLongBits(d);// canonicalize all NaN forms
     final long[] dataArr = { data };
 
-    WritableMemory wmem = WritableMemory.wrap(dataArr);
+    WritableMemory wmem = WritableMemory.writableWrap(dataArr);
     long[] hash1 = MurmurHash3.hash(dataArr, 0);
     hash2 = MurmurHash3v2.hash(wmem, offset, bytes, seed, hash2);
     long[] hash3 = MurmurHash3v2.hash(dbl, seed, hash2);

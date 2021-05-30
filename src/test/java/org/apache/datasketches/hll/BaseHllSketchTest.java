@@ -94,7 +94,7 @@ public class BaseHllSketchTest {
     assertTrue(sk.isEstimationMode());
     sk.reset();
     assertEquals(BaseHllSketch.getSerializationVersion(), PreambleUtil.SER_VER);
-    WritableMemory wmem = WritableMemory.wrap(sk.toCompactByteArray());
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toCompactByteArray());
     assertEquals(BaseHllSketch.getSerializationVersion(wmem), PreambleUtil.SER_VER);
   }
 

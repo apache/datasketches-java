@@ -90,7 +90,7 @@ public class HeapCompactDoublesSketchTest {
     }
     assertEquals(qs.getBaseBufferCount(), k);
     final byte[] sketchBytes = qs.toByteArray(true);
-    final WritableMemory mem = WritableMemory.wrap(sketchBytes);
+    final WritableMemory mem = WritableMemory.writableWrap(sketchBytes);
 
     // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
     PreambleUtil.insertSerVer(mem, 2);

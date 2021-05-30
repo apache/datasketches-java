@@ -36,7 +36,7 @@ public class DoublesUnionBuilderTest {
     for (int i=0; i<1000; i++) { qs1.update(i); }
 
     int bytes = qs1.getCompactStorageBytes();
-    WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
+    WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem);
     Memory srcMem = dstMem;
 
@@ -63,7 +63,7 @@ public void checkDeprecated1() {
   }
 
   int bytes = qs1.getCompactStorageBytes();
-  WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
+  WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
   qs1.putMemory(dstMem);
   Memory srcMem = dstMem;
 

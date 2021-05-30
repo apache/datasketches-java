@@ -47,10 +47,10 @@ public class PreambleUtilTest {
   public void preambleToString() { //TODO Check Visually
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(8, TgtHllType.HLL_4);
     byte[] byteArr1 = new byte[bytes];
-    WritableMemory wmem1 = WritableMemory.wrap(byteArr1);
+    WritableMemory wmem1 = WritableMemory.writableWrap(byteArr1);
     HllSketch sk = new HllSketch(8, TgtHllType.HLL_4, wmem1);
     byte[] byteArr2 = sk.toCompactByteArray();
-    WritableMemory wmem2 = WritableMemory.wrap(byteArr2);
+    WritableMemory wmem2 = WritableMemory.writableWrap(byteArr2);
 
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertTrue(sk.isEmpty());
@@ -62,7 +62,7 @@ public class PreambleUtilTest {
 
     for (int i = 0; i < 7; i++) { sk.update(i); }
     byteArr2 = sk.toCompactByteArray();
-    wmem2 = WritableMemory.wrap(byteArr2);
+    wmem2 = WritableMemory.writableWrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.LIST);
     assertFalse(sk.isEmpty());
     s = HllSketch.toString(byteArr2);
@@ -73,7 +73,7 @@ public class PreambleUtilTest {
 
     for (int i = 7; i < 24; i++) { sk.update(i); }
     byteArr2 = sk.toCompactByteArray();
-    wmem2 = WritableMemory.wrap(byteArr2);
+    wmem2 = WritableMemory.writableWrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.SET);
     s = HllSketch.toString(byteArr2);
     println(s);
@@ -83,7 +83,7 @@ public class PreambleUtilTest {
 
     sk.update(24);
     byteArr2 = sk.toCompactByteArray();
-    wmem2 = WritableMemory.wrap(byteArr2);
+    wmem2 = WritableMemory.writableWrap(byteArr2);
     assertEquals(sk.getCurMode(), CurMode.HLL);
     s = HllSketch.toString(Memory.wrap(byteArr2));
     println(s);
@@ -96,7 +96,7 @@ public class PreambleUtilTest {
   public void checkCompactFlag() {
     HllSketch sk = new HllSketch(7);
     byte[] memObj = sk.toCompactByteArray();
-    WritableMemory wmem = WritableMemory.wrap(memObj);
+    WritableMemory wmem = WritableMemory.writableWrap(memObj);
     boolean compact = PreambleUtil.extractCompactFlag(wmem);
     assertTrue(compact);
 
@@ -110,7 +110,7 @@ public class PreambleUtilTest {
   public void checkCorruptMemoryInput() {
     HllSketch sk = new HllSketch(12);
     byte[] memObj = sk.toCompactByteArray();
-    WritableMemory wmem = WritableMemory.wrap(memObj);
+    WritableMemory wmem = WritableMemory.writableWrap(memObj);
     long memAdd = wmem.getCumulativeOffset(0);
     HllSketch bad;
 
@@ -149,7 +149,7 @@ public class PreambleUtilTest {
     //move to Set mode
     for (int i = 1; i <= 15; i++) { sk.update(i); }
     memObj = sk.toCompactByteArray();
-    wmem = WritableMemory.wrap(memObj);
+    wmem = WritableMemory.writableWrap(memObj);
     memAdd = wmem.getCumulativeOffset(0);
 
     //check wrong PreInts and SET
@@ -163,7 +163,7 @@ public class PreambleUtilTest {
     //move to HLL mode
     for (int i = 15; i <= 1000; i++) { sk.update(i); }
     memObj = sk.toCompactByteArray();
-    wmem = WritableMemory.wrap(memObj);
+    wmem = WritableMemory.writableWrap(memObj);
     memAdd = wmem.getCumulativeOffset(0);
 
     //check wrong PreInts and HLL

@@ -33,7 +33,7 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   @Override
   public byte[] serializeToByteArray(final Long[] items) {
     final byte[] bytes = new byte[Long.BYTES * items.length];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putLong(offsetBytes, items[i]);

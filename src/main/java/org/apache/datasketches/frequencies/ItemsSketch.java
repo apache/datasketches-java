@@ -498,7 +498,7 @@ public class ItemsSketch<T> {
       outBytes = ((preLongs + activeItems) << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.wrap(outArr);
+    final WritableMemory mem = WritableMemory.writableWrap(outArr);
 
     // build first preLong empty or not
     long pre0 = 0L;

@@ -153,7 +153,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   @Override
   public byte[] toByteArray() {
     final byte[] byteArray = new byte[getSerializedSizeBytes()];
-    final WritableMemory mem = WritableMemory.wrap(byteArray); // wrap the byte array to use the putX methods
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray); // wrap the byte array to use the putX methods
     serializeInto(mem);
     return byteArray;
   }

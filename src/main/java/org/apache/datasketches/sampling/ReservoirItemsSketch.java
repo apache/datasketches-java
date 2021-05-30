@@ -475,7 +475,7 @@ public final class ReservoirItemsSketch<T> {
       outBytes = (preLongs << 3) + bytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.wrap(outArr);
+    final WritableMemory mem = WritableMemory.writableWrap(outArr);
 
     // Common header elements
     PreambleUtil.insertPreLongs(mem, preLongs);                  // Byte 0

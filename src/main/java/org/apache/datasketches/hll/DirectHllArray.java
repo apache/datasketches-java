@@ -269,7 +269,7 @@ abstract class DirectHllArray extends AbstractHllArray {
   byte[] toUpdatableByteArray() {
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    final WritableMemory memOut = WritableMemory.writableWrap(byteArr);
     mem.copyTo(0, memOut, 0, totBytes);
     insertCompactFlag(memOut, false);
     return byteArr;

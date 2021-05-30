@@ -50,7 +50,7 @@ public class DirectAuxHashMapTest {
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
     try (WritableDirectHandle handle = WritableMemory.allocateDirect(bytes)) {
-      WritableMemory wmem = handle.get();
+      WritableMemory wmem = handle.getWritable();
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       for (int i = 0; i < n; i++) {
         hllSketch.update(i);
@@ -74,7 +74,7 @@ public class DirectAuxHashMapTest {
 
       //Check wrap
       byteArray = hllSketch.toUpdatableByteArray();
-      WritableMemory wmem2 = WritableMemory.wrap(byteArray);
+      WritableMemory wmem2 = WritableMemory.writableWrap(byteArray);
       hllSketch2 = HllSketch.writableWrap(wmem2);
       //println(hllSketch2.toString(true, true, true, true));
       DirectHllArray dha2 = (DirectHllArray) hllSketch2.hllSketchImpl;
@@ -90,6 +90,8 @@ public class DirectAuxHashMapTest {
       assertTrue(hllSketch.isMemory());
       assertFalse(hllSketch.isOffHeap());
       assertFalse(hllSketch.isSameResource(wmem));
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -100,7 +102,7 @@ public class DirectAuxHashMapTest {
     TgtHllType type = TgtHllType.HLL_4;
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgK, type);
     byte[] memByteArr = new byte[bytes];
-    WritableMemory wmem = WritableMemory.wrap(memByteArr);
+    WritableMemory wmem = WritableMemory.writableWrap(memByteArr);
     HllSketch heapSk = new HllSketch(lgK, type);
     HllSketch dirSk = new HllSketch(lgK, type, wmem);
     for (int i = 0; i < (1 << lgU); i++) {

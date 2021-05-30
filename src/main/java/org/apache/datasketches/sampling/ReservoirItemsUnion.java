@@ -300,7 +300,7 @@ public final class ReservoirItemsUnion<T> {
       outBytes = (preLongs << 3) + gadgetBytes.length; // for longs, we know the size
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.wrap(outArr);
+    final WritableMemory mem = WritableMemory.writableWrap(outArr);
 
     // build preLong
     PreambleUtil.insertPreLongs(mem, preLongs);                       // Byte 0

@@ -352,7 +352,7 @@ public class HeapUpdateDoublesSketchTest {
     println(s);
     println("");
 
-    Memory srcMem = WritableMemory.wrap(qs.toByteArray());
+    Memory srcMem = WritableMemory.writableWrap(qs.toByteArray());
 
     HeapUpdateDoublesSketch qs2 = HeapUpdateDoublesSketch.heapifyInstance(srcMem);
     s = qs2.toString();
@@ -685,7 +685,7 @@ public class HeapUpdateDoublesSketchTest {
     UpdateDoublesSketch sketch2 = DoublesSketch.builder().setK(k2).build();
     DoublesSketch downSketch;
     int bytes = DoublesSketch.getUpdatableStorageBytes(k2, n);
-    WritableMemory mem = WritableMemory.wrap(new byte[bytes]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[bytes]);
     for (int i = 0; i < n; i++) {
       sketch1.update (i);
       sketch2.update (i);
@@ -835,7 +835,7 @@ public class HeapUpdateDoublesSketchTest {
       qs1.update(i);
     }
     int bytes = qs1.getUpdatableStorageBytes();
-    WritableMemory dstMem = WritableMemory.wrap(new byte[bytes]);
+    WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
     DoublesSketch qs2 = DoublesSketch.heapify(srcMem);
@@ -850,7 +850,7 @@ public class HeapUpdateDoublesSketchTest {
       qs1.update(i);
     }
     int bytes = qs1.getCompactStorageBytes();
-    WritableMemory dstMem = WritableMemory.wrap(new byte[bytes-1]); //too small
+    WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
   }
 
@@ -866,7 +866,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void testIt() {
     java.nio.ByteBuffer bb = java.nio.ByteBuffer.allocate(1<<20).order(ByteOrder.nativeOrder());
-    WritableMemory mem = WritableMemory.wrap(bb);
+    WritableMemory mem = WritableMemory.writableWrap(bb);
 
     int k = 1024;
     DoublesSketch qsk = new DoublesSketchBuilder().setK(k).build();

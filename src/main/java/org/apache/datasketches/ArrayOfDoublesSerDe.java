@@ -33,7 +33,7 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   @Override
   public byte[] serializeToByteArray(final Double[] items) {
     final byte[] bytes = new byte[Double.BYTES * items.length];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
       mem.putDouble(offsetBytes, items[i]);

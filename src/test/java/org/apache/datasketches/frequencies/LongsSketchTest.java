@@ -121,7 +121,7 @@ public class LongsSketchTest {
     //Empty Sketch
     LongsSketch sketch = new LongsSketch(16);
     byte[] bytearray0 = sketch.toByteArray();
-    WritableMemory mem0 = WritableMemory.wrap(bytearray0);
+    WritableMemory mem0 = WritableMemory.writableWrap(bytearray0);
     LongsSketch new_sketch0 = LongsSketch.getInstance(mem0);
     String str0 = LongsSketch.toString(mem0);
     println(str0);
@@ -284,7 +284,7 @@ public class LongsSketchTest {
     sk1.update(1L);
 
     byte[] bytearray0 = sk1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(bytearray0);
+    WritableMemory mem = WritableMemory.writableWrap(bytearray0);
     long pre0 = mem.getLong(0);
 
     tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt
@@ -386,7 +386,7 @@ public class LongsSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkGetInstanceMemory() {
-    WritableMemory mem = WritableMemory.wrap(new byte[4]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[4]);
     LongsSketch.getInstance(mem);
   }
 

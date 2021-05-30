@@ -164,7 +164,7 @@ public class ReservoirItemsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = riu.toByteArray(serDe);
-    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
+    final WritableMemory unionMem = WritableMemory.writableWrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -195,7 +195,7 @@ public class ReservoirItemsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray(serDe);
-    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
+    final WritableMemory unionMem = WritableMemory.writableWrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -448,7 +448,7 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
     final ReservoirItemsUnion<Number> riu = ReservoirItemsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.wrap(riu.toByteArray(new ArrayOfNumbersSerDe()));
+    final WritableMemory mem = WritableMemory.writableWrap(riu.toByteArray(new ArrayOfNumbersSerDe()));
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirItemsUnion.heapify(mem, new ArrayOfNumbersSerDe());
@@ -458,7 +458,7 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final ReservoirItemsUnion<String> riu = ReservoirItemsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.wrap(riu.toByteArray(new ArrayOfStringsSerDe()));
+    final WritableMemory mem = WritableMemory.writableWrap(riu.toByteArray(new ArrayOfStringsSerDe()));
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirItemsUnion.heapify(mem, new ArrayOfStringsSerDe());
@@ -468,7 +468,7 @@ public class ReservoirItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     final ReservoirItemsUnion<Double> rlu = ReservoirItemsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray(new ArrayOfDoublesSerDe()));
+    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray(new ArrayOfDoublesSerDe()));
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
     ReservoirItemsUnion.heapify(mem, new ArrayOfDoublesSerDe());

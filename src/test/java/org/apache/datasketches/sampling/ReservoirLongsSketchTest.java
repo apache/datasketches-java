@@ -305,7 +305,7 @@ public class ReservoirLongsSketchTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] sketchBytes = rls.toByteArray();
-    final WritableMemory sketchMem = WritableMemory.wrap(sketchBytes);
+    final WritableMemory sketchMem = WritableMemory.writableWrap(sketchBytes);
 
     sketchMem.putByte(SER_VER_BYTE, (byte) 1);
     sketchMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -477,7 +477,7 @@ public class ReservoirLongsSketchTest {
     assertEquals(rls.getK(), k);
 
     final byte[] sketchBytes = rls.toByteArray();
-    return WritableMemory.wrap(sketchBytes);
+    return WritableMemory.writableWrap(sketchBytes);
   }
 
   private static void validateSerializeAndDeserialize(final ReservoirLongsSketch rls) {

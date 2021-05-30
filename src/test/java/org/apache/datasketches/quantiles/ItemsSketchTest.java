@@ -376,7 +376,7 @@ public class ItemsSketchTest {
     final ArrayOfDoublesSerDe serDe = new ArrayOfDoublesSerDe();
     final ItemsSketch<Double> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     final byte[] byteArr = sketch.toByteArray(serDe);
-    final WritableMemory mem = WritableMemory.wrap(byteArr);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArr);
     mem.clearBits(PreambleUtil.FLAGS_BYTE, (byte) PreambleUtil.COMPACT_FLAG_MASK);
     println(PreambleUtil.toString(mem, false));
     ItemsSketch.getInstance(mem, Comparator.naturalOrder(), serDe);
@@ -389,7 +389,7 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     final byte[] byteArr = new byte[200];
-    final WritableMemory mem = WritableMemory.wrap(byteArr);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArr);
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
 
@@ -400,7 +400,7 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     final byte[] byteArr = new byte[100];
-    final WritableMemory mem = WritableMemory.wrap(byteArr);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArr);
     sketch.putMemory(mem, new ArrayOfStringsSerDe());
   }
 

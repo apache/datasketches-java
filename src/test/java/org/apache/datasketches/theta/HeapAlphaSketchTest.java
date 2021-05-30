@@ -73,7 +73,7 @@ public class HeapAlphaSketchTest {
     assertEquals(sk1.getRetainedEntries(false), u);
 
     byte[] byteArray = usk.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
 
     Sketch.heapify(mem, seed);
@@ -87,7 +87,7 @@ public class HeapAlphaSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkAlphaIncompatibleWithMem() {
-    WritableMemory mem = WritableMemory.wrap(new byte[(512*16)+24]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[(512*16)+24]);
     UpdateSketch.builder().setFamily(Family.ALPHA).setNominalEntries(512).build(mem);
   }
 
@@ -109,7 +109,7 @@ public class HeapAlphaSketchTest {
     assertEquals(usk.getEstimate(), u, 0.0);
     assertEquals(sk1.getRetainedEntries(false), u);
     byte[] byteArray = usk.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corruped mem
@@ -269,7 +269,7 @@ public class HeapAlphaSketchTest {
     int alphaBytes = sk1.getRetainedEntries(true) * 8;
     assertEquals(bytes, alphaBytes + (Family.COMPACT.getMaxPreLongs() << 3));
     byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
 
     comp3 = usk.compact(false, mem2);
 
@@ -313,7 +313,7 @@ public class HeapAlphaSketchTest {
     int bytes = usk.getCompactBytes();
     assertEquals(bytes, 8); //compact, empty and theta = 1.0
     byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
 
     CompactSketch csk2 = usk.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), uskEst);
@@ -575,7 +575,7 @@ public class HeapAlphaSketchTest {
     int k = 512;
     Sketch alpha = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = alpha.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 4);
     Sketch.heapify(mem);
@@ -594,7 +594,7 @@ public class HeapAlphaSketchTest {
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     sk1.update(1L); //forces preLongs to 3
     byte[] bytearray1 = sk1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(bytearray1);
+    WritableMemory mem = WritableMemory.writableWrap(bytearray1);
     long pre0 = mem.getLong(0);
 
     tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt PreLongs
@@ -619,7 +619,7 @@ public class HeapAlphaSketchTest {
     }
     mem.putLong(THETA_LONG, origThetaLong); //restore theta
     byte[] byteArray2 = new byte[bytearray1.length -1];
-    WritableMemory mem2 = WritableMemory.wrap(byteArray2);
+    WritableMemory mem2 = WritableMemory.writableWrap(byteArray2);
     mem.copyTo(0, mem2, 0, mem2.getCapacity());
     try {
       HeapAlphaSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);
@@ -678,7 +678,7 @@ public class HeapAlphaSketchTest {
         .setFamily(ALPHA).build();
     for (int i = 0; i < k; i++) { sketch.update(i); }
     byte[] byteArr = sketch.toByteArray();
-    WritableMemory wmem = WritableMemory.wrap(byteArr);
+    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     wmem.putByte(LG_NOM_LONGS_BYTE, (byte) 8); //corrupt LgNomLongs
     UpdateSketch sk = Sketches.heapifyUpdateSketch(wmem);
   }

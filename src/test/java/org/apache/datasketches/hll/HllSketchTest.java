@@ -400,7 +400,7 @@ public class HllSketchTest {
     boolean resourceCompact = sk2.isCompact();
     if (resourceCompact) {
       try {
-        HllSketch.writableWrap(WritableMemory.wrap(byteArr));
+        HllSketch.writableWrap(WritableMemory.writableWrap(byteArr));
         fail();
       } catch (SketchesArgumentException e) {
         //OK
@@ -415,7 +415,7 @@ public class HllSketchTest {
   public void checkWritableWrapOfCompact() {
     HllSketch sk = new HllSketch();
     byte[] byteArr = sk.toCompactByteArray();
-    WritableMemory wmem = WritableMemory.wrap(byteArr);
+    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     HllSketch sk2 = HllSketch.writableWrap(wmem);
   }
 

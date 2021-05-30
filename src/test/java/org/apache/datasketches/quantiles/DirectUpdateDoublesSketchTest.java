@@ -150,7 +150,7 @@ public class DirectUpdateDoublesSketchTest {
   public void wrapEmptyUpdateSketch() {
     final UpdateDoublesSketch s1 = DoublesSketch.builder().build();
     final WritableMemory mem
-            = WritableMemory.wrap(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
+            = WritableMemory.writableWrap(ByteBuffer.wrap(s1.toByteArray()).order(ByteOrder.nativeOrder()));
     final UpdateDoublesSketch s2 = DirectUpdateDoublesSketch.wrapInstance(mem);
     assertTrue(s2.isEmpty());
 
@@ -166,7 +166,7 @@ public class DirectUpdateDoublesSketchTest {
   public void checkPutCombinedBuffer() {
     final int k = PreambleUtil.DEFAULT_K;
     final int cap = 32 + ((2 * k) << 3);
-    WritableMemory mem = WritableMemory.wrap(new byte[cap]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[cap]);
     final UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build(mem);
     mem = qs.getMemory();
     assertEquals(mem.getCapacity(), cap);
@@ -194,7 +194,7 @@ public class DirectUpdateDoublesSketchTest {
     int k = PreambleUtil.DEFAULT_K;
     int n = 48;
     int cap = 32 + ((2 * k) << 3);
-    WritableMemory mem = WritableMemory.wrap(new byte[cap]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[cap]);
     UpdateDoublesSketch qs = DoublesSketch.builder().setK(k).build(mem);
     mem = qs.getMemory();
     assertEquals(mem.getCapacity(), cap);
@@ -215,7 +215,7 @@ public class DirectUpdateDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test
   public void variousExceptions() {
-    WritableMemory mem = WritableMemory.wrap(new byte[8]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[8]);
     try {
       int flags = PreambleUtil.COMPACT_FLAG_MASK;
       DirectUpdateDoublesSketchR.checkCompact(2, 0);
@@ -262,7 +262,7 @@ public class DirectUpdateDoublesSketchTest {
   @Test
   public void serializeDeserialize() {
     int sizeBytes = DoublesSketch.getUpdatableStorageBytes(128, 2000);
-    WritableMemory mem = WritableMemory.wrap(new byte[sizeBytes]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[sizeBytes]);
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().build(mem);
     for (int i = 0; i < 1000; i++) {
       sketch1.update(i);
@@ -278,7 +278,7 @@ public class DirectUpdateDoublesSketchTest {
 
     byte[] arr2 = sketch2.toByteArray(false);
     assertEquals(arr2.length, sketch2.getStorageBytes());
-    DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.wrap(arr2));
+    DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.writableWrap(arr2));
     assertEquals(sketch3.getMinValue(), 0.0);
     assertEquals(sketch3.getMaxValue(), 1999.0);
     assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);
@@ -303,7 +303,7 @@ public class DirectUpdateDoublesSketchTest {
     final int n = k * 2;
 
     final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
-    final WritableMemory mem = WritableMemory.wrap(new byte[memBytes]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[memBytes]);
     final DoublesSketchBuilder bldr = DoublesSketch.builder();
     final UpdateDoublesSketch ds = bldr.setK(k).build(mem);
     for (int i = 1; i <= n; i++) { // 1 ... n
@@ -324,7 +324,7 @@ public class DirectUpdateDoublesSketchTest {
     final int k = 128;
     final int n = 1_000_000;
     final int memBytes = DoublesSketch.getUpdatableStorageBytes(k, n);
-    final WritableMemory mem = WritableMemory.wrap(new byte[memBytes]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[memBytes]);
     final UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
     final double[] values = new double[n];
     for (int i = 0; i < n; i++) {
@@ -354,7 +354,7 @@ public class DirectUpdateDoublesSketchTest {
     if (cap < (2 * k)) { cap = 2 * k; }
     DoublesSketchBuilder bldr = new DoublesSketchBuilder();
     bldr.setK(k);
-    UpdateDoublesSketch dqs = bldr.build(WritableMemory.wrap(new byte[cap]));
+    UpdateDoublesSketch dqs = bldr.build(WritableMemory.writableWrap(new byte[cap]));
     return dqs;
   }
 

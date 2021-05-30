@@ -198,7 +198,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
           + (SIZE_OF_VALUE_BYTES * count * numValues_);
     }
     final byte[] byteArray = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem_.copyTo(0, mem, 0, sizeBytes);
     return byteArray;
   }

@@ -33,8 +33,8 @@ public class DirectArrayOfDoublesCompactSketchTest {
   @Test
   public void emptyFromQuickSelectSketch() {
     ArrayOfDoublesUpdatableSketch us =
-        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
-    ArrayOfDoublesCompactSketch sketch = us.compact(WritableMemory.wrap(new byte[1000000]));
+        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
+    ArrayOfDoublesCompactSketch sketch = us.compact(WritableMemory.writableWrap(new byte[1000000]));
     Assert.assertTrue(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 0.0);
@@ -54,14 +54,14 @@ public class DirectArrayOfDoublesCompactSketchTest {
   @Test
   public void exactModeFromQuickSelectSketch() {
     ArrayOfDoublesUpdatableSketch us =
-        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+        new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     us.update(1, new double[] {1.0});
     us.update(2, new double[] {1.0});
     us.update(3, new double[] {1.0});
     us.update(1, new double[] {1.0});
     us.update(2, new double[] {1.0});
     us.update(3, new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch = us.compact(WritableMemory.wrap(new byte[1000000]));
+    ArrayOfDoublesCompactSketch sketch = us.compact(WritableMemory.writableWrap(new byte[1000000]));
     Assert.assertFalse(sketch.isEmpty());
     Assert.assertFalse(sketch.isEstimationMode());
     Assert.assertEquals(sketch.getEstimate(), 3.0);
@@ -80,12 +80,12 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test
   public void serializeDeserializeSmallExact() {
-    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     us.update("a", new double[] {1.0});
     us.update("b", new double[] {1.0});
     us.update("c", new double[] {1.0});
-    ArrayOfDoublesCompactSketch sketch1 = us.compact(WritableMemory.wrap(new byte[1000000]));
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesCompactSketch sketch1 = us.compact(WritableMemory.writableWrap(new byte[1000000]));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(WritableMemory.writableWrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 3.0);
@@ -103,12 +103,12 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test
   public void serializeDeserializeEstimation() {
-    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       us.update(i, new double[] {1.0});
     }
-    ArrayOfDoublesCompactSketch sketch1 = us.compact(WritableMemory.wrap(new byte[1000000]));
-    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()));
+    ArrayOfDoublesCompactSketch sketch1 = us.compact(WritableMemory.writableWrap(new byte[1000000]));
+    ArrayOfDoublesSketch sketch2 = ArrayOfDoublesSketches.wrapSketch(WritableMemory.writableWrap(sketch1.toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
@@ -117,19 +117,19 @@ public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void deserializeWithWrongSeed() {
-    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     for (int i = 0; i < 8192; i++) {
       us.update(i, new double[] {1.0});
     }
-    ArrayOfDoublesCompactSketch sketch1 = us.compact(WritableMemory.wrap(new byte[1000000]));
-    ArrayOfDoublesSketches.wrapSketch(WritableMemory.wrap(sketch1.toByteArray()), 123);
+    ArrayOfDoublesCompactSketch sketch1 = us.compact(WritableMemory.writableWrap(new byte[1000000]));
+    ArrayOfDoublesSketches.wrapSketch(WritableMemory.writableWrap(sketch1.toByteArray()), 123);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void fromQuickSelectSketchNotEnoughMemory() {
-    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.wrap(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build(WritableMemory.writableWrap(new byte[1000000]));
     us.update(1, new double[] {1.0});
-    us.compact(WritableMemory.wrap(new byte[39]));
+    us.compact(WritableMemory.writableWrap(new byte[39]));
   }
 
 }

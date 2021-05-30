@@ -49,7 +49,7 @@ public class ArrayOfStringsSketchTest {
     sketch1.update(strArrArr[0], strArrArr[0]); //insert duplicate
     //printSummaries(sketch1.iterator());
     byte[] array = sketch1.toByteArray();
-    WritableMemory wmem = WritableMemory.wrap(array);
+    WritableMemory wmem = WritableMemory.writableWrap(array);
     ArrayOfStringsSketch sketch2 = new ArrayOfStringsSketch(wmem);
     //printSummaries(sketch2.iterator());
     checkSummaries(sketch2, sketch2);

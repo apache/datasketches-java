@@ -68,7 +68,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
       }
     }
     final byte[] bytes = new byte[length];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (final Number item: items) {
       if (item instanceof Long) {

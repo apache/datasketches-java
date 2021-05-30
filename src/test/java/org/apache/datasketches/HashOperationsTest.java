@@ -106,7 +106,7 @@ public class HashOperationsTest {
   @Test
   public void testHashInsertOnlyMemoryNoStride() {
     final long[] table = new long[32];
-    final WritableMemory mem = WritableMemory.wrap(table);
+    final WritableMemory mem = WritableMemory.writableWrap(table);
     final int index = hashInsertOnlyMemory(mem, 5, 1, 0);
     assertEquals(index, 1);
     assertEquals(table[1], 1L);
@@ -116,7 +116,7 @@ public class HashOperationsTest {
   public void testHashInsertOnlyMemoryWithStride() {
     final long[] table = new long[32];
     table[1] = 1;
-    final WritableMemory mem = WritableMemory.wrap(table);
+    final WritableMemory mem = WritableMemory.writableWrap(table);
     final int index = hashInsertOnlyMemory(mem, 5, 1, 0);
     assertEquals(index, 2);
     assertEquals(table[2], 1L);
@@ -151,7 +151,7 @@ public class HashOperationsTest {
   @Test
   public void checkFullDirectTableCatchesInfiniteLoop() {
     final long[] table = new long[32];
-    final WritableMemory mem = WritableMemory.wrap(table);
+    final WritableMemory mem = WritableMemory.writableWrap(table);
     for (int i = 1; i <= 32; ++i) {
       hashInsertOnlyMemory(mem, 5, i, 0);
     }
@@ -178,7 +178,7 @@ public class HashOperationsTest {
   @Test
   public void checkFullFastDirectTableCatchesInfiniteLoop() {
     final long[] table = new long[32];
-    final WritableMemory wmem = WritableMemory.wrap(table);
+    final WritableMemory wmem = WritableMemory.writableWrap(table);
 
     for (int i = 1; i <= 32; ++i) {
       hashInsertOnlyMemory(wmem, 5, i, 0);

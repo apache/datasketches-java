@@ -72,7 +72,7 @@ public class DirectCouponListTest {
     byte[] barr1;
     WritableMemory wmem = null;
     try (WritableDirectHandle hand = WritableMemory.allocateDirect(bytes)) {
-      wmem = hand.get();
+      wmem = hand.getWritable();
       //byte[] byteArr = new byte[bytes];
       //WritableMemory wmem = WritableMemory.wrap(byteArr);
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
@@ -93,6 +93,8 @@ public class DirectCouponListTest {
       //println(PreambleUtil.toString(barr1));
       hllSketch.reset();
       assertTrue(hllSketch.isEmpty());
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
 
     //println("HEAP");

@@ -158,7 +158,7 @@ class HeapCompactSketch extends CompactSketch {
   public byte[] toByteArray() {
     final int bytes = getCurrentBytes();
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory dstMem = WritableMemory.wrap(byteArray);
+    final WritableMemory dstMem = WritableMemory.writableWrap(byteArray);
     final int emptyBit = isEmpty() ? EMPTY_FLAG_MASK : 0;
     final int orderedBit = ordered_ ? ORDERED_FLAG_MASK : 0;
     final int singleItemBit = singleItem_ ? SINGLEITEM_FLAG_MASK : 0;

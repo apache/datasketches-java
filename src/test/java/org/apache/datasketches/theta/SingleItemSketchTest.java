@@ -194,7 +194,7 @@ public class SingleItemSketchTest {
 
     //Off-heap
     bytes = Sketches.getMaxUpdateSketchBytes(32);
-    WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
+    WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
     sk1= Sketches.updateSketchBuilder().setNominalEntries(32).build(wmem);
     sk1.update(1);
     csk = sk1.compact(true, null);
@@ -203,7 +203,7 @@ public class SingleItemSketchTest {
     assertTrue(csk instanceof SingleItemSketch);
 
     bytes = Sketches.getMaxCompactSketchBytes(1);
-    wmem = WritableMemory.wrap(new byte[bytes]);
+    wmem = WritableMemory.writableWrap(new byte[bytes]);
     csk = sk1.compact(true, wmem);
     assertTrue(csk.isOrdered());
     csk = sk1.compact(false, wmem);
@@ -229,7 +229,7 @@ public class SingleItemSketchTest {
 
     //Intersection off-heap
     bytes = Sketches.getMaxIntersectionBytes(32);
-    WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
+    WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
     inter = Sketches.setOperationBuilder().buildIntersection(wmem);
     inter.intersect(sk1);
     inter.intersect(sk2);
@@ -257,7 +257,7 @@ public class SingleItemSketchTest {
 
     //Union off-heap
     bytes = Sketches.getMaxUnionBytes(32);
-    WritableMemory wmem = WritableMemory.wrap(new byte[bytes]);
+    WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
     union = Sketches.setOperationBuilder().buildUnion(wmem);
     union.update(sk1);
     union.update(sk2);
@@ -292,7 +292,7 @@ public class SingleItemSketchTest {
     Intersection inter = Sketches.setOperationBuilder().buildIntersection();
     inter.intersect(sk1);
     inter.intersect(sk2);
-    WritableMemory wmem = WritableMemory.wrap(new byte[16]);
+    WritableMemory wmem = WritableMemory.writableWrap(new byte[16]);
     CompactSketch csk = inter.getResult(false, wmem);
     assertTrue(csk.isOrdered());
     Sketch csk2 = Sketches.heapifySketch(wmem);

@@ -147,7 +147,7 @@ public class ReservoirLongsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray();
-    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
+    final WritableMemory unionMem = WritableMemory.writableWrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -177,7 +177,7 @@ public class ReservoirLongsUnionTest {
 
     // get a new byte[], manually revert to v1, then reconstruct
     final byte[] unionBytes = rlu.toByteArray();
-    final WritableMemory unionMem = WritableMemory.wrap(unionBytes);
+    final WritableMemory unionMem = WritableMemory.writableWrap(unionBytes);
 
     unionMem.putByte(SER_VER_BYTE, (byte) 1);
     unionMem.putInt(RESERVOIR_SIZE_INT, 0); // zero out all 4 bytes
@@ -370,7 +370,7 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadPreLongs() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray());
+    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray());
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 0); // corrupt the preLongs count
 
     ReservoirLongsUnion.heapify(mem);
@@ -380,7 +380,7 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray());
+    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray());
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
     ReservoirLongsUnion.heapify(mem);
@@ -390,7 +390,7 @@ public class ReservoirLongsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadFamily() {
     final ReservoirLongsUnion rlu = ReservoirLongsUnion.newInstance(1024);
-    final WritableMemory mem = WritableMemory.wrap(rlu.toByteArray());
+    final WritableMemory mem = WritableMemory.writableWrap(rlu.toByteArray());
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
     ReservoirLongsUnion.heapify(mem);

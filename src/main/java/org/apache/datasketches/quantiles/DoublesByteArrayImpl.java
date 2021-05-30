@@ -58,7 +58,7 @@ final class DoublesByteArrayImpl {
 
     if (empty && !sketch.isDirect()) { //empty & on-heap
       final byte[] outByteArr = new byte[Long.BYTES];
-      final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+      final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
       final int preLongs = 1;
       insertPre0(memOut, preLongs, flags, sketch.getK());
       return outByteArr;
@@ -90,7 +90,7 @@ final class DoublesByteArrayImpl {
     final int outBytes = (compact ? sketch.getCompactStorageBytes() : sketch.getUpdatableStorageBytes());
 
     final byte[] outByteArr = new byte[outBytes];
-    final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+    final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
 
     //insert preamble-0, N, min, max
     insertPre0(memOut, preLongs, flags, k);

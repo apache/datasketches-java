@@ -266,7 +266,7 @@ class ReqSerDe {
     final SerDeFormat serDeFormat = getSerFormat(sk);
     final int bytes = getSerBytes(sk, serDeFormat);
     final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
+    final WritableBuffer wbuf = WritableMemory.writableWrap(arr).asWritableBuffer();
     final byte preInts = (byte)(serDeFormat == SerDeFormat.ESTIMATION ? 4 : 2);
     final byte flags = getFlags(sk);
     final byte numCompactors = sk.isEmpty() ? 0 : (byte) sk.getNumLevels();

@@ -53,7 +53,7 @@ public class SpecialCBinariesTest {
       try {
         CpcSketch sk = CpcSketch.heapify(mem);
       } catch (SketchesArgumentException e) {} // Image was truncated by 4 bytes
-    } catch (IOException e) {
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
@@ -90,8 +90,8 @@ public class SpecialCBinariesTest {
     assertTrue(file.isFile());
 
     try (WritableMapHandle wmh
-        = WritableMemory.map(file, 0, byteArr.length, ByteOrder.nativeOrder())) {
-      WritableMemory wmem = wmh.get();
+        = WritableMemory.writableMap(file, 0, byteArr.length, ByteOrder.nativeOrder())) {
+      WritableMemory wmem = wmh.getWritable();
       wmem.putByteArray(0, byteArr, 0, byteArr.length);
       wmh.force();
     } catch (IOException e) {

@@ -44,7 +44,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   public byte[] serializeToByteArray(final Boolean[] items) {
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     byte val = 0;
     for (int i = 0; i < items.length; ++i) {

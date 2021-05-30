@@ -63,10 +63,12 @@ public class DebugUnionTest {
     DoublesUnion dUnion;
     DoublesSketch dSketch;
     try ( WritableDirectHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
-      WritableMemory wmem = wdh.get();
+      WritableMemory wmem = wdh.getWritable();
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
       for (int s = 0; s < numSketches; s++) { dUnion.update(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
 
     //iterates and counts errors
