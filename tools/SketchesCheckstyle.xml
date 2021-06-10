@@ -23,17 +23,16 @@ under the License.
 -->
 
 <!--
-  SketchesCheckstyle.xml
+  DataSketcchesCheckstyle.xml
 
   Checkstyle is very configurable. Be sure to read the documentation at
   http://checkstyle.sourceforge.net (or in your downloaded distribution).
 
-  To completely disable a check, just comment it out or delete it from the file.
-
-  Authors: Max Vetrenko, Ruslan Diachenko, Roman Ivanov.
+  To completely disable a check, comment it out, delete it, or set
+  property name="severity" value="ignore".
 -->
 
-<module name = "Checker">
+<module name="Checker">
   <property name="charset" value="UTF-8"/>
   <property name="severity" value="warning"/>
   <property name="fileExtensions" value="java"/>
@@ -55,7 +54,7 @@ under the License.
   <!-- Size Violations -->
   <module name="LineLength">
     <property name="severity" value="warning"/>
-    <property name="max" value="110"/>
+    <property name="max" value="120"/>
     <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
   </module>
@@ -94,7 +93,7 @@ under the License.
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     
-    <module name="LeftCurly"> 
+    <module name="LeftCurly">
       <!-- doesn't allow for if (n == 0) { return 0.0; }, which is readable and not corruptable -->
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
@@ -184,7 +183,6 @@ under the License.
     
     <module name="UnusedImports"/>
     
-
     <!-- Filters -->
     <!-- Enable suppression using comments: //CHECKSTYLE.OFF: "RULE" and //CHECKSTYLE.ON: "RULE"
      You must specify the specific rule, as in: //CHECKSTYLE.OFF: LineLength -->
@@ -203,15 +201,13 @@ under the License.
     
     <module name="JavadocMethod">
       <property name="scope" value="public"/>
-      <property name="allowMissingParamTags" value="false"/>
-      <!-- <property name="allowMissingThrowsTags" value="true"/> now not allowed ?!? -->
-      <property name="allowMissingReturnTag" value="false"/>
+      <property name="allowMissingParamTags" value="false"/> <!-- default -->
+      <property name="allowMissingReturnTag" value="false"/> <!-- default -->
       <property name="allowedAnnotations" value="Override, Test"/>
-      <!-- <property name="allowThrowsTagsForSubclasses" value="true"/> now not allowed ?!? -->
     </module>
     
     <module name="JavadocParagraph"/>
-
+    
     <module name="JavadocTagContinuationIndentation">
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
@@ -241,7 +237,7 @@ under the License.
       <property name="allowByTailComment" value="true"/>
       <property name="allowNonPrintableEscapes" value="true"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-    </module>    
+    </module>
     
     <module name="CommentsIndentation">
       <property name="severity" value="warning"/>
@@ -251,7 +247,7 @@ under the License.
     <module name="Indentation">
       <property name="severity" value="ignore"/>
       <property name="basicOffset" value="2"/>
-      <property name="braceAdjustment" value="0"/>
+      <property name="braceAdjustment" value="0"/> <!-- default -->
       <property name="caseIndent" value="2"/>
       <property name="throwsIndent" value="4"/>
       <property name="lineWrappingIndentation" value="4"/>
@@ -277,7 +273,7 @@ under the License.
     <module name="ModifierOrder">
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
-    </module>    
+    </module>
     
     <!-- Naming Conventions -->
     <module name="AbbreviationAsWordInName">
@@ -344,7 +340,7 @@ under the License.
           value="Type name ''{0}'' must match pattern ''{1}''."/>
     </module>
 
-    <!-- Regexp -->    
+    <!-- Regexp -->
     <module name="Regexp">
       <property name="severity" value="ignore"/>
       <property name="format" value="[ \t]+$"/>
@@ -398,4 +394,5 @@ under the License.
     </module>
 
   </module> <!-- End of TreeWalker -->
+
 </module>
