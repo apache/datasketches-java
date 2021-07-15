@@ -27,7 +27,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -46,7 +46,7 @@ public class DirectQuantilesMemoryRequestTest {
 
     //########## Owning Implementation
     // This part would actually be part of the Memory owning implemention so it is faked here
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(initBytes)) {
       final WritableMemory wmem = wdh.getWritable();
       println("Initial mem size: " + wmem.getCapacity());
 
@@ -81,7 +81,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = 32; // don't need the BB to fill here
     final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
-    try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
       //final MemoryManager memMgr = new MemoryManager();
       //final WritableMemory mem1 = memMgr.request(initBytes);
       final WritableMemory mem1 = memHandler.getWritable();
@@ -104,7 +104,7 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = (2 * k) - 1; //just to fill the BB
     final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
-    try (WritableDirectHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
       //final MemoryManager memMgr = new MemoryManager();
       //final WritableMemory mem1 = memMgr.request(initBytes);
       final WritableMemory mem1 = memHandler.getWritable();
@@ -133,7 +133,7 @@ public class DirectQuantilesMemoryRequestTest {
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
-    try (WritableDirectHandle memHandle = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle memHandle = WritableMemory.allocateDirect(initBytes)) {
       WritableMemory mem = memHandle.getWritable();
       origSketchMem.copyTo(0, mem, 0, initBytes);
       UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);

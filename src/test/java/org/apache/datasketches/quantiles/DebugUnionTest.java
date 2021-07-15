@@ -27,7 +27,7 @@ import java.util.HashSet;
 
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -62,7 +62,7 @@ public class DebugUnionTest {
     DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion dUnion;
     DoublesSketch dSketch;
-    try ( WritableDirectHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
+    try ( WritableHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
       WritableMemory wmem = wdh.getWritable();
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
       for (int s = 0; s < numSketches; s++) { dUnion.update(sketchArr[s]); }

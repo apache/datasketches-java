@@ -40,7 +40,7 @@ import static org.testng.Assert.assertEquals;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 @SuppressWarnings("javadoc")
@@ -49,7 +49,7 @@ public class PreambleUtilTest {
   @Test
   public void checkInsertsAndExtracts() {
     final int bytes = 32;
-    try (WritableDirectHandle offHeapMemHandler = WritableMemory.allocateDirect(bytes)) {
+    try (WritableHandle offHeapMemHandler = WritableMemory.allocateDirect(bytes)) {
       final WritableMemory offHeapMem = offHeapMemHandler.getWritable();
       final WritableMemory onHeapMem = WritableMemory.writableWrap(new byte[bytes]);
 

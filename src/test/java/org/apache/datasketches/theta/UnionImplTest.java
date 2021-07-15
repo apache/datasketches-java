@@ -29,7 +29,7 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -169,13 +169,13 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes/2);
-         WritableDirectHandle wdh2 = WritableMemory.allocateDirect(bytes/2) ) {
-      final WritableMemory wmem = wdh.getWritable();
+    try (WritableHandle wh = WritableMemory.allocateDirect(bytes/2);
+        WritableHandle wh2 = WritableMemory.allocateDirect(bytes/2) ) {
+      final WritableMemory wmem = wh.getWritable();
       final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
       assertTrue(sketch.isSameResource(wmem));
 
-      final WritableMemory wmem2 = wdh2.getWritable();
+      final WritableMemory wmem2 = wh2.getWritable();
       final Union union = SetOperation.builder().buildUnion(wmem2);
       assertTrue(union.isSameResource(wmem2));
 
@@ -207,7 +207,7 @@ public class UnionImplTest {
     final double est1 = sk.getEstimate();
 
     final int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
-    try (WritableDirectHandle h = WritableMemory.allocateDirect(bytes)) {
+    try (WritableHandle h = WritableMemory.allocateDirect(bytes)) {
       final WritableMemory wmem = h.getWritable();
       final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();

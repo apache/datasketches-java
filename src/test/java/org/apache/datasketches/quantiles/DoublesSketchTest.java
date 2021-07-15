@@ -27,7 +27,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 @SuppressWarnings("javadoc")
@@ -134,7 +134,7 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(1000)) {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(1000)) {
       WritableMemory mem = wdh.getWritable();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
       Assert.assertTrue(sketch.isSameResource(mem));
@@ -149,7 +149,7 @@ public class DoublesSketchTest {
 
   @Test
   public void checkEmptyDirect() {
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(1000)) {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(1000)) {
       WritableMemory mem = wdh.getWritable();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
       sketch.toByteArray(); //exercises a specific path
