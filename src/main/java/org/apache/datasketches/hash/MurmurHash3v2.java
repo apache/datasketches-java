@@ -52,14 +52,14 @@ public final class MurmurHash3v2 {
   /**
    * Returns a 128-bit hash of the input.
    * Provided for compatibility with older version of MurmurHash3,
-   * but empty or null input now returns a hash.
+   * but empty or null input now throws IllegalArgumentException.
    * @param in long array
    * @param seed A long valued seed.
    * @return the hash
    */
   public static long[] hash(final long[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      emptyOrNull();
+      throw new IllegalArgumentException("Input in is empty or null.");
     }
     return hash(Memory.wrap(in), 0L, in.length << 3, seed, new long[2]);
   }
@@ -67,14 +67,14 @@ public final class MurmurHash3v2 {
   /**
    * Returns a 128-bit hash of the input.
    * Provided for compatibility with older version of MurmurHash3,
-   * but empty or null input now returns a hash.
+   * but empty or null input now throws IllegalArgumentException.
    * @param in int array
    * @param seed A long valued seed.
    * @return the hash
    */
   public static long[] hash(final int[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      emptyOrNull();
+      throw new IllegalArgumentException("Input in is empty or null.");
     }
     return hash(Memory.wrap(in), 0L, in.length << 2, seed, new long[2]);
   }
@@ -82,14 +82,14 @@ public final class MurmurHash3v2 {
   /**
    * Returns a 128-bit hash of the input.
    * Provided for compatibility with older version of MurmurHash3,
-   * but empty or null input now returns a hash.
+   * but empty or null input now throws IllegalArgumentException.
    * @param in char array
    * @param seed A long valued seed.
    * @return the hash
    */
   public static long[] hash(final char[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      emptyOrNull();
+      throw new IllegalArgumentException("Input in is empty or null.");
     }
     return hash(Memory.wrap(in), 0L, in.length << 1, seed, new long[2]);
   }
@@ -97,14 +97,14 @@ public final class MurmurHash3v2 {
   /**
    * Returns a 128-bit hash of the input.
    * Provided for compatibility with older version of MurmurHash3,
-   * but empty or null input now returns a hash.
+   * but empty or null input now throws IllegalArgumentException.
    * @param in byte array
    * @param seed A long valued seed.
    * @return the hash
    */
   public static long[] hash(final byte[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      emptyOrNull();
+      throw new IllegalArgumentException("Input in is empty or null.");
     }
     return hash(Memory.wrap(in), 0L, in.length, seed, new long[2]);
   }
@@ -143,6 +143,7 @@ public final class MurmurHash3v2 {
 
   /**
    * Returns a 128-bit hash of the input.
+   * An empty or null input throws IllegalArgumentException.
    * @param in a String
    * @param seed A long valued seed.
    * @param hashOut A long array of size 2
@@ -150,7 +151,7 @@ public final class MurmurHash3v2 {
    */
   public static long[] hash(final String in, final long seed, final long[] hashOut) {
     if ((in == null) || (in.length() == 0)) {
-      emptyOrNull();
+      throw new IllegalArgumentException("Input in is empty or null.");
     }
     final byte[] byteArr = in.getBytes(UTF_8);
     return hash(Memory.wrap(byteArr), 0L, byteArr.length, seed, hashOut);
@@ -161,7 +162,8 @@ public final class MurmurHash3v2 {
   /**
    * Returns a 128-bit hash of the input as a long array of size 2.
    *
-   * @param mem The input on-heap Memory. Must be non-null and non-empty.
+   * @param mem The input on-heap Memory. Must be non-null and non-empty, 
+   * otherwise throws IllegalArgumentException.
    * @param offsetBytes the starting point within Memory.
    * @param lengthBytes the total number of bytes to be hashed.
    * @param seed A long valued seed.
@@ -171,9 +173,13 @@ public final class MurmurHash3v2 {
   @SuppressWarnings("restriction")
   public static long[] hash(final Memory mem, final long offsetBytes, final long lengthBytes,
       final long seed, final long[] hashOut) {
-    if ((mem == null) || (mem.getCapacity() == 0L)) { emptyOrNull(); }
+    if ((mem == null) || (mem.getCapacity() == 0L)) { 
+      throw new IllegalArgumentException("Input mem is empty or null.");
+    }
     final Object uObj = ((WritableMemory) mem).getArray();
-    if (uObj == null) { emptyOrNull(); }
+    if (uObj == null) { 
+      throw new IllegalArgumentException("The backing resource of input mem is not on-heap."); 
+    }
     long cumOff = mem.getCumulativeOffset() + offsetBytes;
 
     long h1 = seed;
@@ -354,7 +360,4 @@ public final class MurmurHash3v2 {
     return hashOut;
   }
 
-  private static void emptyOrNull() {
-    throw new IllegalArgumentException("Input is empty, null or mem is not on-heap.");
-  }
 }
