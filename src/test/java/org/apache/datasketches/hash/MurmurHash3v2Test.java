@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.hash;
 
+import java.util.Random;
+
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -33,7 +35,156 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 @SuppressWarnings("javadoc")
 public class MurmurHash3v2Test {
+  private Random rand = new Random();
+  private static final int trials = 1 << 20;
+  
+  @Test
+  public void compareLongArrLong() { //long[]
+    int arrLen = 3;
+    int iPer = 8 / Long.BYTES;
+    long[] key = new long[arrLen];
+    for (int i = 0; i < trials; i++) { //trials
+      for (int j = 0; j < arrLen / iPer; j++) { //longs
+        long r = rand.nextLong();
+        key[j] = r;
+      }
+      long[] res1 = hashV1(key, 0);
+      long[] res2 = hashV2(key, 0);
+      assertEquals(res2, res1);
+    }
+  }
+  
+  @Test
+  public void compareIntArr() { //int[]
+    int bytes = Integer.BYTES;
+    int arrLen = 6;
+    int[] key = new int[arrLen];
+    int iPer = 8 / bytes;
+    int nLongs = arrLen / iPer;
+    int shift = 64 / iPer;
+    
+    for (int i = 0; i < trials; i++) { //trials
+      for (int j = 0; j < nLongs; j++) { //longs
+        long r = rand.nextLong();
+        for (int k = 0; k < iPer; k++) { //ints
+          int shft = k * shift;
+          key[k] = (int) (r >>> shft);
+        }
+      }
+      long[] res1 = hashV1(key, 0);
+      long[] res2 = hashV2(key, 0);
+      assertEquals(res2, res1);
+    }
+  }
+  
+  @Test
+  public void compareCharArr() { //char[]
+    int bytes = Character.BYTES;
+    int arrLen = 12;
+    char[] key = new char[arrLen];
+    int iPer = 8 / bytes;
+    int nLongs = arrLen / iPer;
+    int shift = 64 / iPer;
+    
+    for (int i = 0; i < trials; i++) { //trials
+      for (int j = 0; j < nLongs; j++) { //longs
+        long r = rand.nextLong();
+        for (int k = 0; k < iPer; k++) { //char
+          int shft = k * shift;
+          key[k] = (char) (r >>> shft);
+        }
+      }
+      long[] res1 = hashV1(key, 0);
+      long[] res2 = hashV2(key, 0);
+      assertEquals(res2, res1);
+    }
+  }
+  
+  @Test
+  public void compareByteArr() { //byte[]
+    int bytes = Byte.BYTES;
+    int arrLen = 12;
+    byte[] key = new byte[arrLen];
+    int iPer = 8 / bytes;
+    int nLongs = arrLen / iPer;
+    int shift = 64 / iPer;
+    
+    for (int i = 0; i < trials; i++) { //trials
+      for (int j = 0; j < nLongs; j++) { //longs
+        long r = rand.nextLong();
+        for (int k = 0; k < iPer; k++) { //bytes
+          int shft = k * shift;
+          key[k] = (byte) (r >>> shft);
+        }
+      }
+      long[] res1 = hashV1(key, 0);
+      long[] res2 = hashV2(key, 0);
+      assertEquals(res2, res1);
+    }
+  }
+  
+  @Test
+  public void compareLongVsLongArr() {
+    int arrLen = 1;
+    long[] key = new long[arrLen];
+    long[] out = new long[2];
+    for (int i = 0; i < trials; i++) { //trials
+      long r = rand.nextLong();
+      key[0] = r;
+      long[] res1 = hashV1(key, 0);
+      long[] res2 = hashV2(r, 0, out);
+      assertEquals(res2, res1);
+    }
+  }
+  
+  private static final long[] hashV1(long[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+  }
+  
+  private static final long[] hashV1(int[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+  }
 
+  private static final long[] hashV1(char[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+  }
+  
+  private static final long[] hashV1(byte[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+  }
+  
+  private static final long[] hashV2(long[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed);
+  }
+  
+  private static final long[] hashV2(int[] key2, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3v2.hash(key2, seed);
+  }
+
+  private static final long[] hashV2(char[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed);
+  }
+  
+  private static final long[] hashV2(byte[] key, long seed) {
+    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed);
+  }
+  
+  //V2 single primitives
+  
+  private static final long[] hashV2(long key, long seed, long[] out) {
+    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed, out);
+  }
+  
+//  private static final long[] hashV2(double key, long seed, long[] out) {
+//    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed, out);
+//  }
+  
+//  private static final long[] hashV2(String key, long seed, long[] out) {
+//    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed, out);
+//  }
+  
+  
+  
   @Test
   public void offsetChecks() {
     long seed = 12345;
