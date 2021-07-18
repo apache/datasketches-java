@@ -26,7 +26,7 @@ import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.XxHash64;
+import org.apache.datasketches.memory.internal.XxHash64;
 
 /**
  * Common utility functions for Tuples

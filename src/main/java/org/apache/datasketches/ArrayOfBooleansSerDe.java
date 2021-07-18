@@ -20,7 +20,7 @@
 package org.apache.datasketches;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.UnsafeUtil;
+import org.apache.datasketches.memory.internal.UnsafeUtil;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**

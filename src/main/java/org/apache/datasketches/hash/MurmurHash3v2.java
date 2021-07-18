@@ -20,7 +20,7 @@
 package org.apache.datasketches.hash;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.memory.UnsafeUtil.unsafe;
+import static org.apache.datasketches.memory.internal.UnsafeUtil.unsafe;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;

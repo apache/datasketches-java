@@ -40,6 +40,8 @@ If you are interested in making contributions to this site please see our [Commu
 ---
 
 ## Build Instructions
+__NOTE:__ This component is temporarily broken until the new version of Memory is released.  Please use the formal release 1.3.0 obtained from [Downloads](https://datasketches.apache.org/docs/Community/Downloads.html)
+
 __NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements. This is required by the Oracle Java Specification in order to ensure location-independent access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
 
 ### JDK8/Hotspot is required to compile
