@@ -34,7 +34,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * MurmurHash3_x64_128(...), final revision 150</a>,
  * which is in the Public Domain, was the inspiration for this implementation in Java.</p>
  *
- * <p>This implementation of the MurmurHash3 allows hashing of a block of Memory defined by an offset
+ * <p>This implementation of the MurmurHash3 allows hashing of a block of on-heap Memory defined by an offset
  * and length. The calling API also allows the user to supply the small output array of two longs,
  * so that the entire hash function is static and free of object allocations.</p>
  *
@@ -59,7 +59,7 @@ public final class MurmurHash3v2 {
    */
   public static long[] hash(final long[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      return emptyOrNull(seed, new long[2]);
+      emptyOrNull();
     }
     return hash(Memory.wrap(in), 0L, in.length << 3, seed, new long[2]);
   }
@@ -74,7 +74,7 @@ public final class MurmurHash3v2 {
    */
   public static long[] hash(final int[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      return emptyOrNull(seed, new long[2]);
+      emptyOrNull();
     }
     return hash(Memory.wrap(in), 0L, in.length << 2, seed, new long[2]);
   }
@@ -89,7 +89,7 @@ public final class MurmurHash3v2 {
    */
   public static long[] hash(final char[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      return emptyOrNull(seed, new long[2]);
+      emptyOrNull();
     }
     return hash(Memory.wrap(in), 0L, in.length << 1, seed, new long[2]);
   }
@@ -104,7 +104,7 @@ public final class MurmurHash3v2 {
    */
   public static long[] hash(final byte[] in, final long seed) {
     if ((in == null) || (in.length == 0)) {
-      return emptyOrNull(seed, new long[2]);
+      emptyOrNull();
     }
     return hash(Memory.wrap(in), 0L, in.length, seed, new long[2]);
   }
@@ -150,7 +150,7 @@ public final class MurmurHash3v2 {
    */
   public static long[] hash(final String in, final long seed, final long[] hashOut) {
     if ((in == null) || (in.length() == 0)) {
-      return emptyOrNull(seed, hashOut);
+      emptyOrNull();
     }
     final byte[] byteArr = in.getBytes(UTF_8);
     return hash(Memory.wrap(byteArr), 0L, byteArr.length, seed, hashOut);
@@ -161,7 +161,7 @@ public final class MurmurHash3v2 {
   /**
    * Returns a 128-bit hash of the input as a long array of size 2.
    *
-   * @param mem The input Memory. Must be non-null and non-empty.
+   * @param mem The input on-heap Memory. Must be non-null and non-empty.
    * @param offsetBytes the starting point within Memory.
    * @param lengthBytes the total number of bytes to be hashed.
    * @param seed A long valued seed.
@@ -171,10 +171,9 @@ public final class MurmurHash3v2 {
   @SuppressWarnings("restriction")
   public static long[] hash(final Memory mem, final long offsetBytes, final long lengthBytes,
       final long seed, final long[] hashOut) {
-    if ((mem == null) || (mem.getCapacity() == 0L)) {
-      return emptyOrNull(seed, hashOut);
-    }
-    final Object uObj = ((WritableMemory) mem).getArray(); //may be null
+    if ((mem == null) || (mem.getCapacity() == 0L)) { emptyOrNull(); }
+    final Object uObj = ((WritableMemory) mem).getArray();
+    if (uObj == null) { emptyOrNull(); }
     long cumOff = mem.getCumulativeOffset() + offsetBytes;
 
     long h1 = seed;
@@ -355,7 +354,7 @@ public final class MurmurHash3v2 {
     return hashOut;
   }
 
-  private static long[] emptyOrNull(final long seed, final long[] hashOut) {
-    return finalMix128(seed, seed, 0, hashOut);
+  private static void emptyOrNull() {
+    throw new IllegalArgumentException("Input is empty, null or mem is not on-heap.");
   }
 }
