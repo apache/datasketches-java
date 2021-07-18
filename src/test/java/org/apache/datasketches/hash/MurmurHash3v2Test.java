@@ -21,6 +21,7 @@ package org.apache.datasketches.hash;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.Test;
 
@@ -172,30 +173,65 @@ public class MurmurHash3v2Test {
   public void checkEmptiesNulls() {
     long seed = 123;
     long[] hashOut = new long[2];
-    Memory mem = Memory.wrap(new long[0]);
-    long hash0 = MurmurHash3v2.hash(mem, 0, 0, seed, hashOut)[0];  //mem empty
-    mem = null;
-    assertEquals(MurmurHash3v2.hash(mem, 0, 0, seed, hashOut)[0], hash0); //mem null
-    String s = "";
-    assertEquals(MurmurHash3v2.hash(s, seed, hashOut)[0], hash0); //string empty
-    s = null;
-    assertEquals(MurmurHash3v2.hash(s, seed, hashOut)[0], hash0); //string null
-    byte[] barr = new byte[0];
-    assertEquals(MurmurHash3v2.hash(barr, seed)[0], hash0); //byte[] empty
-    barr = null;
-    assertEquals(MurmurHash3v2.hash(barr, seed)[0], hash0); //byte[] null
-    char[] carr = new char[0];
-    assertEquals(MurmurHash3v2.hash(carr, seed)[0], hash0); //char[] empty
-    carr = null;
-    assertEquals(MurmurHash3v2.hash(carr, seed)[0], hash0); //char[] null
-    int[] iarr = new int[0];
-    assertEquals(MurmurHash3v2.hash(iarr, seed)[0], hash0); //int[] empty
-    iarr = null;
-    assertEquals(MurmurHash3v2.hash(iarr, seed)[0], hash0); //int[] null
-    long[] larr = new long[0];
-    assertEquals(MurmurHash3v2.hash(larr, seed)[0], hash0); //long[] empty
-    larr = null;
-    assertEquals(MurmurHash3v2.hash(larr, seed)[0], hash0); //long[] empty
+    try {
+      MurmurHash3v2.hash(Memory.wrap(new long[0]), 0, 0, seed, hashOut);  //mem empty
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      Memory mem = null;
+      MurmurHash3v2.hash(mem, 0, 0, seed, hashOut); //mem null
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      String s = "";
+      MurmurHash3v2.hash(s, seed, hashOut); //string empty
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      String s = null;
+      MurmurHash3v2.hash(s, seed, hashOut); //string null
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      byte[] barr = new byte[0];
+      MurmurHash3v2.hash(barr, seed); //byte[] empty
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      byte[] barr = null;
+      MurmurHash3v2.hash(barr, seed); //byte[] null
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      char[] carr = new char[0];
+      MurmurHash3v2.hash(carr, seed); //char[] empty
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      char[] carr = null;
+      MurmurHash3v2.hash(carr, seed); //char[] null
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      int[] iarr = new int[0];
+      MurmurHash3v2.hash(iarr, seed); //int[] empty
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      int[] iarr = null;
+      MurmurHash3v2.hash(iarr, seed); //int[] null
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      long[] larr = new long[0];
+      MurmurHash3v2.hash(larr, seed); //long[] empty
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
+    try {
+      long[] larr = null;
+      MurmurHash3v2.hash(larr, seed); //long[] null
+      fail();
+    } catch (final IllegalArgumentException e) { } //OK
   }
 
   @Test
