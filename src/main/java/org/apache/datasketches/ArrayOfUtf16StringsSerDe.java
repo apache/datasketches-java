@@ -20,7 +20,6 @@
 package org.apache.datasketches;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.internal.UnsafeUtil;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -57,11 +56,11 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
     final String[] array = new String[numItems];
     long offsetBytes = 0;
     for (int i = 0; i < numItems; i++) {
-      UnsafeUtil.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
+      Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
       final char[] chars = new char[strLength];
-      UnsafeUtil.checkBounds(offsetBytes, (long) strLength * Character.BYTES, mem.getCapacity());
+      Util.checkBounds(offsetBytes, (long) strLength * Character.BYTES, mem.getCapacity());
       mem.getCharArray(offsetBytes, chars, 0, strLength);
       array[i] = new String(chars);
       offsetBytes += (long) strLength * Character.BYTES;
