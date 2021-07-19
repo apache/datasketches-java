@@ -28,6 +28,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.MurmurHash3v2;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -138,49 +139,49 @@ public class MurmurHash3v2Test {
   }
   
   private static final long[] hashV1(long[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+    return MurmurHash3.hash(key, seed);
   }
   
   private static final long[] hashV1(int[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+    return MurmurHash3.hash(key, seed);
   }
 
   private static final long[] hashV1(char[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+    return MurmurHash3.hash(key, seed);
   }
   
   private static final long[] hashV1(byte[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3.hash(key, seed);
+    return MurmurHash3.hash(key, seed);
   }
   
   private static final long[] hashV2(long[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed);
+    return MurmurHash3v2.hash(key, seed);
   }
   
   private static final long[] hashV2(int[] key2, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3v2.hash(key2, seed);
+    return MurmurHash3v2.hash(key2, seed);
   }
 
   private static final long[] hashV2(char[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed);
+    return MurmurHash3v2.hash(key, seed);
   }
   
   private static final long[] hashV2(byte[] key, long seed) {
-    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed);
+    return MurmurHash3v2.hash(key, seed);
   }
   
   //V2 single primitives
   
   private static final long[] hashV2(long key, long seed, long[] out) {
-    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed, out);
+    return MurmurHash3v2.hash(key, seed, out);
   }
   
 //  private static final long[] hashV2(double key, long seed, long[] out) {
-//    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed, out);
+//    return MurmurHash3v2.hash(key, seed, out);
 //  }
   
 //  private static final long[] hashV2(String key, long seed, long[] out) {
-//    return org.apache.datasketches.hash.MurmurHash3v2.hash(key, seed, out);
+//    return MurmurHash3v2.hash(key, seed, out);
 //  }
   
   
