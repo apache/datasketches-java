@@ -24,9 +24,10 @@ import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
+import static org.apache.datasketches.memory.XxHash.*;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.internal.XxHash64;
+
 
 /**
  * Common utility functions for Tuples
@@ -121,7 +122,7 @@ public final class Util {
    * @return the hash of the string
    */
   public static long stringHash(final String s) {
-    return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
+    return hashString(s, 0, s.length(), PRIME);
   }
 
   /**
@@ -130,7 +131,7 @@ public final class Util {
    */
   public static long stringArrHash(final String[] strArray) {
     final String s = stringConcat(strArray);
-    return XxHash64.hashChars(s.toCharArray(), 0, s.length(), PRIME);
+    return hashCharArr(s.toCharArray(), 0, s.length(), PRIME);
   }
 
 }
