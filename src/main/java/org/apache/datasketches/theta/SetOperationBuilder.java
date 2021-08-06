@@ -49,7 +49,7 @@ public class SetOperationBuilder {
   /**
    * Constructor for building a new SetOperation.  The default configuration is
    * <ul>
-   * <li>Nominal Entries: {@value org.apache.datasketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
+   * <li>Max Nominal Entries (max K): {@value org.apache.datasketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
@@ -65,11 +65,11 @@ public class SetOperationBuilder {
   }
 
   /**
-   * Sets the Nominal Entries for this set operation. The minimum value is 16 and the maximum value
-   * is 67,108,864, which is 2^26. Be aware that Unions as large as this maximum value have not
-   * been thoroughly tested or characterized for performance.
+   * Sets the Maximum Nominal Entries (max K) for this set operation. The effective value of K of the result of a
+   * Set Operation can be less than max K, but never greater.  
+   * The minimum value is 16 and the maximum value is 67,108,864, which is 2^26. 
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
-   * This will become the ceiling power of 2 if it is not.
+   * This will become the ceiling power of 2 if it is not a power of 2.
    * @return this SetOperationBuilder
    */
   public SetOperationBuilder setNominalEntries(final int nomEntries) {
