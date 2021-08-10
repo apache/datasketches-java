@@ -57,6 +57,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * A convenience class to allow easy iterator access to a VarOpt sample.
    */
+  //@SuppressWarnings("synthetic-access")
   public final class WeightedSample {
     private final int idx_;
     private double adjustedWeight_;
@@ -98,6 +99,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * The standard iterator
    */
+  //@SuppressWarnings("synthetic-access")
   public class VarOptItemsIterator implements Iterator<WeightedSample> {
     int currIdx_;
     int finalIdx_; // inclusive final index
@@ -147,6 +149,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
     }
   }
 
+  //@SuppressWarnings("synthetic-access")
   class WeightCorrectingRRegionIterator extends VarOptItemsIterator {
     private double cumWeight = 0.0;
 

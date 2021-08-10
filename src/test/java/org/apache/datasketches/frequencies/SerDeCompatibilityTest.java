@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.frequencies;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SerDeCompatibilityTest {

@@ -24,11 +24,10 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class DoublesSketchTest {
@@ -142,6 +141,27 @@ public class DoublesSketchTest {
         sketch.update(i);
       }
       Assert.assertFalse(sketch.isSameResource(mem));
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void directSketchShouldMoveOntoHeapEventually2() {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(50)) {
+      WritableMemory mem = wdh.getWritable();
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+      Assert.assertTrue(sketch.isSameResource(mem));
+      for (int i = 0; i < 1000; i++) {
+        try {
+          sketch.update(i);
+          if (sketch.isSameResource(mem)) { continue; }
+          System.out.println(i);
+        } catch (NullPointerException e) {
+          System.out.println("NPE " + i);
+          break;
+        }
+      }
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
