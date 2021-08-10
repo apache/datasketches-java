@@ -156,9 +156,7 @@ public class DoublesSketchTest {
         try {
           sketch.update(i);
           if (sketch.isSameResource(mem)) { continue; }
-          System.out.println(i);
         } catch (NullPointerException e) {
-          System.out.println("NPE " + i);
           break;
         }
       }
