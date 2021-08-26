@@ -26,8 +26,10 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.nio.ByteOrder;
 import java.util.HashMap;
 
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
@@ -49,7 +51,8 @@ public class DirectAuxHashMapTest {
     int n = 8; //put lgConfigK == 4 into HLL mode
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     HllSketch hllSketch;
-    try (WritableHandle handle = WritableMemory.allocateDirect(bytes)) {
+    try (WritableHandle handle = WritableMemory.allocateDirect(bytes,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
       WritableMemory wmem = handle.getWritable();
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
       for (int i = 0; i < n; i++) {

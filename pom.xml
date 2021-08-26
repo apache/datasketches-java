@@ -84,11 +84,11 @@ under the License.
   <properties>
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <datasketches-memory.version>2.0.0-SNAPSHOT</datasketches-memory.version>
-    <slf4j-simple.version>1.7.30</slf4j-simple.version>
+    <slf4j-simple.version>1.7.32</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
     <!-- Test -->
-    <testng.version>7.1.0</testng.version>
+    <testng.version>7.4.0</testng.version>
 
     <!-- System-wide properties -->
     <maven.version>3.5.0</maven.version>

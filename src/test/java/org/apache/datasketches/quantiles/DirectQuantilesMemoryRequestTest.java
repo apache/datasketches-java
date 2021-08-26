@@ -24,6 +24,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
+
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
@@ -46,7 +49,8 @@ public class DirectQuantilesMemoryRequestTest {
 
     //########## Owning Implementation
     // This part would actually be part of the Memory owning implemention so it is faked here
-    try (WritableHandle wdh = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(initBytes,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
       final WritableMemory wmem = wdh.getWritable();
       println("Initial mem size: " + wmem.getCapacity());
 
@@ -81,7 +85,8 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = 32; // don't need the BB to fill here
     final int initBytes = (4 + (u / 2)) << 3; // not enough to hold everything
 
-    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
       //final MemoryManager memMgr = new MemoryManager();
       //final WritableMemory mem1 = memMgr.request(initBytes);
       final WritableMemory mem1 = memHandler.getWritable();
@@ -104,7 +109,8 @@ public class DirectQuantilesMemoryRequestTest {
     final int u = (2 * k) - 1; //just to fill the BB
     final int initBytes = ((2 * k) + 4) << 3; //just room for BB
 
-    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle memHandler = WritableMemory.allocateDirect(initBytes,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
       //final MemoryManager memMgr = new MemoryManager();
       //final WritableMemory mem1 = memMgr.request(initBytes);
       final WritableMemory mem1 = memHandler.getWritable();
@@ -133,7 +139,8 @@ public class DirectQuantilesMemoryRequestTest {
     final UpdateDoublesSketch usk1 = DoublesSketch.builder().setK(k).build();
     final Memory origSketchMem = Memory.wrap(usk1.toByteArray());
 
-    try (WritableHandle memHandle = WritableMemory.allocateDirect(initBytes)) {
+    try (WritableHandle memHandle = WritableMemory.allocateDirect(initBytes,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
       WritableMemory mem = memHandle.getWritable();
       origSketchMem.copyTo(0, mem, 0, initBytes);
       UpdateDoublesSketch usk2 = DirectUpdateDoublesSketch.wrapInstance(mem);

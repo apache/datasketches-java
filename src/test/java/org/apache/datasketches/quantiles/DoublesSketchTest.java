@@ -24,6 +24,9 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
+
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
@@ -133,7 +136,8 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    try (WritableHandle wdh = WritableMemory.allocateDirect(1000)) {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(1000,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
       WritableMemory mem = wdh.getWritable();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
       Assert.assertTrue(sketch.isSameResource(mem));

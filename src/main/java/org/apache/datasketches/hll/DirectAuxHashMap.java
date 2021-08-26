@@ -192,7 +192,7 @@ class DirectAuxHashMap implements AuxHashMap {
 
     if (requestBytes > oldCapBytes) {
       final MemoryRequestServer svr = host.wmem.getMemoryRequestServer();
-      final WritableMemory newWmem = svr.request(requestBytes);
+      final WritableMemory newWmem = svr.request(host.wmem, requestBytes);
       host.wmem.copyTo(0, newWmem, 0, host.auxStart);
       newWmem.clear(host.auxStart, newAuxBytes); //clear space for new aux data
       svr.requestClose(host.wmem, newWmem); //old host.wmem is now invalid
