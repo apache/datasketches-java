@@ -398,11 +398,11 @@ public class AdoubleTest {
     final UpdatableSketchBuilder<Double, DoubleSummary> bldr = new UpdatableSketchBuilder<>(dsumFact);
     final UpdatableSketch<Double, DoubleSummary> usk = bldr.build();
     final byte[] byteArr = new byte[0];
-    usk.update(byteArr, new Double(0));
+    usk.update(byteArr, 0.0);
     final int[] intArr = new int[0];
-    usk.update(intArr, new Double(1));
+    usk.update(intArr, 1.0);
     final long[] longArr = new long[0];
-    usk.update(longArr, new Double(2));
+    usk.update(longArr, 2.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
