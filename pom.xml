@@ -49,11 +49,11 @@ under the License.
       <archive>https://mail-archives.apache.org/mod_mbox/datasketches-dev</archive>
     </mailingList>
     <mailingList>
-      <name>sketches-user</name>
-      <archive>https://groups.google.com/forum/#!forum/sketches-user</archive>
-      <subscribe>mailto:sketches-user%2Bsubscribe@googlegroups.com</subscribe>
-      <unsubscribe>mailto:sketches-user%2Bunsubscribe@googlegroups.com</unsubscribe>
-      <post>mailto:sketches-user@googlegroups.com</post>
+      <name>DataSketches Users</name>
+      <subscribe>user-subscribe@datasketches.apache.org</subscribe>
+      <unsubscribe>user-unsubscribe@datasketches.apache.org</unsubscribe>
+      <post>user@datasketches.apache.org</post>
+      <archive>https://mail-archives.apache.org/mod_mbox/datasketches-user</archive>
     </mailingList>
   </mailingLists>
 
