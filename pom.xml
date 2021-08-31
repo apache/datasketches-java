@@ -339,7 +339,7 @@ under the License.
             <trimStackTrace>false</trimStackTrace>
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
-            <reportsDirectory>./target/test-output/${maven.build.timestamp}</reportsDirectory>
+            <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
           </configuration>
         </plugin>
 
@@ -657,6 +657,37 @@ under the License.
             </executions>
           </plugin>
         </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>java9plus</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <!-- Apache Parent pom, pluginManagement-->
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>${maven-surefire-plugin.version}</version>
+              <configuration>
+                <trimStackTrace>false</trimStackTrace>
+                <useManifestOnlyJar>false</useManifestOnlyJar>
+                <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
+                <argLine>
+                  --add-exports java.base/jdk.internal.misc=ALL-UNNAMED
+                  --add-exports java.base/jdk.internal.ref=ALL-UNNAMED
+                  --add-opens java.base/java.nio=ALL-UNNAMED
+                  --add-opens java.base/sun.nio.ch=ALL-UNNAMED
+                </argLine>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
       </build>
     </profile>
   </profiles>
