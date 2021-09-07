@@ -19,17 +19,14 @@
 
 package org.apache.datasketches.hash;
 
-import static java.nio.charset.StandardCharsets.UTF_16;
-import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
-
-import org.testng.Assert;
-import org.testng.annotations.Test;
+import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /**
  * Tests the MurmurHash3 against specific, known hash results given known
