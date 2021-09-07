@@ -27,6 +27,8 @@ import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 
 import org.apache.datasketches.memory.Memory;
 
+import java.nio.ByteBuffer;
+
 /**
  * Although this class is package-private, it provides a single place to define and document
  * the common public API for both HllSketch and Union.
@@ -324,6 +326,23 @@ abstract class BaseHllSketch {
   public void update(final String datum) {
     if ((datum == null) || datum.isEmpty()) { return; }
     final byte[] data = datum.getBytes(UTF_8);
+    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+  }
+
+  /**
+   * Present the given byte buffer as a potential unique item.
+   * Bytes are read from the current position of the buffer until its limit.
+   * If the byte buffer is null or has no bytes remaining, no update attempt is made and the method returns.
+   *
+   * This method will not modify the position, mark, limit, or byte order of the buffer.
+   *
+   * Little-endian order is preferred, but not required. This method may perform better if the provided byte
+   * buffer is in little-endian order.
+   *
+   * @param data The given byte buffer.
+   */
+  public void update(final ByteBuffer data) {
+    if ((data == null) || (data.remaining() == 0)) { return; }
     couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
   }
 
