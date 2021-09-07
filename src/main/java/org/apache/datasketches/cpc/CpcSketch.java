@@ -177,6 +177,7 @@ public final class CpcSketch {
    * spaced over values of the quantity C/K between 3.0 and 8.0.  This table does not include the
    * worst-case space for the preamble, which is added by the function.
    */
+  private static final int empiricalSizeMaxLgK = 19;
   private static final int[] empiricalMaxBytes  = {
       24,     // lgK = 4
       36,     // lgK = 5
@@ -195,6 +196,8 @@ public final class CpcSketch {
       157516, // lgK = 18
       314656  // lgK = 19
   };
+  private static final double empiricalMaxSizeFactor = 0.6; // 0.6 = 4.8 / 8.0
+  private static final int maxPreambleSizeBytes = 40;
 
   /**
    * The actual size of a compressed CPC sketch has a small random variance, but the following
@@ -207,9 +210,9 @@ public final class CpcSketch {
    */
   public static int getMaxSerializedBytes(final int lgK) {
     checkLgK(lgK);
-    if (lgK <= 19) { return empiricalMaxBytes[lgK - 4] + 40; }
+    if (lgK <= empiricalSizeMaxLgK) { return empiricalMaxBytes[lgK - CpcUtil.minLgK] + maxPreambleSizeBytes; }
     final int k = 1 << lgK;
-    return (int) (0.6 * k) + 40; // 0.6 = 4.8 / 8.0
+    return (int) (empiricalMaxSizeFactor * k) + maxPreambleSizeBytes;
   }
 
   /**
