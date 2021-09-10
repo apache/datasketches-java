@@ -304,18 +304,18 @@ public class MurmurHash3Test {
   private static long[] stringToLongs(String in) {
     byte[] bArr = in.getBytes(UTF_8);
     int inLen = bArr.length;
-    int outLen = (inLen / 8) + (((inLen % 8) != 0) ? 1 : 0);
+    int outLen = inLen / 8 + (inLen % 8 != 0 ? 1 : 0);
     long[] out = new long[outLen];
 
-    for (int i = 0; i < (outLen - 1); i++ ) {
+    for (int i = 0; i < outLen - 1; i++ ) {
       for (int j = 0; j < 8; j++ ) {
-        out[i] |= ((bArr[(i * 8) + j] & 0xFFL) << (j * 8));
+        out[i] |= (bArr[i * 8 + j] & 0xFFL) << j * 8;
       }
     }
     int inTail = 8 * (outLen - 1);
     int rem = inLen - inTail;
     for (int j = 0; j < rem; j++ ) {
-      out[outLen - 1] |= ((bArr[inTail + j] & 0xFFL) << (j * 8));
+      out[outLen - 1] |= (bArr[inTail + j] & 0xFFL) << j * 8;
     }
     return out;
   }
@@ -323,18 +323,18 @@ public class MurmurHash3Test {
   private static int[] stringToInts(String in) {
     byte[] bArr = in.getBytes(UTF_8);
     int inLen = bArr.length;
-    int outLen = (inLen / 4) + (((inLen % 4) != 0) ? 1 : 0);
+    int outLen = inLen / 4 + (inLen % 4 != 0 ? 1 : 0);
     int[] out = new int[outLen];
 
-    for (int i = 0; i < (outLen - 1); i++ ) {
+    for (int i = 0; i < outLen - 1; i++ ) {
       for (int j = 0; j < 4; j++ ) {
-        out[i] |= ((bArr[(i * 4) + j] & 0xFFL) << (j * 8));
+        out[i] |= (bArr[i * 4 + j] & 0xFFL) << j * 8;
       }
     }
     int inTail = 4 * (outLen - 1);
     int rem = inLen - inTail;
     for (int j = 0; j < rem; j++ ) {
-      out[outLen - 1] |= ((bArr[inTail + j] & 0xFFL) << (j * 8));
+      out[outLen - 1] |= (bArr[inTail + j] & 0xFFL) << j * 8;
     }
     return out;
   }
@@ -348,31 +348,22 @@ public class MurmurHash3Test {
    */
   private static void checkHashByteBuf(byte[] key, long h1, long h2) {
     // Include dummy byte at start, end to make sure position, limit are respected.
-    ByteBuffer bigEndianBuf = ByteBuffer.allocate(key.length + 2).order(ByteOrder.BIG_ENDIAN);
-    bigEndianBuf.position(1);
-    bigEndianBuf.put(key);
-    bigEndianBuf.limit(1 + key.length);
-    bigEndianBuf.position(1);
+    ByteBuffer buf = ByteBuffer.allocate(key.length + 2).order(ByteOrder.LITTLE_ENDIAN);
+    buf.position(1);
+    buf.put(key);
+    buf.limit(1 + key.length);
+    buf.position(1);
 
-    // Test with little endian too.
-    ByteBuffer littleEndianBuf = bigEndianBuf.duplicate().order(ByteOrder.LITTLE_ENDIAN);
-
-    long[] result1 = MurmurHash3.hash(bigEndianBuf, 0);
-    long[] result2 = MurmurHash3.hash(littleEndianBuf, 0);
+    long[] result1 = MurmurHash3.hash(buf, 0);
 
     // Position, limit, order should not be changed.
-    Assert.assertEquals(1, bigEndianBuf.position());
-    Assert.assertEquals(1, littleEndianBuf.position());
-    Assert.assertEquals(1 + key.length, bigEndianBuf.limit());
-    Assert.assertEquals(1 + key.length, littleEndianBuf.limit());
-    Assert.assertEquals(ByteOrder.BIG_ENDIAN, bigEndianBuf.order());
-    Assert.assertEquals(ByteOrder.LITTLE_ENDIAN, littleEndianBuf.order());
+    Assert.assertEquals(1, buf.position());
+    Assert.assertEquals(1 + key.length, buf.limit());
+    Assert.assertEquals(ByteOrder.LITTLE_ENDIAN, buf.order());
 
     // Check the actual hashes.
     Assert.assertEquals(result1[0], h1);
     Assert.assertEquals(result1[1], h2);
-    Assert.assertEquals(result2[0], h1);
-    Assert.assertEquals(result2[1], h2);
   }
 
   @Test

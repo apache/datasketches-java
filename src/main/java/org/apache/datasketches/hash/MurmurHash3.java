@@ -312,31 +312,27 @@ public final class MurmurHash3 implements Serializable {
   /**
    * Hash the remaining bytes of the given ByteBuffer starting at position().
    *
-   * <p>Note: if you want to hash only a portion of the ByteBuffer, convert it to the
-   * appropriate slice first with ByteOrder = LittleEndian.  If it is not
-   * Little Endian a new view will be created as Little Endian. This does not
-   * change the underlying data.
-   *
-   *
    * @param buf The input ByteBuffer. It must be non-null and non-empty.
    * @param seed A long valued seed.
    * @return a 128-bit hash of the input as a long array of size 2.
    */
   public static long[] hash(final ByteBuffer buf, final long seed) {
     Objects.requireNonNull(buf);
-    final int bufLen = buf.capacity();
-    checkPositive(bufLen);
-    Memory mem = Memory.wrap(buf, ByteOrder.LITTLE_ENDIAN);
+    final int pos = buf.position();
+    final int rem = buf.remaining();
+    checkPositive(rem);
+    Memory mem = Memory.wrap(buf, ByteOrder.LITTLE_ENDIAN).region(pos, rem);
     return hash(mem, seed);
   }
+
   //--Hash of Memory-------------------------------------------------------
   /**
    * Hash the given Memory.
    *
    * <p>Note: if you want to hash only a portion of Memory, convert it to the
    * appropriate Region first with ByteOrder = Little Endian. If it is not
-   * Little Endian a new view will be created as Little Endian. This does not
-   * change the underlying data.
+   * Little Endian a new region view will be created as Little Endian.
+   * This does not change the underlying data.
    *
    * @param mem The input Memory. It must be non-null and non-empty.
    * @param seed A long valued seed.
@@ -346,8 +342,10 @@ public final class MurmurHash3 implements Serializable {
     Objects.requireNonNull(mem);
     final long lengthBytes = mem.getCapacity();
     checkPositive(lengthBytes);
-    final Memory memLE = mem.isByteOrderCompatible(ByteOrder.LITTLE_ENDIAN)
-        ? mem : mem.region(0, mem.getCapacity(), ByteOrder.LITTLE_ENDIAN);
+
+    Memory memLE = mem.getTypeByteOrder() == ByteOrder.LITTLE_ENDIAN
+        ? mem : mem.region(0, lengthBytes, ByteOrder.LITTLE_ENDIAN);
+
     final HashState hashState = new HashState(seed, seed);
 
     // Number of full 128-bit blocks of 16 bytes.
@@ -369,7 +367,7 @@ public final class MurmurHash3 implements Serializable {
     final long k1;
     final long k2;
     if (rem > 8) { //k1 -> whole; k2 -> partial
-      k1 = mem.getLong(tail);
+      k1 = memLE.getLong(tail);
       k2 = getLong(memLE, tail + 8, rem - 8);
     }
     else { //k1 -> whole, partial or 0; k2 == 0
@@ -545,7 +543,7 @@ public final class MurmurHash3 implements Serializable {
     }
     for (int i = rem; i-- > 0; ) { //i= 7,6,5,4,3,2,1,0
       final byte b = mem.getByte(offsetBytes + i);
-      out ^= (b & 0xFFL) << i * 8; //equivalent to |=
+      out ^= (b & 0xFFL) << (i << 3); //equivalent to |=
     }
     return out;
   }
