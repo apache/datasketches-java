@@ -30,8 +30,8 @@ import org.apache.datasketches.memory.WritableMemory;
  * The class keeps the values byte aligned, even though only 3 bits are strictly necessary to
  * encode one of the 6 different primitives with object types that extend Number.</p>
  *
- * <p>Classes handled are: <tt>Long</tt>, <tt>Integer</tt>, <tt>Short</tt>, <tt>Byte</tt>,
- * <tt>Double</tt>, and <tt>Float</tt>.</p>
+ * <p>Classes handled are: <code>Long</code>, <code>Integer</code>, <code>Short</code>,
+ * <code>Byte</code>, <code>Double</code>, and <code>Float</code>.</p>
  *
  * @author Jon Malkin
  */

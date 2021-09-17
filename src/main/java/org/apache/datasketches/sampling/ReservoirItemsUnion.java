@@ -45,7 +45,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * base. As a result, we provide only a stateful union. Using the same approach for a merge would
  * result in unpredictable side effects on the underlying sketches.</p>
  *
- * <p>A union object is created with a maximum value of <tt>k</tt>, represented using the
+ * <p>A union object is created with a maximum value of <code>k</code>, represented using the
  * ReservoirSize class. The unioning process may cause the actual number of samples to fall below
  * that maximum value, but never to exceed it. The result of a union will be a reservoir where
  * each item from the global input has a uniform probability of selection, but there are no

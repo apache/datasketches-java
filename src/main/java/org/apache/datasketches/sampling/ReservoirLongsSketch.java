@@ -45,7 +45,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This sketch provides a reservoir sample over an input stream of <tt>long</tt>s. The sketch
+ * This sketch provides a reservoir sample over an input stream of <code>long</code>s. The sketch
  * contains a uniform random sample of items from the stream.
  *
  * @author Jon Malkin
@@ -484,7 +484,7 @@ public final class ReservoirLongsSketch {
    * points.
    *
    * @param pos The position from which to retrieve the element
-   * @return The value in the reservoir at position <tt>pos</tt>
+   * @return The value in the reservoir at position <code>pos</code>
    */
   long getValueAtPosition(final int pos) {
     if (itemsSeen_ == 0) {

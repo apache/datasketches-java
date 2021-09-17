@@ -104,7 +104,7 @@ public final class ReservoirItemsSketch<T> {
    * when deserializing.
    * Uses size of items array to as initial array allocation.
    *
-   * @param data      Reservoir items as an <tt>ArrayList&lt;T&gt;</tt>
+   * @param data      Reservoir items as an <code>ArrayList&lt;T&gt;</code>
    * @param itemsSeen Number of items presented to the sketch so far
    * @param rf        <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @param k         Maximum size of reservoir
@@ -349,7 +349,7 @@ public final class ReservoirItemsSketch<T> {
    * may be smaller than the reservoir capacity.
    *
    * <p>In order to allocate an array of generic type T, uses the class of the first item in
-   * the array. This method method may throw an <tt>ArrayAssignmentException</tt> if the
+   * the array. This method method may throw an <code>ArrayAssignmentException</code> if the
    * reservoir stores instances of a polymorphic base class.</p>
    *
    * @return A copy of the reservoir array
@@ -557,7 +557,7 @@ public final class ReservoirItemsSketch<T> {
    * few points.
    *
    * @param pos The position from which to retrieve the element
-   * @return The value in the reservoir at position <tt>pos</tt>
+   * @return The value in the reservoir at position <code>pos</code>
    */
   T getValueAtPosition(final int pos) {
     if (itemsSeen_ == 0) {
