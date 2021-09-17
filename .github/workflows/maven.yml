@@ -3,7 +3,7 @@ name: Java Test Coverage with Maven, Coveralls
 on:
     pull_request:
     push:
-        branches: [ master, Memory2-doc-fixes-gh-actions ]
+        branches: [ master ]
     workflow_dispatch:
 
 env:
@@ -21,7 +21,7 @@ jobs:
 
         env:
           JDK_VERSION: ${{ matrix.jdk }}
-        
+
         steps:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
           uses: actions/checkout@v2
@@ -61,7 +61,7 @@ jobs:
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
               --toolchains .github/workflows/.toolchains.xml
-        
+
         - name: Report
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
