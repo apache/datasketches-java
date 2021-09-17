@@ -3,7 +3,7 @@ name: Java Test Coverage with Maven, Coveralls
 on:
     pull_request:
     push:
-        branches: [ master ]
+        branches: [ master, Memory2-doc-fixes-gh-action ]
     workflow_dispatch:
 
 env:
@@ -14,6 +14,13 @@ jobs:
     build:
         name: Build, Test, Coverage
         runs-on: ubuntu-latest
+        strategy:
+          fail-fast: false
+          matrix:
+              jdk: [ 8,9,10,11,12,13 ]
+
+        env:
+          JDK_VERSION: ${{ matrix.jdk }}
         
         steps:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
@@ -28,13 +35,17 @@ jobs:
               key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
               restore-keys: build-${{ runner.os }}-maven-
 
-        - name: Install JDK
+        - name: Install Matrix JDK
           uses: AdoptOpenJDK/install-jdk@v1
           with:
-              version: '8'
+              version: ${{ matrix.jdk }}
               architecture: x64
               impl: hotspot
-              targets: 'JDK_8;JAVA_HOME'
+              targets: 'JAVA_HOME'
+
+        - name: Echo Java Version
+          run: >
+              java -version
 
         - name: Install Dependencies
           run: >
