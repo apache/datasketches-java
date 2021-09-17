@@ -47,14 +47,22 @@ jobs:
           run: >
               java -version
 
+        - name: Test
+          run: >
+              mvn clean test
+              -Dmaven.javadoc.skip=true
+              -Dgpg.skip=true
+              --toolchains .github/workflows/.toolchains.xml
+
         - name: Install Dependencies
           run: >
-              mvn clean test install -B -V -q
+              mvn clean install -B -V -q
+              -DskipTests=true
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
               --toolchains .github/workflows/.toolchains.xml
         
-        - name: Test & Report
+        - name: Report
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
               mvn verify coveralls:report -B -V -q
