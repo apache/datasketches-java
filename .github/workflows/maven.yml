@@ -49,8 +49,7 @@ jobs:
 
         - name: Install Dependencies
           run: >
-              mvn clean install -B -V -q
-              -DskipTests=false
+              mvn clean test install -B -V -q
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
               --toolchains .github/workflows/.toolchains.xml
