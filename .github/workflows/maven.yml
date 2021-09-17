@@ -3,7 +3,7 @@ name: Java Test Coverage with Maven, Coveralls
 on:
     pull_request:
     push:
-        branches: [ master, Memory2-doc-fixes-gh-action ]
+        branches: [ master, Memory2-doc-fixes-gh-actions ]
     workflow_dispatch:
 
 env:
