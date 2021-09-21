@@ -25,18 +25,19 @@ package org.apache.datasketches.hll;
  * @author Lee Rhodes
  * @author Kevin Lang
  */
-enum CurMode { LIST, SET, HLL; //do not change the order.
+enum CurMode {
+  LIST, SET, HLL; // do not change the order.
 
   public static final CurMode values[] = values();
 
   /**
    * Returns the CurMode given its ordinal
+   * 
    * @param ordinal the order of appearance in the enum definition.
    * @return the CurMode given its ordinal
    */
   public static CurMode fromOrdinal(final int ordinal) {
     return values[ordinal];
   }
-
 
 }
