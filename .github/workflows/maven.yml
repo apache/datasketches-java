@@ -65,7 +65,7 @@ jobs:
         - name: Report
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
-              mvn verify coveralls:report -B -V -q
+              mvn verify coveralls:report -B -X
               -Dcoveralls-repo-token=${repo_token}
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
