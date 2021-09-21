@@ -412,7 +412,7 @@ public class DirectUnionTest {
     Union union = newUnion(lgConfigK);
     for (int i = 0; i < n; i++) { union.update(i); }
     double est = union.getEstimate();
-    Union union2 = Union.writableWrap(WritableMemory.wrap(union.toUpdatableByteArray()));
+    Union union2 = Union.writableWrap(WritableMemory.writableWrap(union.toUpdatableByteArray()));
     double est2 = union2.getEstimate();
     assertEquals(est2, est, 0.0);
   }
@@ -423,7 +423,7 @@ public class DirectUnionTest {
     int n = 128;
     HllSketch sk = new HllSketch(lgConfigK, HLL_6);
     for (int i = 0; i < n; i++) {sk.update(i); }
-    Union.writableWrap(WritableMemory.wrap(sk.toUpdatableByteArray()));
+    Union.writableWrap(WritableMemory.writableWrap(sk.toUpdatableByteArray()));
   }
 
   private static Union newUnion(int lgK) {

@@ -107,7 +107,7 @@ public class SketchesTest {
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
     final byte[] ubytes = union.toByteArray();
-    final WritableMemory uMem = WritableMemory.wrap(ubytes);
+    final WritableMemory uMem = WritableMemory.writableWrap(ubytes);
 
     Union union2 = (Union)heapifySetOperation(uMem);
     cSk = union2.getResult(true, null);

@@ -138,7 +138,7 @@ abstract class Map {
   void deleteKey(final int index) {}
 
   /**
-   * Returns <tt>true</tt> if the two specified sub-arrays of bytes are <i>equal</i> to one another.
+   * Returns <code>true</code> if the two specified sub-arrays of bytes are <i>equal</i> to one another.
    * Two arrays are considered equal if all corresponding pairs of elements in the two arrays are
    * equal. In other words, two arrays are equal if and only if they contain the same elements
    * in the same order.
@@ -148,7 +148,7 @@ abstract class Map {
    * @param b the other sub-array to be tested for equality
    * @param offsetB the offset in bytes of the start of sub-array <i>b</i>.
    * @param length the length in bytes of the two sub-arrays.
-   * @return <tt>true</tt> if the two sub-arrays are equal
+   * @return <code>true</code> if the two sub-arrays are equal
    */
   static final boolean arraysEqual(final byte[] a, final int offsetA, final byte[] b,
       final int offsetB, final int length) {

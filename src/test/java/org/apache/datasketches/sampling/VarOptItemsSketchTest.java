@@ -51,7 +51,7 @@ public class VarOptItemsSketchTest {
   public void checkBadSerVer() {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(16, 16);
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     mem.putByte(SER_VER_BYTE, (byte) 0); // corrupt the serialization version
 
@@ -63,7 +63,7 @@ public class VarOptItemsSketchTest {
   public void checkBadFamily() {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(32, 16);
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     mem.putByte(FAMILY_BYTE, (byte) 0); // corrupt the family ID
 
@@ -75,7 +75,7 @@ public class VarOptItemsSketchTest {
   public void checkBadPreLongs() {
     final VarOptItemsSketch<Long> sketch = getUnweightedLongsVIS(32, 33);
     final byte[] bytes = sketch.toByteArray(new ArrayOfLongsSerDe());
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     // corrupt the preLongs count to 0
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) (Family.VAROPT.getMinPreLongs() - 1));
@@ -132,7 +132,7 @@ public class VarOptItemsSketchTest {
 
     // we'll use the same initial sketch a few times, so grab a copy of it
     final byte[] copyBytes = new byte[sketchBytes.length];
-    final WritableMemory mem = WritableMemory.wrap(copyBytes);
+    final WritableMemory mem = WritableMemory.writableWrap(copyBytes);
 
     // copy the bytes
     srcMem.copyTo(0, mem, 0, sketchBytes.length);
@@ -235,7 +235,7 @@ public class VarOptItemsSketchTest {
     final VarOptItemsSketch<String> vis = VarOptItemsSketch.newInstance(12, ResizeFactor.X2);
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe());
     final byte[] dstByteArr = new byte[PreambleUtil.VO_PRELONGS_WARMUP << 3];
-    final WritableMemory mem = WritableMemory.wrap(dstByteArr);
+    final WritableMemory mem = WritableMemory.writableWrap(dstByteArr);
     mem.putByteArray(0, sketchBytes, 0, sketchBytes.length);
 
     // ensure non-empty but with H and R region sizes set to 0
@@ -266,7 +266,7 @@ public class VarOptItemsSketchTest {
     }
 
     final byte[] sketchBytes = vis.toByteArray(new ArrayOfStringsSerDe(), String.class);
-    final WritableMemory mem = WritableMemory.wrap(sketchBytes);
+    final WritableMemory mem = WritableMemory.writableWrap(sketchBytes);
 
     // weights will be stored in the first double after the preamble
     final int numPreLongs = PreambleUtil.extractPreLongs(mem);

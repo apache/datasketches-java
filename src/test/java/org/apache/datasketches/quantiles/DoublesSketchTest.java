@@ -24,11 +24,13 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.nio.ByteOrder;
+
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.WritableHandle;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.WritableDirectHandle;
-import org.apache.datasketches.memory.WritableMemory;
 
 @SuppressWarnings("javadoc")
 public class DoublesSketchTest {
@@ -39,7 +41,7 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i);
     }
-    DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.wrap(heapSketch.toByteArray(false)));
+    DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.writableWrap(heapSketch.toByteArray(false)));
 
     assertEquals(directSketch.getMinValue(), 0.0);
     assertEquals(directSketch.getMaxValue(), 999.0);
@@ -49,12 +51,12 @@ public class DoublesSketchTest {
   @Test
   public void directToHeap() {
     int sizeBytes = 10000;
-    UpdateDoublesSketch directSketch = DoublesSketch.builder().build(WritableMemory.wrap(new byte[sizeBytes]));
+    UpdateDoublesSketch directSketch = DoublesSketch.builder().build(WritableMemory.writableWrap(new byte[sizeBytes]));
     for (int i = 0; i < 1000; i++) {
       directSketch.update(i);
     }
     UpdateDoublesSketch heapSketch;
-    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(WritableMemory.wrap(directSketch.toByteArray()));
+    heapSketch = (UpdateDoublesSketch) DoublesSketch.heapify(WritableMemory.writableWrap(directSketch.toByteArray()));
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
@@ -111,8 +113,8 @@ public class DoublesSketchTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) +24]);
-    WritableMemory cmem = WritableMemory.wrap(new byte[8]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[(k*16) +24]);
+    WritableMemory cmem = WritableMemory.writableWrap(new byte[8]);
     DirectUpdateDoublesSketch duds =
             (DirectUpdateDoublesSketch) DoublesSketch.builder().setK(k).build(mem);
     assertTrue(duds.isSameResource(mem));
@@ -134,23 +136,47 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually() {
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(1000)) {
-      WritableMemory mem = wdh.get();
+    try (WritableHandle wdh = WritableMemory.allocateDirect(1000,
+            ByteOrder.nativeOrder(), new DefaultMemoryRequestServer())) {
+      WritableMemory mem = wdh.getWritable();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
       Assert.assertTrue(sketch.isSameResource(mem));
       for (int i = 0; i < 1000; i++) {
         sketch.update(i);
       }
       Assert.assertFalse(sketch.isSameResource(mem));
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  @Test
+  public void directSketchShouldMoveOntoHeapEventually2() {
+    try (WritableHandle wdh = WritableMemory.allocateDirect(50)) {
+      WritableMemory mem = wdh.getWritable();
+      UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
+      Assert.assertTrue(sketch.isSameResource(mem));
+      for (int i = 0; i < 1000; i++) {
+        try {
+          sketch.update(i);
+          if (sketch.isSameResource(mem)) { continue; }
+        } catch (NullPointerException e) {
+          break;
+        }
+      }
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
   @Test
   public void checkEmptyDirect() {
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(1000)) {
-      WritableMemory mem = wdh.get();
+    try (WritableHandle wdh = WritableMemory.allocateDirect(1000)) {
+      WritableMemory mem = wdh.getWritable();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
       sketch.toByteArray(); //exercises a specific path
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

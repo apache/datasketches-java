@@ -482,7 +482,7 @@ public class SetOpsCornerCasesTest {
         }
         int bytes = Sketch.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
         byte[] byteArr = new byte[bytes];
-        WritableMemory mem = WritableMemory.wrap(byteArr);
+        WritableMemory mem = WritableMemory.writableWrap(byteArr);
         csk = sk.compact(false, mem);
         break;
       }

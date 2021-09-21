@@ -19,8 +19,11 @@
 
 package org.apache.datasketches.hash;
 
-import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.datasketches.hash.MurmurHash3.hash;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -47,6 +50,18 @@ public class MurmurHash3Test {
   }
 
   @Test
+  public void checkByteBufRemainderGT8() { //byte buffer, remainder > 8
+    String keyStr = "The quick brown fox jumps over the lazy dog";
+    byte[] key = keyStr.getBytes(UTF_8);
+
+    //Should be:
+    long h1 = 0xe34bbc7bbc071b6cL;
+    long h2 = 0x7a433ca9c49a9347L;
+
+    checkHashByteBuf(key, h1, h2);
+  }
+
+  @Test
   public void checkByteArrChange1bit() { //byte[], change one bit
     String keyStr = "The quick brown fox jumps over the lazy eog";
     byte[] key = keyStr.getBytes(UTF_8);
@@ -56,6 +71,18 @@ public class MurmurHash3Test {
     long h2 = 0x3285cd100292b305L;
     Assert.assertEquals(result[0], h1);
     Assert.assertEquals(result[1], h2);
+  }
+
+  @Test
+  public void checkByteBufChange1bit() { //byte buffer, change one bit
+    String keyStr = "The quick brown fox jumps over the lazy eog";
+    byte[] key = keyStr.getBytes(UTF_8);
+
+    //Should be:
+    long h1 = 0x362108102c62d1c9L;
+    long h2 = 0x3285cd100292b305L;
+
+    checkHashByteBuf(key, h1, h2);
   }
 
   @Test
@@ -71,6 +98,18 @@ public class MurmurHash3Test {
   }
 
   @Test
+  public void checkByteBufRemainderLt8() { //byte buffer, test a remainder < 8
+    String keyStr = "The quick brown fox jumps over the lazy dogdogdog";
+    byte[] key = keyStr.getBytes(UTF_8);
+
+    //Should be;
+    long h1 = 0x9c8205300e612fc4L;
+    long h2 = 0xcbc0af6136aa3df9L;
+
+    checkHashByteBuf(key, h1, h2);
+  }
+
+  @Test
   public void checkByteArrReaminderEQ8() { //byte[], test a remainder = 8
     String keyStr = "The quick brown fox jumps over the lazy1";
     byte[] key = keyStr.getBytes(UTF_8);
@@ -80,7 +119,18 @@ public class MurmurHash3Test {
     long h2 = 0xbdbf05f8da0f0392L;
     Assert.assertEquals(result[0], h1);
     Assert.assertEquals(result[1], h2);
+  }
 
+  @Test
+  public void checkByteBufReaminderEQ8() { //byte buffer, test a remainder = 8
+    String keyStr = "The quick brown fox jumps over the lazy1";
+    byte[] key = keyStr.getBytes(UTF_8);
+
+    //Should be:
+    long h1 = 0xe3301a827e5cdfe3L;
+    long h2 = 0xbdbf05f8da0f0392L;
+
+    checkHashByteBuf(key, h1, h2);
   }
 
   /**
@@ -190,6 +240,21 @@ public class MurmurHash3Test {
     Assert.assertEquals(result[1], h2);
   }
 
+  @Test
+  public void checkByteBufAllOnesZeros() { //byte[], test a ones byte and a zeros byte
+    byte[] key = {
+      0x54, 0x68, 0x65, 0x20, 0x71, 0x75, 0x69, 0x63, 0x6b, 0x20, 0x62, 0x72, 0x6f, 0x77, 0x6e,
+      0x20, 0x66, 0x6f, 0x78, 0x20, 0x6a, 0x75, 0x6d, 0x70, 0x73, 0x20, 0x6f, 0x76, 0x65,
+      0x72, 0x20, 0x74, 0x68, 0x65, 0x20, 0x6c, 0x61, 0x7a, 0x79, 0x20, 0x64, 0x6f, 0x67,
+      (byte) 0xff, 0x64, 0x6f, 0x67, 0x00
+    };
+
+    long h1 = 0xe88abda785929c9eL;
+    long h2 = 0x96b98587cacc83d6L;
+
+    checkHashByteBuf(key, h1, h2);
+  }
+
   /**
    * This test demonstrates that the hash of byte[], char[], int[], or long[] will produce the
    * same hash result if, and only if, all the arrays have the same exact length in bytes, and if
@@ -201,6 +266,13 @@ public class MurmurHash3Test {
     println("Bytes");
     byte[] bArr = {1,2,3,4,5,6,7,8,   9,10,11,12,13,14,15,16,  17,18,19,20,21,22,23,24};
     long[] out1 = hash(bArr, 0L);
+    println(org.apache.datasketches.Util.longToHexBytes(out1[0]));
+    println(org.apache.datasketches.Util.longToHexBytes(out1[1]));
+
+    println("ByteBuffer");
+    ByteBuffer bBuf = ByteBuffer.wrap(bArr);
+    out = hash(bBuf, 0L);
+    Assert.assertEquals(out, out1);
     println(org.apache.datasketches.Util.longToHexBytes(out1[0]));
     println(org.apache.datasketches.Util.longToHexBytes(out1[1]));
 
@@ -232,18 +304,18 @@ public class MurmurHash3Test {
   private static long[] stringToLongs(String in) {
     byte[] bArr = in.getBytes(UTF_8);
     int inLen = bArr.length;
-    int outLen = (inLen / 8) + (((inLen % 8) != 0) ? 1 : 0);
+    int outLen = inLen / 8 + (inLen % 8 != 0 ? 1 : 0);
     long[] out = new long[outLen];
 
-    for (int i = 0; i < (outLen - 1); i++ ) {
+    for (int i = 0; i < outLen - 1; i++ ) {
       for (int j = 0; j < 8; j++ ) {
-        out[i] |= ((bArr[(i * 8) + j] & 0xFFL) << (j * 8));
+        out[i] |= (bArr[i * 8 + j] & 0xFFL) << j * 8;
       }
     }
     int inTail = 8 * (outLen - 1);
     int rem = inLen - inTail;
     for (int j = 0; j < rem; j++ ) {
-      out[outLen - 1] |= ((bArr[inTail + j] & 0xFFL) << (j * 8));
+      out[outLen - 1] |= (bArr[inTail + j] & 0xFFL) << j * 8;
     }
     return out;
   }
@@ -251,20 +323,47 @@ public class MurmurHash3Test {
   private static int[] stringToInts(String in) {
     byte[] bArr = in.getBytes(UTF_8);
     int inLen = bArr.length;
-    int outLen = (inLen / 4) + (((inLen % 4) != 0) ? 1 : 0);
+    int outLen = inLen / 4 + (inLen % 4 != 0 ? 1 : 0);
     int[] out = new int[outLen];
 
-    for (int i = 0; i < (outLen - 1); i++ ) {
+    for (int i = 0; i < outLen - 1; i++ ) {
       for (int j = 0; j < 4; j++ ) {
-        out[i] |= ((bArr[(i * 4) + j] & 0xFFL) << (j * 8));
+        out[i] |= (bArr[i * 4 + j] & 0xFFL) << j * 8;
       }
     }
     int inTail = 4 * (outLen - 1);
     int rem = inLen - inTail;
     for (int j = 0; j < rem; j++ ) {
-      out[outLen - 1] |= ((bArr[inTail + j] & 0xFFL) << (j * 8));
+      out[outLen - 1] |= (bArr[inTail + j] & 0xFFL) << j * 8;
     }
     return out;
+  }
+
+  /**
+   * Tests {@link MurmurHash3#hash(ByteBuffer, long)} on the provided key.
+   *
+   * @param key byte array to hash
+   * @param h1 first half of expected hash
+   * @param h2 second half of expected hash
+   */
+  private static void checkHashByteBuf(byte[] key, long h1, long h2) {
+    // Include dummy byte at start, end to make sure position, limit are respected.
+    ByteBuffer buf = ByteBuffer.allocate(key.length + 2).order(ByteOrder.LITTLE_ENDIAN);
+    buf.position(1);
+    buf.put(key);
+    buf.limit(1 + key.length);
+    buf.position(1);
+
+    long[] result1 = MurmurHash3.hash(buf, 0);
+
+    // Position, limit, order should not be changed.
+    Assert.assertEquals(1, buf.position());
+    Assert.assertEquals(1 + key.length, buf.limit());
+    Assert.assertEquals(ByteOrder.LITTLE_ENDIAN, buf.order());
+
+    // Check the actual hashes.
+    Assert.assertEquals(result1[0], h1);
+    Assert.assertEquals(result1[1], h2);
   }
 
   @Test

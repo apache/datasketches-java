@@ -28,7 +28,7 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -71,8 +71,8 @@ public class DirectCouponListTest {
     //println("DIRECT");
     byte[] barr1;
     WritableMemory wmem = null;
-    try (WritableDirectHandle hand = WritableMemory.allocateDirect(bytes)) {
-      wmem = hand.get();
+    try (WritableHandle hand = WritableMemory.allocateDirect(bytes)) {
+      wmem = hand.getWritable();
       //byte[] byteArr = new byte[bytes];
       //WritableMemory wmem = WritableMemory.wrap(byteArr);
       hllSketch = new HllSketch(lgConfigK, tgtHllType, wmem);
@@ -93,6 +93,8 @@ public class DirectCouponListTest {
       //println(PreambleUtil.toString(barr1));
       hllSketch.reset();
       assertTrue(hllSketch.isEmpty());
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
 
     //println("HEAP");

@@ -56,7 +56,7 @@ final class ItemsByteArrayImpl {
 
     if (empty) {
       final byte[] outByteArr = new byte[Long.BYTES];
-      final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+      final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
       final int preLongs = 1;
       insertPre0(memOut, preLongs, flags, sketch.getK());
       return outByteArr;
@@ -69,7 +69,7 @@ final class ItemsByteArrayImpl {
     final byte[] itemsByteArr = serDe.serializeToByteArray(dataArr);
     final int numOutBytes = (preLongs << 3) + itemsByteArr.length;
     final byte[] outByteArr = new byte[numOutBytes];
-    final WritableMemory memOut = WritableMemory.wrap(outByteArr);
+    final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
 
     //insert preamble
     insertPre0(memOut, preLongs, flags, sketch.getK());

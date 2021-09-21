@@ -267,7 +267,7 @@ public class FloatBufferTest {
     assertEquals(buf.getItemFromIndex(hra ? 199 : 1), 1.0f);
     assertEquals(buf.isSpaceAtBottom(), hra);
     //uses the serialization method
-    final WritableMemory wmem = WritableMemory.wrap(buf.floatsToBytes());
+    final WritableMemory wmem = WritableMemory.writableWrap(buf.floatsToBytes());
     final float[] farr2 = new float[101];
     wmem.getFloatArray(0, farr2, 0, 101);
     //uses the deserialization method

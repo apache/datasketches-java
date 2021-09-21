@@ -200,7 +200,7 @@ public class SketchTest {
     Memory mem = Memory.wrap(sketchArray);
     int serVer = Sketch.getSerializationVersion(mem);
     assertEquals(serVer, 3);
-    WritableMemory wmem = WritableMemory.wrap(sketchArray);
+    WritableMemory wmem = WritableMemory.writableWrap(sketchArray);
     UpdateSketch sk2 = UpdateSketch.wrap(wmem);
     serVer = sk2.getSerializationVersion(wmem);
     assertEquals(serVer, 3);
@@ -211,7 +211,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.heapify(mem);
@@ -222,7 +222,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.heapify(mem);
@@ -234,7 +234,7 @@ public class SketchTest {
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
@@ -256,7 +256,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(ALPHA).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(mem);
@@ -268,7 +268,7 @@ public class SketchTest {
     int k = 512;
     Sketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     byte[] byteArray = sketch1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     //corrupt:
     mem.setBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
     Sketch.wrap(mem);
@@ -280,7 +280,7 @@ public class SketchTest {
     UpdateSketch sketch1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     int bytes = Sketch.getMaxCompactSketchBytes(0);
     byte[] byteArray = new byte[bytes];
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     sketch1.compact(false, mem);
     //corrupt:
     mem.clearBits(FLAGS_BYTE, (byte) COMPACT_FLAG_MASK);
@@ -322,8 +322,8 @@ public class SketchTest {
   @Test
   public void checkIsSameResource() {
     int k = 16;
-    WritableMemory mem = WritableMemory.wrap(new byte[(k*16) + 24]);
-    WritableMemory cmem = WritableMemory.wrap(new byte[32]);
+    WritableMemory mem = WritableMemory.writableWrap(new byte[(k*16) + 24]);
+    WritableMemory cmem = WritableMemory.writableWrap(new byte[32]);
     UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     sketch.update(1);
     sketch.update(2);

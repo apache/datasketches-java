@@ -56,7 +56,8 @@ public class ArrayOfDoublesCompactSketchTest {
 
   @Test
   public void directToHeapExactTwoDoubles() {
-    ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build(WritableMemory.wrap(new byte[1000000]));
+    ArrayOfDoublesUpdatableSketch sketch1 = 
+        new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build(WritableMemory.writableWrap(new byte[1000000]));
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
@@ -65,7 +66,8 @@ public class ArrayOfDoublesCompactSketchTest {
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
-    ArrayOfDoublesSketch sketch2 = new HeapArrayOfDoublesCompactSketch(Memory.wrap(sketch1.compact(WritableMemory.wrap(new byte[1000000])).toByteArray()));
+    ArrayOfDoublesSketch sketch2 = 
+        new HeapArrayOfDoublesCompactSketch(Memory.wrap(sketch1.compact(WritableMemory.writableWrap(new byte[1000000])).toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 4.0);

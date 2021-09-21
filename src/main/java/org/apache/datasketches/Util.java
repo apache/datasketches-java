@@ -770,6 +770,25 @@ public final class Util {
     return next;
   }
 
+  //Checks
+  
+  /**
+   * Check the requested offset and length against the allocated size.
+   * The invariants equation is: {@code 0 <= reqOff <= reqLen <= reqOff + reqLen <= allocSize}.
+   * If this equation is violated an {@link SketchesArgumentException} will be thrown.
+   * @param reqOff the requested offset
+   * @param reqLen the requested length
+   * @param allocSize the allocated size.
+   */
+  public static void checkBounds(final long reqOff, final long reqLen, final long allocSize) {
+    if ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) < 0) {
+      throw new SketchesArgumentException(
+          "reqOffset: " + reqOff + ", reqLength: " + reqLen
+              + ", (reqOff + reqLen): " + (reqOff + reqLen) + ", allocSize: " + allocSize);
+    }
+  }
+  
+  
   /**
    * Checks that the given nomLongs is within bounds and returns the Log2 of the ceiling power of 2
    * of the given nomLongs.
@@ -785,8 +804,6 @@ public final class Util {
     }
     return lgNomLongs;
   }
-
-  //Other checks
 
   /**
    * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0

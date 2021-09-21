@@ -64,7 +64,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(shared.getRetainedEntries(false), u);
 
     byte[]  serArr = shared.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(serArr);
+    WritableMemory mem = WritableMemory.writableWrap(serArr);
     Sketch sk = Sketch.heapify(mem, sl.seed);
     assertTrue(sk instanceof HeapQuickSelectSketch); //Intentional promotion to Parent
 
@@ -112,7 +112,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(local.getEstimate(), u, 0.0);
     assertEquals(shared.getRetainedEntries(false), u);
     byte[] byteArray = shared.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corruped mem
@@ -135,7 +135,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int lgK = 4;
     SharedLocal sl = new SharedLocal(lgK);
     byte[]  serArr = sl.shared.toByteArray();
-    WritableMemory srcMem = WritableMemory.wrap(serArr);
+    WritableMemory srcMem = WritableMemory.writableWrap(serArr);
     srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
     Sketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
@@ -312,7 +312,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
     byte[] memArr2 = new byte[sharedCompBytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);  //allocate mem for compact form
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);  //allocate mem for compact form
 
     comp3 = shared.compact(false,  mem2);  //load the mem2
 
@@ -359,7 +359,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     assertEquals(local.isEstimationMode(), estimating);
 
     byte[] arr2 = new byte[compBytes];
-    WritableMemory mem2 = WritableMemory.wrap(arr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(arr2);
 
     CompactSketch csk2 = shared.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), localEst);
@@ -550,7 +550,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     int bytes = local.getCompactBytes();
     assertEquals(bytes, 8);
     byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
 
     CompactSketch csk2 = shared.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), localEst);
@@ -592,7 +592,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     for (int i = 0; i < k; i++) { sl.local.update(i); }
     waitForBgPropagationToComplete(sl.shared);
     byte[] badArray = sl.shared.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(badArray);
+    WritableMemory mem = WritableMemory.writableWrap(badArray);
     PreambleUtil.insertLgArrLongs(mem, 4); //corrupt
     PreambleUtil.insertThetaLong(mem, Long.MAX_VALUE / 2); //corrupt
     Sketch.heapify(mem);

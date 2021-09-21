@@ -23,7 +23,6 @@ import static org.apache.datasketches.Util.getResourceFile;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 
 import org.apache.datasketches.memory.MapHandle;
@@ -48,7 +47,7 @@ public class CpcCBinariesTest {
       println(PreambleUtil.toString(wmem, true));
       final CpcSketch sk = CpcSketch.heapify(wmem);
       assertEquals(sk.getFlavor(), Flavor.EMPTY);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -74,7 +73,7 @@ public class CpcCBinariesTest {
       for (int i = 0; i < 100; i++) { sk.update(i); }
       final double est2 = sk.getEstimate();
       assertEquals(est2, est1, 0); //assert no change
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -100,7 +99,7 @@ public class CpcCBinariesTest {
       for (long i = 0; i < 200; i++) { sk.update(i); }
       final double est2 = sk.getEstimate();
       assertEquals(est2, est1, 0); //assert no change
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -126,7 +125,7 @@ public class CpcCBinariesTest {
       for (long i = 0; i < 2000; i++) { sk.update(i); }
       final double est2 = sk.getEstimate();
       assertEquals(est2, est1, 0); //assert no change
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -152,7 +151,7 @@ public class CpcCBinariesTest {
       for (long i = 0; i < 20000; i++) { sk.update(i); }
       final double est2 = sk.getEstimate();
       assertEquals(est2, est1, 0);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -174,7 +173,7 @@ public class CpcCBinariesTest {
       final Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -195,7 +194,7 @@ public class CpcCBinariesTest {
       final Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -216,7 +215,7 @@ public class CpcCBinariesTest {
       final Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -237,7 +236,7 @@ public class CpcCBinariesTest {
       final Memory mem2 = Memory.wrap(javaMemByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(cppMemByteArr, javaMemByteArr);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -258,7 +257,7 @@ public class CpcCBinariesTest {
       final Memory mem2 = Memory.wrap(mem2ByteArr);
       assertEquals(mem.getCapacity(), mem2.getCapacity());
       assertEquals(memByteArr, mem2ByteArr);
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }

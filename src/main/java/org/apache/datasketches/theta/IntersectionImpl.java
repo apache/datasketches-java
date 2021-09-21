@@ -363,7 +363,7 @@ class IntersectionImpl extends Intersection {
       wmem_.getByteArray(0, byteArrOut, 0, preBytes + dataBytes);
     }
     else {
-      final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+      final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
 
       //preamble
       memOut.putByte(PREAMBLE_LONGS_BYTE, (byte) CONST_PREAMBLE_LONGS); //RF not used = 0

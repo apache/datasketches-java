@@ -339,7 +339,7 @@ public final class AnotB<S extends Summary> {
     return da;
   }
 
-  @SuppressWarnings({ "unchecked"})
+  @SuppressWarnings("unchecked")
   private static <S extends Summary> DataArrays<S> getResultArraysTuple(
       final long minThetaLong,
       final int countA,
@@ -385,7 +385,7 @@ public final class AnotB<S extends Summary> {
   }
 
 
-  @SuppressWarnings({ "unchecked"})
+  @SuppressWarnings("unchecked")
   private static <S extends Summary> DataArrays<S> getResultArraysTheta(
       final long minThetaLong,
       final int countA,

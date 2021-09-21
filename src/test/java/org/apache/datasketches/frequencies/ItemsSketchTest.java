@@ -346,7 +346,7 @@ public class ItemsSketchTest {
     sk1.update(Long.valueOf(1), 1);
     ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
     byte[] byteArr = sk1.toByteArray(serDe);
-    WritableMemory mem = WritableMemory.wrap(byteArr);
+    WritableMemory mem = WritableMemory.writableWrap(byteArr);
     //FrequentItemsSketch<Long> sk2 = FrequentItemsSketch.getInstance(mem, serDe);
     //println(sk2.toString());
     long pre0 = mem.getLong(0); //The correct first 8 bytes.

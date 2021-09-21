@@ -236,7 +236,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int bytes = shared.getCompactBytes();
     assertEquals(bytes, (k*8) + (Family.COMPACT.getMaxPreLongs() << 3));
     byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
 
     csk = shared.compact(false,  mem2);
     assertEquals(csk.getEstimate(), localEst);
@@ -276,7 +276,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     int bytes = local.getCompactBytes(); //compact form
     assertEquals(bytes, 8);
     byte[] memArr2 = new byte[bytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);
 
     CompactSketch csk2 = shared.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), localEst);
@@ -500,7 +500,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     double est2;
 
     serArr = shared.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(serArr);
+    WritableMemory mem = WritableMemory.writableWrap(serArr);
     UpdateSketch recoveredShared = Sketches.wrapUpdateSketch(mem);
 
     //reconstruct to Native/Direct

@@ -113,7 +113,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     final int preBytes = (preLongs << 3) & 0X3F;
     final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
-    final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+    final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
     final int lgRf = getResizeFactor().lg() & 0x3;

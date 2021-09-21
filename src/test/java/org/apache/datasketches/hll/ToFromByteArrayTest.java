@@ -68,7 +68,7 @@ public class ToFromByteArrayTest {
     //printSketch(dst, "DST");
     assertEquals(dst2.getEstimate(), src.getEstimate(), 0.0);
 
-    WritableMemory mem3 = WritableMemory.wrap(byteArr2);
+    WritableMemory mem3 = WritableMemory.writableWrap(byteArr2);
     HllSketch dst3 = HllSketch.heapify(mem3); //using WritableMemory interface
     //printSketch(dst, "DST");
     assertEquals(dst3.getEstimate(), src.getEstimate(), 0.0);
@@ -91,7 +91,7 @@ public class ToFromByteArrayTest {
   private static void toFrom2(int lgConfigK, TgtHllType tgtHllType, int n) {
     int bytes = HllSketch.getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     byte[] byteArray = new byte[bytes];
-    WritableMemory wmem = WritableMemory.wrap(byteArray);
+    WritableMemory wmem = WritableMemory.writableWrap(byteArray);
     HllSketch src = new HllSketch(lgConfigK, tgtHllType, wmem);
     for (int i = 0; i < n; i++) {
       src.update(i);
@@ -107,7 +107,7 @@ public class ToFromByteArrayTest {
 
     //Heapify updatable
     byte[] updatableByteArr = src.toUpdatableByteArray();
-    WritableMemory wmem2 = WritableMemory.wrap(updatableByteArr);
+    WritableMemory wmem2 = WritableMemory.writableWrap(updatableByteArr);
     HllSketch dst2 = HllSketch.heapify(wmem2); //using Memory interface
     //printSketch(dst2, "Heapify From Updatable");
     assertEquals(dst2.getEstimate(), src.getEstimate(), 0.0);

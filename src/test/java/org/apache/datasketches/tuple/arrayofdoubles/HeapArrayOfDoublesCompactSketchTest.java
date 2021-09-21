@@ -102,7 +102,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
     for (int i = 0; i < 8192; i++) {
       us.update(i, new double[] {1.0});
     }
-    WritableMemory wmem = WritableMemory.wrap(us.toByteArray());
+    WritableMemory wmem = WritableMemory.writableWrap(us.toByteArray());
     ArrayOfDoublesUpdatableSketch wrappedUS = ArrayOfDoublesSketches.wrapUpdatableSketch(wmem);
     Assert.assertFalse(wrappedUS.isEmpty());
     Assert.assertTrue(wrappedUS.isEstimationMode());

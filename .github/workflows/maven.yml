@@ -14,7 +14,14 @@ jobs:
     build:
         name: Build, Test, Coverage
         runs-on: ubuntu-latest
-        
+        strategy:
+          fail-fast: false
+          matrix:
+              jdk: [ 8,9,10,11,12,13 ]
+
+        env:
+          JDK_VERSION: ${{ matrix.jdk }}
+
         steps:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
           uses: actions/checkout@v2
@@ -28,13 +35,24 @@ jobs:
               key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
               restore-keys: build-${{ runner.os }}-maven-
 
-        - name: Install JDK
+        - name: Install Matrix JDK
           uses: AdoptOpenJDK/install-jdk@v1
           with:
-              version: '8'
+              version: ${{ matrix.jdk }}
               architecture: x64
               impl: hotspot
-              targets: 'JDK_8;JAVA_HOME'
+              targets: 'JAVA_HOME'
+
+        - name: Echo Java Version
+          run: >
+              java -version
+
+        - name: Test
+          run: >
+              mvn clean test
+              -Dmaven.javadoc.skip=true
+              -Dgpg.skip=true
+              --toolchains .github/workflows/.toolchains.xml
 
         - name: Install Dependencies
           run: >
@@ -43,9 +61,9 @@ jobs:
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
               --toolchains .github/workflows/.toolchains.xml
-        
-        - name: Test & Report
-          if: ${{ success() }}
+
+        - name: Report
+          if: ${{ matrix.jdk == 8 && success() }}
           run: >
               mvn verify coveralls:report -B -V -q
               -Dcoveralls-repo-token=${repo_token}

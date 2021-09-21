@@ -75,7 +75,7 @@ public class ArrayOfStringsSummary implements UpdatableSummary<String[]> {
     final ComputeBytes cb = new ComputeBytes(nodesArr);
     final int totBytes = cb.totBytes_;
     final byte[] out = new byte[totBytes];
-    final WritableMemory wmem = WritableMemory.wrap(out);
+    final WritableMemory wmem = WritableMemory.writableWrap(out);
     final WritableBuffer wbuf = wmem.asWritableBuffer();
     wbuf.putInt(totBytes);
     wbuf.putByte(cb.numNodes_);

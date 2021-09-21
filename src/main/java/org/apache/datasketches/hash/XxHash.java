@@ -40,12 +40,6 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes
  */
 public class XxHash {
-  // Unsigned, 64-bit primes
-  private static final long P1 = -7046029288634856825L;
-  private static final long P2 = -4417276706812531889L;
-  private static final long P3 =  1609587929392839161L;
-  private static final long P4 = -8796714831421723037L;
-  private static final long P5 =  2870177450012600261L;
 
   /**
    * Compute the hash of the given Memory object.
@@ -67,24 +61,7 @@ public class XxHash {
    * @return the hash
    */
   public static long hash(final long in, final long seed) {
-    long hash = seed + P5;
-    hash += 8;
-    long k1 = in;
-    k1 *= P2;
-    k1 = Long.rotateLeft(k1, 31);
-    k1 *= P1;
-    hash ^= k1;
-    hash = (Long.rotateLeft(hash, 27) * P1) + P4;
-    return finalize(hash);
-  }
-
-  private static long finalize(long hash) {
-    hash ^= hash >>> 33;
-    hash *= P2;
-    hash ^= hash >>> 29;
-    hash *= P3;
-    hash ^= hash >>> 32;
-    return hash;
+    return org.apache.datasketches.memory.XxHash.hashLong(in, seed);
   }
 
 }

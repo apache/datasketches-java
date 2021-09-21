@@ -29,7 +29,7 @@ import static org.testng.Assert.assertTrue;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableDirectHandle;
+import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -39,8 +39,8 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithSketch() {
     final int k = 16;
-    final WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
-    final WritableMemory mem2 = WritableMemory.wrap(new byte[k*8 + 24]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
+    final WritableMemory mem2 = WritableMemory.writableWrap(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) { sketch.update(i); }
     final CompactSketch sketchInDirectOrd = sketch.compact(true, mem);
@@ -57,7 +57,7 @@ public class UnionImplTest {
   @Test
   public void checkUnorderedAndOrderedMemory() {
     final int k = 16;
-    final WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { sketch.update(i); }
     final CompactSketch sketchInDirectOrd = sketch.compact(false, mem);
@@ -76,9 +76,9 @@ public class UnionImplTest {
   @Test
   public void checkUpdateWithMem() {
     final int k = 16;
-    final WritableMemory skMem = WritableMemory.wrap(new byte[2*k*8 + 24]);
-    final WritableMemory dirOrdCskMem = WritableMemory.wrap(new byte[k*8 + 24]);
-    final WritableMemory dirUnordCskMem = WritableMemory.wrap(new byte[k*8 + 24]);
+    final WritableMemory skMem = WritableMemory.writableWrap(new byte[2*k*8 + 24]);
+    final WritableMemory dirOrdCskMem = WritableMemory.writableWrap(new byte[k*8 + 24]);
+    final WritableMemory dirUnordCskMem = WritableMemory.writableWrap(new byte[k*8 + 24]);
     final UpdateSketch udSketch = UpdateSketch.builder().setNominalEntries(k).build(skMem);
     for (int i = 0; i < k; i++) { udSketch.update(i); } //exact
     udSketch.compact(true, dirOrdCskMem);
@@ -96,7 +96,7 @@ public class UnionImplTest {
     final int k = 16;
     final long seed = DEFAULT_UPDATE_SEED;
     final int unionSize = Sketches.getMaxUnionBytes(k);
-    final WritableMemory srcMem = WritableMemory.wrap(new byte[unionSize]);
+    final WritableMemory srcMem = WritableMemory.writableWrap(new byte[unionSize]);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcMem);
     for (int i = 0; i < k; i++) { union.update(i); } //exact
     assertEquals(union.getResult().getEstimate(), k, 0.0);
@@ -110,7 +110,7 @@ public class UnionImplTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkCorruptFamilyException() {
     final int k = 16;
-    final WritableMemory mem = WritableMemory.wrap(new byte[k*8 + 24]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i=0; i<k; i++) {
       sketch.update(i);
@@ -169,13 +169,13 @@ public class UnionImplTest {
     final int k = 1 << 12;
     final int u = 2 * k;
     final int bytes = Sketches.getMaxUpdateSketchBytes(k);
-    try (WritableDirectHandle wdh = WritableMemory.allocateDirect(bytes/2);
-         WritableDirectHandle wdh2 = WritableMemory.allocateDirect(bytes/2) ) {
-      final WritableMemory wmem = wdh.get();
+    try (WritableHandle wh = WritableMemory.allocateDirect(bytes/2);
+        WritableHandle wh2 = WritableMemory.allocateDirect(bytes/2) ) {
+      final WritableMemory wmem = wh.getWritable();
       final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build(wmem);
       assertTrue(sketch.isSameResource(wmem));
 
-      final WritableMemory wmem2 = wdh2.get();
+      final WritableMemory wmem2 = wh2.getWritable();
       final Union union = SetOperation.builder().buildUnion(wmem2);
       assertTrue(union.isSameResource(wmem2));
 
@@ -184,6 +184,8 @@ public class UnionImplTest {
 
       final Union union2 = SetOperation.builder().buildUnion(); //on-heap union
       assertFalse(union2.isSameResource(wmem2));  //obviously not
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -205,13 +207,15 @@ public class UnionImplTest {
     final double est1 = sk.getEstimate();
 
     final int bytes = Sketches.getMaxCompactSketchBytes(sk.getRetainedEntries(true));
-    try (WritableDirectHandle h = WritableMemory.allocateDirect(bytes)) {
-      final WritableMemory wmem = h.get();
+    try (WritableHandle h = WritableMemory.allocateDirect(bytes)) {
+      final WritableMemory wmem = h.getWritable();
       final CompactSketch csk = sk.compact(true, wmem); //ordered, direct
       final Union union = Sketches.setOperationBuilder().buildUnion();
       union.union(csk);
       final double est2 = union.getResult().getEstimate();
       assertEquals(est2, est1);
+    } catch (final Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

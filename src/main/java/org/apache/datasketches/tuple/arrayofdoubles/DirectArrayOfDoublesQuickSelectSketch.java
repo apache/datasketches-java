@@ -171,7 +171,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   public byte[] toByteArray() {
     final int sizeBytes = getSerializedSizeBytes();
     final byte[] byteArray = new byte[sizeBytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     serializeInto(mem);
     return byteArray;
   }

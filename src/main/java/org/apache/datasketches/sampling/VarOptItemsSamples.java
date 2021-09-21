@@ -27,7 +27,7 @@ import java.util.NoSuchElementException;
  * This class provides access to the samples contained in a VarOptItemsSketch. It provides two
  * mechanisms for access:
  * <ul>
- *   <li>An <tt>Iterator</tt> over <tt>WeightedSample</tt> objects which can can be used to
+ *   <li>An <code>Iterator</code> over <code>WeightedSample</code> objects which can can be used to
  *   access both the items and weights in the sample, and which avoids copying data from the
  *   sketch.</li>
  *   <li>Getter methods to obtain items or weights as arrays, or individual items. These
@@ -36,10 +36,10 @@ import java.util.NoSuchElementException;
  * </ul>
  *
  * <p>If using getters with a sketch storing heterogeneous items from a polymorphic base class, you
- * must call <tt>setClass()</tt> prior to calling one of the getter methods. This is not
+ * must call <code>setClass()</code> prior to calling one of the getter methods. This is not
  * necessary if using the iterator.</p>
  *
- * <p>The class also implements <tt>Iterable</tt> to allow the use of forEach loops for
+ * <p>The class also implements <code>Iterable</code> to allow the use of forEach loops for
  * convenience.</p>
  *
  * @param <T> an item of type T
@@ -57,6 +57,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * A convenience class to allow easy iterator access to a VarOpt sample.
    */
+  //@SuppressWarnings("synthetic-access")
   public final class WeightedSample {
     private final int idx_;
     private double adjustedWeight_;
@@ -98,6 +99,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * The standard iterator
    */
+  //@SuppressWarnings("synthetic-access")
   public class VarOptItemsIterator implements Iterator<WeightedSample> {
     int currIdx_;
     int finalIdx_; // inclusive final index
@@ -147,6 +149,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
     }
   }
 
+  //@SuppressWarnings("synthetic-access")
   class WeightCorrectingRRegionIterator extends VarOptItemsIterator {
     private double cumWeight = 0.0;
 
@@ -201,7 +204,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   /**
    * Specifies the class to use when copying the item array from the sketch. This method is
    * required if the sketch stores heterogeneous item types of some base class, for instance a
-   * sketch over <tt>Number</tt>s.
+   * sketch over <code>Number</code>s.
    *
    * @param clazz The class to use when creating the item array result
    */
@@ -238,7 +241,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    * Returns a single item from the samples contained in the sketch. Does not perform bounds
    * checking on the input. If this is the first getter call, copies data arrays from the sketch.
    * @param i An index into the list of samples
-   * @return The sample at array position <tt>i</tt>
+   * @return The sample at array position <code>i</code>
    */
   public T items(final int i) {
     loadArrays();
@@ -259,7 +262,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    * Returns a single weight from the samples contained in the sketch. Does not perform bounds
    * checking on the input. If this is the first getter call, copies data arrays from the sketch.
    * @param i An index into the list of weights
-   * @return The weight at array position <tt>i</tt>
+   * @return The weight at array position <code>i</code>
    */
   public double weights(final int i) {
     loadArrays();

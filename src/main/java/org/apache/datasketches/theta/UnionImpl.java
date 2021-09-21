@@ -260,7 +260,7 @@ final class UnionImpl extends Union {
   @Override
   public byte[] toByteArray() {
     final byte[] gadgetByteArr = gadget_.toByteArray();
-    final WritableMemory mem = WritableMemory.wrap(gadgetByteArr);
+    final WritableMemory mem = WritableMemory.writableWrap(gadgetByteArr);
     insertUnionThetaLong(mem, unionThetaLong_);
     if (gadget_.isEmpty() != unionEmpty_) {
       clearEmpty(mem);

@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.frequencies;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SerDeCompatibilityTest {
@@ -40,7 +39,7 @@ public class SerDeCompatibilityTest {
     sketch1.update(4L);
 
     byte[] bytes = sketch1.toByteArray(serDe);
-    LongsSketch sketch2 = LongsSketch.getInstance(WritableMemory.wrap(bytes));
+    LongsSketch sketch2 = LongsSketch.getInstance(WritableMemory.writableWrap(bytes));
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);
@@ -63,7 +62,7 @@ public class SerDeCompatibilityTest {
     sketch1.update(4L);
 
     byte[] bytes = sketch1.toByteArray();
-    ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(WritableMemory.wrap(bytes), serDe);
+    ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(WritableMemory.writableWrap(bytes), serDe);
     sketch2.update(2L);
     sketch2.update(3L);
     sketch2.update(2L);

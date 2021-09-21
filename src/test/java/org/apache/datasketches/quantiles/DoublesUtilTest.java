@@ -67,7 +67,7 @@ public class DoublesUtilTest {
     DoublesSketchTest.testSketchEquality(huds, target1);
 
     // DirectUpdateDoublesSketch
-    final WritableMemory mem1 = WritableMemory.wrap(huds.toByteArray());
+    final WritableMemory mem1 = WritableMemory.writableWrap(huds.toByteArray());
     final DirectUpdateDoublesSketch duds = (DirectUpdateDoublesSketch) UpdateDoublesSketch.wrap(mem1);
     final HeapUpdateDoublesSketch target2 = DoublesUtil.copyToHeap(duds);
     DoublesSketchTest.testSketchEquality(huds, duds);

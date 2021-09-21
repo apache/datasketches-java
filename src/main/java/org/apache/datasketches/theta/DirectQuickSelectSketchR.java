@@ -172,7 +172,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     checkIllegalCurCountAndEmpty(isEmpty(), extractCurCount(wmem_));
     final int lengthBytes = getCurrentBytes();
     final byte[] byteArray = new byte[lengthBytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     wmem_.copyTo(0, mem, 0, lengthBytes);
     final long thetaLong =
         correctThetaOnCompact(isEmpty(), extractCurCount(wmem_), extractThetaLong(wmem_));
@@ -219,7 +219,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     final long lgArrLongs = wmem_.getByte(LG_ARR_LONGS_BYTE) & 0XFF;
     final int preambleLongs = wmem_.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final long[] cacheArr = new long[1 << lgArrLongs];
-    final WritableMemory mem = WritableMemory.wrap(cacheArr);
+    final WritableMemory mem = WritableMemory.writableWrap(cacheArr);
     wmem_.copyTo(preambleLongs << 3, mem, 0, 8 << lgArrLongs);
     return cacheArr;
   }

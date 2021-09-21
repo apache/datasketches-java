@@ -152,7 +152,7 @@ final class DirectHll4Array extends DirectHllArray {
     final boolean srcMemIsCompact = extractCompactFlag(mem);
     final int totBytes = getCompactSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    final WritableMemory memOut = WritableMemory.writableWrap(byteArr);
     if (srcMemIsCompact) { //mem is already consistent with result
       mem.copyTo(0, memOut, 0, totBytes);
       return byteArr;
@@ -179,7 +179,7 @@ final class DirectHll4Array extends DirectHllArray {
     final boolean memIsCompact = extractCompactFlag(mem);
     final int totBytes = getUpdatableSerializationBytes();
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory memOut = WritableMemory.wrap(byteArr);
+    final WritableMemory memOut = WritableMemory.writableWrap(byteArr);
 
     if (!memIsCompact) { //both mem and target are updatable
       mem.copyTo(0, memOut, 0, totBytes);

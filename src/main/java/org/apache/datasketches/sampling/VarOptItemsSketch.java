@@ -584,7 +584,7 @@ public final class VarOptItemsSketch<T> {
       outBytes = (preLongs << 3) + (h_ * Double.BYTES) + numMarkBytes + itemBytes.length;
     }
     final byte[] outArr = new byte[outBytes];
-    final WritableMemory mem = WritableMemory.wrap(outArr);
+    final WritableMemory mem = WritableMemory.writableWrap(outArr);
 
     // build first preLong
     PreambleUtil.insertPreLongs(mem, preLongs);               // Byte 0

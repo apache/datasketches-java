@@ -20,7 +20,6 @@
 package org.apache.datasketches;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.UnsafeUtil;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -31,8 +30,8 @@ import org.apache.datasketches.memory.WritableMemory;
  * The class keeps the values byte aligned, even though only 3 bits are strictly necessary to
  * encode one of the 6 different primitives with object types that extend Number.</p>
  *
- * <p>Classes handled are: <tt>Long</tt>, <tt>Integer</tt>, <tt>Short</tt>, <tt>Byte</tt>,
- * <tt>Double</tt>, and <tt>Float</tt>.</p>
+ * <p>Classes handled are: <code>Long</code>, <code>Integer</code>, <code>Short</code>,
+ * <code>Byte</code>, <code>Double</code>, and <code>Float</code>.</p>
  *
  * @author Jon Malkin
  */
@@ -68,7 +67,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
       }
     }
     final byte[] bytes = new byte[length];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (final Number item: items) {
       if (item instanceof Long) {
@@ -105,38 +104,38 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
     final Number[] array = new Number[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
-      UnsafeUtil.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
+      Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
       final byte numType = mem.getByte(offsetBytes);
       offsetBytes += Byte.BYTES;
 
       switch (numType) {
         case LONG_INDICATOR:
-          UnsafeUtil.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
+          Util.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
           array[i] = mem.getLong(offsetBytes);
           offsetBytes += Long.BYTES;
           break;
         case INTEGER_INDICATOR:
-          UnsafeUtil.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
+          Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
           array[i] = mem.getInt(offsetBytes);
           offsetBytes += Integer.BYTES;
           break;
         case SHORT_INDICATOR:
-          UnsafeUtil.checkBounds(offsetBytes, Short.BYTES, mem.getCapacity());
+          Util.checkBounds(offsetBytes, Short.BYTES, mem.getCapacity());
           array[i] = mem.getShort(offsetBytes);
           offsetBytes += Short.BYTES;
           break;
         case BYTE_INDICATOR:
-          UnsafeUtil.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
+          Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
           array[i] = mem.getByte(offsetBytes);
           offsetBytes += Byte.BYTES;
           break;
         case DOUBLE_INDICATOR:
-          UnsafeUtil.checkBounds(offsetBytes, Double.BYTES, mem.getCapacity());
+          Util.checkBounds(offsetBytes, Double.BYTES, mem.getCapacity());
           array[i] = mem.getDouble(offsetBytes);
           offsetBytes += Double.BYTES;
           break;
         case FLOAT_INDICATOR:
-          UnsafeUtil.checkBounds(offsetBytes, Float.BYTES, mem.getCapacity());
+          Util.checkBounds(offsetBytes, Float.BYTES, mem.getCapacity());
           array[i] = mem.getFloat(offsetBytes);
           offsetBytes += Float.BYTES;
           break;

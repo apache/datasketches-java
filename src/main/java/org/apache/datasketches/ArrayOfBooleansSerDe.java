@@ -20,7 +20,6 @@
 package org.apache.datasketches;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.UnsafeUtil;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -44,7 +43,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   public byte[] serializeToByteArray(final Boolean[] items) {
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
-    final WritableMemory mem = WritableMemory.wrap(bytes);
+    final WritableMemory mem = WritableMemory.writableWrap(bytes);
 
     byte val = 0;
     for (int i = 0; i < items.length; ++i) {
@@ -69,7 +68,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   @Override
   public Boolean[] deserializeFromMemory(final Memory mem, final int length) {
     final int numBytes = computeBytesNeeded(length);
-    UnsafeUtil.checkBounds(0, numBytes, mem.getCapacity());
+    Util.checkBounds(0, numBytes, mem.getCapacity());
     final Boolean[] array = new Boolean[length];
 
     byte srcVal = 0;

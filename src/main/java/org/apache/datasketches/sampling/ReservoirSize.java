@@ -65,7 +65,7 @@ final class ReservoirSize {
 
   /**
    * Given target reservoir size k, computes the smallest representable reservoir size that can
-   * hold k entries and returns it in a 16-bit fixed-point format as a <tt>short</tt>.
+   * hold k entries and returns it in a 16-bit fixed-point format as a <code>short</code>.
    *
    * @param k target reservoir size
    * @return reservoir size as 16-bit encoded value
@@ -104,7 +104,7 @@ final class ReservoirSize {
    * Decodes the 16-bit reservoir size value into an int.
    *
    * @param encodedSize Encoded 16-bit value
-   * @return int represented by <tt>encodedSize</tt>
+   * @return int represented by <code>encodedSize</code>
    */
   public static int decodeValue(final short encodedSize) {
     final int value = encodedSize & 0xFFFF;

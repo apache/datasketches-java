@@ -70,7 +70,6 @@ public class UtilTest {
     checkIfPowerOf2(31, "31");
   }
 
-
   @Test
   public void numTrailingOnes() {
     long mask = 1L;
@@ -86,6 +85,11 @@ public class UtilTest {
     }
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkBoundsTest() {
+    Util.checkBounds(999, 2, 1000);
+  }
+  
   @Test
   public void checkIsPowerOf2() {
     Assert.assertEquals(isPowerOf2(0), false);

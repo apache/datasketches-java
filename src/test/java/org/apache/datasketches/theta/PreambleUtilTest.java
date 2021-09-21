@@ -74,7 +74,7 @@ public class PreambleUtilTest {
     final int u = 2*k;
     final int bytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
     final byte[] byteArray = new byte[bytes];
-    final WritableMemory mem = WritableMemory.wrap(byteArray);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
 
     final UpdateSketch quick1 = UpdateSketch.builder().setNominalEntries(k).build(mem);
     println(Sketch.toString(byteArray));
@@ -91,7 +91,7 @@ public class PreambleUtilTest {
     println(quick1.toString());
     println(PreambleUtil.preambleToString(mem));
 
-    final WritableMemory uMem = WritableMemory.wrap(new byte[getMaxUnionBytes(k)]);
+    final WritableMemory uMem = WritableMemory.writableWrap(new byte[getMaxUnionBytes(k)]);
     final Union union = SetOperation.builder().setNominalEntries(k).buildUnion(uMem);
     union.union(quick1);
     println(PreambleUtil.preambleToString(uMem));
@@ -157,7 +157,7 @@ public class PreambleUtilTest {
   @Test
   public void checkInsertsAndExtracts() {
     final byte[] arr = new byte[32];
-    final WritableMemory wmem = WritableMemory.wrap(arr);
+    final WritableMemory wmem = WritableMemory.writableWrap(arr);
 
     int v = 0;
     insertPreLongs(wmem, ++v);

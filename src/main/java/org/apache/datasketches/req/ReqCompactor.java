@@ -297,7 +297,7 @@ class ReqCompactor {
   byte[] toByteArray() {
     final int bytes = getSerializationBytes();
     final byte[] arr = new byte[bytes];
-    final WritableBuffer wbuf = WritableMemory.wrap(arr).asWritableBuffer();
+    final WritableBuffer wbuf = WritableMemory.writableWrap(arr).asWritableBuffer();
     wbuf.putLong(state);
     wbuf.putFloat(sectionSizeFlt);
     wbuf.putByte(lgWeight);

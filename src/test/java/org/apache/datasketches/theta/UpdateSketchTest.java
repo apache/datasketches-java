@@ -158,7 +158,7 @@ public class UpdateSketchTest {
   public void checkIncompatibleFamily() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    WritableMemory wmem = WritableMemory.wrap(sk.compact().toByteArray());
+    WritableMemory wmem = WritableMemory.writableWrap(sk.compact().toByteArray());
     UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
   }
 
@@ -166,7 +166,7 @@ public class UpdateSketchTest {
   public void checkCorruption() {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
-    WritableMemory wmem = WritableMemory.wrap(sk.toByteArray());
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     try {
       wmem.putByte(SER_VER_BYTE, (byte) 2);
       UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
@@ -212,7 +212,7 @@ public class UpdateSketchTest {
     for (int i = 2; i < n; i++) { sk.update(i); }
     int cbytes = sk.getCompactBytes();
     byte[] byteArr = sk.toByteArray();
-    skwmem = WritableMemory.wrap(byteArr);
+    skwmem = WritableMemory.writableWrap(byteArr);
     cskwmem1 = WritableMemory.allocate(cbytes);
     cskwmem2 = WritableMemory.allocate(cbytes);
     cskwmem3 = WritableMemory.allocate(cbytes);

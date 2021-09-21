@@ -65,7 +65,7 @@ public class DirectCompactDoublesSketchTest {
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
-    final WritableMemory dstMem = WritableMemory.wrap(new byte[qs.getCompactStorageBytes()]);
+    final WritableMemory dstMem = WritableMemory.writableWrap(new byte[qs.getCompactStorageBytes()]);
     final DirectCompactDoublesSketch compactQs
             = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
 
@@ -153,7 +153,7 @@ public class DirectCompactDoublesSketchTest {
       qs.update(startV + i);
     }
     final byte[] byteArr = new byte[qs.getCompactStorageBytes()];
-    final WritableMemory mem = WritableMemory.wrap(byteArr);
+    final WritableMemory mem = WritableMemory.writableWrap(byteArr);
     return (DirectCompactDoublesSketch) qs.compact(mem);
   }
 

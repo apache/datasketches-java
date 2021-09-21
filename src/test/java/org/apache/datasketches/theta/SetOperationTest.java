@@ -133,7 +133,7 @@ public class SetOperationTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderAnotB_noMem() {
-    final WritableMemory mem = WritableMemory.wrap(new byte[64]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[64]);
     SetOperation.builder().build(Family.A_NOT_B, mem);
   }
 
@@ -198,7 +198,7 @@ public class SetOperationTest {
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
-    final WritableMemory wmem = WritableMemory.wrap(usk1.toByteArray());
+    final WritableMemory wmem = WritableMemory.writableWrap(usk1.toByteArray());
     PreambleUtil.insertSerVer(wmem, 2); //corrupt
     final Memory mem = wmem;
     SetOperation.wrap(mem);
@@ -211,7 +211,7 @@ public class SetOperationTest {
     for (int i=0; i<k; i++) {
       usk1.update(i); //64
     }
-    final WritableMemory wmem = WritableMemory.wrap(usk1.toByteArray());
+    final WritableMemory wmem = WritableMemory.writableWrap(usk1.toByteArray());
     SetOperation.wrap(wmem);
   }
 
@@ -260,7 +260,7 @@ public class SetOperationTest {
     // However, if you had created this WM object directly in raw, off-heap "native" memory
     // you would have the responsibility to close it when you are done.
     // But, since it was allocated via BB, it closes it for you.
-    final WritableMemory heapMem = WritableMemory.wrap(heapBuf);
+    final WritableMemory heapMem = WritableMemory.writableWrap(heapBuf);
 
     double result = directUnionTrial1(heapMem, heapLayout, sketchNomEntries, unionNomEntries);
     println("1st est: "+result);
@@ -318,7 +318,7 @@ public class SetOperationTest {
   @Test
   public void checkIsSameResource() {
     final int k = 16;
-    final WritableMemory wmem = WritableMemory.wrap(new byte[k*16 + 32]);
+    final WritableMemory wmem = WritableMemory.writableWrap(new byte[k*16 + 32]);
     final Memory roCompactMem = Memory.wrap(new byte[8]);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(wmem);
     assertTrue(union.isSameResource(wmem));

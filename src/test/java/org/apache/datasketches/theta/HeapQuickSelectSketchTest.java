@@ -73,7 +73,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(sk1.getRetainedEntries(false), u);
 
     byte[] byteArray = usk.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(SER_VER_BYTE, (byte) 0); //corrupt the SerVer byte
 
     Sketch.heapify(mem, seed);
@@ -96,7 +96,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(usk.getEstimate(), u, 0.0);
     assertEquals(sk1.getRetainedEntries(false), u);
     byte[] byteArray = usk.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(byteArray);
+    WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to heapify the corruped mem
@@ -117,7 +117,7 @@ public class HeapQuickSelectSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyCorruptLgNomLongs() {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(16).build();
-    WritableMemory srcMem = WritableMemory.wrap(usk.toByteArray());
+    WritableMemory srcMem = WritableMemory.writableWrap(usk.toByteArray());
     srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
     Sketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
@@ -264,7 +264,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
     byte[] memArr2 = new byte[uskCompBytes];
-    WritableMemory mem2 = WritableMemory.wrap(memArr2);  //allocate mem for compact form
+    WritableMemory mem2 = WritableMemory.writableWrap(memArr2);  //allocate mem for compact form
 
     comp3 = usk.compact(false,  mem2);  //load the mem2
 
@@ -310,7 +310,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(usk.isEstimationMode(), estimating);
 
     byte[] arr2 = new byte[compBytes];
-    WritableMemory mem2 = WritableMemory.wrap(arr2);
+    WritableMemory mem2 = WritableMemory.writableWrap(arr2);
 
     CompactSketch csk2 = usk.compact(false,  mem2);
     assertEquals(csk2.getEstimate(), uskEst);
@@ -558,7 +558,7 @@ public class HeapQuickSelectSketchTest {
     UpdateSketch s1 = Sketches.updateSketchBuilder().setNominalEntries(k).build();
     for (int i = 0; i < k; i++) { s1.update(i); }
     byte[] badArray = s1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(badArray);
+    WritableMemory mem = WritableMemory.writableWrap(badArray);
     PreambleUtil.insertLgArrLongs(mem, 4);
     PreambleUtil.insertThetaLong(mem, Long.MAX_VALUE / 2);
     Sketch.heapify(mem);
@@ -576,7 +576,7 @@ public class HeapQuickSelectSketchTest {
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(QUICKSELECT).setNominalEntries(k).build();
     sk1.update(1L); //forces preLongs to 3
     byte[] bytearray1 = sk1.toByteArray();
-    WritableMemory mem = WritableMemory.wrap(bytearray1);
+    WritableMemory mem = WritableMemory.writableWrap(bytearray1);
     long pre0 = mem.getLong(0);
 
     tryBadMem(mem, PREAMBLE_LONGS_BYTE, 2); //Corrupt PreLongs
@@ -604,7 +604,7 @@ public class HeapQuickSelectSketchTest {
     }
     mem.putLong(THETA_LONG, origThetaLong); //restore theta
     byte[] byteArray2 = new byte[bytearray1.length -1];
-    WritableMemory mem2 = WritableMemory.wrap(byteArray2);
+    WritableMemory mem2 = WritableMemory.writableWrap(byteArray2);
     mem.copyTo(0, mem2, 0, mem2.getCapacity());
     try {
       HeapQuickSelectSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);

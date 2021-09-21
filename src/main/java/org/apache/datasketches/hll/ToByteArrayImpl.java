@@ -68,7 +68,7 @@ class ToByteArrayImpl {
     }
     final int totBytes = HLL_BYTE_ARR_START + impl.getHllByteArrBytes() + auxBytes;
     final byte[] byteArr = new byte[totBytes];
-    final WritableMemory wmem = WritableMemory.wrap(byteArr);
+    final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     insertHll(impl, wmem, compact);
     return byteArr;
   }
@@ -146,7 +146,7 @@ class ToByteArrayImpl {
         final int dataStart = impl.getMemDataStart();
         final int bytesOut = dataStart + (srcCouponArrInts << 2);
         byteArrOut = new byte[bytesOut];
-        final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+        final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
         copyCommonListAndSet(impl, memOut);
         insertCompactFlag(memOut, dstCompact);
 
@@ -174,7 +174,7 @@ class ToByteArrayImpl {
         final int dataStart = impl.getMemDataStart();
         final int bytesOut = dataStart + (srcCouponCount << 2);
         byteArrOut = new byte[bytesOut];
-        final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+        final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
         copyCommonListAndSet(impl, memOut);
         insertCompactFlag(memOut, dstCompact);
 
@@ -201,7 +201,7 @@ class ToByteArrayImpl {
         final int dataStart = impl.getMemDataStart();
         final int bytesOut = dataStart + (srcCouponCount << 2);
         byteArrOut = new byte[bytesOut];
-        final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+        final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
         copyCommonListAndSet(impl, memOut);
         insertCompactFlag(memOut, dstCompact);
 
@@ -221,7 +221,7 @@ class ToByteArrayImpl {
         final int dataStart = impl.getMemDataStart();
         final int bytesOut = dataStart + (srcCouponArrInts << 2);
         byteArrOut = new byte[bytesOut];
-        final WritableMemory memOut = WritableMemory.wrap(byteArrOut);
+        final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
         copyCommonListAndSet(impl, memOut);
 
         memOut.putIntArray(dataStart, impl.getCouponIntArr(), 0, srcCouponArrInts);

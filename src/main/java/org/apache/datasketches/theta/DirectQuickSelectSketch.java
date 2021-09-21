@@ -296,7 +296,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
           memReqSvr_ = (memReqSvr_ == null) ? wmem_.getMemoryRequestServer() : memReqSvr_;
 
-          final WritableMemory newDstMem = memReqSvr_.request(reqBytes);
+          final WritableMemory newDstMem = memReqSvr_.request(wmem_,reqBytes);
 
           moveAndResize(wmem_, preambleLongs, lgArrLongs, newDstMem, tgtLgArrLongs, thetaLong);
 
