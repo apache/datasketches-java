@@ -48,7 +48,7 @@ abstract class BaseHllSketch {
   public abstract int getCompactSerializationBytes();
 
   /**
-   * This is less accurate than the {@link #getEstimate()} method and is automatically used
+   * This is less accurate than the <i>getEstimate()</i> method and is automatically used
    * when the sketch has gone through union operations where the more accurate HIP estimator
    * cannot be used.
    * This is made public only for error characterization software that exists in separate
@@ -361,7 +361,7 @@ abstract class BaseHllSketch {
    * Present the given char array as a potential unique item.
    * If the char array is null or empty no update attempt is made and the method returns.
    *
-   * <p>Note: this will not produce the same output hash values as the {@link #update(String)}
+   * <p>Note: this will not produce the same output hash values as the <i>update(String)</i>
    * method but will be a little faster as it avoids the complexity of the UTF8 encoding.</p>
    *
    * @param data The given char array.

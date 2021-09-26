@@ -24,21 +24,14 @@ import org.apache.datasketches.memory.Memory;
 /**
  * The XxHash is a fast, non-cryptographic, 64-bit hash function that has
  * excellent avalanche and 2-way bit independence properties.
- * This java version used the C++ version and the OpenHFT/Zero-Allocation-Hashing implementation
- * referenced below as inspiration.
- *
- * <p>The C++ source repository:
- * <a href="https://github.com/Cyan4973/xxHash">
- * https://github.com/Cyan4973/xxHash</a>. It has a BSD 2-Clause License:
- * <a href="http://www.opensource.org/licenses/bsd-license.php">
- * http://www.opensource.org/licenses/bsd-license.php</a>   See LICENSE.
- *
- * <p>Portions of this code were adapted from
- * <a href="https://github.com/OpenHFT/Zero-Allocation-Hashing/blob/master/src/main/java/net/openhft/hashing/XxHash.java">
- * OpenHFT/Zero-Allocation-Hashing</a>, which has an Apache 2 license as does this site. See LICENSE.
+ *  
+ * <p>This class wraps the   
+ * <a href="https://github.com/apache/datasketches-memory/blob/master/datasketches-memory-java8/src/main/java/org/apache/datasketches/memory/XxHash.java">Memory Component XxHash</a>
+ * implementation.
  *
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class XxHash {
 
   /**

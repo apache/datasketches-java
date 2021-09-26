@@ -88,7 +88,7 @@ public class ReqSketchBuilder {
 
   /**
    * This sets the parameter highRankAccuracy.
-   * @param hra See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
+   * @param hra See  <i>ReqSketch#ReqSketch(int, boolean, ReqDebug)</i>
    * @return this
    */
   public ReqSketchBuilder setHighRankAccuracy(final boolean hra) {
@@ -98,7 +98,7 @@ public class ReqSketchBuilder {
 
   /**
    * This sets the parameter k.
-   * @param k See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
+   * @param k See <i>ReqSketch#ReqSketch(int, boolean, ReqDebug)</i>
    * @return this
    */
   public ReqSketchBuilder setK(final int k) {
@@ -119,7 +119,7 @@ public class ReqSketchBuilder {
 
   /**
    * This sets the parameter reqDebug.
-   * @param reqDebug See {@link ReqSketch#ReqSketch(int, boolean, ReqDebug)}
+   * @param reqDebug See <i>ReqSketch#ReqSketch(int, boolean, ReqDebug)</i>
    * @return this
    */
   public ReqSketchBuilder setReqDebug(final ReqDebug reqDebug) {

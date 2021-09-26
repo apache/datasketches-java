@@ -163,15 +163,7 @@ under the License.
       <artifactId>datasketches-memory</artifactId>
       <version>${datasketches-memory.version}</version>
     </dependency>
-    <!-- Test Scope -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j-simple.version}</version>
-      <scope>test</scope>
-    </dependency>
     <!-- END: UNIQUE FOR THIS JAVA COMPONENT -->
-
     <!-- Test Scope -->
     <dependency>
       <groupId>org.testng</groupId>

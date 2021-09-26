@@ -32,7 +32,7 @@ abstract class BaseReqSketch {
    * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
    *
    * <p>The resulting approximations have a probabilistic guarantee that be obtained, a priori,
-   * from the {@link #getRSE(int, double, boolean, long)} function.
+   * from the <i>getRSE(int, double, boolean, long)</i> function.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
@@ -94,7 +94,7 @@ abstract class BaseReqSketch {
    * given a set of splitPoints (values).
    *
    * <p>The resulting approximations have a probabilistic guarantee that be obtained, a priori,
-   * from the {@link #getRSE(int, double, boolean, long)} function.
+   * from the <i>getRSE(int, double, boolean, long)</i> function.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
@@ -124,7 +124,7 @@ abstract class BaseReqSketch {
    * Gets an array of quantiles that correspond to the given array of normalized ranks.
    * @param normRanks the given array of normalized ranks.
    * @return the array of quantiles that correspond to the given array of normalized ranks.
-   * @see #getQuantile(double)
+   * See <i>getQuantile(double)</i>
    */
   public abstract float[] getQuantiles(final double[] normRanks);
 
@@ -149,7 +149,7 @@ abstract class BaseReqSketch {
    * Gets an array of normalized ranks that correspond to the given array of values.
    * @param values the given array of values.
    * @return the  array of normalized ranks that correspond to the given array of values.
-   * @see #getRank(float)
+   * See <i>getRank(float)</i>
    */
   public abstract double[] getRanks(final float[] values);
 
@@ -218,7 +218,7 @@ abstract class BaseReqSketch {
    *
    * @param ltEq (Less-than-or Equals) If true, the sketch will use the &le; criterion for comparing
    * values.  Otherwise, the criterion is strictly &lt;, the default.
-   * This can be set anytime prior to a {@link #getRank(float)} or {@link #getQuantile(double)} or
+   * This can be set anytime prior to a <i>getRank(float)</i> or <i>getQuantile(double)</i> or
    * equivalent query.
    * @return this
    */
