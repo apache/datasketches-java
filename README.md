@@ -40,12 +40,17 @@ If you are interested in making contributions to this site please see our [Commu
 ---
 
 ## Build Instructions
-__NOTE:__ This component is temporarily broken until the new version of Memory is released.  Please use the formal release 1.3.0 obtained from [Downloads](https://datasketches.apache.org/docs/Community/Downloads.html)
-
 __NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements. This is required by the Oracle Java Specification in order to ensure location-independent access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
 
-### JDK8/Hotspot is required to compile
-This DataSketches component is pure Java and you must compile using JDK 8 with Hotspot.
+### A JDK8 with Hotspot through JDK13 with Hotspot is required to compile
+This component depends on the [datasketches-memory](https://github.com/apache/datasketches-memory) component, 
+and, as a result, must be compiled with one of the above JDKs. 
+If your application only relies on the APIs of this component no special JVM arguments are required.
+However, if your application also directly relies on the APIs of the *datasketches-memory* component, 
+you may need additional JVM arguments. Please refer to the 
+[datasketches-memory README](https://github.com/apache/datasketches-memory/blob/master/README.md) for details.
+You can also use the *pom.xml* of this component as an example of how to configure the build of your application 
+to automatically set the JVM arguments based on the version of the JDK.
 
 ### Recommended Build Tool
 This DataSketches component is structured as a Maven project and Maven is the recommended Build Tool.
