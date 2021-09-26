@@ -71,6 +71,7 @@ final class Util {
    * @param sketch1 Input DoubleSketch 1
    * @param sketch2 Input DoubleSketch 2
    * @return the raw delta area between two quantile sketches
+   * @deprecated 2.0.0 See class <i>KolmogorovSmirnov</i>
    */
   @Deprecated
   public static double computeKSDelta(final DoublesSketch sketch1, final DoublesSketch sketch2) {
@@ -87,6 +88,7 @@ final class Util {
    * @param sketch2 Input DoubleSketch 2
    * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
    * @return the adjusted threshold to be compared with the raw delta area.
+   * @deprecated 2.0.0 See class <i>KolmogorovSmirnov</i>
    */
   @Deprecated
   public static double computeKSThreshold(final DoublesSketch sketch1,
@@ -104,6 +106,7 @@ final class Util {
    * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
    * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
    * reflect the same underlying distribution) using the provided tgtPValue.
+   * @deprecated 2.0.0 See class <i>KolmogorovSmirnov</i>
    */
   @Deprecated
   public static boolean kolmogorovSmirnovTest(final DoublesSketch sketch1,
