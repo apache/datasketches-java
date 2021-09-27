@@ -75,6 +75,11 @@ under the License.
     <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
     <Class name="org.apache.datasketches.theta.UpdateSketchBuilder" />
   </Match>
+
+  <Match> <!-- Too many False Positives -->
+    <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
+    
+  </Match>  
   
 </FindBugsFilter>
 

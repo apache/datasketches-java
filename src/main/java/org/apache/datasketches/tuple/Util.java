@@ -24,7 +24,8 @@ import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
-import static org.apache.datasketches.memory.XxHash.*;
+import static org.apache.datasketches.memory.XxHash.hashCharArr;
+import static org.apache.datasketches.memory.XxHash.hashString;
 
 import org.apache.datasketches.SketchesArgumentException;
 
