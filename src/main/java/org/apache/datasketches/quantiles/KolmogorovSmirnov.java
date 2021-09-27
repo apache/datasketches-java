@@ -58,7 +58,7 @@ final class KolmogorovSmirnov {
       } else if (qSamplesArr[j] < pSamplesArr[i]) {
         j++;
       } else {
-    	i++;
+        i++;
         j++;
       }
     }

@@ -84,7 +84,6 @@ under the License.
   <properties>
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
     <datasketches-memory.version>2.0.0</datasketches-memory.version>
-    <slf4j-simple.version>1.7.32</slf4j-simple.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
     <!-- Test -->

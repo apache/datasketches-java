@@ -25,9 +25,9 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 
-import org.apache.datasketches.memory.Memory;
-
 import java.nio.ByteBuffer;
+
+import org.apache.datasketches.memory.Memory;
 
 /**
  * Although this class is package-private, it provides a single place to define and document
@@ -334,10 +334,10 @@ abstract class BaseHllSketch {
    * Bytes are read from the current position of the buffer until its limit.
    * If the byte buffer is null or has no bytes remaining, no update attempt is made and the method returns.
    *
-   * This method will not modify the position, mark, limit, or byte order of the buffer.
+   * <p>This method will not modify the position, mark, limit, or byte order of the buffer.</p>
    *
-   * Little-endian order is preferred, but not required. This method may perform better if the provided byte
-   * buffer is in little-endian order.
+   * <p>Little-endian order is preferred, but not required. This method may perform better if the provided byte
+   * buffer is in little-endian order.</p>
    *
    * @param data The given byte buffer.
    */

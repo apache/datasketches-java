@@ -200,7 +200,7 @@ under the License.
     </module>
     
     <module name="JavadocMethod">
-      <property name="scope" value="public"/>
+      <property name="accessModifiers" value="public"/>
       <property name="allowMissingParamTags" value="false"/> <!-- default -->
       <property name="allowMissingReturnTag" value="false"/> <!-- default -->
       <property name="allowedAnnotations" value="Override, Test"/>
@@ -240,7 +240,7 @@ under the License.
     </module>
     
     <module name="CommentsIndentation">
-      <property name="severity" value="warning"/>
+      <property name="severity" value="ignore"/>
       <!-- <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/> -->
     </module>
     

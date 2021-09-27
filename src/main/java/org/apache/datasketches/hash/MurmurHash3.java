@@ -321,7 +321,7 @@ public final class MurmurHash3 implements Serializable {
     final int pos = buf.position();
     final int rem = buf.remaining();
     checkPositive(rem);
-    Memory mem = Memory.wrap(buf, ByteOrder.LITTLE_ENDIAN).region(pos, rem);
+    final Memory mem = Memory.wrap(buf, ByteOrder.LITTLE_ENDIAN).region(pos, rem);
     return hash(mem, seed);
   }
 
@@ -343,7 +343,7 @@ public final class MurmurHash3 implements Serializable {
     final long lengthBytes = mem.getCapacity();
     checkPositive(lengthBytes);
 
-    Memory memLE = mem.getTypeByteOrder() == ByteOrder.LITTLE_ENDIAN
+    final Memory memLE = mem.getTypeByteOrder() == ByteOrder.LITTLE_ENDIAN
         ? mem : mem.region(0, lengthBytes, ByteOrder.LITTLE_ENDIAN);
 
     final HashState hashState = new HashState(seed, seed);
@@ -548,7 +548,7 @@ public final class MurmurHash3 implements Serializable {
     return out;
   }
 
-  private static void checkPositive(long size) {
+  private static void checkPositive(final long size) {
     if (size <= 0) {
       throw new SketchesArgumentException("Array size must not be negative or zero: " + size);
     }

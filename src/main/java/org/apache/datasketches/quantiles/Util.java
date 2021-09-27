@@ -94,7 +94,7 @@ final class Util {
   public static double computeKSThreshold(final DoublesSketch sketch1,
                                            final DoublesSketch sketch2,
                                            final double tgtPvalue) {
-	  return KolmogorovSmirnov.computeKSThreshold(sketch1, sketch2, tgtPvalue);
+    return KolmogorovSmirnov.computeKSThreshold(sketch1, sketch2, tgtPvalue);
   }
 
   /**
@@ -111,7 +111,7 @@ final class Util {
   @Deprecated
   public static boolean kolmogorovSmirnovTest(final DoublesSketch sketch1,
       final DoublesSketch sketch2, final double tgtPvalue) {
-	  return KolmogorovSmirnov.kolmogorovSmirnovTest(sketch1, sketch2, tgtPvalue);
+    return KolmogorovSmirnov.kolmogorovSmirnovTest(sketch1, sketch2, tgtPvalue);
   }
 
   /**

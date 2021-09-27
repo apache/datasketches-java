@@ -31,8 +31,6 @@ import java.util.Random;
  */
 class KllHelper {
 
-  private static final Random random = new Random();
-
   static boolean isEven(final int value) {
     return (value & 1) == 0;
   }
@@ -101,8 +99,8 @@ class KllHelper {
   /**
    * Computes the actual capacity of a given level given its depth index.
    * If the depth of levels exceeds 30, this uses a folding technique to accurately compute the
-   * actual leval capacity upto a depth of 60. Without folding, the internal calculations would
-   * excceed the capacity of a long.
+   * actual level capacity up to a depth of 60. Without folding, the internal calculations would
+   * exceed the capacity of a long.
    * @param k the configured k of the sketch
    * @param depth the zero-based index of the level being computed.
    * @return the actual capacity of a given level given its depth index.
@@ -218,7 +216,8 @@ class KllHelper {
       final int[] inLevels,
       final float[] outBuf,
       final int[] outLevels,
-      final boolean isLevelZeroSorted) {
+      final boolean isLevelZeroSorted,
+      final Random random) {
     assert numLevelsIn > 0; // things are too weird if zero levels are allowed
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
@@ -269,9 +268,9 @@ class KllHelper {
         }
 
         if (popAbove == 0) { // Level above is empty, so halve up
-          randomlyHalveUp(inBuf, adjBeg, adjPop);
+          randomlyHalveUp(inBuf, adjBeg, adjPop, random);
         } else { // Level above is nonempty, so halve down, then merge up
-          randomlyHalveDown(inBuf, adjBeg, adjPop);
+          randomlyHalveDown(inBuf, adjBeg, adjPop, random);
           mergeSortedArrays(inBuf, adjBeg, halfAdjPop, inBuf, rawLim, popAbove, inBuf, adjBeg + halfAdjPop);
         }
 
@@ -301,7 +300,7 @@ class KllHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  static void randomlyHalveDown(final float[] buf, final int start, final int length) {
+  static void randomlyHalveDown(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);
@@ -313,7 +312,7 @@ class KllHelper {
     }
   }
 
-  static void randomlyHalveUp(final float[] buf, final int start, final int length) {
+  static void randomlyHalveUp(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);

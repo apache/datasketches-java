@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 public class BinarySearchTest {
   static Random rand = new Random(1);
   private static final String LS = System.getProperty("line.separator");
+
   private static int randDelta() { return rand.nextDouble() < 0.4 ? 0 : 1; }
 
   private static float[] buildRandFloatArr(final int len) {

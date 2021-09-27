@@ -29,6 +29,7 @@ import static java.lang.Math.pow;
 import static java.lang.Math.round;
 
 import java.util.Arrays;
+import java.util.Random;
 
 import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.Family;
@@ -249,7 +250,8 @@ public class KllFloatsSketch {
   private float minValue_;
   private float maxValue_;
   private final boolean compatible; //compatible with quantiles sketch
-
+  private static final Random random = new Random();
+  
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
    */
@@ -1030,9 +1032,9 @@ public class KllFloatsSketch {
       Arrays.sort(items_, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
-      KllHelper.randomlyHalveUp(items_, adjBeg, adjPop);
+      KllHelper.randomlyHalveUp(items_, adjBeg, adjPop, random);
     } else {
-      KllHelper.randomlyHalveDown(items_, adjBeg, adjPop);
+      KllHelper.randomlyHalveDown(items_, adjBeg, adjPop, random);
       KllHelper.mergeSortedArrays(items_, adjBeg, halfAdjPop, items_, rawLim, popAbove,
           items_, adjBeg + halfAdjPop);
     }
@@ -1123,7 +1125,7 @@ public class KllFloatsSketch {
 
     // notice that workbuf is being used as both the input and output here
     final int[] result = KllHelper.generalCompress(k_, m_, provisionalNumLevels, workbuf,
-        worklevels, workbuf, outlevels, isLevelZeroSorted_);
+        worklevels, workbuf, outlevels, isLevelZeroSorted_, random);
     final int finalNumLevels = result[0];
     final int finalCapacity = result[1];
     final int finalPop = result[2];
