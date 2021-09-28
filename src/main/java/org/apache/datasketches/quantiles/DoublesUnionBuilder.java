@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -78,59 +77,6 @@ public class DoublesUnionBuilder {
    */
   public DoublesUnion build(final WritableMemory dstMem) {
     return DoublesUnionImpl.directInstance(bMaxK, dstMem);
-  }
-
-  /**
-   * Returns a Heap Union object that has been initialized with the data from the given sketch.
-   * @param sketch A DoublesSketch to be used as a source of data only and will not be modified.
-   * @return a DoublesUnion object
-   * @deprecated v2.0.0. Moved to DoublesUnion
-   */
-  @Deprecated
-  public static DoublesUnion heapify(final DoublesSketch sketch) {
-    return DoublesUnionImpl.heapifyInstance(sketch);
-  }
-
-  /**
-   * Returns a Heap Union object that has been initialized with the data from the given memory
-   * image of a sketch.
-   *
-   * @param srcMem A memory image of a DoublesSketch to be used as a source of data,
-   * but will not be modified.
-   * @return a Union object
-   * @deprecated v2.0.0. Moved to DoublesUnion
-   */
-  @Deprecated
-  public static DoublesUnion heapify(final Memory srcMem) {
-    return DoublesUnionImpl.heapifyInstance(srcMem);
-  }
-
-  /**
-   * Returns a read-only Union object that wraps off-heap data of the given memory image of
-   * a sketch. The data structures of the Union remain off-heap.
-   *
-   * @param mem A memory region to be used as the data structure for the sketch
-   * and will be modified.
-   * @return a Union object
-   * @deprecated v2.0.0. Moved to DoublesUnion
-   */
-  @Deprecated
-  public static DoublesUnion wrap(final Memory mem) {
-    return DoublesUnionImplR.wrapInstance(mem);
-  }
-
-  /**
-   * Returns an updatable Union object that wraps off-heap data of the given memory image of
-   * a sketch. The data structures of the Union remain off-heap.
-   *
-   * @param mem A memory region to be used as the data structure for the sketch
-   * and will be modified.
-   * @return a Union object
-   * @deprecated v2.0.0. Moved to DoublesUnion
-   */
-  @Deprecated
-  public static DoublesUnion wrap(final WritableMemory mem) {
-    return DoublesUnionImpl.wrapInstance(mem);
   }
 
 }
