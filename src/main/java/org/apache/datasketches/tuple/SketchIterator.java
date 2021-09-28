@@ -57,19 +57,6 @@ public class SketchIterator<S extends Summary> {
    * retained. Don't call this before calling next() for the first time
    * or after getting false from next().
    * @return hash from the current entry
-   * @deprecated v2.0.0. Please use {@link #getHash()}
-   */
-  @Deprecated
-  public long getKey() {
-    return hashArrTbl_[i_];
-  }
-
-  /**
-   * Gets the hash from the current entry in the sketch, which is a hash
-   * of the original key passed to update(). The original keys are not
-   * retained. Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return hash from the current entry
    */
   public long getHash() {
     return hashArrTbl_[i_];

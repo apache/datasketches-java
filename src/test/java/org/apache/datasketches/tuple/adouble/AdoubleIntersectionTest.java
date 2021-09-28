@@ -112,7 +112,6 @@ public class AdoubleIntersectionTest {
     final SketchIterator<DoubleSummary> it = result.iterator();
     Assert.assertTrue(it.next());
     Assert.assertTrue(it.getHash() > 0);
-    Assert.assertTrue(it.getKey() > 0);
     Assert.assertEquals(it.getSummary().getValue(), 4.0);
     Assert.assertFalse(it.next());
 
