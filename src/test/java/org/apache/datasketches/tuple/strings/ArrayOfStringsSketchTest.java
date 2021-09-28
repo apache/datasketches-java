@@ -66,8 +66,8 @@ public class ArrayOfStringsSketchTest {
 
     Intersection<ArrayOfStringsSummary> inter =
         new Intersection<>(new ArrayOfStringsSummarySetOperations());
-    inter.update(sketch1);
-    inter.update(sketch2);
+    inter.intersect(sketch1);
+    inter.intersect(sketch2);
     csk = inter.getResult();
     assertEquals(csk.getRetainedEntries(), 3);
 

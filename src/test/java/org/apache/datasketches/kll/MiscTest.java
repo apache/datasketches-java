@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class DeprecatedAndMiscTest {
+public class MiscTest {
 
   @Test
   public void checkGetKFromEps() {

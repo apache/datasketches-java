@@ -101,8 +101,8 @@ public class AdoubleIntersectionTest {
 
     final Intersection<DoubleSummary> intersection =
         new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(sketch2);
+    intersection.intersect(sketch1);
+    intersection.intersect(sketch2);
     final CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 1);
     Assert.assertFalse(result.isEmpty());
@@ -118,7 +118,7 @@ public class AdoubleIntersectionTest {
 
     intersection.reset();
     sketch1 = null;
-    try { intersection.update(sketch1); fail();}
+    try { intersection.intersect(sketch1); fail();}
     catch (final SketchesArgumentException e) { }
 
 }
