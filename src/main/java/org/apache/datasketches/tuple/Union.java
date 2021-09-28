@@ -128,20 +128,6 @@ public class Union<S extends Summary> {
    * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
    * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
    * not be null.
-   * @deprecated 2.0.0. Please use union(org.apache.datasketches.theta.Sketch, S).
-   */
-  @Deprecated //note the {at_link} does not work in the above
-  public void update(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
-    union(thetaSketch, summary);
-  }
-
-  /**
-   * Performs a stateful union of the internal set with the given thetaSketch by combining entries
-   * using the hashes from the theta sketch and summary values from the given summary and rules
-   * from the summarySetOps defined by the Union constructor.
-   * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
-   * not be null.
    */
   @SuppressWarnings("unchecked")
   public void union(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
