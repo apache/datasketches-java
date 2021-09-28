@@ -54,17 +54,6 @@ public abstract class ArrayOfDoublesIntersection {
    * Performs a stateful intersection of the internal set with the given tupleSketch.
    * @param tupleSketch Input sketch to intersect with the internal set.
    * @param combiner Method of combining two arrays of double values
-   * @deprecated 2.0.0 Please use {@link #intersect(ArrayOfDoublesSketch, ArrayOfDoublesCombiner)}.
-   */
-  @Deprecated
-  public void  update(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
-    intersect(tupleSketch, combiner);
-  }
-
-  /**
-   * Performs a stateful intersection of the internal set with the given tupleSketch.
-   * @param tupleSketch Input sketch to intersect with the internal set.
-   * @param combiner Method of combining two arrays of double values
    */
   public void intersect(final ArrayOfDoublesSketch tupleSketch, final ArrayOfDoublesCombiner combiner) {
     final boolean isFirstCall = isFirstCall_;
