@@ -110,19 +110,6 @@ public abstract class Intersection extends SetOperation {
    * If the given sketch is null the internal state becomes the empty sketch.
    * Theta will become the minimum of thetas seen so far.
    * @param sketchIn the given sketch
-   * @deprecated v2.0.0. Use {@link #intersect(Sketch)} instead.
-   */
-  @Deprecated
-  public void update(final Sketch sketchIn) {
-    intersect(sketchIn);
-  }
-
-  /**
-   * Intersect the given sketch with the internal state.
-   * This method can be repeatedly called.
-   * If the given sketch is null the internal state becomes the empty sketch.
-   * Theta will become the minimum of thetas seen so far.
-   * @param sketchIn the given sketch
    */
   public abstract void intersect(Sketch sketchIn);
 

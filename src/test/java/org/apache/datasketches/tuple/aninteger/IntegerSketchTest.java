@@ -70,7 +70,6 @@ public class IntegerSketchTest {
     assertEquals(csk.getEstimate(), K * 1.0, K * .03);
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void aNotBTest() {
     final int lgK = 4;
@@ -82,8 +81,9 @@ public class IntegerSketchTest {
     for (int i = 0; i < u; i++) {
       a1Sk1.update(i, 1);
     }
-    anotb.update(a1Sk1, a1Sk2);
-    final CompactSketch<IntegerSummary> cSk = anotb.getResult();
+    anotb.setA(a1Sk1);
+    anotb.notB(a1Sk2);
+    final CompactSketch<IntegerSummary> cSk = anotb.getResult(true);
     assertEquals((int)cSk.getEstimate(), u);
   }
 

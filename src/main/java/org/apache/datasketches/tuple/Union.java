@@ -104,19 +104,6 @@ public class Union<S extends Summary> {
 
   /**
    * Performs a stateful union of the internal set with the given tupleSketch.
-   * @param tupleSketch input tuple sketch to add to the internal set.
-   *
-   * <p>Nulls and empty sketches are ignored.</p>
-   *
-   * @deprecated 2.0.0. Please use {@link #union(org.apache.datasketches.tuple.Sketch)}.
-   */
-  @Deprecated
-  public void update(final Sketch<S> tupleSketch) {
-    union(tupleSketch);
-  }
-
-  /**
-   * Performs a stateful union of the internal set with the given tupleSketch.
    * @param tupleSketch input tuple sketch to merge with the internal set.
    *
    * <p>Nulls and empty sketches are ignored.</p>
@@ -132,20 +119,6 @@ public class Union<S extends Summary> {
     if (qsk_.thetaLong_ < thetaLong_) {
       thetaLong_ = qsk_.thetaLong_;
     }
-  }
-
-  /**
-   * Performs a stateful union of the internal set with the given thetaSketch by combining entries
-   * using the hashes from the theta sketch and summary values from the given summary and rules
-   * from the summarySetOps defined by the Union constructor.
-   * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
-   * not be null.
-   * @deprecated 2.0.0. Please use union(org.apache.datasketches.theta.Sketch, S).
-   */
-  @Deprecated //note the {at_link} does not work in the above
-  public void update(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
-    union(thetaSketch, summary);
   }
 
   /**

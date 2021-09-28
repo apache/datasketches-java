@@ -222,17 +222,4 @@ final class AnotBimpl extends AnotB {
     return empty_;
   }
 
-  //Deprecated methods
-
-  @Deprecated //v2.0.0.
-  @Override
-  public void update(final Sketch skA, final Sketch skB) {
-    //duplicate old behavior
-    reset();
-    if (skA == null) { return; }
-    else { setA(skA); }
-    if (skB == null) { return; }
-    else { notB(skB); }
-  }
-
 }

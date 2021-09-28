@@ -384,7 +384,6 @@ public final class AnotB<S extends Summary> {
     return daB;
   }
 
-
   @SuppressWarnings("unchecked")
   private static <S extends Summary> DataArrays<S> getResultArraysTheta(
       final long minThetaLong,
@@ -432,7 +431,6 @@ public final class AnotB<S extends Summary> {
     return daB;
   }
 
-
   /**
    * Resets this sketch back to the empty state.
    */
@@ -442,40 +440,6 @@ public final class AnotB<S extends Summary> {
     hashArr_ = null;
     summaryArr_ = null;
     curCount_ = 0;
-  }
-
-  //Deprecated methods
-
-  /**
-   * Perform A-and-not-B set operation on the two given sketches.
-   * A null sketch is interpreted as an empty sketch.
-   * This is not an accumulating update. Calling this update() more than once
-   * without calling getResult() will discard the result of previous update() by this method.
-   * The result is obtained by calling getResult();
-   *
-   * @param skA The incoming sketch for the first argument
-   * @param skB The incoming sketch for the second argument
-   * @deprecated v2.0.0. Instead please use {@link #aNotB(Sketch, Sketch)}.
-   */
-  @Deprecated
-  public void update(final Sketch<S> skA, final Sketch<S> skB) {
-    //duplicate old behavior
-    reset();
-    if (skA == null) { return; }
-    else { setA(skA); }
-    if (skB == null) { return; }
-    else { notB(skB); }
-  }
-
-  /**
-   * Gets the result of this operation. This clears the state of this operator after the result is
-   * returned.
-   * @return the result of this operation as an unordered {@link CompactSketch}
-   * @deprecated v2.0.0. Instead use {@link #getResult(boolean)}.
-   */
-  @Deprecated
-  public CompactSketch<S> getResult() {
-    return getResult(true);
   }
 
 }

@@ -26,8 +26,7 @@ import static org.apache.datasketches.ResizeFactor.X1;
 import static org.apache.datasketches.ResizeFactor.X2;
 import static org.apache.datasketches.ResizeFactor.X4;
 import static org.apache.datasketches.ResizeFactor.X8;
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.*;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
@@ -51,7 +50,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc","deprecation"})
+@SuppressWarnings("javadoc")
 public class SketchTest {
 
   @Test
@@ -347,7 +346,8 @@ public class SketchTest {
     for (int i = 0; i < (2*k); i++) { sketch1.update(i); }
 
     double theta = sketch1.rebuild().getTheta();
-    int count = sketch1.getCountLessThanTheta(theta);
+    final long thetaLong = (long) (LONG_MAX_VALUE_AS_DOUBLE * theta);
+    int count = sketch1.getCountLessThanThetaLong(thetaLong);
     assertEquals(count, k);
   }
 
@@ -415,8 +415,8 @@ public class SketchTest {
   public void check2Methods() {
     int k = 16;
     Sketch sk = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    int bytes1 = sk.getCurrentBytes(true);
-    int bytes2 = sk.getCurrentBytes(false);
+    int bytes1 = sk.getCompactBytes();
+    int bytes2 = sk.getCurrentBytes();
     assertEquals(bytes1, 8);
     assertEquals(bytes2, 280); //32*8 + 24
     int retEnt = sk.getRetainedEntries();

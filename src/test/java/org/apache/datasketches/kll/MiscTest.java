@@ -27,19 +27,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 @SuppressWarnings("javadoc")
-public class DeprecatedAndMiscTest {
-
-  @SuppressWarnings("deprecation")
-  @Test
-  public void checkDeprecatedRankError() {
-    final KllFloatsSketch sketch = new KllFloatsSketch();
-    final int k = KllFloatsSketch.DEFAULT_K;
-    final double eps1 = sketch.getNormalizedRankError(); //v2.0.0.
-    final double eps2 = KllFloatsSketch.getNormalizedRankError(k); //v2.0.0.
-    final double expectEps = KllFloatsSketch.getNormalizedRankError(k, true);
-    assertEquals(eps1, expectEps);
-    assertEquals(eps2, expectEps);
-  }
+public class MiscTest {
 
   @Test
   public void checkGetKFromEps() {

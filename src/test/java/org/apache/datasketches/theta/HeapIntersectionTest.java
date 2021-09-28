@@ -41,7 +41,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class HeapIntersectionTest {
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkExactIntersectionNoOverlap() {
     final int lgK = 9;
@@ -60,7 +59,7 @@ public class HeapIntersectionTest {
     final Intersection inter = SetOperation.builder().buildIntersection();
 
     inter.intersect(usk1);
-    inter.update(usk2); //check deprecated v2.0.0.
+    inter.intersect(usk2);
 
     CompactSketch rsk1;
     final boolean ordered = true;

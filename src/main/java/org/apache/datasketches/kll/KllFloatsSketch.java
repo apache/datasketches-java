@@ -484,19 +484,6 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Gets the approximate "double-sided" rank error for the <i>getPMF()</i> function of this
-   * sketch normalized as a fraction between zero and one.
-   *
-   * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(boolean)}
-   * @see KllFloatsSketch
-   */
-  @Deprecated
-  public double getNormalizedRankError() {
-    return getNormalizedRankError(true);
-  }
-
-  /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -506,19 +493,6 @@ public class KllFloatsSketch {
    */
   public double getNormalizedRankError(final boolean pmf) {
     return getNormalizedRankError(minK_, pmf);
-  }
-
-  /**
-   * Static method version of the double-sided {@link #getNormalizedRankError()} that
-   * specifies <em>k</em>.
-   * @param k the configuration parameter
-   * @return the normalized "double-sided" rank error as a function of <em>k</em>.
-   * @see KllFloatsSketch
-   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(int, boolean)}
-   */
-  @Deprecated
-  public static double getNormalizedRankError(final int k) {
-    return getNormalizedRankError(k, true);
   }
 
   /**

@@ -485,32 +485,6 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Get the rank error normalized as a fraction between zero and one.
-   * The error of this sketch is specified as a fraction of the normalized rank of the hypothetical
-   * sorted stream of items presented to the sketch.
-   *
-   * <p>Suppose the sketch is presented with N values. The raw rank (0 to N-1) of an item
-   * would be its index position in the sorted version of the input stream. If we divide the
-   * raw rank by N, it becomes the normalized rank, which is between 0 and 1.0.
-   *
-   * <p>For example, choosing a K of 227 yields a normalized rank error of about 1%.
-   * The upper bound on the median value obtained by getQuantile(0.5) would be the value in the
-   * hypothetical ordered stream of values at the normalized rank of 0.51.
-   * The lower bound would be the value in the hypothetical ordered stream of values at the
-   * normalized rank of 0.49.
-   *
-   * <p>The error of this sketch cannot be translated into an error (relative or absolute) of the
-   * returned quantile values.
-   *
-   * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(boolean)}
-   */
-  @Deprecated
-  public double getNormalizedRankError() {
-    return Util.getNormalizedRankError(getK(), true);
-  }
-
-  /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -519,17 +493,6 @@ public final class ItemsSketch<T> {
    */
   public double getNormalizedRankError(final boolean pmf) {
     return Util.getNormalizedRankError(k_, pmf);
-  }
-
-  /**
-   * Static method version of {@link #getNormalizedRankError()}
-   * @param k the configuration parameter of a ItemsSketch
-   * @return the rank error normalized as a fraction between zero and one.
-   * @deprecated v2.0.0. Replaced by {@link #getNormalizedRankError(int, boolean)}
-   */
-  @Deprecated
-  public static double getNormalizedRankError(final int k) {
-    return Util.getNormalizedRankError(k, true);
   }
 
   /**

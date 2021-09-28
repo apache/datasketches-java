@@ -82,7 +82,6 @@ public class AdoubleIntersectionTest {
     Assert.assertEquals(result.getUpperBound(1), 0.0);
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void intersectionExactMode() {
     UpdatableSketch<Double, DoubleSummary> sketch1 =
@@ -101,8 +100,8 @@ public class AdoubleIntersectionTest {
 
     final Intersection<DoubleSummary> intersection =
         new Intersection<>(new DoubleSummarySetOperations(mode, mode));
-    intersection.update(sketch1);
-    intersection.update(sketch2);
+    intersection.intersect(sketch1);
+    intersection.intersect(sketch2);
     final CompactSketch<DoubleSummary> result = intersection.getResult();
     Assert.assertEquals(result.getRetainedEntries(), 1);
     Assert.assertFalse(result.isEmpty());
@@ -112,13 +111,12 @@ public class AdoubleIntersectionTest {
     final SketchIterator<DoubleSummary> it = result.iterator();
     Assert.assertTrue(it.next());
     Assert.assertTrue(it.getHash() > 0);
-    Assert.assertTrue(it.getKey() > 0);
     Assert.assertEquals(it.getSummary().getValue(), 4.0);
     Assert.assertFalse(it.next());
 
     intersection.reset();
     sketch1 = null;
-    try { intersection.update(sketch1); fail();}
+    try { intersection.intersect(sketch1); fail();}
     catch (final SketchesArgumentException e) { }
 
 }

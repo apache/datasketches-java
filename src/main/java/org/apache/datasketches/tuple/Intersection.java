@@ -102,16 +102,6 @@ public class Intersection<S extends Summary> {
   /**
    * Performs a stateful intersection of the internal set with the given tupleSketch.
    * @param tupleSketch input sketch to intersect with the internal state. It must not be null.
-   * @deprecated 2.0.0. Please use {@link #intersect(Sketch)}.
-   */
-  @Deprecated
-  public void update(final Sketch<S> tupleSketch) {
-    intersect(tupleSketch);
-  }
-
-  /**
-   * Performs a stateful intersection of the internal set with the given tupleSketch.
-   * @param tupleSketch input sketch to intersect with the internal state. It must not be null.
    */
   public void intersect(final Sketch<S> tupleSketch) {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
@@ -170,20 +160,6 @@ public class Intersection<S extends Summary> {
       }
       hashTables_.fromArrays(matchHashArr, matchSummaries, matchCount);
     }
-  }
-
-  /**
-   * Performs a stateful intersection of the internal set with the given thetaSketch by combining entries
-   * using the hashes from the theta sketch and summary values from the given summary and rules
-   * from the summarySetOps defined by the Intersection constructor.
-   * @param thetaSketch input theta sketch to intersect with the internal state. It must not be null.
-   * @param summary the given proxy summary for the theta sketch, which doesn't have one.
-   * It will be copied for each matching index. It must not be null.
-   * @deprecated 2.0.0. Please use intersect(org.apache.datasketches.theta.Sketch, S).
-   */
-  @Deprecated //note the {at_link} does not work in the above
-  public void update(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
-    intersect(thetaSketch, summary);
   }
 
   /**

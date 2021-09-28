@@ -280,12 +280,6 @@ final class UnionImpl extends Union {
     return csk;
   }
 
-  @Deprecated
-  @Override
-  public void update(final Sketch sketchIn) {
-    union(sketchIn);
-  }
-
   @Override
   public void union(final Sketch sketchIn) { //Only valid for theta Sketches using SerVer = 3
     //UNION Empty Rule: AND the empty states.
@@ -344,12 +338,6 @@ final class UnionImpl extends Union {
       PreambleUtil.insertUnionThetaLong(wmem, unionThetaLong_);
       PreambleUtil.clearEmpty(wmem);
     }
-  }
-
-  @Deprecated
-  @Override
-  public void update(final Memory skMem) {
-    union(skMem);
   }
 
   @Override

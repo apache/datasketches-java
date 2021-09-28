@@ -166,8 +166,8 @@ public class SetOpsCornerCasesTest {
 
   private static CompactSketch doStdUnion(Sketch tskA, Sketch tskB, int k, WritableMemory wmem) {
     Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
-    union.update(tskA);
-    union.update(tskB);
+    union.union(tskA);
+    union.union(tskB);
     return union.getResult(true, wmem);
   }
 

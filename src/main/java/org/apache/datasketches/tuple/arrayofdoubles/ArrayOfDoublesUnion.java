@@ -119,19 +119,6 @@ public abstract class ArrayOfDoublesUnion {
   }
 
   /**
-   * Performs a stateful union of the internal set with the given tupleSketch.
-   * @param tupleSketch input tuple sketch to add to the internal set.
-   *
-   * <p>Nulls and empty sketches are ignored.</p>
-   *
-   * @deprecated 2.0.0. Please use {@link #union(ArrayOfDoublesSketch)}.
-   */
-  @Deprecated
-  public void update(final ArrayOfDoublesSketch tupleSketch) {
-    union(tupleSketch);
-  }
-
-  /**
    * Updates the union by adding a set of entries from a given sketch
    *
    * <p>Nulls and empty sketches are ignored.</p>

@@ -65,56 +65,6 @@ final class Util {
   static final char TAB = '\t';
 
   /**
-   * Computes the raw delta area between two quantile sketches for the
-   * <i>kolmogorovSmirnovTest(DoublesSketch, DoublesSketch, double)</i>
-   * method.
-   * @param sketch1 Input DoubleSketch 1
-   * @param sketch2 Input DoubleSketch 2
-   * @return the raw delta area between two quantile sketches
-   * @deprecated 2.0.0 See class <i>KolmogorovSmirnov</i>
-   */
-  @Deprecated
-  public static double computeKSDelta(final DoublesSketch sketch1, final DoublesSketch sketch2) {
-    return KolmogorovSmirnov.computeKSDelta(sketch1, sketch2);
-  }
-
-  /**
-   * Computes the adjusted delta area threshold for the
-   * <i>kolmogorovSmirnovTest(DoublesSketch, DoublesSketch, double)</i>
-   * method.
-   * This adjusts the computed threshold by the error epsilons of the two given sketches.
-   * See <a href="https://en.wikipedia.org/wiki/Kolmogorov-Smirnov_test">Kolmogorov–Smirnov Test</a>
-   * @param sketch1 Input DoubleSketch 1
-   * @param sketch2 Input DoubleSketch 2
-   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
-   * @return the adjusted threshold to be compared with the raw delta area.
-   * @deprecated 2.0.0 See class <i>KolmogorovSmirnov</i>
-   */
-  @Deprecated
-  public static double computeKSThreshold(final DoublesSketch sketch1,
-                                           final DoublesSketch sketch2,
-                                           final double tgtPvalue) {
-    return KolmogorovSmirnov.computeKSThreshold(sketch1, sketch2, tgtPvalue);
-  }
-
-  /**
-   * Performs the Kolmogorov-Smirnov Test between two quantiles sketches.
-   * Note: if the given sketches have insufficient data or if the sketch sizes are too small,
-   * this will return false.
-   * @param sketch1 Input DoubleSketch 1
-   * @param sketch2 Input DoubleSketch 2
-   * @param tgtPvalue Target p-value. Typically .001 to .1, e.g., .05.
-   * @return Boolean indicating whether we can reject the null hypothesis (that the sketches
-   * reflect the same underlying distribution) using the provided tgtPValue.
-   * @deprecated 2.0.0 See class <i>KolmogorovSmirnov</i>
-   */
-  @Deprecated
-  public static boolean kolmogorovSmirnovTest(final DoublesSketch sketch1,
-      final DoublesSketch sketch2, final double tgtPvalue) {
-    return KolmogorovSmirnov.kolmogorovSmirnovTest(sketch1, sketch2, tgtPvalue);
-  }
-
-  /**
    * Gets the normalized rank error given k and pmf for the Quantiles DoubleSketch and ItemsSketch.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.

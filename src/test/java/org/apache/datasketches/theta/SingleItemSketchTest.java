@@ -36,23 +36,23 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc","deprecation"})
+@SuppressWarnings("javadoc")
 public class SingleItemSketchTest {
   final static short DEFAULT_SEED_HASH = (short) (computeSeedHash(DEFAULT_UPDATE_SEED) & 0XFFFFL);
 
   @Test
   public void check1() {
     Union union = Sketches.setOperationBuilder().buildUnion();
-    union.update(SingleItemSketch.create(1));
-    union.update(SingleItemSketch.create(1.0));
-    union.update(SingleItemSketch.create(0.0));
-    union.update(SingleItemSketch.create("1"));
-    union.update(SingleItemSketch.create(new byte[] {1,2,3,4}));
-    union.update(SingleItemSketch.create(new char[] {'a'}));
-    union.update(SingleItemSketch.create(new int[] {2}));
-    union.update(SingleItemSketch.create(new long[] {3}));
+    union.union(SingleItemSketch.create(1));
+    union.union(SingleItemSketch.create(1.0));
+    union.union(SingleItemSketch.create(0.0));
+    union.union(SingleItemSketch.create("1"));
+    union.union(SingleItemSketch.create(new byte[] {1,2,3,4}));
+    union.union(SingleItemSketch.create(new char[] {'a'}));
+    union.union(SingleItemSketch.create(new int[] {2}));
+    union.union(SingleItemSketch.create(new long[] {3}));
 
-    union.update(SingleItemSketch.create(-0.0)); //duplicate
+    union.union(SingleItemSketch.create(-0.0)); //duplicate
 
     double est = union.getResult().getEstimate();
     println(""+est);
@@ -83,16 +83,16 @@ public class SingleItemSketchTest {
   public void check2() {
     long seed = DEFAULT_UPDATE_SEED;
     Union union = Sketches.setOperationBuilder().buildUnion();
-    union.update(SingleItemSketch.create(1, seed));
-    union.update(SingleItemSketch.create(1.0, seed));
-    union.update(SingleItemSketch.create(0.0, seed));
-    union.update(SingleItemSketch.create("1", seed));
-    union.update(SingleItemSketch.create(new byte[] {1,2,3,4}, seed));
-    union.update(SingleItemSketch.create(new char[] {'a'}, seed));
-    union.update(SingleItemSketch.create(new int[] {2}, seed));
-    union.update(SingleItemSketch.create(new long[] {3}, seed));
+    union.union(SingleItemSketch.create(1, seed));
+    union.union(SingleItemSketch.create(1.0, seed));
+    union.union(SingleItemSketch.create(0.0, seed));
+    union.union(SingleItemSketch.create("1", seed));
+    union.union(SingleItemSketch.create(new byte[] {1,2,3,4}, seed));
+    union.union(SingleItemSketch.create(new char[] {'a'}, seed));
+    union.union(SingleItemSketch.create(new int[] {2}, seed));
+    union.union(SingleItemSketch.create(new long[] {3}, seed));
 
-    union.update(SingleItemSketch.create(-0.0, seed)); //duplicate
+    union.union(SingleItemSketch.create(-0.0, seed)); //duplicate
 
     double est = union.getResult().getEstimate();
     println(""+est);
@@ -157,9 +157,9 @@ public class SingleItemSketchTest {
     assertEquals(sis2.getEstimate(), 1.0);
 
     Union union = Sketches.setOperationBuilder().buildUnion();
-    union.update(sis);
-    union.update(sis2);
-    union.update(sis3);
+    union.union(sis);
+    union.union(sis2);
+    union.union(sis3);
     assertEquals(union.getResult().getEstimate(), 1.0);
   }
 
@@ -175,7 +175,7 @@ public class SingleItemSketchTest {
     Sketch sketch = SingleItemSketch.create(1);
     Union union = Sketches.setOperationBuilder().buildUnion();
     Memory mem = Memory.wrap(sketch.toByteArray());
-    union.update(mem);
+    union.union(mem);
     assertEquals(union.getResult().getEstimate(), 1, 0);
   }
 
@@ -250,8 +250,8 @@ public class SingleItemSketchTest {
     sk1.update(1);
     sk2.update(1);
     Union union = Sketches.setOperationBuilder().buildUnion();
-    union.update(sk1);
-    union.update(sk2);
+    union.union(sk1);
+    union.union(sk2);
     csk = union.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
 
@@ -259,8 +259,8 @@ public class SingleItemSketchTest {
     bytes = Sketches.getMaxUnionBytes(32);
     WritableMemory wmem = WritableMemory.writableWrap(new byte[bytes]);
     union = Sketches.setOperationBuilder().buildUnion(wmem);
-    union.update(sk1);
-    union.update(sk2);
+    union.union(sk1);
+    union.union(sk2);
     csk = union.getResult(true, null);
     assertTrue(csk instanceof SingleItemSketch);
     csk = union.getResult(false, null);
@@ -277,8 +277,9 @@ public class SingleItemSketchTest {
     sk1.update(1);
     sk2.update(2);
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(sk1, sk2);
-    csk = aNotB.getResult(true, null);
+    aNotB.setA(sk1);
+    aNotB.notB(sk2);
+    csk = aNotB.getResult(true, null, true);
     assertTrue(csk instanceof SingleItemSketch);
     //not AnotB off-heap form
   }
