@@ -109,11 +109,11 @@ under the License.
     <maven-assembly-plugin.version>3.3.0</maven-assembly-plugin.version> <!-- overrides parent -->
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version> <!-- overrides parent -->
     <maven-deploy-plugin.version>3.0.0-M1</maven-deploy-plugin.version> <!-- overrides parent -->
-    <maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version> <!-- overrides parent -->
-    <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version> <!-- overrides parent -->
+    <maven-enforcer-plugin.version>3.0.0</maven-enforcer-plugin.version> <!-- overrides parent -->
+    <maven-gpg-plugin.version>3.0.1</maven-gpg-plugin.version> <!-- overrides parent -->
     <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version> <!-- overrides parent -->
     <maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version> <!-- overrides parent -->
-    <maven-release-plugin.version>3.0.0-M1</maven-release-plugin.version> <!-- overrides parent -->
+    <maven-release-plugin.version>3.0.0-M4</maven-release-plugin.version> <!-- overrides parent -->
     <maven-remote-resources-plugin.version>[1.7.0,)</maven-remote-resources-plugin.version> <!-- overrides parent -->
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version> <!-- overrides parent -->
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version> <!-- overrides parent -->
