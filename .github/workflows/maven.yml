@@ -58,7 +58,6 @@ jobs:
           run: >
               mvn clean install -B -V -q
               -DskipTests=true
-              -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
               --toolchains .github/workflows/.toolchains.xml
 
