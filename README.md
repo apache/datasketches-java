@@ -28,7 +28,7 @@
 # Apache<sup>&reg;</sup> DataSketches&trade; Core Java Library Component
 This is the core Java component of the DataSketches library.  It contains all of the sketching algorithms and can be accessed directly from user applications. 
 
-This component is also a dependency of other components of the library that create adaptors for target systems, such as Hadoop Pig and Hadoop Hive.
+This component is also a dependency of other components of the library that create adaptors for target systems, such as the [Apache Pig adaptor](https://github.com/apache/datasketches-pig) and the [Apache Hive adaptor](https://github.com/apache/datasketches-hive).
 
 Note that we have a parallel core component for C++ and Python implementations of the same sketch algorithms, 
 [datasketches-cpp](https://github.com/apache/datasketches-cpp).
@@ -47,10 +47,11 @@ This component depends on the [datasketches-memory](https://github.com/apache/da
 and, as a result, must be compiled with one of the above JDKs. 
 If your application only relies on the APIs of this component no special JVM arguments are required.
 However, if your application also directly relies on the APIs of the *datasketches-memory* component, 
-you may need additional JVM arguments. Please refer to the 
-[datasketches-memory README](https://github.com/apache/datasketches-memory/blob/master/README.md) for details.
-You can also use the *pom.xml* of this component as an example of how to configure the build of your application 
-to automatically set the JVM arguments based on the version of the JDK.
+you may need additional JVM arguments.
+Please refer to the [datasketches-memory README](https://github.com/apache/datasketches-memory/blob/master/README.md) for details.
+
+If your application uses Maven, you can also use the *pom.xml* of this component as an example of how to automatically
+configure the JVM arguments for compilation and testing based on the version of the JDK.
 
 ### Recommended Build Tool
 This DataSketches component is structured as a Maven project and Maven is the recommended Build Tool.
@@ -61,7 +62,7 @@ To run normal unit tests:
 
     $ mvn clean test
 
-To run the strict profile tests:
+To run the strict profile tests (only supported in Java 8):
 
     $ mvn clean test -P strict
 
