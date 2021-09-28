@@ -230,36 +230,12 @@ public abstract class Sketch {
   public abstract int getCompactBytes();
 
   /**
-   * Gets the number of hash values less than the given theta.
-   * @param theta the given theta as a double between zero and one.
-   * @return the number of hash values less than the given theta.
-   * @deprecated v2.0.0. Use {@link #getCountLessThanThetaLong(long)}. It is more accurate.
-   */
-  @Deprecated
-  public int getCountLessThanTheta(final double theta) {
-    final long thetaLong = (long) (LONG_MAX_VALUE_AS_DOUBLE * theta);
-    return count(getCache(), thetaLong);
-  }
-
-  /**
    * Gets the number of hash values less than the given theta expressed as a long.
    * @param thetaLong the given theta as a long between zero and <i>Long.MAX_VALUE</i>.
    * @return the number of hash values less than the given thetaLong.
    */
   public int getCountLessThanThetaLong(final long thetaLong) {
     return count(getCache(), thetaLong);
-  }
-
-  /**
-   * Returns the number of storage bytes required for this Sketch in its current state.
-   * @param compact if true, returns the bytes required for compact form.
-   * If this sketch is already in compact form this parameter is ignored.
-   * @return the number of storage bytes required for this sketch
-   * @deprecated v2.0.0. use either {@link #getCompactBytes()} or {@link #getCurrentBytes()}.
-   */
-  @Deprecated
-  public int getCurrentBytes(final boolean compact) {
-    return compact ? getCompactBytes() : getCurrentBytes();
   }
 
   /**
