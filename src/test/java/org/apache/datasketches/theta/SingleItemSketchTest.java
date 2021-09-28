@@ -277,8 +277,9 @@ public class SingleItemSketchTest {
     sk1.update(1);
     sk2.update(2);
     AnotB aNotB = Sketches.setOperationBuilder().buildANotB();
-    aNotB.update(sk1, sk2);
-    csk = aNotB.getResult(true, null);
+    aNotB.setA(sk1);
+    aNotB.notB(sk2);
+    csk = aNotB.getResult(true, null, true);
     assertTrue(csk instanceof SingleItemSketch);
     //not AnotB off-heap form
   }
