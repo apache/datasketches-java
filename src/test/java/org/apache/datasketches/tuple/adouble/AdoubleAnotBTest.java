@@ -44,7 +44,6 @@ public class AdoubleAnotBTest {
   private static final DoubleSummary.Mode mode = Mode.Sum;
   private final Results results = new Results();
 
-  @SuppressWarnings("deprecation")
   private static void threeMethodsWithTheta(
       final AnotB<DoubleSummary> aNotB,
       final Sketch<DoubleSummary> skA,
@@ -54,11 +53,16 @@ public class AdoubleAnotBTest {
   {
     CompactSketch<DoubleSummary> result;
 
-    //Deprecated v2.0.0., Stateless, A = Tuple, B = Tuple
-    //Old behavior is tolerant of nulls
-    aNotB.update(skA, skB);
-    result = aNotB.getResult();
-    results.check(result);
+    //Stateful, A = Tuple, B = Tuple
+    if (skA != null) {
+      try {
+        aNotB.setA(skA);
+        aNotB.notB(skB);
+        result = aNotB.getResult(true);
+        results.check(result);
+      }
+      catch (final SketchesArgumentException e) { }
+    }
 
     //Stateless A = Tuple, B = Tuple
     if (skA == null || skB == null) {
@@ -160,7 +164,7 @@ public class AdoubleAnotBTest {
   public void aNotBNullEmptyCombinations() {
     final AnotB<DoubleSummary> aNotB = new AnotB<>();
     // calling getResult() before calling update() should yield an empty set
-    final CompactSketch<DoubleSummary> result = aNotB.getResult();
+    final CompactSketch<DoubleSummary> result = aNotB.getResult(true);
     results.set(0, true, 0.0, 0.0, 0.0).check(result);
 
     final UpdatableSketch<Double, DoubleSummary> sketch = buildUpdatableTuple();

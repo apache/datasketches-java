@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 public class ArrayOfStringsSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkSketch() {
     ArrayOfStringsSketch sketch1 = new ArrayOfStringsSketch();
@@ -71,8 +72,9 @@ public class ArrayOfStringsSketchTest {
     assertEquals(csk.getRetainedEntries(), 3);
 
     AnotB<ArrayOfStringsSummary> aNotB =  new AnotB<>();
-    aNotB.update(sketch2, sketch1);
-    csk = aNotB.getResult();
+    aNotB.setA(sketch2);
+    aNotB.notB(sketch1);
+    csk = aNotB.getResult(true);
     assertEquals(csk.getRetainedEntries(), 1);
 
   }
