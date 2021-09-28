@@ -70,7 +70,6 @@ public class IntegerSketchTest {
     assertEquals(csk.getEstimate(), K * 1.0, K * .03);
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void aNotBTest() {
     final int lgK = 4;

@@ -37,7 +37,6 @@ import org.testng.annotations.Test;
 public class ArrayOfStringsSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkSketch() {
     ArrayOfStringsSketch sketch1 = new ArrayOfStringsSketch();

@@ -159,7 +159,6 @@ public class AdoubleAnotBTest {
 
   /*****************************************/
 
-  @SuppressWarnings("deprecation")
   @Test
   public void aNotBNullEmptyCombinations() {
     final AnotB<DoubleSummary> aNotB = new AnotB<>();

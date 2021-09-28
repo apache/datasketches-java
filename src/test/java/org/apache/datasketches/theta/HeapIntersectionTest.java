@@ -41,7 +41,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class HeapIntersectionTest {
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkExactIntersectionNoOverlap() {
     final int lgK = 9;
