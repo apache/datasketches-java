@@ -104,19 +104,6 @@ public class Union<S extends Summary> {
 
   /**
    * Performs a stateful union of the internal set with the given tupleSketch.
-   * @param tupleSketch input tuple sketch to add to the internal set.
-   *
-   * <p>Nulls and empty sketches are ignored.</p>
-   *
-   * @deprecated 2.0.0. Please use {@link #union(org.apache.datasketches.tuple.Sketch)}.
-   */
-  @Deprecated
-  public void update(final Sketch<S> tupleSketch) {
-    union(tupleSketch);
-  }
-
-  /**
-   * Performs a stateful union of the internal set with the given tupleSketch.
    * @param tupleSketch input tuple sketch to merge with the internal set.
    *
    * <p>Nulls and empty sketches are ignored.</p>

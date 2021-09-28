@@ -37,7 +37,6 @@ import org.testng.annotations.Test;
 public class ArrayOfStringsSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkSketch() {
     ArrayOfStringsSketch sketch1 = new ArrayOfStringsSketch();
@@ -58,8 +57,8 @@ public class ArrayOfStringsSketchTest {
     sketch2.update(strArr3, strArr3);
 
     Union<ArrayOfStringsSummary> union = new Union<>(new ArrayOfStringsSummarySetOperations());
-    union.update(sketch1);
-    union.update(sketch2);
+    union.union(sketch1);
+    union.union(sketch2);
     CompactSketch<ArrayOfStringsSummary> csk = union.getResult();
     //printSummaries(csk.iterator());
     assertEquals(csk.getRetainedEntries(), 4);
