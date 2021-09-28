@@ -126,21 +126,6 @@ public abstract class Union extends SetOperation {
   public abstract void union(Memory mem);
 
   /**
-   * Perform a Union operation with <i>this</i> union and the given Memory image of any sketch of the
-   * Theta Family. The input image may be from earlier versions of the Theta Compact Sketch,
-   * called the SetSketch (circa 2012), which was prior to Open Source and are compact and ordered.
-   *
-   * <p>This method can be repeatedly called.
-   *
-   * <p>Nulls and empty sketches are ignored.</p>
-   *
-   * @param mem Memory image of sketch to be merged
-   * @deprecated 2.0.0. Use {@link #union(Memory)} instead.
-   */
-  @Deprecated
-  public abstract void update(Memory mem);
-
-  /**
    * Update <i>this</i> union with the given long data item.
    *
    * @param datum The given long datum.

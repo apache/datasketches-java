@@ -340,12 +340,6 @@ final class UnionImpl extends Union {
     }
   }
 
-  @Deprecated
-  @Override
-  public void update(final Memory skMem) {
-    union(skMem);
-  }
-
   @Override
   public void union(final Memory skMem) {
     if (skMem == null) { return; }

@@ -175,7 +175,7 @@ public class SingleItemSketchTest {
     Sketch sketch = SingleItemSketch.create(1);
     Union union = Sketches.setOperationBuilder().buildUnion();
     Memory mem = Memory.wrap(sketch.toByteArray());
-    union.update(mem);
+    union.union(mem);
     assertEquals(union.getResult().getEstimate(), 1, 0);
   }
 
