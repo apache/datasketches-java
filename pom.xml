@@ -292,6 +292,7 @@ under the License.
               <exclude>**/*.yml</exclude>
               <exclude>**/.*</exclude>
               <exclude>**/test/resources/**/*.txt</exclude>
+              <exclude>**/git.properties</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
             </excludes>
