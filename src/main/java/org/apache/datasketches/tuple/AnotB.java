@@ -240,8 +240,8 @@ public final class AnotB<S extends Summary> {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
-    if (skA.isEmpty()) { return skA.compact(); }
-    if (skB.isEmpty()) { return skA.compact(); }
+    if (skA.getRetainedEntries() == 0) { return skA.compact(); }
+    if (skB.getRetainedEntries() == 0) { return skA.compact(); }
     //Both skA & skB are not empty
 
     //Process A
