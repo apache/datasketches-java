@@ -294,10 +294,9 @@ public final class AnotB<S extends Summary> {
     }
     //Both skA & skB are not null
 
-    if (skA.isEmpty()) { return skA.compact(); }
-    if (skB.isEmpty()) { return skA.compact(); }
-    //Both skA & skB are not empty
-
+    if (skA.getRetainedEntries() == 0) { return skA.compact(); }
+    if (skB.getRetainedEntries() == 0) { return skA.compact(); }
+    //Both skA & skB have valid retained entries, and are not empty
     //Process A
     final DataArrays<S> da = getDataArraysA(skA);
     final long[] hashArrA = da.hashArr;
