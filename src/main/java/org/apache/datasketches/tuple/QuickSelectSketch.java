@@ -292,7 +292,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   @SuppressWarnings("unchecked")
   public CompactSketch<S> compact() {
     if (getRetainedEntries() == 0) {
-      return new CompactSketch<>(null, null, thetaLong_, empty_);
+      if (empty_) { return new CompactSketch<>(null, null, Long.MAX_VALUE, true); }
+      return new CompactSketch<>(null, null, thetaLong_, false);
     }
     final long[] hashArr = new long[getRetainedEntries()];
     final S[] summaryArr = (S[])

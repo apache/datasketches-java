@@ -78,6 +78,7 @@ final class AnotBimpl extends AnotB {
 
     //process A
     hashArr_ = getHashArrA(skA);
+    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
     empty_ = false;
     thetaLong_ = skA.getThetaLong();
     curCount_ = hashArr_.length;
@@ -93,6 +94,7 @@ final class AnotBimpl extends AnotB {
 
     //process B
     hashArr_ = getResultHashArr(thetaLong_, curCount_, hashArr_, skB);
+    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
     curCount_ = hashArr_.length;
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
@@ -119,17 +121,22 @@ final class AnotBimpl extends AnotB {
     }
     //Both skA & skB are not null
 
+    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
+
     if (skA.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
+    //A is not Empty
     checkSeedHashes(skA.getSeedHash(), seedHash_);
 
-    if (skB.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
+    if (skB.isEmpty() && skB.getRetainedEntries() == 0) {
+      return skA.compact(dstOrdered, dstMem);
+   }
     checkSeedHashes(skB.getSeedHash(), seedHash_);
     //Both skA & skB are not empty
 
     //process A
     final long[] hashArrA = getHashArrA(skA);
-    final int countA = hashArrA.length;
-    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
+    final int countA = (hashArrA == null) ? 0 : hashArrA.length;
+
 
     //process B
     final long[] hashArrOut = getResultHashArr(minThetaLong, countA, hashArrA, skB); //out is clone

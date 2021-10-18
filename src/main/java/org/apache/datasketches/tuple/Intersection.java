@@ -107,14 +107,19 @@ public class Intersection<S extends Summary> {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
+    final boolean emptyIn = tupleSketch.isEmpty();
+    if (empty_ || emptyIn) { //empty rule
+      //Because of the definition of null above and the Empty Rule (which is OR), empty_ must be true.
+      //Whatever the current internal state, we make our local empty.
+      resetToEmpty();
+      return;
+    }
 
     // input sketch could be first or next call
     final long thetaLongIn = tupleSketch.getThetaLong();
     final int countIn = tupleSketch.getRetainedEntries();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
-    // Empty rule extended in case incoming sketch does not have empty bit properly set
-    final boolean emptyIn = countIn == 0 && thetaLongIn == Long.MAX_VALUE;
-    empty_ |= emptyIn; //empty rule
+
     if (countIn == 0) {
       hashTables_.clear();
       return;
@@ -274,10 +279,21 @@ public class Intersection<S extends Summary> {
    * Resets the internal set to the initial state, which represents the Universal Set
    */
   public void reset() {
+    hardReset();
+  }
+
+  private void hardReset() {
     empty_ = false;
     thetaLong_ = Long.MAX_VALUE;
     hashTables_.clear();
     firstCall_ = true;
+  }
+
+  private void resetToEmpty() {
+    empty_ = true;
+    thetaLong_ = Long.MAX_VALUE;
+    hashTables_.clear();
+    firstCall_ = false;
   }
 
   static int getLgTableSize(final int count) {

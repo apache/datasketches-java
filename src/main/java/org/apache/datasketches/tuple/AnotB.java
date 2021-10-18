@@ -37,7 +37,7 @@ import org.apache.datasketches.SketchesStateException;
  *
  * <p>The stateful operation is as follows:</p>
  * <pre><code>
- * AnotB anotb = SetOperationBuilder.buildAnotB();
+ * AnotB anotb = new AnotB();
  *
  * anotb.setA(Sketch skA); //The first argument.
  * anotb.notB(Sketch skB); //The second (subtraction) argument.
@@ -49,7 +49,7 @@ import org.apache.datasketches.SketchesStateException;
  *
  * <p>The stateless operation is as follows:</p>
  * <pre><code>
- * AnotB anotb = SetOperationBuilder.buildAnotB();
+ * AnotB anotb = new AnotB();
  *
  * CompactSketch csk = anotb.aNotB(Sketch skA, Sketch skB);
  * </code></pre>
@@ -95,10 +95,10 @@ public final class AnotB<S extends Summary> {
    * With a null as the first argument, we cannot know what the user's intent is.
    * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
    *
-   * <p>An enpty input argument will set the internal state to empty.</p>
+   * <p>An empty input argument will set the internal state to empty.</p>
    *
    * <p>Rationale: An empty set is a mathematically legal concept. Although it makes any subsequent,
-   * valid argument for B irrelvant, we must allow this and assume the user knows what they are
+   * valid argument for B irrelevant, we must allow this and assume the user knows what they are
    * doing.</p>
    *
    * <p>Performing {@link #getResult(boolean)} just after this step will return a compact form of
@@ -106,6 +106,7 @@ public final class AnotB<S extends Summary> {
    *
    * @param skA The incoming sketch for the first argument, <i>A</i>.
    */
+  @SuppressWarnings("unchecked")
   public void setA(final Sketch<S> skA) {
     if (skA == null) {
       reset();
@@ -116,14 +117,23 @@ public final class AnotB<S extends Summary> {
       return;
     }
     //skA is not empty
-    empty_ = false;
-    thetaLong_ = skA.getThetaLong();
 
     //process A
+    empty_ = false;
+    thetaLong_ = skA.getThetaLong();
     final DataArrays<S> da = getDataArraysA(skA);
+
     hashArr_ = da.hashArr;
-    summaryArr_ = da.summaryArr;
+    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
     curCount_ = hashArr_.length;
+
+    summaryArr_ = da.summaryArr;
+    if (summaryArr_ == null) {
+      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skA).getSummaryFactory();
+      final S summary = sumFact.newSummary();
+      final Class<S> summaryType = (Class<S>)summary.getClass();
+      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
+    }
   }
 
   /**
@@ -133,7 +143,7 @@ public final class AnotB<S extends Summary> {
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
-   * <p>Rationale: A <i>null</i> for the second or following arguments is more tollerable because
+   * <p>Rationale: A <i>null</i> for the second or following arguments is more tolerable because
    * <i>A NOT null</i> is still <i>A</i> even if we don't know exactly what the null represents. It
    * clearly does not have any content that overlaps with <i>A</i>. Also, because this can be part of
    * a multistep operation with multiple <i>notB</i> steps. Other following steps can still produce
@@ -143,18 +153,28 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
+  @SuppressWarnings("unchecked")
   public void notB(final Sketch<S> skB) {
-    if (empty_ || skB == null || skB.isEmpty() || hashArr_ == null) { return; }
+    if (empty_ || skB == null || skB.isEmpty()) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
 
     //process B
     final DataArrays<S> daB = getResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
-    hashArr_ = daB.hashArr;
-    summaryArr_ = daB.summaryArr;
 
+    hashArr_ = daB.hashArr;
+    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
     curCount_ = hashArr_.length;
+
+    summaryArr_ = daB.summaryArr;
+    if (summaryArr_ == null) {
+      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skB).getSummaryFactory();
+      final S summary = sumFact.newSummary();
+      final Class<S> summaryType = (Class<S>)summary.getClass();
+      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
+    }
+
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
@@ -167,7 +187,7 @@ public final class AnotB<S extends Summary> {
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
-   * <p>Rationale: A <i>null</i> for the second or following arguments is more tollerable because
+   * <p>Rationale: A <i>null</i> for the second or following arguments is more tolerable because
    * <i>A NOT null</i> is still <i>A</i> even if we don't know exactly what the null represents. It
    * clearly does not have any content that overlaps with <i>A</i>. Also, because this can be part of
    * a multistep operation with multiple <i>notB</i> steps. Other following steps can still produce
@@ -185,15 +205,18 @@ public final class AnotB<S extends Summary> {
 
     //process B
     final DataArrays<S> daB = getResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
-    hashArr_ = daB.hashArr;
-    summaryArr_ = daB.summaryArr;
 
+    hashArr_ = daB.hashArr;
+    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
+    curCount_ = hashArr_.length;
+
+    summaryArr_ = daB.summaryArr;
     curCount_ = hashArr_.length;
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
   /**
-   * Gets the result of the mutistep, stateful operation AnotB that have been executed with calls
+   * Gets the result of the multistep, stateful operation AnotB that have been executed with calls
    * to {@link #setA(Sketch)} and ({@link #notB(Sketch)} or
    * {@link #notB(org.apache.datasketches.theta.Sketch)}).
    *
@@ -235,25 +258,40 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as an unordered {@link CompactSketch}
    */
+  @SuppressWarnings("unchecked")
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final Sketch<S> skB) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null");
     }
-    if (skA.getRetainedEntries() == 0) { return skA.compact(); }
-    if (skB.getRetainedEntries() == 0) { return skA.compact(); }
-    //Both skA & skB are not empty
+    //Both skA & skB are not null
+
+    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
+
+    if (skA.isEmpty()) { return skA.compact(); }
+    if (skB.isEmpty() && skB.getRetainedEntries() == 0) { return skA.compact(); }
+    //Both skA & skB are not empty, and skB has valid entries
 
     //Process A
     final DataArrays<S> da = getDataArraysA(skA);
-    final long[] hashArrA = da.hashArr;
-    final S[] summaryArrA = da.summaryArr;
+    long[] hashArrA = da.hashArr;
+    hashArrA = (hashArrA == null) ? new long[0] : hashArrA;
     final int countA = hashArrA.length;
 
-    //Process B
-    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
-    final DataArrays<S> daB = getResultArraysTuple(minThetaLong, countA, hashArrA, summaryArrA, skB);
+    S[] summaryArrA = da.summaryArr;
+    if (summaryArrA == null) {
+      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skA).getSummaryFactory();
+      final S summary = sumFact.newSummary();
+      final Class<S> summaryType = (Class<S>)summary.getClass();
+      summaryArrA = (S[]) Array.newInstance(summaryType, 0);
+    }
 
+    if (countA == 0) {
+      return new CompactSketch<S>(new long[0], summaryArrA, minThetaLong, false);
+    }
+
+    //Process B
+    final DataArrays<S> daB = getResultArraysTuple(minThetaLong, countA, hashArrA, summaryArrA, skB);
     final long[] hashArr = daB.hashArr;
     final S[] summaryArr = daB.summaryArr;
     final int curCountOut = hashArr.length;
@@ -287,6 +325,7 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as an unordered {@link CompactSketch}
    */
+  @SuppressWarnings("unchecked")
   public static <S extends Summary>
         CompactSketch<S> aNotB(final Sketch<S> skA, final org.apache.datasketches.theta.Sketch skB) {
     if (skA == null || skB == null) {
@@ -294,19 +333,33 @@ public final class AnotB<S extends Summary> {
     }
     //Both skA & skB are not null
 
-    if (skA.getRetainedEntries() == 0) { return skA.compact(); }
-    if (skB.getRetainedEntries() == 0) { return skA.compact(); }
-    //Both skA & skB have valid retained entries, and are not empty
+    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
+
+    if (skA.isEmpty()) { return skA.compact(); }
+    if (skB.isEmpty() && skB.getRetainedEntries() == 0) { return skA.compact(); }
+    //Both skA & skB are not empty, and skB has valid entries
+
     //Process A
     final DataArrays<S> da = getDataArraysA(skA);
-    final long[] hashArrA = da.hashArr;
-    final S[] summaryArrA = da.summaryArr;
+    long[] hashArrA = da.hashArr;
+    hashArrA = (hashArrA == null) ? new long[0] : hashArrA;
     final int countA = hashArrA.length;
 
-    //Process B
-    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
-    final DataArrays<S> daB = getResultArraysTheta(minThetaLong, countA, hashArrA, summaryArrA, skB);
+    S[] summaryArrA = da.summaryArr;
+    if (summaryArrA == null) {
+      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skA).getSummaryFactory();
+      final S summary = sumFact.newSummary();
+      final Class<S> summaryType = (Class<S>)summary.getClass();
+      summaryArrA = (S[]) Array.newInstance(summaryType, 0);
+    }
 
+    if (countA == 0) {
+      return new CompactSketch<S>(new long[0], summaryArrA, minThetaLong, false);
+    }
+
+    //Process B
+
+    final DataArrays<S> daB = getResultArraysTheta(minThetaLong, countA, hashArrA, summaryArrA, skB);
     final long[] hashArr = daB.hashArr;
     final S[] summaryArr = daB.summaryArr;
     final int countOut = hashArr.length;
