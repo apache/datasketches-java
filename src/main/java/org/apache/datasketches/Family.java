@@ -100,7 +100,7 @@ public enum Family {
    * The Tuple family of sketches is a large family of sketches that are extensions of the
    * Theta Sketch Framework.
    */
-  TUPLE(9, "TUPLE", 1, 1),
+  TUPLE(9, "TUPLE", 1, 3),
 
   /**
    * The Frequency family of sketches. (Not part of TSF.)

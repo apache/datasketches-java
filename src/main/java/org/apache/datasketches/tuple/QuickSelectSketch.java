@@ -141,6 +141,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
    */
+  @Deprecated
   QuickSelectSketch(
       final Memory mem,
       final SummaryDeserializer<S> deserializer,
@@ -313,6 +314,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||   RF   |  lgArr | lgNom  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+  @Deprecated
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
