@@ -562,7 +562,7 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void resultDegenResultDegen() { //AnotB NullPointerException
+  public void resultDegenResultDegen() {
     IntegerSketch ska = getSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
     IntegerSketch skb = getSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
 

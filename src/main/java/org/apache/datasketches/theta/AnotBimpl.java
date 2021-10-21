@@ -127,7 +127,7 @@ final class AnotBimpl extends AnotB {
     //A is not Empty
     checkSeedHashes(skA.getSeedHash(), seedHash_);
 
-    if (skB.isEmpty() && skB.getRetainedEntries() == 0) {
+    if (skB.isEmpty()) {
       return skA.compact(dstOrdered, dstMem);
    }
     checkSeedHashes(skB.getSeedHash(), seedHash_);

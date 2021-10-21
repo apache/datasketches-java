@@ -96,7 +96,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     final boolean hasEntries = (flags & 1 << Flags.HAS_ENTRIES.ordinal()) > 0;
     if (hasEntries) {
       int classNameLength = 0;
-      if (version == serialVersionWithSummaryClassNameUID) {
+      if (version == serialVersionWithSummaryClassNameUID) { //Obsolete?
         classNameLength = mem.getByte(offset++);
       }
       final int count = mem.getInt(offset);

@@ -30,7 +30,7 @@ import org.testng.annotations.Test;
  * Which should be equal to AnotB(estimating{<1.0,1,F}, new{1.0,0,T} = estimating{<1.0, 1, F}. The AnotB
  * threw a null pointer exception because it was not properly handling sketches with zero entries.
  */
-public class MikhailsBugTuple {
+public class MikhailsBugTupleTest {
 
   @Test
   public void mikhailsBug() {

@@ -211,7 +211,8 @@ public final class AnotB<S extends Summary> {
     curCount_ = hashArr_.length;
 
     summaryArr_ = daB.summaryArr;
-    curCount_ = hashArr_.length;
+
+
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
@@ -269,7 +270,7 @@ public final class AnotB<S extends Summary> {
     final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
 
     if (skA.isEmpty()) { return skA.compact(); }
-    if (skB.isEmpty() && skB.getRetainedEntries() == 0) { return skA.compact(); }
+    if (skB.isEmpty()) { return skA.compact(); }
     //Both skA & skB are not empty, and skB has valid entries
 
     //Process A
