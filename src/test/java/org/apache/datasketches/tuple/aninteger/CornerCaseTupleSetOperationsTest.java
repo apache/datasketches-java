@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
+import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.theta.UpdateSketch;
+import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
@@ -40,24 +43,22 @@ public class CornerCaseTupleSetOperationsTest {
    *  405753591161026837  hash(1L)[0] >>> 1    LTLT_LOWP_V
 
    */
-  //private static final long
 
   private static final long GT_MIDP_V   = 3L;
   private static final float MIDP       = 0.5f;
   private static final long LT_MIDP_V   = 2L;
-  //private static final long LTLT_MIDP_V = 5L;
 
   private static final long GT_LOWP_V   = 6L;
   private static final float LOWP       = 0.1f;
   private static final long LT_LOWP_V   = 4L;
-  //private static final long VALUE_1 = 1L;
-
 
   private static final double MIDP_THETA = MIDP;
   private static final double LOWP_THETA = LOWP;
 
+  IntegerSummary.Mode mode = IntegerSummary.Mode.Min;
+  IntegerSummary intSum = new IntegerSummary(mode);
   IntegerSummarySetOperations setOperations =
-      new IntegerSummarySetOperations(IntegerSummary.Mode.Min, IntegerSummary.Mode.Min);
+      new IntegerSummarySetOperations(mode, mode);
   Intersection<IntegerSummary> intersection = new Intersection<>(setOperations);
 
   enum SkType {
@@ -68,544 +69,461 @@ public class CornerCaseTupleSetOperationsTest {
     RESULT_DEGEN //{<1.0,  0, F} Bin: 000  Oct: 0, specify p, value
   }
 
-  //NOTE: 0 values in getSketch are not used.
+  //NOTE: 0 values in getTupleSketch or getThetaSketch are not used.
+
+  void checks(
+      IntegerSketch tupleA,
+      IntegerSketch tupleB,
+      UpdateSketch  thetaB,
+      double resultInterTheta,
+      int resultInterCount,
+      boolean resultInterEmpty,
+      double resultAnotbTheta,
+      int resultAnotbCount,
+      boolean resultAnotbEmpty) {
+    CompactSketch<IntegerSummary> csk;
+    //Intersection
+    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
+
+    csk = inter.intersect(tupleA, tupleB);
+    checkResult("Intersect Stateless Tuple, Tuple", csk, resultInterTheta, resultInterCount, resultInterEmpty);
+
+    csk = inter.intersect(tupleA, thetaB, intSum);
+    checkResult("Intersect Stateless Tuple, Theta", csk, resultInterTheta, resultInterCount, resultInterEmpty);
+
+    //AnotB
+    csk = AnotB.aNotB(tupleA, tupleB);
+    checkResult("AnotB Stateless Tuple, Tuple", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+
+    csk = AnotB.aNotB(tupleA, thetaB);
+    checkResult("AnotB Stateless Tuple, Theta", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+
+
+    AnotB<IntegerSummary> anotb = new AnotB<>();
+    anotb.setA(tupleA);
+    anotb.notB(tupleB);
+    csk = anotb.getResult(true);
+    checkResult("AnotB Stateful Tuple, Tuple", csk,  resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+
+    anotb.reset();
+    anotb.setA(tupleA);
+    anotb.notB(thetaB);
+    checkResult("AnotB Stateful Tuple, Theta", csk,  resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+  }
+
 
   @Test
   public void newNew() {
-    IntegerSketch ska = getSketch(SkType.NEW,    0, 0);
-    IntegerSketch skb = getSketch(SkType.NEW,    0, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW,    0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW,    0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,    0, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void newExact() {
-    IntegerSketch ska = getSketch(SkType.NEW,    0, 0);
-    IntegerSketch skb = getSketch(SkType.EXACT,  0, GT_MIDP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW,    0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,    0, GT_MIDP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void newNewDegen() {
-    IntegerSketch ska = getSketch(SkType.NEW,       0, 0);
-    IntegerSketch skb = getSketch(SkType.NEW_DEGEN, LOWP, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW,       0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN, LOWP, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN, LOWP, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void newResultDegen() {
-    IntegerSketch ska = getSketch(SkType.NEW,          0, 0);
-    IntegerSketch skb = getSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW,          0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void newNewEstimation() {
-    IntegerSketch ska = getSketch(SkType.NEW,        0, 0);
-    IntegerSketch skb = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW,        0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   /*********************/
 
   @Test
   public void exactNew() {
-    IntegerSketch ska = getSketch(SkType.EXACT,  0, GT_MIDP_V);
-    IntegerSketch skb = getSketch(SkType.NEW,    0, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW,    0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,    0, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 1;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 1, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 1, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void exactExact() {
-    IntegerSketch ska = getSketch(SkType.EXACT,  0, GT_MIDP_V);
-    IntegerSketch skb = getSketch(SkType.EXACT,  0, GT_MIDP_V);
+  public void exactExact() {//Intersect Stateless Tuple, Theta: Got: 0, Expected: 1; Got: true, Expected: false.
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,    0, GT_MIDP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 1;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 1, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void exactNewDegen() {
-    IntegerSketch ska = getSketch(SkType.EXACT,     0, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.NEW_DEGEN, LOWP, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,     0, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN, LOWP, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN, LOWP, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 1;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 1, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 1, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void exactResultDegen() { //AnotB: 1.0 != 0.10000000149011612;
-    IntegerSketch ska = getSketch(SkType.EXACT,        0, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V); //entries = 0
+  public void exactResultDegen() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,        0, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V); //entries = 0
+    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 1;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 0, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 1, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 1, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void exactEstimation() {
-    IntegerSketch ska = getSketch(SkType.EXACT,      0, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,      0, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 1;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 1, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   /*********************/
 
   @Test
   public void estimationNew() {
-    IntegerSketch ska = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.NEW,        0, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW,        0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,        0, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 1;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 1, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 1, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void estimationExact() {
-    IntegerSketch ska = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.EXACT,      0, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,      0, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,      0, LT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 1;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 1, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void estimationNewDegen() {
-    IntegerSketch ska = getSketch(SkType.ESTIMATION,  MIDP, LT_MIDP_V);
-    IntegerSketch skb = getSketch(SkType.NEW_DEGEN,   LOWP, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION,  MIDP, LT_MIDP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN,   LOWP, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN,   LOWP, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = MIDP_THETA;
+    final int resultAnotbCount = 1;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, MIDP_THETA, 1, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, MIDP_THETA, 1, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void estimationResultDegen() {
-    IntegerSketch ska = getSketch(SkType.ESTIMATION,   MIDP, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION,   MIDP, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 1;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 0, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 1, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 1, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void estimationEstimation() {
-    IntegerSketch ska = getSketch(SkType.ESTIMATION,  MIDP, LT_LOWP_V);
-    IntegerSketch skb = getSketch(SkType.ESTIMATION,  LOWP, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION,  MIDP, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION,  LOWP, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION,  LOWP, LT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 1;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 1, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   /*********************/
 
   @Test
-  public void newDegenNew() {//AnotB: 0.10000000149011612 != 1.0;
-    IntegerSketch ska = getSketch(SkType.NEW_DEGEN,  LOWP, 0);
-    IntegerSketch skb = getSketch(SkType.NEW,         0, 0);
+  public void newDegenNew() {
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,  LOWP, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW,         0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,         0, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenExact() { //AnotB: 0.10000000149011612 != 1.0;
-    IntegerSketch ska = getSketch(SkType.NEW_DEGEN, LOWP,0);
-    IntegerSketch skb = getSketch(SkType.EXACT,      0, LT_LOWP_V);
+  public void newDegenExact() {
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN, LOWP,0);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,      0, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,      0, LT_LOWP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenNewDegen() { //AnotB: 0.10000000149011612 != 1.0;
-    IntegerSketch ska = getSketch(SkType.NEW_DEGEN, MIDP, 0);
-    IntegerSketch skb = getSketch(SkType.NEW_DEGEN, LOWP, 0);
+  public void newDegenNewDegen() {
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN, MIDP, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN, LOWP, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN, LOWP, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenResultDegen() { //AnotB: 0.10000000149011612 != 1.0;
-    IntegerSketch ska = getSketch(SkType.NEW_DEGEN,    MIDP, 0);
-    IntegerSketch skb =  getSketch(SkType.RESULT_DEGEN, LOWP,GT_LOWP_V);
+  public void newDegenResultDegen() {
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,    MIDP, 0);
+    IntegerSketch tupleB =  getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =   getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenEstimation() { //AnotB: 0.10000000149011612 != 1.0;
-    IntegerSketch ska = getSketch(SkType.NEW_DEGEN,  MIDP, 0);
-    IntegerSketch skb =getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+  public void newDegenEstimation() {
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,  MIDP, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = 1.0;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = true;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, 1.0, 0, true);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Tuple, Tuple", csk, 1.0, 0, true);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   /*********************/
 
   @Test
   public void resultDegenNew() {
-    IntegerSketch ska = getSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V); //entries = 0
-    IntegerSketch skb = getSketch(SkType.NEW,           0, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW,           0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,           0, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void resultDegenExact() {
-    IntegerSketch ska = getSketch(SkType.RESULT_DEGEN,  LOWP, GT_LOWP_V); //entries = 0
-    IntegerSketch skb = getSketch(SkType.EXACT,         0, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN,  LOWP, GT_LOWP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,         0, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,         0, LT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 0, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void resultDegenNewDegen() {
-    IntegerSketch ska = getSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
-    IntegerSketch skb = getSketch(SkType.NEW_DEGEN,    LOWP, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN,    LOWP, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN,    LOWP, 0);
+    final double resultInterTheta = 1.0;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = true;
+    final double resultAnotbTheta = MIDP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, 1.0, 0, true);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, MIDP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, MIDP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void resultDegenResultDegen() {
-    IntegerSketch ska = getSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
-    IntegerSketch skb = getSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 0, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
   public void resultDegenEstimation() {
-    IntegerSketch ska = getSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
-    IntegerSketch skb = getSketch(SkType.ESTIMATION,   LOWP, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION,   LOWP, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION,   LOWP, LT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
+    final int resultInterCount = 0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
+    final int resultAnotbCount = 0;
+    final boolean resultAnotbEmpty = false;
 
-    //Stateless Tuple, Tuple
-    Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
-    CompactSketch<IntegerSummary> csk = inter.intersect(ska, skb);
-    checkResult("Intersect", csk, LOWP_THETA, 0, false);
-
-    csk = AnotB.aNotB(ska, skb);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
-
-    //Stateful Tuple, Tuple
-    AnotB<IntegerSummary> anotb = new AnotB<>();
-    anotb.setA(ska);
-    anotb.notB(skb);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateless Tuple, Tuple", csk, LOWP_THETA, 0, false);
+    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
+        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   //=================================
 
-  private static void checkResult(String comment, CompactSketch<IntegerSummary> sk, double theta, int entries, boolean empty) {
+  private static void checkResult(String comment, CompactSketch<IntegerSummary> sk,
+      double theta, int entries, boolean empty) {
     double skTheta = sk.getTheta();
     int skEntries = sk.getRetainedEntries();
     boolean skEmpty = sk.isEmpty();
@@ -623,7 +541,7 @@ public class CornerCaseTupleSetOperationsTest {
     }
   }
 
-  private static IntegerSketch getSketch(SkType skType, float p, long value) {
+  private static IntegerSketch getTupleSketch(SkType skType, float p, long value) {
 
     IntegerSketch sk;
     switch(skType) {
@@ -648,6 +566,45 @@ public class CornerCaseTupleSetOperationsTest {
       case RESULT_DEGEN: { //{<1.0,  0, F} Bin: 000  Oct: 0
         sk = new IntegerSketch(4, 2, p, IntegerSummary.Mode.Min);
         sk.update(value, 1); // > theta
+        break;
+      }
+
+      default: { return null; } //should not happen
+    }
+    return sk;
+  }
+
+  private static UpdateSketch getThetaSketch(SkType skType, float p, long value) {
+    UpdateSketchBuilder bldr = new UpdateSketchBuilder();
+    bldr.setLogNominalEntries(4);
+    bldr.setResizeFactor(ResizeFactor.X4);
+
+    UpdateSketch sk;
+    switch(skType) {
+      case NEW: { //{ 1.0,  0, T} Bin: 101  Oct: 05
+        sk = bldr.build();
+        break;
+      }
+      case EXACT: { //{ 1.0, >0, F} Bin: 111  Oct: 07
+        sk = bldr.build();
+        sk.update(value);
+        break;
+      }
+      case ESTIMATION: {   //{<1.0, >0, F} Bin: 010  Oct: 02
+        bldr.setP(p);
+        sk = bldr.build();
+        sk.update(value);
+        break;
+      }
+      case NEW_DEGEN: {    //{<1.0,  0, T} Bin: 001  Oct: 01
+        bldr.setP(p);
+        sk = bldr.build();
+        break;
+      }
+      case RESULT_DEGEN: { //{<1.0,  0, F} Bin: 000  Oct: 0
+        bldr.setP(p);
+        sk = bldr.build();
+        sk.update(value); // > theta
         break;
       }
 

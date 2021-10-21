@@ -110,12 +110,12 @@ public final class AnotB<S extends Summary> {
   @SuppressWarnings("unchecked")
   public void setA(final Sketch<S> skA) {
     if (skA == null) {
-      reset();
+      internalReset();
       throw new SketchesArgumentException("The input argument <i>A</i> may not be null");
     }
     summaryFactory_ = skA.getSummaryFactory();
     if (skA.isEmpty()) {
-      reset();
+      internalReset();
       return;
     }
     //skA is not empty
@@ -238,7 +238,7 @@ public final class AnotB<S extends Summary> {
     final CompactSketch<S> result =
         new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, curCount_),
             Arrays.copyOfRange(summaryArr_, 0, curCount_), thetaLong_, empty_);
-    if (reset) { reset(); }
+    if (reset) { internalReset(); }
     return result;
   }
 
@@ -489,14 +489,22 @@ public final class AnotB<S extends Summary> {
   }
 
   /**
-   * Resets this sketch back to the empty state.
+   * Resets this operation back to the empty state, but keeps the SummaryFactory.
    */
-  private void reset() {
+  private void internalReset() {
     empty_ = true;
     thetaLong_ = Long.MAX_VALUE;
     hashArr_ = null;
     summaryArr_ = null;
     curCount_ = 0;
+  }
+
+  /**
+   * Resets this operation back to the empty state.
+   */
+  public void reset() {
+    internalReset();
+    summaryFactory_ = null;
   }
 
 }

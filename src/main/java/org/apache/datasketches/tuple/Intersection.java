@@ -107,6 +107,8 @@ public class Intersection<S extends Summary> {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
+    // input sketch could be first or next call
+
     final boolean emptyIn = tupleSketch.isEmpty();
     if (empty_ || emptyIn) { //empty rule
       //Because of the definition of null above and the Empty Rule (which is OR), empty_ must be true.
@@ -115,11 +117,10 @@ public class Intersection<S extends Summary> {
       return;
     }
 
-    // input sketch could be first or next call
     final long thetaLongIn = tupleSketch.getThetaLong();
-    final int countIn = tupleSketch.getRetainedEntries();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
 
+    final int countIn = tupleSketch.getRetainedEntries();
     if (countIn == 0) {
       hashTables_.clear();
       return;
@@ -180,19 +181,25 @@ public class Intersection<S extends Summary> {
     if (summary == null) { throw new SketchesArgumentException("Summary cannot be null."); }
     final boolean firstCall = firstCall_;
     firstCall_ = false;
-
     // input sketch is not null, could be first or next call
+
+    final boolean emptyIn = thetaSketch.isEmpty();
+    if (empty_ || emptyIn) { //empty rule
+      //Because of the definition of null above and the Empty Rule (which is OR), empty_ must be true.
+      //Whatever the current internal state, we make our local empty.
+      resetToEmpty();
+      return;
+    }
+
     final long thetaLongIn = thetaSketch.getThetaLong();
-    final int countIn = thetaSketch.getRetainedEntries(true);
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
-    // Empty rule extended in case incoming sketch does not have empty bit properly set
-    final boolean emptyIn = countIn == 0 && thetaLongIn == Long.MAX_VALUE;
-    empty_ |= emptyIn; //empty rule
+    final int countIn = thetaSketch.getRetainedEntries();
     if (countIn == 0) {
       hashTables_.clear();
       return;
     }
     // input sketch will have valid entries > 0
+
     if (firstCall) {
       final org.apache.datasketches.theta.Sketch firstSketch = thetaSketch;
       //Copy firstSketch data into local instance hashTables_
