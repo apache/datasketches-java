@@ -69,6 +69,7 @@ public final class AnotB<S extends Summary> {
   private long[] hashArr_ = null;   //always in compact form, not necessarily sorted
   private S[] summaryArr_ = null; //always in compact form, not necessarily sorted
   private int curCount_ = 0;
+  private SummaryFactory<S> summaryFactory_;
 
   private static final Method GET_CACHE;
 
@@ -112,6 +113,7 @@ public final class AnotB<S extends Summary> {
       reset();
       throw new SketchesArgumentException("The input argument <i>A</i> may not be null");
     }
+    summaryFactory_ = skA.getSummaryFactory();
     if (skA.isEmpty()) {
       reset();
       return;
@@ -129,8 +131,7 @@ public final class AnotB<S extends Summary> {
 
     summaryArr_ = da.summaryArr;
     if (summaryArr_ == null) {
-      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skA).getSummaryFactory();
-      final S summary = sumFact.newSummary();
+      final S summary = skA.getSummaryFactory().newSummary();
       final Class<S> summaryType = (Class<S>)summary.getClass();
       summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
     }
@@ -159,6 +160,12 @@ public final class AnotB<S extends Summary> {
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
+    summaryFactory_ = skB.getSummaryFactory();
+    if (summaryArr_ == null) {
+      final S summary = summaryFactory_.newSummary();
+      final Class<S> summaryType = (Class<S>)summary.getClass();
+      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
+    }
 
     //process B
     final DataArrays<S> daB = getResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
@@ -168,12 +175,6 @@ public final class AnotB<S extends Summary> {
     curCount_ = hashArr_.length;
 
     summaryArr_ = daB.summaryArr;
-    if (summaryArr_ == null) {
-      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skB).getSummaryFactory();
-      final S summary = sumFact.newSummary();
-      final Class<S> summaryType = (Class<S>)summary.getClass();
-      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
-    }
 
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
@@ -197,11 +198,17 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
+  @SuppressWarnings("unchecked")
   public void notB(final org.apache.datasketches.theta.Sketch skB) {
     if (empty_ || skB == null || skB.isEmpty()) { return; }
     //skB is not empty
     final long thetaLongB = skB.getThetaLong();
     thetaLong_ = Math.min(thetaLong_, thetaLongB);
+    if (summaryArr_ == null) {
+      final S summary = summaryFactory_.newSummary();
+      final Class<S> summaryType = (Class<S>)summary.getClass();
+      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
+    }
 
     //process B
     final DataArrays<S> daB = getResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
@@ -211,7 +218,6 @@ public final class AnotB<S extends Summary> {
     curCount_ = hashArr_.length;
 
     summaryArr_ = daB.summaryArr;
-
 
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
@@ -281,8 +287,7 @@ public final class AnotB<S extends Summary> {
 
     S[] summaryArrA = da.summaryArr;
     if (summaryArrA == null) {
-      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skA).getSummaryFactory();
-      final S summary = sumFact.newSummary();
+      final S summary = skA.getSummaryFactory().newSummary();
       final Class<S> summaryType = (Class<S>)summary.getClass();
       summaryArrA = (S[]) Array.newInstance(summaryType, 0);
     }
@@ -348,8 +353,7 @@ public final class AnotB<S extends Summary> {
 
     S[] summaryArrA = da.summaryArr;
     if (summaryArrA == null) {
-      final SummaryFactory<S> sumFact = ((QuickSelectSketch<S>)skA).getSummaryFactory();
-      final S summary = sumFact.newSummary();
+      final  S summary = skA.getSummaryFactory().newSummary();
       final Class<S> summaryType = (Class<S>)summary.getClass();
       summaryArrA = (S[]) Array.newInstance(summaryType, 0);
     }

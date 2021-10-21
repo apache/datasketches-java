@@ -51,7 +51,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private int lgCurrentCapacity_;
   private final int lgResizeFactor_;
   private int count_;
-  private final SummaryFactory<S> summaryFactory_;
+  //private final SummaryFactory<S> summaryFactory_;
   private final float samplingProbability_;
   private int rebuildThreshold_;
   private long[] hashTable_;
@@ -127,8 +127,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     nomEntries_ = ceilingPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
-    summaryFactory_ = summaryFactory;
-    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    summaryFactory_ = summaryFactory; //super
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability); //super
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingSize);
     hashTable_ = new long[startingSize];
     summaryTable_ = null; // wait for the first summary to call Array.newInstance()
@@ -423,10 +423,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   void setEmpty(final boolean value) {
     empty_ = value;
-  }
-
-  SummaryFactory<S> getSummaryFactory() {
-    return summaryFactory_;
   }
 
   int findOrInsert(final long hash) {
