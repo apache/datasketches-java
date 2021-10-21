@@ -47,7 +47,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   private long[] hashArr_;
   private S[] summaryArr_;
 
-  private enum FlagsV2 { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
+  private enum FlagsLegacy { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
   private enum Flags { IS_BIG_ENDIAN, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
 
   /**
@@ -84,19 +84,19 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
     if (version <= serialVersionUID2) { // legacy serial format
       final byte flags = mem.getByte(offset++);
-      final boolean isBigEndian = (flags & 1 << FlagsV2.IS_BIG_ENDIAN.ordinal()) > 0;
+      final boolean isBigEndian = (flags & 1 << FlagsLegacy.IS_BIG_ENDIAN.ordinal()) > 0;
       if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
         throw new SketchesArgumentException("Byte order mismatch");
       }
-      empty_ = (flags & 1 << FlagsV2.IS_EMPTY.ordinal()) > 0;
-      final boolean isThetaIncluded = (flags & 1 << FlagsV2.IS_THETA_INCLUDED.ordinal()) > 0;
+      empty_ = (flags & 1 << FlagsLegacy.IS_EMPTY.ordinal()) > 0;
+      final boolean isThetaIncluded = (flags & 1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal()) > 0;
       if (isThetaIncluded) {
         thetaLong_ = mem.getLong(offset);
         offset += Long.BYTES;
       } else {
         thetaLong_ = Long.MAX_VALUE;
       }
-      final boolean hasEntries = (flags & 1 << FlagsV2.HAS_ENTRIES.ordinal()) > 0;
+      final boolean hasEntries = (flags & 1 << FlagsLegacy.HAS_ENTRIES.ordinal()) > 0;
       if (hasEntries) {
         int classNameLength = 0;
         if (version == serialVersionWithSummaryClassNameUID) {
