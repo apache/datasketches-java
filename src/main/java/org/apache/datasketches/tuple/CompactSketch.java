@@ -41,7 +41,7 @@ import org.apache.datasketches.memory.Memory;
  */
 public class CompactSketch<S extends Summary> extends Sketch<S> {
   private static final byte serialVersionWithSummaryClassNameUID = 1;
-  private static final byte serialVersionUID2 = 2;
+  private static final byte serialVersionUIDLegacy = 2;
   private static final byte serialVersionUID = 3;
   private static final short defaultSeedHash = (short) 37836; // for compatibility with C++
   private long[] hashArr_;
@@ -82,7 +82,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     }
     SerializerDeserializer
       .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
-    if (version <= serialVersionUID2) { // legacy serial format
+    if (version <= serialVersionUIDLegacy) { // legacy serial format
       final byte flags = mem.getByte(offset++);
       final boolean isBigEndian = (flags & 1 << FlagsLegacy.IS_BIG_ENDIAN.ordinal()) > 0;
       if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
