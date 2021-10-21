@@ -41,11 +41,14 @@ import org.apache.datasketches.memory.Memory;
  */
 public class CompactSketch<S extends Summary> extends Sketch<S> {
   private static final byte serialVersionWithSummaryClassNameUID = 1;
-  private static final byte serialVersionUID = 2;
+  private static final byte serialVersionUIDLegacy = 2;
+  private static final byte serialVersionUID = 3;
+  private static final short defaultSeedHash = (short) 37836; // for compatibility with C++
   private long[] hashArr_;
   private S[] summaryArr_;
 
-  private enum Flags { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
+  private enum FlagsLegacy { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
+  private enum Flags { IS_BIG_ENDIAN, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
 
   /**
    * Create a CompactSketch from correct components
@@ -67,7 +70,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized CompactSketch
    * @param deserializer the SummaryDeserializer
    */
-  @SuppressWarnings({"unchecked"})
   CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
@@ -80,47 +82,80 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     }
     SerializerDeserializer
       .validateType(mem.getByte(offset++), SerializerDeserializer.SketchType.CompactSketch);
-    final byte flags = mem.getByte(offset++);
-    final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
-    if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
-      throw new SketchesArgumentException("Byte order mismatch");
-    }
-    empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
-    final boolean isThetaIncluded = (flags & 1 << Flags.IS_THETA_INCLUDED.ordinal()) > 0;
-    if (isThetaIncluded) {
-      thetaLong_ = mem.getLong(offset);
-      offset += Long.BYTES;
-    } else {
-      thetaLong_ = Long.MAX_VALUE;
-    }
-    final boolean hasEntries = (flags & 1 << Flags.HAS_ENTRIES.ordinal()) > 0;
-    if (hasEntries) {
-      int classNameLength = 0;
-      if (version == serialVersionWithSummaryClassNameUID) {
-        classNameLength = mem.getByte(offset++);
+    if (version <= serialVersionUIDLegacy) { // legacy serial format
+      final byte flags = mem.getByte(offset++);
+      final boolean isBigEndian = (flags & 1 << FlagsLegacy.IS_BIG_ENDIAN.ordinal()) > 0;
+      if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
+        throw new SketchesArgumentException("Byte order mismatch");
       }
-      final int count = mem.getInt(offset);
-      offset += Integer.BYTES;
-      if (version == serialVersionWithSummaryClassNameUID) {
-        offset += classNameLength;
+      empty_ = (flags & 1 << FlagsLegacy.IS_EMPTY.ordinal()) > 0;
+      final boolean isThetaIncluded = (flags & 1 << FlagsLegacy.IS_THETA_INCLUDED.ordinal()) > 0;
+      if (isThetaIncluded) {
+        thetaLong_ = mem.getLong(offset);
+        offset += Long.BYTES;
+      } else {
+        thetaLong_ = Long.MAX_VALUE;
+      }
+      final boolean hasEntries = (flags & 1 << FlagsLegacy.HAS_ENTRIES.ordinal()) > 0;
+      if (hasEntries) {
+        int classNameLength = 0;
+        if (version == serialVersionWithSummaryClassNameUID) {
+          classNameLength = mem.getByte(offset++);
+        }
+        final int count = mem.getInt(offset);
+        offset += Integer.BYTES;
+        if (version == serialVersionWithSummaryClassNameUID) {
+          offset += classNameLength;
+        }
+        hashArr_ = new long[count];
+        for (int i = 0; i < count; i++) {
+          hashArr_[i] = mem.getLong(offset);
+          offset += Long.BYTES;
+        }
+        for (int i = 0; i < count; i++) {
+          offset += readSummary(mem, offset, i, count, deserializer);
+        }
+      }
+    } else { // current serial format
+      offset++; // unused
+      final byte flags = mem.getByte(offset++);
+      offset += 2; // usused
+      empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+      thetaLong_ = Long.MAX_VALUE;
+      int count = 0;
+      if (!empty_) {
+        if (preambleLongs == 1) {
+          count = 1;
+        } else {
+          count = mem.getInt(offset);
+          offset += Integer.BYTES;
+          offset += 4; // unused
+          if (preambleLongs > 2) {
+            thetaLong_ = mem.getLong(offset);
+            offset += Long.BYTES;
+          }
+        }
       }
       hashArr_ = new long[count];
       for (int i = 0; i < count; i++) {
         hashArr_[i] = mem.getLong(offset);
         offset += Long.BYTES;
-      }
-      for (int i = 0; i < count; i++) {
-        final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
-        final DeserializeResult<S> result = deserializer.heapifySummary(memRegion);
-        final S summary = result.getObject();
-        final Class<S> summaryType = (Class<S>) result.getObject().getClass();
-        offset += result.getSize();
-        if (summaryArr_ == null) {
-          summaryArr_ = (S[]) Array.newInstance(summaryType, count);
-        }
-        summaryArr_[i] = summary;
+        offset += readSummary(mem, offset, i, count, deserializer);
       }
     }
+  }
+
+  @SuppressWarnings({"unchecked"})
+  private int readSummary(final Memory mem, final int offset, final int i, final int count, final SummaryDeserializer<S> deserializer) {
+    final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
+    final DeserializeResult<S> result = deserializer.heapifySummary(memRegion);
+    final S summary = result.getObject();
+    final Class<S> summaryType = (Class<S>) result.getObject().getClass();
+    if (summaryArr_ == null) {
+      summaryArr_ = (S[]) Array.newInstance(summaryType, count);
+    }
+    summaryArr_[i] = summary;
+    return result.getSize();
   }
 
   @Override
@@ -150,64 +185,55 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   // Long || Start Byte Adr:
   // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-  //  0   ||                          |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+  //  0   ||    seed hash    |  Flags | unused | SkType | FamID  | SerVer |  Preamble_Longs    |
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
-    int summariesBytesLength = 0;
+	final int count = getRetainedEntries();
+    final boolean isSingleItem = count == 1 && !isEstimationMode();
+    final int preambleLongs = isEmpty() || isSingleItem ? 1 : isEstimationMode() ? 3 : 2;
+
+	int summariesSizeBytes = 0;
     byte[][] summariesBytes = null;
-    final int count = getRetainedEntries();
     if (count > 0) {
       summariesBytes = new byte[count][];
       for (int i = 0; i < count; i++) {
         summariesBytes[i] = summaryArr_[i].toByteArray();
-        summariesBytesLength += summariesBytes[i].length;
+        summariesSizeBytes += summariesBytes[i].length;
       }
     }
 
-    int sizeBytes =
-        Byte.BYTES // preamble longs
-      + Byte.BYTES // serial version
-      + Byte.BYTES // family id
-      + Byte.BYTES // sketch type
-      + Byte.BYTES; // flags
-    final boolean isThetaIncluded = thetaLong_ < Long.MAX_VALUE;
-    if (isThetaIncluded) {
-      sizeBytes += Long.BYTES; // theta
-    }
-    if (count > 0) {
-      sizeBytes +=
-        + Integer.BYTES // count
-        + Long.BYTES * count + summariesBytesLength;
-    }
+    int sizeBytes = Long.BYTES * preambleLongs + Long.BYTES * count + summariesSizeBytes;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
-    bytes[offset++] = PREAMBLE_LONGS;
+    bytes[offset++] = (byte) preambleLongs;
     bytes[offset++] = serialVersionUID;
     bytes[offset++] = (byte) Family.TUPLE.getID();
     bytes[offset++] = (byte) SerializerDeserializer.SketchType.CompactSketch.ordinal();
-    final boolean isBigEndian = ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN);
+    offset++; // unused
     bytes[offset++] = (byte) (
-      (isBigEndian ? 1 << Flags.IS_BIG_ENDIAN.ordinal() : 0)
-      | (empty_ ? 1 << Flags.IS_EMPTY.ordinal() : 0)
-      | (count > 0 ? 1 << Flags.HAS_ENTRIES.ordinal() : 0)
-      | (isThetaIncluded ? 1 << Flags.IS_THETA_INCLUDED.ordinal() : 0)
+        (1 << Flags.IS_COMPACT.ordinal())
+      | (1 << Flags.IS_READ_ONLY.ordinal())
+      | (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
     );
-    if (isThetaIncluded) {
-      ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
-      offset += Long.BYTES;
+    ByteArrayUtil.putShortLE(bytes, offset, defaultSeedHash);
+    offset += Short.BYTES;
+    if (!isEmpty()) {
+      if (!isSingleItem) {
+        ByteArrayUtil.putIntLE(bytes, offset, count);
+        offset += Integer.BYTES;
+        offset += 4; // unused
+        if (isEstimationMode()) {
+    	  ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
+    	  offset += Long.BYTES;
+        }
+      }
     }
-    if (count > 0) {
-      ByteArrayUtil.putIntLE(bytes, offset, getRetainedEntries());
-      offset += Integer.BYTES;
-      for (int i = 0; i < count; i++) {
-        ByteArrayUtil.putLongLE(bytes, offset, hashArr_[i]);
-        offset += Long.BYTES;
-      }
-      for (int i = 0; i < count; i++) {
-        System.arraycopy(summariesBytes[i], 0, bytes, offset, summariesBytes[i].length);
-        offset += summariesBytes[i].length;
-      }
+    for (int i = 0; i < count; i++) {
+      ByteArrayUtil.putLongLE(bytes, offset, hashArr_[i]);
+      offset += Long.BYTES;
+      System.arraycopy(summariesBytes[i], 0, bytes, offset, summariesBytes[i].length);
+      offset += summariesBytes[i].length;
     }
     return bytes;
   }
