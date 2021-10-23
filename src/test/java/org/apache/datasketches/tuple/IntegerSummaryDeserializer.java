@@ -20,8 +20,6 @@
 package org.apache.datasketches.tuple;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.tuple.DeserializeResult;
-import org.apache.datasketches.tuple.SummaryDeserializer;
 
 public class IntegerSummaryDeserializer implements SummaryDeserializer<IntegerSummary> {
 
