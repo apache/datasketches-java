@@ -48,6 +48,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   private S[] summaryArr_;
 
   private enum FlagsLegacy { IS_BIG_ENDIAN, IS_EMPTY, HAS_ENTRIES, IS_THETA_INCLUDED }
+
   private enum Flags { IS_BIG_ENDIAN, IS_READ_ONLY, IS_EMPTY, IS_COMPACT, IS_ORDERED }
 
   /**
@@ -146,7 +147,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   @SuppressWarnings({"unchecked"})
-  private int readSummary(final Memory mem, final int offset, final int i, final int count, final SummaryDeserializer<S> deserializer) {
+  private int readSummary(final Memory mem, final int offset, final int i, final int count,
+      final SummaryDeserializer<S> deserializer) {
     final Memory memRegion = mem.region(offset, mem.getCapacity() - offset);
     final DeserializeResult<S> result = deserializer.heapifySummary(memRegion);
     final S summary = result.getObject();
@@ -189,11 +191,11 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
-	final int count = getRetainedEntries();
+  final int count = getRetainedEntries();
     final boolean isSingleItem = count == 1 && !isEstimationMode();
     final int preambleLongs = isEmpty() || isSingleItem ? 1 : isEstimationMode() ? 3 : 2;
 
-	int summariesSizeBytes = 0;
+    int summariesSizeBytes = 0;
     byte[][] summariesBytes = null;
     if (count > 0) {
       summariesBytes = new byte[count][];
@@ -203,7 +205,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       }
     }
 
-    int sizeBytes = Long.BYTES * preambleLongs + Long.BYTES * count + summariesSizeBytes;
+    final int sizeBytes = Long.BYTES * preambleLongs + Long.BYTES * count + summariesSizeBytes;
     final byte[] bytes = new byte[sizeBytes];
     int offset = 0;
     bytes[offset++] = (byte) preambleLongs;
@@ -224,8 +226,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         offset += Integer.BYTES;
         offset += 4; // unused
         if (isEstimationMode()) {
-    	  ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
-    	  offset += Long.BYTES;
+          ByteArrayUtil.putLongLE(bytes, offset, thetaLong_);
+          offset += Long.BYTES;
         }
       }
     }
