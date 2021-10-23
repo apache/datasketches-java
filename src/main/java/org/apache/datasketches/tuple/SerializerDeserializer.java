@@ -45,7 +45,7 @@ public final class SerializerDeserializer {
   public static void validateFamily(final byte familyId, final byte preambleLongs) {
     final Family family = Family.idToFamily(familyId);
     if (family.equals(Family.TUPLE)) {
-      if (preambleLongs != Family.TUPLE.getMinPreLongs()) {
+      if (preambleLongs < Family.TUPLE.getMinPreLongs() || preambleLongs > Family.TUPLE.getMaxPreLongs()) {
         throw new SketchesArgumentException(
             "Possible corruption: Invalid PreambleLongs value for family TUPLE: " + preambleLongs);
       }

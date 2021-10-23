@@ -62,7 +62,11 @@ public class IntegerSketch extends UpdatableSketch<Integer, IntegerSummary> {
    * usually with data.
    * @param mem the given Memory
    * @param mode The IntegerSummary mode to be used
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Heapifying a CompactSketch is not deprecated.
    */
+  @Deprecated
   public IntegerSketch(final Memory mem, final IntegerSummary.Mode mode) {
     super(mem, new IntegerSummaryDeserializer(), new IntegerSummaryFactory(mode));
   }

@@ -166,7 +166,11 @@ public abstract class Sketch<S extends Summary> {
   }
 
   /**
-   * This is to serialize an instance to a byte array.
+   * This is to serialize a sketch instance to a byte array.
+   *
+   * <p>As of 3.0.0, serializing an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Serializing a CompactSketch is not deprecated.</p>
    * @return serialized representation of the sketch
    */
   public abstract byte[] toByteArray();

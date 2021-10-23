@@ -62,7 +62,11 @@ public class DoubleSketch extends UpdatableSketch<Double, DoubleSummary> {
    * usually with data.
    * @param mem the given Memory
    * @param mode The DoubleSummary mode to be used
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Heapifying a CompactSketch is not deprecated.
    */
+  @Deprecated
   public DoubleSketch(final Memory mem, final DoubleSummary.Mode mode) {
     super(mem, new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
   }
