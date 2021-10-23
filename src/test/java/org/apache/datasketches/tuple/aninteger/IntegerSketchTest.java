@@ -33,6 +33,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class IntegerSketchTest {
 
+  @SuppressWarnings("deprecation")
   @Test
   public void serDeTest() {
     final int lgK = 12;

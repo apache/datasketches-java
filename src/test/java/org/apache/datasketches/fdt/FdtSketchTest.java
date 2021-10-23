@@ -25,12 +25,11 @@ import static org.testng.Assert.fail;
 
 import java.util.List;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.SketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
+import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
@@ -40,6 +39,7 @@ public class FdtSketchTest {
   private static final String LS = System.getProperty("line.separator");
   private static final char sep = '|'; //string separator
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkFdtSketch() {
     final int lgK = 14;

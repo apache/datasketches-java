@@ -21,8 +21,6 @@ package org.apache.datasketches.tuple;
 
 import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.tuple.DeserializeResult;
-import org.apache.datasketches.tuple.UpdatableSummary;
 
 /**
  * Summary for generic tuple sketches of type Integer.

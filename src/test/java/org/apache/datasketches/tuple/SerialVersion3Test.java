@@ -19,13 +19,11 @@
 
 package org.apache.datasketches.tuple;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
-
 import static org.apache.datasketches.Util.getResourceBytes;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.tuple.IntegerSummary;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SerialVersion3Test {
