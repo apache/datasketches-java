@@ -61,7 +61,11 @@ public class FdtSketch extends ArrayOfStringsSketch {
   /**
    * Used by deserialization.
    * @param mem the image of a FdtSketch
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Heapifying a CompactSketch is not deprecated.
    */
+  @Deprecated
   FdtSketch(final Memory mem) {
     super(mem);
   }

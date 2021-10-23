@@ -65,7 +65,11 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    * @param srcMem Memory object with data of a serialized UpdatableSketch
    * @param deserializer instance of SummaryDeserializer
    * @param summaryFactory instance of SummaryFactory
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Heapifying a CompactSketch is not deprecated.
    */
+  @Deprecated
   public UpdatableSketch(final Memory srcMem, final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
     super(srcMem, deserializer, summaryFactory);

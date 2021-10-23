@@ -63,6 +63,7 @@ public class AdoubleTest {
     assertEquals(sk.getLgK(), 4);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void serDeTest() {
     final int lgK = 12;
@@ -319,6 +320,7 @@ public class AdoubleTest {
     }
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void serializeDeserializeExact() throws Exception {
     final UpdatableSketch<Double, DoubleSummary> sketch1 =
@@ -343,6 +345,7 @@ public class AdoubleTest {
     Assert.assertEquals(sketch2.getEstimate(), 2.0);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void serializeDeserializeEstimationNoResizing() throws Exception {
     final UpdatableSketch<Double, DoubleSummary> sketch1 =
@@ -373,6 +376,7 @@ public class AdoubleTest {
     Assert.assertEquals(count, 4096);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void serializeDeserializeSampling() throws Exception {
     final int sketchSize = 16384;

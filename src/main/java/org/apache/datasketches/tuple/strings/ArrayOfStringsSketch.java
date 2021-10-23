@@ -64,7 +64,11 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
    * Constructs this sketch from a Memory image, which must be from an ArrayOfStringsSketch, and
    * usually with data.
    * @param mem the given Memory
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Heapifying a CompactSketch is not deprecated.
    */
+  @Deprecated
   public ArrayOfStringsSketch(final Memory mem) {
     super(mem, new ArrayOfStringsSummaryDeserializer(), new ArrayOfStringsSummaryFactory());
   }

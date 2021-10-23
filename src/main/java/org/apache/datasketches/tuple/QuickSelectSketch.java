@@ -140,6 +140,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized QukckSelectSketch
    * @param deserializer the SummaryDeserializer
    * @param summaryFactory the SummaryFactory
+   * @deprecated As of 3.0.0, heapifying an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Heapifying a CompactSketch is not deprecated.
    */
   @Deprecated
   QuickSelectSketch(
@@ -314,6 +317,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||   RF   |  lgArr | lgNom  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
+  /**
+   * This serializes an UpdatableSketch (QuickSelectSketch).
+   * @return serialized representation of an UpdatableSketch (QuickSelectSketch).
+   * @deprecated As of 3.0.0, serializing an UpdatableSketch is deprecated.
+   * This capability will be removed in a future release.
+   * Serializing a CompactSketch is not deprecated.
+   */
   @Deprecated
   @SuppressWarnings("null")
   @Override
