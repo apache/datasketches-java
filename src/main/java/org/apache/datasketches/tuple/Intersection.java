@@ -22,8 +22,6 @@ package org.apache.datasketches.tuple;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 
@@ -48,7 +46,7 @@ public class Intersection<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
   private boolean empty_;
   private long thetaLong_;
-  private final HashTables hashTables_;
+  private HashTables<S> hashTables_;
   private boolean firstCall_;
 
   /**
@@ -60,7 +58,7 @@ public class Intersection<S extends Summary> {
     summarySetOps_ = summarySetOps;
     empty_ = false; // universal set at the start
     thetaLong_ = Long.MAX_VALUE;
-    hashTables_ = new HashTables();
+    hashTables_ = new HashTables<>();
     firstCall_ = true;
   }
 
@@ -71,7 +69,9 @@ public class Intersection<S extends Summary> {
    * @param tupleSketchB The second sketch argument.  It must not be null.
    * @return an unordered CompactSketch on the heap
    */
-  public CompactSketch<S> intersect(final Sketch<S> tupleSketchA, final Sketch<S> tupleSketchB) {
+  public CompactSketch<S> intersect(
+      final Sketch<S> tupleSketchA,
+      final Sketch<S> tupleSketchB) {
     reset();
     intersect(tupleSketchA);
     intersect(tupleSketchB);
@@ -89,8 +89,10 @@ public class Intersection<S extends Summary> {
    * This must not be null.
    * @return an unordered CompactSketch on the heap
    */
-  public CompactSketch<S> intersect(final Sketch<S> tupleSketch,
-      final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
+  public CompactSketch<S> intersect(
+      final Sketch<S> tupleSketch,
+      final org.apache.datasketches.theta.Sketch
+      thetaSketch, final S summary) {
     reset();
     intersect(tupleSketch);
     intersect(thetaSketch, summary);
@@ -120,51 +122,22 @@ public class Intersection<S extends Summary> {
     final long thetaLongIn = tupleSketch.getThetaLong();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
 
-    final int countIn = tupleSketch.getRetainedEntries();
-    if (countIn == 0) {
+    if (tupleSketch.getRetainedEntries() == 0) {
       hashTables_.clear();
       return;
     }
     // input sketch will have valid entries > 0
 
     if (firstCall) {
-      final Sketch<S> firstSketch = tupleSketch;
       //Copy firstSketch data into local instance hashTables_
-      hashTables_.fromSketch(firstSketch);
+      hashTables_.fromSketch(tupleSketch);
     }
 
     //Next Call
     else {
-      if (hashTables_.count_ == 0) {
-        return;
-      }
-      final Sketch<S> nextSketch = tupleSketch;
-      //Match nextSketch data with local instance data, filtering by theta
-      final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries());
-
-      final long[] matchHashArr = new long[maxMatchSize];
-      S[] matchSummaries = null;
-      int matchCount = 0;
-
-      final SketchIterator<S> it = nextSketch.iterator();
-      final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
-      while (it.next()) {
-        final long hash = it.getHash();
-        if (hash >= thetaLong_) { continue; }
-        final int index = hashSearch(hashTables_.hashTable_, hashTables_.lgTableSize_, hash);
-        if (index < 0) { continue; }
-        //Copy the intersecting items from local hashTables_
-        // sequentially into local matchHashArr_ and matchSummaries_
-        final S mySummary = hashTables_.summaryTable_[index];
-
-        if (matchSummaries == null) {
-          matchSummaries = (S[]) Array.newInstance(summaryType, maxMatchSize);
-        }
-        matchHashArr[matchCount] = hash;
-        matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, it.getSummary());
-        matchCount++;
-      }
-      hashTables_.fromArrays(matchHashArr, matchSummaries, matchCount);
+      if (hashTables_.count_ == 0) { return; }
+      //process intersect with current hashTables
+      hashTables_ = hashTables_.getIntersectHashTables(tupleSketch, thetaLongIn, summarySetOps_);
     }
   }
 
@@ -208,36 +181,8 @@ public class Intersection<S extends Summary> {
 
     //Next Call
     else {
-      if (hashTables_.count_ == 0) {
-        return;
-      }
-      final org.apache.datasketches.theta.Sketch nextSketch = thetaSketch;
-      //Match nextSketch data with local instance data, filtering by theta
-      final int maxMatchSize = min(hashTables_.count_, nextSketch.getRetainedEntries(true));
-
-      final long[] matchHashArr = new long[maxMatchSize];
-      S[] matchSummaries = null;
-      int matchCount = 0;
-
-      final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
-      final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
-      while (it.next()) {
-        final long hash = it.get();
-        if (hash >= thetaLong_) { continue; }
-        final int index = hashSearch(hashTables_.hashTable_, hashTables_.lgTableSize_, hash);
-        if (index < 0) { continue; }
-        //Copy the intersecting items from local hashTables_
-        // sequentially into local matchHashArr and matchSummaries
-        final S mySummary = hashTables_.summaryTable_[index];
-
-        if (matchSummaries == null) {
-          matchSummaries = (S[]) Array.newInstance(summaryType, maxMatchSize);
-        }
-        matchHashArr[matchCount] = hash;
-        matchSummaries[matchCount] = summarySetOps_.intersection(mySummary, (S)summary.copy());
-        matchCount++;
-      }
-      hashTables_.fromArrays(matchHashArr, matchSummaries, matchCount);
+      if (hashTables_.count_ == 0) { return; }
+      hashTables_ = hashTables_.getIntersectHashTables(thetaSketch, thetaLongIn, summarySetOps_, summary);
     }
   }
 
@@ -250,28 +195,28 @@ public class Intersection<S extends Summary> {
       throw new SketchesStateException(
         "getResult() with no intervening intersections is not a legal result.");
     }
-    if (hashTables_.count_ == 0) {
+    final int countIn = hashTables_.count_;
+    if (countIn == 0) {
       return new CompactSketch<>(null, null, thetaLong_, empty_);
     }
+
     //Compact the hash tables
     final int tableSize = hashTables_.hashTable_.length;
-    final long[] hashArr = new long[hashTables_.count_];
-    S[] summaries = null;
+
+    final long[] hashArr = new long[countIn];
     final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
+    final S[] summaryArr = (S[]) Array.newInstance(summaryType, countIn);
+
     int cnt = 0;
     for (int i = 0; i < tableSize; i++) {
       final long hash = hashTables_.hashTable_[i];
       if (hash == 0 || hash > thetaLong_) { continue; }
-      final S summary = hashTables_.summaryTable_[i];
-      if (summaries == null) {
-        summaries = (S[]) Array.newInstance(summaryType, hashTables_.count_);
-      }
       hashArr[cnt] = hash;
-      summaries[cnt] = summary;
+      summaryArr[cnt] = hashTables_.summaryTable_[i];
       cnt++;
     }
-    assert cnt == hashTables_.count_;
-    return new CompactSketch<>(hashArr, summaries, thetaLong_, empty_);
+    assert cnt == countIn;
+    return new CompactSketch<>(hashArr, summaryArr, thetaLong_, empty_);
   }
 
   /**
@@ -306,76 +251,6 @@ public class Intersection<S extends Summary> {
   static int getLgTableSize(final int count) {
     final int tableSize = max(ceilingPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
-  }
-
-  private class HashTables {
-    long[] hashTable_ = null;
-    S[] summaryTable_ = null;
-    int lgTableSize_ = 0;
-    int count_ = 0;
-
-    HashTables() { }
-
-    void fromSketch(final Sketch<S> sketch) {
-      count_ = sketch.getRetainedEntries();
-      lgTableSize_ = getLgTableSize(count_);
-      S mySummary = null;
-
-      hashTable_ = new long[1 << lgTableSize_];
-      final SketchIterator<S> it = sketch.iterator();
-      while (it.next()) {
-        final long hash = it.getHash();
-        final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
-        mySummary = (S)it.getSummary().copy();
-        if (summaryTable_ == null) {
-          summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
-        }
-        summaryTable_[index] = mySummary;
-      }
-    }
-
-    void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
-      count_ = sketch.getRetainedEntries(true);
-      lgTableSize_ = getLgTableSize(count_);
-      S mySummary = null;
-
-      hashTable_ = new long[1 << lgTableSize_];
-      final org.apache.datasketches.theta.HashIterator it = sketch.iterator();
-      while (it.next()) {
-        final long hash = it.get();
-        final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
-        mySummary = summary;
-        if (summaryTable_ == null) {
-          summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
-        }
-        summaryTable_[index] = mySummary;
-      }
-    }
-
-    void fromArrays(final long[] hashArr, final S[] summaryArr, final int count) {
-      count_ = count;
-      lgTableSize_ = getLgTableSize(count);
-
-      S mySummary = null;
-      summaryTable_ = null;
-      hashTable_ = new long[1 << lgTableSize_];
-      for (int i = 0; i < count; i++) {
-        final long hash = hashArr[i];
-        final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
-        mySummary = summaryArr[i];
-        if (summaryTable_ == null) {
-          summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
-        }
-        summaryTable_[index] = summaryArr[i];
-      }
-    }
-
-    void clear() {
-      hashTable_ = null;
-      summaryTable_ = null;
-      lgTableSize_ = 0;
-      count_ = 0;
-    }
   }
 
 }

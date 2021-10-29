@@ -41,7 +41,6 @@ public class CornerCaseTupleSetOperationsTest {
    *  922337217429372928  Theta for p = 0.1f = LOWP
    *  593872385995628096  hash(4L)[0] >>> 1    LT_LOWP_V
    *  405753591161026837  hash(1L)[0] >>> 1    LTLT_LOWP_V
-
    */
 
   private static final long GT_MIDP_V   = 3L;
@@ -55,13 +54,11 @@ public class CornerCaseTupleSetOperationsTest {
   private static final double MIDP_THETA = MIDP;
   private static final double LOWP_THETA = LOWP;
 
-  IntegerSummary.Mode mode = IntegerSummary.Mode.Min;
-  IntegerSummary intSum = new IntegerSummary(mode);
-  IntegerSummarySetOperations setOperations =
-      new IntegerSummarySetOperations(mode, mode);
-  Intersection<IntegerSummary> intersection = new Intersection<>(setOperations);
+  private IntegerSummary.Mode mode = IntegerSummary.Mode.Min;
+  private IntegerSummary intSum = new IntegerSummary(mode);
+  private IntegerSummarySetOperations setOperations = new IntegerSummarySetOperations(mode, mode);
 
-  enum SkType {
+  private enum SkType {
     NEW,         //{ 1.0,  0, T} Bin: 101  Oct: 05
     EXACT,       //{ 1.0, >0, F} Bin: 111  Oct: 07, specify only value
     ESTIMATION,  //{<1.0, >0, F} Bin: 010  Oct: 02, specify only value
@@ -71,7 +68,7 @@ public class CornerCaseTupleSetOperationsTest {
 
   //NOTE: 0 values in getTupleSketch or getThetaSketch are not used.
 
-  void checks(
+  private void checks(
       IntegerSketch tupleA,
       IntegerSketch tupleB,
       UpdateSketch  thetaB,
@@ -82,22 +79,31 @@ public class CornerCaseTupleSetOperationsTest {
       int resultAnotbCount,
       boolean resultAnotbEmpty) {
     CompactSketch<IntegerSummary> csk;
+
     //Intersection
     Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
 
     csk = inter.intersect(tupleA, tupleB);
     checkResult("Intersect Stateless Tuple, Tuple", csk, resultInterTheta, resultInterCount, resultInterEmpty);
+    csk = inter.intersect(tupleA.compact(), tupleB.compact());
+    checkResult("Intersect Stateless Tuple, Tuple", csk, resultInterTheta, resultInterCount, resultInterEmpty);
 
     csk = inter.intersect(tupleA, thetaB, intSum);
     checkResult("Intersect Stateless Tuple, Theta", csk, resultInterTheta, resultInterCount, resultInterEmpty);
+    csk = inter.intersect(tupleA.compact(), thetaB.compact(), intSum);
+    checkResult("Intersect Stateless Tuple, Theta", csk, resultInterTheta, resultInterCount, resultInterEmpty);
+
 
     //AnotB
     csk = AnotB.aNotB(tupleA, tupleB);
     checkResult("AnotB Stateless Tuple, Tuple", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+    csk = AnotB.aNotB(tupleA.compact(), tupleB.compact());
+    checkResult("AnotB Stateless Tuple, Tuple", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
 
     csk = AnotB.aNotB(tupleA, thetaB);
     checkResult("AnotB Stateless Tuple, Theta", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-
+    csk = AnotB.aNotB(tupleA.compact(), thetaB.compact());
+    checkResult("AnotB Stateless Tuple, Theta", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
 
     AnotB<IntegerSummary> anotb = new AnotB<>();
     anotb.setA(tupleA);
@@ -105,9 +111,19 @@ public class CornerCaseTupleSetOperationsTest {
     csk = anotb.getResult(true);
     checkResult("AnotB Stateful Tuple, Tuple", csk,  resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
 
+    anotb.setA(tupleA.compact());
+    anotb.notB(tupleB.compact());
+    csk = anotb.getResult(true);
+    checkResult("AnotB Stateful Tuple, Tuple", csk,  resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+
     anotb.reset();
     anotb.setA(tupleA);
     anotb.notB(thetaB);
+    checkResult("AnotB Stateful Tuple, Theta", csk,  resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
+
+    anotb.reset();
+    anotb.setA(tupleA.compact());
+    anotb.notB(thetaB.compact());
     checkResult("AnotB Stateful Tuple, Theta", csk,  resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
@@ -132,7 +148,7 @@ public class CornerCaseTupleSetOperationsTest {
   public void newExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.NEW,    0, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,    0, GT_MIDP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,  0, GT_MIDP_V);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
@@ -211,10 +227,10 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void exactExact() {//Intersect Stateless Tuple, Theta: Got: 0, Expected: 1; Got: true, Expected: false.
+  public void exactExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,    0, GT_MIDP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,  0, GT_MIDP_V);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 1;
     final boolean resultInterEmpty = false;
@@ -360,7 +376,7 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void newDegenNew() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,  LOWP, 0);
+    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,   LOWP, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.NEW,         0, 0);
     UpdateSketch thetaB =  getThetaSketch(SkType.NEW,         0, 0);
     final double resultInterTheta = 1.0;

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.HashOperations.convertToHashTable;
 import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
@@ -28,6 +29,9 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
+import org.apache.datasketches.SetOperationCornerCases;
+import org.apache.datasketches.SetOperationCornerCases.AnotbResult;
+import org.apache.datasketches.SetOperationCornerCases.CornerCase;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 
@@ -57,11 +61,11 @@ import org.apache.datasketches.SketchesStateException;
  * <p>Calling the <i>setA</i> operation a second time essentially clears the internal state and loads
  * the new sketch.</p>
  *
- * <p>The stateless and stateful operations are independent of each other with the exception of
- * sharing the same update hash seed loaded as the default seed or specified by the user as an
- * argument to the builder.</p>
+ * <p>The stateless and stateful operations are independent of each other.</p>
  *
  * @param <S> Type of Summary
+ *
+ * @author Lee Rhodes
  */
 public final class AnotB<S extends Summary> {
   private boolean empty_ = true;
@@ -69,7 +73,6 @@ public final class AnotB<S extends Summary> {
   private long[] hashArr_ = null;   //always in compact form, not necessarily sorted
   private S[] summaryArr_ = null; //always in compact form, not necessarily sorted
   private int curCount_ = 0;
-  private SummaryFactory<S> summaryFactory_;
 
   private static final Method GET_CACHE;
 
@@ -110,31 +113,16 @@ public final class AnotB<S extends Summary> {
   @SuppressWarnings("unchecked")
   public void setA(final Sketch<S> skA) {
     if (skA == null) {
-      internalReset();
+      reset();
       throw new SketchesArgumentException("The input argument <i>A</i> may not be null");
     }
-    summaryFactory_ = skA.getSummaryFactory();
-    if (skA.isEmpty()) {
-      internalReset();
-      return;
-    }
-    //skA is not empty
 
-    //process A
-    empty_ = false;
+    empty_ = skA.isEmpty();
     thetaLong_ = skA.getThetaLong();
-    final DataArrays<S> da = getDataArraysA(skA);
-
-    hashArr_ = da.hashArr;
-    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
-    curCount_ = hashArr_.length;
-
-    summaryArr_ = da.summaryArr;
-    if (summaryArr_ == null) {
-      final S summary = skA.getSummaryFactory().newSummary();
-      final Class<S> summaryType = (Class<S>)summary.getClass();
-      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
-    }
+    final DataArrays<S> da = getDataArraysTuple(skA);
+    summaryArr_ = da.summaryArr;  //it may be null
+    hashArr_ = da.hashArr;        //it may be null
+    curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
   }
 
   /**
@@ -156,27 +144,56 @@ public final class AnotB<S extends Summary> {
    */
   @SuppressWarnings("unchecked")
   public void notB(final Sketch<S> skB) {
-    if (empty_ || skB == null || skB.isEmpty()) { return; }
-    //skB is not empty
+    if (skB == null) { return; } //ignore
+
     final long thetaLongB = skB.getThetaLong();
-    thetaLong_ = Math.min(thetaLong_, thetaLongB);
-    summaryFactory_ = skB.getSummaryFactory();
-    if (summaryArr_ == null) {
-      final S summary = summaryFactory_.newSummary();
-      final Class<S> summaryType = (Class<S>)summary.getClass();
-      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
+    final int countB = skB.getRetainedEntries();
+    final boolean emptyB = skB.isEmpty();
+
+    final int id =
+        SetOperationCornerCases.createCornerCaseId(thetaLong_, curCount_, empty_, thetaLongB, countB, emptyB);
+    final CornerCase cCase = CornerCase.idToCornerCase(id);
+    final AnotbResult anotbResult = cCase.getAnotbResult();
+
+    switch (anotbResult) {
+      case NEW_1_0_T: {
+        reset();
+        break;
+      }
+      case NEW_MIN_0_F: {
+        reset();
+        thetaLong_ = min(thetaLong_, thetaLongB);
+        empty_ = false;
+        break;
+      }
+      case NEW_THA_0_F: {
+        empty_ = false;
+        curCount_ = 0;
+        //thetaLong_ is ok
+        break;
+      }
+      case SKA_TRIM: {
+        thetaLong_ = min(thetaLong_, thetaLongB);
+        final DataArrays<S> da = trimDataArrays(hashArr_, summaryArr_, thetaLong_);
+        hashArr_ = da.hashArr;
+        curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
+        summaryArr_ = da.summaryArr;
+        //empty_ = is whatever SkA is,
+        break;
+      }
+      case SKETCH_A: {
+        break; //result is already in A
+      }
+      case FULL_ANOTB: { //both A and B should have valid entries.
+        thetaLong_ = min(thetaLong_, thetaLongB);
+        final DataArrays<S> daR = getAnotbResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
+        hashArr_ = daR.hashArr;
+        curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
+        summaryArr_ = daR.summaryArr;
+        //empty_ = is whatever SkA is,
+      }
+      //default: not possible
     }
-
-    //process B
-    final DataArrays<S> daB = getResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
-
-    hashArr_ = daB.hashArr;
-    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
-    curCount_ = hashArr_.length;
-
-    summaryArr_ = daB.summaryArr;
-
-    empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
   /**
@@ -200,26 +217,55 @@ public final class AnotB<S extends Summary> {
    */
   @SuppressWarnings("unchecked")
   public void notB(final org.apache.datasketches.theta.Sketch skB) {
-    if (empty_ || skB == null || skB.isEmpty()) { return; }
-    //skB is not empty
+    if (skB == null) { return; } //ignore
+
     final long thetaLongB = skB.getThetaLong();
-    thetaLong_ = Math.min(thetaLong_, thetaLongB);
-    if (summaryArr_ == null) {
-      final S summary = summaryFactory_.newSummary();
-      final Class<S> summaryType = (Class<S>)summary.getClass();
-      summaryArr_ = (S[]) Array.newInstance(summaryType, 0);
+    final int countB = skB.getRetainedEntries();
+    final boolean emptyB = skB.isEmpty();
+
+    final int id =
+        SetOperationCornerCases.createCornerCaseId(thetaLong_, curCount_, empty_, thetaLongB, countB, emptyB);
+    final CornerCase cCase = CornerCase.idToCornerCase(id);
+    final AnotbResult anotbResult = cCase.getAnotbResult();
+
+    switch (anotbResult) {
+      case NEW_1_0_T: {
+        reset();
+        break;
+      }
+      case NEW_MIN_0_F: {
+        reset();
+        thetaLong_ = min(thetaLong_, thetaLongB);
+        empty_ = false;
+        break;
+      }
+      case NEW_THA_0_F: {
+        empty_ = false;
+        curCount_ = 0;
+        //thetaLong_ is ok
+        break;
+      }
+      case SKA_TRIM: {
+        thetaLong_ = min(thetaLong_, thetaLongB);
+        final DataArrays<S> da = trimDataArrays(hashArr_, summaryArr_,thetaLong_);
+        hashArr_ = da.hashArr;
+        curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
+        summaryArr_ = da.summaryArr;
+        break;
+      }
+      case SKETCH_A: {
+        break; //result is already in A
+      }
+      case FULL_ANOTB: { //both A and B should have valid entries.
+        thetaLong_ = min(thetaLong_, skB.getThetaLong());
+        final DataArrays<S> daB = getAnotbResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
+        hashArr_ = daB.hashArr;
+        curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
+        summaryArr_ = daB.summaryArr;
+        //empty_ = is whatever SkA is,
+      }
+      //default: not possible
     }
-
-    //process B
-    final DataArrays<S> daB = getResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
-
-    hashArr_ = daB.hashArr;
-    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
-    curCount_ = hashArr_.length;
-
-    summaryArr_ = daB.summaryArr;
-
-    empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
 
   /**
@@ -232,13 +278,13 @@ public final class AnotB<S extends Summary> {
    * @return the result of this operation as an unordered {@link CompactSketch}.
    */
   public CompactSketch<S> getResult(final boolean reset) {
+    final CompactSketch<S> result;
     if (curCount_ == 0) {
-      return new CompactSketch<>(null, null, thetaLong_, empty_);
+      result = new CompactSketch<>(null, null, thetaLong_, thetaLong_ == Long.MAX_VALUE);
+    } else {
+      result = new CompactSketch<>(hashArr_, summaryArr_, thetaLong_, false);
     }
-    final CompactSketch<S> result =
-        new CompactSketch<>(Arrays.copyOfRange(hashArr_, 0, curCount_),
-            Arrays.copyOfRange(summaryArr_, 0, curCount_), thetaLong_, empty_);
-    if (reset) { internalReset(); }
+    if (reset) { reset(); }
     return result;
   }
 
@@ -266,44 +312,70 @@ public final class AnotB<S extends Summary> {
    * @return the result as an unordered {@link CompactSketch}
    */
   @SuppressWarnings("unchecked")
-  public static <S extends Summary>
-        CompactSketch<S> aNotB(final Sketch<S> skA, final Sketch<S> skB) {
+  public static <S extends Summary> CompactSketch<S> aNotB(
+      final Sketch<S> skA,
+      final Sketch<S> skB) {
     if (skA == null || skB == null) {
-      throw new SketchesArgumentException("Neither argument may be null");
-    }
-    //Both skA & skB are not null
-
-    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
-
-    if (skA.isEmpty()) { return skA.compact(); }
-    if (skB.isEmpty()) { return skA.compact(); }
-    //Both skA & skB are not empty, and skB has valid entries
-
-    //Process A
-    final DataArrays<S> da = getDataArraysA(skA);
-    long[] hashArrA = da.hashArr;
-    hashArrA = (hashArrA == null) ? new long[0] : hashArrA;
-    final int countA = hashArrA.length;
-
-    S[] summaryArrA = da.summaryArr;
-    if (summaryArrA == null) {
-      final S summary = skA.getSummaryFactory().newSummary();
-      final Class<S> summaryType = (Class<S>)summary.getClass();
-      summaryArrA = (S[]) Array.newInstance(summaryType, 0);
+      throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
 
-    if (countA == 0) {
-      return new CompactSketch<S>(new long[0], summaryArrA, minThetaLong, false);
+    final long thetaLongA = skA.getThetaLong();
+    final int countA = skA.getRetainedEntries();
+    final boolean emptyA = skA.isEmpty();
+
+    final long thetaLongB = skB.getThetaLong();
+    final int countB = skB.getRetainedEntries();
+    final boolean emptyB = skB.isEmpty();
+
+    final int id =
+        SetOperationCornerCases.createCornerCaseId(thetaLongA, countA, emptyA, thetaLongB, countB, emptyB);
+    final CornerCase cCase = CornerCase.idToCornerCase(id);
+    final AnotbResult anotbResult = cCase.getAnotbResult();
+
+    CompactSketch<S> result = null;
+
+    switch (anotbResult) {
+      case NEW_1_0_T: {
+        result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+        break;
+      }
+      case NEW_MIN_0_F: {
+        final long thetaLong = min(thetaLongA, thetaLongB);
+        result = new CompactSketch<>(null, null, thetaLong, false);
+        break;
+      }
+      case NEW_THA_0_F: {
+        result = new CompactSketch<>(null, null, thetaLongA, false);
+        break;
+      }
+      case SKA_TRIM: {
+        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final long[] hashArrA = daA.hashArr;
+        final S[] summaryArrA = daA.summaryArr;
+        final long minThetaLong =  min(thetaLongA, thetaLongB);
+        final DataArrays<S> da = trimDataArrays(hashArrA, summaryArrA, minThetaLong);
+        result = new CompactSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
+        break;
+      }
+      case SKETCH_A: {
+        final DataArrays<S> daA = getDataArraysTuple(skA);
+        result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
+        break;
+      }
+      case FULL_ANOTB: { //both A and B should have valid entries.
+        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final long minThetaLong = min(thetaLongA, thetaLongB);
+        final DataArrays<S> daR =
+            getAnotbResultArraysTuple(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
+        final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
+        if (countR == 0) {
+          result = new CompactSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
+        } else {
+          result = new CompactSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
+        }
+      }
+      //default: not possible
     }
-
-    //Process B
-    final DataArrays<S> daB = getResultArraysTuple(minThetaLong, countA, hashArrA, summaryArrA, skB);
-    final long[] hashArr = daB.hashArr;
-    final S[] summaryArr = daB.summaryArr;
-    final int curCountOut = hashArr.length;
-    final boolean empty = curCountOut == 0 && minThetaLong == Long.MAX_VALUE;
-
-    final CompactSketch<S> result = new CompactSketch<>(hashArr, summaryArr, minThetaLong, empty);
     return result;
   }
 
@@ -332,45 +404,70 @@ public final class AnotB<S extends Summary> {
    * @return the result as an unordered {@link CompactSketch}
    */
   @SuppressWarnings("unchecked")
-  public static <S extends Summary>
-        CompactSketch<S> aNotB(final Sketch<S> skA, final org.apache.datasketches.theta.Sketch skB) {
+  public static <S extends Summary> CompactSketch<S> aNotB(
+      final Sketch<S> skA,
+      final org.apache.datasketches.theta.Sketch skB) {
     if (skA == null || skB == null) {
-      throw new SketchesArgumentException("Neither argument may be null");
-    }
-    //Both skA & skB are not null
-
-    final long minThetaLong = Math.min(skA.getThetaLong(), skB.getThetaLong());
-
-    if (skA.isEmpty()) { return skA.compact(); }
-    if (skB.isEmpty() && skB.getRetainedEntries() == 0) { return skA.compact(); }
-    //Both skA & skB are not empty, and skB has valid entries
-
-    //Process A
-    final DataArrays<S> da = getDataArraysA(skA);
-    long[] hashArrA = da.hashArr;
-    hashArrA = (hashArrA == null) ? new long[0] : hashArrA;
-    final int countA = hashArrA.length;
-
-    S[] summaryArrA = da.summaryArr;
-    if (summaryArrA == null) {
-      final  S summary = skA.getSummaryFactory().newSummary();
-      final Class<S> summaryType = (Class<S>)summary.getClass();
-      summaryArrA = (S[]) Array.newInstance(summaryType, 0);
+      throw new SketchesArgumentException("Neither argument may be null for this stateless operation.");
     }
 
-    if (countA == 0) {
-      return new CompactSketch<S>(new long[0], summaryArrA, minThetaLong, false);
+    final long thetaLongA = skA.getThetaLong();
+    final int countA = skA.getRetainedEntries();
+    final boolean emptyA = skA.isEmpty();
+
+    final long thetaLongB = skB.getThetaLong();
+    final int countB = skB.getRetainedEntries();
+    final boolean emptyB = skB.isEmpty();
+
+    final int id =
+        SetOperationCornerCases.createCornerCaseId(thetaLongA, countA, emptyA, thetaLongB, countB, emptyB);
+    final CornerCase cCase = CornerCase.idToCornerCase(id);
+    final AnotbResult anotbResult = cCase.getAnotbResult();
+
+    CompactSketch<S> result = null;
+
+    switch (anotbResult) {
+      case NEW_1_0_T: {
+        result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
+        break;
+      }
+      case NEW_MIN_0_F: {
+        final long thetaLong = min(thetaLongA, thetaLongB);
+        result = new CompactSketch<>(null, null, thetaLong, false);
+        break;
+      }
+      case NEW_THA_0_F: {
+        result = new CompactSketch<>(null, null, thetaLongA, false);
+        break;
+      }
+      case SKA_TRIM: {
+        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final long[] hashArrA = daA.hashArr;
+        final S[] summaryArrA = daA.summaryArr;
+        final long minThetaLong = min(thetaLongA, thetaLongB);
+        final DataArrays<S> da = trimDataArrays(hashArrA, summaryArrA, minThetaLong);
+        result = new CompactSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
+        break;
+      }
+      case SKETCH_A: {
+        final DataArrays<S> daA = getDataArraysTuple(skA);
+        result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
+        break;
+      }
+      case FULL_ANOTB: { //both A and B should have valid entries.
+        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final long minThetaLong = min(thetaLongA, thetaLongB);
+        final DataArrays<S> daR =
+            getAnotbResultArraysTheta(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
+        final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
+        if (countR == 0) {
+          result = new CompactSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
+        } else {
+          result = new CompactSketch<>(daR.hashArr, daR.summaryArr, minThetaLong, false);
+        }
+      }
+      //default: not possible
     }
-
-    //Process B
-
-    final DataArrays<S> daB = getResultArraysTheta(minThetaLong, countA, hashArrA, summaryArrA, skB);
-    final long[] hashArr = daB.hashArr;
-    final S[] summaryArr = daB.summaryArr;
-    final int countOut = hashArr.length;
-    final boolean empty = countOut == 0 && minThetaLong == Long.MAX_VALUE;
-
-    final CompactSketch<S> result = new CompactSketch<>(hashArr, summaryArr, minThetaLong, empty);
     return result;
   }
 
@@ -381,23 +478,55 @@ public final class AnotB<S extends Summary> {
     S[] summaryArr;
   }
 
-  private static <S extends Summary> DataArrays<S> getDataArraysA(final Sketch<S> skA) {
-    final CompactSketch<S> cskA;
+  private static <S extends Summary> DataArrays<S> getDataArraysTuple(
+      final Sketch<S> sk) {
+    final CompactSketch<S> csk;
     final DataArrays<S> da = new DataArrays<>();
-    if (skA instanceof CompactSketch) {
-      cskA = (CompactSketch<S>) skA;
-      da.hashArr = cskA.getHashArr().clone();       //deep copy
-      da.summaryArr = cskA.getSummaryArr().clone(); //shallow copy
+    if (sk instanceof CompactSketch) {
+      csk = (CompactSketch<S>) sk;
     } else {
-      cskA = ((QuickSelectSketch<S>)skA).compact();
-      da.hashArr = cskA.getHashArr(); //not sorted
-      da.summaryArr = cskA.getSummaryArr();
+      csk = ((QuickSelectSketch<S>)sk).compact();
+    }
+    final int count = csk.getRetainedEntries();
+    if (count == 0) {
+      da.hashArr = null;
+      da.summaryArr = null;
+    } else {
+      da.hashArr = csk.getHashArr().clone();       //deep copy, may not be sorted
+      da.summaryArr = csk.getSummaryArr().clone(); //shallow copy
     }
     return da;
   }
 
   @SuppressWarnings("unchecked")
-  private static <S extends Summary> DataArrays<S> getResultArraysTuple(
+  private static <S extends Summary> DataArrays<S> trimDataArrays(
+      final long[] hashArr,
+      final S[] summaryArr,
+      final long minThetaLong) {
+
+    //build temporary arrays
+    final int countIn = hashArr.length;
+    final long[] tmpHashArr = new long[countIn];
+    final Class<S> summaryType = (Class<S>) summaryArr.getClass().getComponentType();
+    final S[] tmpSummaryArr = (S[]) Array.newInstance(summaryType, countIn);
+    int countResult = 0;
+    for (int i = 0; i < countIn; i++) {
+      final long hash = hashArr[i];
+      if (hash < minThetaLong) {
+        tmpHashArr[countResult] = hash;
+        tmpSummaryArr[countResult] = summaryArr[i];
+        countResult++;
+      } else { continue; }
+    }
+    final DataArrays<S> da = new DataArrays<>();
+    da.hashArr = Arrays.copyOfRange(tmpHashArr, 0, countResult);
+    da.summaryArr = Arrays.copyOfRange(tmpSummaryArr, 0, countResult);
+    return da;
+  }
+
+  @SuppressWarnings("unchecked")
+  //Both skA and skB must have entries (count > 0)
+  private static <S extends Summary> DataArrays<S> getAnotbResultArraysTuple(
       final long minThetaLong,
       final int countA,
       final long[] hashArrA,
@@ -442,7 +571,7 @@ public final class AnotB<S extends Summary> {
   }
 
   @SuppressWarnings("unchecked")
-  private static <S extends Summary> DataArrays<S> getResultArraysTheta(
+  private static <S extends Summary> DataArrays<S> getAnotbResultArraysTheta(
       final long minThetaLong,
       final int countA,
       final long[] hashArrA,
@@ -453,15 +582,15 @@ public final class AnotB<S extends Summary> {
     //Rebuild/get hashtable of skB
     final long[] hashTableB; //read only
 
-    final long[] thetaCacheB;
-    try { thetaCacheB = (long[])GET_CACHE.invoke(skB);
+    final long[] hashCacheB;
+    try { hashCacheB = (long[])GET_CACHE.invoke(skB);
     } catch (final Exception e) { throw new SketchesStateException("Reflection Exception " + e); }
 
     if (skB instanceof org.apache.datasketches.theta.CompactSketch) {
       final int countB = skB.getRetainedEntries(true);
-      hashTableB = convertToHashTable(thetaCacheB, countB, minThetaLong, REBUILD_THRESHOLD);
+      hashTableB = convertToHashTable(hashCacheB, countB, minThetaLong, REBUILD_THRESHOLD);
     } else {
-      hashTableB = thetaCacheB;
+      hashTableB = hashCacheB;
     }
 
     //build temporary result arrays of skA
@@ -476,35 +605,28 @@ public final class AnotB<S extends Summary> {
       final long hash = hashArrA[i];
       if (hash != 0 && hash < minThetaLong) { //skips hashes of A >= minTheta
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
-        if (index == -1) {
+        if (index == -1) { //not found
           tmpHashArrA[nonMatches] = hash;
           tmpSummaryArrA[nonMatches] = summaryArrA[i];
           nonMatches++;
         }
       }
     }
+    //trim the arrays
     daB.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
     daB.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
     return daB;
   }
 
   /**
-   * Resets this operation back to the empty state, but keeps the SummaryFactory.
+   * Resets this operation back to the empty state.
    */
-  private void internalReset() {
+  public void reset() {
     empty_ = true;
     thetaLong_ = Long.MAX_VALUE;
     hashArr_ = null;
     summaryArr_ = null;
     curCount_ = 0;
-  }
-
-  /**
-   * Resets this operation back to the empty state.
-   */
-  public void reset() {
-    internalReset();
-    summaryFactory_ = null;
   }
 
 }

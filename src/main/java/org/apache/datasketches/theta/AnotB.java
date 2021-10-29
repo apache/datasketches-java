@@ -75,10 +75,10 @@ public abstract class AnotB extends SetOperation {
    * With a null as the first argument, we cannot know what the user's intent is.
    * Since it is very likely that a <i>null</i> is a programming error, we throw a an exception.</p>
    *
-   * <p>An enpty input argument will set the internal state to empty.</p>
+   * <p>An empty input argument will set the internal state to empty.</p>
    *
    * <p>Rationale: An empty set is a mathematically legal concept. Although it makes any subsequent,
-   * valid argument for B irrelvant, we must allow this and assume the user knows what they are
+   * valid argument for B irrelevant, we must allow this and assume the user knows what they are
    * doing.</p>
    *
    * <p>Performing {@link #getResult(boolean)} just after this step will return a compact form of
@@ -95,7 +95,7 @@ public abstract class AnotB extends SetOperation {
    *
    * <p>An input argument of null or empty is ignored.</p>
    *
-   * <p>Rationale: A <i>null</i> for the second or following arguments is more tollerable because
+   * <p>Rationale: A <i>null</i> for the second or following arguments is more tolerable because
    * <i>A NOT null</i> is still <i>A</i> even if we don't know exactly what the null represents. It
    * clearly does not have any content that overlaps with <i>A</i>. Also, because this can be part of
    * a multistep operation with multiple <i>notB</i> steps. Other following steps can still produce
