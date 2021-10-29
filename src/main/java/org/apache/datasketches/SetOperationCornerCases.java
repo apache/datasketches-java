@@ -22,8 +22,6 @@ package org.apache.datasketches;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.testng.annotations.Test;
-
 public class SetOperationCornerCases {
   private static final long MAX = Long.MAX_VALUE;
 
@@ -161,21 +159,21 @@ public class SetOperationCornerCases {
          | (!emptyB            ? 0 : 1);
   }
 
-  @Test
-  public void checkById() {
-    final int[] ids = {0,1,2, 5, 6 };
-    final int len = ids.length;
-    for (int i = 0; i < len; i++) {
-      for (int j = 0; j < len; j++) {
-        final int id = ids[i] << 3 | ids[j];
-        final CornerCase cCase = CornerCase.idToCornerCase(id);
-        final String interResStr = cCase.getInterResult().getDesc();
-        final String anotbResStr = cCase.getAnotbResult().getDesc();
-        println(Integer.toOctalString(id) + "\t" + cCase + "\t" + cCase.getDesc()
-         + "\t" + interResStr + "\t" + anotbResStr);
-      }
-    }
-  }
+//  @Test
+//  public void checkById() {
+//    final int[] ids = {0,1,2, 5, 6 };
+//    final int len = ids.length;
+//    for (int i = 0; i < len; i++) {
+//      for (int j = 0; j < len; j++) {
+//        final int id = ids[i] << 3 | ids[j];
+//        final CornerCase cCase = CornerCase.idToCornerCase(id);
+//        final String interResStr = cCase.getInterResult().getDesc();
+//        final String anotbResStr = cCase.getAnotbResult().getDesc();
+//        println(Integer.toOctalString(id) + "\t" + cCase + "\t" + cCase.getDesc()
+//         + "\t" + interResStr + "\t" + anotbResStr);
+//      }
+//    }
+//  }
 
-  private static void println(final Object o) { System.out.println(o.toString()); }
+//  private static void println(final Object o) { System.out.println(o.toString()); }
 }
