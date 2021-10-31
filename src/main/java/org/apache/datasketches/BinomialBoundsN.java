@@ -35,7 +35,7 @@ public final class BinomialBoundsN {
 
   private static final double[] deltaOfNumSDev =
   {
-    0.5000000000000000000, // not actually using this value
+    0.5000000000000000000, // = 0.5 (1 + erf(0)
     0.1586553191586026479, // = 0.5 (1 + erf((-1/sqrt(2))))
     0.0227502618904135701, // = 0.5 (1 + erf((-2/sqrt(2))))
     0.0013498126861731796  // = 0.5 (1 + erf((-3/sqrt(2))))
