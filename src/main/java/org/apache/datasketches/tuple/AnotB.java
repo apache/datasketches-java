@@ -160,13 +160,13 @@ public final class AnotB<S extends Summary> {
         reset();
         break;
       }
-      case NEW_MIN_0_F: {
+      case RESULTDEGEN_MIN_0_F: {
         reset();
         thetaLong_ = min(thetaLong_, thetaLongB);
         empty_ = false;
         break;
       }
-      case NEW_THA_0_F: {
+      case RESULTDEGEN_THA_0_F: {
         empty_ = false;
         curCount_ = 0;
         //thetaLong_ is ok
@@ -233,13 +233,13 @@ public final class AnotB<S extends Summary> {
         reset();
         break;
       }
-      case NEW_MIN_0_F: {
+      case RESULTDEGEN_MIN_0_F: {
         reset();
         thetaLong_ = min(thetaLong_, thetaLongB);
         empty_ = false;
         break;
       }
-      case NEW_THA_0_F: {
+      case RESULTDEGEN_THA_0_F: {
         empty_ = false;
         curCount_ = 0;
         //thetaLong_ is ok
@@ -339,12 +339,12 @@ public final class AnotB<S extends Summary> {
         result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
         break;
       }
-      case NEW_MIN_0_F: {
+      case RESULTDEGEN_MIN_0_F: {
         final long thetaLong = min(thetaLongA, thetaLongB);
         result = new CompactSketch<>(null, null, thetaLong, false);
         break;
       }
-      case NEW_THA_0_F: {
+      case RESULTDEGEN_THA_0_F: {
         result = new CompactSketch<>(null, null, thetaLongA, false);
         break;
       }
@@ -431,12 +431,12 @@ public final class AnotB<S extends Summary> {
         result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
         break;
       }
-      case NEW_MIN_0_F: {
+      case RESULTDEGEN_MIN_0_F: {
         final long thetaLong = min(thetaLongA, thetaLongB);
         result = new CompactSketch<>(null, null, thetaLong, false);
         break;
       }
-      case NEW_THA_0_F: {
+      case RESULTDEGEN_THA_0_F: {
         result = new CompactSketch<>(null, null, thetaLongA, false);
         break;
       }
