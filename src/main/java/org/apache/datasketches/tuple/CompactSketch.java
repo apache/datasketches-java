@@ -120,7 +120,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         }
       }
     } else { // current serial format
-      offset++;
+      offset++; //skip unused byte
       final byte flags = mem.getByte(offset++);
       offset += 2;
       empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;

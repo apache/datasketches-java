@@ -42,14 +42,13 @@ class HashTables<S extends Summary> {
   void fromSketch(final Sketch<S> sketch) {
     count_ = sketch.getRetainedEntries();
     lgTableSize_ = getLgTableSize(count_);
-    S mySummary = null;
 
     hashTable_ = new long[1 << lgTableSize_];
     final SketchIterator<S> it = sketch.iterator();
     while (it.next()) {
       final long hash = it.getHash();
       final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
-      mySummary = (S)it.getSummary().copy();
+      final S mySummary = (S)it.getSummary().copy();
       if (summaryTable_ == null) {
         summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
       }
@@ -61,14 +60,13 @@ class HashTables<S extends Summary> {
   void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
     count_ = sketch.getRetainedEntries(true);
     lgTableSize_ = getLgTableSize(count_);
-    S mySummary = null;
 
     hashTable_ = new long[1 << lgTableSize_];
     final org.apache.datasketches.theta.HashIterator it = sketch.iterator();
     while (it.next()) {
       final long hash = it.get();
       final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
-      mySummary = summary;
+      final S mySummary = (S)summary.copy();
       if (summaryTable_ == null) {
         summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
       }
@@ -80,13 +78,12 @@ class HashTables<S extends Summary> {
     count_ = count;
     lgTableSize_ = getLgTableSize(count);
 
-    S mySummary = null;
     summaryTable_ = null;
     hashTable_ = new long[1 << lgTableSize_];
     for (int i = 0; i < count; i++) {
       final long hash = hashArr[i];
       final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
-      mySummary = summaryArr[i];
+      final S mySummary = summaryArr[i];
       if (summaryTable_ == null) {
         summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
       }

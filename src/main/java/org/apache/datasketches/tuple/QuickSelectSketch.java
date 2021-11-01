@@ -51,7 +51,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private int lgCurrentCapacity_;
   private final int lgResizeFactor_;
   private int count_;
-  //private final SummaryFactory<S> summaryFactory_;
   private final float samplingProbability_;
   private int rebuildThreshold_;
   private long[] hashTable_;
