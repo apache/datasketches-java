@@ -26,7 +26,6 @@ import java.nio.ByteOrder;
 
 import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
@@ -122,7 +121,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     } else { // current serial format
       offset++; //skip unused byte
       final byte flags = mem.getByte(offset++);
-      offset += 2;
+      offset += 2; //skip 2 unused bytes
       empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
       thetaLong_ = Long.MAX_VALUE;
       int count = 0;
@@ -240,34 +239,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
       offset += summariesBytes[i].length;
     }
     return bytes;
-  }
-
-  @SuppressWarnings("unchecked")
-  CompactSketch<S> trimToTheta(final long thetaLong) {
-    final QuickSelectSketch<S> qsSk =
-        new QuickSelectSketch<>(this.getRetainedEntries(), ResizeFactor.X1.lg(), null);
-    int countOut = 0;
-    final SketchIterator<S> it = iterator();
-
-    while (it.next()) {
-      final long hash = it.getHash();
-      final S summary = it.getSummary();
-      if (hash < thetaLong) {
-        qsSk.insert(it.getHash(), (S)summary.copy());
-        countOut++;
-      }
-    }
-
-    qsSk.setThetaLong(thetaLong);
-    if (countOut == 0) {
-      if (thetaLong == Long.MAX_VALUE) {
-        return new CompactSketch<>(null, null, thetaLong, true);
-      } else {
-        return new CompactSketch<>(null, null, thetaLong, false);
-      }
-    } else {
-      return new CompactSketch<>(qsSk.getHashTable(), qsSk.summaryTable_, thetaLong, false);
-    }
   }
 
   @Override

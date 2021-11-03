@@ -257,7 +257,7 @@ public final class AnotB<S extends Summary> {
         break; //result is already in A
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
-        thetaLong_ = min(thetaLong_, skB.getThetaLong());
+        thetaLong_ = min(thetaLong_, thetaLongB);
         final DataArrays<S> daB = getAnotbResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
         hashArr_ = daB.hashArr;
         curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;

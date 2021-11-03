@@ -74,7 +74,7 @@ class HashTables<S extends Summary> {
     }
   }
 
-  void fromArrays(final long[] hashArr, final S[] summaryArr, final int count) {
+  private void fromArrays(final long[] hashArr, final S[] summaryArr, final int count) {
     count_ = count;
     lgTableSize_ = getLgTableSize(count);
 
@@ -147,7 +147,7 @@ class HashTables<S extends Summary> {
       //Copy the intersecting items from local hashTables_
       // sequentially into local matchHashArr_ and matchSummaries_
       matchHashArr[matchCount] = hash;
-      matchSummariesArr[matchCount] = summarySetOps.intersection(summaryTable_[index], (S)summary.copy());
+      matchSummariesArr[matchCount] = summarySetOps.intersection(summaryTable_[index], summary);
       matchCount++;
     }
     final HashTables<S> resultHT = new HashTables<>();

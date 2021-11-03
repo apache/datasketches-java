@@ -60,7 +60,7 @@ public class CornerCaseTupleSetOperationsTest {
 
   private enum SkType {
     NEW,         //{ 1.0,  0, T} Bin: 101  Oct: 05
-    EXACT,       //{ 1.0, >0, F} Bin: 111  Oct: 07, specify only value
+    EXACT,       //{ 1.0, >0, F} Bin: 110  Oct: 06, specify only value
     ESTIMATION,  //{<1.0, >0, F} Bin: 010  Oct: 02, specify only value
     NEW_DEGEN,   //{<1.0,  0, T} Bin: 001  Oct: 01, specify only p
     RESULT_DEGEN //{<1.0,  0, F} Bin: 000  Oct: 0, specify p, value
