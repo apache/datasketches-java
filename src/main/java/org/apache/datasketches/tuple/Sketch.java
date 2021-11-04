@@ -36,6 +36,7 @@ public abstract class Sketch<S extends Summary> {
 
   long thetaLong_;
   boolean empty_ = true;
+  protected SummaryFactory<S> summaryFactory_;
 
   Sketch() {}
 
@@ -151,6 +152,10 @@ public abstract class Sketch<S extends Summary> {
    * @return the number of hash values less than the given thetaLong.
    */
   public abstract int getCountLessThanThetaLong(final long thetaLong);
+
+  public SummaryFactory<S> getSummaryFactory() {
+    return summaryFactory_;
+  }
 
   /**
    * Gets the value of theta as a double between zero and one

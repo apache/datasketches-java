@@ -128,7 +128,7 @@ public enum Family {
   VAROPT_UNION(14, "VAROPT_UNION", 1, 4),
 
   /**
-   * KLL quanliles sketch
+   * KLL quantiles sketch
    */
   KLL(15, "KLL", 1, 2),
 

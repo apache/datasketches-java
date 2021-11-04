@@ -71,6 +71,7 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized CompactSketch
    * @param deserializer the SummaryDeserializer
    */
+  @SuppressWarnings({"unchecked"})
   CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
@@ -118,9 +119,9 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
         }
       }
     } else { // current serial format
-      offset++; // unused
+      offset++; //skip unused byte
       final byte flags = mem.getByte(offset++);
-      offset += 2; // usused
+      offset += 2; //skip 2 unused bytes
       empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
       thetaLong_ = Long.MAX_VALUE;
       int count = 0;
