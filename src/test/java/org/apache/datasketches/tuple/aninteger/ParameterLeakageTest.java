@@ -173,6 +173,10 @@ public class ParameterLeakageTest {
     return intSumArr;
   }
 
-
-  static void println(Object o) { System.out.println(o.toString()); }
+  /**
+   * @param o Object to print
+   */
+  static void println(Object o) {
+    //System.out.println(o.toString()); //disable
+  }
 }
