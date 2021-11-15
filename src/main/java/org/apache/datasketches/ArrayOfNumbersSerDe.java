@@ -24,7 +24,7 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of the object version of primitive types of
- * Number.
+ * Number. The array can be a mix of primitive object types.
  *
  * <p>This class serializes numbers with a leading byte (ASCII character) indicating the type.
  * The class keeps the values byte aligned, even though only 3 bits are strictly necessary to
@@ -90,7 +90,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
         mem.putByte(offsetBytes, DOUBLE_INDICATOR);
         mem.putDouble(offsetBytes + 1, item.doubleValue());
         offsetBytes += Byte.BYTES + Double.BYTES;
-      } else { // (item instanceof Float) 0- already checked poosibilities above
+      } else { // (item instanceof Float) 0- already checked possibilities above
         mem.putByte(offsetBytes, FLOAT_INDICATOR);
         mem.putFloat(offsetBytes + 1, item.floatValue());
         offsetBytes += Byte.BYTES + Float.BYTES;
