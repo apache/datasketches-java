@@ -45,13 +45,11 @@ public class CornerCaseTupleSetOperationsTest {
 
   private static final long GT_MIDP_V   = 3L;
   private static final float MIDP       = 0.5f;
-  private static final long LT_MIDP_V   = 2L;
 
   private static final long GT_LOWP_V   = 6L;
   private static final float LOWP       = 0.1f;
   private static final long LT_LOWP_V   = 4L;
 
-  private static final double MIDP_THETA = MIDP;
   private static final double LOWP_THETA = LOWP;
 
   private IntegerSummary.Mode mode = IntegerSummary.Mode.Min;
@@ -59,11 +57,10 @@ public class CornerCaseTupleSetOperationsTest {
   private IntegerSummarySetOperations setOperations = new IntegerSummarySetOperations(mode, mode);
 
   private enum SkType {
-    NEW,         //{ 1.0,  0, T} Bin: 101  Oct: 05
-    EXACT,       //{ 1.0, >0, F} Bin: 110  Oct: 06, specify only value
-    ESTIMATION,  //{<1.0, >0, F} Bin: 010  Oct: 02, specify only value
-    NEW_DEGEN,   //{<1.0,  0, T} Bin: 001  Oct: 01, specify only p
-    RESULT_DEGEN //{<1.0,  0, F} Bin: 000  Oct: 0, specify p, value
+    EMPTY,      // { 1.0,  0, T} Bin: 101  Oct: 05
+    EXACT,      // { 1.0, >0, F} Bin: 110  Oct: 06, specify only value
+    ESTIMATION, // {<1.0, >0, F} Bin: 010  Oct: 02, specify only value
+    DEGENERATE  // {<1.0,  0, F} Bin: 000  Oct: 0, specify p, value
   }
 
   //NOTE: 0 values in getTupleSketch or getThetaSketch are not used.
@@ -80,7 +77,6 @@ public class CornerCaseTupleSetOperationsTest {
       boolean resultAnotbEmpty) {
     CompactSketch<IntegerSummary> csk;
 
-    //Intersection
     Intersection<IntegerSummary> inter = new Intersection<>(setOperations);
 
     csk = inter.intersect(tupleA, tupleB);
@@ -93,8 +89,6 @@ public class CornerCaseTupleSetOperationsTest {
     csk = inter.intersect(tupleA.compact(), thetaB.compact(), intSum);
     checkResult("Intersect Stateless Tuple, Theta", csk, resultInterTheta, resultInterCount, resultInterEmpty);
 
-
-    //AnotB
     csk = AnotB.aNotB(tupleA, tupleB);
     checkResult("AnotB Stateless Tuple, Tuple", csk, resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
     csk = AnotB.aNotB(tupleA.compact(), tupleB.compact());
@@ -129,10 +123,10 @@ public class CornerCaseTupleSetOperationsTest {
 
 
   @Test
-  public void newNew() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW,    0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW,    0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,    0, 0);
+  public void emptyEmpty() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
@@ -145,10 +139,10 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void newExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW,    0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,  0, GT_MIDP_V);
+  public void emptyExact() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
@@ -161,10 +155,10 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void newNewDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW,       0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN, LOWP, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN, LOWP, 0);
+  public void EmptyDegenerate() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
@@ -177,24 +171,8 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void newResultDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW,          0, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = true;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void newNewEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW,        0, 0);
+  public void emptyEstimation() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EMPTY, 0, 0);
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double resultInterTheta = 1.0;
@@ -211,10 +189,10 @@ public class CornerCaseTupleSetOperationsTest {
   /*********************/
 
   @Test
-  public void exactNew() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW,    0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,    0, 0);
+  public void exactEmpty() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
@@ -228,9 +206,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void exactExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,  0, GT_MIDP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,  0, GT_MIDP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, GT_MIDP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, GT_MIDP_V);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 1;
     final boolean resultInterEmpty = false;
@@ -243,26 +221,10 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void exactNewDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,     0, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN, LOWP, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN, LOWP, 0);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
-    final int resultAnotbCount = 1;
-    final boolean resultAnotbEmpty = false;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void exactResultDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,        0, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+  public void exactDegenerate() {
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
+    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = false;
@@ -276,7 +238,7 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void exactEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.EXACT,      0, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double resultInterTheta = LOWP_THETA;
@@ -293,10 +255,10 @@ public class CornerCaseTupleSetOperationsTest {
   /*********************/
 
   @Test
-  public void estimationNew() {
+  public void estimationEmpty() {
     IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW,        0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,        0, 0);
+    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
@@ -311,8 +273,8 @@ public class CornerCaseTupleSetOperationsTest {
   @Test
   public void estimationExact() {
     IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,      0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,      0, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 1;
     final boolean resultInterEmpty = false;
@@ -325,26 +287,10 @@ public class CornerCaseTupleSetOperationsTest {
   }
 
   @Test
-  public void estimationNewDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION,  MIDP, LT_MIDP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN,   LOWP, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN,   LOWP, 0);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = MIDP_THETA;
-    final int resultAnotbCount = 1;
-    final boolean resultAnotbEmpty = false;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void estimationResultDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION,   MIDP, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
+  public void estimationDegenerate() {
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = false;
@@ -358,9 +304,9 @@ public class CornerCaseTupleSetOperationsTest {
 
   @Test
   public void estimationEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION,  MIDP, LT_LOWP_V);
-    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION,  LOWP, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION,  LOWP, LT_LOWP_V);
+    IntegerSketch tupleA = getTupleSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
+    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 1;
     final boolean resultInterEmpty = false;
@@ -375,156 +321,58 @@ public class CornerCaseTupleSetOperationsTest {
   /*********************/
 
   @Test
-  public void newDegenNew() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,   LOWP, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW,         0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,         0, 0);
+  public void degenerateEmpty() {
+    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.EMPTY, 0, 0);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EMPTY, 0, 0);
     final double resultInterTheta = 1.0;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
+    final double resultAnotbTheta = LOWP_THETA;
     final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = true;
+    final boolean resultAnotbEmpty = false;
 
     checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
         resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN, LOWP,0);
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,      0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,      0, LT_LOWP_V);
-    final double resultInterTheta = 1.0;
+  public void degenerateExact() {
+    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.EXACT, 0, LT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT, 0, LT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
     final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = true;
+    final boolean resultAnotbEmpty = false;
 
     checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
         resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenNewDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN, MIDP, 0);
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN, LOWP, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN, LOWP, 0);
-    final double resultInterTheta = 1.0;
+  public void degenerateDegenerate() {
+    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
+    IntegerSketch tupleB = getTupleSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    UpdateSketch thetaB =  getThetaSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
+    final boolean resultInterEmpty = false;
+    final double resultAnotbTheta = LOWP_THETA;
     final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = true;
+    final boolean resultAnotbEmpty = false;
 
     checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
         resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
   }
 
   @Test
-  public void newDegenResultDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,    MIDP, 0);
-    IntegerSketch tupleB =  getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    UpdateSketch thetaB =   getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = true;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void newDegenEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.NEW_DEGEN,  MIDP, 0);
+  public void degenerateEstimation() {
+    IntegerSketch tupleA = getTupleSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
     IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = 1.0;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = true;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  /*********************/
-
-  @Test
-  public void resultDegenNew() {
-    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW,           0, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW,           0, 0);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = LOWP_THETA;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = false;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void resultDegenExact() {
-    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN,  LOWP, GT_LOWP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.EXACT,         0, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.EXACT,         0, LT_LOWP_V);
-    final double resultInterTheta = LOWP_THETA;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = false;
-    final double resultAnotbTheta = LOWP_THETA;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = false;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void resultDegenNewDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.NEW_DEGEN,    LOWP, 0);
-    UpdateSketch thetaB =  getThetaSketch(SkType.NEW_DEGEN,    LOWP, 0);
-    final double resultInterTheta = 1.0;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = true;
-    final double resultAnotbTheta = MIDP_THETA;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = false;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void resultDegenResultDegen() {
-    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.RESULT_DEGEN, LOWP, GT_LOWP_V);
-    final double resultInterTheta = LOWP_THETA;
-    final int resultInterCount = 0;
-    final boolean resultInterEmpty = false;
-    final double resultAnotbTheta = LOWP_THETA;
-    final int resultAnotbCount = 0;
-    final boolean resultAnotbEmpty = false;
-
-    checks(tupleA, tupleB, thetaB, resultInterTheta, resultInterCount, resultInterEmpty,
-        resultAnotbTheta, resultAnotbCount, resultAnotbEmpty);
-  }
-
-  @Test
-  public void resultDegenEstimation() {
-    IntegerSketch tupleA = getTupleSketch(SkType.RESULT_DEGEN, MIDP, GT_MIDP_V); //entries = 0
-    IntegerSketch tupleB = getTupleSketch(SkType.ESTIMATION,   LOWP, LT_LOWP_V);
-    UpdateSketch thetaB =  getThetaSketch(SkType.ESTIMATION,   LOWP, LT_LOWP_V);
     final double resultInterTheta = LOWP_THETA;
     final int resultInterCount = 0;
     final boolean resultInterEmpty = false;
@@ -550,9 +398,9 @@ public class CornerCaseTupleSetOperationsTest {
     if (!thetaOk || !entriesOk || !emptyOk) {
       StringBuilder sb = new StringBuilder();
       sb.append(comment + ": ");
-      if (!thetaOk)   { sb.append("Got: " + skTheta + ", Expected: " + theta + "; "); }
-      if (!entriesOk) { sb.append("Got: " + skEntries + ", Expected: " + entries + "; "); }
-      if (!emptyOk)   { sb.append("Got: " + skEmpty + ", Expected: " + empty + "."); }
+      if (!thetaOk)   { sb.append("theta: expected " + theta + ", got " + skTheta + "; "); }
+      if (!entriesOk) { sb.append("entries: expected " + entries + ", got " + skEntries + "; "); }
+      if (!emptyOk)   { sb.append("empty: expected " + empty + ", got " + skEmpty + "."); }
       throw new IllegalArgumentException(sb.toString());
     }
   }
@@ -561,31 +409,27 @@ public class CornerCaseTupleSetOperationsTest {
 
     IntegerSketch sk;
     switch(skType) {
-      case NEW: {      //{ 1.0,  0, T} Bin: 101  Oct: 05
+      case EMPTY: { // { 1.0,  0, T}
         sk = new IntegerSketch(4, 2, 1.0f, IntegerSummary.Mode.Min);
         break;
       }
-      case EXACT: {     //{ 1.0, >0, F} Bin: 111  Oct: 07
+      case EXACT: { // { 1.0, >0, F}
         sk = new IntegerSketch(4, 2, 1.0f, IntegerSummary.Mode.Min);
         sk.update(value, 1);
         break;
       }
-      case ESTIMATION: {   //{<1.0, >0, F} Bin: 010  Oct: 02
+      case ESTIMATION: { // {<1.0, >0, F}
         sk = new IntegerSketch(4, 2, p, IntegerSummary.Mode.Min);
         sk.update(value, 1);
         break;
       }
-      case NEW_DEGEN: {    //{<1.0,  0, T} Bin: 001  Oct: 01
-        sk =  new IntegerSketch(4, 2, p, IntegerSummary.Mode.Min);
-        break;
-      }
-      case RESULT_DEGEN: { //{<1.0,  0, F} Bin: 000  Oct: 0
+      case DEGENERATE: { // {<1.0,  0, F}
         sk = new IntegerSketch(4, 2, p, IntegerSummary.Mode.Min);
         sk.update(value, 1); // > theta
         break;
       }
 
-      default: { return null; } //should not happen
+      default: { return null; } // should not happen
     }
     return sk;
   }
@@ -597,34 +441,29 @@ public class CornerCaseTupleSetOperationsTest {
 
     UpdateSketch sk;
     switch(skType) {
-      case NEW: { //{ 1.0,  0, T} Bin: 101  Oct: 05
+      case EMPTY: { // { 1.0,  0, T}
         sk = bldr.build();
         break;
       }
-      case EXACT: { //{ 1.0, >0, F} Bin: 111  Oct: 07
+      case EXACT: { // { 1.0, >0, F}
         sk = bldr.build();
         sk.update(value);
         break;
       }
-      case ESTIMATION: {   //{<1.0, >0, F} Bin: 010  Oct: 02
+      case ESTIMATION: { // {<1.0, >0, F}
         bldr.setP(p);
         sk = bldr.build();
         sk.update(value);
         break;
       }
-      case NEW_DEGEN: {    //{<1.0,  0, T} Bin: 001  Oct: 01
-        bldr.setP(p);
-        sk = bldr.build();
-        break;
-      }
-      case RESULT_DEGEN: { //{<1.0,  0, F} Bin: 000  Oct: 0
+      case DEGENERATE: { // {<1.0,  0, F}
         bldr.setP(p);
         sk = bldr.build();
         sk.update(value); // > theta
         break;
       }
 
-      default: { return null; } //should not happen
+      default: { return null; } // should not happen
     }
     return sk;
   }
