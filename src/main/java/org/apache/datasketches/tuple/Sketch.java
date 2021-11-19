@@ -162,7 +162,7 @@ public abstract class Sketch<S extends Summary> {
    * @return the value of theta as a double
    */
   public double getTheta() {
-    return thetaLong_ / (double) Long.MAX_VALUE;
+    return getThetaLong() / (double) Long.MAX_VALUE;
   }
 
   /**
@@ -186,7 +186,7 @@ public abstract class Sketch<S extends Summary> {
    * @return Theta as a long
    */
   public long getThetaLong() {
-    return thetaLong_;
+    return isEmpty() ? Long.MAX_VALUE : thetaLong_;
   }
 
   @Override

@@ -139,7 +139,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
 
   @Override
   public long getThetaLong() {
-    return wmem_.getLong(THETA_LONG);
+    return isEmpty() ? Long.MAX_VALUE : wmem_.getLong(THETA_LONG);
   }
 
   @Override
