@@ -104,8 +104,8 @@ public class AdoubleTest {
     Assert.assertEquals(sketch.getEstimate(), 0.0);
     Assert.assertEquals(sketch.getUpperBound(1), 0.0);
     Assert.assertEquals(sketch.getLowerBound(1), 0.0);
-    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
-    Assert.assertEquals((float)sketch.getTheta(), samplingProbability);
+    Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
+    Assert.assertEquals(sketch.getTheta(), 1.0);
   }
 
   @Test
