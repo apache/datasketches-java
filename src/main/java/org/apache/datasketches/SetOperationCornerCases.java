@@ -26,8 +26,8 @@ public class SetOperationCornerCases {
   private static final long MAX = Long.MAX_VALUE;
 
   public enum IntersectResult {
-    NEW_1_0_T(1, "New{1.0, 0, T}"),
-    RESULTDEGEN_MIN_0_F(2, "New{MinTheta, 0, F}"),
+    EMPTY_1_0_T(1, "Empty{1.0, 0, T}"),
+    DEGEN_MIN_0_F(2, "Degenerate{MinTheta, 0, F}"),
     FULL_INTER(6, "Full Intersect");
 
     private int interRid;
@@ -48,9 +48,9 @@ public class SetOperationCornerCases {
   }
 
   public enum AnotbResult {
-    NEW_1_0_T(1, "New{1.0, 0, T}"),
-    RESULTDEGEN_MIN_0_F(2, "New{MinTheta, 0, F}"),
-    RESULTDEGEN_THA_0_F(3, "New{ThetaA, 0, F}"),
+    EMPTY_1_0_T(1, "Empty{1.0, 0, T}"),
+    DEGEN_MIN_0_F(2, "Degenerate{MinTheta, 0, F}"),
+    DEGEN_THA_0_F(3, "Degenerate{ThetaA, 0, F}"),
     SKA_TRIM(4, "Trim Sketch A by MinTheta"),
     SKETCH_A(5, "Sketch A Exactly"),
     FULL_ANOTB(7, "Full AnotB");
@@ -73,60 +73,41 @@ public class SetOperationCornerCases {
   }
 
   public enum CornerCase {
-    ResultDegen_ResultDegen(0,  "A{<1.0, 0, F} ; B{<1.0, 0, F}",
-        IntersectResult.RESULTDEGEN_MIN_0_F, AnotbResult.RESULTDEGEN_MIN_0_F), //0
-    ResultDegen_NewDegen(01,    "A{<1.0, 0, F} ; B{<1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.RESULTDEGEN_THA_0_F),   //1
-    ResultDegen_Estimation(02,  "A{<1.0, 0, F} ; B{<1.0,>0, F}",
-        IntersectResult.RESULTDEGEN_MIN_0_F, AnotbResult.RESULTDEGEN_MIN_0_F), //2
-    ResultDegen_New(05,         "A{<1.0, 0, F} ; B{ 1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.RESULTDEGEN_THA_0_F),   //5
-    ResultDegen_Exact(06,       "A{<1.0, 0, F} ; B{ 1.0,>0, F}",
-        IntersectResult.RESULTDEGEN_MIN_0_F, AnotbResult.RESULTDEGEN_THA_0_F), //6
+    Empty_Empty(055, "A{ 1.0, 0, T} ; B{ 1.0, 0, T}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.EMPTY_1_0_T),
+    Empty_Exact(056, "A{ 1.0, 0, T} ; B{ 1.0,>0, F}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.EMPTY_1_0_T),
+    Empty_Estimation(052, "A{ 1.0, 0, T} ; B{<1.0,>0, F}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.EMPTY_1_0_T),
+    Empty_Degen(050, "A{ 1.0, 0, T} ; B{<1.0, 0, F}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.EMPTY_1_0_T),
 
-    NewDegen_ResultDegen(010,   "A{<1.0, 0, T} ; B{<1.0, 0, F}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),     //8
-    NewDegen_NewDegen(011,      "A{<1.0, 0, T} ; B{<1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),     //9
-    NewDegen_Estimation(012,    "A{<1.0, 0, T} ; B{<1.0,>0, F}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //10
-    NewDegen_New(015,           "A{<1.0, 0, T} ; B{ 1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //13
-    NewDegen_Exact(016,         "A{<1.0, 0, T} ; B{ 1.0,>0, F}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //14
+    Exact_Empty(065, "A{ 1.0,>0, F} ; B{ 1.0, 0, T}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.SKETCH_A),
+    Exact_Exact(066, "A{ 1.0,>0, F} ; B{ 1.0,>0, F}",
+        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),
+    Exact_Estimation(062, "A{ 1.0,>0, F} ; B{<1.0,>0, F}",
+        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),
+    Exact_Degen(060, "A{ 1.0,>0, F} ; B{<1.0, 0, F}",
+        IntersectResult.DEGEN_MIN_0_F, AnotbResult.SKA_TRIM),
 
-    Estimation_ResultDegen(020, "A{<1.0,>0, F} ; B{<1.0, 0, F}",
-        IntersectResult.RESULTDEGEN_MIN_0_F, AnotbResult.SKA_TRIM),   //16
-    Estimation_NewDegen(021,    "A{<1.0,>0, F} ; B{<1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.SKETCH_A),     //17
-    Estimation_Estimation(022,  "A{<1.0,>0, F} ; B{<1.0,>0, F}",
-        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),  //18
-    Estimation_New(025,         "A{<1.0,>0, F} ; B{ 1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.SKETCH_A),     //21
-    Estimation_Exact(026,       "A{<1.0,>0, F} ; B{ 1.0,>0, F}",
-        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),  //22
+    Estimation_Empty(025, "A{<1.0,>0, F} ; B{ 1.0, 0, T}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.SKETCH_A),
+    Estimation_Exact(026, "A{<1.0,>0, F} ; B{ 1.0,>0, F}",
+        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),
+    Estimation_Estimation(022, "A{<1.0,>0, F} ; B{<1.0,>0, F}",
+        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),
+    Estimation_Degen(020, "A{<1.0,>0, F} ; B{<1.0, 0, F}",
+        IntersectResult.DEGEN_MIN_0_F, AnotbResult.SKA_TRIM),
 
-    New_ResultDegen(050,        "A{ 1.0, 0, T} ; B{<1.0, 0, F}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //40
-    New_NewDegen(051,           "A{ 1.0, 0, T} ; B{<1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //41
-    New_Estimation(052,         "A{ 1.0, 0, T} ; B{<1.0,>0, F}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //42
-    New_New(055,                "A{ 1.0, 0, T} ; B{ 1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //45
-    New_Exact(056,              "A{ 1.0, 0, T} ; B{ 1.0,>0, F}",
-        IntersectResult.NEW_1_0_T, AnotbResult.NEW_1_0_T),    //46
-
-    Exact_ResultDegen(060,      "A{ 1.0,>0, F} ; B{<1.0, 0, F}",
-        IntersectResult.RESULTDEGEN_MIN_0_F, AnotbResult.SKA_TRIM),   //48
-    Exact_NewDegen(061,         "A{ 1.0,>0, F} ; B{<1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.SKETCH_A),     //49
-    Exact_Estimation(062,       "A{ 1.0,>0, F} ; B{<1.0,>0, F}",
-        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB),  //50
-    Exact_New(065,              "A{ 1.0,>0, F} ; B{ 1.0, 0, T}",
-        IntersectResult.NEW_1_0_T, AnotbResult.SKETCH_A),     //53
-    Exact_Exact(066,            "A{ 1.0,>0, F} ; B{ 1.0,>0, F}",
-        IntersectResult.FULL_INTER, AnotbResult.FULL_ANOTB);  //54
+    Degen_Empty(005, "A{<1.0, 0, F} ; B{ 1.0, 0, T}",
+        IntersectResult.EMPTY_1_0_T, AnotbResult.DEGEN_THA_0_F),
+    Degen_Exact(006, "A{<1.0, 0, F} ; B{ 1.0,>0, F}",
+        IntersectResult.DEGEN_MIN_0_F, AnotbResult.DEGEN_THA_0_F),
+    Degen_Estimation(002, "A{<1.0, 0, F} ; B{<1.0,>0, F}",
+        IntersectResult.DEGEN_MIN_0_F, AnotbResult.DEGEN_MIN_0_F),
+    Degen_Degen(000, "A{<1.0, 0, F} ; B{<1.0, 0, F}",
+        IntersectResult.DEGEN_MIN_0_F, AnotbResult.DEGEN_MIN_0_F);
 
     private static final Map<Integer, CornerCase> idToCornerCaseMap = new HashMap<>();
     private int id;
@@ -168,21 +149,20 @@ public class SetOperationCornerCases {
     public static CornerCase idToCornerCase(final int id) {
       final CornerCase cc = idToCornerCaseMap.get(id);
       if (cc == null) {
-        throw new SketchesArgumentException("Possible Corruption: Illegal CornerCase ID: " + id);
+        throw new SketchesArgumentException("Possible Corruption: Illegal CornerCase ID: " + Integer.toOctalString(id));
       }
       return cc;
     }
-  } //end of enum
+  } //end of enum CornerCase
 
   public static int createCornerCaseId(
       final long thetaLongA, final int countA, final boolean emptyA,
       final long thetaLongB, final int countB, final boolean emptyB) {
-    return ((thetaLongA < MAX) ? 0 : 1 << 5)
-         | ((countA == 0)      ? 0 : 1 << 4)
-         | (!emptyA            ? 0 : 1 << 3)
-         | ((thetaLongB < MAX) ? 0 : 1 << 2)
-         | ((countB == 0)      ? 0 : 1 << 1)
-         | (!emptyB            ? 0 : 1);
+    return (sketchStateId(emptyA, countA, thetaLongA) << 3) | sketchStateId(emptyB, countB, thetaLongB);
   }
 
+  public static int sketchStateId(final boolean isEmpty, final int numRetained, final long theta) {
+    // assume theta = MAX if empty
+    return (((theta == MAX) || isEmpty) ? 4 : 0) | ((numRetained > 0) ? 2 : 0) | (isEmpty ? 1 : 0);
+  }
 }

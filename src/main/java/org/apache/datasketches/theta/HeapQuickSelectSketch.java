@@ -159,7 +159,7 @@ class HeapQuickSelectSketch extends HeapUpdateSketch {
 
   @Override
   public long getThetaLong() {
-    return thetaLong_;
+    return empty_ ? Long.MAX_VALUE : thetaLong_;
   }
 
   @Override

@@ -179,7 +179,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return the value of theta as a double
    */
   public double getTheta() {
-    return theta_ / (double) Long.MAX_VALUE;
+    return getThetaLong() / (double) Long.MAX_VALUE;
   }
 
   /**
@@ -201,7 +201,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return the value of theta as a long
    */
   long getThetaLong() {
-    return theta_;
+    return isEmpty() ? Long.MAX_VALUE : theta_;
   }
 
   abstract short getSeedHash();
