@@ -35,22 +35,54 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 
+  private static final int NULL_STRING_LENGTH = -1;
+
+  private final boolean nullSafe;
+
+  /**
+   * Creates an instance of {@code ArrayOfStringsSerDe} which does not handle
+   * null values.
+   */
+  public ArrayOfStringsSerDe() {
+    this(false);
+  }
+
+  /**
+   * Creates an instance of {@code ArrayOfStringsSerDe}.
+   *
+   * @param nullSafe true if null values should be serialized/deserialized safely.
+   */
+  public ArrayOfStringsSerDe(boolean nullSafe) {
+    this.nullSafe = nullSafe;
+  }
+
   @Override
   public byte[] serializeToByteArray(final String[] items) {
     int length = 0;
     final byte[][] itemsBytes = new byte[items.length][];
     for (int i = 0; i < items.length; i++) {
-      itemsBytes[i] = items[i].getBytes(StandardCharsets.UTF_8);
-      length += itemsBytes[i].length + Integer.BYTES;
+      length += Integer.BYTES;
+      if (items[i] != null) {
+        itemsBytes[i] = items[i].getBytes(StandardCharsets.UTF_8);
+        length += itemsBytes[i].length;
+      } else if (!nullSafe) {
+        throw new SketchesArgumentException(
+            "All Strings must be non-null in non null-safe mode.");
+      }
     }
     final byte[] bytes = new byte[length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putInt(offsetBytes, itemsBytes[i].length);
-      offsetBytes += Integer.BYTES;
-      mem.putByteArray(offsetBytes, itemsBytes[i], 0, itemsBytes[i].length);
-      offsetBytes += itemsBytes[i].length;
+      if (itemsBytes[i] != null) {
+        mem.putInt(offsetBytes, itemsBytes[i].length);
+        offsetBytes += Integer.BYTES;
+        mem.putByteArray(offsetBytes, itemsBytes[i], 0, itemsBytes[i].length);
+        offsetBytes += itemsBytes[i].length;
+      } else if (nullSafe) {
+        mem.putInt(offsetBytes, NULL_STRING_LENGTH);
+        offsetBytes += Integer.BYTES;
+      }
     }
     return bytes;
   }
@@ -63,11 +95,16 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
       Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
       final int strLength = mem.getInt(offsetBytes);
       offsetBytes += Integer.BYTES;
-      final byte[] bytes = new byte[strLength];
-      Util.checkBounds(offsetBytes, strLength, mem.getCapacity());
-      mem.getByteArray(offsetBytes, bytes, 0, strLength);
-      offsetBytes += strLength;
-      array[i] = new String(bytes, StandardCharsets.UTF_8);
+      if (strLength >= 0) {
+        final byte[] bytes = new byte[strLength];
+        Util.checkBounds(offsetBytes, strLength, mem.getCapacity());
+        mem.getByteArray(offsetBytes, bytes, 0, strLength);
+        offsetBytes += strLength;
+        array[i] = new String(bytes, StandardCharsets.UTF_8);
+      } else if (strLength != NULL_STRING_LENGTH || !nullSafe) {
+        throw new SketchesArgumentException(
+            "Unrecognized String length reading entry " + i + ": " + strLength);
+      }
     }
     return array;
   }
