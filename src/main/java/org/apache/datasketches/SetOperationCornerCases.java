@@ -72,6 +72,10 @@ public class SetOperationCornerCases {
     }
   }
 
+  public enum UnionResult {
+
+  }
+
   public enum CornerCase {
     Empty_Empty(055, "A{ 1.0, 0, T} ; B{ 1.0, 0, T}",
         IntersectResult.EMPTY_1_0_T, AnotbResult.EMPTY_1_0_T),
@@ -114,6 +118,7 @@ public class SetOperationCornerCases {
     private String inputStr;
     private IntersectResult interResult;
     private AnotbResult anotbResult;
+    private UnionResult unionResult;
 
     static {
       for (final CornerCase cc : values()) {

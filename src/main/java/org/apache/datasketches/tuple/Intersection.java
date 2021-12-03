@@ -25,8 +25,6 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 
-import java.lang.reflect.Array;
-
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 
@@ -200,19 +198,18 @@ public class Intersection<S extends Summary> {
       return new CompactSketch<>(null, null, thetaLong_, empty_);
     }
 
-    //Compact the hash tables
     final int tableSize = hashTables_.hashTable_.length;
 
     final long[] hashArr = new long[countIn];
-    final Class<S> summaryType = (Class<S>) hashTables_.summaryTable_.getClass().getComponentType();
-    final S[] summaryArr = (S[]) Array.newInstance(summaryType, countIn);
+    final S[] summaryArr = Util.newSummaryArray(hashTables_.summaryTable_, countIn);
 
+    //compact the arrays
     int cnt = 0;
     for (int i = 0; i < tableSize; i++) {
       final long hash = hashTables_.hashTable_[i];
       if (hash == 0 || hash > thetaLong_) { continue; }
       hashArr[cnt] = hash;
-      summaryArr[cnt] = hashTables_.summaryTable_[i];
+      summaryArr[cnt] = (S) hashTables_.summaryTable_[i].copy();
       cnt++;
     }
     assert cnt == countIn;

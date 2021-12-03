@@ -25,7 +25,6 @@ import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.simpleLog2OfLong;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
@@ -119,7 +118,7 @@ public final class AnotB<S extends Summary> {
 
     empty_ = skA.isEmpty();
     thetaLong_ = skA.getThetaLong();
-    final DataArrays<S> da = getDataArraysTuple(skA);
+    final DataArrays<S> da = getCopyOfDataArraysTuple(skA);
     summaryArr_ = da.summaryArr;  //it may be null
     hashArr_ = da.hashArr;        //it may be null
     curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
@@ -174,7 +173,7 @@ public final class AnotB<S extends Summary> {
       }
       case SKA_TRIM: {
         thetaLong_ = min(thetaLong_, thetaLongB);
-        final DataArrays<S> da = trimDataArrays(hashArr_, summaryArr_, thetaLong_);
+        final DataArrays<S> da = trimAndCopyDataArrays(hashArr_, summaryArr_, thetaLong_, true);
         hashArr_ = da.hashArr;
         curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
         summaryArr_ = da.summaryArr;
@@ -186,7 +185,7 @@ public final class AnotB<S extends Summary> {
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
         thetaLong_ = min(thetaLong_, thetaLongB);
-        final DataArrays<S> daR = getAnotbResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
+        final DataArrays<S> daR = getCopyOfResultArraysTuple(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
         hashArr_ = daR.hashArr;
         curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
         summaryArr_ = daR.summaryArr;
@@ -247,7 +246,7 @@ public final class AnotB<S extends Summary> {
       }
       case SKA_TRIM: {
         thetaLong_ = min(thetaLong_, thetaLongB);
-        final DataArrays<S> da = trimDataArrays(hashArr_, summaryArr_,thetaLong_);
+        final DataArrays<S> da = trimAndCopyDataArrays(hashArr_, summaryArr_,thetaLong_, true);
         hashArr_ = da.hashArr;
         curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
         summaryArr_ = da.summaryArr;
@@ -258,7 +257,7 @@ public final class AnotB<S extends Summary> {
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
         thetaLong_ = min(thetaLong_, thetaLongB);
-        final DataArrays<S> daB = getAnotbResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
+        final DataArrays<S> daB = getCopyOfResultArraysTheta(thetaLong_, curCount_, hashArr_, summaryArr_, skB);
         hashArr_ = daB.hashArr;
         curCount_ = (hashArr_ == null) ? 0 : hashArr_.length;
         summaryArr_ = daB.summaryArr;
@@ -282,7 +281,8 @@ public final class AnotB<S extends Summary> {
     if (curCount_ == 0) {
       result = new CompactSketch<>(null, null, thetaLong_, thetaLong_ == Long.MAX_VALUE);
     } else {
-      result = new CompactSketch<>(hashArr_, summaryArr_, thetaLong_, false);
+
+      result = new CompactSketch<>(hashArr_, Util.copySummaryArray(summaryArr_), thetaLong_, false);
     }
     if (reset) { reset(); }
     return result;
@@ -349,24 +349,24 @@ public final class AnotB<S extends Summary> {
         break;
       }
       case SKA_TRIM: {
-        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long[] hashArrA = daA.hashArr;
         final S[] summaryArrA = daA.summaryArr;
         final long minThetaLong =  min(thetaLongA, thetaLongB);
-        final DataArrays<S> da = trimDataArrays(hashArrA, summaryArrA, minThetaLong);
+        final DataArrays<S> da = trimAndCopyDataArrays(hashArrA, summaryArrA, minThetaLong, false);
         result = new CompactSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
         break;
       }
       case SKETCH_A: {
-        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
         break;
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
-        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long minThetaLong = min(thetaLongA, thetaLongB);
         final DataArrays<S> daR =
-            getAnotbResultArraysTuple(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
+            getCopyOfResultArraysTuple(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
         if (countR == 0) {
           result = new CompactSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
@@ -441,24 +441,24 @@ public final class AnotB<S extends Summary> {
         break;
       }
       case SKA_TRIM: {
-        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long[] hashArrA = daA.hashArr;
         final S[] summaryArrA = daA.summaryArr;
         final long minThetaLong = min(thetaLongA, thetaLongB);
-        final DataArrays<S> da = trimDataArrays(hashArrA, summaryArrA, minThetaLong);
+        final DataArrays<S> da = trimAndCopyDataArrays(hashArrA, summaryArrA, minThetaLong, false);
         result = new CompactSketch<>(da.hashArr, da.summaryArr, minThetaLong, skA.empty_);
         break;
       }
       case SKETCH_A: {
-        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
         break;
       }
       case FULL_ANOTB: { //both A and B should have valid entries.
-        final DataArrays<S> daA = getDataArraysTuple(skA);
+        final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long minThetaLong = min(thetaLongA, thetaLongB);
         final DataArrays<S> daR =
-            getAnotbResultArraysTheta(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
+            getCopyOfResultArraysTheta(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;
         if (countR == 0) {
           result = new CompactSketch<>(null, null, minThetaLong, minThetaLong == Long.MAX_VALUE);
@@ -478,7 +478,8 @@ public final class AnotB<S extends Summary> {
     S[] summaryArr;
   }
 
-  private static <S extends Summary> DataArrays<S> getDataArraysTuple(
+  @SuppressWarnings("unchecked")
+  private static <S extends Summary> DataArrays<S> getCopyOfDataArraysTuple(
       final Sketch<S> sk) {
     final CompactSketch<S> csk;
     final DataArrays<S> da = new DataArrays<>();
@@ -493,40 +494,14 @@ public final class AnotB<S extends Summary> {
       da.summaryArr = null;
     } else {
       da.hashArr = csk.getHashArr().clone();       //deep copy, may not be sorted
-      da.summaryArr = csk.getSummaryArr().clone(); //shallow copy
+      da.summaryArr = Util.copySummaryArray(csk.getSummaryArr());
     }
-    return da;
-  }
-
-  @SuppressWarnings("unchecked")
-  private static <S extends Summary> DataArrays<S> trimDataArrays(
-      final long[] hashArr,
-      final S[] summaryArr,
-      final long minThetaLong) {
-
-    //build temporary arrays
-    final int countIn = hashArr.length;
-    final long[] tmpHashArr = new long[countIn];
-    final Class<S> summaryType = (Class<S>) summaryArr.getClass().getComponentType();
-    final S[] tmpSummaryArr = (S[]) Array.newInstance(summaryType, countIn);
-    int countResult = 0;
-    for (int i = 0; i < countIn; i++) {
-      final long hash = hashArr[i];
-      if (hash < minThetaLong) {
-        tmpHashArr[countResult] = hash;
-        tmpSummaryArr[countResult] = summaryArr[i];
-        countResult++;
-      } else { continue; }
-    }
-    final DataArrays<S> da = new DataArrays<>();
-    da.hashArr = Arrays.copyOfRange(tmpHashArr, 0, countResult);
-    da.summaryArr = Arrays.copyOfRange(tmpSummaryArr, 0, countResult);
     return da;
   }
 
   @SuppressWarnings("unchecked")
   //Both skA and skB must have entries (count > 0)
-  private static <S extends Summary> DataArrays<S> getAnotbResultArraysTuple(
+  private static <S extends Summary> DataArrays<S> getCopyOfResultArraysTuple(
       final long minThetaLong,
       final int countA,
       final long[] hashArrA,
@@ -548,8 +523,7 @@ public final class AnotB<S extends Summary> {
 
     //build temporary arrays of skA
     final long[] tmpHashArrA = new long[countA];
-    final Class<S> summaryType = (Class<S>) summaryArrA.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
+    final S[] tmpSummaryArrA = Util.newSummaryArray(summaryArrA, countA);
 
     //search for non matches and build temp arrays
     final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
@@ -560,7 +534,7 @@ public final class AnotB<S extends Summary> {
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) {
           tmpHashArrA[nonMatches] = hash;
-          tmpSummaryArrA[nonMatches] = summaryArrA[i];
+          tmpSummaryArrA[nonMatches] = (S) summaryArrA[i].copy();
           nonMatches++;
         }
       }
@@ -571,7 +545,7 @@ public final class AnotB<S extends Summary> {
   }
 
   @SuppressWarnings("unchecked")
-  private static <S extends Summary> DataArrays<S> getAnotbResultArraysTheta(
+  private static <S extends Summary> DataArrays<S> getCopyOfResultArraysTheta(
       final long minThetaLong,
       final int countA,
       final long[] hashArrA,
@@ -595,8 +569,7 @@ public final class AnotB<S extends Summary> {
 
     //build temporary result arrays of skA
     final long[] tmpHashArrA = new long[countA];
-    final Class<S> summaryType = (Class<S>) summaryArrA.getClass().getComponentType();
-    final S[] tmpSummaryArrA = (S[]) Array.newInstance(summaryType, countA);
+    final S[] tmpSummaryArrA = Util.newSummaryArray(summaryArrA, countA);
 
     //search for non matches and build temp arrays
     final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
@@ -607,7 +580,7 @@ public final class AnotB<S extends Summary> {
         final int index = hashSearch(hashTableB, lgHTBLen, hash);
         if (index == -1) { //not found
           tmpHashArrA[nonMatches] = hash;
-          tmpSummaryArrA[nonMatches] = summaryArrA[i];
+          tmpSummaryArrA[nonMatches] = (S) summaryArrA[i].copy();
           nonMatches++;
         }
       }
@@ -616,6 +589,33 @@ public final class AnotB<S extends Summary> {
     daB.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
     daB.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
     return daB;
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <S extends Summary> DataArrays<S> trimAndCopyDataArrays(
+      final long[] hashArr,
+      final S[] summaryArr,
+      final long minThetaLong,
+      final boolean copy) {
+
+    //build temporary arrays
+    final int countIn = hashArr.length;
+    final long[] tmpHashArr = new long[countIn];
+    final S[] tmpSummaryArr = Util.newSummaryArray(summaryArr, countIn);
+    int countResult = 0;
+    for (int i = 0; i < countIn; i++) {
+      final long hash = hashArr[i];
+      if (hash < minThetaLong) {
+        tmpHashArr[countResult] = hash;
+        tmpSummaryArr[countResult] = (S) (copy ? summaryArr[i].copy() : summaryArr[i]);
+        countResult++;
+      } else { continue; }
+    }
+    //Remove empty slots
+    final DataArrays<S> da = new DataArrays<>();
+    da.hashArr = Arrays.copyOfRange(tmpHashArr, 0, countResult);
+    da.summaryArr = Arrays.copyOfRange(tmpSummaryArr, 0, countResult);
+    return da;
   }
 
   /**

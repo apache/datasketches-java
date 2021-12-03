@@ -299,8 +299,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       return new CompactSketch<>(null, null, thetaLong_, false);
     }
     final long[] hashArr = new long[getRetainedEntries()];
-    final S[] summaryArr = (S[])
-      Array.newInstance(summaryTable_.getClass().getComponentType(), getRetainedEntries());
+    final S[] summaryArr = Util.newSummaryArray(summaryTable_, getRetainedEntries());
     int i = 0;
     for (int j = 0; j < hashTable_.length; j++) {
       if (summaryTable_[j] != null) {
@@ -418,7 +417,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       if (index < 0) {
         insertSummary(~index, (S)summary.copy()); //did not find, so insert
       } else {
-        insertSummary(index, summarySetOps.union(summaryTable_[index], summary));
+        insertSummary(index, summarySetOps.union(summaryTable_[index], (S) summary.copy()));
       }
       rebuildIfNeeded();
     }
@@ -487,9 +486,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   private void resize(final int newSize) {
     final long[] oldHashTable = hashTable_;
     final S[] oldSummaryTable = summaryTable_;
-    final Class<S> summaryType = (Class<S>) summaryTable_.getClass().getComponentType();
     hashTable_ = new long[newSize];
-    summaryTable_ = (S[]) Array.newInstance(summaryType, newSize);
+    summaryTable_ = Util.newSummaryArray(summaryTable_, newSize);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newSize);
     count_ = 0;
     for (int i = 0; i < oldHashTable.length; i++) {
