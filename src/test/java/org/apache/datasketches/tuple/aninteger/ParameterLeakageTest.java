@@ -118,18 +118,17 @@ public class ParameterLeakageTest {
   public void checkAnotbStateless() {
     IntegerSketch sk1 = new IntegerSketch(4, Sum);
     sk1.update(1, 1);
-    IntegerSummary sk1sum = captureSummaries(sk1)[0];
+    CompactSketch<IntegerSummary> csk1 = sk1.compact();
+    IntegerSummary sk1sum = captureSummaries(csk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum);
-    sk2.update(2, 1);
-    IntegerSummary sk2sum = captureSummaries(sk2)[0];
+    IntegerSketch sk2 = new IntegerSketch(4, Sum); //EMPTY
 
-    CompactSketch<IntegerSummary> csk = AnotB.aNotB(sk1, sk2);
+    CompactSketch<IntegerSummary> csk = AnotB.aNotB(csk1, sk2);
     IntegerSummary[] summaries = captureSummaries(csk);
     println("AnotB Stateless Count: " + summaries.length);
 
     for (IntegerSummary isum : summaries) {
-      if ((isum == sk1sum) || (isum == sk2sum)) {
+      if (isum == sk1sum) {
         throw new IllegalArgumentException("Parameter Leakage");
       }
     }
@@ -139,15 +138,14 @@ public class ParameterLeakageTest {
   public void checkAnotbStateful() {
     IntegerSketch sk1 = new IntegerSketch(4, Sum);
     sk1.update(1, 1);
-    IntegerSummary sk1sum = captureSummaries(sk1)[0];
+    CompactSketch<IntegerSummary> csk1 = sk1.compact();
+    IntegerSummary sk1sum = captureSummaries(csk1)[0];
 
-    IntegerSketch sk2 = new IntegerSketch(4, Sum);
-    sk2.update(2, 1);
-    IntegerSummary sk2sum = captureSummaries(sk2)[0];
+    IntegerSketch sk2 = new IntegerSketch(4, Sum); //EMPTY
 
     AnotB<IntegerSummary> anotb = new AnotB<>();
 
-    anotb.setA(sk1);
+    anotb.setA(csk1);
     anotb.notB(sk2);
 
     CompactSketch<IntegerSummary> csk = anotb.getResult(true);
@@ -155,7 +153,7 @@ public class ParameterLeakageTest {
     println("AnotB Stateful Count: " + summaries.length);
 
     for (IntegerSummary isum : summaries) {
-      if ((isum == sk1sum) || (isum == sk2sum)) {
+      if (isum == sk1sum) {
         throw new IllegalArgumentException("Parameter Leakage");
       }
     }

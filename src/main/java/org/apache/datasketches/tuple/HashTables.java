@@ -97,12 +97,10 @@ class HashTables<S extends Summary> {
       final long thetaLong,
       final SummarySetOperations<S> summarySetOps) {
 
-    final Class<S> summaryType = (Class<S>) summaryTable_.getClass().getComponentType();
-
     //Match nextSketch data with local instance data, filtering by theta
     final int maxMatchSize = min(count_, nextTupleSketch.getRetainedEntries());
     final long[] matchHashArr = new long[maxMatchSize];
-    final S[] matchSummariesArr = (S[]) Array.newInstance(summaryType, maxMatchSize);
+    final S[] matchSummariesArr = Util.newSummaryArray(summaryTable_, maxMatchSize);
     int matchCount = 0;
     final SketchIterator<S> it = nextTupleSketch.iterator();
 

@@ -22,8 +22,6 @@ package org.apache.datasketches.tuple;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
 
-import java.lang.reflect.Array;
-
 import org.apache.datasketches.QuickSelect;
 import org.apache.datasketches.SketchesArgumentException;
 
@@ -63,7 +61,7 @@ public class Union<S extends Summary> {
 
   /**
    * Perform a stateless, pair-wise union operation between two tuple sketches.
-   * The returned sketch will be cutback to the smaller of the two k values if required.
+   * The returned sketch will be cut back to the smaller of the two k values if required.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
@@ -82,7 +80,7 @@ public class Union<S extends Summary> {
 
   /**
    * Perform a stateless, pair-wise union operation between a tupleSketch and a thetaSketch.
-   * The returned sketch will be cutback to the smaller of the two k values if required.
+   * The returned sketch will be cut back to the smaller of the two k values if required.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
@@ -139,7 +137,7 @@ public class Union<S extends Summary> {
     if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
     final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
     while (it.next()) {
-      qsk_.merge(it.get(), (S)summary.copy(), summarySetOps_);
+      qsk_.merge(it.get(), summary, summarySetOps_); //copies summary
     }
     if (qsk_.thetaLong_ < thetaLong_) {
       thetaLong_ = qsk_.thetaLong_;
@@ -181,9 +179,8 @@ public class Union<S extends Summary> {
       theta = QuickSelect.select(hashArr, 0, numHashes - 1, qsk_.getNominalEntries());
       numHashes = qsk_.getNominalEntries();
     }
-    final Class<S> summaryType = (Class<S>) qsk_.getSummaryTable().getClass().getComponentType();
     final long[] hashArr = new long[numHashes];
-    final S[] summaries = (S[]) Array.newInstance(summaryType, numHashes);
+    final S[] summaries = Util.newSummaryArray(qsk_.getSummaryTable(), numHashes);
     final SketchIterator<S> it = qsk_.iterator();
     int i = 0;
     while (it.next()) {

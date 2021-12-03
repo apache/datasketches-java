@@ -27,6 +27,8 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.memory.XxHash.hashCharArr;
 import static org.apache.datasketches.memory.XxHash.hashString;
 
+import java.lang.reflect.Array;
+
 import org.apache.datasketches.SketchesArgumentException;
 
 
@@ -134,5 +136,23 @@ public final class Util {
     final String s = stringConcat(strArray);
     return hashCharArr(s.toCharArray(), 0, s.length(), PRIME);
   }
+
+  @SuppressWarnings("unchecked")
+  public static <S extends Summary> S[] copySummaryArray(final S[] summaryArr) {
+    final int len = summaryArr.length;
+    final S[] tmpSummaryArr = newSummaryArray(summaryArr, len);
+    for (int i = 0; i < len; i++) {
+      tmpSummaryArr[i] = (S) summaryArr[i].copy();
+    }
+    return tmpSummaryArr;
+  }
+
+  @SuppressWarnings("unchecked")
+  public static <S extends Summary> S[] newSummaryArray(final S[] summaryArr, final int length) {
+    final Class<S> summaryType = (Class<S>) summaryArr.getClass().getComponentType();
+    final S[] tmpSummaryArr = (S[]) Array.newInstance(summaryType, length);
+    return tmpSummaryArr;
+  }
+
 
 }
