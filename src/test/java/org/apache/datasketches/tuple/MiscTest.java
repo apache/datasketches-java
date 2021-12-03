@@ -62,10 +62,10 @@ public class MiscTest {
     for (int i = 0; i < len; i++) {
       for (int j = 0; j < len; j++) {
         final int id = ids[i] << 3 | ids[j];
-        final CornerCase cCase = CornerCase.idToCornerCase(id);
-        final String interResStr = cCase.getInterResult().getDesc();
-        final String anotbResStr = cCase.getAnotbResult().getDesc();
-        println(Integer.toOctalString(id) + "\t" + cCase + "\t" + cCase.getDesc()
+        final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
+        final String interResStr = cCase.getIntersectAction().getActionDescription();
+        final String anotbResStr = cCase.getAnotbAction().getActionDescription();
+        println(Integer.toOctalString(id) + "\t" + cCase + "\t" + cCase.getCaseDescription()
          + "\t" + interResStr + "\t" + anotbResStr);
       }
     }
