@@ -73,8 +73,7 @@ public class Union<S extends Summary> {
     reset();
     union(tupleSketchA);
     union(tupleSketchB);
-    final CompactSketch<S> csk = getResult();
-    reset();
+    final CompactSketch<S> csk = getResult(true);
     return csk;
   }
 
@@ -95,8 +94,7 @@ public class Union<S extends Summary> {
     reset();
     union(tupleSketch);
     union(thetaSketch, summary);
-    final CompactSketch<S> csk = getResult();
-    reset();
+    final CompactSketch<S> csk = getResult(true);
     return csk;
   }
 
@@ -109,14 +107,12 @@ public class Union<S extends Summary> {
   public void union(final Sketch<S> tupleSketch) {
     if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
     empty_ = false;
-    if (tupleSketch.thetaLong_ < thetaLong_) { thetaLong_ = tupleSketch.thetaLong_; }
+    thetaLong_ = min(tupleSketch.thetaLong_, thetaLong_);
     final SketchIterator<S> it = tupleSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.getHash(), it.getSummary(), summarySetOps_);
     }
-    if (qsk_.thetaLong_ < thetaLong_) {
-      thetaLong_ = qsk_.thetaLong_;
-    }
+    thetaLong_ = min(thetaLong_, qsk_.thetaLong_);
   }
 
   /**
@@ -134,64 +130,78 @@ public class Union<S extends Summary> {
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
     empty_ = false;
     final long thetaIn = thetaSketch.getThetaLong();
-    if (thetaIn < thetaLong_) { thetaLong_ = thetaIn; }
+    thetaLong_ = min(thetaIn, thetaLong_);
     final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.get(), summary, summarySetOps_); //copies summary
     }
-    if (qsk_.thetaLong_ < thetaLong_) {
-      thetaLong_ = qsk_.thetaLong_;
-    }
+    thetaLong_ = min(thetaLong_, qsk_.thetaLong_);
   }
+
 
   /**
    * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactSketch
-   * @return result of the stateful unions so far
+   * @return result of the stateful unions so far. The state of this operation is not reset after the
+   * result is returned.
    */
   @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
-    if (empty_) {
-      return qsk_.compact();
-    }
-    if (thetaLong_ >= qsk_.thetaLong_ && qsk_.getRetainedEntries() <= qsk_.getNominalEntries()) {
-      return qsk_.compact();
-    }
-    long theta = min(thetaLong_, qsk_.thetaLong_);
+    return getResult(false);
+  }
 
-    int numHashes = 0;
-    {
-      final SketchIterator<S> it = qsk_.iterator();
+  /**
+   * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactSketch.
+   * @param reset If <i>true</i>, clears this operator to the empty state after this result is
+   * returned. Set this to <i>false</i> if you wish to obtain an intermediate result.
+   * @return result of the stateful union
+   */
+  @SuppressWarnings("unchecked")
+  public CompactSketch<S> getResult(final boolean reset) {
+    final CompactSketch<S> result;
+    if (empty_) {
+      result = qsk_.compact();
+    } else if (thetaLong_ >= qsk_.thetaLong_ && qsk_.getRetainedEntries() <= qsk_.getNominalEntries()) {
+      result = qsk_.compact();
+    } else {
+      long theta = min(thetaLong_, qsk_.thetaLong_);
+      int numHashes = 0;
+
+      SketchIterator<S> it = qsk_.iterator();
       while (it.next()) {
         if (it.getHash() < theta) { numHashes++; }
       }
-    }
-    if (numHashes == 0) {
-      return new CompactSketch<>(null, null, theta, empty_);
-    }
-    if (numHashes > qsk_.getNominalEntries()) {
-      final long[] hashArr = new long[numHashes]; // temporary, order will be destroyed by quick select
-      final SketchIterator<S> it = qsk_.iterator();
-      int i = 0;
-      while (it.next()) {
-        final long hash = it.getHash();
-        if (hash < theta) { hashArr[i++] = hash; }
+
+      if (numHashes == 0) {
+        result = new CompactSketch<>(null, null, theta, empty_);
+      } else {
+        if (numHashes > qsk_.getNominalEntries()) {
+          final long[] hashArr = new long[numHashes]; // temporary, order will be destroyed by quick select
+          it = qsk_.iterator();
+          int i = 0;
+          while (it.next()) {
+            final long hash = it.getHash();
+            if (hash < theta) { hashArr[i++] = hash; }
+          }
+          theta = QuickSelect.select(hashArr, 0, numHashes - 1, qsk_.getNominalEntries());
+          numHashes = qsk_.getNominalEntries();
+        }
+        final long[] hashArr = new long[numHashes];
+        final S[] summaries = Util.newSummaryArray(qsk_.getSummaryTable(), numHashes);
+        it = qsk_.iterator();
+        int i = 0;
+        while (it.next()) {
+          final long hash = it.getHash();
+          if (hash < theta) {
+            hashArr[i] = hash;
+            summaries[i] = (S) it.getSummary().copy();
+            i++;
+          }
+        }
+        result = new CompactSketch<>(hashArr, summaries, theta, empty_);
       }
-      theta = QuickSelect.select(hashArr, 0, numHashes - 1, qsk_.getNominalEntries());
-      numHashes = qsk_.getNominalEntries();
     }
-    final long[] hashArr = new long[numHashes];
-    final S[] summaries = Util.newSummaryArray(qsk_.getSummaryTable(), numHashes);
-    final SketchIterator<S> it = qsk_.iterator();
-    int i = 0;
-    while (it.next()) {
-      final long hash = it.getHash();
-      if (hash < theta) {
-        hashArr[i] = hash;
-        summaries[i] = (S) it.getSummary().copy();
-        i++;
-      }
-    }
-    return new CompactSketch<>(hashArr, summaries, theta, empty_);
+    if (reset) { reset(); }
+    return result;
   }
 
   /**

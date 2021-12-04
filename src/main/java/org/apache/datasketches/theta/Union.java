@@ -71,7 +71,7 @@ public abstract class Union extends SetOperation {
   public abstract byte[] toByteArray();
 
   /**
-   * This implements a stateless, pair-wise union operation. The returned sketch will be cutback to
+   * This implements a stateless, pair-wise union operation. The returned sketch will be cut back to
    * the smaller of the two k values if required.
    *
    * <p>Nulls and empty sketches are ignored.</p>
@@ -85,7 +85,7 @@ public abstract class Union extends SetOperation {
   }
 
   /**
-   * This implements a stateless, pair-wise union operation. The returned sketch will be cutback to
+   * This implements a stateless, pair-wise union operation. The returned sketch will be cut back to
    * k if required, similar to the regular Union operation.
    *
    * <p>Nulls and empty sketches are ignored.</p>
