@@ -20,6 +20,8 @@
 package org.apache.datasketches.theta;
 
 import org.testng.annotations.Test;
+//import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+//import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 public class CornerCaseThetaSetOperationsTest {
 
@@ -28,13 +30,10 @@ public class CornerCaseThetaSetOperationsTest {
    *
    * 6730918654704304314  hash(3L)[0] >>> 1    GT_MIDP
    * 4611686018427387904  Theta for p = 0.5f = MIDP
-   * 2206043092153046979  hash(2L)[0] >>> 1    LT_MIDP_V
-   * 1498732507761423037  hash(5L)[0] >>> 1    LTLT_MIDP_V
    *
    * 1206007004353599230  hash(6L)[0] >>> 1    GT_LOWP_V
    *  922337217429372928  Theta for p = 0.1f = LOWP
    *  593872385995628096  hash(4L)[0] >>> 1    LT_LOWP_V
-   *  405753591161026837  hash(1L)[0] >>> 1    LTLT_LOWP_V
    */
 
   private static final long GT_MIDP_V   = 3L;
@@ -501,7 +500,7 @@ public class CornerCaseThetaSetOperationsTest {
 //  private static void println(Object o) {
 //    System.out.println(o.toString());
 //  }
-
+//
 //  @Test
 //  public void printHash() {
 //    long seed = DEFAULT_UPDATE_SEED;
@@ -509,7 +508,7 @@ public class CornerCaseThetaSetOperationsTest {
 //    long hash = (hash(v, seed)[0]) >>> 1;
 //    println(v + ", " + hash);
 //  }
-
+//
 //  @Test
 //  public void printPAsLong() {
 //    float p = 0.5f;

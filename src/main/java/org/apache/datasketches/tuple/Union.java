@@ -33,7 +33,7 @@ import org.apache.datasketches.SketchesArgumentException;
 public class Union<S extends Summary> {
   private final SummarySetOperations<S> summarySetOps_;
   private QuickSelectSketch<S> qsk_;
-  private long thetaLong_; // need to maintain outside of the sketch
+  private long unionThetaLong_; // need to maintain outside of the sketch
   private boolean empty_;
 
   /**
@@ -55,7 +55,7 @@ public class Union<S extends Summary> {
   public Union(final int nomEntries, final SummarySetOperations<S> summarySetOps) {
     summarySetOps_ = summarySetOps;
     qsk_ = new QuickSelectSketch<>(nomEntries, null);
-    thetaLong_ = qsk_.getThetaLong();
+    unionThetaLong_ = qsk_.getThetaLong();
     empty_ = true;
   }
 
@@ -107,12 +107,12 @@ public class Union<S extends Summary> {
   public void union(final Sketch<S> tupleSketch) {
     if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
     empty_ = false;
-    thetaLong_ = min(tupleSketch.thetaLong_, thetaLong_);
+    unionThetaLong_ = min(tupleSketch.thetaLong_, unionThetaLong_);
     final SketchIterator<S> it = tupleSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.getHash(), it.getSummary(), summarySetOps_);
     }
-    thetaLong_ = min(thetaLong_, qsk_.thetaLong_);
+    unionThetaLong_ = min(unionThetaLong_, qsk_.thetaLong_);
   }
 
   /**
@@ -130,12 +130,12 @@ public class Union<S extends Summary> {
     if (thetaSketch == null || thetaSketch.isEmpty()) { return; }
     empty_ = false;
     final long thetaIn = thetaSketch.getThetaLong();
-    thetaLong_ = min(thetaIn, thetaLong_);
+    unionThetaLong_ = min(thetaIn, unionThetaLong_);
     final org.apache.datasketches.theta.HashIterator it = thetaSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.get(), summary, summarySetOps_); //copies summary
     }
-    thetaLong_ = min(thetaLong_, qsk_.thetaLong_);
+    unionThetaLong_ = min(unionThetaLong_, qsk_.thetaLong_);
   }
 
 
@@ -160,44 +160,59 @@ public class Union<S extends Summary> {
     final CompactSketch<S> result;
     if (empty_) {
       result = qsk_.compact();
-    } else if (thetaLong_ >= qsk_.thetaLong_ && qsk_.getRetainedEntries() <= qsk_.getNominalEntries()) {
+    } else if (unionThetaLong_ >= qsk_.thetaLong_ && qsk_.getRetainedEntries() <= qsk_.getNominalEntries()) {
+      //unionThetaLong_ >= qsk_.thetaLong_ means we can ignore unionThetaLong_. We don't need to rebuild.
+      //qsk_.getRetainedEntries() <= qsk_.getNominalEntries() means we don't need to pull back to k.
       result = qsk_.compact();
     } else {
-      long theta = min(thetaLong_, qsk_.thetaLong_);
-      int numHashes = 0;
+      final long tmpThetaLong = min(unionThetaLong_, qsk_.thetaLong_);
 
+      //count the number of valid hashes in because Alpha can have dirty values
+      int numHashesIn = 0;
       SketchIterator<S> it = qsk_.iterator();
-      while (it.next()) {
-        if (it.getHash() < theta) { numHashes++; }
+      while (it.next()) { //counts valid hashes
+        if (it.getHash() < tmpThetaLong) { numHashesIn++; }
       }
 
-      if (numHashes == 0) {
-        result = new CompactSketch<>(null, null, theta, empty_);
-      } else {
-        if (numHashes > qsk_.getNominalEntries()) {
-          final long[] hashArr = new long[numHashes]; // temporary, order will be destroyed by quick select
+      if (numHashesIn == 0) {
+        //numHashes == 0 && empty == false means Theta < 1.0
+        //Therefore, this is a degenerate sketch: theta < 1.0, count = 0, empty = false
+        result = new CompactSketch<>(null, null, tmpThetaLong, empty_);
+      }
+
+      else {
+        //we know: empty == false, count > 0
+        final int numHashesOut;
+        final long thetaLongOut;
+        if (numHashesIn > qsk_.getNominalEntries()) {
+          //we need to trim hashes and need a new thetaLong
+          final long[] tmpHashArr = new long[numHashesIn]; // temporary, order will be destroyed by quick select
           it = qsk_.iterator();
           int i = 0;
           while (it.next()) {
             final long hash = it.getHash();
-            if (hash < theta) { hashArr[i++] = hash; }
+            if (hash < tmpThetaLong) { tmpHashArr[i++] = hash; }
           }
-          theta = QuickSelect.select(hashArr, 0, numHashes - 1, qsk_.getNominalEntries());
-          numHashes = qsk_.getNominalEntries();
+          numHashesOut = qsk_.getNominalEntries();
+          thetaLongOut = QuickSelect.select(tmpHashArr, 0, numHashesIn - 1, numHashesOut);
+        } else {
+          numHashesOut = numHashesIn;
+          thetaLongOut = tmpThetaLong;
         }
-        final long[] hashArr = new long[numHashes];
-        final S[] summaries = Util.newSummaryArray(qsk_.getSummaryTable(), numHashes);
+        //now prepare the output arrays
+        final long[] hashArr = new long[numHashesOut];
+        final S[] summaries = Util.newSummaryArray(qsk_.getSummaryTable(), numHashesOut);
         it = qsk_.iterator();
         int i = 0;
-        while (it.next()) {
+        while (it.next()) { //select the qualifying hashes from the gadget synchronized with the summaries
           final long hash = it.getHash();
-          if (hash < theta) {
+          if (hash < thetaLongOut) {
             hashArr[i] = hash;
             summaries[i] = (S) it.getSummary().copy();
             i++;
           }
         }
-        result = new CompactSketch<>(hashArr, summaries, theta, empty_);
+        result = new CompactSketch<>(hashArr, summaries, thetaLongOut, empty_);
       }
     }
     if (reset) { reset(); }
@@ -210,7 +225,7 @@ public class Union<S extends Summary> {
    */
   public void reset() {
     qsk_.reset();
-    thetaLong_ = qsk_.getThetaLong();
+    unionThetaLong_ = qsk_.getThetaLong();
     empty_ = true;
   }
 }
