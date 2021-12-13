@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.testng.Assert.assertEquals;
+
+import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
@@ -26,6 +29,7 @@ import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class ArrayOfDoublesCompactSketchTest {
+
   @Test
   public void heapToDirectExactTwoDoubles() {
     ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build();
@@ -37,7 +41,9 @@ public class ArrayOfDoublesCompactSketchTest {
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
-    ArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesCompactSketch(Memory.wrap(sketch1.compact().toByteArray()));
+    ArrayOfDoublesCompactSketch csk = sketch1.compact();
+    Memory mem = Memory.wrap(csk.toByteArray());
+    ArrayOfDoublesSketch sketch2 = new DirectArrayOfDoublesCompactSketch(mem);
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 4.0);
@@ -56,7 +62,7 @@ public class ArrayOfDoublesCompactSketchTest {
 
   @Test
   public void directToHeapExactTwoDoubles() {
-    ArrayOfDoublesUpdatableSketch sketch1 = 
+    ArrayOfDoublesUpdatableSketch sketch1 =
         new ArrayOfDoublesUpdatableSketchBuilder().setNumberOfValues(2).build(WritableMemory.writableWrap(new byte[1000000]));
     sketch1.update("a", new double[] {1, 2});
     sketch1.update("b", new double[] {1, 2});
@@ -66,8 +72,9 @@ public class ArrayOfDoublesCompactSketchTest {
     sketch1.update("b", new double[] {1, 2});
     sketch1.update("c", new double[] {1, 2});
     sketch1.update("d", new double[] {1, 2});
-    ArrayOfDoublesSketch sketch2 = 
-        new HeapArrayOfDoublesCompactSketch(Memory.wrap(sketch1.compact(WritableMemory.writableWrap(new byte[1000000])).toByteArray()));
+    ArrayOfDoublesSketch sketch2 =
+        new HeapArrayOfDoublesCompactSketch(
+            Memory.wrap(sketch1.compact(WritableMemory.writableWrap(new byte[1000000])).toByteArray()));
     Assert.assertFalse(sketch2.isEmpty());
     Assert.assertFalse(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 4.0);
@@ -83,4 +90,51 @@ public class ArrayOfDoublesCompactSketchTest {
       Assert.assertEquals(array[1], 4.0);
     }
   }
+
+  @SuppressWarnings("unused")
+  @Test
+  public void checkGetValuesAndKeysMethods() {
+    ArrayOfDoublesUpdatableSketchBuilder bldr = new ArrayOfDoublesUpdatableSketchBuilder();
+    bldr.setNominalEntries(16).setNumberOfValues(2);
+
+    HeapArrayOfDoublesQuickSelectSketch hqssk = (HeapArrayOfDoublesQuickSelectSketch) bldr.build();
+    hqssk.update("a", new double[] {1, 2});
+    hqssk.update("b", new double[] {3, 4});
+    hqssk.update("c", new double[] {5, 6});
+    hqssk.update("d", new double[] {7, 8});
+    final double[][] values = hqssk.getValues();
+    final double[] values1d = hqssk.getValuesAsOneDimension();
+    final long[] keys = hqssk.getKeys();
+
+    HeapArrayOfDoublesCompactSketch hcsk = (HeapArrayOfDoublesCompactSketch)hqssk.compact();
+    final double[][] values2 = hcsk.getValues();
+    final double[] values1d2 = hcsk.getValuesAsOneDimension();
+    final long[] keys2 = hcsk.getKeys();
+    assertEquals(values2, values);
+    assertEquals(values1d2, values1d);
+    assertEquals(keys2, keys);
+
+    Memory hqsskMem = Memory.wrap(hqssk.toByteArray());
+
+    DirectArrayOfDoublesQuickSelectSketchR dqssk =
+        (DirectArrayOfDoublesQuickSelectSketchR)ArrayOfDoublesSketch.wrap(hqsskMem, Util.DEFAULT_UPDATE_SEED);
+    final double[][] values3 = dqssk.getValues();
+    final double[] values1d3 = dqssk.getValuesAsOneDimension();
+    final long[] keys3 = dqssk.getKeys();
+    assertEquals(values3, values);
+    assertEquals(values1d3, values1d);
+    assertEquals(keys3, keys);
+
+    Memory hcskMem = Memory.wrap(hcsk.toByteArray());
+
+    DirectArrayOfDoublesCompactSketch dcsk2 =
+        (DirectArrayOfDoublesCompactSketch)ArrayOfDoublesSketch.wrap(hcskMem, Util.DEFAULT_UPDATE_SEED);
+    final double[][] values4 = dqssk.getValues();
+    final double[] values1d4 = dqssk.getValuesAsOneDimension();
+    final long[] keys4 = dqssk.getKeys();
+    assertEquals(values4, values);
+    assertEquals(values1d4, values1d);
+    assertEquals(keys4, keys);
+  }
+
 }

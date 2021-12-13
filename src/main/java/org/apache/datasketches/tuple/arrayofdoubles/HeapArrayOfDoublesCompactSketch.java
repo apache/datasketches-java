@@ -144,6 +144,18 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   }
 
   @Override
+  public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
+   if (dstMem == null) {
+      return new
+          HeapArrayOfDoublesCompactSketch(keys_.clone(), values_.clone(), theta_, isEmpty_, numValues_, seedHash_);
+    } else {
+      final byte[] byteArr = this.toByteArray();
+      dstMem.putByteArray(0, byteArr, 0, byteArr.length);
+      return new DirectArrayOfDoublesCompactSketch(dstMem);
+    }
+  }
+
+  @Override
   public int getRetainedEntries() {
     return keys_ == null ? 0 : keys_.length;
   }
@@ -181,6 +193,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   }
 
   @Override
+  //converts compact heap array of double[] to compact double[][]
   public double[][] getValues() {
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
@@ -191,6 +204,16 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       }
     }
     return values;
+  }
+
+  @Override
+  double[] getValuesAsOneDimension() {
+    return values_.clone();
+  }
+
+  @Override
+  long[] getKeys() {
+    return keys_.clone();
   }
 
   @Override

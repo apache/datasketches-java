@@ -474,6 +474,8 @@ public final class AnotB<S extends Summary> {
   //restricted
 
   static class DataArrays<S extends Summary> {
+    DataArrays() {}
+
     long[] hashArr;
     S[] summaryArr;
   }

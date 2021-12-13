@@ -142,7 +142,7 @@ public abstract class ArrayOfDoublesUnion {
         sketch_.merge(it.getKey(), it.getValues());
       }
     }
-    // keep the union theta as low as low as possible for performance
+    // keep the union theta as low as possible for performance
     if (sketch_.getThetaLong() < theta_) {
       setThetaLong(sketch_.getThetaLong());
     }

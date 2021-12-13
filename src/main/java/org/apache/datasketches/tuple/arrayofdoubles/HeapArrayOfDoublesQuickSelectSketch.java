@@ -116,18 +116,53 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   }
 
   @Override
+  //converts heap hashTable of double[] to compacted double[][]
   public double[][] getValues() {
+    final int numVal = numValues_;
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
     if (count > 0) {
-      int i = 0;
+      int cnt = 0;
       for (int j = 0; j < keys_.length; j++) {
-        if (keys_[j] != 0) {
-          values[i++] = Arrays.copyOfRange(values_, j * numValues_, (j + 1) * numValues_);
-        }
+        if (keys_[j] == 0) { continue; }
+        values[cnt++] = Arrays.copyOfRange(values_, j * numVal, (j + 1) * numVal);
       }
+      assert cnt == count;
     }
     return values;
+  }
+
+  @Override
+  //converts heap hashTable of double[] to compacted double[]
+  double[] getValuesAsOneDimension() {
+    final int numVal = numValues_;
+    final int count = getRetainedEntries();
+    final double[] values = new double[count * numVal];
+    if (count > 0) {
+      int cnt = 0;
+      for (int j = 0; j < keys_.length; j++) {
+        if (keys_[j] == 0) { continue; }
+        System.arraycopy(values_, j * numVal, values, cnt++ * numVal, numVal);
+      }
+      assert cnt == count;
+    }
+    return values;
+  }
+
+  @Override
+  //converts heap hashTable of long[] to compacted long[]
+  long[] getKeys() {
+    final int count = getRetainedEntries();
+    final long[] keysArr = new long[count];
+    if (count > 0) {
+      int cnt = 0;
+      for (int j = 0; j < keys_.length; j++) {
+        if (keys_[j] == 0) { continue; }
+        keysArr[cnt++] = keys_[j];
+      }
+      assert cnt == count;
+    }
+    return keysArr;
   }
 
   @Override

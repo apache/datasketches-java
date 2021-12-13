@@ -43,9 +43,9 @@ final class DirectArrayOfDoublesIntersection extends ArrayOfDoublesIntersection 
   }
 
   @Override
-  protected ArrayOfDoublesQuickSelectSketch createSketch(final int size, final int numValues, 
+  protected ArrayOfDoublesQuickSelectSketch createSketch(final int nomEntries, final int numValues, 
       final long seed) {
-    return new DirectArrayOfDoublesQuickSelectSketch(size, 0, 1f, numValues, seed, mem_);
+    return new DirectArrayOfDoublesQuickSelectSketch(nomEntries, 0, 1f, numValues, seed, mem_);
   }
 
 }

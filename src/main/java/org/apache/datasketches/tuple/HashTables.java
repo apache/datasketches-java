@@ -31,63 +31,63 @@ import java.lang.reflect.Array;
 
 @SuppressWarnings("unchecked")
 class HashTables<S extends Summary> {
-  long[] hashTable_ = null;
-  S[] summaryTable_ = null;
-  int lgTableSize_ = 0;
-  int count_ = 0;
+  long[] hashTable = null;
+  S[] summaryTable = null;
+  int lgTableSize = 0;
+  int numKeys = 0;
 
   HashTables() { }
 
   //must have valid entries
   void fromSketch(final Sketch<S> sketch) {
-    count_ = sketch.getRetainedEntries();
-    lgTableSize_ = getLgTableSize(count_);
+    numKeys = sketch.getRetainedEntries();
+    lgTableSize = getLgTableSize(numKeys);
 
-    hashTable_ = new long[1 << lgTableSize_];
+    hashTable = new long[1 << lgTableSize];
     final SketchIterator<S> it = sketch.iterator();
     while (it.next()) {
       final long hash = it.getHash();
-      final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
+      final int index = hashInsertOnly(hashTable, lgTableSize, hash);
       final S mySummary = (S)it.getSummary().copy();
-      if (summaryTable_ == null) {
-        summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
+      if (summaryTable == null) {
+        summaryTable = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize);
       }
-      summaryTable_[index] = mySummary;
+      summaryTable[index] = mySummary;
     }
   }
 
   //must have valid entries
   void fromSketch(final org.apache.datasketches.theta.Sketch sketch, final S summary) {
-    count_ = sketch.getRetainedEntries(true);
-    lgTableSize_ = getLgTableSize(count_);
+    numKeys = sketch.getRetainedEntries(true);
+    lgTableSize = getLgTableSize(numKeys);
 
-    hashTable_ = new long[1 << lgTableSize_];
+    hashTable = new long[1 << lgTableSize];
     final org.apache.datasketches.theta.HashIterator it = sketch.iterator();
     while (it.next()) {
       final long hash = it.get();
-      final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
+      final int index = hashInsertOnly(hashTable, lgTableSize, hash);
       final S mySummary = (S)summary.copy();
-      if (summaryTable_ == null) {
-        summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
+      if (summaryTable == null) {
+        summaryTable = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize);
       }
-      summaryTable_[index] = mySummary;
+      summaryTable[index] = mySummary;
     }
   }
 
   private void fromArrays(final long[] hashArr, final S[] summaryArr, final int count) {
-    count_ = count;
-    lgTableSize_ = getLgTableSize(count);
+    numKeys = count;
+    lgTableSize = getLgTableSize(count);
 
-    summaryTable_ = null;
-    hashTable_ = new long[1 << lgTableSize_];
+    summaryTable = null;
+    hashTable = new long[1 << lgTableSize];
     for (int i = 0; i < count; i++) {
       final long hash = hashArr[i];
-      final int index = hashInsertOnly(hashTable_, lgTableSize_, hash);
+      final int index = hashInsertOnly(hashTable, lgTableSize, hash);
       final S mySummary = summaryArr[i];
-      if (summaryTable_ == null) {
-        summaryTable_ = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize_);
+      if (summaryTable == null) {
+        summaryTable = (S[]) Array.newInstance(mySummary.getClass(), 1 << lgTableSize);
       }
-      summaryTable_[index] = summaryArr[i];
+      summaryTable[index] = summaryArr[i];
     }
   }
 
@@ -98,21 +98,21 @@ class HashTables<S extends Summary> {
       final SummarySetOperations<S> summarySetOps) {
 
     //Match nextSketch data with local instance data, filtering by theta
-    final int maxMatchSize = min(count_, nextTupleSketch.getRetainedEntries());
+    final int maxMatchSize = min(numKeys, nextTupleSketch.getRetainedEntries());
     final long[] matchHashArr = new long[maxMatchSize];
-    final S[] matchSummariesArr = Util.newSummaryArray(summaryTable_, maxMatchSize);
+    final S[] matchSummariesArr = Util.newSummaryArray(summaryTable, maxMatchSize);
     int matchCount = 0;
     final SketchIterator<S> it = nextTupleSketch.iterator();
 
     while (it.next()) {
       final long hash = it.getHash();
       if (hash >= thetaLong) { continue; }
-      final int index = hashSearch(hashTable_, lgTableSize_, hash);
+      final int index = hashSearch(hashTable, lgTableSize, hash);
       if (index < 0) { continue; }
       //Copy the intersecting items from local hashTables_
       // sequentially into local matchHashArr_ and matchSummaries_
       matchHashArr[matchCount] = hash;
-      matchSummariesArr[matchCount] = summarySetOps.intersection(summaryTable_[index], it.getSummary());
+      matchSummariesArr[matchCount] = summarySetOps.intersection(summaryTable[index], it.getSummary());
       matchCount++;
     }
     final HashTables<S> resultHT = new HashTables<>();
@@ -130,7 +130,7 @@ class HashTables<S extends Summary> {
     final Class<S> summaryType = (Class<S>) summary.getClass();
 
     //Match nextSketch data with local instance data, filtering by theta
-    final int maxMatchSize = min(count_, nextThetaSketch.getRetainedEntries());
+    final int maxMatchSize = min(numKeys, nextThetaSketch.getRetainedEntries());
     final long[] matchHashArr = new long[maxMatchSize];
     final S[] matchSummariesArr = (S[]) Array.newInstance(summaryType, maxMatchSize);
     int matchCount = 0;
@@ -140,12 +140,12 @@ class HashTables<S extends Summary> {
     while (it.next()) {
       final long hash = it.get();
       if (hash >= thetaLong) { continue; }
-      final int index = hashSearch(hashTable_, lgTableSize_, hash);
+      final int index = hashSearch(hashTable, lgTableSize, hash);
       if (index < 0) { continue; }
       //Copy the intersecting items from local hashTables_
       // sequentially into local matchHashArr_ and matchSummaries_
       matchHashArr[matchCount] = hash;
-      matchSummariesArr[matchCount] = summarySetOps.intersection(summaryTable_[index], summary);
+      matchSummariesArr[matchCount] = summarySetOps.intersection(summaryTable[index], summary);
       matchCount++;
     }
     final HashTables<S> resultHT = new HashTables<>();
@@ -154,10 +154,10 @@ class HashTables<S extends Summary> {
   }
 
   void clear() {
-    hashTable_ = null;
-    summaryTable_ = null;
-    lgTableSize_ = 0;
-    count_ = 0;
+    hashTable = null;
+    summaryTable = null;
+    lgTableSize = 0;
+    numKeys = 0;
   }
 
   static int getLgTableSize(final int count) {

@@ -127,24 +127,68 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
+  //converts Memory hashTable of double[] to compacted double[][]
   public double[][] getValues() {
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
     if (count > 0) {
       long keyOffset = keysOffset_;
       long valuesOffset = valuesOffset_;
-      int i = 0;
+      int cnt = 0;
       for (int j = 0; j < getCurrentCapacity(); j++) {
         if (mem_.getLong(keyOffset) != 0) {
           final double[] array = new double[numValues_];
           mem_.getDoubleArray(valuesOffset, array, 0, numValues_);
-          values[i++] = array;
+          values[cnt++] = array;
         }
         keyOffset += SIZE_OF_KEY_BYTES;
         valuesOffset += (long)SIZE_OF_VALUE_BYTES * numValues_;
       }
     }
     return values;
+  }
+
+  @Override
+  //converts heap hashTable of double[] to compacted double[]
+  double[] getValuesAsOneDimension() {
+    final int count = getRetainedEntries();
+    final double[] values = new double[count * numValues_];
+    final int cap = getCurrentCapacity();
+    if (count > 0) {
+      long keyOffsetBytes = keysOffset_;
+      long valuesOffsetBytes = valuesOffset_;
+      int cnt = 0;
+      for (int j = 0; j < cap; j++) {
+        if (mem_.getLong(keyOffsetBytes) != 0) {
+          mem_.getDoubleArray(valuesOffsetBytes, values, cnt++ * numValues_, numValues_);
+        }
+        keyOffsetBytes += SIZE_OF_KEY_BYTES;
+        valuesOffsetBytes += (long)SIZE_OF_VALUE_BYTES * numValues_;
+      }
+      assert cnt == count;
+    }
+    return values;
+  }
+
+  @Override
+  //converts heap hashTable of long[] to compacted long[]
+  long[] getKeys() {
+    final int count = getRetainedEntries();
+    final long[] keys = new long[count];
+    final int cap = getCurrentCapacity();
+    if (count > 0) {
+      long keyOffsetBytes = keysOffset_;
+      int cnt = 0;
+      for (int j = 0; j < cap; j++) {
+        final long key;
+        if ((key = mem_.getLong(keyOffsetBytes)) != 0) {
+          keys[cnt++] = key;
+        }
+        keyOffsetBytes += SIZE_OF_KEY_BYTES;
+      }
+      assert cnt == count;
+    }
+    return keys;
   }
 
   @Override

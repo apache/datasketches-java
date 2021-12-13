@@ -663,6 +663,6 @@ public class HeapUnionTest {
    * @param s value to print
    */
   static void println(final String s) {
-    System.out.println(s); //Disable here
+    //System.out.println(s); //Disable here
   }
 }
