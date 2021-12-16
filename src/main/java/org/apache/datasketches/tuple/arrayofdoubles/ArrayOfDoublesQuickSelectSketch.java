@@ -97,7 +97,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   }
 
   /**
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than or equal to
    * given value.
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues

@@ -454,10 +454,10 @@ public class ArrayOfDoublesUnionTest {
 
   @Test
   public void directDruidUsageOneSketch() {
-    final WritableMemory mem = WritableMemory.writableWrap(new byte[1000000]);
+    final WritableMemory mem = WritableMemory.writableWrap(new byte[1_000_000]);
     new ArrayOfDoublesSetOperationBuilder().buildUnion(mem); // just set up memory to wrap later
 
-    final int n = 100000; // estimation mode
+    final int n = 100_000; // estimation mode
     final ArrayOfDoublesUpdatableSketch sketch = new ArrayOfDoublesUpdatableSketchBuilder().build();
     for (int i = 0; i < n; i++) {
       sketch.update(i, new double[] {1.0});
@@ -465,10 +465,14 @@ public class ArrayOfDoublesUnionTest {
     sketch.trim(); // pretend this is a result from a union
 
     // as Druid wraps memory
-    ArrayOfDoublesSketches.wrapUnion(mem).union(sketch.compact(WritableMemory.writableWrap(new byte[1000000])));
+    WritableMemory mem2 = WritableMemory.writableWrap(new byte[1_000_000]);
+    ArrayOfDoublesCompactSketch dcsk = sketch.compact(mem2);
+    ArrayOfDoublesUnion union = ArrayOfDoublesSketches.wrapUnion(mem); //empty union
+    union.union(dcsk); //TODO est error
+    //ArrayOfDoublesSketches.wrapUnion(mem).union(sketch.compact(WritableMemory.writableWrap(new byte[1_000_000])));
 
     final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();
-    Assert.assertEquals(result.getEstimate(), sketch.getEstimate());
+    Assert.assertEquals(result.getEstimate(), sketch.getEstimate());//expected [98045.91060164096] but found [4096.0]
     Assert.assertEquals(result.isEstimationMode(), sketch.isEstimationMode());
   }
 

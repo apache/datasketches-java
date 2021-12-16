@@ -509,7 +509,7 @@ public final class AnotB<S extends Summary> {
       final long[] hashArrA,
       final S[] summaryArrA,
       final Sketch<S> skB) {
-    final DataArrays<S> daB = new DataArrays<>();
+    final DataArrays<S> daR = new DataArrays<>();
 
     //Rebuild/get hashtable of skB
     final long[] hashTableB;
@@ -541,9 +541,9 @@ public final class AnotB<S extends Summary> {
         }
       }
     }
-    daB.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    daB.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    return daB;
+    daR.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
+    daR.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
+    return daR;
   }
 
   @SuppressWarnings("unchecked")

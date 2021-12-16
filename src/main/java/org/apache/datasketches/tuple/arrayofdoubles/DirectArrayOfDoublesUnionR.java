@@ -26,11 +26,11 @@ final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {
 
   /**
    * Wraps the given Memory.
-   * @param sketch the ArrayOfDoublesQuickSelectSketch
+   * @param gadget the ArrayOfDoublesQuickSelectSketch
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
-  DirectArrayOfDoublesUnionR(final ArrayOfDoublesQuickSelectSketch sketch, final WritableMemory mem) {
-    super(sketch, mem);
+  DirectArrayOfDoublesUnionR(final ArrayOfDoublesQuickSelectSketch gadget, final WritableMemory mem) {
+    super(gadget, mem);
   }
 
   @Override

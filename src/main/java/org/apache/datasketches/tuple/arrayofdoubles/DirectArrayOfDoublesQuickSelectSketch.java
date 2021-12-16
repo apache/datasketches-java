@@ -227,6 +227,12 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
+  public boolean hasMemory() { return true; }
+
+  @Override
+  WritableMemory getMemory() { return mem_; }
+
+  @Override
   int getSerializedSizeBytes() {
     return valuesOffset_ + (SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity());
   }

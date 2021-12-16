@@ -269,6 +269,12 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     return mem_.getShort(SEED_HASH_SHORT);
   }
 
+  @Override
+  public boolean hasMemory() { return true; }
+
+  @Override
+  Memory getMemory() { return mem_; }
+
   private static void checkIfEnoughMemory(final Memory mem, final int numEntries,
       final int numValues) {
     final int sizeNeeded =

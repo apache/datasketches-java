@@ -44,7 +44,7 @@ public abstract class ArrayOfDoublesSketch {
   static final int SIZE_OF_KEY_BYTES = Long.BYTES;
   static final int SIZE_OF_VALUE_BYTES = Double.BYTES;
 
-  // Common Layout of first 16 bytes:
+  // Common Layout of first 16 bytes and Empty AoDCompactSketch:
   // Long || Start Byte Adr:
   // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
@@ -150,6 +150,18 @@ public abstract class ArrayOfDoublesSketch {
     if (!isEstimationMode()) { return getRetainedEntries(); }
     return BinomialBoundsN.getLowerBound(getRetainedEntries(), getTheta(), numStdDev, isEmpty_);
   }
+
+  /**
+   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
+   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
+   */
+  public abstract boolean hasMemory();
+
+  /**
+   * Returns the Memory object if it exists, otherwise null.
+   * @return the Memory object if it exists, otherwise null.
+   */
+  abstract Memory getMemory();
 
   /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>

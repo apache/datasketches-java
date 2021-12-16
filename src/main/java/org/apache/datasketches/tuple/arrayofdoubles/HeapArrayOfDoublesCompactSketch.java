@@ -226,4 +226,9 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     return seedHash_;
   }
 
+  @Override
+  public boolean hasMemory() { return false; }
+
+  @Override
+  Memory getMemory() { return null; }
 }

@@ -52,18 +52,19 @@ class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
     mem_.putByte(SERIAL_VERSION_BYTE, serialVersionUID);
     mem_.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     mem_.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
-    mem_.putLong(THETA_LONG, sketch_.getThetaLong());
+    mem_.putLong(THETA_LONG, gadget_.getThetaLong());
   }
 
-  DirectArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch, final WritableMemory mem) {
-    super(sketch);
+  //Called from wrapUnion below and extended by DirectArrayOfDoublesUnionR
+  DirectArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch gadget, final WritableMemory mem) {
+    super(gadget);
     mem_ = mem;
-    theta_ = mem.getLong(THETA_LONG);
+    unionThetaLong_ = mem.getLong(THETA_LONG);
   }
 
   @Override
-  void setThetaLong(final long theta) {
-    super.setThetaLong(theta);
+  void setUnionThetaLong(final long theta) {
+    super.setUnionThetaLong(theta);
     mem_.putLong(THETA_LONG, theta);
   }
 

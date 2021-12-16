@@ -188,7 +188,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   @Override
   public byte[] toByteArray() {
     final byte[] byteArray = new byte[getSerializedSizeBytes()];
-    final WritableMemory mem = WritableMemory.writableWrap(byteArray); // wrap the byte array to use the putX methods
+    final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     serializeInto(mem);
     return byteArray;
   }
@@ -202,6 +202,23 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   int getSerializedSizeBytes() {
     return ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues_)) * getCurrentCapacity());
   }
+
+  //  X/Y: X = Byte index for just AoDQuickSelectSketch
+  //       Y = Byte index when combined with Union Preamble
+  // Long || Start Byte Adr:
+  // Adr:
+  // First 16 bytes are preamble from AoDUnion
+  //      ||  7/23  |  6/22  |  5/21  |  4/20  |  3/19   |  2/18  |   1/17   |    0/16            |
+  //  0/2 ||    Seed Hash    | #Dbls  |  Flags | SkType2 | FamID  | SerVer   |  Preamble_Longs    |
+  //      || 15/31  | 14/30  | 13/29  | 12/28  | 11/27   | 10/26  |   9/25   |    8/24            |
+  //  1/3 ||------------------------------Theta Long----------------------------------------------|
+  //      || 23/39  | 22/38  | 21/37  | 20/36  | 19/35   | 18/34  | 17/33    |   16/32            |
+  //  2/4 ||        Sampling P Float           |         |  LgRF  |lgCapLongs|  LgNomEntries      |
+  //      || 31/47  | 30/46  | 29/45  | 28/44  | 27/43   | 26/42  | 25/41    |   24/40            |
+  //  3/5 ||                                   |         Retained Entries Int                     |
+  //      ||                                                                 |   32/48            |
+  //  4/6 ||                               Keys Array longs * keys[] Length                       |
+  //      ||                            Values Array doubles * values[] Length                    |
 
   @Override
   void serializeInto(final WritableMemory mem) {
@@ -227,10 +244,15 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     mem.putInt(RETAINED_ENTRIES_INT, count_);
     if (count_ > 0) {
       mem.putLongArray(ENTRIES_START, keys_, 0, keys_.length);
-      mem.putDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * keys_.length), values_, 0,
-          values_.length);
+      mem.putDoubleArray(ENTRIES_START + ((long) SIZE_OF_KEY_BYTES * keys_.length), values_, 0, values_.length);
     }
   }
+
+  @Override
+  public boolean hasMemory() { return false; }
+
+  @Override
+  Memory getMemory() { return null; }
 
   @Override
   public void reset() {
