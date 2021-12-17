@@ -46,8 +46,7 @@ public class Union<S extends Summary> {
   }
 
   /**
-   * Creates new Union instance with instructions on how to process two summaries that
-   * overlap.
+   * Creates new Union instance.
    * @param nomEntries nominal entries (K). Forced to the nearest power of 2 greater than
    * given value.
    * @param summarySetOps instance of SummarySetOperations
@@ -117,8 +116,7 @@ public class Union<S extends Summary> {
 
   /**
    * Performs a stateful union of the internal set with the given thetaSketch by combining entries
-   * using the hashes from the theta sketch and summary values from the given summary and rules
-   * from the summarySetOps defined by the Union constructor.
+   * using the hashes from the theta sketch and summary values from the given summary.
    * @param thetaSketch the given theta sketch input. If null or empty, it is ignored.
    * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
    * not be null.

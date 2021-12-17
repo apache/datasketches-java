@@ -80,8 +80,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     ));
     mem_.putByte(NUM_VALUES_BYTE, (byte) numValues);
     mem_.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed));
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    mem_.putLong(THETA_LONG, theta_);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    mem_.putLong(THETA_LONG, thetaLong_);
     mem_.putByte(LG_NOM_ENTRIES_BYTE, (byte) Integer.numberOfTrailingZeros(nomEntries));
     mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(startingCapacity));
     mem_.putByte(LG_RESIZE_FACTOR_BYTE, (byte) lgResizeFactor);
@@ -121,7 +121,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
     // to do: make parent take care of its own parts
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(getCurrentCapacity());
-    theta_ = mem_.getLong(THETA_LONG);
+    thetaLong_ = mem_.getLong(THETA_LONG);
     isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     setRebuildThreshold();
   }
@@ -251,8 +251,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     final int lgResizeFactor = mem_.getByte(LG_RESIZE_FACTOR_BYTE);
     final float samplingProbability = mem_.getFloat(SAMPLING_P_FLOAT);
     final int startingCapacity = Util.getStartingCapacity(getNominalEntries(), lgResizeFactor);
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    mem_.putLong(THETA_LONG, theta_);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    mem_.putLong(THETA_LONG, thetaLong_);
     mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(startingCapacity));
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
     keysOffset_ = ENTRIES_START;
@@ -282,9 +282,9 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected void setThetaLong(final long theta) {
-    theta_ = theta;
-    mem_.putLong(THETA_LONG, theta_);
+  protected void setThetaLong(final long thetaLong) {
+    thetaLong_ = thetaLong;
+    mem_.putLong(THETA_LONG, thetaLong_);
   }
 
   @Override
@@ -335,7 +335,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * newCapacity);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < keys.length; i++) {
-      if ((keys[i] != 0) && (keys[i] < theta_)) {
+      if ((keys[i] != 0) && (keys[i] < thetaLong_)) {
         insert(keys[i], Arrays.copyOfRange(values, i * numValues, (i + 1) * numValues));
       }
     }

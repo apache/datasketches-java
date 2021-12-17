@@ -50,14 +50,14 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
 
   /**
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form
-   * trimming if necessary according to given theta
+   * trimming if necessary according to given thetaLong
    * @param sketch the given UpdatableArrayOfDoublesSketch
-   * @param theta new value of theta
+   * @param thetaLong new value of thetaLong
    */
-  HeapArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, final long theta) {
+  HeapArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch, final long thetaLong) {
     super(sketch.getNumValues());
     isEmpty_ = sketch.isEmpty();
-    theta_ = Math.min(sketch.getThetaLong(), theta);
+    thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
     seedHash_ = Util.computeSeedHash(sketch.getSeed());
     final int count = sketch.getRetainedEntries();
     if (count > 0) {
@@ -67,7 +67,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
       int i = 0;
       while (it.next()) {
         final long key = it.getKey();
-        if (key < theta_) {
+        if (key < thetaLong_) {
           keys_[i] = key;
           System.arraycopy(it.getValues(), 0, values_, i * numValues_, numValues_);
           i++;
@@ -89,12 +89,12 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   /*
    * Creates an instance from components
    */
-  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta,
+  HeapArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long thetaLong,
       final boolean isEmpty, final int numValues, final short seedHash) {
     super(numValues);
     keys_ = keys;
     values_ = values;
-    theta_ = theta;
+    thetaLong_ = thetaLong;
     isEmpty_ = isEmpty;
     seedHash_ = seedHash;
   }
@@ -131,7 +131,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     }
     Util.checkSeedHashes(seedHash_, Util.computeSeedHash(seed));
     isEmpty_ = (mem.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    theta_ = mem.getLong(THETA_LONG);
+    thetaLong_ = mem.getLong(THETA_LONG);
     final boolean hasEntries =
         (mem.getByte(FLAGS_BYTE) & (1 << Flags.HAS_ENTRIES.ordinal())) != 0;
     if (hasEntries) {
@@ -147,7 +147,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
    if (dstMem == null) {
       return new
-          HeapArrayOfDoublesCompactSketch(keys_.clone(), values_.clone(), theta_, isEmpty_, numValues_, seedHash_);
+          HeapArrayOfDoublesCompactSketch(keys_.clone(), values_.clone(), thetaLong_, isEmpty_, numValues_, seedHash_);
     } else {
       final byte[] byteArr = this.toByteArray();
       dstMem.putByteArray(0, byteArr, 0, byteArr.length);
@@ -183,7 +183,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
     ));
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem.putShort(SEED_HASH_SHORT, seedHash_);
-    mem.putLong(THETA_LONG, theta_);
+    mem.putLong(THETA_LONG, thetaLong_);
     if (count > 0) {
       mem.putInt(RETAINED_ENTRIES_INT, count);
       mem.putLongArray(ENTRIES_START, keys_, 0, count);

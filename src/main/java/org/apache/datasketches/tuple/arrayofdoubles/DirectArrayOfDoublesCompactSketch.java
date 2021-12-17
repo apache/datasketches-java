@@ -53,11 +53,11 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
    * Converts the given UpdatableArrayOfDoublesSketch to this compact form
    * trimming if necessary according to given theta
    * @param sketch the given UpdatableArrayOfDoublesSketch
-   * @param theta new value of theta
+   * @param thetaLong new value of thetaLong
    * @param dstMem the given destination Memory.
    */
   DirectArrayOfDoublesCompactSketch(final ArrayOfDoublesUpdatableSketch sketch,
-      final long theta, final WritableMemory dstMem) {
+      final long thetaLong, final WritableMemory dstMem) {
     super(sketch.getNumValues());
     checkIfEnoughMemory(dstMem, sketch.getRetainedEntries(), sketch.getNumValues());
     mem_ = dstMem;
@@ -76,15 +76,15 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     ));
     dstMem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     dstMem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(sketch.getSeed()));
-    theta_ = Math.min(sketch.getThetaLong(), theta);
-    dstMem.putLong(THETA_LONG, theta_);
+    thetaLong_ = Math.min(sketch.getThetaLong(), thetaLong);
+    dstMem.putLong(THETA_LONG, thetaLong_);
     if (count > 0) {
       int keyOffset = ENTRIES_START;
       int valuesOffset = keyOffset + (SIZE_OF_KEY_BYTES * sketch.getRetainedEntries());
       final ArrayOfDoublesSketchIterator it = sketch.iterator();
       int actualCount = 0;
       while (it.next()) {
-        if (it.getKey() < theta_) {
+        if (it.getKey() < thetaLong_) {
           dstMem.putLong(keyOffset, it.getKey());
           dstMem.putDoubleArray(valuesOffset, it.getValues(), 0, numValues_);
           keyOffset += SIZE_OF_KEY_BYTES;
@@ -99,7 +99,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
   /*
    * Creates an instance from components
    */
-  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long theta,
+  DirectArrayOfDoublesCompactSketch(final long[] keys, final double[] values, final long thetaLong,
       final boolean isEmpty, final int numValues, final short seedHash, final WritableMemory dstMem) {
     super(numValues);
     checkIfEnoughMemory(dstMem, values.length, numValues);
@@ -119,8 +119,8 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     ));
     dstMem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     dstMem.putShort(SEED_HASH_SHORT, seedHash);
-    theta_ = theta;
-    dstMem.putLong(THETA_LONG, theta_);
+    thetaLong_ = thetaLong;
+    dstMem.putLong(THETA_LONG, thetaLong_);
     if (count > 0) {
       dstMem.putInt(RETAINED_ENTRIES_INT, count);
       dstMem.putLongArray(ENTRIES_START, keys, 0, count);
@@ -152,7 +152,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     }
 
     isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    theta_ = mem_.getLong(THETA_LONG);
+    thetaLong_ = mem_.getLong(THETA_LONG);
   }
 
   /**
@@ -179,14 +179,14 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
     }
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
-    theta_ = mem_.getLong(THETA_LONG);
+    thetaLong_ = mem_.getLong(THETA_LONG);
   }
 
   @Override
   public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
     if (dstMem == null) {
       return new
-          HeapArrayOfDoublesCompactSketch(getKeys(), getValuesAsOneDimension(), theta_, isEmpty_, numValues_,
+          HeapArrayOfDoublesCompactSketch(getKeys(), getValuesAsOneDimension(), thetaLong_, isEmpty_, numValues_,
               getSeedHash());
     } else {
       mem_.copyTo(0, dstMem, 0, mem_.getCapacity());

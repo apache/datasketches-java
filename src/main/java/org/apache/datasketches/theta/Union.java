@@ -115,7 +115,7 @@ public abstract class Union extends SetOperation {
   /**
    * Perform a Union operation with <i>this</i> union and the given Memory image of any sketch of the
    * Theta Family. The input image may be from earlier versions of the Theta Compact Sketch,
-   * called the SetSketch (circa 2012), which was prior to Open Source and are compact and ordered.
+   * called the SetSketch (circa 2014), which was prior to Open Source and are compact and ordered.
    *
    * <p>This method can be repeatedly called.
    *

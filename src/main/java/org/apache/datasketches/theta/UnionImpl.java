@@ -67,7 +67,7 @@ final class UnionImpl extends Union {
    * be meaningless. It is private for very good reasons.
    */
   private final UpdateSketch gadget_;
-  private final short seedHash_; //eliminates having to compute the seedHash on every update.
+  private final short seedHash_; //eliminates having to compute the seedHash on every union.
   private long unionThetaLong_; //when on-heap, this is the only copy
   private boolean unionEmpty_;  //when on-heap, this is the only copy
 

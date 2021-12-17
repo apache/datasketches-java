@@ -66,7 +66,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     nomEntries_ = nomEntries;
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
     final int startingCapacity = Util.getStartingCapacity(nomEntries, lgResizeFactor);
     keys_ = new long[startingCapacity];
     values_ = new double[startingCapacity * numValues];
@@ -98,7 +98,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
     nomEntries_ = 1 << mem.getByte(LG_NOM_ENTRIES_BYTE);
-    theta_ = mem.getLong(THETA_LONG);
+    thetaLong_ = mem.getLong(THETA_LONG);
     final int currentCapacity = 1 << mem.getByte(LG_CUR_CAPACITY_BYTE);
     lgResizeFactor_ = mem.getByte(LG_RESIZE_FACTOR_BYTE);
     samplingProbability_ = mem.getFloat(SAMPLING_P_FLOAT);
@@ -236,7 +236,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     ));
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed_));
-    mem.putLong(THETA_LONG, theta_);
+    mem.putLong(THETA_LONG, thetaLong_);
     mem.putByte(LG_NOM_ENTRIES_BYTE, (byte) Integer.numberOfTrailingZeros(nomEntries_));
     mem.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(keys_.length));
     mem.putByte(LG_RESIZE_FACTOR_BYTE, (byte) lgResizeFactor_);
@@ -258,7 +258,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   public void reset() {
     isEmpty_ = true;
     count_ = 0;
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
     final int startingCapacity = Util.getStartingCapacity(nomEntries_, lgResizeFactor_);
     keys_ = new long[startingCapacity];
     values_ = new double[startingCapacity * numValues_];
@@ -308,8 +308,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   }
 
   @Override
-  protected void setThetaLong(final long theta) {
-    theta_ = theta;
+  protected void setThetaLong(final long thetaLong) {
+    thetaLong_ = thetaLong;
   }
 
   @Override
@@ -326,7 +326,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     count_ = 0;
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < oldKeys.length; i++) {
-      if ((oldKeys[i] != 0) && (oldKeys[i] < theta_)) {
+      if ((oldKeys[i] != 0) && (oldKeys[i] < thetaLong_)) {
         insert(oldKeys[i], Arrays.copyOfRange(oldValues, i * numValues_, (i + 1) * numValues_));
       }
     }

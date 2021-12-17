@@ -208,7 +208,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
-   * Insert if key is less than theta and not a duplicate, otherwise ignore.
+   * Insert if key is less than thetaLong and not a duplicate, otherwise ignore.
    * @param key the hash value of the input value
    * @param values array of values to update the summary
    */

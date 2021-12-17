@@ -128,7 +128,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
         final ArrayOfDoublesCompactSketch csk = skA.compact();
         keys_ = csk.getKeys();
         values_ = csk.getValuesAsOneDimension();
-        thetaLong_ = csk.theta_;
+        thetaLong_ = csk.thetaLong_;
         empty_ = csk.isEmpty();
         count_ = csk.getRetainedEntries();
         break;

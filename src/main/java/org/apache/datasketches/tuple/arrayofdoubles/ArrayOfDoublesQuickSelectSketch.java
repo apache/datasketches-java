@@ -76,7 +76,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   abstract void incrementCount();
 
-  abstract void setThetaLong(long theta);
+  abstract void setThetaLong(long thetaLong);
 
   abstract int insertKey(long key);
 
@@ -91,7 +91,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   @Override
   public void trim() {
     if (getRetainedEntries() > getNominalEntries()) {
-      setThetaLong(getNewTheta());
+      setThetaLong(getNewThetaLong());
       rebuild();
     }
   }
@@ -113,7 +113,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   // not sufficient by itself without keeping track of theta of another sketch
   void merge(final long key, final double[] values) {
     setNotEmpty();
-    if (key < theta_) {
+    if (key < thetaLong_) {
       final int index = findOrInsertKey(key);
       if (index < 0) {
         incrementCount();
@@ -128,7 +128,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   void rebuildIfNeeded() {
     if (getRetainedEntries() <= rebuildThreshold_) { return; }
     if (getCurrentCapacity() > getNominalEntries()) {
-      setThetaLong(getNewTheta());
+      setThetaLong(getNewThetaLong());
       rebuild();
     } else {
       rebuild(getCurrentCapacity() * getResizeFactor().getValue());
@@ -160,7 +160,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
         + " elements, but has " + values.length);
     }
     setNotEmpty();
-    if ((key == 0) || (key >= theta_)) { return; }
+    if ((key == 0) || (key >= thetaLong_)) { return; }
     final int index = findOrInsertKey(key);
     if (index < 0) {
       incrementCount();
@@ -171,7 +171,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     rebuildIfNeeded();
   }
 
-  long getNewTheta() {
+  long getNewThetaLong() {
     final long[] keys = new long[getRetainedEntries()];
     int i = 0;
     for (int j = 0; j < getCurrentCapacity(); j++) {

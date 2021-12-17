@@ -63,9 +63,9 @@ class DirectArrayOfDoublesUnion extends ArrayOfDoublesUnion {
   }
 
   @Override
-  void setUnionThetaLong(final long theta) {
-    super.setUnionThetaLong(theta);
-    mem_.putLong(THETA_LONG, theta);
+  void setUnionThetaLong(final long thetaLong) {
+    super.setUnionThetaLong(thetaLong);
+    mem_.putLong(THETA_LONG, thetaLong);
   }
 
   static ArrayOfDoublesUnion wrapUnion(final WritableMemory mem, final long seed, final boolean isWritable) {

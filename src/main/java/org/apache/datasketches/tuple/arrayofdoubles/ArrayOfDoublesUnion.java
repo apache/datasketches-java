@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 
 import org.apache.datasketches.Family;
@@ -128,10 +129,13 @@ public abstract class ArrayOfDoublesUnion {
       throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
           + gadget_.getNumValues() + " and " + tupleSketch.getNumValues());
     }
+
     if (tupleSketch.isEmpty()) { return; }
-    if (tupleSketch.getThetaLong() < unionThetaLong_) {
-      setUnionThetaLong(tupleSketch.getThetaLong());
-    }
+    else { gadget_.setNotEmpty(); }
+
+    setUnionThetaLong(min(min(unionThetaLong_, tupleSketch.getThetaLong()), gadget_.getThetaLong()));
+
+    if (tupleSketch.getRetainedEntries() == 0) { return; }
     final ArrayOfDoublesSketchIterator it = tupleSketch.iterator();
     while (it.next()) {
       if (it.getKey() < unionThetaLong_) {
@@ -152,7 +156,7 @@ public abstract class ArrayOfDoublesUnion {
   public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
     long unionThetaLong = unionThetaLong_;
     if (gadget_.getRetainedEntries() > gadget_.getNominalEntries()) {
-      unionThetaLong = Math.min(unionThetaLong, gadget_.getNewTheta());
+      unionThetaLong = Math.min(unionThetaLong, gadget_.getNewThetaLong());
     }
     if (dstMem == null) {
       return new HeapArrayOfDoublesCompactSketch(gadget_, unionThetaLong);
@@ -211,8 +215,8 @@ public abstract class ArrayOfDoublesUnion {
     return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues) + PREAMBLE_SIZE_BYTES;
   }
 
-  void setUnionThetaLong(final long theta) {
-    unionThetaLong_ = theta;
+  void setUnionThetaLong(final long thetaLong) {
+    unionThetaLong_ = thetaLong;
   }
 
 }

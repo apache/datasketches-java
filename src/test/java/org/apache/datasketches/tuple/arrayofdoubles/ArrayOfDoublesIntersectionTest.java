@@ -184,7 +184,7 @@ public class ArrayOfDoublesIntersectionTest {
     Assert.assertEquals(result.getLowerBound(1), 0.0);
     Assert.assertEquals(result.getUpperBound(1), 3.0);
     Assert.assertEquals(result.getValues().length, 0);
-    Assert.assertTrue(result.theta_ < Long.MAX_VALUE);
+    Assert.assertTrue(result.thetaLong_ < Long.MAX_VALUE);
   }
 
   @Test

@@ -63,7 +63,7 @@ public abstract class ArrayOfDoublesSketch {
 
   final int numValues_;
 
-  long theta_;
+  long thetaLong_;
   boolean isEmpty_ = true;
 
   ArrayOfDoublesSketch(final int numValues) {
@@ -184,7 +184,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return ((theta_ < Long.MAX_VALUE) && !isEmpty());
+    return ((thetaLong_ < Long.MAX_VALUE) && !isEmpty());
   }
 
   /**
@@ -218,7 +218,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return the value of theta as a long
    */
   long getThetaLong() {
-    return isEmpty() ? Long.MAX_VALUE : theta_;
+    return isEmpty() ? Long.MAX_VALUE : thetaLong_;
   }
 
   abstract short getSeedHash();
