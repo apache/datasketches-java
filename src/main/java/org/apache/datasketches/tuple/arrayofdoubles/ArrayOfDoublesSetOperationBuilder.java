@@ -93,7 +93,7 @@ public class ArrayOfDoublesSetOperationBuilder {
 
   /**
    * Creates an instance of ArrayOfDoublesUnion based on the current configuration of the builder
-   * and the given memory.
+   * and the given destination memory.
    * @param dstMem destination memory to be used by the sketch
    * @return an instance of ArrayOfDoublesUnion
    */
@@ -131,7 +131,7 @@ public class ArrayOfDoublesSetOperationBuilder {
    * @return an instance of ArrayOfDoublesAnotB
    */
   public ArrayOfDoublesAnotB buildAnotB() {
-    return new HeapArrayOfDoublesAnotB(numValues_, seed_);
+    return new ArrayOfDoublesAnotBImpl(numValues_, seed_);
   }
 
 }

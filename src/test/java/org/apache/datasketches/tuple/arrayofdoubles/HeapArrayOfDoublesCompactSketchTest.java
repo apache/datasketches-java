@@ -27,6 +27,7 @@ import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class HeapArrayOfDoublesCompactSketchTest {
+
   @Test
   public void emptyFromQuickSelectSketch() {
     ArrayOfDoublesUpdatableSketch us = new ArrayOfDoublesUpdatableSketchBuilder().build();
@@ -131,6 +132,7 @@ public class HeapArrayOfDoublesCompactSketchTest {
       us.update(i, new double[] {1.0});
     }
     ArrayOfDoublesCompactSketch sketch1 = us.compact();
-    ArrayOfDoublesSketches.heapifySketch(Memory.wrap(sketch1.toByteArray()), 123);
+    Memory mem = Memory.wrap(sketch1.toByteArray());
+    ArrayOfDoublesSketches.heapifySketch(mem, 123);
   }
 }

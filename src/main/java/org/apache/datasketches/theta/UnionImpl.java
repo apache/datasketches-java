@@ -67,7 +67,7 @@ final class UnionImpl extends Union {
    * be meaningless. It is private for very good reasons.
    */
   private final UpdateSketch gadget_;
-  private final short seedHash_; //eliminates having to compute the seedHash on every update.
+  private final short seedHash_; //eliminates having to compute the seedHash on every union.
   private long unionThetaLong_; //when on-heap, this is the only copy
   private boolean unionEmpty_;  //when on-heap, this is the only copy
 
@@ -86,7 +86,10 @@ final class UnionImpl extends Union {
    * @param rf <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
    * @return instance of this sketch
    */
-  static UnionImpl initNewHeapInstance(final int lgNomLongs, final long seed, final float p,
+  static UnionImpl initNewHeapInstance(
+      final int lgNomLongs,
+      final long seed,
+      final float p,
       final ResizeFactor rf) {
     final UpdateSketch gadget = //create with UNION family
         new HeapQuickSelectSketch(lgNomLongs, seed, p, rf, true);
@@ -158,7 +161,7 @@ final class UnionImpl extends Union {
   }
 
   /**
-   * Fast-wrap a Union object around a Union Memory object containing data.
+   * Fast-wrap a Union object around a Union WritableMemory object containing data.
    * This does NO validity checking of the given Memory.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -192,7 +195,7 @@ final class UnionImpl extends Union {
   }
 
   /**
-   * Wrap a Union object around a Union Memory object containing data.
+   * Wrap a Union object around a Union WritableMemory object containing data.
    * Called by SetOperation.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -246,8 +249,7 @@ final class UnionImpl extends Union {
     final boolean empty = gadget_.isEmpty() && unionEmpty_;
     final short seedHash = gadget_.getSeedHash();
     return CompactOperations.componentsToCompact(
-        minThetaLong, curCountOut, seedHash, empty, true, dstOrdered, dstOrdered, dstMem,
-        compactCacheOut);
+        minThetaLong, curCountOut, seedHash, empty, true, dstOrdered, dstOrdered, dstMem, compactCacheOut);
   }
 
   @Override
@@ -269,7 +271,7 @@ final class UnionImpl extends Union {
     return gadgetByteArr;
   }
 
-  @Override
+  @Override //Stateless Union
   public CompactSketch union(final Sketch sketchA, final Sketch sketchB, final boolean dstOrdered,
       final WritableMemory dstMem) {
     reset();

@@ -40,8 +40,8 @@ final class HeapArrayOfDoublesAnotB extends ArrayOfDoublesAnotB {
   private long[] keys_;
   private double[] values_;
   private int count_;
-  private final short seedHash_;
-  private final int numValues_;
+  private final short seedHash_; //via builder
+  private final int numValues_; //via builder
 
   /**
    * Creates an instance of HeapArrayOfDoublesAnotB given a custom seed

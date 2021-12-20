@@ -80,8 +80,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     ));
     mem_.putByte(NUM_VALUES_BYTE, (byte) numValues);
     mem_.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed));
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    mem_.putLong(THETA_LONG, theta_);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    mem_.putLong(THETA_LONG, thetaLong_);
     mem_.putByte(LG_NOM_ENTRIES_BYTE, (byte) Integer.numberOfTrailingZeros(nomEntries));
     mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(startingCapacity));
     mem_.putByte(LG_RESIZE_FACTOR_BYTE, (byte) lgResizeFactor);
@@ -121,30 +121,74 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * getCurrentCapacity());
     // to do: make parent take care of its own parts
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(getCurrentCapacity());
-    theta_ = mem_.getLong(THETA_LONG);
+    thetaLong_ = mem_.getLong(THETA_LONG);
     isEmpty_ = (mem_.getByte(FLAGS_BYTE) & (1 << Flags.IS_EMPTY.ordinal())) != 0;
     setRebuildThreshold();
   }
 
   @Override
+  //converts Memory hashTable of double[] to compacted double[][]
   public double[][] getValues() {
     final int count = getRetainedEntries();
     final double[][] values = new double[count][];
     if (count > 0) {
       long keyOffset = keysOffset_;
       long valuesOffset = valuesOffset_;
-      int i = 0;
+      int cnt = 0;
       for (int j = 0; j < getCurrentCapacity(); j++) {
         if (mem_.getLong(keyOffset) != 0) {
           final double[] array = new double[numValues_];
           mem_.getDoubleArray(valuesOffset, array, 0, numValues_);
-          values[i++] = array;
+          values[cnt++] = array;
         }
         keyOffset += SIZE_OF_KEY_BYTES;
         valuesOffset += (long)SIZE_OF_VALUE_BYTES * numValues_;
       }
     }
     return values;
+  }
+
+  @Override
+  //converts heap hashTable of double[] to compacted double[]
+  double[] getValuesAsOneDimension() {
+    final int count = getRetainedEntries();
+    final double[] values = new double[count * numValues_];
+    final int cap = getCurrentCapacity();
+    if (count > 0) {
+      long keyOffsetBytes = keysOffset_;
+      long valuesOffsetBytes = valuesOffset_;
+      int cnt = 0;
+      for (int j = 0; j < cap; j++) {
+        if (mem_.getLong(keyOffsetBytes) != 0) {
+          mem_.getDoubleArray(valuesOffsetBytes, values, cnt++ * numValues_, numValues_);
+        }
+        keyOffsetBytes += SIZE_OF_KEY_BYTES;
+        valuesOffsetBytes += (long)SIZE_OF_VALUE_BYTES * numValues_;
+      }
+      assert cnt == count;
+    }
+    return values;
+  }
+
+  @Override
+  //converts heap hashTable of long[] to compacted long[]
+  long[] getKeys() {
+    final int count = getRetainedEntries();
+    final long[] keys = new long[count];
+    final int cap = getCurrentCapacity();
+    if (count > 0) {
+      long keyOffsetBytes = keysOffset_;
+      int cnt = 0;
+      for (int j = 0; j < cap; j++) {
+        final long key;
+        if ((key = mem_.getLong(keyOffsetBytes)) != 0) {
+          keys[cnt++] = key;
+        }
+        keyOffsetBytes += SIZE_OF_KEY_BYTES;
+      }
+      assert cnt == count;
+    }
+    return keys;
   }
 
   @Override
@@ -183,6 +227,12 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
+  public boolean hasMemory() { return true; }
+
+  @Override
+  WritableMemory getMemory() { return mem_; }
+
+  @Override
   int getSerializedSizeBytes() {
     return valuesOffset_ + (SIZE_OF_VALUE_BYTES * numValues_ * getCurrentCapacity());
   }
@@ -201,8 +251,8 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     final int lgResizeFactor = mem_.getByte(LG_RESIZE_FACTOR_BYTE);
     final float samplingProbability = mem_.getFloat(SAMPLING_P_FLOAT);
     final int startingCapacity = Util.getStartingCapacity(getNominalEntries(), lgResizeFactor);
-    theta_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
-    mem_.putLong(THETA_LONG, theta_);
+    thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
+    mem_.putLong(THETA_LONG, thetaLong_);
     mem_.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(startingCapacity));
     mem_.putInt(RETAINED_ENTRIES_INT, 0);
     keysOffset_ = ENTRIES_START;
@@ -232,9 +282,9 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected void setThetaLong(final long theta) {
-    theta_ = theta;
-    mem_.putLong(THETA_LONG, theta_);
+  protected void setThetaLong(final long thetaLong) {
+    thetaLong_ = thetaLong;
+    mem_.putLong(THETA_LONG, thetaLong_);
   }
 
   @Override
@@ -285,7 +335,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     valuesOffset_ = keysOffset_ + (SIZE_OF_KEY_BYTES * newCapacity);
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(newCapacity);
     for (int i = 0; i < keys.length; i++) {
-      if ((keys[i] != 0) && (keys[i] < theta_)) {
+      if ((keys[i] != 0) && (keys[i] < thetaLong_)) {
         insert(keys[i], Arrays.copyOfRange(values, i * numValues, (i + 1) * numValues));
       }
     }

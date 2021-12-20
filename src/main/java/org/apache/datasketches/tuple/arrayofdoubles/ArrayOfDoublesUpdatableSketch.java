@@ -178,6 +178,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * Gets an on-heap compact representation of the sketch
    * @return compact sketch
    */
+  @Override
   public ArrayOfDoublesCompactSketch compact() {
     return compact(null);
   }
@@ -187,6 +188,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @param dstMem memory for the compact sketch (can be null)
    * @return compact sketch (off-heap if memory is provided)
    */
+  @Override
   public ArrayOfDoublesCompactSketch compact(final WritableMemory dstMem) {
     if (dstMem == null) {
       return new HeapArrayOfDoublesCompactSketch(this);
@@ -206,7 +208,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
   }
 
   /**
-   * Insert if key is less than theta and not a duplicate, otherwise ignore.
+   * Insert if key is less than thetaLong and not a duplicate, otherwise ignore.
    * @param key the hash value of the input value
    * @param values array of values to update the summary
    */

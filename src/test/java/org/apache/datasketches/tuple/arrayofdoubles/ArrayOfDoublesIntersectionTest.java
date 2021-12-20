@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.testng.Assert.fail;
+
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
@@ -41,14 +43,11 @@ public class ArrayOfDoublesIntersectionTest {
   @Test
   public void nullInput() {
     final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
-    intersection.intersect(null, null);
-    final ArrayOfDoublesCompactSketch result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
-    Assert.assertEquals(result.getValues().length, 0);
+    try {
+      intersection.intersect(null, null);
+      fail();
+    } catch (SketchesArgumentException e) {}
+
   }
 
   @Test
@@ -66,17 +65,21 @@ public class ArrayOfDoublesIntersectionTest {
   }
 
   @Test
-  public void notEmptyNoEntries() {
+  public void degenerateWithExact() {
     final ArrayOfDoublesUpdatableSketch sketch1 = new ArrayOfDoublesUpdatableSketchBuilder().setSamplingProbability(0.01f).build();
     sketch1.update("a", new double[] {1}); // this happens to get rejected because of sampling with low probability
+    final ArrayOfDoublesUpdatableSketch sketch2 = new ArrayOfDoublesUpdatableSketchBuilder().build();
+    sketch2.update(1, new double[] {1});
+
     final ArrayOfDoublesIntersection intersection = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
     intersection.intersect(sketch1, null);
+    intersection.intersect(sketch2, null);
     final ArrayOfDoublesCompactSketch result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty());
+    Assert.assertFalse(result.isEmpty()); //Degenerate
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 184.0);
     Assert.assertEquals(result.getValues().length, 0);
   }
 
@@ -152,13 +155,10 @@ public class ArrayOfDoublesIntersectionTest {
     }
 
     intersection.reset();
-    intersection.intersect(null, null);
-    result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getRetainedEntries(), 0);
-    Assert.assertEquals(result.getEstimate(), 0.0);
-    Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
+    try {
+      intersection.intersect(null, null);
+      fail();
+    } catch (SketchesArgumentException e) { }
   }
 
   @Test
@@ -178,12 +178,13 @@ public class ArrayOfDoublesIntersectionTest {
     intersection.intersect(sketch1, combiner);
     intersection.intersect(sketch2, combiner);
     final ArrayOfDoublesCompactSketch result = intersection.getResult();
-    Assert.assertTrue(result.isEmpty());
+    Assert.assertFalse(result.isEmpty());  //Degenerate case
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 3.0);
     Assert.assertEquals(result.getValues().length, 0);
+    Assert.assertTrue(result.thetaLong_ < Long.MAX_VALUE);
   }
 
   @Test
@@ -206,11 +207,11 @@ public class ArrayOfDoublesIntersectionTest {
     intersection.intersect(sketch1, combiner);
     intersection.intersect(sketch2, combiner);
     final ArrayOfDoublesCompactSketch result = intersection.getResult(WritableMemory.writableWrap(new byte[1000000]));
-    Assert.assertTrue(result.isEmpty());
+    Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getRetainedEntries(), 0);
     Assert.assertEquals(result.getEstimate(), 0.0);
     Assert.assertEquals(result.getLowerBound(1), 0.0);
-    Assert.assertEquals(result.getUpperBound(1), 0.0);
+    Assert.assertEquals(result.getUpperBound(1), 3.0);
     Assert.assertEquals(result.getValues().length, 0);
   }
 

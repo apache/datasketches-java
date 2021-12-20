@@ -306,20 +306,20 @@ final class CompactOperations {
   /*
    * The truth table for empty, curCount and theta when compacting is as follows:
    * <pre>
-   * Num Theta CurCount Empty State    Comments
-   *  0    1.0     0      T     OK     The Normal Empty State
-   *  1    1.0     0      F   Internal This can result from an intersection of two exact, disjoint sets,
-   *                                   or AnotB of two exact, identical sets. There is no probability
-   *                                   distribution, so change to empty. Return {Th = 1.0, 0, T}.
+   * Num Theta CurCount Empty State    Name, Comments
+   *  0    1.0     0      T     OK     EMPTY: The Normal Empty State
+   *  1    1.0     0      F   Internal This can occur internally as the result of an intersection of two exact,
+   *                                   disjoint sets, or AnotB of two exact, identical sets. There is no probability
+   *                                   distribution, so this is converted internally to EMPTY {1.0, 0, T}.
    *                                   This is handled in SetOperation.createCompactSketch().
-   *  2    1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
+   *  2    1.0    !0      T   Error    Empty=T and curCount !0 should never coexist.
    *                                   This is checked in all compacting operations.
-   *  3    1.0    !0      F     OK     This corresponds to a sketch in exact mode
+   *  3    1.0    !0      F     OK     EXACT: This corresponds to a sketch in exact mode
    *  4   <1.0     0      T   Internal This can be an initial UpdateSketch state if p < 1.0,
    *                                   so change theta to 1.0. Return {Th = 1.0, 0, T}.
    *                                   This is handled in UpdateSketch.compact() and toByteArray().
    *  5   <1.0     0      F     OK     This can result from set operations
-   *  6   <1.0    !0      T   Error    Empty=T and curCount !0 should never co-exist.
+   *  6   <1.0    !0      T   Error    Empty=T and curCount !0 should never coexist.
    *                                   This is checked in all compacting operations.
    *  7   <1.0    !0      F     OK     This corresponds to a sketch in estimation mode
    * </pre>

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static java.lang.Math.min;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 
 import org.apache.datasketches.Family;
@@ -34,16 +35,8 @@ import org.apache.datasketches.tuple.Util;
 public abstract class ArrayOfDoublesUnion {
 
   static final byte serialVersionUID = 1;
-
+  //For layout see toByteArray()
   static final int PREAMBLE_SIZE_BYTES = 16;
-  // Layout of first 16 bytes:
-  // Long || Start Byte Adr:
-  // Adr:
-  //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
-  //  0   ||    Seed Hash    | #Dbls  |  Flags | SkType | FamID  | SerVer |  Preamble_Longs    |
-  //      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
-  //  1   ||------------------------------Theta Long-------------------------------------------|
-
   static final int PREAMBLE_LONGS_BYTE = 0; // not used, always 1
   static final int SERIAL_VERSION_BYTE = 1;
   static final int FAMILY_ID_BYTE = 2;
@@ -53,73 +46,77 @@ public abstract class ArrayOfDoublesUnion {
   static final int SEED_HASH_SHORT = 6;
   static final int THETA_LONG = 8;
 
-  ArrayOfDoublesQuickSelectSketch sketch_;
-  long theta_;
+  ArrayOfDoublesQuickSelectSketch gadget_;
+  long unionThetaLong_;
 
+  /**
+   * Constructs this Union initializing it with the given sketch, which can be on-heap or off-heap.
+   * @param sketch the given sketch.
+   */
   ArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch) {
-    sketch_ = sketch;
-    theta_ = sketch.getThetaLong();
+    gadget_ = sketch;
+    unionThetaLong_ = sketch.getThetaLong();
   }
 
   /**
    * Heapify the given Memory as an ArrayOfDoublesUnion
-   * @param mem the given Memory
+   * @param srcMem the given source Memory
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion heapify(final Memory mem) {
-    return heapify(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion heapify(final Memory srcMem) {
+    return heapify(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
    * Heapify the given Memory and seed as an ArrayOfDoublesUnion
-   * @param mem the given Memory
+   * @param srcMem the given source Memory
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion heapify(final Memory mem, final long seed) {
-    return HeapArrayOfDoublesUnion.heapifyUnion(mem, seed);
+  public static ArrayOfDoublesUnion heapify(final Memory srcMem, final long seed) {
+    return HeapArrayOfDoublesUnion.heapifyUnion(srcMem, seed);
   }
 
   /**
    * Wrap the given Memory as an ArrayOfDoublesUnion
-   * @param mem the given Memory
+   * @param srcMem the given source Memory
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrap(final Memory mem) {
-    return wrap(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion wrap(final Memory srcMem) {
+    return wrap(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
    * Wrap the given Memory and seed as an ArrayOfDoublesUnion
-   * @param mem the given Memory
+   * @param srcMem the given source Memory
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrap(final Memory mem, final long seed) {
-    return DirectArrayOfDoublesUnion.wrapUnion((WritableMemory) mem, seed, false);
+  public static ArrayOfDoublesUnion wrap(final Memory srcMem, final long seed) {
+    return DirectArrayOfDoublesUnion.wrapUnion((WritableMemory) srcMem, seed, false);
   }
 
   /**
    * Wrap the given WritableMemory as an ArrayOfDoublesUnion
-   * @param mem the given Memory
+   * @param srcMem the given source Memory
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrap(final WritableMemory mem) {
-    return wrap(mem, DEFAULT_UPDATE_SEED);
+  public static ArrayOfDoublesUnion wrap(final WritableMemory srcMem) {
+    return wrap(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
    * Wrap the given WritableMemory and seed as an ArrayOfDoublesUnion
-   * @param mem the given Memory
+   * @param srcMem the given source Memory
    * @param seed the given seed
    * @return an ArrayOfDoublesUnion
    */
-  public static ArrayOfDoublesUnion wrap(final WritableMemory mem, final long seed) {
-    return DirectArrayOfDoublesUnion.wrapUnion(mem, seed, true);
+  public static ArrayOfDoublesUnion wrap(final WritableMemory srcMem, final long seed) {
+    return DirectArrayOfDoublesUnion.wrapUnion(srcMem, seed, true);
   }
 
   /**
-   * Updates the union by adding a set of entries from a given sketch
+   * Updates the union by adding a set of entries from a given sketch, which can be on-heap or off-heap.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
@@ -127,24 +124,27 @@ public abstract class ArrayOfDoublesUnion {
    */
   public void union(final ArrayOfDoublesSketch tupleSketch) {
     if (tupleSketch == null) { return; }
-    Util.checkSeedHashes(sketch_.getSeedHash(), tupleSketch.getSeedHash());
-    if (sketch_.getNumValues() != tupleSketch.getNumValues()) {
+    Util.checkSeedHashes(gadget_.getSeedHash(), tupleSketch.getSeedHash());
+    if (gadget_.getNumValues() != tupleSketch.getNumValues()) {
       throw new SketchesArgumentException("Incompatible sketches: number of values mismatch "
-          + sketch_.getNumValues() + " and " + tupleSketch.getNumValues());
+          + gadget_.getNumValues() + " and " + tupleSketch.getNumValues());
     }
+
     if (tupleSketch.isEmpty()) { return; }
-    if (tupleSketch.getThetaLong() < theta_) {
-      setThetaLong(tupleSketch.getThetaLong());
-    }
+    else { gadget_.setNotEmpty(); }
+
+    setUnionThetaLong(min(min(unionThetaLong_, tupleSketch.getThetaLong()), gadget_.getThetaLong()));
+
+    if (tupleSketch.getRetainedEntries() == 0) { return; }
     final ArrayOfDoublesSketchIterator it = tupleSketch.iterator();
     while (it.next()) {
-      if (it.getKey() < theta_) {
-        sketch_.merge(it.getKey(), it.getValues());
+      if (it.getKey() < unionThetaLong_) {
+        gadget_.merge(it.getKey(), it.getValues());
       }
     }
-    // keep the union theta as low as low as possible for performance
-    if (sketch_.getThetaLong() < theta_) {
-      setThetaLong(sketch_.getThetaLong());
+    // keep the union theta as low as possible for performance
+    if (gadget_.getThetaLong() < unionThetaLong_) {
+      setUnionThetaLong(gadget_.getThetaLong());
     }
   }
 
@@ -154,14 +154,14 @@ public abstract class ArrayOfDoublesUnion {
    * @return compact sketch representing the union (off-heap if memory is provided)
    */
   public ArrayOfDoublesCompactSketch getResult(final WritableMemory dstMem) {
-    long theta = theta_;
-    if (sketch_.getRetainedEntries() > sketch_.getNominalEntries()) {
-      theta = Math.min(theta, sketch_.getNewTheta());
+    long unionThetaLong = unionThetaLong_;
+    if (gadget_.getRetainedEntries() > gadget_.getNominalEntries()) {
+      unionThetaLong = Math.min(unionThetaLong, gadget_.getNewThetaLong());
     }
     if (dstMem == null) {
-      return new HeapArrayOfDoublesCompactSketch(sketch_, theta);
+      return new HeapArrayOfDoublesCompactSketch(gadget_, unionThetaLong);
     }
-    return new DirectArrayOfDoublesCompactSketch(sketch_, theta, dstMem);
+    return new DirectArrayOfDoublesCompactSketch(gadget_, unionThetaLong, dstMem);
   }
 
   /**
@@ -176,15 +176,23 @@ public abstract class ArrayOfDoublesUnion {
    * Resets the union to an empty state
    */
   public void reset() {
-    sketch_.reset();
-    setThetaLong(sketch_.getThetaLong());
+    gadget_.reset();
+    setUnionThetaLong(gadget_.getThetaLong());
   }
 
+
+  // Layout of first 16 bytes:
+  // Long || Start Byte Adr:
+  // Adr:
+  //      ||    7   |    6   |    5   |    4   |    3    |    2   |    1   |     0              |
+  //  0   ||  Seed Hash=0    | #Dbls=0|Flags=0 | SkType  | FamID  | SerVer |  Preamble_Longs    |
+  //      ||   15   |   14   |   13   |   12   |   11    |   10   |    9   |     8              |
+  //  1   ||---------------------------Union Theta Long-----------------------------------------|
   /**
    * @return a byte array representation of this object
    */
   public byte[] toByteArray() {
-    final int sizeBytes = PREAMBLE_SIZE_BYTES + sketch_.getSerializedSizeBytes();
+    final int sizeBytes = PREAMBLE_SIZE_BYTES + gadget_.getSerializedSizeBytes();
     final byte[] byteArray = new byte[sizeBytes];
     final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); // unused, always 1
@@ -192,13 +200,13 @@ public abstract class ArrayOfDoublesUnion {
     mem.putByte(FAMILY_ID_BYTE, (byte) Family.TUPLE.getID());
     mem.putByte(SKETCH_TYPE_BYTE, (byte) SerializerDeserializer.SketchType.ArrayOfDoublesUnion.ordinal());
     //byte 4-7 automatically zero
-    mem.putLong(THETA_LONG, theta_);
-    sketch_.serializeInto(mem.writableRegion(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES));
+    mem.putLong(THETA_LONG, unionThetaLong_);
+    gadget_.serializeInto(mem.writableRegion(PREAMBLE_SIZE_BYTES, mem.getCapacity() - PREAMBLE_SIZE_BYTES));
     return byteArray;
   }
 
   /**
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
+   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than or equal to
    * given value.
    * @param numValues Number of double values to keep for each key
    * @return maximum required storage bytes given nomEntries and numValues
@@ -207,8 +215,8 @@ public abstract class ArrayOfDoublesUnion {
     return ArrayOfDoublesQuickSelectSketch.getMaxBytes(nomEntries, numValues) + PREAMBLE_SIZE_BYTES;
   }
 
-  void setThetaLong(final long theta) {
-    theta_ = theta;
+  void setUnionThetaLong(final long thetaLong) {
+    unionThetaLong_ = thetaLong;
   }
 
 }

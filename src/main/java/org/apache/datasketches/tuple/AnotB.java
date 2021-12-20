@@ -29,7 +29,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 
 import org.apache.datasketches.SetOperationCornerCases;
-import org.apache.datasketches.SetOperationCornerCases.AnotbResult;
+import org.apache.datasketches.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.SetOperationCornerCases.CornerCase;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
@@ -151,10 +151,10 @@ public final class AnotB<S extends Summary> {
 
     final int id =
         SetOperationCornerCases.createCornerCaseId(thetaLong_, curCount_, empty_, thetaLongB, countB, emptyB);
-    final CornerCase cCase = CornerCase.idToCornerCase(id);
-    final AnotbResult anotbResult = cCase.getAnotbResult();
+    final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
+    final AnotbAction anotbAction = cCase.getAnotbAction();
 
-    switch (anotbResult) {
+    switch (anotbAction) {
       case EMPTY_1_0_T: {
         reset();
         break;
@@ -171,7 +171,7 @@ public final class AnotB<S extends Summary> {
         //thetaLong_ is ok
         break;
       }
-      case SKA_TRIM: {
+      case TRIM_A: {
         thetaLong_ = min(thetaLong_, thetaLongB);
         final DataArrays<S> da = trimAndCopyDataArrays(hashArr_, summaryArr_, thetaLong_, true);
         hashArr_ = da.hashArr;
@@ -224,10 +224,10 @@ public final class AnotB<S extends Summary> {
 
     final int id =
         SetOperationCornerCases.createCornerCaseId(thetaLong_, curCount_, empty_, thetaLongB, countB, emptyB);
-    final CornerCase cCase = CornerCase.idToCornerCase(id);
-    final AnotbResult anotbResult = cCase.getAnotbResult();
+    final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
+    final AnotbAction anotbAction = cCase.getAnotbAction();
 
-    switch (anotbResult) {
+    switch (anotbAction) {
       case EMPTY_1_0_T: {
         reset();
         break;
@@ -244,7 +244,7 @@ public final class AnotB<S extends Summary> {
         //thetaLong_ is ok
         break;
       }
-      case SKA_TRIM: {
+      case TRIM_A: {
         thetaLong_ = min(thetaLong_, thetaLongB);
         final DataArrays<S> da = trimAndCopyDataArrays(hashArr_, summaryArr_,thetaLong_, true);
         hashArr_ = da.hashArr;
@@ -329,12 +329,12 @@ public final class AnotB<S extends Summary> {
 
     final int id =
         SetOperationCornerCases.createCornerCaseId(thetaLongA, countA, emptyA, thetaLongB, countB, emptyB);
-    final CornerCase cCase = CornerCase.idToCornerCase(id);
-    final AnotbResult anotbResult = cCase.getAnotbResult();
+    final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
+    final AnotbAction anotbAction = cCase.getAnotbAction();
 
     CompactSketch<S> result = null;
 
-    switch (anotbResult) {
+    switch (anotbAction) {
       case EMPTY_1_0_T: {
         result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
         break;
@@ -348,7 +348,7 @@ public final class AnotB<S extends Summary> {
         result = new CompactSketch<>(null, null, thetaLongA, false);
         break;
       }
-      case SKA_TRIM: {
+      case TRIM_A: {
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long[] hashArrA = daA.hashArr;
         final S[] summaryArrA = daA.summaryArr;
@@ -421,12 +421,12 @@ public final class AnotB<S extends Summary> {
 
     final int id =
         SetOperationCornerCases.createCornerCaseId(thetaLongA, countA, emptyA, thetaLongB, countB, emptyB);
-    final CornerCase cCase = CornerCase.idToCornerCase(id);
-    final AnotbResult anotbResult = cCase.getAnotbResult();
+    final CornerCase cCase = CornerCase.caseIdToCornerCase(id);
+    final AnotbAction anotbAction = cCase.getAnotbAction();
 
     CompactSketch<S> result = null;
 
-    switch (anotbResult) {
+    switch (anotbAction) {
       case EMPTY_1_0_T: {
         result = new CompactSketch<>(null, null, Long.MAX_VALUE, true);
         break;
@@ -440,7 +440,7 @@ public final class AnotB<S extends Summary> {
         result = new CompactSketch<>(null, null, thetaLongA, false);
         break;
       }
-      case SKA_TRIM: {
+      case TRIM_A: {
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long[] hashArrA = daA.hashArr;
         final S[] summaryArrA = daA.summaryArr;
@@ -474,6 +474,8 @@ public final class AnotB<S extends Summary> {
   //restricted
 
   static class DataArrays<S extends Summary> {
+    DataArrays() {}
+
     long[] hashArr;
     S[] summaryArr;
   }
@@ -507,7 +509,7 @@ public final class AnotB<S extends Summary> {
       final long[] hashArrA,
       final S[] summaryArrA,
       final Sketch<S> skB) {
-    final DataArrays<S> daB = new DataArrays<>();
+    final DataArrays<S> daR = new DataArrays<>();
 
     //Rebuild/get hashtable of skB
     final long[] hashTableB;
@@ -539,9 +541,9 @@ public final class AnotB<S extends Summary> {
         }
       }
     }
-    daB.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
-    daB.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
-    return daB;
+    daR.hashArr = Arrays.copyOfRange(tmpHashArrA, 0, nonMatches);
+    daR.summaryArr = Arrays.copyOfRange(tmpSummaryArrA, 0, nonMatches);
+    return daR;
   }
 
   @SuppressWarnings("unchecked")

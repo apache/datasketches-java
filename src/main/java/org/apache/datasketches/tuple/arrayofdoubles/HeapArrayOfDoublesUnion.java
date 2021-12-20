@@ -40,9 +40,9 @@ final class HeapArrayOfDoublesUnion extends ArrayOfDoublesUnion {
     super(new HeapArrayOfDoublesQuickSelectSketch(nomEntries, 3, 1f, numValues, seed));
   }
 
-  HeapArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch sketch, final long theta) {
-    super(sketch);
-    theta_ = theta;
+  HeapArrayOfDoublesUnion(final ArrayOfDoublesQuickSelectSketch gadget, final long unionThetaLong) {
+    super(gadget);
+    unionThetaLong_ = unionThetaLong;
   }
 
   /**

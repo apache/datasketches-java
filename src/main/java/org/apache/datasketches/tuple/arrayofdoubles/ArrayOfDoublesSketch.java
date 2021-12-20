@@ -24,6 +24,7 @@ import static org.apache.datasketches.Util.LS;
 
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 
 /**
@@ -43,7 +44,7 @@ public abstract class ArrayOfDoublesSketch {
   static final int SIZE_OF_KEY_BYTES = Long.BYTES;
   static final int SIZE_OF_VALUE_BYTES = Double.BYTES;
 
-  // Common Layout of first 16 bytes:
+  // Common Layout of first 16 bytes and Empty AoDCompactSketch:
   // Long || Start Byte Adr:
   // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
@@ -62,7 +63,7 @@ public abstract class ArrayOfDoublesSketch {
 
   final int numValues_;
 
-  long theta_;
+  long thetaLong_;
   boolean isEmpty_ = true;
 
   ArrayOfDoublesSketch(final int numValues) {
@@ -151,6 +152,18 @@ public abstract class ArrayOfDoublesSketch {
   }
 
   /**
+   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
+   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
+   */
+  public abstract boolean hasMemory();
+
+  /**
+   * Returns the Memory object if it exists, otherwise null.
+   * @return the Memory object if it exists, otherwise null.
+   */
+  abstract Memory getMemory();
+
+  /**
    * <a href="{@docRoot}/resources/dictionary.html#empty">See Empty</a>
    * @return true if empty.
    */
@@ -171,7 +184,7 @@ public abstract class ArrayOfDoublesSketch {
    * @return true if the sketch is in estimation mode.
    */
   public boolean isEstimationMode() {
-    return ((theta_ < Long.MAX_VALUE) && !isEmpty());
+    return ((thetaLong_ < Long.MAX_VALUE) && !isEmpty());
   }
 
   /**
@@ -197,11 +210,15 @@ public abstract class ArrayOfDoublesSketch {
    */
   public abstract double[][] getValues();
 
+  abstract double[] getValuesAsOneDimension();
+
+  abstract long[] getKeys();
+
   /**
    * @return the value of theta as a long
    */
   long getThetaLong() {
-    return isEmpty() ? Long.MAX_VALUE : theta_;
+    return isEmpty() ? Long.MAX_VALUE : thetaLong_;
   }
 
   abstract short getSeedHash();
@@ -211,6 +228,19 @@ public abstract class ArrayOfDoublesSketch {
    */
   public abstract ArrayOfDoublesSketchIterator iterator();
 
+  /**
+   * @return this sketch in compact form, which is immutable.
+   */
+  public ArrayOfDoublesCompactSketch compact() {
+    return compact(null);
+  }
+
+  /**
+   *
+   * @param dstMem the destination WritableMemory
+   * @return this sketch in compact form, which is immutable.
+   */
+  public abstract ArrayOfDoublesCompactSketch compact(WritableMemory dstMem);
 
   @Override
   public String toString() {

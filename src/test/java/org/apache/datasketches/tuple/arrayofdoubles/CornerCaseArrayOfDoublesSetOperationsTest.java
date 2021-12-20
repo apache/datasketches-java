@@ -17,33 +17,46 @@
  * under the License.
  */
 
-package org.apache.datasketches.theta;
+package org.apache.datasketches.tuple.arrayofdoubles;
+
+import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.hash.MurmurHash3.hash;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
-//import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-//import static org.apache.datasketches.hash.MurmurHash3.hash;
 
-public class CornerCaseThetaSetOperationsTest {
+import static org.apache.datasketches.Util.zeroPad;
 
-  /* Hash Values
-   * 9223372036854775807  Theta = 1.0
-   *
-   * 6730918654704304314  hash(3L)[0] >>> 1    GT_MIDP
-   * 4611686018427387904  Theta for p = 0.5f = MIDP
-   *
-   * 1206007004353599230  hash(6L)[0] >>> 1    GT_LOWP_V
-   *  922337217429372928  Theta for p = 0.1f = LOWP
-   *  593872385995628096  hash(4L)[0] >>> 1    LT_LOWP_V
+public class CornerCaseArrayOfDoublesSetOperationsTest {
+  //Stateful Intersection with intersect(sketch A, combiner), followed by getResult()
+  //Essentially Stateless AnotB with update(Sketch A, Sketch B), followed by getResult()
+  //Stateful Union with union(Sketch A), followed by getResult()
+
+  /* Hashes and Hash Equivalents
+   *               Top8bits  Hex               Decimal
+   * MAX:           01111111, 7fffffffffffffff, 9223372036854775807
+   * GT_MIDP:       01011101, 5d6906dac1b340ba, 6730918654704304314  3L
+   * MIDP_THETALONG:01000000, 4000000000000000, 4611686018427387904
+   * GT_LOWP:       00010000, 10bc98fb132116fe, 1206007004353599230  6L
+   * LOWP_THETALONG:00010000, 1000000000000000, 1152921504606846976
+   * LT_LOWP:       00001000,  83ddbc9e12ede40,  593872385995628096  4L
    */
 
-  private static final long GT_MIDP_V   = 3L;
-  private static final float MIDP       = 0.5f;
 
-  private static final long GT_LOWP_V   = 6L;
-  private static final float LOWP       = 0.1f;
-  private static final long LT_LOWP_V   = 4L;
+  private static final float MIDP_FLT = 0.5f;
+  private static final float LOWP_FLT = 0.125f;
+  private static final long GT_MIDP_KEY = 3L;
+  private static final long GT_LOWP_KEY = 6L;
+  private static final long LT_LOWP_KEY = 4L;
 
-  private static final double LOWP_THETA = LOWP;
+  private static final long MAX_LONG = Long.MAX_VALUE;
+
+  private static final long HASH_GT_MIDP = getLongHash(GT_MIDP_KEY);
+  private static final long MIDP_THETALONG = (long)(MAX_LONG * MIDP_FLT);
+
+  private static final long HASH_GT_LOWP = getLongHash(GT_LOWP_KEY);
+  private static final long LOWP_THETALONG = (long)(MAX_LONG * LOWP_FLT);
+  private static final long HASH_LT_LOWP = getLongHash(LT_LOWP_KEY);
 
   private enum SkType {
     EMPTY,      // { 1.0,  0, T} Bin: 101  Oct: 05
@@ -52,12 +65,23 @@ public class CornerCaseThetaSetOperationsTest {
     DEGENERATE  // {<1.0,  0, F} Bin: 000  Oct: 0, specify p, value
   }
 
-  //=================================
+  private static class MinCombiner implements ArrayOfDoublesCombiner {
+    MinCombiner() {}
+
+    @Override
+    public double[] combine(double[] a, double[] b) {
+      return new double[] { Math.min(a[0], b[0]) };
+    }
+  }
+
+  private static MinCombiner minCombiner = new MinCombiner();
+
+  //=================================f
 
   @Test
   public void emptyEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -76,8 +100,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void emptyExact() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_V);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_KEY);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -96,15 +120,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void emptyDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
     final double expectedAnotbTheta = 1.0;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = true;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 0;
     final boolean expectedUnionEmpty = false;
 
@@ -116,15 +140,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void EmptyEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
     final double expectedAnotbTheta = 1.0;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = true;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -138,8 +162,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
@@ -158,8 +182,8 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactExact() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_V);
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_V);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EXACT, 0, GT_MIDP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EXACT, 0, GT_MIDP_KEY);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
@@ -178,15 +202,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY); //entries = 0
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 1;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -198,15 +222,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void exactEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EXACT, 0, LT_LOWP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -220,15 +244,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 1;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -240,15 +264,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationExact() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -260,15 +284,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 1;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -280,15 +304,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void estimationEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.ESTIMATION, MIDP, LT_LOWP_V);
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.ESTIMATION, MIDP_FLT, LT_LOWP_KEY);
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 1;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -302,15 +326,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void DegenerateEmpty() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY); //entries = 0
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = true;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 0;
     final boolean expectedUnionEmpty = false;
 
@@ -322,15 +346,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void DegenerateExact() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE,  LOWP, GT_LOWP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE,  LOWP_FLT, GT_LOWP_KEY); //entries = 0
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -342,15 +366,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void DegenerateDegenerate() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_KEY); //entries = 0
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 0;
     final boolean expectedUnionEmpty = false;
 
@@ -362,15 +386,15 @@ public class CornerCaseThetaSetOperationsTest {
 
   @Test
   public void DegenerateEstimation() {
-    UpdateSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
-    UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
-    final double expectedIntersectTheta = LOWP_THETA;
+    ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_KEY); //entries = 0
+    ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
+    final double expectedIntersectTheta = LOWP_FLT;
     final int expectedIntersectCount = 0;
     final boolean expectedIntersectEmpty = false;
-    final double expectedAnotbTheta = LOWP_THETA;
+    final double expectedAnotbTheta = LOWP_FLT;
     final int expectedAnotbCount = 0;
     final boolean expectedAnotbEmpty = false;
-    final double expectedUnionTheta = LOWP;
+    final double expectedUnionTheta = LOWP_FLT;
     final int expectedUnionCount = 1;
     final boolean expectedUnionEmpty = false;
 
@@ -384,8 +408,8 @@ public class CornerCaseThetaSetOperationsTest {
   //=================================
 
   private static void checks(
-      UpdateSketch thetaA,
-      UpdateSketch thetaB,
+      ArrayOfDoublesUpdatableSketch tupleA,
+      ArrayOfDoublesUpdatableSketch tupleB,
       double expectedIntersectTheta,
       int expectedIntersectCount,
       boolean expectedIntersectEmpty,
@@ -395,56 +419,52 @@ public class CornerCaseThetaSetOperationsTest {
       double expectedUnionTheta,
       int expectedUnionCount,
       boolean expectedUnionEmpty) {
-    CompactSketch csk;
-    Intersection inter = SetOperation.builder().buildIntersection();
-    AnotB anotb = SetOperation.builder().buildANotB();
-    Union union = new SetOperationBuilder().buildUnion();
+    ArrayOfDoublesCompactSketch csk;
+    ArrayOfDoublesIntersection inter = new ArrayOfDoublesSetOperationBuilder().buildIntersection();
+    ArrayOfDoublesAnotB anotb = new ArrayOfDoublesSetOperationBuilder().buildAnotB();
+    ArrayOfDoublesUnion union = new ArrayOfDoublesSetOperationBuilder().buildUnion();
 
-    //Intersection Stateless Theta, Theta Updatable
-    csk = inter.intersect(thetaA, thetaB);
+    //Intersection Tuple, Tuple Updatable Stateful
+    inter.intersect(tupleA, minCombiner);
+    inter.intersect(tupleB, minCombiner);
+    csk = inter.getResult();
+    inter.reset();
     checkResult("Intersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
-    //Intersection Stateless Theta, Theta Compact
-    csk = inter.intersect(thetaA.compact(), thetaB.compact());
+    //Intersection Tuple, Tuple Compact Stateful
+    inter.intersect(tupleA.compact(), minCombiner);
+    inter.intersect(tupleB.compact(), minCombiner);
+    csk = inter.getResult();
+    inter.reset();
     checkResult("Intersect Stateless Theta, Theta", csk, expectedIntersectTheta, expectedIntersectCount,
         expectedIntersectEmpty);
 
-    //AnotB Stateless Theta, Theta Updatable
-    csk = anotb.aNotB(thetaA, thetaB);
+    //AnotB Stateless Tuple, Tuple Updatable
+    anotb.update(tupleA, tupleB);
+    csk = anotb.getResult();
     checkResult("AnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateless Theta, Theta Compact
-    csk = anotb.aNotB(thetaA.compact(), thetaB.compact());
+    //AnotB Stateless Tuple, Tuple Compact
+    anotb.update(tupleA, tupleB);
+    csk = anotb.getResult();
     checkResult("AnotB Stateless Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
 
-    //AnotB Stateful Theta, Theta Updatable
-    anotb.setA(thetaA);
-    anotb.notB(thetaB);
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-    //AnotB Stateful Theta, Theta Compact
-    anotb.setA(thetaA.compact());
-    anotb.notB(thetaB.compact());
-    csk = anotb.getResult(true);
-    checkResult("AnotB Stateful Theta, Theta", csk, expectedAnotbTheta, expectedAnotbCount, expectedAnotbEmpty);
-
-    //Union Stateful Theta, Theta Updatable
-    union.union(thetaA);
-    union.union(thetaB);
+    //Union Stateful Tuple, Tuple Updatable
+    union.union(tupleA);
+    union.union(tupleB);
     csk = union.getResult();
     union.reset();
     checkResult("Union Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-    //Union Stateful Theta, Theta Compact
-    union.union(thetaA.compact());
-    union.union(thetaB.compact());
+    //Union Stateful Tuple, Tuple Compact
+    union.union(tupleA.compact());
+    union.union(tupleB.compact());
     csk = union.getResult();
     union.reset();
     checkResult("Union Stateless Theta, Theta", csk, expectedUnionTheta, expectedUnionCount, expectedUnionEmpty);
-
   }
 
   private static void checkResult(
       String comment,
-      CompactSketch csk,
+      ArrayOfDoublesCompactSketch csk,
       double expectedTheta,
       int expectedEntries,
       boolean expectedEmpty) {
@@ -465,10 +485,17 @@ public class CornerCaseThetaSetOperationsTest {
     }
   }
 
-  private static UpdateSketch getSketch(SkType skType, float p, long value) {
-    UpdateSketchBuilder bldr = UpdateSketch.builder();
-    bldr.setLogNominalEntries(4);
-    UpdateSketch sk;
+  private static ArrayOfDoublesUpdatableSketch getSketch(
+      SkType skType,
+      float p,
+      long updateKey) {
+
+    ArrayOfDoublesUpdatableSketchBuilder bldr = new ArrayOfDoublesUpdatableSketchBuilder();
+    bldr.setNominalEntries(16);
+    //Assume defaults: 1 double value, resize factor, seed
+    double[] summaryVal = {1.0};
+
+    ArrayOfDoublesUpdatableSketch sk;
     switch(skType) {
       case EMPTY: { // { 1.0,  0, T} p and value are not used
         sk = bldr.build();
@@ -476,19 +503,21 @@ public class CornerCaseThetaSetOperationsTest {
       }
       case EXACT: { // { 1.0, >0, F} p is not used
         sk = bldr.build();
-        sk.update(value);
+        sk.update(updateKey, summaryVal);
         break;
       }
       case ESTIMATION: { // {<1.0, >0, F}
-        bldr.setP(p);
+        checkValidUpdate(p, updateKey);
+        bldr.setSamplingProbability(p);
         sk = bldr.build();
-        sk.update(value);
+        sk.update(updateKey, summaryVal);
         break;
       }
       case DEGENERATE: { // {<1.0,  0, F}
-        bldr.setP(p);
+        checkInvalidUpdate(p, updateKey);
+        bldr.setSamplingProbability(p);
         sk = bldr.build();
-        sk.update(value);
+        sk.update(updateKey, summaryVal); // > theta
         break;
       }
 
@@ -497,22 +526,55 @@ public class CornerCaseThetaSetOperationsTest {
     return sk;
   }
 
-//  private static void println(Object o) {
-//    System.out.println(o.toString());
-//  }
-//
-//  @Test
-//  public void printHash() {
-//    long seed = DEFAULT_UPDATE_SEED;
-//    long v = 6;
-//    long hash = (hash(v, seed)[0]) >>> 1;
-//    println(v + ", " + hash);
-//  }
-//
-//  @Test
-//  public void printPAsLong() {
-//    float p = 0.5f;
-//    println("p = " + p + ", " + (long)(Long.MAX_VALUE * p));
-//  }
+  private static void checkValidUpdate(float p, long updateKey) {
+    assertTrue( getLongHash(updateKey) < (long) (p * Long.MAX_VALUE));
+  }
 
+  private static void checkInvalidUpdate(float p, long updateKey) {
+    assertTrue( getLongHash(updateKey) > (long) (p * Long.MAX_VALUE));
+  }
+
+  //*******************************************
+  //Helper functions for setting the hash values
+
+  //@Test
+  public void printTable() {
+    println("              Top8bits  Hex               Decimal");
+    printf("MAX:           %8s, %16x, %19d\n", getTop8(MAX_LONG), MAX_LONG, MAX_LONG);
+    printf("GT_MIDP:       %8s, %16x, %19d\n", getTop8(HASH_GT_MIDP), HASH_GT_MIDP, HASH_GT_MIDP);
+    printf("MIDP_THETALONG:%8s, %16x, %19d\n", getTop8(MIDP_THETALONG), MIDP_THETALONG, MIDP_THETALONG);
+    printf("GT_LOWP:       %8s, %16x, %19d\n", getTop8(HASH_GT_LOWP), HASH_GT_LOWP, HASH_GT_LOWP);
+    printf("LOWP_THETALONG:%8s, %16x, %19d\n", getTop8(LOWP_THETALONG), LOWP_THETALONG, LOWP_THETALONG);
+    printf("LT_LOWP:       %8s, %16x, %19d\n", getTop8(HASH_LT_LOWP), HASH_LT_LOWP, HASH_LT_LOWP);
+    println("\nDoubles");
+
+    println("\nLongs");
+    for (long v = 1L; v < 10; v++) {
+      long hash = (hash(v, DEFAULT_UPDATE_SEED)[0]) >>> 1;
+      printLong(v, hash);
+    }
+  }
+
+  static long getLongHash(long v) {
+    return (hash(v, DEFAULT_UPDATE_SEED)[0]) >>> 1;
+  }
+
+  static void printLong(long v, long hash) {
+    System.out.printf("     %8d, %8s, %16x, %19d\n",v, getTop8(hash), hash, hash);
+  }
+
+  static String getTop8(final long v) {
+    int i = (int) (v >>> 56);
+    String s = Integer.toBinaryString(i);
+    return zeroPad(s, 8);
+  }
+
+  private static void println(Object o) {
+    System.out.println(o.toString());
+  }
+
+  private static void printf(String fmt, Object ...args) {
+    System.out.printf(fmt, args);
+  }
 }
+

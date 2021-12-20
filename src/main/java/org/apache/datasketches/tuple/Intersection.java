@@ -105,13 +105,14 @@ public class Intersection<S extends Summary> {
    */
   public void intersect(final Sketch<S> tupleSketch) {
     if (tupleSketch == null) { throw new SketchesArgumentException("Sketch must not be null"); }
+
     final boolean firstCall = firstCall_;
     firstCall_ = false;
+
     // input sketch could be first or next call
 
     final boolean emptyIn = tupleSketch.isEmpty();
     if (empty_ || emptyIn) { //empty rule
-      //Because of the definition of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make our local empty.
       resetToEmpty();
       return;
@@ -133,9 +134,9 @@ public class Intersection<S extends Summary> {
 
     //Next Call
     else {
-      if (hashTables_.count_ == 0) { return; }
+      if (hashTables_.numKeys == 0) { return; }
       //process intersect with current hashTables
-      hashTables_ = hashTables_.getIntersectHashTables(tupleSketch, thetaLongIn, summarySetOps_);
+      hashTables_ = hashTables_.getIntersectHashTables(tupleSketch, thetaLong_, summarySetOps_);
     }
   }
 
@@ -156,7 +157,6 @@ public class Intersection<S extends Summary> {
 
     final boolean emptyIn = thetaSketch.isEmpty();
     if (empty_ || emptyIn) { //empty rule
-      //Because of the definition of null above and the Empty Rule (which is OR), empty_ must be true.
       //Whatever the current internal state, we make our local empty.
       resetToEmpty();
       return;
@@ -164,6 +164,7 @@ public class Intersection<S extends Summary> {
 
     final long thetaLongIn = thetaSketch.getThetaLong();
     thetaLong_ = min(thetaLong_, thetaLongIn); //Theta rule
+
     final int countIn = thetaSketch.getRetainedEntries();
     if (countIn == 0) {
       hashTables_.clear();
@@ -179,7 +180,7 @@ public class Intersection<S extends Summary> {
 
     //Next Call
     else {
-      if (hashTables_.count_ == 0) { return; }
+      if (hashTables_.numKeys == 0) { return; }
       hashTables_ = hashTables_.getIntersectHashTables(thetaSketch, thetaLongIn, summarySetOps_, summary);
     }
   }
@@ -193,23 +194,23 @@ public class Intersection<S extends Summary> {
       throw new SketchesStateException(
         "getResult() with no intervening intersections is not a legal result.");
     }
-    final int countIn = hashTables_.count_;
+    final int countIn = hashTables_.numKeys;
     if (countIn == 0) {
       return new CompactSketch<>(null, null, thetaLong_, empty_);
     }
 
-    final int tableSize = hashTables_.hashTable_.length;
+    final int tableSize = hashTables_.hashTable.length;
 
     final long[] hashArr = new long[countIn];
-    final S[] summaryArr = Util.newSummaryArray(hashTables_.summaryTable_, countIn);
+    final S[] summaryArr = Util.newSummaryArray(hashTables_.summaryTable, countIn);
 
     //compact the arrays
     int cnt = 0;
     for (int i = 0; i < tableSize; i++) {
-      final long hash = hashTables_.hashTable_[i];
+      final long hash = hashTables_.hashTable[i];
       if (hash == 0 || hash > thetaLong_) { continue; }
       hashArr[cnt] = hash;
-      summaryArr[cnt] = (S) hashTables_.summaryTable_[i].copy();
+      summaryArr[cnt] = (S) hashTables_.summaryTable[i].copy();
       cnt++;
     }
     assert cnt == countIn;

@@ -565,6 +565,20 @@ public class HeapUnionTest {
   }
 
   @Test
+  public void checkTrimToK() {
+    final int hiK = 1024;
+    final int loK = 512;
+    final UpdateSketch hiSk = Sketches.updateSketchBuilder().setNominalEntries(hiK).build();
+    for (int i = 0; i < 3749; i++) { hiSk.update(i); } //count = 1920
+    final UpdateSketch loSk = Sketches.updateSketchBuilder().setNominalEntries(loK).build();
+    for (int i = 0; i < 1783; i++) { loSk.update(i + 10000); } //count = 960
+    final Union union = Sketches.setOperationBuilder().setNominalEntries(hiK).buildUnion();
+    CompactSketch csk = union.union(hiSk, loSk);
+    println(csk.toString());
+    assertEquals(csk.getRetainedEntries(), 1024);
+  }
+
+  @Test
   public void checkPrimitiveUpdates() {
     final int k = 32;
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
