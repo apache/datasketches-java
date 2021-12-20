@@ -95,6 +95,7 @@ public abstract class ArrayOfDoublesIntersection {
 
     //Next Call
     else {
+      assert hashTables_ != null;
       if (hashTables_.getNumKeys() == 0) { return; }
     //process intersect with current hashTables
       hashTables_ = hashTables_.getIntersectHashTables(tupleSketch, thetaLong_, combiner);

@@ -82,7 +82,7 @@ public abstract class SetOperation {
   public static SetOperation heapify(final Memory srcMem, final long seed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
-    switch (family) { //TODO Do we need to add the stateful AnotB ?
+    switch (family) {
       case UNION : {
         return UnionImpl.heapifyInstance(srcMem, seed);
       }
