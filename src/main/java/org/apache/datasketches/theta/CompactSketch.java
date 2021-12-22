@@ -19,17 +19,31 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.Family.idToFamily;
+import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
+import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
+import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
+
 import org.apache.datasketches.Family;
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.Util;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * The parent class of all the CompactSketches. CompactSketches are never created directly.
- * They are created as a result of the compact() method of an UpdateSketch or as a result of a
- * getResult() of a SetOperation.
+ * They are created as a result of the compact() method of an UpdateSketch, a result of a
+ * getResult() of a SetOperation, or from a heapify method.
  *
  * <p>A CompactSketch is the simplest form of a Theta Sketch. It consists of a compact list
  * (i.e., no intervening spaces) of hash values, which may be ordered or not, a value for theta
- * and a seed hash.  A CompactSketch is read-only,
+ * and a seed hash.  A CompactSketch is immutable (read-only),
  * and the space required when stored is only the space required for the hash values and 8 to 24
  * bytes of preamble. An empty CompactSketch consumes only 8 bytes.</p>
  *
@@ -37,7 +51,207 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public abstract class CompactSketch extends Sketch {
 
-  //Sketch
+
+  /**
+   * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
+   *
+   * <p>The resulting sketch will not retain any link to the source Memory.</p>
+   *
+   * <p>This method assumes that the sketch image was created with the correct hash seed,
+   * so it is not checked.</p>
+   *
+   * @param srcMem an image of a CompactSketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @return a CompactSketch on the heap.
+   */
+  public static CompactSketch heapify(final Memory srcMem) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    final Family family = Family.idToFamily(familyID);
+    if (family != Family.COMPACT) {
+      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+    }
+    if (serVer == 3) { //no seed check
+      final int flags = PreambleUtil.extractFlags(srcMem);
+      final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
+      return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
+    }
+    //not SerVer 3, assume compact stored form
+    final short srcSeedHash = (short) extractSeedHash(srcMem);
+    if (serVer == 1) {
+      return ForwardCompatibility.heapify1to3(srcMem, srcSeedHash);
+    }
+    if (serVer == 2) {
+      return ForwardCompatibility.heapify2to3(srcMem, srcSeedHash);
+    }
+    throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
+  }
+
+  /**
+   * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
+   *
+   * <p>The resulting sketch will not retain any link to the source Memory.</p>
+   *
+   * <p>This this method checks if the given seed was used to create the source Memory image.
+   * However, SerialVersion 1 sketches cannot be checked.</p>
+   *
+   * @param srcMem an image of a CompactSketch that was created using the given seed.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return a CompactSketch on the heap.
+   */
+  public static CompactSketch heapify(final Memory srcMem, final long seed) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
+    final byte familyID = srcMem.getByte(FAMILY_BYTE);
+    final Family family = idToFamily(familyID);
+    if (family != Family.COMPACT) {
+      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+    }
+    if (serVer == 3) {
+      final int flags = PreambleUtil.extractFlags(srcMem);
+      final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
+      final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
+      if (!empty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
+      return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
+    }
+    //not SerVer 3, assume compact stored form
+    final short seedHash = Util.computeSeedHash(seed);
+    if (serVer == 1) {
+      return ForwardCompatibility.heapify1to3(srcMem, seedHash);
+    }
+    if (serVer == 2) {
+      return ForwardCompatibility.heapify2to3(srcMem, seedHash);
+    }
+    throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
+  }
+
+  /**
+   * Wrap takes the CompactSketch image in given Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * The wrap operation enables fast read-only merging and access to all the public read-only API.
+   *
+   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct sketches can be wrapped.
+   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
+   * where all data will be copied to the heap. These early versions were never designed to
+   * "wrap".</p>
+   *
+   * <p>Wrapping any subclass of this class that is empty or contains only a single item will
+   * result in on-heap equivalent forms of empty and single item sketch respectively.
+   * This is actually faster and consumes less overall memory.</p>
+   *
+   * <p>This method assumes that the sketch image was created with the
+   * correct hash seed, so it is not checked.</p>
+   *
+   * @param srcMem an image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @return a Sketch backed by the given Memory.
+   */
+  public static CompactSketch wrap(final Memory srcMem) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    final Family family = Family.idToFamily(familyID);
+    if (family != Family.COMPACT) {
+      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+    }
+    final short memSeedHash = (short) extractSeedHash(srcMem);
+    if (serVer == 3) {
+      if (PreambleUtil.isEmptyFlag(srcMem)) {
+        return EmptyCompactSketch.getHeapInstance(srcMem);
+      }
+      if (otherCheckForSingleItem(srcMem)) { //SINGLEITEM?
+        return SingleItemSketch.heapify(srcMem, memSeedHash);
+      }
+      //not empty & not singleItem
+      final int flags = srcMem.getByte(FLAGS_BYTE);
+      final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
+      if (!compactFlag) {
+        throw new SketchesArgumentException(
+            "Corrupted: COMPACT family sketch image must have compact flag set");
+      }
+      final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
+      if (!readOnly) {
+        throw new SketchesArgumentException(
+            "Corrupted: COMPACT family sketch image must have Read-Only flag set");
+      }
+      return DirectCompactSketch.wrapInstance(srcMem, memSeedHash);
+    } //end of serVer 3
+    else if (serVer == 1) {
+      return ForwardCompatibility.heapify1to3(srcMem, memSeedHash);
+    }
+    else if (serVer == 2) {
+      return ForwardCompatibility.heapify2to3(srcMem, memSeedHash);
+    }
+    throw new SketchesArgumentException(
+        "Corrupted: Serialization Version " + serVer + " not recognized.");
+  }
+
+  /**
+   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * The wrap operation enables fast read-only merging and access to all the public read-only API.
+   *
+   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct sketches can be wrapped.
+   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
+   * where all data will be copied to the heap. These early versions were never designed to
+   * "wrap".</p>
+   *
+   * <p>Wrapping any subclass of this class that is empty or contains only a single item will
+   * result in on-heap equivalent forms of empty and single item sketch respectively.
+   * This is actually faster and consumes less overall memory.</p>
+   *
+   * <p>This method checks if the given seed was used to
+   * create the source Memory image.  However, SerialVersion 1 sketches cannot be checked.</p>
+   *
+   * @param srcMem an image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return a UpdateSketch backed by the given Memory except as above.
+   */
+  public static CompactSketch wrap(final Memory srcMem, final long seed) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    final Family family = Family.idToFamily(familyID);
+    if (family != Family.COMPACT) {
+      throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
+    }
+    final short seedHash = Util.computeSeedHash(seed);
+
+    if (serVer == 3) {
+      if (PreambleUtil.isEmptyFlag(srcMem)) {
+        return EmptyCompactSketch.getHeapInstance(srcMem);
+      }
+      if (otherCheckForSingleItem(srcMem)) { //SINGLEITEM?
+        return SingleItemSketch.heapify(srcMem, seedHash);
+      }
+      //not empty & not singleItem
+      final int flags = srcMem.getByte(FLAGS_BYTE);
+      final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
+      if (!compactFlag) {
+        throw new SketchesArgumentException(
+            "Corrupted: COMPACT family sketch image must have compact flag set");
+      }
+      final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
+      if (!readOnly) {
+        throw new SketchesArgumentException(
+            "Corrupted: COMPACT family sketch image must have Read-Only flag set");
+      }
+      return DirectCompactSketch.wrapInstance(srcMem, seedHash);
+    } //end of serVer 3
+    else if (serVer == 1) {
+      return ForwardCompatibility.heapify1to3(srcMem, seedHash);
+    }
+    else if (serVer == 2) {
+      return ForwardCompatibility.heapify2to3(srcMem, seedHash);
+    }
+    throw new SketchesArgumentException(
+        "Corrupted: Serialization Version " + serVer + " not recognized.");
+
+  }
+
+
+  //Sketch Overrides
 
   @Override
   public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);

@@ -21,7 +21,6 @@ package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
 import static org.apache.datasketches.QuickSelect.selectExcludingZeros;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -361,13 +360,13 @@ final class UnionImpl extends Union {
 
     if (serVer == 2) { //older Sketch, which is compact and ordered
       Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
-      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem, DEFAULT_UPDATE_SEED);
+      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem,seedHash_);
       union(csk);
       return;
     }
 
-    if (serVer == 1) { //much older Sketch, which is compact and ordered
-      final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, DEFAULT_UPDATE_SEED);
+    if (serVer == 1) { //much older Sketch, which is compact and ordered, no seedHash
+      final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, seedHash_);
       union(csk);
       return;
     }
