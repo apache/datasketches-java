@@ -197,9 +197,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
     final int preambleLongs = isEmpty() || isSingleItem ? 1 : isEstimationMode() ? 3 : 2;
 
     int summariesSizeBytes = 0;
-    byte[][] summariesBytes = null;
+    final byte[][] summariesBytes = new byte[count][];
     if (count > 0) {
-      summariesBytes = new byte[count][];
       for (int i = 0; i < count; i++) {
         summariesBytes[i] = summaryArr_[i].toByteArray();
         summariesSizeBytes += summariesBytes[i].length;
