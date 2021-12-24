@@ -157,7 +157,7 @@ public final class Sketches {
    * @return {@link CompactSketch CompactSketch}
    */
   public static CompactSketch heapifyCompactSketch(final Memory srcMem, final long seed) {
-    return CompactSketch.heapify(srcMem);
+    return CompactSketch.heapify(srcMem, seed);
   }
 
   /**
@@ -166,7 +166,7 @@ public final class Sketches {
    * @return {@link CompactSketch CompactSketch}
    */
   public static CompactSketch wrapCompactSketch(final Memory srcMem) {
-    return CompactSketch.heapify(srcMem);
+    return CompactSketch.wrap(srcMem);
   }
 
   /**
@@ -176,7 +176,7 @@ public final class Sketches {
    * @return {@link CompactSketch CompactSketch}
    */
   public static CompactSketch wrapCompactSketch(final Memory srcMem, final long seed) {
-    return CompactSketch.heapify(srcMem);
+    return CompactSketch.wrap(srcMem, seed);
   }
 
   /**

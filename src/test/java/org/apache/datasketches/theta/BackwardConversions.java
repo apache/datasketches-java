@@ -41,7 +41,7 @@ public class BackwardConversions {
    * It also had code for the even earlier CountUniqueSketch (for backward compatibility),
    * which was the bucket sketch based on Giroire.
    *
-   * <p><b>Serialization:</b></p>
+   * <p><b>Serialization Version 1:</b></p>
    * <pre>
    * Long || Start Byte Adr:
    * Adr:
@@ -63,7 +63,7 @@ public class BackwardConversions {
    * <li><i>MD_LONGS</i> (Metadata Longs, now Preamble Longs) was always 3.</li>
    * <li><i>SerVer</i> is always 1.</li>
    * <li>The <i>SkType</i> had three values: 1,2,3 for Alpha, QuickSelect, and SetSketch,
-   * repectively.</li>
+   * respectively.</li>
    * <li>Bytes <i>lgNom</i> and <i>lgArr</i> were only used by the QS and Alpha sketches.</li>
    * <li>V1 <i>LgResize</i> (2 bits) was only relevant to the Alpha and QS sketches.</li>
    * <li>The flags byte is in byte 6 (moved to 5 in V2).</li>
@@ -113,7 +113,7 @@ public class BackwardConversions {
    * the Alpha sketch, and the early HLL sketch. It also had an early adaptor for Pig.
    *
    *
-   * <p><b>Serialization:</b></p>
+   * <p><b>Serialization Version 2:</b></p>
    * <pre>
    * Long || Start Byte Adr:
    * Adr:

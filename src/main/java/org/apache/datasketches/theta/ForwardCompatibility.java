@@ -64,7 +64,7 @@ final class ForwardCompatibility {
     final long thetaLong = extractThetaLong(srcMem);
     final boolean empty = (curCount == 0) && (thetaLong == Long.MAX_VALUE);
 
-    if (empty || (memCap <= 24)) { //return empty
+    if (empty || (memCap <= 24)) { //return empty //TODO is this right?
       return EmptyCompactSketch.getInstance();
     }
 

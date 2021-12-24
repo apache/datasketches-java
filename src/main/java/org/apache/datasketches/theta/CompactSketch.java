@@ -20,6 +20,7 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Family.idToFamily;
+import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -50,7 +51,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 public abstract class CompactSketch extends Sketch {
-
+  private static final short defaultSeedHash = Util.computeSeedHash(DEFAULT_UPDATE_SEED);
 
   /**
    * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
@@ -77,11 +78,11 @@ public abstract class CompactSketch extends Sketch {
       return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
-    final short srcSeedHash = (short) extractSeedHash(srcMem);
     if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcMem, srcSeedHash);
+      return ForwardCompatibility.heapify1to3(srcMem, defaultSeedHash);
     }
     if (serVer == 2) {
+      final short srcSeedHash = (short) extractSeedHash(srcMem);
       return ForwardCompatibility.heapify2to3(srcMem, srcSeedHash);
     }
     throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
