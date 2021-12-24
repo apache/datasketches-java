@@ -151,6 +151,127 @@ public class SketchTest2 {
   }
 
   @Test
+  public void checkHeapifySketchAssumedDefaultSeed() {
+    final int k = 64;
+    final long seed = DEFAULT_UPDATE_SEED;
+    final short seedHash = Util.computeSeedHash(seed);
+    UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    for (int i=0; i<k; i++) { sv3usk.update(i); }
+
+    CompactSketch sv3csk = sv3usk.compact();
+    Memory sv3cskMem = Memory.wrap(sv3csk.toByteArray());
+    CompactSketch sv3cskResult;
+
+    //SV3 test
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv3cskMem);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV2 test
+    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV1 test
+    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(sv3csk);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+  }
+
+  @Test
+  public void checkHeapifySketchAssumedDifferentSeed() {
+    final int k = 64;
+    final long seed = 128L;
+    final short seedHash = Util.computeSeedHash(seed);
+    UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    for (int i=0; i<k; i++) { sv3usk.update(i); }
+
+    CompactSketch sv3csk = sv3usk.compact();
+    Memory sv3cskMem = Memory.wrap(sv3csk.toByteArray());
+    CompactSketch sv3cskResult;
+
+    //SV3 test
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv3cskMem);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV2 test
+    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV1 test
+    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(sv3csk);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), defaultSeedHash);
+  }
+
+
+  @Test
+  public void checkHeapifySketchGivenDefaultSeed() {
+    final int k = 64;
+    final long seed = DEFAULT_UPDATE_SEED;
+    final short seedHash = Util.computeSeedHash(seed);
+    UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    for (int i=0; i<k; i++) { sv3usk.update(i); }
+
+    CompactSketch sv3csk = sv3usk.compact();
+    Memory sv3cskMem = Memory.wrap(sv3csk.toByteArray());
+    CompactSketch sv3cskResult;
+
+    //SV3 test
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv3cskMem, seed);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV2 test
+    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem, seed);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV1 test
+    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(sv3csk);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem, seed);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+  }
+
+  @Test
+  public void checkHeapifySketchGivenDifferentSeed() {
+    final int k = 64;
+    final long seed = 128L;
+    final short seedHash = Util.computeSeedHash(seed);
+    UpdateSketch sv3usk = UpdateSketch.builder().setNominalEntries(k).setSeed(seed).build();
+    for (int i=0; i<k; i++) { sv3usk.update(i); }
+
+    CompactSketch sv3csk = sv3usk.compact();
+    Memory sv3cskMem = Memory.wrap(sv3csk.toByteArray());
+    CompactSketch sv3cskResult;
+
+    //SV3 test
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv3cskMem, seed);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV2 test
+    Memory sv2cskMem = BackwardConversions.convertSerVer3toSerVer2(sv3csk, seed);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv2cskMem, seed);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+
+    //SV1 test
+    Memory sv1cskMem = BackwardConversions.convertSerVer3toSerVer1(sv3csk);
+    sv3cskResult = (CompactSketch) Sketches.heapifySketch(sv1cskMem, seed);
+    assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
+    assertEquals(sv3cskResult.getSeedHash(), seedHash);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
   }
