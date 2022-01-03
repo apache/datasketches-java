@@ -56,9 +56,9 @@ final class ForwardCompatibility {
     if (preLongs != 3) {
       throw new SketchesArgumentException("PreLongs must be 3 for SerVer 1: " + preLongs);
     }
-    final int familyId = extractFamilyID(srcMem); //1,2,3,4
+    final int familyId = extractFamilyID(srcMem); //1,2,3
     if ((familyId < 1) || (familyId > 3)) {
-      throw new SketchesArgumentException("Family (Sketch Type) must be 1 to 3: " + familyId);
+      throw new SketchesArgumentException("Family ID (Sketch Type) must be 1 to 3: " + familyId);
     }
     final int curCount = extractCurCount(srcMem);
     final long thetaLong = extractThetaLong(srcMem);

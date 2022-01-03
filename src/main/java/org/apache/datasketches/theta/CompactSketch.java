@@ -155,11 +155,11 @@ public abstract class CompactSketch extends Sketch {
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
     }
-    final short memSeedHash = (short) extractSeedHash(srcMem);
     if (serVer == 3) {
       if (PreambleUtil.isEmptyFlag(srcMem)) {
         return EmptyCompactSketch.getHeapInstance(srcMem);
       }
+      final short memSeedHash = (short) extractSeedHash(srcMem);
       if (otherCheckForSingleItem(srcMem)) { //SINGLEITEM?
         return SingleItemSketch.heapify(srcMem, memSeedHash);
       }
@@ -178,9 +178,10 @@ public abstract class CompactSketch extends Sketch {
       return DirectCompactSketch.wrapInstance(srcMem, memSeedHash);
     } //end of serVer 3
     else if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcMem, memSeedHash);
+      return ForwardCompatibility.heapify1to3(srcMem, defaultSeedHash);
     }
     else if (serVer == 2) {
+      final short memSeedHash = (short) extractSeedHash(srcMem);
       return ForwardCompatibility.heapify2to3(srcMem, memSeedHash);
     }
     throw new SketchesArgumentException(
