@@ -84,11 +84,12 @@ public abstract class UpdateSketch extends Sketch {
   * Java Heap version of the sketch where all data will be copied to the heap.
   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-  * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+  * @param expectedSeed the seed used to validate the given Memory image.
+  * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
   * @return a UpdateSketch backed by the given Memory
   */
-  public static UpdateSketch wrap(final WritableMemory srcMem, final long seed) {
+  public static UpdateSketch wrap(final WritableMemory srcMem, final long expectedSeed) {
     final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
@@ -98,7 +99,7 @@ public abstract class UpdateSketch extends Sketch {
         "A " + family + " sketch cannot be wrapped as an UpdateSketch.");
     }
     if ((serVer == 3) && (preLongs == 3)) {
-      return DirectQuickSelectSketch.writableWrap(srcMem, seed);
+      return DirectQuickSelectSketch.writableWrap(srcMem, expectedSeed);
     } else {
       throw new SketchesArgumentException(
         "Corrupted: An UpdateSketch image: must have SerVer = 3 and preLongs = 3");
@@ -118,15 +119,16 @@ public abstract class UpdateSketch extends Sketch {
   /**
    * Instantiates an on-heap UpdateSketch from Memory.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return an UpdateSketch
    */
-  public static UpdateSketch heapify(final Memory srcMem, final long seed) {
+  public static UpdateSketch heapify(final Memory srcMem, final long expectedSeed) {
     final Family family = Family.idToFamily(srcMem.getByte(FAMILY_BYTE));
     if (family.equals(Family.ALPHA)) {
-      return HeapAlphaSketch.heapifyInstance(srcMem, seed);
+      return HeapAlphaSketch.heapifyInstance(srcMem, expectedSeed);
     }
-    return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
+    return HeapQuickSelectSketch.heapifyInstance(srcMem, expectedSeed);
   }
 
   //Sketch interface
@@ -380,7 +382,7 @@ public abstract class UpdateSketch extends Sketch {
     }
   }
 
-  static void checkMemIntegrity(final Memory srcMem, final long seed, final int preambleLongs,
+  static void checkMemIntegrity(final Memory srcMem, final long expectedSeed, final int preambleLongs,
       final int lgNomLongs, final int lgArrLongs) {
 
     //Check SerVer
@@ -400,8 +402,8 @@ public abstract class UpdateSketch extends Sketch {
     }
 
     //Check seed hashes
-    final short seedHash = checkMemorySeedHash(srcMem, seed);              //byte 6,7
-    checkSeedHashes(seedHash, computeSeedHash(seed));
+    final short seedHash = checkMemorySeedHash(srcMem, expectedSeed);              //byte 6,7
+    checkSeedHashes(seedHash, computeSeedHash(expectedSeed));
 
     //Check mem capacity, lgArrLongs
     final long curCapBytes = srcMem.getCapacity();

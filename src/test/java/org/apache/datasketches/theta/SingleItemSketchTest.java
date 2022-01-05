@@ -29,6 +29,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -150,16 +151,19 @@ public class SingleItemSketchTest {
     SingleItemSketch sis = SingleItemSketch.create(1);
     byte[] byteArr = sis.toByteArray();
     Memory mem = Memory.wrap(byteArr);
-    SingleItemSketch sis2 = SingleItemSketch.heapify(mem);
+    final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
+    SingleItemSketch sis2 = SingleItemSketch.heapify(mem, defaultSeedHash);
     assertEquals(sis2.getEstimate(), 1.0);
 
-    SingleItemSketch sis3 = SingleItemSketch.heapify(mem, DEFAULT_UPDATE_SEED);
-    assertEquals(sis2.getEstimate(), 1.0);
+    SingleItemSketch sis3 = SingleItemSketch.heapify(mem, defaultSeedHash);
+    assertEquals(sis3.getEstimate(), 1.0);
 
     Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(sis);
     union.union(sis2);
     union.union(sis3);
+    CompactSketch csk = union.getResult();
+    assertTrue(csk instanceof SingleItemSketch);
     assertEquals(union.getResult().getEstimate(), 1.0);
   }
 
@@ -303,13 +307,14 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkSingleItemBadFlags() {
+    final short defaultSeedHash = Util.computeSeedHash(DEFAULT_UPDATE_SEED);
     UpdateSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
     WritableMemory wmem = WritableMemory.allocate(16);
     sk1.compact(true, wmem);
-    wmem.putByte(5, (byte) 0); //corrupt flags
+    wmem.putByte(5, (byte) 0); //corrupt flags to zero
     try {
-      SingleItemSketch.heapify(wmem);
+      SingleItemSketch.heapify(wmem, defaultSeedHash); //fails due to corrupted flags bytes
       fail();
     } catch (SketchesArgumentException e) { }
   }

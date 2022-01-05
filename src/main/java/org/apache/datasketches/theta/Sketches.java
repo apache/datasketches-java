@@ -153,11 +153,12 @@ public final class Sketches {
   /**
    * Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)}
    * @param srcMem Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)}, {@code srcMem}
-   * @param seed Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)}, {@code seed}
+   * @param expectedSeed Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)},
+   * {@code expectedSeed}
    * @return {@link CompactSketch CompactSketch}
    */
-  public static CompactSketch heapifyCompactSketch(final Memory srcMem, final long seed) {
-    return CompactSketch.heapify(srcMem, seed);
+  public static CompactSketch heapifyCompactSketch(final Memory srcMem, final long expectedSeed) {
+    return CompactSketch.heapify(srcMem, expectedSeed);
   }
 
   /**
@@ -172,11 +173,12 @@ public final class Sketches {
   /**
    * Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)}
    * @param srcMem Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)}, {@code srcMem}
-   * @param seed Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)}, {@code seed}
+   * @param expectedSeed Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)},
+   * {@code expectedSeed}
    * @return {@link CompactSketch CompactSketch}
    */
-  public static CompactSketch wrapCompactSketch(final Memory srcMem, final long seed) {
-    return CompactSketch.wrap(srcMem, seed);
+  public static CompactSketch wrapCompactSketch(final Memory srcMem, final long expectedSeed) {
+    return CompactSketch.wrap(srcMem, expectedSeed);
   }
 
   /**
@@ -192,12 +194,13 @@ public final class Sketches {
    * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
    * @param srcMem Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)},
    * {@code srcMem}
-   * @param seed Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)},
-   * {@code seed}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)},
+   * {@code expectedSeed}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation heapifySetOperation(final Memory srcMem, final long seed) {
-    return SetOperation.heapify(srcMem, seed);
+  public static SetOperation heapifySetOperation(final Memory srcMem, final long expectedSeed) {
+    return SetOperation.heapify(srcMem, expectedSeed);
   }
 
   /**
@@ -212,11 +215,12 @@ public final class Sketches {
   /**
    * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}
    * @param srcMem Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}, {@code srcMem}
-   * @param seed Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}, {@code seed}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}, {@code expectedSeed}
    * @return {@link Sketch Sketch}
    */
-  public static Sketch heapifySketch(final Memory srcMem, final long seed) {
-    return Sketch.heapify(srcMem, seed);
+  public static Sketch heapifySketch(final Memory srcMem, final long expectedSeed) {
+    return Sketch.heapify(srcMem, expectedSeed);
   }
 
   /**
@@ -232,12 +236,13 @@ public final class Sketches {
    * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
    * @param srcMem Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)},
    *   {@code srcMem}
-   * @param seed Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)},
-   *   {@code seed}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)},
+   *   {@code expectedSeed}
    * @return {@link UpdateSketch UpdateSketch}
    */
-  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem, final long seed) {
-    return UpdateSketch.heapify(srcMem, seed);
+  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem, final long expectedSeed) {
+    return UpdateSketch.heapify(srcMem, expectedSeed);
   }
 
   //Builders
@@ -291,12 +296,13 @@ public final class Sketches {
    * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
    * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
    * {@code srcMem}
-   * @param seed Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
-   * {@code seed}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
+   * {@code expectedSeed}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation wrapSetOperation(final Memory srcMem, final long seed) {
-    return SetOperation.wrap(srcMem, seed);
+  public static SetOperation wrapSetOperation(final Memory srcMem, final long expectedSeed) {
+    return SetOperation.wrap(srcMem, expectedSeed);
   }
 
   /**
@@ -312,12 +318,13 @@ public final class Sketches {
    * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
    * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
    * {@code srcMem}
-   * @param seed Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
-   * {@code seed}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
+   * {@code expectedSeed}
    * @return {@link SetOperation SetOperation}
    */
-  public static SetOperation wrapSetOperation(final WritableMemory srcMem, final long seed) {
-    return SetOperation.wrap(srcMem, seed);
+  public static SetOperation wrapSetOperation(final WritableMemory srcMem, final long expectedSeed) {
+    return SetOperation.wrap(srcMem, expectedSeed);
   }
 
   /**
@@ -332,11 +339,12 @@ public final class Sketches {
   /**
    * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}
    * @param srcMem Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}, {@code srcMem}
-   * @param seed Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}, {@code seed}
+   * @param expectedSeed the expectedSeed used to validate the given Memory image.
+   * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}, {@code expectedSeed}
    * @return {@link Sketch Sketch}
    */
-  public static Sketch wrapSketch(final Memory srcMem, final long seed) {
-    return Sketch.wrap(srcMem, seed);
+  public static Sketch wrapSketch(final Memory srcMem, final long expectedSeed) {
+    return Sketch.wrap(srcMem, expectedSeed);
   }
 
   /**
@@ -369,11 +377,12 @@ public final class Sketches {
   /**
    * Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}
    * @param srcMem Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}, {@code srcMem}
-   * @param seed Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}, {@code seed}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}, {@code expectedSeed}
    * @return {@link UpdateSketch UpdateSketch}
    */
-  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem, final long seed) {
-    return UpdateSketch.wrap(srcMem, seed);
+  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem, final long expectedSeed) {
+    return UpdateSketch.wrap(srcMem, expectedSeed);
   }
 
   //Restricted static methods

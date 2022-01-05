@@ -82,22 +82,23 @@ public abstract class Sketch {
    *
    * <p>The resulting sketch will not retain any link to the source Memory.</p>
    *
-   * <p>For Update and Compact Sketches this method checks if the given seed was used to
+   * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
    * create the source Memory image.  However, SerialVersion 1 sketches cannot be checked.</p>
    *
-   * @param srcMem an image of a Sketch that was created using the given seed.
+   * @param srcMem an image of a Sketch that was created using the given expectedSeed.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   *  <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
    * @return a Sketch on the heap.
    */
-  public static Sketch heapify(final Memory srcMem, final long seed) {
+  public static Sketch heapify(final Memory srcMem, final long expectedSeed) {
     final byte familyID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(familyID);
     if (family == Family.COMPACT) {
-      return CompactSketch.heapify(srcMem, seed);
+      return CompactSketch.heapify(srcMem, expectedSeed);
     }
-    return heapifyUpdateFromMemory(srcMem, seed);
+    return heapifyUpdateFromMemory(srcMem, expectedSeed);
   }
 
   /**
@@ -161,29 +162,30 @@ public abstract class Sketch {
    * result in on-heap equivalent forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall memory.</p>
    *
-   * <p>For Update and Compact Sketches this method checks if the given seed was used to
+   * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
    * create the source Memory image.  However, SerialVersion 1 sketches cannot be checked.</p>
    *
    * @param srcMem an image of a Sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a UpdateSketch backed by the given Memory except as above.
    */
-  public static Sketch wrap(final Memory srcMem, final long seed) {
+  public static Sketch wrap(final Memory srcMem, final long expectedSeed) {
     final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
     final Family family = Family.idToFamily(familyID);
     if (family == Family.QUICKSELECT) {
       if (serVer == 3 && preLongs == 3) {
-        return DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
+        return DirectQuickSelectSketchR.readOnlyWrap(srcMem, expectedSeed);
       } else {
         throw new SketchesArgumentException(
             "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
       }
     }
     if (family == Family.COMPACT) {
-      return CompactSketch.wrap(srcMem, seed);
+      return CompactSketch.wrap(srcMem, expectedSeed);
     }
     throw new SketchesArgumentException(
         "Cannot wrap family: " + family + " as a Sketch");
@@ -646,10 +648,11 @@ public abstract class Sketch {
   /**
    * Instantiates a Heap Update Sketch from Memory. Only SerVer3. SerVer 1 & 2 already handled.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Sketch
    */
-  private static final Sketch heapifyUpdateFromMemory(final Memory srcMem, final long seed) {
+  private static final Sketch heapifyUpdateFromMemory(final Memory srcMem, final long expectedSeed) {
     final long cap = srcMem.getCapacity();
     if (cap < 8) {
       throw new SketchesArgumentException(
@@ -665,10 +668,10 @@ public abstract class Sketch {
         throw new SketchesArgumentException(
             "Corrupted: ALPHA family image: cannot be compact");
       }
-      return HeapAlphaSketch.heapifyInstance(srcMem, seed);
+      return HeapAlphaSketch.heapifyInstance(srcMem, expectedSeed);
     }
     if (family == Family.QUICKSELECT) {
-      return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
+      return HeapQuickSelectSketch.heapifyInstance(srcMem, expectedSeed);
     }
     throw new SketchesArgumentException(
         "Sketch cannot heapify family: " + family + " as a Sketch");

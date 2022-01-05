@@ -56,10 +56,13 @@ public abstract class CompactSketch extends Sketch {
   /**
    * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
    *
-   * <p>The resulting sketch will not retain any link to the source Memory.</p>
+   * <p>The resulting sketch will not retain any link to the source Memory and all of its data will be
+   * copied to the heap CompactSketch.</p>
    *
-   * <p>This method assumes that the sketch image was created with the correct hash seed,
-   * so it is not checked.</p>
+   * <p>This method assumes that the sketch image was created with the correct hash seed, so it is not checked.
+   * The resulting on-heap CompactSketch will be given the seedHash derived from the given sketch image.
+   * However, Serial Version 1 sketch images do not have a seedHash field,
+   * so the resulting heapified CompactSketch will be given the hash of the DEFAULT_UPDATE_SEED.</p>
    *
    * @param srcMem an image of a CompactSketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
@@ -91,19 +94,23 @@ public abstract class CompactSketch extends Sketch {
   /**
    * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
    *
-   * <p>The resulting sketch will not retain any link to the source Memory.</p>
+   * <p>The resulting sketch will not retain any link to the source Memory and all of its data will be
+   * copied to the heap CompactSketch.</p>
    *
-   * <p>This this method checks if the given seed was used to create the source Memory image.
-   * However, SerialVersion 1 sketches cannot be checked.</p>
+   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * However, SerialVersion 1 sketch images cannot be checked as they don't have a seedHash field,
+   * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
-   * @param srcMem an image of a CompactSketch that was created using the given seed.
+   * @param srcMem an image of a CompactSketch that was created using the given expectedSeed.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a CompactSketch on the heap.
    */
-  public static CompactSketch heapify(final Memory srcMem, final long seed) {
+  public static CompactSketch heapify(final Memory srcMem, final long expectedSeed) {
     final int serVer = srcMem.getByte(SER_VER_BYTE);
     final byte familyID = srcMem.getByte(FAMILY_BYTE);
+
     final Family family = idToFamily(familyID);
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
@@ -112,11 +119,11 @@ public abstract class CompactSketch extends Sketch {
       final int flags = PreambleUtil.extractFlags(srcMem);
       final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
       final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
-      if (!empty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
+      if (!empty) { PreambleUtil.checkMemorySeedHash(srcMem, expectedSeed); }
       return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = Util.computeSeedHash(expectedSeed);
     if (serVer == 1) {
       return ForwardCompatibility.heapify1to3(srcMem, seedHash);
     }
@@ -133,20 +140,21 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
    * been explicitly stored as direct sketches can be wrapped.
-   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
-   * where all data will be copied to the heap. These early versions were never designed to
-   * "wrap".</p>
+   * Wrapping earlier serial version sketches will result in a heapify operation.
+   * These early versions were never designed to "wrap".</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
-   * result in on-heap equivalent forms of empty and single item sketch respectively.
+   * result in heapified forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall memory.</p>
    *
-   * <p>This method assumes that the sketch image was created with the
-   * correct hash seed, so it is not checked.</p>
+   * <p>This method assumes that the sketch image was created with the correct hash seed, so it is not checked.
+   * However, Serial Version 1 sketch images do not have a seedHash field,
+   * so the resulting on-heap CompactSketch will be given the hash of the DEFAULT_UPDATE_SEED.</p>
+   * </p>
    *
    * @param srcMem an image of a Sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
-   * @return a Sketch backed by the given Memory.
+   * @return a CompactSketch backed by the given Memory except as above.
    */
   public static CompactSketch wrap(final Memory srcMem) {
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
@@ -195,30 +203,31 @@ public abstract class CompactSketch extends Sketch {
    *
    * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
    * been explicitly stored as direct sketches can be wrapped.
-   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
-   * where all data will be copied to the heap. These early versions were never designed to
-   * "wrap".</p>
+   * Wrapping earlier serial version sketches will result in a heapify operation.
+   * These early versions were never designed to "wrap".</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
-   * result in on-heap equivalent forms of empty and single item sketch respectively.
+   * result in heapified forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall memory.</p>
    *
-   * <p>This method checks if the given seed was used to
-   * create the source Memory image.  However, SerialVersion 1 sketches cannot be checked.</p>
+   * <p>This method checks if the given expectedSeed was used to create the source Memory image.
+   * However, SerialVersion 1 sketches cannot be checked as they don't have a seedHash field,
+   * so the resulting heapified CompactSketch will be given the hash of the expectedSeed.</p>
    *
-   * @param srcMem an image of a Sketch.
+   * @param srcMem an image of a Sketch that was created using the given expectedSeed.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * @return a UpdateSketch backed by the given Memory except as above.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return a CompactSketch backed by the given Memory except as above.
    */
-  public static CompactSketch wrap(final Memory srcMem, final long seed) {
+  public static CompactSketch wrap(final Memory srcMem, final long expectedSeed) {
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
     final Family family = Family.idToFamily(familyID);
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
     }
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = Util.computeSeedHash(expectedSeed);
 
     if (serVer == 3) {
       if (PreambleUtil.isEmptyFlag(srcMem)) {
