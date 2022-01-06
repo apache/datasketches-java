@@ -22,13 +22,14 @@ package org.apache.datasketches.theta;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.PreambleUtil.SINGLEITEM_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
+import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
 import org.apache.datasketches.Family;
@@ -76,28 +77,19 @@ final class SingleItemSketch extends CompactSketch {
   }
 
   /**
-   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and assumes the
-   * DEFAULT_UPDATE_SEED.
-   * @param srcMem the Memory to be heapified.  It must be a least 16 bytes.
-   * @return a SingleItemSketch
-   */ //does not override Sketch
-  public static SingleItemSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and a seed.
-   * Checks the seed hash of the given Memory against a hash of the given seed.
+   * Creates a SingleItemSketch on the heap given a SingleItemSketch Memory image and a seedHash.
+   * Checks the seed hash of the given Memory against the given seedHash.
    * @param srcMem the Memory to be heapified.
-   * @param seed a given hash seed
+   * @param expectedSeedHash the given seedHash to be checked against the srcMem seedHash
    * @return a SingleItemSketch
    */ //does not override Sketch
-  public static SingleItemSketch heapify(final Memory srcMem, final long seed) {
-    final short seedHashMem = checkMemorySeedHash(srcMem, seed);
+  static SingleItemSketch heapify(final Memory srcMem, final short expectedSeedHash) {
+    checkSeedHashes((short) extractSeedHash(srcMem), expectedSeedHash);
     final boolean singleItem = otherCheckForSingleItem(srcMem);
-    if (singleItem) { return new SingleItemSketch(srcMem.getLong(8), seedHashMem); }
+    if (singleItem) { return new SingleItemSketch(srcMem.getLong(8), expectedSeedHash); }
     throw new SketchesArgumentException("Input Memory is not a SingleItemSketch.");
   }
+
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {

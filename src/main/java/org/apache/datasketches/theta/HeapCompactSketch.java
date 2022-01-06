@@ -153,7 +153,7 @@ class HeapCompactSketch extends CompactSketch {
     return seedHash_;
   }
 
-  //use of Memory is convenient. The byteArray and Memory are loaded simulaneously.
+  //use of Memory is convenient. The byteArray and Memory are loaded simultaneously.
   @Override
   public byte[] toByteArray() {
     final int bytes = getCurrentBytes();

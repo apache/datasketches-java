@@ -21,7 +21,6 @@ package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
 import static org.apache.datasketches.QuickSelect.selectExcludingZeros;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -67,13 +66,13 @@ final class UnionImpl extends Union {
    * be meaningless. It is private for very good reasons.
    */
   private final UpdateSketch gadget_;
-  private final short seedHash_; //eliminates having to compute the seedHash on every union.
+  private final short expectedSeedHash_; //eliminates having to compute the seedHash on every union.
   private long unionThetaLong_; //when on-heap, this is the only copy
   private boolean unionEmpty_;  //when on-heap, this is the only copy
 
   private UnionImpl(final UpdateSketch gadget, final long seed) {
     gadget_ = gadget;
-    seedHash_ = computeSeedHash(seed);
+    expectedSeedHash_ = computeSeedHash(seed);
   }
 
   /**
@@ -131,13 +130,14 @@ final class UnionImpl extends Union {
    * Called by SetOperation.
    * @param srcMem The source Memory Union object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl heapifyInstance(final Memory srcMem, final long seed) {
+  static UnionImpl heapifyInstance(final Memory srcMem, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcMem));
-    final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final UpdateSketch gadget = HeapQuickSelectSketch.heapifyInstance(srcMem, expectedSeed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
@@ -148,13 +148,14 @@ final class UnionImpl extends Union {
    * This does NO validity checking of the given Memory.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl fastWrap(final Memory srcMem, final long seed) {
+  static UnionImpl fastWrap(final Memory srcMem, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcMem));
-    final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, seed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketchR.fastReadOnlyWrap(srcMem, expectedSeed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
@@ -165,13 +166,14 @@ final class UnionImpl extends Union {
    * This does NO validity checking of the given Memory.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl fastWrap(final WritableMemory srcMem, final long seed) {
+  static UnionImpl fastWrap(final WritableMemory srcMem, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcMem));
-    final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcMem, seed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketch.fastWritableWrap(srcMem, expectedSeed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
@@ -182,13 +184,14 @@ final class UnionImpl extends Union {
    * Called by SetOperation.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl wrapInstance(final Memory srcMem, final long seed) {
+  static UnionImpl wrapInstance(final Memory srcMem, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcMem));
-    final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketchR.readOnlyWrap(srcMem, expectedSeed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
@@ -199,13 +202,14 @@ final class UnionImpl extends Union {
    * Called by SetOperation.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return this class
    */
-  static UnionImpl wrapInstance(final WritableMemory srcMem, final long seed) {
+  static UnionImpl wrapInstance(final WritableMemory srcMem, final long expectedSeed) {
     Family.UNION.checkFamilyID(extractFamilyID(srcMem));
-    final UpdateSketch gadget = DirectQuickSelectSketch.writableWrap(srcMem, seed);
-    final UnionImpl unionImpl = new UnionImpl(gadget, seed);
+    final UpdateSketch gadget = DirectQuickSelectSketch.writableWrap(srcMem, expectedSeed);
+    final UnionImpl unionImpl = new UnionImpl(gadget, expectedSeed);
     unionImpl.unionThetaLong_ = extractUnionThetaLong(srcMem);
     unionImpl.unionEmpty_ = PreambleUtil.isEmptyFlag(srcMem);
     return unionImpl;
@@ -291,7 +295,7 @@ final class UnionImpl extends Union {
       return;
     }
     //sketchIn is valid and not empty
-    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    Util.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
     if (sketchIn instanceof SingleItemSketch) {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;
@@ -360,14 +364,14 @@ final class UnionImpl extends Union {
     }
 
     if (serVer == 2) { //older Sketch, which is compact and ordered
-      Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
-      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem, DEFAULT_UPDATE_SEED);
+      Util.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
+      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem,expectedSeedHash_);
       union(csk);
       return;
     }
 
-    if (serVer == 1) { //much older Sketch, which is compact and ordered
-      final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, DEFAULT_UPDATE_SEED);
+    if (serVer == 1) { //much older Sketch, which is compact and ordered, no seedHash
+      final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, expectedSeedHash_);
       union(csk);
       return;
     }
@@ -389,7 +393,7 @@ final class UnionImpl extends Union {
       }
       return; //empty
     }
-    Util.checkSeedHashes(seedHash_, (short)extractSeedHash(skMem));
+    Util.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
     final int curCountIn;
     final long thetaLongIn;
 

@@ -19,14 +19,12 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -37,25 +35,6 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes
  */
 final class ForwardCompatibility {
-
-  /**
-   * Convert a serialization version (SerVer) 1 sketch (~Feb 2014) to a SerVer 3 sketch.
-   * Note: SerVer 1 sketches always have (metadata) preamble-longs of 3 and are always stored
-   * in a compact ordered form, but with 3 different sketch types.  All SerVer 1 sketches will
-   * be converted to a SerVer 3 sketches. There is no concept of p-sampling, no empty bit.
-   *
-   * @param srcMem the image of a SerVer 1 sketch
-   *
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * The seed used for building the sketch image in srcMem.
-   * Note: SerVer 1 sketches do not have the concept of the SeedHash, so the seed provided here
-   * MUST be the actual seed that was used when the SerVer 1 sketches were built.
-   * @return a SerVer 3 {@link CompactSketch}.
-   */
-  static final CompactSketch heapify1to3(final Memory srcMem, final long seed) {
-    final short seedHash = Util.computeSeedHash(seed);
-    return heapify1to3(srcMem, seedHash);
-  }
 
   /**
    * Convert a serialization version (SerVer) 1 sketch (~Feb 2014) to a SerVer 3 sketch.
@@ -77,9 +56,9 @@ final class ForwardCompatibility {
     if (preLongs != 3) {
       throw new SketchesArgumentException("PreLongs must be 3 for SerVer 1: " + preLongs);
     }
-    final int familyId = extractFamilyID(srcMem); //1,2,3,4
+    final int familyId = extractFamilyID(srcMem); //1,2,3
     if ((familyId < 1) || (familyId > 3)) {
-      throw new SketchesArgumentException("Family (Sketch Type) must be 1 to 3: " + familyId);
+      throw new SketchesArgumentException("Family ID (Sketch Type) must be 1 to 3: " + familyId);
     }
     final int curCount = extractCurCount(srcMem);
     final long thetaLong = extractThetaLong(srcMem);
@@ -108,12 +87,11 @@ final class ForwardCompatibility {
    * Note: SerVer 2 sketches can have metadata-longs of 1,2 or 3 and are always stored
    * in a compact ordered form (not as a hash table), but with 4 different sketch types.
    * @param srcMem the image of a SerVer 2 sketch
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param seedHash <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
    * The seed used for building the sketch image in srcMem
    * @return a SerVer 3 HeapCompactOrderedSketch
    */
-  static final CompactSketch heapify2to3(final Memory srcMem, final long seed) {
-    final short seedHash = checkMemorySeedHash(srcMem, seed);
+  static final CompactSketch heapify2to3(final Memory srcMem, final short seedHash) {
     final int memCap = (int) srcMem.getCapacity();
     final int preLongs = extractPreLongs(srcMem); //1,2 or 3
     final int familyId = extractFamilyID(srcMem); //1,2,3,4
@@ -139,7 +117,7 @@ final class ForwardCompatibility {
         reqBytesIn = (preLongs + 1) << 3;
         validateInputSize(reqBytesIn, memCap);
         final long hash = srcMem.getLong(preLongs << 3);
-        return new SingleItemSketch(hash, seed);
+        return new SingleItemSketch(hash, seedHash);
       }
       //curCount > 1
       reqBytesIn = (curCount + preLongs) << 3;
@@ -160,7 +138,7 @@ final class ForwardCompatibility {
         reqBytesIn = (preLongs + 1) << 3;
         validateInputSize(reqBytesIn, memCap);
         final long hash = srcMem.getLong(preLongs << 3);
-        return new SingleItemSketch(hash, seed);
+        return new SingleItemSketch(hash, seedHash);
       }
       //curCount > 1 and/or theta < 1.0
       reqBytesIn = (curCount + preLongs) << 3;

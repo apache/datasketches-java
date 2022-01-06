@@ -27,14 +27,10 @@ import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
-import static org.apache.datasketches.theta.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
-import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
 import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
@@ -57,125 +53,142 @@ public abstract class Sketch {
   //public static factory constructor-type methods
 
   /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap
-   * Sketch using the
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a Heap-based Sketch from the given Memory
+   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.
+   *
+   * <p>The resulting sketch will not retain any link to the source Memory.</p>
+   *
+   * <p>For Update Sketches this method checks if the
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
+   * was used to create the source Memory image.
+   *
+   * <p>For Compact Sketches this method assumes that the sketch image was created with the
+   * correct hash seed, so it is not checked.</p>
+   *
+   * @param srcMem an image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @return a Sketch on the heap.
    */
   public static Sketch heapify(final Memory srcMem) {
-    return heapify(srcMem, DEFAULT_UPDATE_SEED);
+    final byte familyID = srcMem.getByte(FAMILY_BYTE);
+    final Family family = idToFamily(familyID);
+    if (family == Family.COMPACT) {
+      return CompactSketch.heapify(srcMem);
+    }
+    return heapifyUpdateFromMemory(srcMem, DEFAULT_UPDATE_SEED);
   }
 
   /**
-   * Heapify takes the sketch image in Memory and instantiates an on-heap
-   * Sketch using the given seed.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * Heapify takes the sketch image in Memory and instantiates an on-heap Sketch.
+   *
+   * <p>The resulting sketch will not retain any link to the source Memory.</p>
+   *
+   * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
+   * create the source Memory image.  However, SerialVersion 1 sketches cannot be checked.</p>
+   *
+   * @param srcMem an image of a Sketch that was created using the given expectedSeed.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   *  <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-   * @return a Heap-based Sketch from the given Memory
+   * @return a Sketch on the heap.
    */
-  public static Sketch heapify(final Memory srcMem, final long seed) {
-    final int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer == 3) {
-      return heapifyFromMemory(srcMem, seed);
+  public static Sketch heapify(final Memory srcMem, final long expectedSeed) {
+    final byte familyID = srcMem.getByte(FAMILY_BYTE);
+    final Family family = idToFamily(familyID);
+    if (family == Family.COMPACT) {
+      return CompactSketch.heapify(srcMem, expectedSeed);
     }
-    if (serVer == 1) {
-      return ForwardCompatibility.heapify1to3(srcMem, seed);
-    }
-    if (serVer == 2) {
-      return ForwardCompatibility.heapify2to3(srcMem, seed);
-    }
-    throw new SketchesArgumentException("Unknown Serialization Version: " + serVer);
+    return heapifyUpdateFromMemory(srcMem, expectedSeed);
   }
 
   /**
-   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
-   * the java heap.  Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
-   * been explicitly stored as direct objects can be wrapped. This method assumes the
-   * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
-   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
-   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a Sketch backed by the given Memory
-   */
-  public static Sketch wrap(final Memory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Wrap takes the sketch image in Memory and refers to it directly with just a reference.
-   * There is no data copying onto the java heap.  Only "Direct" Serialization Version 3
-   * (i.e, OpenSource) sketches that have been explicitly stored as direct objects can be wrapped.
+   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * The wrap operation enables fast read-only merging and access to all the public read-only API.
    *
-   * <p>The wrap operation enables fast read-only merging and access to all the public read-only API.</p>
-   *
-   * <p>Note: wrapping earlier serial version sketches will result in a on-heap form of the
-   * sketch where all data will be copied to the heap. These early versions were never designed to
+   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct sketches can be wrapped.
+   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
+   * where all data will be copied to the heap. These early versions were never designed to
    * "wrap".</p>
    *
    * <p>Wrapping any subclass of this class that is empty or contains only a single item will
    * result in on-heap equivalent forms of empty and single item sketch respectively.
    * This is actually faster and consumes less overall memory.</p>
    *
-   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
-   * Compact sketches store a 16-bit hash of the seed, but not the seed itself.
-   * @return a UpdateSketch backed by the given Memory except as above.
+   * <p>For Update Sketches this method checks if the
+   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a></p>
+   * was used to create the source Memory image.
+   *
+   * <p>For Compact Sketches this method assumes that the sketch image was created with the
+   * correct hash seed, so it is not checked.</p>
+   *
+   * @param srcMem an image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
+   * @return a Sketch backed by the given Memory
    */
-  public static Sketch wrap(final Memory srcMem, final long seed) {
+  public static Sketch wrap(final Memory srcMem) {
     final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
     final Family family = Family.idToFamily(familyID);
-    switch (family) {
-      case QUICKSELECT: { //Hash Table structure
-        if (serVer == 3 && preLongs == 3) {
-          return DirectQuickSelectSketchR.readOnlyWrap(srcMem, seed);
-        } else {
-          throw new SketchesArgumentException(
-              "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
-        }
-      }
-      case COMPACT: { //serVer 1, 2, 3; preLongs = 1, 2, or 3
-        if (serVer == 3) {
-          if (PreambleUtil.isEmptyFlag(srcMem)) {
-            return EmptyCompactSketch.getHeapInstance(srcMem);
-          }
-          if (otherCheckForSingleItem(srcMem)) { //SINGLEITEM?
-            return SingleItemSketch.heapify(srcMem, seed);
-          }
-          //not empty & not singleItem
-          final int flags = srcMem.getByte(FLAGS_BYTE);
-          final boolean compactFlag = (flags & COMPACT_FLAG_MASK) > 0;
-          if (!compactFlag) {
-            throw new SketchesArgumentException(
-                "Corrupted: COMPACT family sketch image must have compact flag set");
-          }
-          final boolean readOnly = (flags & READ_ONLY_FLAG_MASK) > 0;
-          if (!readOnly) {
-            throw new SketchesArgumentException(
-                "Corrupted: COMPACT family sketch image must have Read-Only flag set");
-          }
-          return DirectCompactSketch.wrapInstance(srcMem, seed);
-        } //end of serVer 3
-        else if (serVer == 1) {
-          return ForwardCompatibility.heapify1to3(srcMem, seed);
-        }
-        else if (serVer == 2) {
-          return ForwardCompatibility.heapify2to3(srcMem, seed);
-        }
+    if (family == Family.QUICKSELECT) {
+      if (serVer == 3 && preLongs == 3) {
+        return DirectQuickSelectSketchR.readOnlyWrap(srcMem, DEFAULT_UPDATE_SEED);
+      } else {
         throw new SketchesArgumentException(
-            "Corrupted: Serialization Version " + serVer + " not recognized.");
+            "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
       }
-      default: throw new SketchesArgumentException(
-          "Sketch cannot wrap family: " + family + " as a Sketch");
     }
+    if (family == Family.COMPACT) {
+      return CompactSketch.wrap(srcMem);
+    }
+    throw new SketchesArgumentException(
+        "Cannot wrap family: " + family + " as a Sketch");
+  }
+
+  /**
+   * Wrap takes the sketch image in the given Memory and refers to it directly.
+   * There is no data copying onto the java heap.
+   * The wrap operation enables fast read-only merging and access to all the public read-only API.
+   *
+   * <p>Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
+   * been explicitly stored as direct sketches can be wrapped.
+   * Wrapping earlier serial version sketches will result in a on-heap CompactSketch
+   * where all data will be copied to the heap. These early versions were never designed to
+   * "wrap".</p>
+   *
+   * <p>Wrapping any subclass of this class that is empty or contains only a single item will
+   * result in on-heap equivalent forms of empty and single item sketch respectively.
+   * This is actually faster and consumes less overall memory.</p>
+   *
+   * <p>For Update and Compact Sketches this method checks if the given expectedSeed was used to
+   * create the source Memory image.  However, SerialVersion 1 sketches cannot be checked.</p>
+   *
+   * @param srcMem an image of a Sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @return a UpdateSketch backed by the given Memory except as above.
+   */
+  public static Sketch wrap(final Memory srcMem, final long expectedSeed) {
+    final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
+    final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
+    final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
+    final Family family = Family.idToFamily(familyID);
+    if (family == Family.QUICKSELECT) {
+      if (serVer == 3 && preLongs == 3) {
+        return DirectQuickSelectSketchR.readOnlyWrap(srcMem, expectedSeed);
+      } else {
+        throw new SketchesArgumentException(
+            "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");
+      }
+    }
+    if (family == Family.COMPACT) {
+      return CompactSketch.wrap(srcMem, expectedSeed);
+    }
+    throw new SketchesArgumentException(
+        "Cannot wrap family: " + family + " as a Sketch");
   }
 
   //Sketch interface
@@ -633,12 +646,13 @@ public abstract class Sketch {
   }
 
   /**
-   * Instantiates a Heap Sketch from Memory. SerVer 1 & 2 already handled.
+   * Instantiates a Heap Update Sketch from Memory. Only SerVer3. SerVer 1 & 2 already handled.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Sketch
    */
-  private static final Sketch heapifyFromMemory(final Memory srcMem, final long seed) {
+  private static final Sketch heapifyUpdateFromMemory(final Memory srcMem, final long expectedSeed) {
     final long cap = srcMem.getCapacity();
     if (cap < 8) {
       throw new SketchesArgumentException(
@@ -646,32 +660,21 @@ public abstract class Sketch {
     }
     final byte familyID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(familyID);
-    final int flags = PreambleUtil.extractFlags(srcMem);
-    final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
 
-    switch (family) {
-      case ALPHA: {
-        if (compactFlag) {
-          throw new SketchesArgumentException(
-              "Corrupted: ALPHA family image: cannot be compact");
-        }
-        return HeapAlphaSketch.heapifyInstance(srcMem, seed);
-      }
-      case QUICKSELECT: {
-        return HeapQuickSelectSketch.heapifyInstance(srcMem, seed);
-      }
-      case COMPACT: {
-        final boolean empty = (flags & EMPTY_FLAG_MASK) != 0;
-        if (!empty) { PreambleUtil.checkMemorySeedHash(srcMem, seed); }
-        final boolean srcOrdered = (flags & ORDERED_FLAG_MASK) != 0;
-        return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
-      } //end of Compact
-
-      default: {
+    if (family == Family.ALPHA) {
+      final int flags = PreambleUtil.extractFlags(srcMem);
+      final boolean compactFlag = (flags & COMPACT_FLAG_MASK) != 0;
+      if (compactFlag) {
         throw new SketchesArgumentException(
-            "Sketch cannot heapify family: " + family + " as a Sketch");
+            "Corrupted: ALPHA family image: cannot be compact");
       }
+      return HeapAlphaSketch.heapifyInstance(srcMem, expectedSeed);
     }
+    if (family == Family.QUICKSELECT) {
+      return HeapQuickSelectSketch.heapifyInstance(srcMem, expectedSeed);
+    }
+    throw new SketchesArgumentException(
+        "Sketch cannot heapify family: " + family + " as a Sketch");
   }
 
 }

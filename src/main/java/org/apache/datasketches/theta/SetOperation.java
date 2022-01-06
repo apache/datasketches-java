@@ -68,26 +68,27 @@ public abstract class SetOperation {
 
   /**
    * Heapify takes the SetOperation image in Memory and instantiates an on-heap
-   * SetOperation using the given seed.
+   * SetOperation using the given expectedSeed.
    * The resulting SetOperation will not retain any link to the source Memory.
    *
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * heapified.</p>
    *
-   * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
+   * @param srcMem an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a Heap-based SetOperation from the given Memory
    */
-  public static SetOperation heapify(final Memory srcMem, final long seed) {
+  public static SetOperation heapify(final Memory srcMem, final long expectedSeed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
     switch (family) {
       case UNION : {
-        return UnionImpl.heapifyInstance(srcMem, seed);
+        return UnionImpl.heapifyInstance(srcMem, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.heapifyInstance(srcMem, seed);
+        return IntersectionImpl.heapifyInstance(srcMem, expectedSeed);
       }
       default: {
         throw new SketchesArgumentException("SetOperation cannot heapify family: "
@@ -120,12 +121,13 @@ public abstract class SetOperation {
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * wrapped.</p>
    *
-   * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
+   * @param srcMem an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
    */
-  public static SetOperation wrap(final Memory srcMem, final long seed) {
+  public static SetOperation wrap(final Memory srcMem, final long expectedSeed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
     final int serVer = srcMem.getByte(SER_VER_BYTE);
@@ -134,10 +136,10 @@ public abstract class SetOperation {
     }
     switch (family) {
       case UNION : {
-        return UnionImpl.wrapInstance(srcMem, seed);
+        return UnionImpl.wrapInstance(srcMem, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.wrapInstance((WritableMemory)srcMem, seed, true);
+        return IntersectionImpl.wrapInstance((WritableMemory)srcMem, expectedSeed, true);
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: " + family.toString());
@@ -168,12 +170,13 @@ public abstract class SetOperation {
    * <p>Note: Only certain set operators during stateful operations can be serialized and thus
    * wrapped.</p>
    *
-   * @param srcMem an image of a SetOperation where the hash of the given seed matches the image seed hash.
+   * @param srcMem an image of a SetOperation where the hash of the given expectedSeed matches the image seed hash.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return a SetOperation backed by the given Memory
    */
-  public static SetOperation wrap(final WritableMemory srcMem, final long seed) {
+  public static SetOperation wrap(final WritableMemory srcMem, final long expectedSeed) {
     final byte famID = srcMem.getByte(FAMILY_BYTE);
     final Family family = idToFamily(famID);
     final int serVer = srcMem.getByte(SER_VER_BYTE);
@@ -182,10 +185,10 @@ public abstract class SetOperation {
     }
     switch (family) {
       case UNION : {
-        return UnionImpl.wrapInstance(srcMem, seed);
+        return UnionImpl.wrapInstance(srcMem, expectedSeed);
       }
       case INTERSECTION : {
-        return IntersectionImpl.wrapInstance(srcMem, seed, false);
+        return IntersectionImpl.wrapInstance(srcMem, expectedSeed, false);
       }
       default:
         throw new SketchesArgumentException("SetOperation cannot wrap family: "

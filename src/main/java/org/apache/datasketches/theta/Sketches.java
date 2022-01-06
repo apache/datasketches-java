@@ -44,244 +44,27 @@ public final class Sketches {
   private Sketches() {}
 
   /**
-   * Ref: {@link UpdateSketchBuilder UpdateSketchBuilder}
-   * @return {@link UpdateSketchBuilder UpdateSketchBuilder}
+   * Gets the unique count estimate from a valid memory image of a Sketch
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return the sketch's best estimate of the cardinality of the input stream.
    */
-  public static UpdateSketchBuilder updateSketchBuilder() {
-    return new UpdateSketchBuilder();
+  public static double getEstimate(final Memory srcMem) {
+    checkIfValidThetaSketch(srcMem);
+    return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem));
   }
 
   /**
-   * Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)}
-   * @param srcMem Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)} {@code srcMem}
-   * @return {@link Sketch Sketch}
+   * Gets the approximate lower error bound from a valid memory image of a Sketch
+   * given the specified number of Standard Deviations.
+   * This will return getEstimate() if isEmpty() is true.
+   *
+   * @param numStdDev
+   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
+   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return the lower bound.
    */
-  public static Sketch heapifySketch(final Memory srcMem) {
-    return Sketch.heapify(srcMem);
-  }
-
-  /**
-   * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}
-   * @param srcMem Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)} {@code srcMem}
-   * @param seed Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)} {@code seed}
-   * @return {@link Sketch Sketch}
-   */
-  public static Sketch heapifySketch(final Memory srcMem, final long seed) {
-    return Sketch.heapify(srcMem, seed);
-  }
-
-  /**
-   * Ref: {@link UpdateSketch#heapify(Memory) UpdateSketch.heapify(Memory)}
-   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory) UpdateSketch.heapify(Memory)} {@code srcMem}
-   * @return {@link UpdateSketch UpdateSketch}
-   */
-  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem) {
-    return UpdateSketch.heapify(srcMem);
-  }
-
-  /**
-   * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
-   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
-   *   {@code srcMem}
-   * @param seed Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
-   *   {@code seed}
-   * @return {@link UpdateSketch UpdateSketch}
-   */
-  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem, final long seed) {
-    return UpdateSketch.heapify(srcMem, seed);
-  }
-
-  /**
-   * Ref: {@link Sketch#wrap(Memory) Sketch.wrap(Memory)}
-   * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.wrap(Memory)} {@code srcMem}
-   * @return {@link Sketch Sketch}
-   */
-  public static Sketch wrapSketch(final Memory srcMem) {
-    return Sketch.wrap(srcMem);
-  }
-
-  /**
-   * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}
-   * @param srcMem Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)} {@code srcMem}
-   * @param seed Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)} {@code seed}
-   * @return {@link Sketch Sketch}
-   */
-  public static Sketch wrapSketch(final Memory srcMem, final long seed) {
-    return Sketch.wrap(srcMem, seed);
-  }
-
-  /**
-   * Ref: {@link UpdateSketch#wrap(Memory) UpdateSketch.wrap(Memory)}
-   * @param srcMem Ref: {@link UpdateSketch#wrap(Memory) UpdateSketch.wrap(Memory)} {@code srcMem}
-   * @return {@link UpdateSketch UpdateSketch}
-   */
-  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem) {
-    return wrapUpdateSketch(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}
-   * @param srcMem Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)} {@code srcMem}
-   * @param seed Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)} {@code seed}
-   * @return {@link UpdateSketch UpdateSketch}
-   */
-  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem, final long seed) {
-    return UpdateSketch.wrap(srcMem, seed);
-  }
-
-  /**
-   * Ref: {@link SetOperationBuilder SetOperationBuilder}
-   * @return {@link SetOperationBuilder SetOperationBuilder}
-   */
-  public static SetOperationBuilder setOperationBuilder() {
-    return new SetOperationBuilder();
-  }
-
-  /**
-   * Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)}
-   * @param srcMem Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)} {@code srcMem}
-   * @return {@link SetOperation SetOperation}
-   */
-  public static SetOperation heapifySetOperation(final Memory srcMem) {
-    return SetOperation.heapify(srcMem);
-  }
-
-  /**
-   * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
-   * @param srcMem Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
-   * {@code srcMem}
-   * @param seed Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
-   * {@code seed}
-   * @return {@link SetOperation SetOperation}
-   */
-  public static SetOperation heapifySetOperation(final Memory srcMem, final long seed) {
-    return SetOperation.heapify(srcMem, seed);
-  }
-
-  /**
-   * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)} {@code srcMem}
-   * @return {@link SetOperation SetOperation}
-   */
-  public static SetOperation wrapSetOperation(final Memory srcMem) {
-    return wrapSetOperation(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)} {@code srcMem}
-   * @return {@link SetOperation SetOperation}
-   */
-  public static SetOperation wrapSetOperation(final WritableMemory srcMem) {
-    return wrapSetOperation(srcMem, DEFAULT_UPDATE_SEED);
-  }
-
-  /**
-   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
-   * @return a Union backed by the given Memory
-   */
-  public static Union wrapUnion(final Memory srcMem) {
-    return (Union) SetOperation.wrap(srcMem);
-  }
-
-  /**
-   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
-   * @return a Union backed by the given Memory
-   */
-  public static Union wrapUnion(final WritableMemory srcMem) {
-    return (Union) SetOperation.wrap(srcMem);
-  }
-
-  /**
-   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
-   * @return a Intersection backed by the given Memory
-   */
-  public static Intersection wrapIntersection(final Memory srcMem) {
-    return (Intersection) SetOperation.wrap(srcMem);
-  }
-
-  /**
-   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory)} {@code srcMem}
-   * @return a Intersection backed by the given Memory
-   */
-  public static Intersection wrapIntersection(final WritableMemory srcMem) {
-    return (Intersection) SetOperation.wrap(srcMem);
-  }
-
-  /**
-   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * {@code srcMem}
-   * @param seed Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * {@code seed}
-   * @return {@link SetOperation SetOperation}
-   */
-  public static SetOperation wrapSetOperation(final Memory srcMem, final long seed) {
-    return SetOperation.wrap(srcMem, seed);
-  }
-
-  /**
-   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * {@code srcMem}
-   * @param seed Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
-   * {@code seed}
-   * @return {@link SetOperation SetOperation}
-   */
-  public static SetOperation wrapSetOperation(final WritableMemory srcMem, final long seed) {
-    return SetOperation.wrap(srcMem, seed);
-  }
-
-  //Get size methods, etc
-
-  /**
-   * Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
-   * @param numberOfEntries  Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
-   * {@code numberOfEntries}
-   * @return Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
-   */
-  public static int getMaxCompactSketchBytes(final int numberOfEntries) {
-    return Sketch.getMaxCompactSketchBytes(numberOfEntries);
-  }
-
-  /**
-   * Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
-   * @param nomEntries Ref: {@link Sketch#getMaxUpdateSketchBytes(int)} {@code nomEntries}
-   * @return Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
-   */
-  public static int getMaxUpdateSketchBytes(final int nomEntries) {
-    return Sketch.getMaxUpdateSketchBytes(nomEntries);
-  }
-
-  /**
-   * Ref: {@link Sketch#getSerializationVersion(Memory)}
-   * @param srcMem Ref: {@link Sketch#getSerializationVersion(Memory)} {@code srcMem}
-   * @return Ref: {@link Sketch#getSerializationVersion(Memory)}
-   */
-  public static int getSerializationVersion(final Memory srcMem) {
-    return Sketch.getSerializationVersion(srcMem);
-  }
-
-  /**
-   * Ref: {@link SetOperation#getMaxUnionBytes(int)}
-   * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)} {@code nomEntries}
-   * @return Ref: {@link SetOperation#getMaxUnionBytes(int)}
-   */
-  public static int getMaxUnionBytes(final int nomEntries) {
-    return SetOperation.getMaxUnionBytes(nomEntries);
-  }
-
-  /**
-   * Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
-   * @param nomEntries Ref: {@link SetOperation#getMaxIntersectionBytes(int)} {@code nomEntries}
-   * @return Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
-   */
-  public static int getMaxIntersectionBytes(final int nomEntries) {
-    return SetOperation.getMaxIntersectionBytes(nomEntries);
+  public static double getLowerBound(final int numStdDev, final Memory srcMem) {
+    return Sketch.lowerBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
 
   /**
@@ -295,17 +78,50 @@ public final class Sketches {
     return SetOperation.getMaxAnotBResultBytes(maxNomEntries);
   }
 
-
-  //Get estimates and bounds from Memory
+  /**
+   * Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
+   * @param numberOfEntries  Ref: {@link Sketch#getMaxCompactSketchBytes(int)},
+   * {@code numberOfEntries}
+   * @return Ref: {@link Sketch#getMaxCompactSketchBytes(int)}
+   */
+  public static int getMaxCompactSketchBytes(final int numberOfEntries) {
+    return Sketch.getMaxCompactSketchBytes(numberOfEntries);
+  }
 
   /**
-   * Gets the unique count estimate from a valid memory image of a Sketch
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return the sketch's best estimate of the cardinality of the input stream.
+   * Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
+   * @param nomEntries Ref: {@link SetOperation#getMaxIntersectionBytes(int)}, {@code nomEntries}
+   * @return Ref: {@link SetOperation#getMaxIntersectionBytes(int)}
    */
-  public static double getEstimate(final Memory srcMem) {
-    checkIfValidThetaSketch(srcMem);
-    return Sketch.estimate(getThetaLong(srcMem), getRetainedEntries(srcMem));
+  public static int getMaxIntersectionBytes(final int nomEntries) {
+    return SetOperation.getMaxIntersectionBytes(nomEntries);
+  }
+
+  /**
+   * Ref: {@link SetOperation#getMaxUnionBytes(int)}
+   * @param nomEntries Ref: {@link SetOperation#getMaxUnionBytes(int)}, {@code nomEntries}
+   * @return Ref: {@link SetOperation#getMaxUnionBytes(int)}
+   */
+  public static int getMaxUnionBytes(final int nomEntries) {
+    return SetOperation.getMaxUnionBytes(nomEntries);
+  }
+
+  /**
+   * Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
+   * @param nomEntries Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}, {@code nomEntries}
+   * @return Ref: {@link Sketch#getMaxUpdateSketchBytes(int)}
+   */
+  public static int getMaxUpdateSketchBytes(final int nomEntries) {
+    return Sketch.getMaxUpdateSketchBytes(nomEntries);
+  }
+
+  /**
+   * Ref: {@link Sketch#getSerializationVersion(Memory)}
+   * @param srcMem Ref: {@link Sketch#getSerializationVersion(Memory)}, {@code srcMem}
+   * @return Ref: {@link Sketch#getSerializationVersion(Memory)}
+   */
+  public static int getSerializationVersion(final Memory srcMem) {
+    return Sketch.getSerializationVersion(srcMem);
   }
 
   /**
@@ -323,21 +139,269 @@ public final class Sketches {
     return Sketch.upperBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
   }
 
+  //Heapify Operations
+
   /**
-   * Gets the approximate lower error bound from a valid memory image of a Sketch
-   * given the specified number of Standard Deviations.
-   * This will return getEstimate() if isEmpty() is true.
-   *
-   * @param numStdDev
-   * <a href="{@docRoot}/resources/dictionary.html#numStdDev">See Number of Standard Deviations</a>
-   * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return the lower bound.
+   * Ref: {@link CompactSketch#heapify(Memory) CompactSketch.heapify(Memory)}
+   * @param srcMem Ref: {@link CompactSketch#heapify(Memory) CompactSketch.heapify(Memory)}, {@code srcMem}
+   * @return {@link CompactSketch CompactSketch}
    */
-  public static double getLowerBound(final int numStdDev, final Memory srcMem) {
-    return Sketch.lowerBound(getRetainedEntries(srcMem), getThetaLong(srcMem), numStdDev, getEmpty(srcMem));
+  public static CompactSketch heapifyCompactSketch(final Memory srcMem) {
+    return CompactSketch.heapify(srcMem);
+  }
+
+  /**
+   * Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)}
+   * @param srcMem Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)}, {@code srcMem}
+   * @param expectedSeed Ref: {@link CompactSketch#heapify(Memory, long) CompactSketch.heapify(Memory, long)},
+   * {@code expectedSeed}
+   * @return {@link CompactSketch CompactSketch}
+   */
+  public static CompactSketch heapifyCompactSketch(final Memory srcMem, final long expectedSeed) {
+    return CompactSketch.heapify(srcMem, expectedSeed);
+  }
+
+  /**
+   * Ref: {@link CompactSketch#wrap(Memory) CompactSketch.wrap(Memory)}
+   * @param srcMem Ref: {@link CompactSketch#wrap(Memory) CompactSketch.wrap(Memory)}, {@code srcMem}
+   * @return {@link CompactSketch CompactSketch}
+   */
+  public static CompactSketch wrapCompactSketch(final Memory srcMem) {
+    return CompactSketch.wrap(srcMem);
+  }
+
+  /**
+   * Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)}
+   * @param srcMem Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)}, {@code srcMem}
+   * @param expectedSeed Ref: {@link CompactSketch#wrap(Memory, long) CompactSketch.wrap(Memory, long)},
+   * {@code expectedSeed}
+   * @return {@link CompactSketch CompactSketch}
+   */
+  public static CompactSketch wrapCompactSketch(final Memory srcMem, final long expectedSeed) {
+    return CompactSketch.wrap(srcMem, expectedSeed);
+  }
+
+  /**
+   * Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)}
+   * @param srcMem Ref: {@link SetOperation#heapify(Memory) SetOperation.heapify(Memory)}, {@code srcMem}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation heapifySetOperation(final Memory srcMem) {
+    return SetOperation.heapify(srcMem);
+  }
+
+  /**
+   * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)}
+   * @param srcMem Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)},
+   * {@code srcMem}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link SetOperation#heapify(Memory, long) SetOperation.heapify(Memory, long)},
+   * {@code expectedSeed}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation heapifySetOperation(final Memory srcMem, final long expectedSeed) {
+    return SetOperation.heapify(srcMem, expectedSeed);
+  }
+
+  /**
+   * Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)}
+   * @param srcMem Ref: {@link Sketch#heapify(Memory) Sketch.heapify(Memory)}, {@code srcMem}
+   * @return {@link Sketch Sketch}
+   */
+  public static Sketch heapifySketch(final Memory srcMem) {
+    return Sketch.heapify(srcMem);
+  }
+
+  /**
+   * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}
+   * @param srcMem Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}, {@code srcMem}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link Sketch#heapify(Memory, long) Sketch.heapify(Memory, long)}, {@code expectedSeed}
+   * @return {@link Sketch Sketch}
+   */
+  public static Sketch heapifySketch(final Memory srcMem, final long expectedSeed) {
+    return Sketch.heapify(srcMem, expectedSeed);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#heapify(Memory) UpdateSketch.heapify(Memory)}
+   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory) UpdateSketch.heapify(Memory)}, {@code srcMem}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem) {
+    return UpdateSketch.heapify(srcMem);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)}
+   * @param srcMem Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)},
+   *   {@code srcMem}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link UpdateSketch#heapify(Memory, long) UpdateSketch.heapify(Memory, long)},
+   *   {@code expectedSeed}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch heapifyUpdateSketch(final Memory srcMem, final long expectedSeed) {
+    return UpdateSketch.heapify(srcMem, expectedSeed);
+  }
+
+  //Builders
+
+  /**
+   * Ref: {@link SetOperationBuilder SetOperationBuilder}
+   * @return {@link SetOperationBuilder SetOperationBuilder}
+   */
+  public static SetOperationBuilder setOperationBuilder() {
+    return new SetOperationBuilder();
+  }
+
+  /**
+   * Ref: {@link UpdateSketchBuilder UpdateSketchBuilder}
+   * @return {@link UpdateSketchBuilder UpdateSketchBuilder}
+   */
+  public static UpdateSketchBuilder updateSketchBuilder() {
+    return new UpdateSketchBuilder();
+  }
+
+  //Wrap operations
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)}, {@code srcMem}
+   * @return a Intersection backed by the given Memory
+   */
+  public static Intersection wrapIntersection(final Memory srcMem) {
+    return (Intersection) SetOperation.wrap(srcMem);
+  }
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Intersection
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)}, {@code srcMem}
+   * @return a Intersection backed by the given Memory
+   */
+  public static Intersection wrapIntersection(final WritableMemory srcMem) {
+    return (Intersection) SetOperation.wrap(srcMem);
+  }
+
+  /**
+   * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}, {@code srcMem}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation wrapSetOperation(final Memory srcMem) {
+    return wrapSetOperation(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
+   * {@code srcMem}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
+   * {@code expectedSeed}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation wrapSetOperation(final Memory srcMem, final long expectedSeed) {
+    return SetOperation.wrap(srcMem, expectedSeed);
+  }
+
+  /**
+   * Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory) SetOperation.wrap(Memory)}, {@code srcMem}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation wrapSetOperation(final WritableMemory srcMem) {
+    return wrapSetOperation(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)}
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
+   * {@code srcMem}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link SetOperation#wrap(Memory, long) SetOperation.wrap(Memory, long)},
+   * {@code expectedSeed}
+   * @return {@link SetOperation SetOperation}
+   */
+  public static SetOperation wrapSetOperation(final WritableMemory srcMem, final long expectedSeed) {
+    return SetOperation.wrap(srcMem, expectedSeed);
+  }
+
+  /**
+   * Ref: {@link Sketch#wrap(Memory) Sketch.wrap(Memory)}
+   * @param srcMem Ref: {@link Sketch#wrap(Memory) Sketch.wrap(Memory)}, {@code srcMem}
+   * @return {@link Sketch Sketch}
+   */
+  public static Sketch wrapSketch(final Memory srcMem) {
+    return Sketch.wrap(srcMem);
+  }
+
+  /**
+   * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}
+   * @param srcMem Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}, {@code srcMem}
+   * @param expectedSeed the expectedSeed used to validate the given Memory image.
+   * Ref: {@link Sketch#wrap(Memory, long) Sketch.wrap(Memory, long)}, {@code expectedSeed}
+   * @return {@link Sketch Sketch}
+   */
+  public static Sketch wrapSketch(final Memory srcMem, final long expectedSeed) {
+    return Sketch.wrap(srcMem, expectedSeed);
+  }
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)}, {@code srcMem}
+   * @return a Union backed by the given Memory
+   */
+  public static Union wrapUnion(final Memory srcMem) {
+    return (Union) SetOperation.wrap(srcMem);
+  }
+
+  /**
+   * Convenience method, calls {@link SetOperation#wrap(Memory)} and casts the result to a Union
+   * @param srcMem Ref: {@link SetOperation#wrap(Memory)}, {@code srcMem}
+   * @return a Union backed by the given Memory
+   */
+  public static Union wrapUnion(final WritableMemory srcMem) {
+    return (Union) SetOperation.wrap(srcMem);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#wrap(Memory) UpdateSketch.wrap(Memory)}
+   * @param srcMem Ref: {@link UpdateSketch#wrap(Memory) UpdateSketch.wrap(Memory)}, {@code srcMem}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem) {
+    return wrapUpdateSketch(srcMem, DEFAULT_UPDATE_SEED);
+  }
+
+  /**
+   * Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}
+   * @param srcMem Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}, {@code srcMem}
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * Ref: {@link UpdateSketch#wrap(Memory, long) UpdateSketch.wrap(Memory, long)}, {@code expectedSeed}
+   * @return {@link UpdateSketch UpdateSketch}
+   */
+  public static UpdateSketch wrapUpdateSketch(final WritableMemory srcMem, final long expectedSeed) {
+    return UpdateSketch.wrap(srcMem, expectedSeed);
   }
 
   //Restricted static methods
+
+  static void checkIfValidThetaSketch(final Memory srcMem) {
+    final int fam = srcMem.getByte(FAMILY_BYTE);
+    if (!Sketch.isValidSketchID(fam)) {
+     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "
+         + Family.idToFamily(fam).toString());
+    }
+  }
+
+  static boolean getEmpty(final Memory srcMem) {
+    final int serVer = srcMem.getByte(SER_VER_BYTE);
+    if (serVer == 1) {
+      return ((getThetaLong(srcMem) == Long.MAX_VALUE) && (getRetainedEntries(srcMem) == 0));
+    }
+    return (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
+  }
 
   static int getPreambleLongs(final Memory srcMem) {
     return srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F; //for SerVer 1,2,3
@@ -365,21 +429,5 @@ public final class Sketches {
   static long getThetaLong(final Memory srcMem) {
     final int preLongs = getPreambleLongs(srcMem);
     return (preLongs < 3) ? Long.MAX_VALUE : srcMem.getLong(THETA_LONG); //for SerVer 1,2,3
-  }
-
-  static boolean getEmpty(final Memory srcMem) {
-    final int serVer = srcMem.getByte(SER_VER_BYTE);
-    if (serVer == 1) {
-      return ((getThetaLong(srcMem) == Long.MAX_VALUE) && (getRetainedEntries(srcMem) == 0));
-    }
-    return (srcMem.getByte(FLAGS_BYTE) & EMPTY_FLAG_MASK) != 0; //for SerVer 2 & 3
-  }
-
-  static void checkIfValidThetaSketch(final Memory srcMem) {
-    final int fam = srcMem.getByte(FAMILY_BYTE);
-    if (!Sketch.isValidSketchID(fam)) {
-     throw new SketchesArgumentException("Source Memory not a valid Sketch. Family: "
-         + Family.idToFamily(fam).toString());
-    }
   }
 }

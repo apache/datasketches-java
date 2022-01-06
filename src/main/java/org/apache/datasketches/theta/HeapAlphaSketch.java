@@ -116,16 +116,17 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * Heapify a sketch from a Memory object containing sketch data.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
+   * @param expectedSeed the seed used to validate the given Memory image.
+   * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
-  static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long seed) {
+  static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long expectedSeed) {
     final int preambleLongs = extractPreLongs(srcMem);            //byte 0
     final int lgNomLongs = extractLgNomLongs(srcMem);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcMem);             //byte 4
 
     checkAlphaFamily(srcMem, preambleLongs, lgNomLongs);
-    checkMemIntegrity(srcMem, seed, preambleLongs, lgNomLongs, lgArrLongs);
+    checkMemIntegrity(srcMem, expectedSeed, preambleLongs, lgNomLongs, lgArrLongs);
 
     final float p = extractP(srcMem);                             //bytes 12-15
     final int memlgRF = extractLgResizeFactor(srcMem);            //byte 0
@@ -139,7 +140,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
       memRF = ResizeFactor.X2; //X2 always works.
     }
 
-    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, memRF, alpha, split1);
+    final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, expectedSeed, p, memRF, alpha, split1);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = extractCurCount(srcMem);

@@ -39,7 +39,7 @@ If you are interested in making contributions to this site please see our [Commu
 
 ---
 
-## Build Instructions
+## Maven Build Instructions
 __NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements. This is required by the Oracle Java Specification in order to ensure location-independent access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
 
 ### A JDK8 with Hotspot through JDK13 with Hotspot is required to compile
@@ -87,4 +87,56 @@ There is one run-time dependency:
 
 #### Testing
 See the pom.xml file for test dependencies.
+
+## Special Build / Test Instructions for Eclipse
+
+Building and running tests using JDK 8 should not be a problem. 
+
+However, with JDK 9+, and Eclipse version up to and including 4.22.0 (2021-12), Eclipse fails to translate the required JPMS JVM arguments specified in the POM into the *.classpath* file, causing illegal reflection access errors.
+
+There are two ways to fix this:
+
+#### Manually update *.classpath* file:
+Open the *.classpath* file in a text editor and insert the following *classpathentry* element (this assumes JDK11, change to suit) then *refresh*.:
+
+```
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
+		<attributes>
+			<attribute name="module" value="true"/>
+			<attribute name="add-exports" value="java.base/jdk.internal.misc=ALL-UNNAMED:java.base/jdk.internal.ref=ALL-UNNAMED"/>
+			<attribute name="add-opens" value="java.base/java.nio=ALL-UNNAMED:java.base/sun.nio.ch=ALL-UNNAMED"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+```
+
+#### Manually update *Module Dependencies*
+
+In Eclipse, open the project *Properties / Java Build Path / Module Dependencies ...*
+
+* Select *java.base*
+* Select *Configured details*
+* Select *Expose Package...*
+    * Enter *Package* = java.nio
+    * Enter *Target module* = ALL-UNNAMED
+    * Select button: *opens*
+    * Hit *OK*
+* Select *Expose Package...*
+    * Enter *Package* = jdk.internal.misc
+    * Enter *Target module* = ALL-UNNAMED
+    * Select button: *exports*
+    * Hit *OK*
+* Select *Expose Package...*
+    * Enter *Package* = jdk.internal.ref
+    * Enter *Target module* = ALL-UNNAMED
+    * Select button: *exports*
+    * Hit *OK*
+* Select *Expose Package...*
+    * Enter *Package* = sun.nio.ch
+    * Enter *Target module* = ALL-UNNAMED
+    * Select button: *opens*
+    * Hit *OK*
+
+
+**NOTE:** If you execute *Maven/Update Project...* from Eclipse with the option *Update project configuration from pom.xml* checked, all of the above will be erased, and you will have to redo it.
 

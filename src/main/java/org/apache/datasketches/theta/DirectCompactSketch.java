@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.theta;
 
+import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
 import static org.apache.datasketches.theta.CompactOperations.memoryToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
-import static org.apache.datasketches.theta.PreambleUtil.checkMemorySeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFlags;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
@@ -60,16 +60,16 @@ class DirectCompactSketch extends CompactSketch {
    * Wraps the given Memory, which must be a SerVer 3, ordered, CompactSketch image.
    * Must check the validity of the Memory before calling. The order bit must be set properly.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @param seed The update seed.
-   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
+   * @param seedHash The update seedHash.
+   * <a href="{@docRoot}/resources/dictionary.html#seedHash">See Seed Hash</a>.
    * @return this sketch
    */
-  static DirectCompactSketch wrapInstance(final Memory srcMem, final long seed) {
-    checkMemorySeedHash(srcMem, seed);
+  static DirectCompactSketch wrapInstance(final Memory srcMem, final short seedHash) {
+    checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
     return new DirectCompactSketch(srcMem);
   }
 
-  //Sketch
+  //Sketch Overrides
 
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {

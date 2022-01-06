@@ -29,6 +29,9 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
@@ -403,6 +406,25 @@ public class ReservoirLongsSketchTest {
   }
 
   @Test
+  public void cluster_checkEstimateSubsetSum() {
+    int cluster = 3;
+    int failCount = 0;
+    for (int i = 0; i < cluster; i++) {
+      try {
+        checkEstimateSubsetSum(); //Test to run cluster on
+        //System.out.println("Fail Count: " + failCount); //useful for debugging thresholds
+        break;
+      } catch (AssertionError ae) {
+        if (++failCount >= cluster) {
+          StringWriter sw = new StringWriter();
+          ae.printStackTrace(new PrintWriter(sw));
+          String str = sw.toString();
+          fail("Failed a cluster of " + cluster + "\n" + str);
+        }
+      }
+    }
+  }
+
   public void checkEstimateSubsetSum() {
     final int k = 10;
     final ReservoirLongsSketch sketch = ReservoirLongsSketch.newInstance(k);
