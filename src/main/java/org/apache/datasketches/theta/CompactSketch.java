@@ -150,7 +150,6 @@ public abstract class CompactSketch extends Sketch {
    * <p>This method assumes that the sketch image was created with the correct hash seed, so it is not checked.
    * However, Serial Version 1 sketch images do not have a seedHash field,
    * so the resulting on-heap CompactSketch will be given the hash of the DEFAULT_UPDATE_SEED.</p>
-   * </p>
    *
    * @param srcMem an image of a Sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>.
