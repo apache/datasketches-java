@@ -217,8 +217,8 @@ APPENDIX B: Additional licenses relevant to this product:
     =============================================================
     Public Domain (optional)
     =============================================================
-    This product contains code to implement and test Austin Appleby's C++ public domain implementation of the 
-    MurmurHash3 algorithm:
+    This product contains code to implement and test Austin Appleby's 
+    C++ public domain implementation of the MurmurHash3 algorithm:
     * src/main/java/org/apache/datasketches/hash/MurmurHash3.java
     * src/main/java/org/apache/datasketches/hash/MurmurHash3Adaptor.java
     * src/test/java/org/apache/datasketches/hash/MurmurHash3AdaptorTest.java

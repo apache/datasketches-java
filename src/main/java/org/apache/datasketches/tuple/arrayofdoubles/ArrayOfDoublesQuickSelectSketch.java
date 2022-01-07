@@ -55,7 +55,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;
 
   // these can be derived from other things, but are kept here for performance
-  int rebuildThreshold_;
+  int rebuildThreshold_; //absolute value relative to current capacity
   int lgCurrentCapacity_;
 
   ArrayOfDoublesQuickSelectSketch(final int numValues, final long seed) {
@@ -94,6 +94,18 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
       setThetaLong(getNewThetaLong());
       rebuild();
     }
+  }
+
+  @Override
+  public int getMaxBytes() {
+    final int nomEntries = getNominalEntries();
+    final int numValues = getNumValues();
+    return getMaxBytes(nomEntries, numValues);
+  }
+
+  @Override
+  public int getCurrentBytes() {
+    return getSerializedSizeBytes();
   }
 
   /**
