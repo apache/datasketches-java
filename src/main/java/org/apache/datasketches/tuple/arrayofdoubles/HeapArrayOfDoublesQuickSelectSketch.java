@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -31,13 +34,14 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
 
+
 /**
  * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles.
  */
 
 final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSketch {
 
-  private final int nomEntries_;
+  private final int lgNomEntries_;
   private final int lgResizeFactor_;
   private final float samplingProbability_;
 
@@ -48,8 +52,8 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   /**
    * This is to create an instance of a QuickSelectSketch with custom resize factor and sampling
    * probability
-   * @param nomEntries Nominal number of entries. Forced to the nearest power of 2 greater than
-   * given value.
+   * @param nomEntries Nominal number of entries. Forced to the smallest power of 2 greater than
+   * or equal to the given value.
    * @param lgResizeFactor log2(resize factor) - value from 0 to 3:
    * 0 - no resizing (max size allocated),
    * 1 - double internal hash table each time it reaches a threshold
@@ -63,7 +67,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor,
       final float samplingProbability, final int numValues, final long seed) {
     super(numValues, seed);
-    nomEntries_ = nomEntries;
+    lgNomEntries_ = simpleLog2OfLong(ceilingPowerOf2(nomEntries));
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
@@ -97,7 +101,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     }
     Util.checkSeedHashes(mem.getShort(SEED_HASH_SHORT), Util.computeSeedHash(seed));
     isEmpty_ = (flags & (1 << Flags.IS_EMPTY.ordinal())) > 0;
-    nomEntries_ = 1 << mem.getByte(LG_NOM_ENTRIES_BYTE);
+    lgNomEntries_ = mem.getByte(LG_NOM_ENTRIES_BYTE);
     thetaLong_ = mem.getLong(THETA_LONG);
     final int currentCapacity = 1 << mem.getByte(LG_CUR_CAPACITY_BYTE);
     lgResizeFactor_ = mem.getByte(LG_RESIZE_FACTOR_BYTE);
@@ -172,7 +176,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
 
   @Override
   public int getNominalEntries() {
-    return nomEntries_;
+    return 1 << lgNomEntries_;
   }
 
   @Override
@@ -237,7 +241,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     mem.putByte(NUM_VALUES_BYTE, (byte) numValues_);
     mem.putShort(SEED_HASH_SHORT, Util.computeSeedHash(seed_));
     mem.putLong(THETA_LONG, thetaLong_);
-    mem.putByte(LG_NOM_ENTRIES_BYTE, (byte) Integer.numberOfTrailingZeros(nomEntries_));
+    mem.putByte(LG_NOM_ENTRIES_BYTE, (byte) lgNomEntries_);
     mem.putByte(LG_CUR_CAPACITY_BYTE, (byte) Integer.numberOfTrailingZeros(keys_.length));
     mem.putByte(LG_RESIZE_FACTOR_BYTE, (byte) lgResizeFactor_);
     mem.putFloat(SAMPLING_P_FLOAT, samplingProbability_);
@@ -259,7 +263,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
     isEmpty_ = true;
     count_ = 0;
     thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability_);
-    final int startingCapacity = Util.getStartingCapacity(nomEntries_, lgResizeFactor_);
+    final int startingCapacity = Util.getStartingCapacity(1 << lgNomEntries_, lgResizeFactor_);
     keys_ = new long[startingCapacity];
     values_ = new double[startingCapacity * numValues_];
     lgCurrentCapacity_ = Integer.numberOfTrailingZeros(startingCapacity);

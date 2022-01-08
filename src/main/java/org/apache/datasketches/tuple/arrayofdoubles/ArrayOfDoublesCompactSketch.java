@@ -20,7 +20,7 @@
 package org.apache.datasketches.tuple.arrayofdoubles;
 
 /**
- * Top level compact tuple sketch of type ArrayOfDoubles. Compact sketches are never created 
+ * Top level compact tuple sketch of type ArrayOfDoubles. Compact sketches are never created
  * directly.  They are created as a result of the compact() method on a QuickSelectSketch
  * or the getResult() method of a set operation like Union, Intersection or AnotB.
  * Compact sketch consists of a compact list (i.e. no intervening spaces) of hash values,
@@ -33,7 +33,7 @@ public abstract class ArrayOfDoublesCompactSketch extends ArrayOfDoublesSketch {
 
   // Layout of retained entries:
   // Long || Start Byte Adr:
-  // Adr: 
+  // Adr:
   //      ||   23   |   22   |   21   |   20   |   19   |   18   |   17   |    16     |
   //  3   ||-----------------------------------|----------Retained Entries------------|
 
@@ -44,5 +44,21 @@ public abstract class ArrayOfDoublesCompactSketch extends ArrayOfDoublesSketch {
 
   ArrayOfDoublesCompactSketch(final int numValues) {
     super(numValues);
+  }
+
+  @Override
+  public int getCurrentBytes() {
+    final int count = getRetainedEntries();
+    int sizeBytes = EMPTY_SIZE;
+    if (count > 0) {
+      sizeBytes = ENTRIES_START + (SIZE_OF_KEY_BYTES * count)
+          + (SIZE_OF_VALUE_BYTES * numValues_ * count);
+    }
+    return sizeBytes;
+  }
+
+  @Override
+  public int getMaxBytes() {
+    return getCurrentBytes();
   }
 }

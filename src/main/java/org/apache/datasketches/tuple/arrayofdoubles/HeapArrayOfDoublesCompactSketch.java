@@ -163,11 +163,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
   @Override
   public byte[] toByteArray() {
     final int count = getRetainedEntries();
-    int sizeBytes = EMPTY_SIZE;
-    if (count > 0) {
-      sizeBytes =
-          ENTRIES_START + (SIZE_OF_KEY_BYTES * count) + (SIZE_OF_VALUE_BYTES * numValues_ * count);
-    }
+    final int sizeBytes = getCurrentBytes();
     final byte[] bytes = new byte[sizeBytes];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     mem.putByte(PREAMBLE_LONGS_BYTE, (byte) 1);

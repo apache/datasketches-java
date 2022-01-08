@@ -444,15 +444,29 @@ public final class Util {
   }
 
   /**
+   * Gives the log2 of a long that is known to be a power of 2.
+   *
+   * @param x number that is greater than zero
+   * @return the log2 of a long that is known to be a power of 2.
+   */
+  public static int simpleLog2OfLong(final long x) {
+    final int exp = Long.numberOfTrailingZeros(x);
+    if (x != 1L << exp) {
+      throw new SketchesArgumentException("Argument x must be a positive power of 2.");
+    }
+    return exp;
+  }
+
+  /**
    * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
-   * of 2 that equal to or greater than the given n and equal to a mathematical integer.
+   * of 2 that is equal to or greater than the given n and a mathematical integer.
    *
    * <p>For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
    * <li>2^30 &le; n &le; 2^31 -1 : returns 2^30</li>
    * <li>n == a power of 2 : returns n</li>
-   * <li>otherwise returns the smallest power of 2 greater than n and equal to a mathematical
+   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a mathematical
    * integer</li>
    * </ul>
    *
@@ -537,7 +551,7 @@ public final class Util {
   }
 
   /**
-   * Computes the floor power of 2 given <i>n</i> is in therange [1, 2^31-1].
+   * Computes the floor power of 2 given <i>n</i> is in the range [1, 2^31-1].
    * This is the largest positive power of 2 that equal to or less than the given n and equal
    * to a mathematical integer.
    *
@@ -664,20 +678,6 @@ public final class Util {
   }
 
   /**
-   * Gives the log2 of a long that is known to be a power of 2.
-   *
-   * @param x number that is greater than zero
-   * @return the log2 of a long that is known to be a power of 2.
-   */
-  public static int simpleLog2OfLong(final long x) {
-    final int exp = Long.numberOfTrailingZeros(x);
-    if (x != 1L << exp) {
-      throw new SketchesArgumentException("Argument x must be a positive power of 2.");
-    }
-    return exp;
-  }
-
-  /**
    * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
    * one or more resize factors.
    *
@@ -771,7 +771,7 @@ public final class Util {
   }
 
   //Checks
-  
+
   /**
    * Check the requested offset and length against the allocated size.
    * The invariants equation is: {@code 0 <= reqOff <= reqLen <= reqOff + reqLen <= allocSize}.
@@ -787,8 +787,8 @@ public final class Util {
               + ", (reqOff + reqLen): " + (reqOff + reqLen) + ", allocSize: " + allocSize);
     }
   }
-  
-  
+
+
   /**
    * Checks that the given nomLongs is within bounds and returns the Log2 of the ceiling power of 2
    * of the given nomLongs.

@@ -362,8 +362,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
     return array;
   }
 
-  private static void checkIfEnoughMemory(final Memory mem, final int numEntries,
-      final int numValues) {
+  private static void checkIfEnoughMemory(final Memory mem, final int numEntries, final int numValues) {
     final int sizeNeeded =
         ENTRIES_START + ((SIZE_OF_KEY_BYTES + (SIZE_OF_VALUE_BYTES * numValues)) * numEntries);
     if (sizeNeeded > mem.getCapacity()) {

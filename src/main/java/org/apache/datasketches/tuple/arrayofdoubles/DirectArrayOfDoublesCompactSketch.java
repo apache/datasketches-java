@@ -246,12 +246,7 @@ final class DirectArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketc
 
   @Override
   public byte[] toByteArray() {
-    final int count = getRetainedEntries();
-    int sizeBytes = EMPTY_SIZE;
-    if (count > 0) {
-      sizeBytes = ENTRIES_START + (SIZE_OF_KEY_BYTES * count)
-          + (SIZE_OF_VALUE_BYTES * count * numValues_);
-    }
+    final int sizeBytes = getCurrentBytes();
     final byte[] byteArray = new byte[sizeBytes];
     final WritableMemory mem = WritableMemory.writableWrap(byteArray);
     mem_.copyTo(0, mem, 0, sizeBytes);

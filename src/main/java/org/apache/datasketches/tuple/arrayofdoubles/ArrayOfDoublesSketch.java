@@ -201,6 +201,17 @@ public abstract class ArrayOfDoublesSketch {
   public abstract int getRetainedEntries();
 
   /**
+   * @return the maximum number of bytes for this sketch when serialized.
+   */
+  public abstract int getMaxBytes();
+
+  /**
+   * For compact sketches this is the same as getMaxBytes().
+   * @return the current number of bytes for this sketch when serialized.
+   */
+  public abstract int getCurrentBytes();
+
+  /**
    * @return serialized representation of the sketch
    */
   public abstract byte[] toByteArray();
