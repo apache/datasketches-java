@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.simpleLog2OfLong;
+
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -30,6 +33,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
+
 
 /**
  * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles.
@@ -63,8 +67,7 @@ final class HeapArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelec
   HeapArrayOfDoublesQuickSelectSketch(final int nomEntries, final int lgResizeFactor,
       final float samplingProbability, final int numValues, final long seed) {
     super(numValues, seed);
-    lgNomEntries_ =
-        org.apache.datasketches.Util.simpleLog2OfLong(org.apache.datasketches.Util.ceilingPowerOf2(nomEntries));
+    lgNomEntries_ = simpleLog2OfLong(ceilingPowerOf2(nomEntries));
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     thetaLong_ = (long) (Long.MAX_VALUE * (double) samplingProbability);
