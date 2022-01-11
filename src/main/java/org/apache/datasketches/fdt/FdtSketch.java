@@ -83,6 +83,23 @@ public class FdtSketch extends ArrayOfStringsSketch {
   }
 
   /**
+   * Copy Constructor
+   * @param sketch the sketch to copy
+   */
+  public FdtSketch(final FdtSketch sketch) {
+    super(sketch);
+  }
+
+  /**
+   * @return a deep copy of this sketch
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public FdtSketch copy() {
+    return new FdtSketch(this);
+  }
+
+  /**
    * Update the sketch with the given string array tuple.
    * @param tuple the given string array tuple.
    */

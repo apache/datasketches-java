@@ -115,7 +115,7 @@ public class CornerCaseThetaSetOperationsTest {
   }
 
   @Test
-  public void EmptyEstimation() {
+  public void emptyEstimation() {
     UpdateSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
     UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double expectedIntersectTheta = 1.0;
@@ -301,7 +301,7 @@ public class CornerCaseThetaSetOperationsTest {
   //=================================
 
   @Test
-  public void DegenerateEmpty() {
+  public void degenerateEmpty() {
     UpdateSketch thetaA = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V); //entries = 0
     UpdateSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
@@ -321,7 +321,7 @@ public class CornerCaseThetaSetOperationsTest {
   }
 
   @Test
-  public void DegenerateExact() {
+  public void degenerateExact() {
     UpdateSketch thetaA = getSketch(SkType.DEGENERATE,  LOWP, GT_LOWP_V); //entries = 0
     UpdateSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
@@ -341,7 +341,7 @@ public class CornerCaseThetaSetOperationsTest {
   }
 
   @Test
-  public void DegenerateDegenerate() {
+  public void degenerateDegenerate() {
     UpdateSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
     UpdateSketch thetaB = getSketch(SkType.DEGENERATE, LOWP, GT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;
@@ -361,7 +361,7 @@ public class CornerCaseThetaSetOperationsTest {
   }
 
   @Test
-  public void DegenerateEstimation() {
+  public void degenerateEstimation() {
     UpdateSketch thetaA = getSketch(SkType.DEGENERATE, MIDP, GT_MIDP_V); //entries = 0
     UpdateSketch thetaB = getSketch(SkType.ESTIMATION, LOWP, LT_LOWP_V);
     final double expectedIntersectTheta = LOWP_THETA;

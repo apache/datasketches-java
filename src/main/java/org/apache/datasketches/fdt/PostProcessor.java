@@ -58,7 +58,7 @@ public class PostProcessor {
    * @param sep the separator character
    */
   public PostProcessor(final FdtSketch sketch, final Group group, final char sep) {
-    this.sketch = sketch;
+    this.sketch = sketch.copy();
     this.sep = sep;
     final int numEntries = sketch.getRetainedEntries();
     mapArrSize = ceilingPowerOf2((int)(numEntries / 0.75));

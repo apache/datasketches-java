@@ -74,6 +74,23 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
   }
 
   /**
+   * Copy Constructor
+   * @param sketch the sketch to copy
+   */
+  public ArrayOfStringsSketch(final ArrayOfStringsSketch sketch) {
+    super(sketch);
+  }
+
+  /**
+   * @return a deep copy of this sketch
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public ArrayOfStringsSketch copy() {
+    return new ArrayOfStringsSketch(this);
+  }
+
+  /**
    * Updates the sketch with String arrays for both key and value.
    * @param strArrKey the given String array key
    * @param strArr the given String array value

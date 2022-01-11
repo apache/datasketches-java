@@ -378,7 +378,7 @@ public class HeapifyWrapSerVer1and2Test {
     assertEquals(sv3cskResult.getEstimate(), sv3usk.getEstimate());
     assertEquals(sv3cskResult.getSeedHash(), seedHash);
     assertFalse(sv3cskResult.isDirect());
-    try { wh.close(); } catch (Exception e) {}
+    try { wh.close(); } catch (Exception e) {/* ignore */}
   }
 
   @Test

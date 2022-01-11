@@ -23,6 +23,7 @@ import static org.apache.datasketches.sampling.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.sampling.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.sampling.PreambleUtil.SER_VER_BYTE;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -515,17 +516,10 @@ public class VarOptItemsSketchTest {
     for (int i = 0; i < (2 * k); ++i) {
       sketch.update("a", 100.0 + i);
     }
-
     assertEquals(sketch.getN(), 2 * k);
     assertEquals(sketch.getHRegionCount(), 0);
     assertEquals(sketch.getRRegionCount(), k);
-    try {
-      sketch.getMark(0);
-      fail();
-    } catch (final NullPointerException e) {
-      // expected
-    }
-
+    assertFalse(sketch.isMarksValid());
     sketch.reset();
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getHRegionCount(), 0);

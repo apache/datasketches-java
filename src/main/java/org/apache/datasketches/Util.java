@@ -33,6 +33,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Objects;
 
 /**
  * Common utility functions.
@@ -846,13 +847,15 @@ public final class Util {
    * @return the absolute path of the given resource file's shortName.
    */
   public static String getResourcePath(final String shortFileName) {
+    Objects.requireNonNull(shortFileName, "input parameter " + shortFileName + " cannot be null.");
     try {
       final URL url = Util.class.getClassLoader().getResource(shortFileName);
+      Objects.requireNonNull(url, "resource " + shortFileName + " could not be acquired.");
       final URI uri = url.toURI();
       //decodes any special characters
       final String path = uri.isAbsolute() ? Paths.get(uri).toAbsolutePath().toString() : uri.getPath();
       return path;
-    } catch (final NullPointerException | URISyntaxException e) {
+    } catch (final URISyntaxException e) {
       throw new SketchesArgumentException("Cannot find resource: " + shortFileName + LS + e);
     }
   }

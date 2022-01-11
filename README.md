@@ -92,12 +92,23 @@ See the pom.xml file for test dependencies.
 
 Building and running tests using JDK 8 should not be a problem. 
 
-However, with JDK 9+, and Eclipse version up to and including 4.22.0 (2021-12), Eclipse fails to translate the required JPMS JVM arguments specified in the POM into the *.classpath* file, causing illegal reflection access errors.
+However, with JDK 9+, and Eclipse versions up to and including 4.22.0 (2021-12), Eclipse fails to translate the required JPMS JVM arguments specified in the POM compiler or surefire plugins into the *.classpath* file, causing illegal reflection access errors 
+[eclipse-m2e/m2e-core Bug 543631](https://github.com/eclipse-m2e/m2e-core/issues/129).
 
 There are two ways to fix this:
 
-#### Manually update *.classpath* file:
-Open the *.classpath* file in a text editor and insert the following *classpathentry* element (this assumes JDK11, change to suit) then *refresh*.:
+#### Method 1: Manually update *.classpath* file:
+Open the *.classpath* file in a text editor and find the following *classpathentry* element (this assumes JDK11, change to suit):
+
+```
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
+		<attributes>
+			<attribute name="module" value="true"/>
+			<attribute name="maven.pomderived" value="true"/>
+		</attributes>
+	</classpathentry>
+```
+Then edit it as follows:
 
 ```
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
@@ -109,8 +120,9 @@ Open the *.classpath* file in a text editor and insert the following *classpathe
 		</attributes>
 	</classpathentry>
 ```
+Finally, *refresh*.
 
-#### Manually update *Module Dependencies*
+#### Method 2: Manually update *Module Dependencies*
 
 In Eclipse, open the project *Properties / Java Build Path / Module Dependencies ...*
 
