@@ -785,10 +785,6 @@ public final class VarOptItemsSketch<T> {
     return weights_.get(idx);
   }
 
-  boolean isMarksValid() {
-    return marks_ != null;
-  }
-
   // package-private: Relies on ArrayList for bounds checking and assumes caller knows how to
   // handle a null from the middle of the list.
   boolean getMark(final int idx) { return marks_.get(idx); }
