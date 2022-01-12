@@ -253,7 +253,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     memReqSvr = (memReqSvr == null) ? mem_.getMemoryRequestServer() : memReqSvr;
     if (memReqSvr == null) {
       throw new SketchesArgumentException(
-          "A reequest for more memory has been denied, "
+          "A request for more memory has been denied, "
           + "or a default MemoryRequestServer has not been provided. Must abort. ");
     }
 
