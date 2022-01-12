@@ -78,9 +78,52 @@ under the License.
 
   <Match> <!-- Too many False Positives -->
     <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
-    
-  </Match>  
+  </Match>
   
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- False positive -->
+    <Class name="org.apache.datasketches.cpc.CpcWrapper" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- False positive -->
+    <Class name="org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesAnotBImpl" />
+    <Method name="update" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- Only used in test -->
+    <Class name="org.apache.datasketches.cpc.CompressionCharacterization" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- Only used in test -->
+    <Class name="org.apache.datasketches.cpc.MergingValidation" />
+  </Match>
+
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- Only used in test -->
+    <Class name="org.apache.datasketches.cpc.QuickMergingValidation" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- Only used in test -->
+    <Class name="org.apache.datasketches.cpc.StreamingValidation" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" /> <!-- Only used in test -->
+    <Class name="org.apache.datasketches.req.ReqDebugImpl" />
+  </Match>
+  
+  <Match> <!-- Exclude Test clases and packages -->
+    <Class name="~.*Test$"/>
+  </Match>
+  
+  <Match>
+    <Package name="~test\..*"/>
+  </Match>
+
 </FindBugsFilter>
 
 

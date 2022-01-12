@@ -151,6 +151,17 @@ public class FdtSketchTest {
     }
   }
 
+  @Test
+  public void checkCopyCtor() {
+    final int lgK = 14;
+    final FdtSketch sk = new FdtSketch(lgK);
+
+    final String[] nodesArr = {"abc", "def" };
+    sk.update(nodesArr);
+    assertEquals(sk.getRetainedEntries(), 1);
+    final FdtSketch sk2 = sk.copy();
+    assertEquals(sk2.getRetainedEntries(), 1);
+  }
 
   @Test
   public void printlnTest() {

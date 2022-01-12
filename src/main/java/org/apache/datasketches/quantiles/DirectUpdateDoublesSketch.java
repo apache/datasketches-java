@@ -42,6 +42,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.quantiles.Util.computeBitPattern;
 
 import org.apache.datasketches.Family;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -250,6 +251,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     assert needBytes > memBytes;
 
     memReqSvr = (memReqSvr == null) ? mem_.getMemoryRequestServer() : memReqSvr;
+    if (memReqSvr == null) {
+      throw new SketchesArgumentException(
+          "A request for more memory has been denied, "
+          + "or a default MemoryRequestServer has not been provided. Must abort. ");
+    }
 
     final WritableMemory newMem = memReqSvr.request(mem_, needBytes);
 

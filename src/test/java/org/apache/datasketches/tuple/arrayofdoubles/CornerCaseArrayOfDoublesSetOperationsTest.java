@@ -58,6 +58,8 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   private static final long LOWP_THETALONG = (long)(MAX_LONG * LOWP_FLT);
   private static final long HASH_LT_LOWP = getLongHash(LT_LOWP_KEY);
 
+  private static final String LS = System.getProperty("line.separator");
+
   private enum SkType {
     EMPTY,      // { 1.0,  0, T} Bin: 101  Oct: 05
     EXACT,      // { 1.0, >0, F} Bin: 110  Oct: 06, specify only value
@@ -139,7 +141,7 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   }
 
   @Test
-  public void EmptyEstimation() {
+  public void emptyEstimation() {
     ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.EMPTY, 0, 0);
     ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
     final double expectedIntersectTheta = 1.0;
@@ -325,7 +327,7 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   //=================================
 
   @Test
-  public void DegenerateEmpty() {
+  public void degenerateEmpty() {
     ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY); //entries = 0
     ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EMPTY, 0, 0);
     final double expectedIntersectTheta = 1.0;
@@ -345,7 +347,7 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   }
 
   @Test
-  public void DegenerateExact() {
+  public void degenerateExact() {
     ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE,  LOWP_FLT, GT_LOWP_KEY); //entries = 0
     ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.EXACT, 0, LT_LOWP_KEY);
     final double expectedIntersectTheta = LOWP_FLT;
@@ -365,7 +367,7 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   }
 
   @Test
-  public void DegenerateDegenerate() {
+  public void degenerateDegenerate() {
     ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_KEY); //entries = 0
     ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.DEGENERATE, LOWP_FLT, GT_LOWP_KEY);
     final double expectedIntersectTheta = LOWP_FLT;
@@ -385,7 +387,7 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   }
 
   @Test
-  public void DegenerateEstimation() {
+  public void degenerateEstimation() {
     ArrayOfDoublesUpdatableSketch thetaA = getSketch(SkType.DEGENERATE, MIDP_FLT, GT_MIDP_KEY); //entries = 0
     ArrayOfDoublesUpdatableSketch thetaB = getSketch(SkType.ESTIMATION, LOWP_FLT, LT_LOWP_KEY);
     final double expectedIntersectTheta = LOWP_FLT;
@@ -540,15 +542,15 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   //@Test
   public void printTable() {
     println("              Top8bits  Hex               Decimal");
-    printf("MAX:           %8s, %16x, %19d\n", getTop8(MAX_LONG), MAX_LONG, MAX_LONG);
-    printf("GT_MIDP:       %8s, %16x, %19d\n", getTop8(HASH_GT_MIDP), HASH_GT_MIDP, HASH_GT_MIDP);
-    printf("MIDP_THETALONG:%8s, %16x, %19d\n", getTop8(MIDP_THETALONG), MIDP_THETALONG, MIDP_THETALONG);
-    printf("GT_LOWP:       %8s, %16x, %19d\n", getTop8(HASH_GT_LOWP), HASH_GT_LOWP, HASH_GT_LOWP);
-    printf("LOWP_THETALONG:%8s, %16x, %19d\n", getTop8(LOWP_THETALONG), LOWP_THETALONG, LOWP_THETALONG);
-    printf("LT_LOWP:       %8s, %16x, %19d\n", getTop8(HASH_LT_LOWP), HASH_LT_LOWP, HASH_LT_LOWP);
-    println("\nDoubles");
+    printf("MAX:           %8s, %16x, %19d" + LS, getTop8(MAX_LONG), MAX_LONG, MAX_LONG);
+    printf("GT_MIDP:       %8s, %16x, %19d" + LS, getTop8(HASH_GT_MIDP), HASH_GT_MIDP, HASH_GT_MIDP);
+    printf("MIDP_THETALONG:%8s, %16x, %19d" + LS, getTop8(MIDP_THETALONG), MIDP_THETALONG, MIDP_THETALONG);
+    printf("GT_LOWP:       %8s, %16x, %19d" + LS, getTop8(HASH_GT_LOWP), HASH_GT_LOWP, HASH_GT_LOWP);
+    printf("LOWP_THETALONG:%8s, %16x, %19d" + LS, getTop8(LOWP_THETALONG), LOWP_THETALONG, LOWP_THETALONG);
+    printf("LT_LOWP:       %8s, %16x, %19d" + LS, getTop8(HASH_LT_LOWP), HASH_LT_LOWP, HASH_LT_LOWP);
+    println(LS +"Doubles");
 
-    println("\nLongs");
+    println(LS + "Longs");
     for (long v = 1L; v < 10; v++) {
       long hash = (hash(v, DEFAULT_UPDATE_SEED)[0]) >>> 1;
       printLong(v, hash);
@@ -560,7 +562,7 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
   }
 
   static void printLong(long v, long hash) {
-    System.out.printf("     %8d, %8s, %16x, %19d\n",v, getTop8(hash), hash, hash);
+    System.out.printf("     %8d, %8s, %16x, %19d" + LS,v, getTop8(hash), hash, hash);
   }
 
   static String getTop8(final long v) {

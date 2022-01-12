@@ -515,17 +515,9 @@ public class VarOptItemsSketchTest {
     for (int i = 0; i < (2 * k); ++i) {
       sketch.update("a", 100.0 + i);
     }
-
     assertEquals(sketch.getN(), 2 * k);
     assertEquals(sketch.getHRegionCount(), 0);
     assertEquals(sketch.getRRegionCount(), k);
-    try {
-      sketch.getMark(0);
-      fail();
-    } catch (final NullPointerException e) {
-      // expected
-    }
-
     sketch.reset();
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getHRegionCount(), 0);

@@ -76,6 +76,23 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
   }
 
   /**
+   * Copy Constructor
+   * @param sketch the sketch to copy
+   */
+  public UpdatableSketch(final UpdatableSketch<U, S> sketch) {
+    super(sketch);
+  }
+
+  /**
+   * @return a deep copy of this sketch
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public UpdatableSketch<U,S> copy() {
+    return new UpdatableSketch<U,S>(this);
+  }
+
+  /**
    * Updates this sketch with a long key and U value.
    * The value is passed to update() method of the Summary object associated with the key
    *

@@ -99,6 +99,18 @@ public class ArrayOfStringsSketchTest {
     }
   }
 
+  @Test
+  public void checkCopyCtor() {
+    ArrayOfStringsSketch sk1 = new ArrayOfStringsSketch();
+    String[][] strArrArr = {{"a","b"},{"c","d"},{"e","f"}};
+    int len = strArrArr.length;
+    for (int i = 0; i < len; i++) {
+      sk1.update(strArrArr[i], strArrArr[i]);
+    }
+    assertEquals(sk1.getRetainedEntries(), 3);
+    final ArrayOfStringsSketch sk2 = sk1.copy();
+    assertEquals(sk2.getRetainedEntries(), 3);
+  }
 
   @Test
   public void printlnTest() {

@@ -89,7 +89,7 @@ public class UtilTest {
   public void checkBoundsTest() {
     Util.checkBounds(999, 2, 1000);
   }
-  
+
   @Test
   public void checkIsPowerOf2() {
     Assert.assertEquals(isPowerOf2(0), false);
@@ -396,7 +396,7 @@ public class UtilTest {
     assertTrue(file.exists());
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = NullPointerException.class)
   public void resourceFileNotFound() {
     final String shortFileName = "cpc-empty.sk";
     getResourceFile(shortFileName + "123");
@@ -409,7 +409,7 @@ public class UtilTest {
     assertTrue(bytes.length == 8);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = NullPointerException.class)
   public void resourceBytesFileNotFound() {
     final String shortFileName = "cpc-empty.sk";
     getResourceBytes(shortFileName + "123");

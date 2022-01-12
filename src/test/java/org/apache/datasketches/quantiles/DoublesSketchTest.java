@@ -152,15 +152,17 @@ public class DoublesSketchTest {
 
   @Test
   public void directSketchShouldMoveOntoHeapEventually2() {
-    try (WritableHandle wdh = WritableMemory.allocateDirect(50)) {
+    int i = 0;
+    try (WritableHandle wdh =
+        WritableMemory.allocateDirect(50, ByteOrder.LITTLE_ENDIAN, new DefaultMemoryRequestServer())) {
       WritableMemory mem = wdh.getWritable();
       UpdateDoublesSketch sketch = DoublesSketch.builder().build(mem);
       Assert.assertTrue(sketch.isSameResource(mem));
-      for (int i = 0; i < 1000; i++) {
-        try {
+      for (; i < 1000; i++) {
+        if (sketch.isSameResource(mem)) {
           sketch.update(i);
-          if (sketch.isSameResource(mem)) { continue; }
-        } catch (NullPointerException e) {
+        } else {
+          System.out.println("MOVED at i = " + i);
           break;
         }
       }

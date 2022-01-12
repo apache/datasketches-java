@@ -78,7 +78,6 @@ final class AnotBimpl extends AnotB {
 
     //process A
     hashArr_ = getHashArrA(skA);
-    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
     empty_ = false;
     thetaLong_ = skA.getThetaLong();
     curCount_ = hashArr_.length;
@@ -94,7 +93,6 @@ final class AnotBimpl extends AnotB {
 
     //process B
     hashArr_ = getResultHashArr(thetaLong_, curCount_, hashArr_, skB);
-    hashArr_ = (hashArr_ == null) ? new long[0] : hashArr_;
     curCount_ = hashArr_.length;
     empty_ = curCount_ == 0 && thetaLong_ == Long.MAX_VALUE;
   }
@@ -135,7 +133,7 @@ final class AnotBimpl extends AnotB {
 
     //process A
     final long[] hashArrA = getHashArrA(skA);
-    final int countA = (hashArrA == null) ? 0 : hashArrA.length;
+    final int countA = hashArrA.length;
 
 
     //process B

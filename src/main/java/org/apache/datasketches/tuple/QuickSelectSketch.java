@@ -135,6 +135,24 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   /**
+   * Copy constructor
+   * @param sketch the QuickSelectSketch to be copied.
+   */
+  QuickSelectSketch(final QuickSelectSketch<S> sketch) {
+    nomEntries_ = sketch.nomEntries_;
+    lgCurrentCapacity_ = sketch.lgCurrentCapacity_;
+    lgResizeFactor_ = sketch.lgResizeFactor_;
+    count_ = sketch.count_;
+    samplingProbability_ = sketch.samplingProbability_;
+    rebuildThreshold_ = sketch.rebuildThreshold_;
+    thetaLong_ = sketch.thetaLong_;
+    empty_ = sketch.empty_;
+    summaryFactory_ = sketch.summaryFactory_;
+    hashTable_ = sketch.hashTable_.clone();
+    summaryTable_ = Util.copySummaryArray(sketch.summaryTable_);
+  }
+
+  /**
    * This is to create an instance of a QuickSelectSketch given a serialized form
    * @param mem Memory object with serialized QukckSelectSketch
    * @param deserializer the SummaryDeserializer
@@ -203,6 +221,13 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     }
     empty_ = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
     setRebuildThreshold();
+  }
+
+  /**
+   * @return a deep copy of this sketch
+   */
+  QuickSelectSketch<S> copy() {
+    return new QuickSelectSketch<S>(this);
   }
 
   long[] getHashTable() {

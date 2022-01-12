@@ -137,12 +137,20 @@ public final class Util {
     return hashCharArr(s.toCharArray(), 0, s.length(), PRIME);
   }
 
+  /**
+   * Will copy compact summary arrays as well as hashed summary tables (with nulls).
+   * @param <S> type of summary
+   * @param summaryArr the given summary array or table
+   * @return the copy
+   */
   @SuppressWarnings("unchecked")
   public static <S extends Summary> S[] copySummaryArray(final S[] summaryArr) {
     final int len = summaryArr.length;
     final S[] tmpSummaryArr = newSummaryArray(summaryArr, len);
     for (int i = 0; i < len; i++) {
-      tmpSummaryArr[i] = (S) summaryArr[i].copy();
+      final S summary = summaryArr[i];
+      if (summary == null) { continue; }
+      tmpSummaryArr[i] = (S) summary.copy();
     }
     return tmpSummaryArr;
   }

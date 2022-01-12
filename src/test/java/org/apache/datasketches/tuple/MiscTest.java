@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.tuple;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.SetOperationCornerCases.CornerCase;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
@@ -52,7 +52,7 @@ public class MiscTest {
   @Test
   public void checkDoubleToLongArray() {
     final long[] v = Util.doubleToLongArray(-0.0);
-    Assert.assertEquals(v[0], 0);
+    assertEquals(v[0], 0);
   }
 
   //@Test
@@ -71,6 +71,20 @@ public class MiscTest {
     }
   }
 
+  @Test
+  public void checkCopyCtor() {
+    final DoubleSummary.Mode mode = Mode.Sum;
+    final UpdatableSketchBuilder<Double, DoubleSummary> bldr =
+        new UpdatableSketchBuilder<>(new DoubleSummaryFactory(mode));
+    bldr.reset();
+    final UpdatableSketch<Double,DoubleSummary> sk = bldr.build();
+    sk.update(1.0, 1.0);
+    assertEquals(sk.getRetainedEntries(), 1);
+    final  UpdatableSketch<Double,DoubleSummary> sk2 = sk.copy();
+    assertEquals(sk2.getRetainedEntries(), 1);
+  }
+
+
   /**
    *
    * @param o object to print
@@ -78,8 +92,5 @@ public class MiscTest {
   private static void println(final Object o) {
     //System.out.println(o.toString()); //disable here
   }
-
-
-
 
 }
