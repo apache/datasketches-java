@@ -162,7 +162,7 @@ public class DoublesSketchTest {
         if (sketch.isSameResource(mem)) {
           sketch.update(i);
         } else {
-          System.out.println("MOVED at i = " + i);
+          //println("MOVED OUT at i = " + i);
           break;
         }
       }
