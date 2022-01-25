@@ -498,7 +498,7 @@ public class KllFloatsSketch {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the {@link #getNormalizedRankError(boolean)}.
-   * @param k the configuation parameter
+   * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
@@ -832,7 +832,7 @@ public class KllFloatsSketch {
     sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);
     sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
     sb.append("   Levels               : ").append(numLevels_).append(Util.LS);
-    sb.append("   Sorted               : ").append(isLevelZeroSorted_).append(Util.LS);
+    sb.append("   Level 0 Sorted       : ").append(isLevelZeroSorted_).append(Util.LS);
     sb.append("   Buffer Capacity Items: ").append(items_.length).append(Util.LS);
     sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
     sb.append("   Storage Bytes        : ").append(getSerializedSizeBytes()).append(Util.LS);
@@ -842,7 +842,7 @@ public class KllFloatsSketch {
 
     if (withLevels) {
       sb.append("### KLL sketch levels:").append(Util.LS)
-      .append("   level, offset: nominal capacity, actual size").append(Util.LS);
+      .append(" level, offset: nominal capacity, actual size").append(Util.LS);
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
         .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
@@ -852,19 +852,29 @@ public class KllFloatsSketch {
     }
 
     if (withData) {
-      sb.append("### KLL sketch data:").append(Util.LS);
+      sb.append("### KLL sketch data {index, item}:").append(Util.LS);
+      if (levels_[0] > 0) {
+        sb.append(" Garbage:" + Util.LS);
+        for (int i = 0; i < levels_[0]; i++) {
+          if (items_[i] == 0.0f) { continue; }
+          sb.append("   ").append(i + ", ").append(items_[i]).append(Util.LS);
+        }
+      }
       int level = 0;
       while (level < numLevels_) {
         final int fromIndex = levels_[level];
         final int toIndex = levels_[level + 1]; // exclusive
         if (fromIndex < toIndex) {
-          sb.append(" level ").append(level).append(":").append(Util.LS);
+          sb.append(" level[").append(level).append("]: " + levels_[level] + " wt: " + (1 << level));
+          sb.append(Util.LS);
         }
         for (int i = fromIndex; i < toIndex; i++) {
-          sb.append("   ").append(items_[i]).append(Util.LS);
+          sb.append("   ").append(i + ", ").append(items_[i]).append(Util.LS);
         }
         level++;
       }
+      sb.append(" level[" + level + "]: " + levels_[level] + " (Exclusive)");
+      sb.append(Util.LS);
       sb.append("### End sketch data").append(Util.LS);
     }
 
