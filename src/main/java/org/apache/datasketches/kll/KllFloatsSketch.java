@@ -251,7 +251,7 @@ public class KllFloatsSketch {
   private float maxValue_;
   private final boolean compatible; //compatible with quantiles sketch
   private static final Random random = new Random();
-  
+
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
    */
@@ -300,7 +300,7 @@ public class KllFloatsSketch {
 
   /**
    * Off-heap constructor.
-   * @param mem Memory object that contains data serilized by this sketch.
+   * @param mem Memory object that contains data serialized by this sketch.
    */
   private KllFloatsSketch(final Memory mem) {
     m_ = DEFAULT_M;
@@ -1009,7 +1009,9 @@ public class KllFloatsSketch {
       KllHelper.randomlyHalveUp(items_, adjBeg, adjPop, random);
     } else {
       KllHelper.randomlyHalveDown(items_, adjBeg, adjPop, random);
-      KllHelper.mergeSortedArrays(items_, adjBeg, halfAdjPop, items_, rawLim, popAbove,
+      KllHelper.mergeSortedArrays(
+          items_, adjBeg, halfAdjPop,
+          items_, rawLim, popAbove,
           items_, adjBeg + halfAdjPop);
     }
     levels_[level + 1] -= halfAdjPop;          // adjust boundaries of the level above

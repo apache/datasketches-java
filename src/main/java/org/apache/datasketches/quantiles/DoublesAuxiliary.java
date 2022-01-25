@@ -84,7 +84,7 @@ final class DoublesAuxiliary {
    * item would appear in position 0 &le; pos &lt; n of a hypothetical sorted
    * version of that stream.
    *
-   * <p>Note that since that since the true stream is unavailable,
+   * <p>Note that since the true stream is unavailable,
    * we don't actually answer the question for that stream, but rather for
    * a <i>different</i> stream of the same length, that could hypothetically
    * be reconstructed from the weighted samples in our sketch.

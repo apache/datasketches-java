@@ -120,9 +120,9 @@ class KllHelper {
    * @return the actual capacity of a given level given its depth index.
    */
   private static long intCapAuxAux(final long k, final int depth) {
-    final long twok = k << 1; // for rounding, we pre-multiply by 2
+    final long twok = k << 1; // for rounding pre-multiply by 2
     final long tmp = ((twok << depth) / powersOfThree[depth]);
-    final long result = ((tmp + 1) >> 1); // then here we add 1 and divide by 2
+    final long result = ((tmp + 1) >> 1); // add 1 and divide by 2
     assert (result <= k);
     return result;
   }
@@ -147,8 +147,10 @@ class KllHelper {
     return total;
   }
 
-  static void mergeSortedArrays(final float[] bufA, final int startA, final int lenA,
-      final float[] bufB, final int startB, final int lenB, final float[] bufC, final int startC) {
+  static void mergeSortedArrays(
+      final float[] bufA, final int startA, final int lenA,
+      final float[] bufB, final int startB, final int lenB,
+      final float[] bufC, final int startC) {
     final int lenC = lenA + lenB;
     final int limA = startA + lenA;
     final int limB = startB + lenB;

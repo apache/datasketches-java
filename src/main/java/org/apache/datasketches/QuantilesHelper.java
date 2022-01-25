@@ -54,7 +54,7 @@ public class QuantilesHelper {
 
   /**
    * This is written in terms of a plain array to facilitate testing.
-   * @param wtArr the cumlative weights array consisting of chunks
+   * @param wtArr the cumulative weights array consisting of chunks
    * @param pos the position
    * @return the index of the chunk containing the position
    */
