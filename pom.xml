@@ -33,7 +33,8 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>3.1.0</version>
+  <version>3.2.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
   <description>Core sketch algorithms used alone and by other Java repositories in the DataSketches library.</description>
