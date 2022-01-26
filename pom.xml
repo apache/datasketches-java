@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -19,8 +18,10 @@ specific language governing permissions and limitations
 under the License.
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
 
@@ -127,33 +128,8 @@ under the License.
     <coveralls-maven-plugin.version>4.3.0</coveralls-maven-plugin.version>
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
-    <git-commit-id-maven-plugin.version>5.0.0</git-commit-id-maven-plugin.version>
+    <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <id>apache.snapshots</id>
-      <name>Apache Snapshot Repository</name>
-      <url>https://repository.apache.org/content/groups/snapshots/org/apache/datasketches/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-    <repository>
-      <id>apache</id>
-      <name>Apache Releases Repository</name>
-      <url>https://repository.apache.org/content/repositories/releases/org/apache/datasketches/</url>
-      <releases>
-        <enabled>true</enabled>
-      </releases>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <dependencies>
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
@@ -251,10 +227,10 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>${java.version}</version>
+                    <version>[1.8,1.9),[8,14)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
-                    <version>${maven.version},</version>
+                    <version>[${maven.version},)</version>
                   </requireMavenVersion>
                   <bannedDependencies>
                     <excludes>
@@ -367,9 +343,9 @@ under the License.
         </plugin>
 
         <plugin>
-          <groupId>io.github.git-commit-id</groupId>
-          <artifactId>git-commit-id-maven-plugin</artifactId>
-          <version>${git-commit-id-maven-plugin.version}</version>
+          <groupId>pl.project13.maven</groupId>
+          <artifactId>git-commit-id-plugin</artifactId>
+          <version>${git-commit-id-plugin.version}</version>
         </plugin>
 
       </plugins>
@@ -416,8 +392,8 @@ under the License.
         <artifactId>coveralls-maven-plugin</artifactId>
       </plugin>
       <plugin>
-        <groupId>io.github.git-commit-id</groupId>
-        <artifactId>git-commit-id-maven-plugin</artifactId>
+        <groupId>pl.project13.maven</groupId>
+        <artifactId>git-commit-id-plugin</artifactId>
       </plugin>
     </plugins>
   </build>
@@ -462,6 +438,10 @@ under the License.
 
     <profile>
       <id>strict</id>
+      <!-- The error prone compiler is only currently supported for compilation in JDK 8 -->
+      <activation>
+        <jdk>[1.8, 1.9),8</jdk>
+      </activation>
       <build>
         <pluginManagement>
           <plugins>
@@ -503,9 +483,9 @@ under the License.
         <pluginManagement>
           <plugins>
             <plugin>
-              <groupId>io.github.git-commit-id</groupId>
-              <artifactId>git-commit-id-maven-plugin</artifactId>
-              <version>${git-commit-id-maven-plugin.version}</version>
+              <groupId>pl.project13.maven</groupId>
+              <artifactId>git-commit-id-plugin</artifactId>
+              <version>${git-commit-id-plugin.version}</version>
               <executions>
                 <execution>
                   <goals>
@@ -522,7 +502,8 @@ under the License.
                 <format>json</format>
                 <generateGitPropertiesFile>true</generateGitPropertiesFile>
                 <generateGitPropertiesFilename>${project.build.directory}/git.properties</generateGitPropertiesFilename>
-                <failOnNoGitDirectory>true</failOnNoGitDirectory>
+                <!-- Maven commands are sometimes run on the release artifact directly, which is not a Git repository -->
+                <failOnNoGitDirectory>false</failOnNoGitDirectory>
                 <failOnUnableToExtractRepoInfo>true</failOnUnableToExtractRepoInfo>
                 <commitIdGenerationMode>full</commitIdGenerationMode>
                 <includeOnlyProperties>
@@ -574,7 +555,7 @@ under the License.
                     <Build-OS>${os.name} ${os.arch} ${os.version}</Build-OS>
                     <Implementation-Vendor>The Apache Software Foundation</Implementation-Vendor>
                     <GroupId-ArtifactId>${project.groupId}:${project.artifactId}</GroupId-ArtifactId>
-                    <!-- these properties are generated by the git-commit-id-maven-plugin during initialize -->
+                    <!-- these properties are generated by the git-commit-id-plugin during initialize -->
                     <!--suppress UnresolvedMavenProperty -->
                     <git-branch>${git.branch}</git-branch>
                     <!--suppress UnresolvedMavenProperty -->
@@ -617,8 +598,8 @@ under the License.
 
         <plugins>
           <plugin>
-            <groupId>io.github.git-commit-id</groupId>
-            <artifactId>git-commit-id-maven-plugin</artifactId>
+            <groupId>pl.project13.maven</groupId>
+            <artifactId>git-commit-id-plugin</artifactId>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
