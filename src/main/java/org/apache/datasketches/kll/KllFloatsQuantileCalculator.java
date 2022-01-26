@@ -54,8 +54,8 @@ final class KllFloatsQuantileCalculator {
     n_ = n;
     items_ = items;
     weights_ = weights; //must be size of items + 1
-    levels_ = null;  //not used
-    numLevels_ = 0;  //not used
+    levels_ = null;  //not used by test
+    numLevels_ = 0;  //not used by test
   }
 
   float getQuantile(final double phi) { //phi is normalized rank [0,1].
@@ -80,7 +80,7 @@ final class KllFloatsQuantileCalculator {
     while (srcLevel < numLevels) {
       final int fromIndex = srcLevels[srcLevel] - offset;
       final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
-      if (fromIndex < toIndex) { // skip empty levels
+      if (fromIndex < toIndex) { // if equal, skip empty level
         Arrays.fill(weights_, fromIndex, toIndex, weight);
         levels_[dstLevel] = fromIndex;
         levels_[dstLevel + 1] = toIndex;
