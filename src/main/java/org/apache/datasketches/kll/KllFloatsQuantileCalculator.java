@@ -54,8 +54,8 @@ final class KllFloatsQuantileCalculator {
     n_ = n;
     items_ = items;
     weights_ = weights; //must be size of items + 1
-    levels_ = null;  //not used
-    numLevels_ = 0;  //not used
+    levels_ = null;  //not used by test
+    numLevels_ = 0;  //not used by test
   }
 
   float getQuantile(final double phi) { //phi is normalized rank [0,1].
@@ -80,7 +80,7 @@ final class KllFloatsQuantileCalculator {
     while (srcLevel < numLevels) {
       final int fromIndex = srcLevels[srcLevel] - offset;
       final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
-      if (fromIndex < toIndex) { // skip empty levels
+      if (fromIndex < toIndex) { // if equal, skip empty level
         Arrays.fill(weights_, fromIndex, toIndex, weight);
         levels_[dstLevel] = fromIndex;
         levels_[dstLevel + 1] = toIndex;
@@ -104,9 +104,10 @@ final class KllFloatsQuantileCalculator {
     blockyTandemMergeSortRecursion(itemsTmp, weightsTmp, items, weights, levels, 0, numLevels);
   }
 
-  private static void blockyTandemMergeSortRecursion(final float[] itemsSrc, final long[] weightsSrc,
-      final float[] itemsDst, final long[] weightsDst, final int[] levels, final int startingLevel,
-      final int numLevels) {
+  private static void blockyTandemMergeSortRecursion(
+      final float[] itemsSrc, final long[] weightsSrc,
+      final float[] itemsDst, final long[] weightsDst,
+      final int[] levels, final int startingLevel, final int numLevels) {
     if (numLevels == 1) { return; }
     final int numLevels1 = numLevels / 2;
     final int numLevels2 = numLevels - numLevels1;
@@ -115,17 +116,27 @@ final class KllFloatsQuantileCalculator {
     final int startingLevel1 = startingLevel;
     final int startingLevel2 = startingLevel + numLevels1;
     // swap roles of src and dst
-    blockyTandemMergeSortRecursion(itemsDst, weightsDst, itemsSrc, weightsSrc, levels,
-        startingLevel1, numLevels1);
-    blockyTandemMergeSortRecursion(itemsDst, weightsDst, itemsSrc, weightsSrc, levels,
-        startingLevel2, numLevels2);
-    tandemMerge(itemsSrc, weightsSrc, itemsDst, weightsDst, levels, startingLevel1, numLevels1,
+    blockyTandemMergeSortRecursion(
+        itemsDst, weightsDst,
+        itemsSrc, weightsSrc,
+        levels, startingLevel1, numLevels1);
+    blockyTandemMergeSortRecursion(
+        itemsDst, weightsDst,
+        itemsSrc, weightsSrc,
+        levels, startingLevel2, numLevels2);
+    tandemMerge(
+        itemsSrc, weightsSrc,
+        itemsDst, weightsDst,
+        levels,
+        startingLevel1, numLevels1,
         startingLevel2, numLevels2);
   }
 
-  private static void tandemMerge(final float[] itemsSrc, final long[] weightsSrc,
+  private static void tandemMerge(
+      final float[] itemsSrc, final long[] weightsSrc,
       final float[] itemsDst, final long[] weightsDst,
-      final int[] levelStarts, final int startingLevel1, final int numLevels1,
+      final int[] levelStarts,
+      final int startingLevel1, final int numLevels1,
       final int startingLevel2, final int numLevels2) {
     final int fromIndex1 = levelStarts[startingLevel1];
     final int toIndex1 = levelStarts[startingLevel1 + numLevels1]; // exclusive

@@ -39,7 +39,7 @@ final class ItemsAuxiliary<T> {
 
   /**
    * Constructs the Auxiliary structure from the ItemsSketch
-   * @param qs an Itemsketch
+   * @param qs an ItemsSketch
    */
   @SuppressWarnings("unchecked")
   ItemsAuxiliary(final ItemsSketch<T> qs) {

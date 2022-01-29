@@ -41,6 +41,7 @@ class KllHelper {
 
   /**
    * Copy the old array into a new larger array.
+   * The extra space is at the top.
    * @param oldArr the given old array with data
    * @param newLen the new length larger than the oldArr.length.
    * @return the new array
@@ -106,7 +107,7 @@ class KllHelper {
    * @return the actual capacity of a given level given its depth index.
    */
   private static long intCapAux(final int k, final int depth) {
-    if (depth <= 30) { return (int) intCapAuxAux(k, depth); }
+    if (depth <= 30) { return intCapAuxAux(k, depth); }
     final int half = depth / 2;
     final int rest = depth - half;
     final long tmp = intCapAuxAux(k, half);
@@ -120,9 +121,9 @@ class KllHelper {
    * @return the actual capacity of a given level given its depth index.
    */
   private static long intCapAuxAux(final long k, final int depth) {
-    final long twok = k << 1; // for rounding, we pre-multiply by 2
+    final long twok = k << 1; // for rounding pre-multiply by 2
     final long tmp = ((twok << depth) / powersOfThree[depth]);
-    final long result = ((tmp + 1) >> 1); // then here we add 1 and divide by 2
+    final long result = ((tmp + 1L) >>> 1); // add 1 and divide by 2
     assert (result <= k);
     return result;
   }
@@ -147,8 +148,10 @@ class KllHelper {
     return total;
   }
 
-  static void mergeSortedArrays(final float[] bufA, final int startA, final int lenA,
-      final float[] bufB, final int startB, final int lenB, final float[] bufC, final int startC) {
+  static void mergeSortedArrays(
+      final float[] bufA, final int startA, final int lenA,
+      final float[] bufB, final int startB, final int lenB,
+      final float[] bufC, final int startC) {
     final int lenC = lenA + lenB;
     final int limA = startA + lenA;
     final int limB = startB + lenB;

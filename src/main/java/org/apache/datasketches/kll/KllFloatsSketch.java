@@ -251,7 +251,7 @@ public class KllFloatsSketch {
   private float maxValue_;
   private final boolean compatible; //compatible with quantiles sketch
   private static final Random random = new Random();
-  
+
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
    */
@@ -300,7 +300,7 @@ public class KllFloatsSketch {
 
   /**
    * Off-heap constructor.
-   * @param mem Memory object that contains data serilized by this sketch.
+   * @param mem Memory object that contains data serialized by this sketch.
    */
   private KllFloatsSketch(final Memory mem) {
     m_ = DEFAULT_M;
@@ -498,7 +498,7 @@ public class KllFloatsSketch {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the {@link #getNormalizedRankError(boolean)}.
-   * @param k the configuation parameter
+   * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
@@ -832,7 +832,7 @@ public class KllFloatsSketch {
     sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);
     sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
     sb.append("   Levels               : ").append(numLevels_).append(Util.LS);
-    sb.append("   Sorted               : ").append(isLevelZeroSorted_).append(Util.LS);
+    sb.append("   Level 0 Sorted       : ").append(isLevelZeroSorted_).append(Util.LS);
     sb.append("   Buffer Capacity Items: ").append(items_.length).append(Util.LS);
     sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
     sb.append("   Storage Bytes        : ").append(getSerializedSizeBytes()).append(Util.LS);
@@ -842,7 +842,7 @@ public class KllFloatsSketch {
 
     if (withLevels) {
       sb.append("### KLL sketch levels:").append(Util.LS)
-      .append("   level, offset: nominal capacity, actual size").append(Util.LS);
+      .append(" level, offset: nominal capacity, actual size").append(Util.LS);
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
         .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
@@ -852,19 +852,29 @@ public class KllFloatsSketch {
     }
 
     if (withData) {
-      sb.append("### KLL sketch data:").append(Util.LS);
+      sb.append("### KLL sketch data {index, item}:").append(Util.LS);
+      if (levels_[0] > 0) {
+        sb.append(" Garbage:" + Util.LS);
+        for (int i = 0; i < levels_[0]; i++) {
+          if (items_[i] == 0.0f) { continue; }
+          sb.append("   ").append(i + ", ").append(items_[i]).append(Util.LS);
+        }
+      }
       int level = 0;
       while (level < numLevels_) {
         final int fromIndex = levels_[level];
         final int toIndex = levels_[level + 1]; // exclusive
         if (fromIndex < toIndex) {
-          sb.append(" level ").append(level).append(":").append(Util.LS);
+          sb.append(" level[").append(level).append("]: offset: " + levels_[level] + " wt: " + (1 << level));
+          sb.append(Util.LS);
         }
         for (int i = fromIndex; i < toIndex; i++) {
-          sb.append("   ").append(items_[i]).append(Util.LS);
+          sb.append("   ").append(i + ", ").append(items_[i]).append(Util.LS);
         }
         level++;
       }
+      sb.append(" level[" + level + "]: offset: " + levels_[level] + " (Exclusive)");
+      sb.append(Util.LS);
       sb.append("### End sketch data").append(Util.LS);
     }
 
@@ -1009,7 +1019,9 @@ public class KllFloatsSketch {
       KllHelper.randomlyHalveUp(items_, adjBeg, adjPop, random);
     } else {
       KllHelper.randomlyHalveDown(items_, adjBeg, adjPop, random);
-      KllHelper.mergeSortedArrays(items_, adjBeg, halfAdjPop, items_, rawLim, popAbove,
+      KllHelper.mergeSortedArrays(
+          items_, adjBeg, halfAdjPop,
+          items_, rawLim, popAbove,
           items_, adjBeg + halfAdjPop);
     }
     levels_[level + 1] -= halfAdjPop;          // adjust boundaries of the level above
@@ -1034,7 +1046,11 @@ public class KllFloatsSketch {
     }
   }
 
-  private int findLevelToCompact() {
+  /**
+   * Finds the first level starting with level 0 that exceeds its nominal capacity
+   * @return level to compact
+   */
+  private int findLevelToCompact() { //
     int level = 0;
     while (true) {
       assert level < numLevels_;
@@ -1051,7 +1067,7 @@ public class KllFloatsSketch {
     final int curTotalCap = levels_[numLevels_];
 
     // make sure that we are following a certain growth scheme
-    assert levels_[0] == 0;
+    assert levels_[0] == 0; //definition of full
     assert items_.length == curTotalCap;
 
     // note that merging MIGHT over-grow levels_, in which case we might not have to grow it here

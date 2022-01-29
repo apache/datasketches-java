@@ -41,7 +41,7 @@ public class QuantilesHelper {
   }
 
   /**
-   * Returns the zero-based index (position) of a value in the hypothetical sorted stream of
+   * Returns the linear zero-based index (position) of a value in the hypothetical sorted stream of
    * values of size n.
    * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
    * @param n the size of the stream
@@ -54,7 +54,7 @@ public class QuantilesHelper {
 
   /**
    * This is written in terms of a plain array to facilitate testing.
-   * @param wtArr the cumlative weights array consisting of chunks
+   * @param wtArr the cumulative weights array consisting of chunks
    * @param pos the position
    * @return the index of the chunk containing the position
    */
