@@ -865,7 +865,7 @@ public class KllFloatsSketch {
         final int fromIndex = levels_[level];
         final int toIndex = levels_[level + 1]; // exclusive
         if (fromIndex < toIndex) {
-          sb.append(" level[").append(level).append("]: " + levels_[level] + " wt: " + (1 << level));
+          sb.append(" level[").append(level).append("]: offset: " + levels_[level] + " wt: " + (1 << level));
           sb.append(Util.LS);
         }
         for (int i = fromIndex; i < toIndex; i++) {
@@ -873,7 +873,7 @@ public class KllFloatsSketch {
         }
         level++;
       }
-      sb.append(" level[" + level + "]: " + levels_[level] + " (Exclusive)");
+      sb.append(" level[" + level + "]: offset: " + levels_[level] + " (Exclusive)");
       sb.append(Util.LS);
       sb.append("### End sketch data").append(Util.LS);
     }
@@ -1046,7 +1046,11 @@ public class KllFloatsSketch {
     }
   }
 
-  private int findLevelToCompact() {
+  /**
+   * Finds the first level starting with level 0 that exceeds its nominal capacity
+   * @return level to compact
+   */
+  private int findLevelToCompact() { //
     int level = 0;
     while (true) {
       assert level < numLevels_;
@@ -1063,7 +1067,7 @@ public class KllFloatsSketch {
     final int curTotalCap = levels_[numLevels_];
 
     // make sure that we are following a certain growth scheme
-    assert levels_[0] == 0;
+    assert levels_[0] == 0; //definition of full
     assert items_.length == curTotalCap;
 
     // note that merging MIGHT over-grow levels_, in which case we might not have to grow it here
