@@ -117,6 +117,7 @@ public abstract class ArrayOfDoublesUnion {
 
   /**
    * Updates the union by adding a set of entries from a given sketch, which can be on-heap or off-heap.
+   * Both the given tupleSketch and the internal state of the Union must have the same <i>numValues</i>.
    *
    * <p>Nulls and empty sketches are ignored.</p>
    *
