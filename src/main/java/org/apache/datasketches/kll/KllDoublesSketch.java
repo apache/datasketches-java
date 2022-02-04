@@ -38,7 +38,7 @@ import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * Implementation of a very compact quantiles sketch with lazy compaction scheme
+ * Implementation of a compact quantiles sketch with lazy compaction scheme
  * and nearly optimal accuracy per retained item.
  * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
  *
@@ -171,7 +171,7 @@ import org.apache.datasketches.memory.Memory;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public class KllFloatsSketch {
+public class KllDoublesSketch {
 
   /**
    * The default value of K.
@@ -188,14 +188,16 @@ public class KllFloatsSketch {
    *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
    *  1   ||---------------------------------N_LONG---------------------------------------|
    *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
-   *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
+   *  2   ||<-------------unused------------------------|numLevels|-------min K-----------|
+   *      ||                                                               |      24      |
+   *  3   ||<---------------------------------data----------------------------------------|
    *
    * Serialized sketch layout, Empty and Single Item:
    *  Adr:
    *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
    *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||                                   |-------------------data-------------------|
+   *      ||                                                               |      8       |
+   *  1   ||<---------------------------------data----------------------------------------|
    */
 
   // Preamble byte addresses
@@ -209,15 +211,15 @@ public class KllFloatsSketch {
   private static final int N_LONG             = 8;  // to 15
   private static final int MIN_K_SHORT        = 16; // to 17
   private static final int NUM_LEVELS_BYTE    = 18;
-  //                                            19 is reserved for future use
-  private static final int DATA_START         = 20; // if using items larger than 4 bytes, use 24
+  //                                            19 - 23 is reserved for future use
+  private static final int DATA_START         = 24; // if using doubles, use 24
   private static final int DATA_START_SINGLE_ITEM = 8;
 
   // Other static values
   private static final byte serialVersionUID1  = 1;
   private static final byte serialVersionUID2  = 2;
   private static final int PREAMBLE_INTS_SMALL = 2; // for empty and single item
-  private static final int PREAMBLE_INTS_FULL  = 5; // if using items larger than 4 bytes, use 6
+  private static final int PREAMBLE_INTS_FULL  = 6; // if using items larger than 4 bytes, use 6
 
   private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED, IS_SINGLE_ITEM }
 
@@ -245,17 +247,17 @@ public class KllFloatsSketch {
   private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   private boolean isLevelZeroSorted_;
 
-  // Specific to the floats sketch
-  private float[] items_; // the continuous array of float items
-  private float minValue_;
-  private float maxValue_;
+  // Specific to the doubles sketch
+  private double[] items_; // the continuous array of double items
+  private double minValue_;
+  private double maxValue_;
   private final boolean compatible; //compatible with quantiles sketch
   private static final Random random = new Random();
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
    */
-  public KllFloatsSketch() {
+  public KllDoublesSketch() {
     this(DEFAULT_K);
   }
 
@@ -265,7 +267,7 @@ public class KllFloatsSketch {
    * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
-  public KllFloatsSketch(final int k) {
+  public KllDoublesSketch(final int k) {
     this(k, DEFAULT_M, true);
   }
 
@@ -274,7 +276,7 @@ public class KllFloatsSketch {
    * @param k configured size of sketch. Range [m, 2^16]
    * @param compatible if true, compatible with quantiles sketch.
    */
-  KllFloatsSketch(final int k, final boolean compatible) {
+  KllDoublesSketch(final int k, final boolean compatible) {
     this(k, DEFAULT_M, compatible);
   }
 
@@ -283,16 +285,16 @@ public class KllFloatsSketch {
    * @param k configured size of sketch. Range [m, 2^16]
    * @param m minimum level size. Default is 8.
    */
-  private KllFloatsSketch(final int k, final int m, final boolean compatible) {
+  private KllDoublesSketch(final int k, final int m, final boolean compatible) {
     checkK(k);
     k_ = k;
     minK_ = k;
     m_ = m;
     numLevels_ = 1;
     levels_ = new int[] {k, k};
-    items_ = new float[k];
-    minValue_ = Float.NaN;
-    maxValue_ = Float.NaN;
+    items_ = new double[k];
+    minValue_ = Double.NaN;
+    maxValue_ = Double.NaN;
     isLevelZeroSorted_ = false;
     this.compatible = compatible;
 
@@ -302,7 +304,7 @@ public class KllFloatsSketch {
    * Off-heap constructor.
    * @param mem Memory object that contains data serialized by this sketch.
    */
-  private KllFloatsSketch(final Memory mem) {
+  private KllDoublesSketch(final Memory mem) {
     m_ = DEFAULT_M;
     k_ = mem.getShort(K_SHORT) & 0xffff;
     final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
@@ -314,9 +316,9 @@ public class KllFloatsSketch {
       levels_ = new int[] {k_, k_};
       isLevelZeroSorted_ = false;
       minK_ = k_;
-      items_ = new float[k_];
-      minValue_ = Float.NaN;
-      maxValue_ = Float.NaN;
+      items_ = new double[k_];
+      minValue_ = Double.NaN;
+      maxValue_ = Double.NaN;
     } else {
       if (isSingleItem) {
         n_ = 1;
@@ -329,7 +331,7 @@ public class KllFloatsSketch {
       }
       levels_ = new int[numLevels_ + 1];
       int offset = isSingleItem ? DATA_START_SINGLE_ITEM : DATA_START;
-      final int capacity = KllFloatsHelper.computeTotalCapacity(k_, m_, numLevels_);
+      final int capacity = KllDoublesHelper.computeTotalCapacity(k_, m_, numLevels_);
       if (isSingleItem) {
         levels_[0] = capacity - 1;
       } else {
@@ -339,13 +341,13 @@ public class KllFloatsSketch {
       }
       levels_[numLevels_] = capacity;
       if (!isSingleItem) {
-        minValue_ = mem.getFloat(offset);
-        offset += Float.BYTES;
-        maxValue_ = mem.getFloat(offset);
-        offset += Float.BYTES;
+        minValue_ = mem.getDouble(offset);
+        offset += Double.BYTES;
+        maxValue_ = mem.getDouble(offset);
+        offset += Double.BYTES;
       }
-      items_ = new float[capacity];
-      mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
+      items_ = new double[capacity];
+      mem.getDoubleArray(offset, items_, levels_[0], getNumRetained());
       if (isSingleItem) {
         minValue_ = items_[levels_[0]];
         maxValue_ = items_[levels_[0]];
@@ -361,7 +363,7 @@ public class KllFloatsSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
-  public static KllFloatsSketch heapify(final Memory mem) {
+  public static KllDoublesSketch heapify(final Memory mem) {
     final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
     final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
     final int family = mem.getByte(FAMILY_BYTE) & 0xff;
@@ -393,7 +395,7 @@ public class KllFloatsSketch {
       throw new SketchesArgumentException(
       "Possible corruption: family mismatch: expected " + Family.KLL.getID() + ", got " + family);
     }
-    return new KllFloatsSketch(mem);
+    return new KllDoublesSketch(mem);
   }
 
   // public functions
@@ -407,7 +409,7 @@ public class KllFloatsSketch {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
@@ -419,7 +421,7 @@ public class KllFloatsSketch {
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public double[] getCDF(final float[] splitPoints) {
+  public double[] getCDF(final double[] splitPoints) {
     return getPmfOrCdf(splitPoints, true);
   }
 
@@ -439,7 +441,7 @@ public class KllFloatsSketch {
    * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
    * @return the value of <i>k</i> given a value of epsilon.
-   * @see KllFloatsSketch
+   * @see KllDoublesSketch
    */
   // constants were derived as the best fit to 99 percentile empirically measured max error in
   // thousands of trials
@@ -461,7 +463,7 @@ public class KllFloatsSketch {
    *
    * @return the max value of the stream
    */
-  public float getMaxValue() {
+  public double getMaxValue() {
     return maxValue_;
   }
 
@@ -471,7 +473,7 @@ public class KllFloatsSketch {
    *
    * @return the min value of the stream
    */
-  public float getMinValue() {
+  public double getMinValue() {
     return minValue_;
   }
 
@@ -489,7 +491,7 @@ public class KllFloatsSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, returns the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllFloatsSketch
+   * @see KllDoublesSketch
    */
   public double getNormalizedRankError(final boolean pmf) {
     return getNormalizedRankError(minK_, pmf);
@@ -503,7 +505,7 @@ public class KllFloatsSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllFloatsSketch
+   * @see KllDoublesSketch
    */
   // constants were derived as the best fit to 99 percentile empirically measured max error in
   // thousands of trials
@@ -531,8 +533,8 @@ public class KllFloatsSketch {
    * @return upper bound on the serialized size
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final int numLevels = KllFloatsHelper.ubOnNumLevels(n);
-    final int maxNumItems = KllFloatsHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
+    final int numLevels = KllDoublesHelper.ubOnNumLevels(n);
+    final int maxNumItems = KllDoublesHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
     return getSerializedSizeBytes(numLevels, maxNumItems);
   }
 
@@ -545,7 +547,7 @@ public class KllFloatsSketch {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
@@ -557,7 +559,7 @@ public class KllFloatsSketch {
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
-  public double[] getPMF(final float[] splitPoints) {
+  public double[] getPMF(final double[] splitPoints) {
     return getPmfOrCdf(splitPoints, false);
   }
 
@@ -579,8 +581,8 @@ public class KllFloatsSketch {
    *
    * @return the approximation to the value at the given fraction
    */
-  public float getQuantile(final double fraction) {
-    if (isEmpty()) { return Float.NaN; }
+  public double getQuantile(final double fraction) {
+    if (isEmpty()) { return Double.NaN; }
     if (compatible) {
       if (fraction == 0.0) { return minValue_; }
       if (fraction == 1.0) { return maxValue_; }
@@ -588,7 +590,7 @@ public class KllFloatsSketch {
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
-    final KllFloatsQuantileCalculator quant = getQuantileCalculator();
+    final KllDoublesQuantileCalculator quant = getQuantileCalculator();
     return quant.getQuantile(fraction);
   }
 
@@ -599,7 +601,7 @@ public class KllFloatsSketch {
    * @return the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public float getQuantileUpperBound(final double fraction) {
+  public double getQuantileUpperBound(final double fraction) {
     return getQuantile(min(1.0, fraction + getNormalizedRankError(minK_, false)));
   }
 
@@ -610,7 +612,7 @@ public class KllFloatsSketch {
    * @return the lower bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public float getQuantileLowerBound(final double fraction) {
+  public double getQuantileLowerBound(final double fraction) {
     return getQuantile(max(0, fraction - getNormalizedRankError(minK_, false)));
   }
 
@@ -632,10 +634,10 @@ public class KllFloatsSketch {
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public float[] getQuantiles(final double[] fractions) {
+  public double[] getQuantiles(final double[] fractions) {
     if (isEmpty()) { return null; }
-    KllFloatsQuantileCalculator quant = null;
-    final float[] quantiles = new float[fractions.length];
+    KllDoublesQuantileCalculator quant = null;
+    final double[] quantiles = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
       if (fraction < 0.0 || fraction > 1.0) {
@@ -667,7 +669,7 @@ public class KllFloatsSketch {
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public float[] getQuantiles(final int numEvenlySpaced) {
+  public double[] getQuantiles(final int numEvenlySpaced) {
     if (isEmpty()) { return null; }
     return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
   }
@@ -684,7 +686,7 @@ public class KllFloatsSketch {
    * @param value to be ranked
    * @return an approximate rank of the given value
    */
-  public double getRank(final float value) {
+  public double getRank(final double value) {
     if (isEmpty()) { return Double.NaN; }
     int level = 0;
     int weight = 1;
@@ -733,15 +735,15 @@ public class KllFloatsSketch {
   /**
    * @return the iterator for this class
    */
-  public KllFloatsSketchIterator iterator() {
-    return new KllFloatsSketchIterator(items_, levels_, numLevels_);
+  public KllDoublesSketchIterator iterator() {
+    return new KllDoublesSketchIterator(items_, levels_, numLevels_);
   }
 
   /**
    * Merges another sketch into this one.
    * @param other sketch to merge into this one
    */
-  public void merge(final KllFloatsSketch other) {
+  public void merge(final KllDoublesSketch other) {
     if (other == null || other.isEmpty()) { return; }
     if (m_ != other.m_) {
       throw new SketchesArgumentException("incompatible M: " + m_ + " and " + other.m_);
@@ -755,8 +757,8 @@ public class KllFloatsSketch {
       mergeHigherLevels(other, finalN);
     }
     //update min, max values, n
-    if (Float.isNaN(minValue_) || other.minValue_ < minValue_) { minValue_ = other.minValue_; }
-    if (Float.isNaN(maxValue_) || other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
+    if (Double.isNaN(minValue_) || other.minValue_ < minValue_) { minValue_ = other.minValue_; }
+    if (Double.isNaN(maxValue_) || other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
     n_ = finalN;
 
     assertCorrectTotalWeight();
@@ -794,15 +796,15 @@ public class KllFloatsSketch {
         ByteArrayUtil.putIntLE(bytes, offset, levels_[i]);
         offset += Integer.BYTES;
       }
-      ByteArrayUtil.putFloatLE(bytes, offset, minValue_);
-      offset += Float.BYTES;
-      ByteArrayUtil.putFloatLE(bytes, offset, maxValue_);
-      offset += Float.BYTES;
+      ByteArrayUtil.putDoubleLE(bytes, offset, minValue_);
+      offset += Double.BYTES;
+      ByteArrayUtil.putDoubleLE(bytes, offset, maxValue_);
+      offset += Double.BYTES;
     }
     final int numItems = getNumRetained();
     for (int i = 0; i < numItems; i++) {
-      ByteArrayUtil.putFloatLE(bytes, offset, items_[levels_[0] + i]);
-      offset += Float.BYTES;
+      ByteArrayUtil.putDoubleLE(bytes, offset, items_[levels_[0] + i]);
+      offset += Double.BYTES;
     }
     return bytes;
   }
@@ -845,7 +847,7 @@ public class KllFloatsSketch {
       .append(" level, offset: nominal capacity, actual size").append(Util.LS);
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
-        .append(KllFloatsHelper.levelCapacity(k_, numLevels_, i, m_))
+        .append(KllDoublesHelper.levelCapacity(k_, numLevels_, i, m_))
         .append(", ").append(safeLevelSize(i)).append(Util.LS);
       }
       sb.append("### End sketch levels").append(Util.LS);
@@ -886,8 +888,8 @@ public class KllFloatsSketch {
    *
    * @param value an item from a stream of items. NaNs are ignored.
    */
-  public void update(final float value) {
-    if (Float.isNaN(value)) { return; }
+  public void update(final double value) {
+    if (Double.isNaN(value)) { return; }
     if (isEmpty()) {
       minValue_ = value;
       maxValue_ = value;
@@ -919,14 +921,14 @@ public class KllFloatsSketch {
     }
   }
 
-  private KllFloatsQuantileCalculator getQuantileCalculator() {
+  private KllDoublesQuantileCalculator getQuantileCalculator() {
     sortLevelZero(); // sort in the sketch to reuse if possible
-    return new KllFloatsQuantileCalculator(items_, levels_, numLevels_, n_);
+    return new KllDoublesQuantileCalculator(items_, levels_, numLevels_, n_);
   }
 
-  private double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf) {
+  private double[] getPmfOrCdf(final double[] splitPoints, final boolean isCdf) {
     if (isEmpty()) { return null; }
-    KllFloatsHelper.validateFloatValues(splitPoints);
+    KllDoublesHelper.validateDoubleValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
     int level = 0;
     int weight = 1;
@@ -957,7 +959,7 @@ public class KllFloatsSketch {
   }
 
   private void incrementBucketsUnsortedLevel(final int fromIndex, final int toIndex,
-      final int weight, final float[] splitPoints, final double[] buckets) {
+      final int weight, final double[] splitPoints, final double[] buckets) {
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {
@@ -970,7 +972,7 @@ public class KllFloatsSketch {
   }
 
   private void incrementBucketsSortedLevel(final int fromIndex, final int toIndex,
-      final int weight, final float[] splitPoints, final double[] buckets) {
+      final int weight, final double[] splitPoints, final double[] buckets) {
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
@@ -1006,7 +1008,7 @@ public class KllFloatsSketch {
     // +2 is OK because we already added a new top level if necessary
     final int popAbove = levels_[level + 2] - rawLim;
     final int rawPop = rawLim - rawBeg;
-    final boolean oddPop = KllFloatsHelper.isOdd(rawPop);
+    final boolean oddPop = KllDoublesHelper.isOdd(rawPop);
     final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
     final int halfAdjPop = adjPop / 2;
@@ -1016,10 +1018,10 @@ public class KllFloatsSketch {
       Arrays.sort(items_, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
-      KllFloatsHelper.randomlyHalveUp(items_, adjBeg, adjPop, random);
+      KllDoublesHelper.randomlyHalveUp(items_, adjBeg, adjPop, random);
     } else {
-      KllFloatsHelper.randomlyHalveDown(items_, adjBeg, adjPop, random);
-      KllFloatsHelper.mergeSortedArrays(
+      KllDoublesHelper.randomlyHalveDown(items_, adjBeg, adjPop, random);
+      KllDoublesHelper.mergeSortedArrays(
           items_, adjBeg, halfAdjPop,
           items_, rawLim, popAbove,
           items_, adjBeg + halfAdjPop);
@@ -1055,7 +1057,7 @@ public class KllFloatsSketch {
     while (true) {
       assert level < numLevels_;
       final int pop = levels_[level + 1] - levels_[level];
-      final int cap = KllFloatsHelper.levelCapacity(k_, numLevels_, level, m_);
+      final int cap = KllDoublesHelper.levelCapacity(k_, numLevels_, level, m_);
       if (pop >= cap) {
         return level;
       }
@@ -1072,13 +1074,13 @@ public class KllFloatsSketch {
 
     // note that merging MIGHT over-grow levels_, in which case we might not have to grow it here
     if (levels_.length < numLevels_ + 2) {
-      levels_ = KllFloatsHelper.growIntArray(levels_, numLevels_ + 2);
+      levels_ = KllDoublesHelper.growIntArray(levels_, numLevels_ + 2);
     }
 
-    final int deltaCap = KllFloatsHelper.levelCapacity(k_, numLevels_ + 1, 0, m_);
+    final int deltaCap = KllDoublesHelper.levelCapacity(k_, numLevels_ + 1, 0, m_);
     final int newTotalCap = curTotalCap + deltaCap;
 
-    final float[] newBuf = new float[newTotalCap];
+    final double[] newBuf = new double[newTotalCap];
 
     // copy (and shift) the current data into the new buffer
     System.arraycopy(items_, levels_[0], newBuf, levels_[0] + deltaCap, curTotalCap);
@@ -1102,10 +1104,10 @@ public class KllFloatsSketch {
     }
   }
 
-  private void mergeHigherLevels(final KllFloatsSketch other, final long finalN) {
+  private void mergeHigherLevels(final KllDoublesSketch other, final long finalN) {
     final int tmpSpaceNeeded = getNumRetained() + other.getNumRetainedAboveLevelZero();
-    final float[] workbuf = new float[tmpSpaceNeeded];
-    final int ub = KllFloatsHelper.ubOnNumLevels(finalN);
+    final double[] workbuf = new double[tmpSpaceNeeded];
+    final int ub = KllDoublesHelper.ubOnNumLevels(finalN);
     final int[] worklevels = new int[ub + 2]; // ub+1 does not work
     final int[] outlevels  = new int[ub + 2];
 
@@ -1114,7 +1116,7 @@ public class KllFloatsSketch {
     populateWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
     // notice that workbuf is being used as both the input and output here
-    final int[] result = KllFloatsHelper.generalCompress(k_, m_, provisionalNumLevels, workbuf,
+    final int[] result = KllDoublesHelper.generalCompress(k_, m_, provisionalNumLevels, workbuf,
         worklevels, workbuf, outlevels, isLevelZeroSorted_, random);
     final int finalNumLevels = result[0];
     final int finalCapacity = result[1];
@@ -1123,7 +1125,7 @@ public class KllFloatsSketch {
     assert finalNumLevels <= ub; // can sometimes be much bigger
 
     // now we need to transfer the results back into the "self" sketch
-    final float[] newbuf = finalCapacity == items_.length ? items_ : new float[finalCapacity];
+    final double[] newbuf = finalCapacity == items_.length ? items_ : new double[finalCapacity];
     final int freeSpaceAtBottom = finalCapacity - finalPop;
     System.arraycopy(workbuf, outlevels[0], newbuf, freeSpaceAtBottom, finalPop);
     final int theShift = freeSpaceAtBottom - outlevels[0];
@@ -1140,7 +1142,7 @@ public class KllFloatsSketch {
     numLevels_ = finalNumLevels;
   }
 
-  private void populateWorkArrays(final KllFloatsSketch other, final float[] workbuf,
+  private void populateWorkArrays(final KllDoublesSketch other, final double[] workbuf,
       final int[] worklevels, final int provisionalNumLevels) {
     worklevels[0] = 0;
 
@@ -1159,7 +1161,7 @@ public class KllFloatsSketch {
       } else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(other.items_, other.levels_[lvl], workbuf, worklevels[lvl], otherPop);
       } else if (selfPop > 0 && otherPop > 0) {
-        KllFloatsHelper.mergeSortedArrays(items_, levels_[lvl], selfPop, other.items_,
+        KllDoublesHelper.mergeSortedArrays(items_, levels_[lvl], selfPop, other.items_,
             other.levels_[lvl], otherPop, workbuf, worklevels[lvl]);
       }
     }
@@ -1176,22 +1178,22 @@ public class KllFloatsSketch {
   }
 
   private void assertCorrectTotalWeight() {
-    final long total = KllFloatsHelper.sumTheSampleWeights(numLevels_, levels_);
+    final long total = KllDoublesHelper.sumTheSampleWeights(numLevels_, levels_);
     assert total == n_;
   }
 
   private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
     if (numLevels == 1 && numRetained == 1) {
-      return DATA_START_SINGLE_ITEM + Float.BYTES;
+      return DATA_START_SINGLE_ITEM + Double.BYTES;
     }
     // the last integer in levels_ is not serialized because it can be derived
     // + 2 for min and max
-    return DATA_START + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
+    return DATA_START + numLevels * Integer.BYTES + (numRetained + 2) * Double.BYTES;
   }
 
   // for testing
 
-  float[] getItems() {
+  double[] getItems() {
     return items_;
   }
 
@@ -1204,3 +1206,4 @@ public class KllFloatsSketch {
   }
 
 }
+

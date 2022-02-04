@@ -31,7 +31,7 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-class KllFloatsHelper {
+public class KllDoublesHelper {
 
   static boolean isEven(final int value) {
     return (value & 1) == 0;
@@ -42,13 +42,13 @@ class KllFloatsHelper {
   }
 
   /**
-   * Checks the sequential validity of the given array of float values.
+   * Checks the sequential validity of the given array of double values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of values
    */
-  static void validateFloatValues(final float[] values) {
+  public static void validateDoubleValues(final double[] values) {
     for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
+      if (!Double.isFinite(values[i])) {
         throw new SketchesArgumentException("Values must be finite");
       }
       if (i < values.length - 1 && values[i] >= values[i + 1]) {
@@ -168,9 +168,9 @@ class KllFloatsHelper {
   }
 
   static void mergeSortedArrays(
-      final float[] bufA, final int startA, final int lenA,
-      final float[] bufB, final int startB, final int lenB,
-      final float[] bufC, final int startC) {
+      final double[] bufA, final int startA, final int lenA,
+      final double[] bufB, final int startB, final int lenB,
+      final double[] bufC, final int startC) {
     final int lenC = lenA + lenB;
     final int limA = startA + lenA;
     final int limB = startB + lenB;
@@ -223,7 +223,7 @@ class KllFloatsHelper {
    * @param m The minimum level size
    * @param numLevelsIn provisional number of number of levels = max(this.numLevels, other.numLevels)
    * @param inBuf work buffer of size = this.getNumRetained() + other.getNumRetainedAboveLevelZero().
-   * This contains the float[] of the other sketch
+   * This contains the double[] of the other sketch
    * @param inLevels work levels array size = ubOnNumLevels(this.n + other.n) + 2
    * @param outBuf the same array as inBuf
    * @param outLevels the same size as inLevels
@@ -234,9 +234,9 @@ class KllFloatsHelper {
       final int k,
       final int m,
       final int numLevelsIn,
-      final float[] inBuf,
+      final double[] inBuf,
       final int[] inLevels,
-      final float[] outBuf,
+      final double[] outBuf,
       final int[] outLevels,
       final boolean isLevelZeroSorted,
       final Random random) {
@@ -323,7 +323,7 @@ class KllFloatsHelper {
   }
 
   //This must be modified for validation
-  static void randomlyHalveDown(final float[] buf, final int start, final int length, final Random random) {
+  static void randomlyHalveDown(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -336,7 +336,7 @@ class KllFloatsHelper {
   }
 
   //This must be modified for validation
-  static void randomlyHalveUp(final float[] buf, final int start, final int length, final Random random) {
+  static void randomlyHalveUp(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -349,7 +349,7 @@ class KllFloatsHelper {
   }
 
   /*
-   * The following must be enabled for use with the KllFloatsValidationTest,
+   * The following must be enabled for use with the KllDoublesValidationTest,
    * which is only enabled for manual testing. In addition, the two methods
    * above need to be modified as commented.
    */
@@ -363,3 +363,4 @@ class KllFloatsHelper {
   //  }
 
 }
+

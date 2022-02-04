@@ -789,7 +789,6 @@ public final class Util {
     }
   }
 
-
   /**
    * Checks that the given nomLongs is within bounds and returns the Log2 of the ceiling power of 2
    * of the given nomLongs.
@@ -881,23 +880,6 @@ public final class Util {
       return Files.readAllBytes(Paths.get(getResourcePath(shortFileName)));
     } catch (final IOException e) {
       throw new SketchesArgumentException("Cannot read resource: " + shortFileName + LS + e);
-    }
-  }
-
-  /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of values
-   */
-  public static void validateValues(final float[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
     }
   }
 
