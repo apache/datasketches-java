@@ -29,7 +29,7 @@ import java.util.Random;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-class KllHelper {
+class KllFloatsHelper {
 
   static boolean isEven(final int value) {
     return (value & 1) == 0;
@@ -303,11 +303,12 @@ class KllHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
+  //This must be modified for validation
   static void randomlyHalveDown(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
-    final int offset = random.nextInt(2);
-    //final int offset = deterministicOffset(); // for validation
+    final int offset = random.nextInt(2);       // disable for validation
+    //final int offset = deterministicOffset(); // enable for validation
     int j = start + offset;
     for (int i = start; i < (start + half_length); i++) {
       buf[i] = buf[j];
@@ -315,11 +316,12 @@ class KllHelper {
     }
   }
 
+  //This must be modified for validation
   static void randomlyHalveUp(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
-    final int offset = random.nextInt(2);
-    //final int offset = deterministicOffset(); // for validation
+    final int offset = random.nextInt(2);       // disable for validation
+    //final int offset = deterministicOffset(); // enable for validation
     int j = (start + length) - 1 - offset;
     for (int i = (start + length) - 1; i >= (start + half_length); i--) {
       buf[i] = buf[j];
@@ -327,10 +329,14 @@ class KllHelper {
     }
   }
 
-  // Enable the following to use KllValidationTest
+  /*
+   * The following must be enabled for use with the KllFloatsValidationTest,
+   * which is only enabled for manual testing. In addition, the two methods
+   * above need to be modified as commented.
+   */
 
   //  static int nextOffset = 0;
-
+  //
   //  private static int deterministicOffset() {
   //    final int result = nextOffset;
   //    nextOffset = 1 - nextOffset;
