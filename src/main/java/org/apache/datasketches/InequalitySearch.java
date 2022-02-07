@@ -19,6 +19,8 @@
 
 package org.apache.datasketches;
 
+import java.util.Objects;
+
 /**
  * This provides efficient, unique and unambiguous binary searching for inequality comparison criteria
  * for ordered arrays of values that may include duplicate values. The inequality criteria include
@@ -27,42 +29,28 @@ package org.apache.datasketches;
  *
  * <p>In order to make the searching unique and unambiguous, we modified the traditional binary
  * search algorithm to search for adjacent pairs of values <i>{A, B}</i> in the values array
- * instead of just a single value, where <i>A</i> and <i>B</i> are the array indicies of two
+ * instead of just a single value, where <i>A</i> and <i>B</i> are the array indices of two
  * adjacent values in the array. For all the search criteria, if the algorithm reaches the ends of
  * the search range, the algorithm calls the <i>resolve()</i> method to determine what to
  * return to the caller. If the key value cannot be resolved, it returns a -1 to the caller.
  *
- * <p>Given an array of values <i>arr[]</i> and the search key value <i>v</i>, the algorithms for
- * the searching criteria are as follows:</p>
- * <ul>
- * <li><b>LT:</b> Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &lt; v &le; arr[B]</i>. The normal return is the index <i>A</i>.
- * </li>
- * <li><b>LE:</b>  Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &le; v &lt; arr[B]</i>. The normal return is the index <i>A</i>.
- * </li>
- * <li><b>EQ:</b>  Find the adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &le; v &le; arr[B]</i>. The normal return is the index <i>A</i> or <i>B</i> whichever
- * equals <i>v</i>, otherwise it returns -1.
- * </li>
- * <li><b>GE:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &lt; v &le; arr[B]</i>. The normal return is the index <i>B</i>.
- * </li>
- * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &le; v &lt; arr[B]</i>. The normal return is the index <i>B</i>.
- * </li>
- * </ul>
+ * <p>Given a sorted array of values <i>arr[]</i> and the search key value <i>v</i>, the algorithms for
+ * the searching criteria are given with each enum criterion.</p>
  *
  * @author Lee Rhodes
  */
 public enum InequalitySearch {
 
   /**
-   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+   * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>v</i>,
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
-   * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
-   * The returned value from the binary search algorithm will be the index of <i>A</i>
-   * or -1, if the value <i>V</i> &le; the lowest value in the selected range of the array.
+   * values <i>{A,B}</i> such that <i>A &lt; v &le; B</i>.<br>
+   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+   * Let <i>high</i> = highest index of the highest value in the range.
+   *
+   * <p>If <i>v</i> &GT; arr[high], return arr[high].<br>
+   * If <i>v</i> &LE; arr[low], return -1.<br>
+   * Else return index of A.</p>
    */
   LT { //arr[A] < V <= arr[B], return A
     @Override
@@ -147,9 +135,13 @@ public enum InequalitySearch {
   /**
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
-   * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
-   * The returned value from the binary search algorithm will be the index of <i>A</i>
-   * or -1, if the value <i>V</i> &lt; the lowest value in the selected range of the array.
+   * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.<br>
+   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+   * Let <i>high</i> = highest index of the highest value in the range.
+   *
+   * <p>If <i>v</i> &GE; arr[high], return arr[high].<br>
+   * If <i>v</i> &LT; arr[low], return -1.<br>
+   * Else return index of A.</p>
    */
   LE { //arr[A] <= V < arr[B], return A
     @Override
@@ -320,9 +312,13 @@ public enum InequalitySearch {
   /**
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
-   * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.
-   * The returned value from the binary search algorithm will be the index of <i>B</i>
-   * or -1, if the value <i>V</i> &gt; the highest value in the selected range of the array.
+   * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.<br>
+   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+   * Let <i>high</i> = highest index of the highest value in the range.
+   *
+   * <p>If <i>v</i> &LE; arr[low], return arr[low].<br>
+   * If <i>v</i> &GT; arr[high], return -1.<br>
+   * Else return index of B.</p>
    */
   GE { //arr[A] < V <= arr[B], return B
     @Override
@@ -407,9 +403,13 @@ public enum InequalitySearch {
   /**
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
-   * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.
-   * The returned value from the binary search algorithm will be the index of <i>B</i>
-   * or -1, if the value <i>V</i> &ge; the highest value in the selected range of the array.
+   * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.<br>
+   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+   * Let <i>high</i> = highest index of the highest value in the range.
+   *
+   * <p>If <i>v</i> &LT; arr[low], return arr[low].<br>
+   * If <i>v</i> &GE; arr[high], return -1.<br>
+   * Else return index of B.</p>
    */
   GT { //arr[A] <= V < arr[B], return B
     @Override
@@ -614,14 +614,18 @@ public enum InequalitySearch {
    * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
    * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the search range
-   * @param high the index of the highest value in the search range
-   * @param v the value to search for.
-   * @param crit one of LT, LE, EQ, GT, GE
+   * It must not be null and must not contain any NaN values in the range {low, high} inclusive.
+   * @param low the lowest index of the lowest value in the search range, inclusive.
+   * @param high the highest index of the highest value in the search range, inclusive.
+   * @param v the value to search for. It must not be NaN.
+   * @param crit one of LT, LE, EQ, GT, GE. It must not be null.
    * @return the index of the value in the given search range that satisfies the criterion
    */
   public static int find(final double[] arr, final int low, final int high,
       final double v, final InequalitySearch crit) {
+    Objects.requireNonNull(arr, "Inpurt arr must not be null");
+    Objects.requireNonNull(crit, "Input crit must not be null");
+    if (v == Double.NaN) { throw new SketchesArgumentException("Input v must not be NaN."); }
     int lo = low;
     int hi = high - 1;
     int ret;
@@ -641,14 +645,18 @@ public enum InequalitySearch {
    * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
    * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the search range
-   * @param high the index of the highest value in the search range
-   * @param v the value to search for.
+   * It must not be null and must not contain any NaN values in the range {low, high} inclusive.
+   * @param low the lowest index of the lowest value in the search range, inclusive.
+   * @param high the highest index of the highest value in the search range, inclusive.
+   * @param v the value to search for. It must not be NaN.
    * @param crit one of LT, LE, EQ, GT, GE
    * @return the index of the value in the given search range that satisfies the criterion
    */
   public static int find(final float[] arr, final int low, final int high,
       final float v, final InequalitySearch crit) {
+    Objects.requireNonNull(arr, "Inpurt arr must not be null");
+    Objects.requireNonNull(crit, "Input crit must not be null");
+    if (v == Float.NaN) { throw new SketchesArgumentException("Input v must not be NaN."); }
     int lo = low;
     int hi = high - 1;
     int ret;
@@ -668,14 +676,16 @@ public enum InequalitySearch {
    * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
    * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the search range
-   * @param high the index of the highest value in the search range
+   * @param low the lowest index of the lowest value in the search range, inclusive.
+   * @param high the highest index of the highest value in the search range, inclusive.
    * @param v the value to search for.
    * @param crit one of LT, LE, EQ, GT, GE
    * @return the index of the value in the given search range that satisfies the criterion
    */
   public static int find(final long[] arr, final int low, final int high,
       final long v, final InequalitySearch crit) {
+    Objects.requireNonNull(arr, "Inpurt arr must not be null");
+    Objects.requireNonNull(crit, "Input crit must not be null");
     int lo = low;
     int hi = high - 1;
     int ret;
@@ -688,4 +698,4 @@ public enum InequalitySearch {
     }
     return crit.resolve(lo, hi, low, high);
   }
-}
+} //End of enum

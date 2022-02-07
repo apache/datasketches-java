@@ -177,21 +177,27 @@ public class GenericInequalitySearchTest {
   public void exerciseFltBinSearch() {
     checkFindFloat(LT);
     checkFindFloat(LE);
-    checkFindFloat(GT);
     checkFindFloat(GE);
+    checkFindFloat(GT);
   }
 
   private void checkFindFloat(final GenericInequalitySearch.Inequality inequality) {
-    println("Inequality: " + inequality.name());
+    final String ie = inequality.name();
+    println("Inequality: " + ie);
     //                   0  1  2  3  4  5  6  7  8  9
     final Float[] arr = {5f,5f,5f,6f,6f,6f,7f,8f,8f,8f};
     final int len = arr.length;
-    for (Float v = 0.5f; v <= arr[len - 1] + 0.5f; v += .5f) { //lgtm [java/non-null-boxed-variable]
+    print("Index:    ");
+    for (int i = 0; i < len; i++) { printf("%d,   ", i); }
+    print(LS + "Value:  ");
+    for (int i = 0; i < len; i++) { printf("%.1f, ", arr[i]); }
+    println("");
+    for (float v = 0.5f; v <= arr[len - 1] + 0.5f; v += .5f) {
       final int low = 0;
       final int high = len - 1;
       final int idx = find(arr, low, high, v, inequality, comparator);
       if (idx == -1) {
-        println("LT: " + v + " Not resolved, return -1.");
+        println(ie +": " + v + " Not resolved, return -1.");
       }
       else {
         println(desc(arr, low, high, v, idx, inequality, comparator));
@@ -218,8 +224,7 @@ public class GenericInequalitySearchTest {
     switch (inequality) {
       case LT: {
         if (idx == -1) {
-          return "LT: " + v + " <= arr[" + low + "]=" + arr[low]
-            + "; return -1";
+          return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
         }
         if (idx == high) {
           return "LT: " + v + " > arr[" + high + "]=" + arr[high]
@@ -236,7 +241,7 @@ public class GenericInequalitySearchTest {
         }
         if (idx == high) {
           return "LE: " + v + " >= arr[" + high + "]=" + arr[high]
-              + "; return arr[" + high + "]=" + arr[high];
+            + "; return arr[" + high + "]=" + arr[high];
         }
         return "LE: " + v
           + ": arr[" + idx + "]=" + arr[idx] + " <= " + v
@@ -251,8 +256,7 @@ public class GenericInequalitySearchTest {
           if (comparator.compare(v, arr[low]) < 0) {
             return "EQ: " + v + " < arr[" + low + "]; return -1";
           }
-          return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high
-            + "]; return -1";
+          return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
         }
         return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
       }
@@ -290,13 +294,21 @@ public class GenericInequalitySearchTest {
    * @param args the args
    */
   static final void printf(final String format, final Object ...args) {
-    //System.out.printf(format, args);
+    System.out.printf(format, args);
+  }
+
+  /**
+   * @param o the Object to println
+   */
+  static final void println(final Object o) {
+    System.out.println(o.toString());
   }
 
   /**
    * @param o the Object to print
    */
-  static final void println(final Object o) {
-    //System.out.println(o.toString());
+  static final void print(final Object o) {
+    System.out.print(o.toString());
   }
+
 }
