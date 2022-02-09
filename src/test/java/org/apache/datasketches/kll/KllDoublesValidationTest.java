@@ -19,8 +19,9 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.Util.isOdd;
+
 import org.testng.Assert;
-import org.testng.annotations.Test;
 
 /* A test record contains:
    0. testIndex
@@ -157,7 +158,7 @@ public class KllDoublesValidationTest {
   };
 
   private static int[] makeInputArray(int n, int stride) {
-    assert KllDoublesHelper.isOdd(stride);
+    assert isOdd(stride);
     int mask = (1 << 23) - 1;
     int cur = 0;
     int[] arr = new int[n];

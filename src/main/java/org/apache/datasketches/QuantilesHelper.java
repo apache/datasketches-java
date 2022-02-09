@@ -20,7 +20,7 @@
 package org.apache.datasketches;
 
 /**
- * Common static methods for quantiles sketches
+ * Common static methods for classic quantiles and KLL sketches
  */
 public class QuantilesHelper {
 
@@ -29,7 +29,7 @@ public class QuantilesHelper {
    * An array of {1,1,1,0} becomes {0,1,2,3}
    * @param array of weights where first element is zero
    * @return total weight
-   */
+   */ //also used by KLL
   public static long convertToPrecedingCummulative(final long[] array) {
     long subtotal = 0;
     for (int i = 0; i < array.length; i++) {
@@ -46,7 +46,7 @@ public class QuantilesHelper {
    * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
    * @param n the size of the stream
    * @return the index, a value between 0 and n-1.
-   */
+   */ //also used by KLL
   public static long posOfPhi(final double phi, final long n) {
     final long pos = (long) Math.floor(phi * n);
     return pos == n ? n - 1 : pos; //avoids ArrayIndexOutOfBoundException
@@ -57,7 +57,7 @@ public class QuantilesHelper {
    * @param wtArr the cumulative weights array consisting of chunks
    * @param pos the position
    * @return the index of the chunk containing the position
-   */
+   */ //also used by KLL
   public static int chunkContainingPos(final long[] wtArr, final long pos) {
     final int nominalLength = wtArr.length - 1; /* remember, wtArr contains an "extra" position */
     assert nominalLength > 0;

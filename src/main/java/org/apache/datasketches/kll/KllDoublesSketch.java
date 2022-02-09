@@ -27,6 +27,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
+import static org.apache.datasketches.Util.isOdd;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -331,7 +332,7 @@ public class KllDoublesSketch {
       }
       levels_ = new int[numLevels_ + 1];
       int offset = isSingleItem ? DATA_START_SINGLE_ITEM : DATA_START;
-      final int capacity = KllDoublesHelper.computeTotalCapacity(k_, m_, numLevels_);
+      final int capacity = KllHelper.computeTotalCapacity(k_, m_, numLevels_);
       if (isSingleItem) {
         levels_[0] = capacity - 1;
       } else {
@@ -533,8 +534,8 @@ public class KllDoublesSketch {
    * @return upper bound on the serialized size
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final int numLevels = KllDoublesHelper.ubOnNumLevels(n);
-    final int maxNumItems = KllDoublesHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
+    final int numLevels = KllHelper.ubOnNumLevels(n);
+    final int maxNumItems = KllHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
     return getSerializedSizeBytes(numLevels, maxNumItems);
   }
 
@@ -847,7 +848,7 @@ public class KllDoublesSketch {
       .append(" level, offset: nominal capacity, actual size").append(Util.LS);
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
-        .append(KllDoublesHelper.levelCapacity(k_, numLevels_, i, m_))
+        .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
         .append(", ").append(safeLevelSize(i)).append(Util.LS);
       }
       sb.append("### End sketch levels").append(Util.LS);
@@ -1008,7 +1009,7 @@ public class KllDoublesSketch {
     // +2 is OK because we already added a new top level if necessary
     final int popAbove = levels_[level + 2] - rawLim;
     final int rawPop = rawLim - rawBeg;
-    final boolean oddPop = KllDoublesHelper.isOdd(rawPop);
+    final boolean oddPop = isOdd(rawPop);
     final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
     final int halfAdjPop = adjPop / 2;
@@ -1018,10 +1019,10 @@ public class KllDoublesSketch {
       Arrays.sort(items_, adjBeg, adjBeg + adjPop);
     }
     if (popAbove == 0) {
-      KllDoublesHelper.randomlyHalveUp(items_, adjBeg, adjPop, random);
+      KllDoublesHelper.randomlyHalveUpDoubles(items_, adjBeg, adjPop, random);
     } else {
-      KllDoublesHelper.randomlyHalveDown(items_, adjBeg, adjPop, random);
-      KllDoublesHelper.mergeSortedArrays(
+      KllDoublesHelper.randomlyHalveDownDoubles(items_, adjBeg, adjPop, random);
+      KllDoublesHelper.mergeSortedDoubleArrays(
           items_, adjBeg, halfAdjPop,
           items_, rawLim, popAbove,
           items_, adjBeg + halfAdjPop);
@@ -1057,7 +1058,7 @@ public class KllDoublesSketch {
     while (true) {
       assert level < numLevels_;
       final int pop = levels_[level + 1] - levels_[level];
-      final int cap = KllDoublesHelper.levelCapacity(k_, numLevels_, level, m_);
+      final int cap = KllHelper.levelCapacity(k_, numLevels_, level, m_);
       if (pop >= cap) {
         return level;
       }
@@ -1074,10 +1075,10 @@ public class KllDoublesSketch {
 
     // note that merging MIGHT over-grow levels_, in which case we might not have to grow it here
     if (levels_.length < numLevels_ + 2) {
-      levels_ = KllDoublesHelper.growIntArray(levels_, numLevels_ + 2);
+      levels_ = KllHelper.growIntArray(levels_, numLevels_ + 2);
     }
 
-    final int deltaCap = KllDoublesHelper.levelCapacity(k_, numLevels_ + 1, 0, m_);
+    final int deltaCap = KllHelper.levelCapacity(k_, numLevels_ + 1, 0, m_);
     final int newTotalCap = curTotalCap + deltaCap;
 
     final double[] newBuf = new double[newTotalCap];
@@ -1107,7 +1108,7 @@ public class KllDoublesSketch {
   private void mergeHigherLevels(final KllDoublesSketch other, final long finalN) {
     final int tmpSpaceNeeded = getNumRetained() + other.getNumRetainedAboveLevelZero();
     final double[] workbuf = new double[tmpSpaceNeeded];
-    final int ub = KllDoublesHelper.ubOnNumLevels(finalN);
+    final int ub = KllHelper.ubOnNumLevels(finalN);
     final int[] worklevels = new int[ub + 2]; // ub+1 does not work
     final int[] outlevels  = new int[ub + 2];
 
@@ -1116,7 +1117,7 @@ public class KllDoublesSketch {
     populateWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
     // notice that workbuf is being used as both the input and output here
-    final int[] result = KllDoublesHelper.generalCompress(k_, m_, provisionalNumLevels, workbuf,
+    final int[] result = KllDoublesHelper.generalDoublesCompress(k_, m_, provisionalNumLevels, workbuf,
         worklevels, workbuf, outlevels, isLevelZeroSorted_, random);
     final int finalNumLevels = result[0];
     final int finalCapacity = result[1];
@@ -1161,7 +1162,7 @@ public class KllDoublesSketch {
       } else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(other.items_, other.levels_[lvl], workbuf, worklevels[lvl], otherPop);
       } else if (selfPop > 0 && otherPop > 0) {
-        KllDoublesHelper.mergeSortedArrays(items_, levels_[lvl], selfPop, other.items_,
+        KllDoublesHelper.mergeSortedDoubleArrays(items_, levels_[lvl], selfPop, other.items_,
             other.levels_[lvl], otherPop, workbuf, worklevels[lvl]);
       }
     }
@@ -1178,7 +1179,7 @@ public class KllDoublesSketch {
   }
 
   private void assertCorrectTotalWeight() {
-    final long total = KllDoublesHelper.sumTheSampleWeights(numLevels_, levels_);
+    final long total = KllHelper.sumTheSampleWeights(numLevels_, levels_);
     assert total == n_;
   }
 

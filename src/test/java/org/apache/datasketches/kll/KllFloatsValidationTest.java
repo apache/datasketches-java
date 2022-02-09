@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.Util.isOdd;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -157,7 +159,7 @@ public class KllFloatsValidationTest {
   };
 
   private static int[] makeInputArray(int n, int stride) {
-    assert KllFloatsHelper.isOdd(stride);
+    assert isOdd(stride);
     int mask = (1 << 23) - 1; // because library items are single-precision floats
     int cur = 0;
     int[] arr = new int[n];

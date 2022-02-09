@@ -378,21 +378,21 @@ public class KllDoublesSketchTest {
 
   @Test
   public void checkUbOnNumLevels() {
-    assertEquals(KllDoublesHelper.ubOnNumLevels(0), 1);
+    assertEquals(KllHelper.ubOnNumLevels(0), 1);
   }
 
   @Test
   public void checkIntCapAux() {
-    int lvlCap = KllDoublesHelper.levelCapacity(10, 61, 0, 8);
+    int lvlCap = KllHelper.levelCapacity(10, 61, 0, 8);
     assertEquals(lvlCap, 8);
-    lvlCap = KllDoublesHelper.levelCapacity(10, 61, 60, 8);
+    lvlCap = KllHelper.levelCapacity(10, 61, 60, 8);
     assertEquals(lvlCap, 10);
   }
 
   @Test
   public void checkSuperLargeKandLevels() {
     //This is beyond what the sketch can be configured for.
-    final int size = KllDoublesHelper.computeTotalCapacity(1 << 29, 8, 61);
+    final int size = KllHelper.computeTotalCapacity(1 << 29, 8, 61);
     assertEquals(size, 1_610_612_846);
   }
 

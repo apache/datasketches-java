@@ -771,7 +771,7 @@ public final class Util {
     return next;
   }
 
-  //Checks
+  //Checks that throw
 
   /**
    * Check the requested offset and length against the allocated size.
@@ -821,6 +821,8 @@ public final class Util {
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
 
+  //Boolean Checks
+
   /**
    * Unsigned compare with longs.
    * @param n1 A long to be treated as if unsigned.
@@ -831,6 +833,23 @@ public final class Util {
     return n1 < n2 ^ n1 < 0 != n2 < 0;
   }
 
+  /**
+   * Returns true if given n is even.
+   * @param n the given n
+   * @return true if given n is even.
+   */
+  public static boolean isEven(final long n) {
+    return (n & 1L) == 0;
+  }
+
+  /**
+   * Returns true if given n is odd.
+   * @param n the given n
+   * @return true if given n is odd.
+   */
+  public static boolean isOdd(final long n) {
+    return (n & 1L) == 1L;
+  }
   //Resources
 
   /**
