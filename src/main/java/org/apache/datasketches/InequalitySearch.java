@@ -625,7 +625,7 @@ public enum InequalitySearch {
       final double v, final InequalitySearch crit) {
     Objects.requireNonNull(arr, "Inpurt arr must not be null");
     Objects.requireNonNull(crit, "Input crit must not be null");
-    if (v == Double.NaN) { throw new SketchesArgumentException("Input v must not be NaN."); }
+    if (Double.isNaN(v)) { throw new SketchesArgumentException("Input v must not be NaN."); }
     int lo = low;
     int hi = high - 1;
     int ret;
@@ -656,7 +656,7 @@ public enum InequalitySearch {
       final float v, final InequalitySearch crit) {
     Objects.requireNonNull(arr, "Inpurt arr must not be null");
     Objects.requireNonNull(crit, "Input crit must not be null");
-    if (v == Float.NaN) { throw new SketchesArgumentException("Input v must not be NaN."); }
+    if (Float.isNaN(v)) { throw new SketchesArgumentException("Input v must not be NaN."); }
     int lo = low;
     int hi = high - 1;
     int ret;

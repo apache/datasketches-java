@@ -294,21 +294,21 @@ public class GenericInequalitySearchTest {
    * @param args the args
    */
   static final void printf(final String format, final Object ...args) {
-    System.out.printf(format, args);
+    //System.out.printf(format, args);
   }
 
   /**
    * @param o the Object to println
    */
   static final void println(final Object o) {
-    System.out.println(o.toString());
+    //System.out.println(o.toString());
   }
 
   /**
    * @param o the Object to print
    */
   static final void print(final Object o) {
-    System.out.print(o.toString());
+    //System.out.print(o.toString());
   }
 
 }
