@@ -771,7 +771,7 @@ public final class Util {
     return next;
   }
 
-  //Checks
+  //Checks that throw
 
   /**
    * Check the requested offset and length against the allocated size.
@@ -788,7 +788,6 @@ public final class Util {
               + ", (reqOff + reqLen): " + (reqOff + reqLen) + ", allocSize: " + allocSize);
     }
   }
-
 
   /**
    * Checks that the given nomLongs is within bounds and returns the Log2 of the ceiling power of 2
@@ -822,6 +821,8 @@ public final class Util {
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
   }
 
+  //Boolean Checks
+
   /**
    * Unsigned compare with longs.
    * @param n1 A long to be treated as if unsigned.
@@ -832,6 +833,23 @@ public final class Util {
     return n1 < n2 ^ n1 < 0 != n2 < 0;
   }
 
+  /**
+   * Returns true if given n is even.
+   * @param n the given n
+   * @return true if given n is even.
+   */
+  public static boolean isEven(final long n) {
+    return (n & 1L) == 0;
+  }
+
+  /**
+   * Returns true if given n is odd.
+   * @param n the given n
+   * @return true if given n is odd.
+   */
+  public static boolean isOdd(final long n) {
+    return (n & 1L) == 1L;
+  }
   //Resources
 
   /**
@@ -881,23 +899,6 @@ public final class Util {
       return Files.readAllBytes(Paths.get(getResourcePath(shortFileName)));
     } catch (final IOException e) {
       throw new SketchesArgumentException("Cannot read resource: " + shortFileName + LS + e);
-    }
-  }
-
-  /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of values
-   */
-  public static void validateValues(final float[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
     }
   }
 

@@ -23,7 +23,7 @@ under the License.
 -->
 
 <!--
-  DataSketcchesCheckstyle.xml
+  SketchesCheckstyle.xml
 
   Checkstyle is very configurable. Be sure to read the documentation at
   http://checkstyle.sourceforge.net (or in your downloaded distribution).
@@ -207,7 +207,7 @@ under the License.
     </module>
     
     <module name="JavadocParagraph"/>
-    
+
     <module name="JavadocTagContinuationIndentation">
       <property name="severity" value="ignore"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>

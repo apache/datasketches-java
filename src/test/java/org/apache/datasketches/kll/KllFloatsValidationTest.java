@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.Util.isOdd;
+
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /* A test record contains:
    0. testIndex
@@ -31,12 +34,13 @@ import org.testng.Assert;
    6. hash of the retained samples
 */
 
-// These results are for the version that delays the rollup until the next value comes in.
-// The @Test annotations have to be enabled to use this class and a section in KllHelper also
+// These results are for the version that delays the roll up until the next value comes in.
+// The @Test annotations have to be enabled to use this class and a section in KllFloatsHelper also
 // needs to be enabled.
-@SuppressWarnings("javadoc")
-public class KllValidationTest {
+@SuppressWarnings({ "javadoc", "unused" })
+public class KllFloatsValidationTest {
 
+  //Used only with manual running of checkTestResults(..)
   private static final long[] correctResultsWithReset = {
       0, 200, 180, 3246533, 1, 180, 1098352976109474698L,
       1, 200, 198, 8349603, 1, 198, 686681527497651888L,
@@ -155,7 +159,7 @@ public class KllValidationTest {
   };
 
   private static int[] makeInputArray(int n, int stride) {
-    assert KllHelper.isOdd(stride);
+    assert isOdd(stride);
     int mask = (1 << 23) - 1; // because library items are single-precision floats
     int cur = 0;
     int[] arr = new int[n];
@@ -165,6 +169,12 @@ public class KllValidationTest {
       arr[i] = cur;
     }
     return arr;
+  }
+
+  //@Test //only enabled to test the above makeInputArray(..)
+  public void testMakeInputArray() {
+    final int[] array = { 3654721, 7309442, 2575555, 6230276, 1496389, 5151110 };
+    Assert.assertEquals(makeInputArray(6, 3654721), array);
   }
 
   private static long simpleHashOfSubArray(final float[] arr, final int start, final int subLength) {
@@ -180,28 +190,23 @@ public class KllValidationTest {
     return accum;
   }
 
-  //@Test //need to enable
+  //@Test //only enabled to test the above simpleHashOfSubArray(..)
   public void testHash() {
     float[] array = { 907500, 944104, 807020, 219921, 678370, 955217, 426885 };
     Assert.assertEquals(simpleHashOfSubArray(array, 1, 5), 1141543353991880193L);
   }
 
-  //@Test //need to enable
-  public void testMakeInputArray() {
-    final int[] array = { 3654721, 7309442, 2575555, 6230276, 1496389, 5151110 };
-    Assert.assertEquals(makeInputArray(6, 3654721), array);
-  }
-
   /*
-   * Please note that this test should be run with a modified version of KllHelper
+   * Please note that this test should be run with a modified version of KllFloatsHelper
    *  that chooses directions alternately instead of randomly.
+   *  See the instructions at the bottom of that class.
    */
 
-  //@Test
+  //@Test  //NEED TO ENABLE
   public void checkTestResults() {
     int numTests = correctResultsWithReset.length / 7;
     for (int testI = 0; testI < numTests; testI++) {
-      //KllHelper.nextOffset = 0; //need to enable
+      //KllFloatsHelper.nextOffset = 0;                     //NEED TO ENABLE
       assert (int) correctResultsWithReset[7 * testI] == testI;
       int k = (int) correctResultsWithReset[(7 * testI) + 1];
       int n = (int) correctResultsWithReset[(7 * testI) + 2];
@@ -218,7 +223,7 @@ public class KllValidationTest {
       System.out.print(testI);
       assert correctResultsWithReset[(7 * testI) + 4] == numLevels;
       assert correctResultsWithReset[(7 * testI) + 5] == numSamples;
-      //assert correctResults[7 * testI + 6] == hashedSamples;
+      assert correctResultsWithReset[7 * testI + 6] == hashedSamples;
       if (correctResultsWithReset[(7 * testI) + 6] == hashedSamples) {
         System.out.println(" pass");
       } else {

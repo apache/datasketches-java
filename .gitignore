@@ -58,6 +58,7 @@ build.xml
 *.releaseBackup
 *.next
 *.tag
+doc/
 
 # Jekyll
 _site/

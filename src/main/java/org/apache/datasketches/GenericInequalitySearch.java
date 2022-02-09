@@ -20,44 +20,19 @@
 package org.apache.datasketches;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 /**
  * This provides efficient, unique and unambiguous binary searching for inequalities
- * for ordered arrays of values that may include duplicate values. These
+ * for ordered arrays of increasing values that may include duplicate values. These
  * inequalities include &lt;, &le;, ==, &ge;, &gt;. The same search method can be used for all
  * these inequalities.
  *
  * <p>In order to make the searching unique and unambiguous, we modified the traditional binary
  * search algorithm to search for adjacent pairs of values <i>{A, B}</i> in the values array
- * instead of just a single value, where <i>A</i> and <i>B</i> are the array indicies of two
+ * instead of just a single value, where <i>A</i> and <i>B</i> are the array indices of two
  * adjacent values in the array. We then define the searching criteria,
- * given an array of values <i>arr[]</i> and the search key value <i>v</i>, as follows:</p>
- * <ul>
- * <li><b>LT:</b> Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &lt; v &le; arr[B]</i>. Normally we return the index <i>A</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
- * </li>
- * <li><b>LE:</b>  Find the highest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &le; v &lt; arr[B]</i>. Normally we return the index <i>A</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
- * </li>
- * <li><b>EQ:</b>  Find the adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &le; v &lt; arr[B]</i>. We return the index <i>A</i> or <i>B</i> whichever
- * equals <i>v</i>, otherwise we return -1.
- * </li>
- * <li><b>GE:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &lt; v &le; arr[B]</i>. Normally we return the index <i>B</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
- * </li>
- * <li><b>GT:</b>  Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
- * <i>arr[A] &le; v &lt; arr[B]</i>. Normally we return the index <i>B</i>. However if the
- * search algorithm reaches the ends of the search range, the search algorithm calls the
- * <i>resolve()</i> method to determine what to return to the caller.
- * </li>
- * </ul>
+ * given an array of values <i>arr[]</i> and the search key value <i>v</i>.</p>
  *
  * @author Lee Rhodes
  */
@@ -69,27 +44,56 @@ public class GenericInequalitySearch {
   public enum Inequality {
 
     /**
-     * Less-Than
+     * <b>Less-Than:</b> Find the highest ranked adjacent ordered pair <i>{A, B}</i> such that:<br>
+     * <i>arr[A] &lt; v &le; arr[B]</i> within the given range.<br>
+     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+     * Let <i>high</i> = highest index of the highest value in the range.
+     *
+     * <p>If <i>v</i> &gt; arr[high], return arr[high].<br>
+     * If <i>v</i> &le; arr[low], return -1.<br>
+     * Else return index of A.</p>
      */
     LT,
 
     /**
-     * Less-Than Or Equals
+     * <b>Less-Than Or Equals:</b> Find the highest ranked adjacent ordered pair <i>{A, B}</i> such that:<br>
+     * <i>arr[A] &le; v &lt; arr[B]</i>.<br>
+     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+     * Let <i>high</i> = highest index of the highest value in the range.
+     *
+     * <p>If <i>v</i> &ge; arr[high], return arr[high].<br>
+     * If <i>v</i> &lt; arr[low], return -1.<br>
+     * Else return index of A.</p>
      */
     LE,
 
     /**
-     * Equals. Although not an inequality, it is included for completeness.
+     * <b>Equals:</b> Although not an inequality, it is included for completeness.
+     * An index &ge; 0 is returned unless not found, then -1 is returned.
      */
     EQ,
 
     /**
-     * Greater-Than Or Equals
+     * <b>Greater-Than Or Equals:</b> Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
+     * <i>arr[A] &lt; v &le; arr[B]</i>.<br>
+     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+     * Let <i>high</i> = highest index of the highest value in the range.
+     *
+     * <p>If <i>v</i> &le; arr[low], return arr[low].<br>
+     * If <i>v</i> &gt; arr[high], return -1.<br>
+     * Else return index of B.</p>
      */
     GE,
 
     /**
-     * Greater-Than
+     * <b>Greater-Than:</b> Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
+     * <i>arr[A] &le; v &lt; arr[B]</i>.<br>
+     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
+     * Let <i>high</i> = highest index of the highest value in the range.
+     *
+     * <p>If <i>v</i> &lt; arr[low], return arr[low].<br>
+     * If <i>v</i> &ge; arr[high], return -1.<br>
+     * Else return index of B.</p>
      */
     GT
   }
@@ -99,17 +103,23 @@ public class GenericInequalitySearch {
    * the given inequality.
    * If -1 is returned there are no values in the search range that satisfy the inequality.
    *
-   * @param arr the given array that must be sorted.
-   * @param low the index of the lowest value in the search range
-   * @param high the index of the highest value in the search range
-   * @param v the value to search for.
-   * @param inequality one of LT, LE, EQ, GE, GT
-   * @param comparator for the type T
+   * @param arr the given array that must be sorted with increasing values, must not be null,
+   * and must not contain null values in the given range {low, high} inclusive.
+   * @param low the lowest index of the lowest value in the search range, inclusive.
+   * @param high the highest index of the highest value in the search range, inclusive.
+   * @param v the value to search for. It must not be null.
+   * @param inequality one of LT, LE, EQ, GE, GT.  It must not be null.
+   * @param comparator for the type T. It must not be null.
    * @param <T> The generic type of value to be used in the search process.
    * @return the index of the value in the given search range that satisfies the inequality.
    */
   public static <T> int find(final T[] arr, final int low, final int high, final T v,
       final Inequality inequality, final Comparator<T> comparator) {
+    Objects.requireNonNull(arr, "Input arr must not be null");
+    Objects.requireNonNull(v,"Input v must not be null");
+    Objects.requireNonNull(inequality, "Input inequality must not be null");
+    Objects.requireNonNull(comparator,"Input comparator must not be null");
+
     int lo = low;
     int hi = high - 1;
     int ret;
