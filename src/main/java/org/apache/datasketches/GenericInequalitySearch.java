@@ -49,8 +49,8 @@ public class GenericInequalitySearch {
      * Let <i>low</i> = lowest index of the lowest value in the range.<br>
      * Let <i>high</i> = highest index of the highest value in the range.
      *
-     * <p>If <i>v</i> &GT; arr[high], return arr[high].<br>
-     * If <i>v</i> &LE; arr[low], return -1.<br>
+     * <p>If <i>v</i> &gt; arr[high], return arr[high].<br>
+     * If <i>v</i> &le; arr[low], return -1.<br>
      * Else return index of A.</p>
      */
     LT,
@@ -61,15 +61,15 @@ public class GenericInequalitySearch {
      * Let <i>low</i> = lowest index of the lowest value in the range.<br>
      * Let <i>high</i> = highest index of the highest value in the range.
      *
-     * <p>If <i>v</i> &GE; arr[high], return arr[high].<br>
-     * If <i>v</i> &LT; arr[low], return -1.<br>
+     * <p>If <i>v</i> &ge; arr[high], return arr[high].<br>
+     * If <i>v</i> &lt; arr[low], return -1.<br>
      * Else return index of A.</p>
      */
     LE,
 
     /**
      * <b>Equals:</b> Although not an inequality, it is included for completeness.
-     * An index &GE; 0 is returned unless not found, then -1 is returned.
+     * An index &ge; 0 is returned unless not found, then -1 is returned.
      */
     EQ,
 
@@ -79,8 +79,8 @@ public class GenericInequalitySearch {
      * Let <i>low</i> = lowest index of the lowest value in the range.<br>
      * Let <i>high</i> = highest index of the highest value in the range.
      *
-     * <p>If <i>v</i> &LE; arr[low], return arr[low].<br>
-     * If <i>v</i> &GT; arr[high], return -1.<br>
+     * <p>If <i>v</i> &le; arr[low], return arr[low].<br>
+     * If <i>v</i> &gt; arr[high], return -1.<br>
      * Else return index of B.</p>
      */
     GE,
@@ -91,8 +91,8 @@ public class GenericInequalitySearch {
      * Let <i>low</i> = lowest index of the lowest value in the range.<br>
      * Let <i>high</i> = highest index of the highest value in the range.
      *
-     * <p>If <i>v</i> &LT; arr[low], return arr[low].<br>
-     * If <i>v</i> &GE; arr[high], return -1.<br>
+     * <p>If <i>v</i> &lt; arr[low], return arr[low].<br>
+     * If <i>v</i> &ge; arr[high], return -1.<br>
      * Else return index of B.</p>
      */
     GT

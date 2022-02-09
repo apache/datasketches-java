@@ -48,8 +48,8 @@ public enum InequalitySearch {
    * Let <i>low</i> = lowest index of the lowest value in the range.<br>
    * Let <i>high</i> = highest index of the highest value in the range.
    *
-   * <p>If <i>v</i> &GT; arr[high], return arr[high].<br>
-   * If <i>v</i> &LE; arr[low], return -1.<br>
+   * <p>If <i>v</i> &gt; arr[high], return arr[high].<br>
+   * If <i>v</i> &le; arr[low], return -1.<br>
    * Else return index of A.</p>
    */
   LT { //arr[A] < V <= arr[B], return A
@@ -139,8 +139,8 @@ public enum InequalitySearch {
    * Let <i>low</i> = lowest index of the lowest value in the range.<br>
    * Let <i>high</i> = highest index of the highest value in the range.
    *
-   * <p>If <i>v</i> &GE; arr[high], return arr[high].<br>
-   * If <i>v</i> &LT; arr[low], return -1.<br>
+   * <p>If <i>v</i> &ge; arr[high], return arr[high].<br>
+   * If <i>v</i> &lt; arr[low], return -1.<br>
    * Else return index of A.</p>
    */
   LE { //arr[A] <= V < arr[B], return A
@@ -316,8 +316,8 @@ public enum InequalitySearch {
    * Let <i>low</i> = lowest index of the lowest value in the range.<br>
    * Let <i>high</i> = highest index of the highest value in the range.
    *
-   * <p>If <i>v</i> &LE; arr[low], return arr[low].<br>
-   * If <i>v</i> &GT; arr[high], return -1.<br>
+   * <p>If <i>v</i> &le; arr[low], return arr[low].<br>
+   * If <i>v</i> &gt; arr[high], return -1.<br>
    * Else return index of B.</p>
    */
   GE { //arr[A] < V <= arr[B], return B
@@ -407,8 +407,8 @@ public enum InequalitySearch {
    * Let <i>low</i> = lowest index of the lowest value in the range.<br>
    * Let <i>high</i> = highest index of the highest value in the range.
    *
-   * <p>If <i>v</i> &LT; arr[low], return arr[low].<br>
-   * If <i>v</i> &GE; arr[high], return -1.<br>
+   * <p>If <i>v</i> &lt; arr[low], return arr[low].<br>
+   * If <i>v</i> &ge; arr[high], return -1.<br>
    * Else return index of B.</p>
    */
   GT { //arr[A] <= V < arr[B], return B
