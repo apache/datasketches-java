@@ -216,9 +216,14 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public boolean isSameResource(final Memory that) {
-    return gadget_ instanceof DirectQuickSelectSketchR
-        ? gadget_.getMemory().isSameResource(that) : false;
+  public int getCurrentBytes() {
+    return gadget_.getCurrentBytes();
+  }
+
+  @Override
+  public int getMaxUnionBytes() {
+    final int lgK = gadget_.getLgNomLongs();
+    return (16 << lgK) + (Family.UNION.getMaxPreLongs() << 3);
   }
 
   @Override
@@ -254,6 +259,12 @@ final class UnionImpl extends Union {
     final short seedHash = gadget_.getSeedHash();
     return CompactOperations.componentsToCompact(
         minThetaLong, curCountOut, seedHash, empty, true, dstOrdered, dstOrdered, dstMem, compactCacheOut);
+  }
+
+  @Override
+  public boolean isSameResource(final Memory that) {
+    return gadget_ instanceof DirectQuickSelectSketchR
+        ? gadget_.getMemory().isSameResource(that) : false;
   }
 
   @Override

@@ -31,10 +31,24 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public abstract class Union extends SetOperation {
 
+
+  /**
+   * Returns the number of storage bytes required for this union in its current state.
+   *
+   * @return the number of storage bytes required for this union in its current state.
+   */
+  public abstract int getCurrentBytes();
+
   @Override
   public Family getFamily() {
     return Family.UNION;
   }
+
+  /**
+   * Returns the maximum required storage bytes for this union.
+   * @return the maximum required storage bytes for this union.
+   */
+  public abstract int getMaxUnionBytes();
 
   /**
    * Gets the result of this operation as an ordered CompactSketch on the Java heap.

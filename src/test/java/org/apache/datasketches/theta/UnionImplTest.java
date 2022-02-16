@@ -37,6 +37,14 @@ import org.testng.annotations.Test;
 public class UnionImplTest {
 
   @Test
+  public void checkGetCurrentAndMaxBytes() {
+    final int lgK = 10;
+    final Union union = Sketches.setOperationBuilder().setLogNominalEntries(lgK).buildUnion();
+    assertEquals(union.getCurrentBytes(), 288);
+    assertEquals(union.getMaxUnionBytes(), 16416);
+  }
+
+  @Test
   public void checkUpdateWithSketch() {
     final int k = 16;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);
@@ -270,6 +278,9 @@ public class UnionImplTest {
     //println(csk.toString(true, true, 1, true));
   }
 
+
+
+
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());
@@ -279,7 +290,7 @@ public class UnionImplTest {
    * @param o value to print
    */
   static void println(final Object o) {
-    //System.out.println(o.toString()); //disable here
+    System.out.println(o.toString()); //disable here
   }
 
 }

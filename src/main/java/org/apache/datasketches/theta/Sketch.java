@@ -301,7 +301,7 @@ public abstract class Sketch {
   /**
    * Returns the maximum number of storage bytes required for an UpdateSketch with the given
    * number of nominal entries (power of 2).
-   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
+   * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entries</a>
    * This will become the ceiling power of 2 if it is not.
    * @return the maximum number of storage bytes required for a UpdateSketch with the given
    * nomEntries
