@@ -278,9 +278,6 @@ public class UnionImplTest {
     //println(csk.toString(true, true, 1, true));
   }
 
-
-
-
   @Test
   public void printlnTest() {
     println("PRINTING: "+this.getClass().getName());

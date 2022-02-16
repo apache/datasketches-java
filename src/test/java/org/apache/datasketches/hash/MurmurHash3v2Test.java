@@ -38,7 +38,7 @@ import org.apache.datasketches.memory.WritableMemory;
 public class MurmurHash3v2Test {
   private Random rand = new Random();
   private static final int trials = 1 << 20;
-  
+
   @Test
   public void compareLongArrLong() { //long[]
     int arrLen = 3;
@@ -54,7 +54,7 @@ public class MurmurHash3v2Test {
       assertEquals(res2, res1);
     }
   }
-  
+
   @Test
   public void compareIntArr() { //int[]
     int bytes = Integer.BYTES;
@@ -63,7 +63,7 @@ public class MurmurHash3v2Test {
     int iPer = 8 / bytes;
     int nLongs = arrLen / iPer;
     int shift = 64 / iPer;
-    
+
     for (int i = 0; i < trials; i++) { //trials
       for (int j = 0; j < nLongs; j++) { //longs
         long r = rand.nextLong();
@@ -77,7 +77,7 @@ public class MurmurHash3v2Test {
       assertEquals(res2, res1);
     }
   }
-  
+
   @Test
   public void compareCharArr() { //char[]
     int bytes = Character.BYTES;
@@ -86,7 +86,7 @@ public class MurmurHash3v2Test {
     int iPer = 8 / bytes;
     int nLongs = arrLen / iPer;
     int shift = 64 / iPer;
-    
+
     for (int i = 0; i < trials; i++) { //trials
       for (int j = 0; j < nLongs; j++) { //longs
         long r = rand.nextLong();
@@ -100,7 +100,7 @@ public class MurmurHash3v2Test {
       assertEquals(res2, res1);
     }
   }
-  
+
   @Test
   public void compareByteArr() { //byte[]
     int bytes = Byte.BYTES;
@@ -109,7 +109,7 @@ public class MurmurHash3v2Test {
     int iPer = 8 / bytes;
     int nLongs = arrLen / iPer;
     int shift = 64 / iPer;
-    
+
     for (int i = 0; i < trials; i++) { //trials
       for (int j = 0; j < nLongs; j++) { //longs
         long r = rand.nextLong();
@@ -123,7 +123,7 @@ public class MurmurHash3v2Test {
       assertEquals(res2, res1);
     }
   }
-  
+
   @Test
   public void compareLongVsLongArr() {
     int arrLen = 1;
@@ -137,11 +137,11 @@ public class MurmurHash3v2Test {
       assertEquals(res2, res1);
     }
   }
-  
+
   private static final long[] hashV1(long[] key, long seed) {
     return MurmurHash3.hash(key, seed);
   }
-  
+
   private static final long[] hashV1(int[] key, long seed) {
     return MurmurHash3.hash(key, seed);
   }
@@ -149,15 +149,15 @@ public class MurmurHash3v2Test {
   private static final long[] hashV1(char[] key, long seed) {
     return MurmurHash3.hash(key, seed);
   }
-  
+
   private static final long[] hashV1(byte[] key, long seed) {
     return MurmurHash3.hash(key, seed);
   }
-  
+
   private static final long[] hashV2(long[] key, long seed) {
     return MurmurHash3v2.hash(key, seed);
   }
-  
+
   private static final long[] hashV2(int[] key2, long seed) {
     return MurmurHash3v2.hash(key2, seed);
   }
@@ -165,27 +165,27 @@ public class MurmurHash3v2Test {
   private static final long[] hashV2(char[] key, long seed) {
     return MurmurHash3v2.hash(key, seed);
   }
-  
+
   private static final long[] hashV2(byte[] key, long seed) {
     return MurmurHash3v2.hash(key, seed);
   }
-  
+
   //V2 single primitives
-  
+
   private static final long[] hashV2(long key, long seed, long[] out) {
     return MurmurHash3v2.hash(key, seed, out);
   }
-  
+
 //  private static final long[] hashV2(double key, long seed, long[] out) {
 //    return MurmurHash3v2.hash(key, seed, out);
 //  }
-  
+
 //  private static final long[] hashV2(String key, long seed, long[] out) {
 //    return MurmurHash3v2.hash(key, seed, out);
 //  }
-  
-  
-  
+
+
+
   @Test
   public void offsetChecks() {
     long seed = 12345;
