@@ -20,6 +20,12 @@
 package org.apache.datasketches.kll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.util.Objects;
+
+import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.WritableMemory;
 
 import org.testng.annotations.Test;
 
@@ -55,6 +61,63 @@ public class MiscFloatsTest {
     println("Ext     : " + est);
     println("UB      : " + ub);
     println("LB      : " + lb);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkHeapifyExceptions1() {
+    KllFloatsSketch sk = new KllFloatsSketch();
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    wmem.putByte(6, (byte)4); //corrupt M
+    KllFloatsSketch.heapify(wmem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkHeapifyExceptions2() {
+    KllFloatsSketch sk = new KllFloatsSketch();
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    wmem.putByte(0, (byte)1); //corrupt preamble ints, should be 2
+    KllFloatsSketch.heapify(wmem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkHeapifyExceptions3() {
+    KllFloatsSketch sk = new KllFloatsSketch();
+    sk.update(1.0f);
+    sk.update(2.0f);
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    wmem.putByte(0, (byte)1); //corrupt preamble ints, should be 5
+    KllFloatsSketch.heapify(wmem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkHeapifyExceptions4() {
+    KllFloatsSketch sk = new KllFloatsSketch();
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    wmem.putByte(1, (byte)0); //corrupt SerVer, should be 1 or 2
+    KllFloatsSketch.heapify(wmem);
+  }
+
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkHeapifyExceptions5() {
+    KllFloatsSketch sk = new KllFloatsSketch();
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    wmem.putByte(2, (byte)0); //corrupt FamilyID, should be 15
+    KllFloatsSketch.heapify(wmem);
+  }
+
+  @Test
+  public void checkMisc() {
+    KllFloatsSketch sk = new KllFloatsSketch(8, true);
+    assertTrue(Objects.isNull(sk.getQuantiles(10)));
+    sk.toString(true, true);
+    for (int i = 0; i < 20; i++) { sk.update(i); }
+    sk.toString(true, true);
+    sk.toByteArray();
+    final float[] items = sk.getItems();
+    assertEquals(items.length, 16);
+    final int[] levels = sk.getLevels();
+    assertEquals(levels.length, 3);
+    assertEquals(sk.getNumLevels(), 2);
   }
 
   //@Test //requires visual check

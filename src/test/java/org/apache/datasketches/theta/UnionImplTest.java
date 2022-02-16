@@ -37,6 +37,14 @@ import org.testng.annotations.Test;
 public class UnionImplTest {
 
   @Test
+  public void checkGetCurrentAndMaxBytes() {
+    final int lgK = 10;
+    final Union union = Sketches.setOperationBuilder().setLogNominalEntries(lgK).buildUnion();
+    assertEquals(union.getCurrentBytes(), 288);
+    assertEquals(union.getMaxUnionBytes(), 16416);
+  }
+
+  @Test
   public void checkUpdateWithSketch() {
     final int k = 16;
     final WritableMemory mem = WritableMemory.writableWrap(new byte[k*8 + 24]);

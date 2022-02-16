@@ -113,7 +113,7 @@ public class UpdateSketchBuilder {
    * This value is also used for building a shared concurrent sketch.
    * The minimum value is 4 and the maximum value is 26.
    * Be aware that sketches as large as this maximum value may not have been
-   * thoroughly tested or characterized for performance.
+   * thoroughly characterized for performance.
    *
    * @param lgNomEntries the Log Nominal Entries. Also for the concurrent shared sketch
    * @return this UpdateSketchBuilder

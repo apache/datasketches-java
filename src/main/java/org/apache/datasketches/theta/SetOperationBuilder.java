@@ -26,6 +26,7 @@ import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.TAB;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
@@ -66,8 +67,8 @@ public class SetOperationBuilder {
 
   /**
    * Sets the Maximum Nominal Entries (max K) for this set operation. The effective value of K of the result of a
-   * Set Operation can be less than max K, but never greater.  
-   * The minimum value is 16 and the maximum value is 67,108,864, which is 2^26. 
+   * Set Operation can be less than max K, but never greater.
+   * The minimum value is 16 and the maximum value is 67,108,864, which is 2^26.
    * @param nomEntries <a href="{@docRoot}/resources/dictionary.html#nomEntries">Nominal Entres</a>
    * This will become the ceiling power of 2 if it is not a power of 2.
    * @return this SetOperationBuilder
@@ -78,6 +79,20 @@ public class SetOperationBuilder {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomEntries);
     }
+    return this;
+  }
+
+  /**
+   * Alternative method of setting the Nominal Entries for this set operation from the log_base2 value.
+   * The minimum value is 4 and the maximum value is 26.
+   * Be aware that set operations as large as this maximum value may not have been
+   * thoroughly characterized for performance.
+   *
+   * @param lgNomEntries the log_base2 Nominal Entries.
+   * @return this SetOperationBuilder
+   */
+  public SetOperationBuilder setLogNominalEntries(final int lgNomEntries) {
+    bLgNomLongs = checkNomLongs(1 << lgNomEntries);
     return this;
   }
 
