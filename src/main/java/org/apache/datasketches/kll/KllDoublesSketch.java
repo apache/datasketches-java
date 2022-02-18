@@ -218,7 +218,7 @@ public class KllDoublesSketch {
 
   // Other static values
   private static final byte serialVersionUID1  = 1;
-  private static final byte serialVersionUID2  = 2;
+  private static final byte serialVersionUID2  = 2; //only used to specify the empty and single-item format
   private static final int PREAMBLE_INTS_SMALL = 2; // for empty and single item
   private static final int PREAMBLE_INTS_FULL  = 6; // if using items larger than 4 bytes, use 6
 
@@ -769,8 +769,8 @@ public class KllDoublesSketch {
   }
 
   /**
-   * Returns serialized sketch in a byte array form.
-   * @return serialized sketch in a byte array form.
+   * Returns serialized sketch in a compact byte array form.
+   * @return serialized sketch in a compact byte array form.
    */
   public byte[] toByteArray() {
     final byte[] bytes = new byte[getSerializedSizeBytes()];
