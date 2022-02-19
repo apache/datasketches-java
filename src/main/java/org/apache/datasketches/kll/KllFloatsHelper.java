@@ -28,7 +28,7 @@ import java.util.Random;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * Static methods to support KllSketch
+ * Static methods to support KllFloatsSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */

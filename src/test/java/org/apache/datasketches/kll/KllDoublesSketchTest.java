@@ -276,32 +276,32 @@ public class KllDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllDoublesSketch(KllDoublesSketch.MIN_K - 1);
+    new KllDoublesSketch(BaseKllSketch.MIN_K - 1);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    new KllDoublesSketch(KllDoublesSketch.MAX_K + 1);
+    new KllDoublesSketch(BaseKllSketch.MAX_K + 1);
   }
 
   @Test
   public void minK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(KllDoublesSketch.MIN_K);
+    final KllDoublesSketch sketch = new KllDoublesSketch(BaseKllSketch.MIN_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), KllDoublesSketch.MIN_K);
+    assertEquals(sketch.getK(), BaseKllSketch.MIN_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test
   public void maxK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(KllDoublesSketch.MAX_K);
+    final KllDoublesSketch sketch = new KllDoublesSketch(BaseKllSketch.MAX_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), KllDoublesSketch.MAX_K);
+    assertEquals(sketch.getK(), BaseKllSketch.MAX_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
@@ -372,7 +372,7 @@ public class KllDoublesSketchTest {
   @Test
   public void getMaxSerializedSizeBytes() {
     final int sizeBytes =
-        KllDoublesSketch.getMaxSerializedSizeBytes(KllDoublesSketch.DEFAULT_K, 1_000_000_000);
+        KllDoublesSketch.getMaxSerializedSizeBytes(BaseKllSketch.DEFAULT_K, 1_000_000_000);
     assertEquals(sizeBytes, 6184);
   }
 

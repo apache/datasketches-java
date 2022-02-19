@@ -36,11 +36,11 @@ public class MiscDoublesTest {
 
   @Test
   public void checkGetKFromEps() {
-    final int k = KllDoublesSketch.DEFAULT_K;
-    final double eps = KllDoublesSketch.getNormalizedRankError(k, false);
-    final double epsPmf = KllDoublesSketch.getNormalizedRankError(k, true);
-    final int kEps = KllDoublesSketch.getKFromEpsilon(eps, false);
-    final int kEpsPmf = KllDoublesSketch.getKFromEpsilon(epsPmf, true);
+    final int k = BaseKllSketch.DEFAULT_K;
+    final double eps = BaseKllSketch.getNormalizedRankError(k, false);
+    final double epsPmf = BaseKllSketch.getNormalizedRankError(k, true);
+    final int kEps = BaseKllSketch.getKFromEpsilon(eps, false);
+    final int kEpsPmf = BaseKllSketch.getKFromEpsilon(epsPmf, true);
     assertEquals(kEps, k);
     assertEquals(kEpsPmf, k);
   }

@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.Util.floorPowerOf2;
 
-public class KllHelper {
+class KllHelper {
 
   /**
    * Copy the old array into a new larger array.
