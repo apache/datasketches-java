@@ -52,7 +52,7 @@ class KllHelper {
    * @param k The sizing / accuracy parameter of the sketch in items.
    * Note: this method actually works for k values up to k = 2^29 and 61 levels,
    * however only k values up to (2^16 - 1) are currently used by the sketch.
-   * @param m the size of the smallest level in items.
+   * @param m the size of the smallest level in items. Default is 8.
    * @param numLevels the upper bound number of levels based on <i>n</i> items.
    * @return the total item capacity of the sketch.
    */
@@ -70,15 +70,15 @@ class KllHelper {
    * @param numLevels the number of current levels in the sketch. Maximum is 61.
    * @param height the zero-based index of a level with respect to the smallest level.
    * This varies from 0 to 60.
-   * @param minWidth the minimum level width. Default is 8.
+   * @param m the minimum level width. Default is 8.
    * @return the capacity of a specific level
    */
-  static int levelCapacity(final int k, final int numLevels, final int height, final int minWidth) {
+  static int levelCapacity(final int k, final int numLevels, final int height, final int m) {
     assert (k <= (1 << 29));
     assert (numLevels >= 1) && (numLevels <= 61);
     assert (height >= 0) && (height < numLevels);
     final int depth = numLevels - height - 1;
-    return (int) Math.max(minWidth, intCapAux(k, depth));
+    return (int) Math.max(m, intCapAux(k, depth));
   }
 
   /**

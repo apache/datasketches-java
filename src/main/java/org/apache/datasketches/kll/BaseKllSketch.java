@@ -300,7 +300,7 @@ abstract class BaseKllSketch {
     }
   }
 
-  int safeLevelSize(final int level) {
+  int currentLevelSize(final int level) {
     if (level >= numLevels_) { return 0; }
     return levels_[level + 1] - levels_[level];
   }
@@ -308,11 +308,6 @@ abstract class BaseKllSketch {
   int getNumRetainedAboveLevelZero() {
     if (numLevels_ == 1) { return 0; }
     return levels_[numLevels_] - levels_[1];
-  }
-
-  void assertCorrectTotalWeight() {
-    final long total = KllHelper.sumTheSampleWeights(numLevels_, levels_);
-    assert total == n_;
   }
 
   // for testing

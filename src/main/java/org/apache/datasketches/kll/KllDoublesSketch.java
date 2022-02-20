@@ -447,7 +447,7 @@ public class KllDoublesSketch extends BaseKllSketch {
     if (Double.isNaN(maxValue_) || other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
     n_ = finalN;
 
-    assertCorrectTotalWeight();
+    assert KllHelper.sumTheSampleWeights(numLevels_, levels_) == n_;
     if (other.isEstimationMode()) {
       minK_ = min(minK_, other.minK_);
     }
@@ -520,7 +520,7 @@ public class KllDoublesSketch extends BaseKllSketch {
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
         .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
-        .append(", ").append(safeLevelSize(i)).append(Util.LS);
+        .append(", ").append(currentLevelSize(i)).append(Util.LS);
       }
       sb.append("### End sketch levels").append(Util.LS);
     }
@@ -791,13 +791,13 @@ public class KllDoublesSketch extends BaseKllSketch {
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
-    final int selfPopZero = safeLevelSize(0);
+    final int selfPopZero = currentLevelSize(0);
     System.arraycopy(items_, levels_[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
 
     for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
-      final int selfPop = safeLevelSize(lvl);
-      final int otherPop = other.safeLevelSize(lvl);
+      final int selfPop = currentLevelSize(lvl);
+      final int otherPop = other.currentLevelSize(lvl);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
 
       if (selfPop > 0 && otherPop == 0) {
