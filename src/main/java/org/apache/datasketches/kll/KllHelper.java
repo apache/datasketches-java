@@ -56,7 +56,7 @@ class KllHelper {
    * @param numLevels the upper bound number of levels based on <i>n</i> items.
    * @return the total item capacity of the sketch.
    */
-  static int computeTotalCapacity(final int k, final int m, final int numLevels) {
+  static int computeTotalItemCapacity(final int k, final int m, final int numLevels) {
     long total = 0;
     for (int h = 0; h < numLevels; h++) {
       total += levelCapacity(k, numLevels, h, m);
@@ -65,7 +65,7 @@ class KllHelper {
   }
 
   /**
-   * Returns the capacity of a specific level.
+   * Returns the item capacity of a specific level.
    * @param k the accuracy parameter of the sketch. Maximum is 2^29.
    * @param numLevels the number of current levels in the sketch. Maximum is 61.
    * @param height the zero-based index of a level with respect to the smallest level.
@@ -82,7 +82,7 @@ class KllHelper {
   }
 
   /**
-   * Computes the actual capacity of a given level given its depth index.
+   * Computes the actual item capacity of a given level given its depth index.
    * If the depth of levels exceeds 30, this uses a folding technique to accurately compute the
    * actual level capacity up to a depth of 60. Without folding, the internal calculations would
    * exceed the capacity of a long.

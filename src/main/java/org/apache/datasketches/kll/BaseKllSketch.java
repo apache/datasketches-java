@@ -34,6 +34,44 @@ import org.apache.datasketches.SketchesArgumentException;
 
 abstract class BaseKllSketch {
 
+  /* Serialized float sketch layout, more than one item:
+   *  Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
+   *  1   ||---------------------------------N_LONG---------------------------------------|
+   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
+   *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
+   *
+   *
+   *
+   * Serialized float sketch layout, Empty and Single Item:
+   *  Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
+   *  1   ||                                   |-------------------data-------------------|
+   */
+
+  /* Serialized double sketch layout, more than one item:
+   *  Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
+   *  1   ||---------------------------------N_LONG---------------------------------------|
+   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
+   *  2   ||<-------------unused------------------------|numLevels|-------min K-----------|
+   *      ||                                                               |      24      |
+   *  3   ||<---------------------------------data----------------------------------------|
+   *
+   * Serialized double sketch layout, Empty and Single Item:
+   *  Adr:
+   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
+   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
+   *      ||                                                               |      8       |
+   *  1   ||----------------------------------data----------------------------------------|
+   */
+
   /**
    * The default value of K.
    */
@@ -43,22 +81,33 @@ abstract class BaseKllSketch {
   static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   // Preamble byte addresses
-  static final int PREAMBLE_INTS_BYTE = 0;
-  static final int SER_VER_BYTE       = 1;
-  static final int FAMILY_BYTE        = 2;
-  static final int FLAGS_BYTE         = 3;
-  static final int K_SHORT            = 4;  // to 5
-  static final int M_BYTE             = 6;
-  //                                            7 is reserved for future use
-  static final int N_LONG             = 8;  // to 15
-  static final int MIN_K_SHORT        = 16; // to 17
-  static final int NUM_LEVELS_BYTE    = 18;
+  static final int PREAMBLE_INTS_BYTE     = 0;
+  static final int SER_VER_BYTE           = 1;
+  static final int FAMILY_BYTE            = 2;
+  static final int FLAGS_BYTE             = 3;
+  static final int K_SHORT                = 4;  // to 5
+  static final int M_BYTE                 = 6;
+  //                                        7 is reserved for future use
+  // SINGLE ITEM ONLY
   static final int DATA_START_SINGLE_ITEM = 8;
 
+  // MULTI-ITEM
+  static final int N_LONG                 = 8;  // to 15
+  static final int MIN_K_SHORT            = 16; // to 17
+  static final int NUM_LEVELS_BYTE        = 18;
+
+  // FLOAT SKETCH                           19 is reserved for future use in float sketch
+  static final int DATA_START_FLOAT       = 20; // float sketch, not single item
+
+  // DOUBLE SKETCH                          19 to 23 is reserved for future use in double sketch
+  static final int DATA_START_DOUBLE      = 24; // double sketch, not single item
+
   // Other static values
-  static final byte serialVersionUID1  = 1;
-  static final byte serialVersionUID2  = 2; //only used to specify the empty and single-item format
-  static final int PREAMBLE_INTS_SMALL = 2; // for empty and single item
+  static final byte SERIAL_VERSION            = 1;
+  static final byte SERIAL_VERSION_SINGLE     = 2; // only used to specify the single-item format
+  static final int PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty and single item
+  static final int PREAMBLE_INTS_FLOAT        = 5; // not empty or single item
+  static final int PREAMBLE_INTS_DOUBLE       = 6; // not empty or single item
 
   enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED, IS_SINGLE_ITEM }
 

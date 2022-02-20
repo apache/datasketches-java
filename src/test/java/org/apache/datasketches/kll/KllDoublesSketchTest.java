@@ -392,7 +392,7 @@ public class KllDoublesSketchTest {
   @Test
   public void checkSuperLargeKandLevels() {
     //This is beyond what the sketch can be configured for.
-    final int size = KllHelper.computeTotalCapacity(1 << 29, 8, 61);
+    final int size = KllHelper.computeTotalItemCapacity(1 << 29, 8, 61);
     assertEquals(size, 1_610_612_846);
   }
 
