@@ -58,26 +58,27 @@ class KllHelper {
    */
   static int computeTotalItemCapacity(final int k, final int m, final int numLevels) {
     long total = 0;
-    for (int h = 0; h < numLevels; h++) {
-      total += levelCapacity(k, numLevels, h, m);
+    for (int level = 0; level < numLevels; level++) {
+      total += levelCapacity(k, numLevels, level, m);
     }
     return (int) total;
   }
 
   /**
    * Returns the item capacity of a specific level.
-   * @param k the accuracy parameter of the sketch. Maximum is 2^29.
+   * @param k the accuracy parameter of the sketch. Because of the Java limits on array sizes,
+   * the theoretical maximum value of k is 2^29. However, this implementation of the KLL sketch
+   * limits k to 2^16 -1.
    * @param numLevels the number of current levels in the sketch. Maximum is 61.
-   * @param height the zero-based index of a level with respect to the smallest level.
-   * This varies from 0 to 60.
+   * @param level the zero-based index of a level. This varies from 0 to 60.
    * @param m the minimum level width. Default is 8.
    * @return the capacity of a specific level
    */
-  static int levelCapacity(final int k, final int numLevels, final int height, final int m) {
+  static int levelCapacity(final int k, final int numLevels, final int level, final int m) {
     assert (k <= (1 << 29));
     assert (numLevels >= 1) && (numLevels <= 61);
-    assert (height >= 0) && (height < numLevels);
-    final int depth = numLevels - height - 1;
+    assert (level >= 0) && (level < numLevels);
+    final int depth = numLevels - level - 1;
     return (int) Math.max(m, intCapAux(k, depth));
   }
 

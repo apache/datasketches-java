@@ -124,6 +124,8 @@ abstract class BaseKllSketch {
    *  so there is room for least 1 more item in level zero.
    * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
    *  the sketch is exactly filled to capacity and must be compacted.
+   * 4) Sum of weights of retained items == N.
+   * 5) curTotalCap == items_.length == levels_[numLevels_].
    */
 
   final int k_; // configured value of K

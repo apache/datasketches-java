@@ -766,7 +766,7 @@ public class KllFloatsSketch extends BaseKllSketch {
     final int finalCapacity = result[1];
     final int finalPop = result[2];
 
-    assert finalNumLevels <= ub; // can sometimes be much bigger
+    assert finalNumLevels <= ub; // ub can sometimes be much bigger
 
     // now we need to transfer the results back into the "self" sketch
     final float[] newbuf = finalCapacity == items_.length ? items_ : new float[finalCapacity];
