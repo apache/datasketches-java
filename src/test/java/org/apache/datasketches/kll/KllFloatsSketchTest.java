@@ -277,32 +277,32 @@ public class KllFloatsSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllFloatsSketch(KllFloatsSketch.MIN_K - 1);
+    new KllFloatsSketch(BaseKllSketch.MIN_K - 1);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    new KllFloatsSketch(KllFloatsSketch.MAX_K + 1);
+    new KllFloatsSketch(BaseKllSketch.MAX_K + 1);
   }
 
   @Test
   public void minK() {
-    final KllFloatsSketch sketch = new KllFloatsSketch(KllFloatsSketch.MIN_K);
+    final KllFloatsSketch sketch = new KllFloatsSketch(BaseKllSketch.MIN_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), KllFloatsSketch.MIN_K);
+    assertEquals(sketch.getK(), BaseKllSketch.MIN_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test
   public void maxK() {
-    final KllFloatsSketch sketch = new KllFloatsSketch(KllFloatsSketch.MAX_K);
+    final KllFloatsSketch sketch = new KllFloatsSketch(BaseKllSketch.MAX_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), KllFloatsSketch.MAX_K);
+    assertEquals(sketch.getK(), BaseKllSketch.MAX_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
@@ -383,7 +383,7 @@ public class KllFloatsSketchTest {
   @Test
   public void getMaxSerializedSizeBytes() {
     final int sizeBytes =
-        KllFloatsSketch.getMaxSerializedSizeBytes(KllFloatsSketch.DEFAULT_K, 1_000_000_000);
+        KllFloatsSketch.getMaxSerializedSizeBytes(BaseKllSketch.DEFAULT_K, 1_000_000_000);
     assertEquals(sizeBytes, 3160);
   }
 
@@ -403,7 +403,7 @@ public class KllFloatsSketchTest {
   @Test
   public void checkSuperLargeKandLevels() {
     //This is beyond what the sketch can be configured for.
-    final int size = KllHelper.computeTotalCapacity(1 << 29, 8, 61);
+    final int size = KllHelper.computeTotalItemCapacity(1 << 29, 8, 61);
     assertEquals(size, 1_610_612_846);
   }
 

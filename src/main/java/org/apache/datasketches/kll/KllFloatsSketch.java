@@ -19,239 +19,28 @@
 
 package org.apache.datasketches.kll;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.ceil;
-import static java.lang.Math.exp;
-import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.lang.Math.pow;
-import static java.lang.Math.round;
 import static org.apache.datasketches.Util.isOdd;
 
 import java.util.Arrays;
-import java.util.Random;
 
-import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * Implementation of a very compact quantiles sketch with lazy compaction scheme
- * and nearly optimal accuracy per retained item.
- * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
- *
- * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of values from a very large stream in a single pass, requiring only
- * that the values are comparable.
- * The analysis is obtained using <i>getQuantile()</i> or <i>getQuantiles()</i> functions or the
- * inverse functions getRank(), getPMF() (Probability Mass Function), and getCDF()
- * (Cumulative Distribution Function).
- *
- * <p>Given an input stream of <i>N</i> numeric values, the <i>absolute rank</i> of any specific
- * value is defined as its index <i>(0 to N-1)</i> in the hypothetical sorted stream of all
- * <i>N</i> input values.
- *
- * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific value is defined as its
- * <i>absolute rank</i> divided by <i>N</i>.
- * Thus, the <i>normalized rank</i> is a value between zero and one.
- * In the documentation and Javadocs for this sketch <i>absolute rank</i> is never used so any
- * reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.
- *
- * <p>This sketch is configured with a parameter <i>k</i>, which affects the size of the sketch
- * and its estimation error.
- *
- * <p>The estimation error is commonly called <i>epsilon</i> (or <i>eps</i>) and is a fraction
- * between zero and one. Larger values of <i>k</i> result in smaller values of epsilon.
- * Epsilon is always with respect to the rank and cannot be applied to the
- * corresponding values.
- *
- * <p>The relationship between the normalized rank and the corresponding values can be viewed
- * as a two dimensional monotonic plot with the normalized rank on one axis and the
- * corresponding values on the other axis. If the y-axis is specified as the value-axis and
- * the x-axis as the normalized rank, then <i>y = getQuantile(x)</i> is a monotonically
- * increasing function.
- *
- * <p>The functions <i>getQuantile(rank)</i> and getQuantiles(...) translate ranks into
- * corresponding values. The functions <i>getRank(value),
- * getCDF(...) (Cumulative Distribution Function), and getPMF(...)
- * (Probability Mass Function)</i> perform the opposite operation and translate values into ranks.
- *
- * <p>The <i>getPMF(...)</i> function has about 13 to 47% worse rank error (depending
- * on <i>k</i>) than the other queries because the mass of each "bin" of the PMF has
- * "double-sided" error from the upper and lower edges of the bin as a result of a subtraction,
- * as the errors from the two edges can sometimes add.
- *
- * <p>The default <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
- * "double-sided" (PMF) epsilon of about 1.65%.
- *
- * <p>A <i>getQuantile(rank)</i> query has the following guarantees:
- * <ul>
- * <li>Let <i>v = getQuantile(r)</i> where <i>r</i> is the rank between zero and one.</li>
- * <li>The value <i>v</i> will be a value from the input stream.</li>
- * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
- * stream of all <i>N</i> values.</li>
- * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
- * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%. Note that the
- * error is on the rank, not the value.</li>
- * </ul>
- *
- * <p>A <i>getRank(value)</i> query has the following guarantees:
- * <ul>
- * <li>Let <i>r = getRank(v)</i> where <i>v</i> is a value between the min and max values of
- * the input stream.</li>
- * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
- * stream of all <i>N</i> values.</li>
- * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
- * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
- * </ul>
- *
- * <p>A <i>getPMF(...)</i> query has the following guarantees:
- * <ul>
- * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
- * = getPMF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
- * <i>v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub></i> are monotonically increasing values
- * supplied by the user that are part of the monotonic sequence
- * <i>v<sub>0</sub> = min, v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>, v<sub>m+1</sub> = max</i>,
- * and where <i>min</i> and <i>max</i> are the actual minimum and maximum values of the input
- * stream automatically included in the sequence by the <i>getPMF(...)</i> function.
- *
- * <li>Let <i>r<sub>i</sub> = mass<sub>i</sub></i> = estimated mass between
- * <i>v<sub>i-1</sub></i> and <i>v<sub>i</sub></i> where <i>v<sub>0</sub> = min</i>
- * and <i>v<sub>m+1</sub> = max</i>.</li>
- *
- * <li>Let <i>trueMass</i> be the true mass between the values of <i>v<sub>i</sub>,
- * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
- * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
- * <li>Then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
- * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
- * <i>v<sub>1</sub></i>.</li>
- * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>v<sub>m</sub></i> and
- * <i>max = v<sub>m+1</sub></i>.</li>
- * </ul>
- *
- * <p>A <i>getCDF(...)</i> query has the following guarantees;
- * <ul>
- * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
- * = getCDF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
- * <i>v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> are monotonically increasing values
- * supplied by the user that are part of the monotonic sequence
- * <i>{v<sub>0</sub> = min, v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>, v<sub>m+1</sub> = max}</i>,
- * and where <i>min</i> and <i>max</i> are the actual minimum and maximum values of the input
- * stream automatically included in the sequence by the <i>getCDF(...)</i> function.
- *
- * <li>Let <i>r<sub>i</sub> = mass<sub>i</sub></i> = estimated mass between
- * <i>v<sub>0</sub> = min</i> and <i>v<sub>i</sub></i>.</li>
- *
- * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v<sub>i</sub>,
- * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
- * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
- * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
- * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
- * <i>v<sub>1</sub></i>.</li>
- * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
- * <i>max = v<sub>m+1</sub></i>.</li>
- * </ul>
- *
- * <p>From the above, it might seem like we could make some estimates to bound the
- * <em>value</em> returned from a call to <em>getQuantile()</em>. The sketch, however, does not
- * let us derive error bounds or confidences around values. Because errors are independent, we
- * can approximately bracket a value as shown below, but there are no error estimates available.
- * Additionally, the interval may be quite large for certain distributions.
- * <ul>
- * <li>Let <i>v = getQuantile(r)</i>, the estimated quantile value of rank <i>r</i>.</li>
- * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
- * <li>Let <i>v<sub>lo</sub></i> = estimated quantile value of rank <i>(r - eps)</i>.</li>
- * <li>Let <i>v<sub>hi</sub></i> = estimated quantile value of rank <i>(r + eps)</i>.</li>
- * <li>Then <i>v<sub>lo</sub> &le; v &le; v<sub>hi</sub></i>, with 99% confidence.</li>
- * </ul>
- *
- * @author Kevin Lang
- * @author Alexander Saydakov
- * @author Lee Rhodes
+ * Please refer to the documentation in the package-info:<br>
+ * {@link org.apache.datasketches.kll}
  */
-public class KllFloatsSketch {
-
-  /**
-   * The default value of K.
-   */
-  public static final int DEFAULT_K = 200;
-  private static final int DEFAULT_M = 8;
-  static final int MIN_K = DEFAULT_M;
-  static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
-
-  /* Serialized sketch layout, more than one item:
-   *  Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||---------------------------------N_LONG---------------------------------------|
-   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
-   *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
-   *
-   * Serialized sketch layout, Empty and Single Item:
-   *  Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||                                   |-------------------data-------------------|
-   */
-
-  // Preamble byte addresses
-  private static final int PREAMBLE_INTS_BYTE = 0;
-  private static final int SER_VER_BYTE       = 1;
-  private static final int FAMILY_BYTE        = 2;
-  private static final int FLAGS_BYTE         = 3;
-  private static final int K_SHORT            = 4;  // to 5
-  private static final int M_BYTE             = 6;
-  //                                            7 is reserved for future use
-  private static final int N_LONG             = 8;  // to 15
-  private static final int MIN_K_SHORT        = 16; // to 17
-  private static final int NUM_LEVELS_BYTE    = 18;
-  //                                            19 is reserved for future use
-  private static final int DATA_START         = 20; // if using items larger than 4 bytes, use 24
-  private static final int DATA_START_SINGLE_ITEM = 8;
-
-  // Other static values
-  private static final byte serialVersionUID1  = 1;
-  private static final byte serialVersionUID2  = 2;
-  private static final int PREAMBLE_INTS_SMALL = 2; // for empty and single item
-  private static final int PREAMBLE_INTS_FULL  = 5; // if using items larger than 4 bytes, use 6
-
-  private enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED, IS_SINGLE_ITEM }
-
-  /*
-   * Data is stored in items_.
-   * The data for level i lies in positions levels_[i] through levels_[i + 1] - 1 inclusive.
-   * Hence levels_ must contain (numLevels_ + 1) indices.
-   * The valid portion of items_ is completely packed, except for level 0.
-   * Level 0 is filled from the top down.
-   *
-   * Invariants:
-   * 1) After a compaction, or an update, or a merge, all levels are sorted except for level zero.
-   * 2) After a compaction, (sum of capacities) - (sum of items) >= 1,
-   *  so there is room for least 1 more item in level zero.
-   * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
-   *  the sketch is exactly filled to capacity and must be compacted.
-   */
-
-  private final int k_; // configured value of K
-  private final int m_; // configured minimum buffer "width", Must always be DEFAULT_M for now.
-
-  private int minK_;      // for error estimation after merging with different k
-  private long n_;        // number of items input into this sketch
-  private int numLevels_; // one-based number of current levels,
-  private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
-  private boolean isLevelZeroSorted_;
+public class KllFloatsSketch extends BaseKllSketch {
 
   // Specific to the floats sketch
   private float[] items_; // the continuous array of float items
   private float minValue_;
   private float maxValue_;
-  private final boolean compatible; //compatible with quantiles sketch
-  private static final Random random = new Random();
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -285,32 +74,22 @@ public class KllFloatsSketch {
    * @param m minimum level size. Default is 8.
    */
   private KllFloatsSketch(final int k, final int m, final boolean compatible) {
-    checkK(k);
-    k_ = k;
-    minK_ = k;
-    m_ = m;
-    numLevels_ = 1;
-    levels_ = new int[] {k, k};
+    super(k, m, compatible);
     items_ = new float[k];
     minValue_ = Float.NaN;
     maxValue_ = Float.NaN;
-    isLevelZeroSorted_ = false;
-    this.compatible = compatible;
-
   }
 
   /**
-   * Off-heap constructor.
+   * Private heapify constructor.
    * @param mem Memory object that contains data serialized by this sketch.
    */
   private KllFloatsSketch(final Memory mem) {
-    m_ = DEFAULT_M;
-    k_ = mem.getShort(K_SHORT) & 0xffff;
+    super(mem.getShort(K_SHORT) & 0xffff, DEFAULT_M, true);
     final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
-    final boolean isEmpty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
-    final boolean isSingleItem = (flags & 1 << Flags.IS_SINGLE_ITEM.ordinal()) > 0;
-    compatible = true;
-    if (isEmpty) {
+    final boolean empty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+    final boolean singleItem = (flags & 1 << Flags.IS_SINGLE_ITEM.ordinal()) > 0;
+    if (empty) {
       numLevels_ = 1;
       levels_ = new int[] {k_, k_};
       isLevelZeroSorted_ = false;
@@ -319,7 +98,7 @@ public class KllFloatsSketch {
       minValue_ = Float.NaN;
       maxValue_ = Float.NaN;
     } else {
-      if (isSingleItem) {
+      if (singleItem) {
         n_ = 1;
         minK_ = k_;
         numLevels_ = 1;
@@ -329,25 +108,25 @@ public class KllFloatsSketch {
         numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
       }
       levels_ = new int[numLevels_ + 1];
-      int offset = isSingleItem ? DATA_START_SINGLE_ITEM : DATA_START;
-      final int capacity = KllHelper.computeTotalCapacity(k_, m_, numLevels_);
-      if (isSingleItem) {
-        levels_[0] = capacity - 1;
+      int offset = singleItem ? DATA_START_SINGLE_ITEM : DATA_START_FLOAT;
+      final int itemCapacity = KllHelper.computeTotalItemCapacity(k_, m_, numLevels_);
+      if (singleItem) {
+        levels_[0] = itemCapacity - 1;
       } else {
         // the last integer in levels_ is not serialized because it can be derived
         mem.getIntArray(offset, levels_, 0, numLevels_);
         offset += numLevels_ * Integer.BYTES;
       }
-      levels_[numLevels_] = capacity;
-      if (!isSingleItem) {
+      levels_[numLevels_] = itemCapacity;
+      if (!singleItem) {
         minValue_ = mem.getFloat(offset);
         offset += Float.BYTES;
         maxValue_ = mem.getFloat(offset);
         offset += Float.BYTES;
       }
-      items_ = new float[capacity];
+      items_ = new float[itemCapacity];
       mem.getFloatArray(offset, items_, levels_[0], getNumRetained());
-      if (isSingleItem) {
+      if (singleItem) {
         minValue_ = items_[levels_[0]];
         maxValue_ = items_[levels_[0]];
       }
@@ -362,6 +141,8 @@ public class KllFloatsSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
+  //To simplify the code, this method does all the validity checking
+  // then passes the verified Memory to the actual heapify constructor
   public static KllFloatsSketch heapify(final Memory mem) {
     final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
     final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
@@ -372,23 +153,23 @@ public class KllFloatsSketch {
       throw new SketchesArgumentException(
           "Possible corruption: M must be " + DEFAULT_M + ": " + m);
     }
-    final boolean isEmpty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
-    final boolean isSingleItem = (flags & 1 << Flags.IS_SINGLE_ITEM.ordinal()) > 0;
-    if (isEmpty || isSingleItem) {
-      if (preambleInts != PREAMBLE_INTS_SMALL) {
+    final boolean empty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
+    final boolean singleItem = (flags & 1 << Flags.IS_SINGLE_ITEM.ordinal()) > 0;
+    if (empty || singleItem) {
+      if (preambleInts != PREAMBLE_INTS_EMPTY_SINGLE) {
         throw new SketchesArgumentException("Possible corruption: preambleInts must be "
-            + PREAMBLE_INTS_SMALL + " for an empty or single item sketch: " + preambleInts);
+            + PREAMBLE_INTS_EMPTY_SINGLE + " for an empty or single item sketch: " + preambleInts);
       }
     } else {
-      if (preambleInts != PREAMBLE_INTS_FULL) {
+      if (preambleInts != PREAMBLE_INTS_FLOAT) {
         throw new SketchesArgumentException("Possible corruption: preambleInts must be "
-            + PREAMBLE_INTS_FULL + " for a sketch with more than one item: " + preambleInts);
+            + PREAMBLE_INTS_FLOAT + " for a sketch with more than one item: " + preambleInts);
       }
     }
-    if (serialVersion != serialVersionUID1 && serialVersion != serialVersionUID2) {
+    if (serialVersion != SERIAL_VERSION && serialVersion != SERIAL_VERSION_SINGLE) {
       throw new SketchesArgumentException(
-          "Possible corruption: serial version mismatch: expected " + serialVersionUID1 + " or "
-              + serialVersionUID2 + ", got " + serialVersion);
+          "Possible corruption: serial version mismatch: expected " + SERIAL_VERSION + " or "
+              + SERIAL_VERSION_SINGLE + ", got " + serialVersion);
     }
     if (family != Family.KLL.getID()) {
       throw new SketchesArgumentException(
@@ -425,38 +206,6 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns the parameter k
-   * @return parameter k
-   */
-  public int getK() {
-    return k_;
-  }
-
-  /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
-   * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
-   * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
-   * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
-   * @see KllFloatsSketch
-   */
-  // constants were derived as the best fit to 99 percentile empirically measured max error in
-  // thousands of trials
-  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    //Ensure that eps is >= than the lowest possible eps given MAX_K and pmf=false.
-    final double eps = max(epsilon, 4.7634E-5);
-    final double kdbl = pmf
-        ? exp(log(2.446 / eps) / 0.9433)
-        : exp(log(2.296 / eps) / 0.9723);
-    final double krnd = round(kdbl);
-    final double del = abs(krnd - kdbl);
-    final int k = (int) (del < 1E-6 ? krnd : ceil(kdbl));
-    return max(MIN_K, min(MAX_K, k));
-  }
-
-  /**
    * Returns the max value of the stream.
    * If the sketch is empty this returns NaN.
    *
@@ -477,52 +226,6 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns the length of the input stream.
-   * @return stream length
-   */
-  public long getN() {
-    return n_;
-  }
-
-  /**
-   * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
-   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllFloatsSketch
-   */
-  public double getNormalizedRankError(final boolean pmf) {
-    return getNormalizedRankError(minK_, pmf);
-  }
-
-  /**
-   * Gets the normalized rank error given k and pmf.
-   * Static method version of the {@link #getNormalizedRankError(boolean)}.
-   * @param k the configuration parameter
-   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @return if pmf is true, the normalized rank error for the getPMF() function.
-   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllFloatsSketch
-   */
-  // constants were derived as the best fit to 99 percentile empirically measured max error in
-  // thousands of trials
-  public static double getNormalizedRankError(final int k, final boolean pmf) {
-    return pmf
-        ? 2.446 / pow(k, 0.9433)
-        : 2.296 / pow(k, 0.9723);
-  }
-
-  /**
-   * Returns the number of retained items (samples) in the sketch.
-   * @return the number of retained items (samples) in the sketch
-   */
-  public int getNumRetained() {
-    return levels_[numLevels_] - levels_[0];
-  }
-
-  /**
    * Returns upper bound on the serialized size of a sketch given a parameter <em>k</em> and stream
    * length. The resulting size is an overestimate to make sure actual sketches don't exceed it.
    * This method can be used if allocation of storage is necessary beforehand, but it is not
@@ -533,7 +236,7 @@ public class KllFloatsSketch {
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
     final int numLevels = KllHelper.ubOnNumLevels(n);
-    final int maxNumItems = KllHelper.computeTotalCapacity(k, DEFAULT_M, numLevels);
+    final int maxNumItems = KllHelper.computeTotalItemCapacity(k, DEFAULT_M, numLevels);
     return getSerializedSizeBytes(numLevels, maxNumItems);
   }
 
@@ -716,22 +419,6 @@ public class KllFloatsSketch {
   }
 
   /**
-   * Returns true if this sketch is empty.
-   * @return empty flag
-   */
-  public boolean isEmpty() {
-    return n_ == 0;
-  }
-
-  /**
-   * Returns true if this sketch is in estimation mode.
-   * @return estimation mode flag
-   */
-  public boolean isEstimationMode() {
-    return numLevels_ > 1;
-  }
-
-  /**
    * @return the iterator for this class
    */
   public KllFloatsSketchIterator iterator() {
@@ -760,65 +447,51 @@ public class KllFloatsSketch {
     if (Float.isNaN(maxValue_) || other.maxValue_ > maxValue_) { maxValue_ = other.maxValue_; }
     n_ = finalN;
 
-    assertCorrectTotalWeight();
+    assert KllHelper.sumTheSampleWeights(numLevels_, levels_) == n_;
     if (other.isEstimationMode()) {
       minK_ = min(minK_, other.minK_);
     }
   }
 
-  /**
-   * Returns serialized sketch in a byte array form.
-   * @return serialized sketch in a byte array form.
-   */
+  @Override
   public byte[] toByteArray() {
     final byte[] bytes = new byte[getSerializedSizeBytes()];
-    final boolean isSingleItem = n_ == 1;
-    bytes[PREAMBLE_INTS_BYTE] = (byte) (isEmpty() || isSingleItem ? PREAMBLE_INTS_SMALL : PREAMBLE_INTS_FULL);
-    bytes[SER_VER_BYTE] = isSingleItem ? serialVersionUID2 : serialVersionUID1;
-    bytes[FAMILY_BYTE] = (byte) Family.KLL.getID();
-    bytes[FLAGS_BYTE] = (byte) (
-        (isEmpty() ? 1 << Flags.IS_EMPTY.ordinal() : 0)
+    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
+    final boolean singleItem = n_ == 1;
+    final boolean empty = isEmpty();
+    //load the preamble
+    wmem.putByte(PREAMBLE_INTS_BYTE, (byte) (empty || singleItem ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FLOAT));
+    wmem.putByte(SER_VER_BYTE, singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION);
+    wmem.putByte(FAMILY_BYTE, (byte) Family.KLL.getID());
+    final byte flags = (byte) (
+        (empty ? 1 << Flags.IS_EMPTY.ordinal() : 0)
       | (isLevelZeroSorted_ ? 1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal() : 0)
-      | (isSingleItem ? 1 << Flags.IS_SINGLE_ITEM.ordinal() : 0)
-    );
-    ByteArrayUtil.putShortLE(bytes, K_SHORT, (short) k_);
-    bytes[M_BYTE] = (byte) m_;
-    if (isEmpty()) { return bytes; }
+      | (singleItem ? 1 << Flags.IS_SINGLE_ITEM.ordinal() : 0));
+    wmem.putByte(FLAGS_BYTE, flags);
+    wmem.putShort(K_SHORT, (short) k_);
+    wmem.putByte(M_BYTE, (byte) m_);
+    if (empty) { return bytes; }
+    //load data
     int offset = DATA_START_SINGLE_ITEM;
-    if (!isSingleItem) {
-      ByteArrayUtil.putLongLE(bytes, N_LONG, n_);
-      ByteArrayUtil.putShortLE(bytes, MIN_K_SHORT, (short) minK_);
-      bytes[NUM_LEVELS_BYTE] = (byte) numLevels_;
-      offset = DATA_START;
+    if (!singleItem) {
+      wmem.putLong(N_LONG, n_);
+      wmem.putShort(MIN_K_SHORT, (short) minK_);
+      wmem.putByte(NUM_LEVELS_BYTE, (byte) numLevels_);
+      offset = DATA_START_FLOAT;
       // the last integer in levels_ is not serialized because it can be derived
-      for (int i = 0; i < numLevels_; i++) {
-        ByteArrayUtil.putIntLE(bytes, offset, levels_[i]);
-        offset += Integer.BYTES;
-      }
-      ByteArrayUtil.putFloatLE(bytes, offset, minValue_);
+      final int len = levels_.length - 1;
+      wmem.putIntArray(offset, levels_, 0, len);
+      offset += len * Integer.BYTES;
+      wmem.putFloat(offset, minValue_);
       offset += Float.BYTES;
-      ByteArrayUtil.putFloatLE(bytes, offset, maxValue_);
-      offset += Float.BYTES;
-    }
-    final int numItems = getNumRetained();
-    for (int i = 0; i < numItems; i++) {
-      ByteArrayUtil.putFloatLE(bytes, offset, items_[levels_[0] + i]);
+      wmem.putFloat(offset, maxValue_);
       offset += Float.BYTES;
     }
+    wmem.putFloatArray(offset, items_, levels_[0], getNumRetained());
     return bytes;
   }
 
   @Override
-  public String toString() {
-    return toString(false, false);
-  }
-
-  /**
-   * Returns a summary of the sketch as a string.
-   * @param withLevels if true include information about levels
-   * @param withData if true include sketch data
-   * @return string representation of sketch summary
-   */
   public String toString(final boolean withLevels, final boolean withData) {
     final String epsPct = String.format("%.3f%%", getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", getNormalizedRankError(true) * 100);
@@ -834,7 +507,7 @@ public class KllFloatsSketch {
     sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
     sb.append("   Levels               : ").append(numLevels_).append(Util.LS);
     sb.append("   Level 0 Sorted       : ").append(isLevelZeroSorted_).append(Util.LS);
-    sb.append("   Buffer Capacity Items: ").append(items_.length).append(Util.LS);
+    sb.append("   Capacity Items       : ").append(items_.length).append(Util.LS);
     sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
     sb.append("   Storage Bytes        : ").append(getSerializedSizeBytes()).append(Util.LS);
     sb.append("   Min Value            : ").append(minValue_).append(Util.LS);
@@ -847,7 +520,7 @@ public class KllFloatsSketch {
       for (int i = 0; i < numLevels_; i++) {
         sb.append("   ").append(i).append(", ").append(levels_[i]).append(": ")
         .append(KllHelper.levelCapacity(k_, numLevels_, i, m_))
-        .append(", ").append(safeLevelSize(i)).append(Util.LS);
+        .append(", ").append(currentLevelSize(i)).append(Util.LS);
       }
       sb.append("### End sketch levels").append(Util.LS);
     }
@@ -908,17 +581,6 @@ public class KllFloatsSketch {
   }
 
   // Restricted Methods
-
-  /**
-   * Checks the validity of the given value k
-   * @param k must be greater than 7 and less than 65536.
-   */
-  private static void checkK(final int k) {
-    if (k < MIN_K || k > MAX_K) {
-      throw new SketchesArgumentException(
-          "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
-    }
-  }
 
   private KllFloatsQuantileCalculator getQuantileCalculator() {
     sortLevelZero(); // sort in the sketch to reuse if possible
@@ -1047,23 +709,6 @@ public class KllFloatsSketch {
     }
   }
 
-  /**
-   * Finds the first level starting with level 0 that exceeds its nominal capacity
-   * @return level to compact
-   */
-  private int findLevelToCompact() { //
-    int level = 0;
-    while (true) {
-      assert level < numLevels_;
-      final int pop = levels_[level + 1] - levels_[level];
-      final int cap = KllHelper.levelCapacity(k_, numLevels_, level, m_);
-      if (pop >= cap) {
-        return level;
-      }
-      level++;
-    }
-  }
-
   private void addEmptyTopLevelToCompletelyFullSketch() {
     final int curTotalCap = levels_[numLevels_];
 
@@ -1121,7 +766,7 @@ public class KllFloatsSketch {
     final int finalCapacity = result[1];
     final int finalPop = result[2];
 
-    assert finalNumLevels <= ub; // can sometimes be much bigger
+    assert finalNumLevels <= ub; // ub can sometimes be much bigger
 
     // now we need to transfer the results back into the "self" sketch
     final float[] newbuf = finalCapacity == items_.length ? items_ : new float[finalCapacity];
@@ -1146,13 +791,13 @@ public class KllFloatsSketch {
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
-    final int selfPopZero = safeLevelSize(0);
+    final int selfPopZero = currentLevelSize(0);
     System.arraycopy(items_, levels_[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
 
     for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
-      final int selfPop = safeLevelSize(lvl);
-      final int otherPop = other.safeLevelSize(lvl);
+      final int selfPop = currentLevelSize(lvl);
+      final int otherPop = other.currentLevelSize(lvl);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
 
       if (selfPop > 0 && otherPop == 0) {
@@ -1166,42 +811,19 @@ public class KllFloatsSketch {
     }
   }
 
-  private int safeLevelSize(final int level) {
-    if (level >= numLevels_) { return 0; }
-    return levels_[level + 1] - levels_[level];
-  }
-
-  private int getNumRetainedAboveLevelZero() {
-    if (numLevels_ == 1) { return 0; }
-    return levels_[numLevels_] - levels_[1];
-  }
-
-  private void assertCorrectTotalWeight() {
-    final long total = KllHelper.sumTheSampleWeights(numLevels_, levels_);
-    assert total == n_;
-  }
-
   private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
     if (numLevels == 1 && numRetained == 1) {
       return DATA_START_SINGLE_ITEM + Float.BYTES;
     }
     // the last integer in levels_ is not serialized because it can be derived
     // + 2 for min and max
-    return DATA_START + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
+    return DATA_START_FLOAT + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
   }
 
   // for testing
 
   float[] getItems() {
     return items_;
-  }
-
-  int[] getLevels() {
-    return levels_;
-  }
-
-  int getNumLevels() {
-    return numLevels_;
   }
 
 }

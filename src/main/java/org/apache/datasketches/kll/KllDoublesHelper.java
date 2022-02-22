@@ -28,18 +28,18 @@ import java.util.Random;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * Static methods to support KllSketch
+ * Static methods to support KllDoublesSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-public class KllDoublesHelper {
+class KllDoublesHelper {
 
   /**
    * Checks the sequential validity of the given array of double values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of values
    */
-  public static void validateDoubleValues(final double[] values) {
+  static void validateDoubleValues(final double[] values) {
     for (int i = 0; i < values.length; i++) {
       if (!Double.isFinite(values[i])) {
         throw new SketchesArgumentException("Values must be finite");
@@ -127,7 +127,7 @@ public class KllDoublesHelper {
     assert numLevelsIn > 0; // things are too weird if zero levels are allowed
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
-    int targetItemCount = KllHelper.computeTotalCapacity(k, m, numLevels); // increases if we add levels
+    int targetItemCount = KllHelper.computeTotalItemCapacity(k, m, numLevels); // increases if we add levels
     boolean doneYet = false;
     outLevels[0] = 0;
     int curLevel = -1;

@@ -28,7 +28,7 @@ import java.util.Random;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * Static methods to support KllSketch
+ * Static methods to support KllFloatsSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
@@ -127,7 +127,7 @@ class KllFloatsHelper {
     assert numLevelsIn > 0; // things are too weird if zero levels are allowed
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
-    int targetItemCount = KllHelper.computeTotalCapacity(k, m, numLevels); // increases if we add levels
+    int targetItemCount = KllHelper.computeTotalItemCapacity(k, m, numLevels); // increases if we add levels
     boolean doneYet = false;
     outLevels[0] = 0;
     int curLevel = -1;

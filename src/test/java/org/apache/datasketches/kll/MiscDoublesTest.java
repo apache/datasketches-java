@@ -36,11 +36,11 @@ public class MiscDoublesTest {
 
   @Test
   public void checkGetKFromEps() {
-    final int k = KllDoublesSketch.DEFAULT_K;
-    final double eps = KllDoublesSketch.getNormalizedRankError(k, false);
-    final double epsPmf = KllDoublesSketch.getNormalizedRankError(k, true);
-    final int kEps = KllDoublesSketch.getKFromEpsilon(eps, false);
-    final int kEpsPmf = KllDoublesSketch.getKFromEpsilon(epsPmf, true);
+    final int k = BaseKllSketch.DEFAULT_K;
+    final double eps = BaseKllSketch.getNormalizedRankError(k, false);
+    final double epsPmf = BaseKllSketch.getNormalizedRankError(k, true);
+    final int kEps = BaseKllSketch.getKFromEpsilon(eps, false);
+    final int kEpsPmf = BaseKllSketch.getKFromEpsilon(epsPmf, true);
     assertEquals(kEps, k);
     assertEquals(kEpsPmf, k);
   }
@@ -120,18 +120,17 @@ public class MiscDoublesTest {
   }
 
   //@Test //requires visual check
-  public void checkNumRetainedAboveLevelZero() {
+  public void visualCheck() {
     final KllDoublesSketch sketch = new KllDoublesSketch(20);
     for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
-    final String s1 = sketch.toString(true, true);
-    println(s1);
+    println(sketch.toString(true, true));
+
     final KllDoublesSketch sketch2 = new KllDoublesSketch(20);
-    for (int i = 0; i < 400; i++) {
-      sketch2.update(i + 1);
-    }
+    for (int i = 0; i < 400; i++) { sketch2.update(i + 1); }
+    println("\n" + sketch2.toString(true, true));
+
     sketch2.merge(sketch);
-    final String s2 = sketch2.toString(true, true);
-    println(s2);
+    println("\n" + sketch2.toString(true, true));
   }
 
   @Test
