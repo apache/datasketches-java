@@ -27,6 +27,8 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
+import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
 
 import java.util.Random;
 
@@ -34,89 +36,12 @@ import org.apache.datasketches.SketchesArgumentException;
 
 abstract class BaseKllSketch {
 
-  /* Serialized float sketch layout, more than one item:
-   *  Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||---------------------------------N_LONG---------------------------------------|
-   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
-   *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
-   *
-   *
-   *
-   * Serialized float sketch layout, Empty and Single Item:
-   *  Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||                                   |-------------------data-------------------|
-   */
-
-  /* Serialized double sketch layout, more than one item:
-   *  Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
-   *  1   ||---------------------------------N_LONG---------------------------------------|
-   *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
-   *  2   ||<-------------unused------------------------|numLevels|-------min K-----------|
-   *      ||                                                               |      24      |
-   *  3   ||<---------------------------------data----------------------------------------|
-   *
-   * Serialized double sketch layout, Empty and Single Item:
-   *  Adr:
-   *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
-   *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
-   *      ||                                                               |      8       |
-   *  1   ||----------------------------------data----------------------------------------|
-   */
-
-  /**
-   * The default value of K.
-   */
-  public static final int DEFAULT_K = 200;
-  static final int DEFAULT_M = 8;
-  static final int MIN_K = DEFAULT_M;
-  static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
-
-  // Preamble byte addresses
-  static final int PREAMBLE_INTS_BYTE     = 0;
-  static final int SER_VER_BYTE           = 1;
-  static final int FAMILY_BYTE            = 2;
-  static final int FLAGS_BYTE             = 3;
-  static final int K_SHORT                = 4;  // to 5
-  static final int M_BYTE                 = 6;
-  //                                        7 is reserved for future use
-  // SINGLE ITEM ONLY
-  static final int DATA_START_SINGLE_ITEM = 8;
-
-  // MULTI-ITEM
-  static final int N_LONG                 = 8;  // to 15
-  static final int MIN_K_SHORT            = 16; // to 17
-  static final int NUM_LEVELS_BYTE        = 18;
-
-  // FLOAT SKETCH                           19 is reserved for future use in float sketch
-  static final int DATA_START_FLOAT       = 20; // float sketch, not single item
-
-  // DOUBLE SKETCH                          19 to 23 is reserved for future use in double sketch
-  static final int DATA_START_DOUBLE      = 24; // double sketch, not single item
-
-  // Other static values
-  static final byte SERIAL_VERSION            = 1;
-  static final byte SERIAL_VERSION_SINGLE     = 2; // only used to specify the single-item format
-  static final int PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty and single item
-  static final int PREAMBLE_INTS_FLOAT        = 5; // not empty or single item
-  static final int PREAMBLE_INTS_DOUBLE       = 6; // not empty or single item
-
-  enum Flags { IS_EMPTY, IS_LEVEL_ZERO_SORTED, IS_SINGLE_ITEM }
-
   /*
    * Data is stored in items_.
    * The data for level i lies in positions levels_[i] through levels_[i + 1] - 1 inclusive.
-   * Hence levels_ must contain (numLevels_ + 1) indices.
-   * The valid portion of items_ is completely packed, except for level 0.
-   * Level 0 is filled from the top down.
+   * Hence, levels_ must contain (numLevels_ + 1) indices.
+   * The valid portion of items_ is completely packed, except for level 0,
+   * which is filled from the top down.
    *
    * Invariants:
    * 1) After a compaction, or an update, or a merge, all levels are sorted except for level zero.
@@ -124,8 +49,8 @@ abstract class BaseKllSketch {
    *  so there is room for least 1 more item in level zero.
    * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
    *  the sketch is exactly filled to capacity and must be compacted.
-   * 4) Sum of weights of retained items == N.
-   * 5) curTotalCap == items_.length == levels_[numLevels_].
+   * 4) Sum of weights of all retained items == N.
+   * 5) curTotalCap = items_.length = levels_[numLevels_].
    */
 
   final int k_; // configured value of K
@@ -137,13 +62,14 @@ abstract class BaseKllSketch {
   int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   boolean isLevelZeroSorted_;
 
-  final boolean compatible; //compatible with quantiles sketch
+  final boolean compatible; //compatible with quantiles sketch treatment of rank 0.0 and 1.0.
   static final Random random = new Random();
 
   /**
    * Heap constructor.
    * @param k configured size of sketch. Range [m, 2^16]
    * @param m minimum level size. Default is 8.
+   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
    */
   BaseKllSketch(final int k, final int m, final boolean compatible) {
     checkK(k);
@@ -278,7 +204,7 @@ abstract class BaseKllSketch {
    * Checks the validity of the given value k
    * @param k must be greater than 7 and less than 65536.
    */
-  private static void checkK(final int k) {
+  static void checkK(final int k) {
     if (k < MIN_K || k > MAX_K) {
       throw new SketchesArgumentException(
           "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);

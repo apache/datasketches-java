@@ -112,6 +112,7 @@ class KllDoublesHelper {
    * @param outBuf the same array as inBuf
    * @param outLevels the same size as inLevels
    * @param isLevelZeroSorted true if this.level 0 is sorted
+   * @param random instance of java.util.Random
    * @return int array of: {numLevels, targetItemCount, currentItemCount)
    */
   static int[] generalDoublesCompress(

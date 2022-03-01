@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.kll;
 
+//import static org.apache.datasketches.Util.getResourceBytes;
+import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -276,32 +280,32 @@ public class KllDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllDoublesSketch(BaseKllSketch.MIN_K - 1);
+    new KllDoublesSketch(MIN_K - 1);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    new KllDoublesSketch(BaseKllSketch.MAX_K + 1);
+    new KllDoublesSketch(MAX_K + 1);
   }
 
   @Test
   public void minK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(BaseKllSketch.MIN_K);
+    final KllDoublesSketch sketch = new KllDoublesSketch(MIN_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), BaseKllSketch.MIN_K);
+    assertEquals(sketch.getK(), MIN_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test
   public void maxK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(BaseKllSketch.MAX_K);
+    final KllDoublesSketch sketch = new KllDoublesSketch(MAX_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), BaseKllSketch.MAX_K);
+    assertEquals(sketch.getK(), MAX_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
@@ -310,14 +314,14 @@ public class KllDoublesSketchTest {
     final KllDoublesSketch sketch1 = new KllDoublesSketch();
     final byte[] bytes = sketch1.toByteArray();
     final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
+    assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertTrue(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertTrue(Double.isNaN(sketch2.getMinValue()));
     assertTrue(Double.isNaN(sketch2.getMaxValue()));
-    assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
   @Test
@@ -326,15 +330,25 @@ public class KllDoublesSketchTest {
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
     final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
+    assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertFalse(Double.isNaN(sketch2.getMinValue()));
     assertFalse(Double.isNaN(sketch2.getMaxValue()));
-    assertEquals(sketch2.getSerializedSizeBytes(), 8 + Double.BYTES);
+    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
+
+//  @Test //not implemented from C++ yet
+//  public void deserializeOneItemV1() throws Exception {
+//    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
+//    final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
+//    assertFalse(sketch.isEmpty());
+//    assertFalse(sketch.isEstimationMode());
+//    assertEquals(sketch.getN(), 1);
+//    assertEquals(sketch.getNumRetained(), 1);
+//  }
 
   @Test
   public void serializeDeserialize() {
@@ -345,14 +359,14 @@ public class KllDoublesSketchTest {
     }
     final byte[] bytes = sketch1.toByteArray();
     final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
+    assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertEquals(sketch2.getMinValue(), sketch1.getMinValue());
     assertEquals(sketch2.getMaxValue(), sketch1.getMaxValue());
-    assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -372,8 +386,8 @@ public class KllDoublesSketchTest {
   @Test
   public void getMaxSerializedSizeBytes() {
     final int sizeBytes =
-        KllDoublesSketch.getMaxSerializedSizeBytes(BaseKllSketch.DEFAULT_K, 1_000_000_000);
-    assertEquals(sizeBytes, 6184);
+        KllDoublesSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30);
+    assertEquals(sizeBytes, 5708);
   }
 
   @Test

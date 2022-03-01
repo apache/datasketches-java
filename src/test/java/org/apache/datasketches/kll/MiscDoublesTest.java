@@ -19,12 +19,16 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
+import static org.apache.datasketches.kll.KllHelper.getLevelStats;
+import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Objects;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -33,10 +37,11 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class MiscDoublesTest {
+  static final String LS = System.getProperty("line.separator");
 
   @Test
   public void checkGetKFromEps() {
-    final int k = BaseKllSketch.DEFAULT_K;
+    final int k = DEFAULT_K;
     final double eps = BaseKllSketch.getNormalizedRankError(k, false);
     final double epsPmf = BaseKllSketch.getNormalizedRankError(k, true);
     final int kEps = BaseKllSketch.getKFromEpsilon(eps, false);
@@ -119,8 +124,8 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumLevels(), 2);
   }
 
-  //@Test //requires visual check
-  public void visualCheck() {
+  @Test //enable static println(..) for visual checking
+  public void visualCheckToString() {
     final KllDoublesSketch sketch = new KllDoublesSketch(20);
     for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
     println(sketch.toString(true, true));
@@ -130,7 +135,26 @@ public class MiscDoublesTest {
     println("\n" + sketch2.toString(true, true));
 
     sketch2.merge(sketch);
-    println("\n" + sketch2.toString(true, true));
+    final String s2 = sketch2.toString(true, true);
+    println(LS + s2);
+  }
+
+  @Test //convert false to true below for visual checking
+  public void testGetAllLevelStats() {
+    long n = 1L << 30;
+    int k = 200;
+    int m = 8;
+    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, false, false, true);
+    assertEquals(lvlStats.getBytes(), 5708);
+  }
+
+  @Test //convert false to true below for visual checking
+  public void getStatsAtNumLevels() {
+    int k = 200;
+    int m = 8;
+    int numLevels = 23;
+    LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, true);
+    assertEquals(lvlStats.getBytes(), 5708);
   }
 
   @Test

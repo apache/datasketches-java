@@ -22,12 +22,34 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.isOdd;
+import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
+import static org.apache.datasketches.kll.PreambleUtil.EMPTY_BIT_MASK;
+import static org.apache.datasketches.kll.PreambleUtil.FAMILY_BYTE_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.FLAGS_BYTE_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.K_SHORT_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
+import static org.apache.datasketches.kll.PreambleUtil.MIN_K_SHORT_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.M_BYTE_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.NUM_LEVELS_BYTE_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_BYTE_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
+import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_FLOAT;
+import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_EMPTY_FULL;
+import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_SINGLE;
+import static org.apache.datasketches.kll.PreambleUtil.SER_VER_BYTE_ADR;
+import static org.apache.datasketches.kll.PreambleUtil.SINGLE_ITEM_BIT_MASK;
 
 import java.util.Arrays;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
+import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -62,7 +84,7 @@ public class KllFloatsSketch extends BaseKllSketch {
   /**
    * Used for testing only.
    * @param k configured size of sketch. Range [m, 2^16]
-   * @param compatible if true, compatible with quantiles sketch.
+   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
    */
   KllFloatsSketch(final int k, final boolean compatible) {
     this(k, DEFAULT_M, compatible);
@@ -72,6 +94,7 @@ public class KllFloatsSketch extends BaseKllSketch {
    * Heap constructor.
    * @param k configured size of sketch. Range [m, 2^16]
    * @param m minimum level size. Default is 8.
+   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
    */
   private KllFloatsSketch(final int k, final int m, final boolean compatible) {
     super(k, m, compatible);
@@ -85,10 +108,10 @@ public class KllFloatsSketch extends BaseKllSketch {
    * @param mem Memory object that contains data serialized by this sketch.
    */
   private KllFloatsSketch(final Memory mem) {
-    super(mem.getShort(K_SHORT) & 0xffff, DEFAULT_M, true);
-    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
-    final boolean empty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
-    final boolean singleItem = (flags & 1 << Flags.IS_SINGLE_ITEM.ordinal()) > 0;
+    super(mem.getShort(K_SHORT_ADR) & 0xffff, DEFAULT_M, true);
+    final int flags = mem.getByte(FLAGS_BYTE_ADR) & 0xff;
+    final boolean empty = (flags & EMPTY_BIT_MASK) > 0;
+    final boolean singleItem = (flags & SINGLE_ITEM_BIT_MASK) > 0;
     if (empty) {
       numLevels_ = 1;
       levels_ = new int[] {k_, k_};
@@ -103,12 +126,12 @@ public class KllFloatsSketch extends BaseKllSketch {
         minK_ = k_;
         numLevels_ = 1;
       } else {
-        n_ = mem.getLong(N_LONG);
-        minK_ = mem.getShort(MIN_K_SHORT) & 0xffff;
-        numLevels_ = mem.getByte(NUM_LEVELS_BYTE) & 0xff;
+        n_ = mem.getLong(N_LONG_ADR);
+        minK_ = mem.getShort(MIN_K_SHORT_ADR) & 0xffff;
+        numLevels_ = mem.getByte(NUM_LEVELS_BYTE_ADR) & 0xff;
       }
       levels_ = new int[numLevels_ + 1];
-      int offset = singleItem ? DATA_START_SINGLE_ITEM : DATA_START_FLOAT;
+      int offset = singleItem ? DATA_START_ADR_SINGLE_ITEM : DATA_START_ADR_FLOAT;
       final int itemCapacity = KllHelper.computeTotalItemCapacity(k_, m_, numLevels_);
       if (singleItem) {
         levels_[0] = itemCapacity - 1;
@@ -130,7 +153,7 @@ public class KllFloatsSketch extends BaseKllSketch {
         minValue_ = items_[levels_[0]];
         maxValue_ = items_[levels_[0]];
       }
-      isLevelZeroSorted_ = (flags & 1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal()) > 0;
+      isLevelZeroSorted_ = (flags & LEVEL_ZERO_SORTED_BIT_MASK) > 0;
     }
   }
 
@@ -144,17 +167,17 @@ public class KllFloatsSketch extends BaseKllSketch {
   //To simplify the code, this method does all the validity checking
   // then passes the verified Memory to the actual heapify constructor
   public static KllFloatsSketch heapify(final Memory mem) {
-    final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE) & 0xff;
-    final int serialVersion = mem.getByte(SER_VER_BYTE) & 0xff;
-    final int family = mem.getByte(FAMILY_BYTE) & 0xff;
-    final int flags = mem.getByte(FLAGS_BYTE) & 0xff;
-    final int m = mem.getByte(M_BYTE) & 0xff;
+    final int preambleInts = mem.getByte(PREAMBLE_INTS_BYTE_ADR) & 0xff;
+    final int serialVersion = mem.getByte(SER_VER_BYTE_ADR) & 0xff;
+    final int family = mem.getByte(FAMILY_BYTE_ADR) & 0xff;
+    final int flags = mem.getByte(FLAGS_BYTE_ADR) & 0xff;
+    final int m = mem.getByte(M_BYTE_ADR) & 0xff;
     if (m != DEFAULT_M) {
       throw new SketchesArgumentException(
           "Possible corruption: M must be " + DEFAULT_M + ": " + m);
     }
-    final boolean empty = (flags & 1 << Flags.IS_EMPTY.ordinal()) > 0;
-    final boolean singleItem = (flags & 1 << Flags.IS_SINGLE_ITEM.ordinal()) > 0;
+    final boolean empty = (flags & EMPTY_BIT_MASK) > 0;
+    final boolean singleItem = (flags & SINGLE_ITEM_BIT_MASK) > 0;
     if (empty || singleItem) {
       if (preambleInts != PREAMBLE_INTS_EMPTY_SINGLE) {
         throw new SketchesArgumentException("Possible corruption: preambleInts must be "
@@ -166,9 +189,9 @@ public class KllFloatsSketch extends BaseKllSketch {
             + PREAMBLE_INTS_FLOAT + " for a sketch with more than one item: " + preambleInts);
       }
     }
-    if (serialVersion != SERIAL_VERSION && serialVersion != SERIAL_VERSION_SINGLE) {
+    if (serialVersion != SERIAL_VERSION_EMPTY_FULL && serialVersion != SERIAL_VERSION_SINGLE) {
       throw new SketchesArgumentException(
-          "Possible corruption: serial version mismatch: expected " + SERIAL_VERSION + " or "
+          "Possible corruption: serial version mismatch: expected " + SERIAL_VERSION_EMPTY_FULL + " or "
               + SERIAL_VERSION_SINGLE + ", got " + serialVersion);
     }
     if (family != Family.KLL.getID()) {
@@ -227,17 +250,23 @@ public class KllFloatsSketch extends BaseKllSketch {
 
   /**
    * Returns upper bound on the serialized size of a sketch given a parameter <em>k</em> and stream
-   * length. The resulting size is an overestimate to make sure actual sketches don't exceed it.
-   * This method can be used if allocation of storage is necessary beforehand, but it is not
-   * optimal.
+   * length. This method can be used if allocation of storage is necessary beforehand.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the serialized size
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final int numLevels = KllHelper.ubOnNumLevels(n);
-    final int maxNumItems = KllHelper.computeTotalItemCapacity(k, DEFAULT_M, numLevels);
-    return getSerializedSizeBytes(numLevels, maxNumItems);
+    final LevelStats lvlStats = getAllLevelStatsGivenN(k, DEFAULT_M, n, false, false, false);
+    return lvlStats.getBytes();
+  }
+
+  /**
+   * Returns the current number of bytes this sketch would require to store in compact form.
+   * @return the current number of bytes this sketch would require to store in compact form.
+   */
+  public int getCurrentCompactSerializedSizeBytes() {
+    if (isEmpty()) { return N_LONG_ADR; }
+    return KllHelper.getCompactSerializedSizeBytes(numLevels_, getNumRetained(), false);
   }
 
   /**
@@ -285,12 +314,12 @@ public class KllFloatsSketch extends BaseKllSketch {
    */
   public float getQuantile(final double fraction) {
     if (isEmpty()) { return Float.NaN; }
+    if (fraction < 0.0 || fraction > 1.0) {
+      throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
+    }
     if (compatible) {
       if (fraction == 0.0) { return minValue_; }
       if (fraction == 1.0) { return maxValue_; }
-    }
-    if (fraction < 0.0 || fraction > 1.0) {
-      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     final KllFloatsQuantileCalculator quant = getQuantileCalculator();
     return quant.getQuantile(fraction);
@@ -343,7 +372,7 @@ public class KllFloatsSketch extends BaseKllSketch {
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
       if (fraction < 0.0 || fraction > 1.0) {
-        throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
+        throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
       }
       if      (fraction == 0.0 && compatible) { quantiles[i] = minValue_; }
       else if (fraction == 1.0 && compatible) { quantiles[i] = maxValue_; }
@@ -412,10 +441,11 @@ public class KllFloatsSketch extends BaseKllSketch {
   /**
    * Returns the number of bytes this sketch would require to store.
    * @return the number of bytes this sketch would require to store.
+   * @deprecated use {@link #getCurrentCompactSerializedSizeBytes() }
    */
+  @Deprecated
   public int getSerializedSizeBytes() {
-    if (isEmpty()) { return N_LONG; }
-    return getSerializedSizeBytes(numLevels_, getNumRetained());
+    return getCurrentCompactSerializedSizeBytes();
   }
 
   /**
@@ -460,24 +490,25 @@ public class KllFloatsSketch extends BaseKllSketch {
     final boolean singleItem = n_ == 1;
     final boolean empty = isEmpty();
     //load the preamble
-    wmem.putByte(PREAMBLE_INTS_BYTE, (byte) (empty || singleItem ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FLOAT));
-    wmem.putByte(SER_VER_BYTE, singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION);
-    wmem.putByte(FAMILY_BYTE, (byte) Family.KLL.getID());
+    wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte)
+        (empty || singleItem ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FLOAT));
+    wmem.putByte(SER_VER_BYTE_ADR, singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL);
+    wmem.putByte(FAMILY_BYTE_ADR, (byte) Family.KLL.getID());
     final byte flags = (byte) (
-        (empty ? 1 << Flags.IS_EMPTY.ordinal() : 0)
-      | (isLevelZeroSorted_ ? 1 << Flags.IS_LEVEL_ZERO_SORTED.ordinal() : 0)
-      | (singleItem ? 1 << Flags.IS_SINGLE_ITEM.ordinal() : 0));
-    wmem.putByte(FLAGS_BYTE, flags);
-    wmem.putShort(K_SHORT, (short) k_);
-    wmem.putByte(M_BYTE, (byte) m_);
+        (empty ? EMPTY_BIT_MASK : 0)
+      | (isLevelZeroSorted_ ? LEVEL_ZERO_SORTED_BIT_MASK : 0)
+      | (singleItem ? SINGLE_ITEM_BIT_MASK : 0));
+    wmem.putByte(FLAGS_BYTE_ADR, flags);
+    wmem.putShort(K_SHORT_ADR, (short) k_);
+    wmem.putByte(M_BYTE_ADR, (byte) m_);
     if (empty) { return bytes; }
     //load data
-    int offset = DATA_START_SINGLE_ITEM;
+    int offset = DATA_START_ADR_SINGLE_ITEM;
     if (!singleItem) {
-      wmem.putLong(N_LONG, n_);
-      wmem.putShort(MIN_K_SHORT, (short) minK_);
-      wmem.putByte(NUM_LEVELS_BYTE, (byte) numLevels_);
-      offset = DATA_START_FLOAT;
+      wmem.putLong(N_LONG_ADR, n_);
+      wmem.putShort(MIN_K_SHORT_ADR, (short) minK_);
+      wmem.putByte(NUM_LEVELS_BYTE_ADR, (byte) numLevels_);
+      offset = DATA_START_ADR_FLOAT;
       // the last integer in levels_ is not serialized because it can be derived
       final int len = levels_.length - 1;
       wmem.putIntArray(offset, levels_, 0, len);
@@ -766,7 +797,7 @@ public class KllFloatsSketch extends BaseKllSketch {
     final int finalCapacity = result[1];
     final int finalPop = result[2];
 
-    assert finalNumLevels <= ub; // ub can sometimes be much bigger
+    assert finalNumLevels <= ub; // ub may be much bigger
 
     // now we need to transfer the results back into the "self" sketch
     final float[] newbuf = finalCapacity == items_.length ? items_ : new float[finalCapacity];
@@ -809,15 +840,6 @@ public class KllFloatsSketch extends BaseKllSketch {
             other.levels_[lvl], otherPop, workbuf, worklevels[lvl]);
       }
     }
-  }
-
-  private static int getSerializedSizeBytes(final int numLevels, final int numRetained) {
-    if (numLevels == 1 && numRetained == 1) {
-      return DATA_START_SINGLE_ITEM + Float.BYTES;
-    }
-    // the last integer in levels_ is not serialized because it can be derived
-    // + 2 for min and max
-    return DATA_START_FLOAT + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
   }
 
   // for testing

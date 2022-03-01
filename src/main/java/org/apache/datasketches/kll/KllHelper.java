@@ -20,8 +20,12 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.Util.floorPowerOf2;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 
 class KllHelper {
+  static final String LS = System.getProperty("line.separator");
 
   /**
    * Copy the old array into a new larger array.
@@ -39,12 +43,100 @@ class KllHelper {
   }
 
   /**
-   * Returns the upper bound of the number of levels based on <i>n</i>.
+   * Returns very conservative upper bound of the number of levels based on <i>n</i>.
    * @param n the length of the stream
    * @return floor( log_2(n) )
    */
   static int ubOnNumLevels(final long n) {
     return 1 + Long.numberOfTrailingZeros(floorPowerOf2(n));
+  }
+
+  public static LevelStats getAllLevelStatsGivenN(final int k, final int m, final long n,
+      final boolean printDetail, final boolean printSummaries, final boolean isDouble) {
+    long cumN;
+    int numLevels = 0;
+    LevelStats lvlStats;
+    do {
+      numLevels++;
+      lvlStats = getLevelStats(k, m, numLevels, printDetail, printSummaries, isDouble);
+      cumN = lvlStats.getMaxN();
+    } while (cumN < n);
+    return lvlStats;
+  }
+
+  static LevelStats getLevelStats(final int k, final int m, final int numLevels,
+      final boolean printDetail, final boolean printSummary, final boolean isDouble) {
+    int cumN = 0;
+    int cumCap = 0;
+    if (printDetail) {
+      System.out.println("Total Levels: " + numLevels);
+      System.out.printf("%6s%12s%8s%16s\n", "Level","Wt","Cap","N");
+    }
+    for (int level = 0; level < numLevels; level++) {
+      final long levelCap = levelCapacity(k, numLevels, level, m);
+      final long maxNAtLevel = levelCap << level;
+      cumN += maxNAtLevel;
+      cumCap += (int)levelCap;
+      if (printDetail) {
+        System.out.printf("%6d%,12d%8d%,16d\n", level, 1 << level, levelCap, maxNAtLevel);
+      }
+    }
+    final int bytes = getCompactSerializedSizeBytes(numLevels, cumCap, isDouble);
+    if (printDetail) {
+      System.out.printf(" TOTALS%10s %8d%,16d\n", "", cumCap, cumN);
+      System.out.println(" TOTAL BYTES: " + bytes);
+      System.out.println("");
+    }
+    final LevelStats lvlStats = new LevelStats(cumN, bytes, numLevels, cumCap);
+    if (printSummary) { System.out.println(lvlStats.toString()); }
+    return lvlStats;
+  }
+
+  public static class LevelStats {
+    private long maxN;
+    private int bytes;
+    private int numLevels;
+    private int maxCap;
+
+    LevelStats(final long maxN, final int bytes, final int numLevels, final int maxCap) {
+      this.maxN = maxN;
+      this.bytes = bytes;
+      this.numLevels = numLevels;
+      this.maxCap = maxCap;
+    }
+
+    @Override
+    public String toString() {
+      final StringBuilder sb = new StringBuilder();
+      sb.append("Level Stats Summary:" + LS);
+      sb.append("  NumLevels: " + numLevels + LS);
+      sb.append("  MaxCap   : " + maxCap + LS);
+      sb.append("  MaxN     : " + maxN + LS);
+      sb.append("  TotBytes : " + bytes + LS + LS);
+      return sb.toString();
+    }
+
+    public long getMaxN() { return maxN; }
+
+    public int getBytes() { return bytes; }
+
+    public int getNumLevels() { return numLevels; }
+
+    public int getMaxCap() { return maxCap; }
+  }
+
+  static int getCompactSerializedSizeBytes(final int numLevels, final int numRetained,
+      final boolean isDouble) {
+    if (numLevels == 1 && numRetained == 1) {
+      return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES);
+    }
+    // The last integer in levels_ is not serialized because it can be derived.
+    // The + 2 is for min and max
+    if (isDouble) {
+      return DATA_START_ADR_DOUBLE + numLevels * Integer.BYTES + (numRetained + 2) * Double.BYTES;
+    } else {
+      return DATA_START_ADR_FLOAT + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
+    }
   }
 
   /**
