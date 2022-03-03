@@ -268,13 +268,13 @@ public class KllDoublesSketchTest {
   @Test
   public void mergeMinAndMaxFromOther() {
     final KllDoublesSketch sketch1 = new KllDoublesSketch();
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 1; i <= 1_000_000; i++) {
       sketch1.update(i);
     }
     final KllDoublesSketch sketch2 = new KllDoublesSketch();
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 0F);
-    assertEquals(sketch2.getMaxValue(), 999999F);
+    assertEquals(sketch2.getMinValue(), 1F);
+    assertEquals(sketch2.getMaxValue(), 1_000_000F);
   }
 
   @SuppressWarnings("unused")

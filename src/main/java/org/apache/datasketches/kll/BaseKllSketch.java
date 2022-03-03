@@ -25,14 +25,11 @@ import static java.lang.Math.exp;
 import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
 
 import java.util.Random;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 abstract class BaseKllSketch {
 
@@ -72,7 +69,7 @@ abstract class BaseKllSketch {
    * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
    */
   BaseKllSketch(final int k, final int m, final boolean compatible) {
-    checkK(k);
+    KllHelper.checkK(k);
     k_ = k;
     minK_ = k;
     m_ = m;
@@ -133,7 +130,7 @@ abstract class BaseKllSketch {
    * @see KllDoublesSketch
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return getNormalizedRankError(minK_, pmf);
+    return KllHelper.getNormalizedRankError(minK_, pmf);
   }
 
   /**
@@ -144,14 +141,9 @@ abstract class BaseKllSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllDoublesSketch
    */
-  // constants were derived as the best fit to 99 percentile empirically measured max error in
-  // thousands of trials
   public static double getNormalizedRankError(final int k, final boolean pmf) {
-    return pmf
-        ? 2.446 / pow(k, 0.9433)
-        : 2.296 / pow(k, 0.9723);
+    return KllHelper.getNormalizedRankError(k, pmf);
   }
 
   /**
@@ -159,7 +151,7 @@ abstract class BaseKllSketch {
    * @return the number of retained items (samples) in the sketch
    */
   public int getNumRetained() {
-    return levels_[numLevels_] - levels_[0];
+    return KllHelper.getNumRetained(numLevels_, levels_);
   }
 
   /**
@@ -198,55 +190,4 @@ abstract class BaseKllSketch {
    */
   public abstract String toString(final boolean withLevels, final boolean withData);
 
-  // Restricted Methods
-
-  /**
-   * Checks the validity of the given value k
-   * @param k must be greater than 7 and less than 65536.
-   */
-  static void checkK(final int k) {
-    if (k < MIN_K || k > MAX_K) {
-      throw new SketchesArgumentException(
-          "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
-    }
-  }
-
-  /**
-   * Finds the first level starting with level 0 that exceeds its nominal capacity
-   * @return level to compact
-   */
-  int findLevelToCompact() { //
-    int level = 0;
-    while (true) {
-      assert level < numLevels_;
-      final int pop = levels_[level + 1] - levels_[level];
-      final int cap = KllHelper.levelCapacity(k_, numLevels_, level, m_);
-      if (pop >= cap) {
-        return level;
-      }
-      level++;
-    }
-  }
-
-  int currentLevelSize(final int level) {
-    if (level >= numLevels_) { return 0; }
-    return levels_[level + 1] - levels_[level];
-  }
-
-  int getNumRetainedAboveLevelZero() {
-    if (numLevels_ == 1) { return 0; }
-    return levels_[numLevels_] - levels_[1];
-  }
-
-  // for testing
-
-  int[] getLevels() {
-    return levels_;
-  }
-
-  int getNumLevels() {
-    return numLevels_;
-  }
-
 }
-

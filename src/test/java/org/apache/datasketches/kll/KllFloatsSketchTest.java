@@ -268,13 +268,13 @@ public class KllFloatsSketchTest {
   @Test
   public void mergeMinAndMaxFromOther() {
     final KllFloatsSketch sketch1 = new KllFloatsSketch();
-    for (int i = 0; i < 1000000; i++) {
+    for (int i = 1; i <= 1_000_000; i++) {
       sketch1.update(i);
     }
-    final KllFloatsSketch sketch2 = new KllFloatsSketch();
+    final KllFloatsSketch sketch2 = new KllFloatsSketch(10);
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 0F);
-    assertEquals(sketch2.getMaxValue(), 999999F);
+    assertEquals(sketch2.getMinValue(), 1F);
+    assertEquals(sketch2.getMaxValue(), 1_000_000F);
   }
 
   @SuppressWarnings("unused")

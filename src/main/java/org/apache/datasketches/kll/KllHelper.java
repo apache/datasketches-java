@@ -19,10 +19,15 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
+
+import org.apache.datasketches.SketchesArgumentException;
 
 class KllHelper {
   static final String LS = System.getProperty("line.separator");
@@ -51,7 +56,7 @@ class KllHelper {
     return 1 + Long.numberOfTrailingZeros(floorPowerOf2(n));
   }
 
-  public static LevelStats getAllLevelStatsGivenN(final int k, final int m, final long n,
+  static LevelStats getAllLevelStatsGivenN(final int k, final int m, final long n,
       final boolean printDetail, final boolean printSummaries, final boolean isDouble) {
     long cumN;
     int numLevels = 0;
@@ -81,52 +86,56 @@ class KllHelper {
         System.out.printf("%6d%,12d%8d%,16d\n", level, 1 << level, levelCap, maxNAtLevel);
       }
     }
-    final int bytes = getCompactSerializedSizeBytes(numLevels, cumCap, isDouble);
+    final int compactBytes = getCompactSerializedSizeBytes(numLevels, cumCap, isDouble);
+    final int updatableBytes = getUpdatableSerializedSizeBytes(k, m, numLevels, isDouble);
     if (printDetail) {
       System.out.printf(" TOTALS%10s %8d%,16d\n", "", cumCap, cumN);
-      System.out.println(" TOTAL BYTES: " + bytes);
+      System.out.println(" COMPACT BYTES: " + compactBytes);
+      System.out.println(" UPDATABLE BYTES: " + updatableBytes);
       System.out.println("");
     }
-    final LevelStats lvlStats = new LevelStats(cumN, bytes, numLevels, cumCap);
+    final LevelStats lvlStats = new LevelStats(cumN, numLevels, cumCap, compactBytes, updatableBytes);
     if (printSummary) { System.out.println(lvlStats.toString()); }
     return lvlStats;
   }
 
-  public static class LevelStats {
+  static class LevelStats {
     private long maxN;
-    private int bytes;
+    private int compactBytes;
+    private int updatableBytes;
     private int numLevels;
     private int maxCap;
 
-    LevelStats(final long maxN, final int bytes, final int numLevels, final int maxCap) {
+    LevelStats(final long maxN, final int numLevels, final int maxCap, final int compactBytes,
+        final int updatableBytes) {
       this.maxN = maxN;
-      this.bytes = bytes;
       this.numLevels = numLevels;
       this.maxCap = maxCap;
+      this.compactBytes = compactBytes;
+      this.updatableBytes = updatableBytes;
+
     }
 
     @Override
     public String toString() {
+      final String[] hdr = {"NumLevels", "MaxCap", "MaxN", "TotCompactBytes", "TotUpdatableBytes"};
       final StringBuilder sb = new StringBuilder();
       sb.append("Level Stats Summary:" + LS);
-      sb.append("  NumLevels: " + numLevels + LS);
-      sb.append("  MaxCap   : " + maxCap + LS);
-      sb.append("  MaxN     : " + maxN + LS);
-      sb.append("  TotBytes : " + bytes + LS + LS);
+      sb.append(String.format("%10s %10s %14s %17s %17s" + LS, (Object[]) hdr));
+      sb.append(String.format("%10d %10d %14d %17d %17d" + LS, numLevels, maxCap, maxN, compactBytes, updatableBytes));
       return sb.toString();
     }
 
     public long getMaxN() { return maxN; }
 
-    public int getBytes() { return bytes; }
+    public int getCompactBytes() { return compactBytes; }
 
     public int getNumLevels() { return numLevels; }
 
     public int getMaxCap() { return maxCap; }
   }
 
-  static int getCompactSerializedSizeBytes(final int numLevels, final int numRetained,
-      final boolean isDouble) {
+  static int getCompactSerializedSizeBytes(final int numLevels, final int numRetained, final boolean isDouble) {
     if (numLevels == 1 && numRetained == 1) {
       return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES);
     }
@@ -136,6 +145,18 @@ class KllHelper {
       return DATA_START_ADR_DOUBLE + numLevels * Integer.BYTES + (numRetained + 2) * Double.BYTES;
     } else {
       return DATA_START_ADR_FLOAT + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
+    }
+  }
+
+  static int getUpdatableSerializedSizeBytes(final int k, final int m, final int numLevels, final boolean isDouble) {
+    //There are no special accommodations for empty or single item.
+    //The last integer in levels IS serialized.
+    // The + 2 is for min and max
+    final int totCap = computeTotalItemCapacity(k, m, numLevels) + 2;
+    if (isDouble) {
+      return DATA_START_ADR_DOUBLE + (numLevels + 1) * Integer.BYTES + totCap * Double.BYTES;
+    } else {
+      return DATA_START_ADR_FLOAT + (numLevels + 1) * Integer.BYTES + totCap * Float.BYTES;
     }
   }
 
@@ -224,6 +245,69 @@ class KllHelper {
     }
     return total;
   }
+
+  /**
+   * Gets the normalized rank error given k and pmf.
+   * Static method version of the <i>getNormalizedRankError(boolean)</i>.
+   * @param k the configuration parameter
+   * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @return if pmf is true, the normalized rank error for the getPMF() function.
+   * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
+   * @see KllDoublesSketch
+   */
+  // constants were derived as the best fit to 99 percentile empirically measured max error in
+  // thousands of trials
+  static double getNormalizedRankError(final int k, final boolean pmf) {
+    return pmf
+        ? 2.446 / pow(k, 0.9433)
+        : 2.296 / pow(k, 0.9723);
+  }
+
+  /**
+   * Checks the validity of the given value k
+   * @param k must be greater than 7 and less than 65536.
+   */
+  static void checkK(final int k) {
+    if (k < MIN_K || k > MAX_K) {
+      throw new SketchesArgumentException(
+          "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
+    }
+  }
+
+  /**
+   * Finds the first level starting with level 0 that exceeds its nominal capacity
+   * @param k configured size of sketch. Range [m, 2^16]
+   * @param m minimum level size. Default is 8.
+   * @param numLevels one-based number of current levels
+   * @return level to compact
+   */
+  static int findLevelToCompact(final int k, final int m, final int numLevels, final int[] levels) {
+    int level = 0;
+    while (true) {
+      assert level < numLevels;
+      final int pop = levels[level + 1] - levels[level];
+      final int cap = KllHelper.levelCapacity(k, numLevels, level, m);
+      if (pop >= cap) {
+        return level;
+      }
+      level++;
+    }
+  }
+
+  static int currentLevelSize(final int level, final int numLevels, final int[] levels) {
+    if (level >= numLevels) { return 0; }
+    return levels[level + 1] - levels[level];
+  }
+
+  static int getNumRetained(final int numLevels, final int[] levels) {
+    return levels[numLevels] - levels[0];
+  }
+
+  static int getNumRetainedAboveLevelZero(final int numLevels, final int[] levels) {
+    return levels[numLevels] - levels[1];
+  }
+
 
 }
 

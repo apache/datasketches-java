@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllHelper.getLevelStats;
-import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -28,7 +26,6 @@ import static org.testng.Assert.assertTrue;
 import java.util.Objects;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -42,8 +39,8 @@ public class MiscFloatsTest {
   @Test
   public void checkGetKFromEps() {
     final int k = DEFAULT_K;
-    final double eps = BaseKllSketch.getNormalizedRankError(k, false);
-    final double epsPmf = BaseKllSketch.getNormalizedRankError(k, true);
+    final double eps = KllHelper.getNormalizedRankError(k, false);
+    final double epsPmf = KllHelper.getNormalizedRankError(k, true);
     final int kEps = BaseKllSketch.getKFromEpsilon(eps, false);
     final int kEpsPmf = BaseKllSketch.getKFromEpsilon(epsPmf, true);
     assertEquals(kEps, k);
@@ -67,11 +64,11 @@ public class MiscFloatsTest {
     println("LB      : " + lb);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   public void checkHeapifyExceptions1() {
     KllFloatsSketch sk = new KllFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(6, (byte)4); //corrupt M
+    wmem.putByte(6, (byte)4); //use different M: produces a warning
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -119,9 +116,9 @@ public class MiscFloatsTest {
     sk.toByteArray();
     final float[] items = sk.getItems();
     assertEquals(items.length, 16);
-    final int[] levels = sk.getLevels();
+    final int[] levels = sk.levels_;
     assertEquals(levels.length, 3);
-    assertEquals(sk.getNumLevels(), 2);
+    assertEquals(sk.numLevels_, 2);
   }
 
   @Test //enable static println(..) for visual checking
@@ -137,24 +134,6 @@ public class MiscFloatsTest {
     sketch2.merge(sketch);
     final String s2 = sketch2.toString(true, true);
     println(LS + s2);
-  }
-
-  @Test //convert false to true below for visual checking
-  public void testGetAllLevelStats() {
-    long n = 1L << 30;
-    int k = 200;
-    int m = 8;
-    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, false, false, false);
-    assertEquals(lvlStats.getBytes(), 2908);
-  }
-
-  @Test //convert false to true below for visual checking
-  public void getStatsAtNumLevels() {
-    int k = 200;
-    int m = 8;
-    int numLevels = 23;
-    LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, false);
-    assertEquals(lvlStats.getBytes(), 2908);
   }
 
   @Test

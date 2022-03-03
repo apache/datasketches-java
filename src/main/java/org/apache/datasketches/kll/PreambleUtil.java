@@ -133,15 +133,13 @@ final class PreambleUtil {
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
   static final int SINGLE_ITEM_BIT_MASK       = 4;
   static final int DOUBLES_SKETCH_BIT_MASK    = 8;
-  static final int NOT_COMPACT_BIT_MASK       = 16;
+  static final int UPDATABLE_BIT_MASK       = 16;
 
   enum Layout {
     FLOAT_FULL_COMPACT,       FLOAT_EMPTY_COMPACT,      FLOAT_SINGLE_COMPACT,
     DOUBLE_FULL_COMPACT,      DOUBLE_EMPTY_COMPACT,     DOUBLE_SINGLE_COMPACT,
     FLOAT_FULL_NOT_COMPACT,   FLOAT_EMPTY_NOT_COMPACT,  FLOAT_SINGLE_NOT_COMPACT,
     DOUBLE_FULL_NOT_COMPACT,  DOUBLE_EMPTY_NOT_COMPACT, DOUBLE_SINGLE_NOT_COMPACT }
-
-  static Layout layout;
 
   /**
    * Returns a human readable string summary of the internal state of the given byte array.
@@ -167,144 +165,170 @@ final class PreambleUtil {
   }
 
 
-  @SuppressWarnings("unused")
-  private static String memoryToString(final Memory srcMem) {
-    final int preInts = extractPreInts(srcMem);
-    final int serVer = extractSerVer(srcMem);
-    final int familyID = extractFamilyID(srcMem);
-    final String famName = idToFamily(familyID).toString();
-    final int flags = extractFlags(srcMem);
-    final boolean empty = (flags & EMPTY_BIT_MASK) > 0;
-    final boolean level0Sorted = (flags & LEVEL_ZERO_SORTED_BIT_MASK) > 0;
-    final boolean singleItem = (flags & SINGLE_ITEM_BIT_MASK) > 0;
-    final boolean doublesSketch = (flags & DOUBLES_SKETCH_BIT_MASK) > 0;
-    final boolean notCompact    = (flags & NOT_COMPACT_BIT_MASK) > 0;
-    final int k = extractK(srcMem);
-    final int m = extractM(srcMem);
-    long n = 0;
-    final int minK;
-    final int numLevels;
 
-    //preamble checks
-    if (familyID != Family.KLL.getID()) { throwCustom(0, familyID); }
-    final int checkFlags = (empty ? 1 : 0) | (singleItem ? 4 : 0) | (doublesSketch ? 8 : 0);
-    if ((checkFlags & 5) == 5) { throwCustom(20, flags); }
-    switch (checkFlags) {
-      case 0: { //not empty, not single item, float full
-        if (preInts != PREAMBLE_INTS_FLOAT) { throwCustom(6, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
-        layout = notCompact ? Layout.FLOAT_FULL_NOT_COMPACT : Layout.FLOAT_FULL_COMPACT;
-        n = extractN(srcMem);
-        minK = extractMinK(srcMem);
-        numLevels = extractNumLevels(srcMem);
-        break;
-      }
-      case 1: { //empty, not single item, float empty
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
-        if (notCompact) {
-          layout = Layout.FLOAT_EMPTY_NOT_COMPACT;
+
+
+
+  static class MemoryCheck {
+    final int preInts; // = extractPreInts(srcMem);
+    final int serVer;
+    final int familyID;
+    final String famName;
+    final int flags;
+    final boolean empty;
+    final boolean level0Sorted;
+    final boolean singleItem;
+    final boolean doublesSketch;
+    final boolean updatable;
+    final int k;
+    final int m;
+    long n;
+    int minK;
+    int dataStart;
+    int numLevels;
+    int[] levels;
+    Layout layout;
+
+    MemoryCheck(final Memory srcMem) {
+      preInts = extractPreInts(srcMem);
+      serVer = extractSerVer(srcMem);
+      familyID = extractFamilyID(srcMem);
+      flags = extractFlags(srcMem);
+      empty = (flags & EMPTY_BIT_MASK) > 0;
+      level0Sorted  = (flags & LEVEL_ZERO_SORTED_BIT_MASK) > 0;
+      singleItem    = (flags & SINGLE_ITEM_BIT_MASK) > 0;
+      doublesSketch = (flags & DOUBLES_SKETCH_BIT_MASK) > 0;
+      updatable    = (flags & UPDATABLE_BIT_MASK) > 0;
+      k = extractK(srcMem);
+      m = extractM(srcMem);
+
+      KllHelper.checkK(k);
+      if (m != 8) { System.err.println("WARNING: Minimum Level width set to non-default value: " + m); }
+      if (familyID != Family.KLL.getID()) { throwCustom(0, familyID); }
+      famName = idToFamily(familyID).toString();
+      if (famName != "KLL") { throwCustom(23, 0); }
+
+      final int checkFlags = (empty ? 1 : 0) | (singleItem ? 4 : 0) | (doublesSketch ? 8 : 0);
+      if ((checkFlags & 5) == 5) { throwCustom(20, flags); }
+
+      switch (checkFlags) {
+        case 0: { //not empty, not single item, float full
+          if (preInts != PREAMBLE_INTS_FLOAT) { throwCustom(6, preInts); }
+          if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
+          layout = updatable ? Layout.FLOAT_FULL_NOT_COMPACT : Layout.FLOAT_FULL_COMPACT;
           n = extractN(srcMem);
-          if (n != 0) { throwCustom(21, (int) n); }
           minK = extractMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
-        } else {
-          layout = Layout.FLOAT_EMPTY_COMPACT;
-          n = 0;
-          minK = k;
-          numLevels = 1;
+          dataStart = DATA_START_ADR_FLOAT;
+          break;
         }
-        break;
-      }
-      case 4: { //not empty, single item, float single item
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
-        if (serVer != SERIAL_VERSION_SINGLE) { throwCustom(4, serVer); }
-        if (notCompact) {
-          layout = Layout.FLOAT_SINGLE_NOT_COMPACT;
+        case 1: { //empty, not single item, float empty
+          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
+          if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
+          if (updatable) {
+            layout = Layout.FLOAT_EMPTY_NOT_COMPACT;
+            n = extractN(srcMem);
+            if (n != 0) { throwCustom(21, (int) n); }
+            minK = extractMinK(srcMem);
+            numLevels = extractNumLevels(srcMem);
+            dataStart = DATA_START_ADR_FLOAT;
+          } else {
+            layout = Layout.FLOAT_EMPTY_COMPACT;
+            n = 0;
+            minK = k;
+            numLevels = 1;
+            dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
+          }
+          break;
+        }
+        case 4: { //not empty, single item, float single item
+          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
+          if (serVer != SERIAL_VERSION_SINGLE) { throwCustom(4, serVer); }
+          if (updatable) {
+            layout = Layout.FLOAT_SINGLE_NOT_COMPACT;
+            n = extractN(srcMem);
+            if (n != 1) { throwCustom(22, (int)n); }
+            minK = extractMinK(srcMem);
+            numLevels = extractNumLevels(srcMem);
+            dataStart = DATA_START_ADR_FLOAT;
+          } else {
+            layout = Layout.FLOAT_SINGLE_COMPACT;
+            n = 1;
+            minK = k;
+            numLevels = 1;
+            dataStart = DATA_START_ADR_SINGLE_ITEM;
+          }
+          break;
+        }
+        case 8: { //not empty, not single item, double full
+          if (preInts != PREAMBLE_INTS_DOUBLE) { throwCustom(5, preInts); }
+          if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
+          layout = updatable ? Layout.DOUBLE_FULL_NOT_COMPACT : Layout.DOUBLE_FULL_COMPACT;
           n = extractN(srcMem);
-          if (n != 1) { throwCustom(22, (int)n); }
           minK = extractMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
-        } else {
-          layout = Layout.FLOAT_SINGLE_COMPACT;
-          n = 1;
-          minK = k;
-          numLevels = 1;
+          dataStart = DATA_START_ADR_DOUBLE;
+          break;
         }
-        break;
-      }
-      case 8: { //not empty, not single item, double full
-        if (preInts != PREAMBLE_INTS_DOUBLE) { throwCustom(5, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
-        layout = notCompact ? Layout.DOUBLE_FULL_NOT_COMPACT : Layout.DOUBLE_FULL_COMPACT;
-        n = extractN(srcMem);
-        minK = extractMinK(srcMem);
-        numLevels = extractNumLevels(srcMem);
-        break;
-      }
-      case 9: { //empty, not single item, double empty
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
-        if (notCompact) {
-          layout = Layout.DOUBLE_EMPTY_NOT_COMPACT;
-          n = extractN(srcMem);
-          if (n != 0) { throwCustom(21, (int) n); }
-          minK = extractMinK(srcMem);
-          numLevels = extractNumLevels(srcMem);
-        } else {
-          layout = Layout.DOUBLE_EMPTY_COMPACT;
-          n = 0;
-          minK = k;
-          numLevels = 1;
+        case 9: { //empty, not single item, double empty
+          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
+          if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
+          if (updatable) {
+            layout = Layout.DOUBLE_EMPTY_NOT_COMPACT;
+            n = extractN(srcMem);
+            if (n != 0) { throwCustom(21, (int) n); }
+            minK = extractMinK(srcMem);
+            numLevels = extractNumLevels(srcMem);
+            dataStart = DATA_START_ADR_DOUBLE;
+          } else {
+            layout = Layout.DOUBLE_EMPTY_COMPACT;
+            n = 0;
+            minK = k;
+            numLevels = 1;
+            dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
+          }
+          break;
         }
-        break;
-      }
-      case 12: { //not empty, single item, double single item
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
-        if (serVer != SERIAL_VERSION_SINGLE) { throwCustom(4, serVer); }
-        if (notCompact) {
-          layout = Layout.DOUBLE_SINGLE_NOT_COMPACT;
-          n = extractN(srcMem);
-          if (n != 1) { throwCustom(22, (int)n); }
-          minK = extractMinK(srcMem);
-          numLevels = extractNumLevels(srcMem);
-        } else {
-          layout = Layout.DOUBLE_SINGLE_COMPACT;
-          n = 1;
-          minK = k;
-          numLevels = 1;
+        case 12: { //not empty, single item, double single item
+          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
+          if (serVer != SERIAL_VERSION_SINGLE) { throwCustom(4, serVer); }
+          if (updatable) {
+            layout = Layout.DOUBLE_SINGLE_NOT_COMPACT;
+            n = extractN(srcMem);
+            if (n != 1) { throwCustom(22, (int)n); }
+            minK = extractMinK(srcMem);
+            numLevels = extractNumLevels(srcMem);
+            dataStart = DATA_START_ADR_DOUBLE;
+          } else {
+            layout = Layout.DOUBLE_SINGLE_COMPACT;
+            n = 1;
+            minK = k;
+            numLevels = 1;
+            dataStart = DATA_START_ADR_SINGLE_ITEM;
+          }
+          break;
         }
-        break;
       }
     }
 
-    BaseKllSketch.checkK(k);
-
-    if (m != 8) {
-      System.err.println("WARNING: Minimum Level width set to non-default value: " + m);
+    private static void throwCustom(final int errNo, final int value) {
+      String msg = "";
+      switch (errNo) {
+        case 0: msg = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: " + value; break;
+        case 1: msg = "Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
+        case 2: msg = "Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: " + value; break;
+        case 3: msg = "Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
+        case 4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
+        case 5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
+        case 6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
+        case 20: msg = "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
+        case 21: msg = "N != 0 and empty bit is set. N: " + value; break;
+        case 22: msg = "N != 1 and single item bit is set. N: " + value; break;
+        case 23: msg = "Family name is not KLL"; break;
+      }
+      throw new SketchesArgumentException(msg);
     }
-
-
-    return null;
   }
-
-private static void throwCustom(final int errNo, final int value) {
-  String msg = "";
-  switch (errNo) {
-    case 0: msg = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: " + value; break;
-    case 1: msg = "Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-    case 2: msg = "Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: " + value; break;
-    case 3: msg = "Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-    case 4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
-    case 5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
-    case 6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
-    case 20: msg = "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
-    case 21: msg = "N != 0 and empty bit is set. N: " + value; break;
-    case 22: msg = "N != 1 and single item bit is set. N: " + value; break;
-
-  }
-  throw new SketchesArgumentException(msg);
-}
 
   static int extractPreInts(final Memory mem) {
     return mem.getByte(PREAMBLE_INTS_BYTE_ADR) & 0XFF;
