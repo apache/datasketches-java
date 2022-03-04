@@ -26,6 +26,7 @@ import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
 
 import org.apache.datasketches.SketchesArgumentException;
 
@@ -139,15 +140,14 @@ class KllHelper {
       final boolean updatable) {
     int levelsBytes = 0;
     if (!updatable) {
-      if (numLevels == 1 && numRetained == 1) {
-        return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES);
-      }
+      if (numRetained == 0) { return N_LONG_ADR; }
+      if (numRetained == 1) { return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES); }
       levelsBytes = numLevels * Integer.BYTES;
     } else {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     }
     if (isDouble) {
-      return DATA_START_ADR_DOUBLE + levelsBytes + (numRetained + 2) * Double.BYTES;
+      return DATA_START_ADR_DOUBLE + levelsBytes + (numRetained + 2) * Double.BYTES; //+2 is for min & max
     } else {
       return DATA_START_ADR_FLOAT + levelsBytes + (numRetained + 2) * Float.BYTES;
     }

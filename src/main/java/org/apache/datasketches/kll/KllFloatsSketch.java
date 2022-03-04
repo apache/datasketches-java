@@ -240,17 +240,16 @@ public class KllFloatsSketch extends BaseKllSketch {
   }
 
   /**
-   * Returns the current number of bytes this sketch would require to store in compact form.
-   * @return the current number of bytes this sketch would require to store in compact form.
+   * Returns the current compact number of bytes this sketch would require to store.
+   * @return the current compact number of bytes this sketch would require to store.
    */
   public int getCurrentCompactSerializedSizeBytes() {
-    if (isEmpty()) { return N_LONG_ADR; }
     return KllHelper.getSerializedSizeBytes(numLevels_, getNumRetained(), IS_DOUBLE, false);
   }
 
   /**
-   * Returns the current number of bytes this sketch would require to store in updatable form.
-   * @return the current number of bytes this sketch would require to store in updatable form.
+   * Returns the current updatable number of bytes this sketch would require to store.
+   * @return the current updatable number of bytes this sketch would require to store.
    */
   public int getCurrentUpdatableSerializedSizeBytes() {
     return KllHelper.getSerializedSizeBytes(numLevels_, getNumRetained(), IS_DOUBLE, true);
