@@ -24,8 +24,10 @@ import static org.apache.datasketches.kll.KllHelper.getLevelStats;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.kll.KllHelper.LevelStats;
+import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("unused")
 public class KllHelperTest {
 
   @Test //convert two false below to true for visual checking
@@ -44,5 +46,68 @@ public class KllHelperTest {
     int numLevels = 23;
     LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, true);
     assertEquals(lvlStats.getCompactBytes(), 5708);
+  }
+
+  @Test
+  public void checkUpdatableSerDe() {
+    KllDoublesSketch sk = new KllDoublesSketch(200);
+    for (int i = 1; i <= 533; i++) { sk.update(i); }
+    int retained = sk.getNumRetained();
+    int numLevels = ((BaseKllSketch)sk).numLevels_;
+    println("NumLevels: " + numLevels);
+    println("NumRetained: " + retained);
+
+    byte[] compByteArr1 = sk.toByteArray();
+    int compBytes1 = compByteArr1.length;
+    println("compBytes1: " + compBytes1);
+
+    byte[] upByteArr1 = sk.toUpdatableByteArray();
+    int upBytes1 = upByteArr1.length;
+    println("upBytes1: " + upBytes1);
+
+    Memory mem;
+    KllDoublesSketch sk2;
+
+    mem = Memory.wrap(compByteArr1);
+    sk2 = KllDoublesSketch.heapify(mem);
+    byte[] compByteArr2 = sk2.toByteArray();
+    int compBytes2 = compByteArr2.length;
+    println("compBytes2: " + compBytes2);
+    assertEquals(compBytes1, compBytes2);
+    assertEquals(sk2.getNumRetained(), retained);
+
+    mem = Memory.wrap(compByteArr2);
+    sk2 = KllDoublesSketch.heapify(mem);
+    byte[] upByteArr2 = sk2.toUpdatableByteArray();
+    int upBytes2 = upByteArr2.length;
+    println("upBytes2: " + upBytes2);
+    assertEquals(upBytes1, upBytes2);
+    assertEquals(sk2.getNumRetained(), retained);
+  }
+
+  //Experimental
+
+  //@Test //convert two false below to true for visual checking
+  public void testGetAllLevelStats2() {
+    long n = 533;
+    int k = 200;
+    int m = 8;
+    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, true, true, true);
+  }
+
+  //@Test
+  public void getStatsAtNumLevels2() {
+    int k = 20;
+    int m = 8;
+    int numLevels = 2;
+    LevelStats lvlStats = getLevelStats(k, m, numLevels, true, true, true);
+  }
+
+  /**
+   * Println Object o
+   * @param o object to print
+   */
+  static void println(Object o) {
+    //System.out.println(o.toString());
   }
 }

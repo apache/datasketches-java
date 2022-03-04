@@ -44,6 +44,7 @@ import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_EMPTY_FULL
 import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.PreambleUtil.SER_VER_BYTE_ADR;
 import static org.apache.datasketches.kll.PreambleUtil.SINGLE_ITEM_BIT_MASK;
+import static org.apache.datasketches.kll.PreambleUtil.UPDATABLE_BIT_MASK;
 
 import java.util.Arrays;
 
@@ -65,6 +66,7 @@ public class KllDoublesSketch extends BaseKllSketch {
   private double[] items_; // the continuous array of double items
   private double minValue_;
   private double maxValue_;
+  private static final boolean IS_DOUBLE = true;
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -125,26 +127,31 @@ public class KllDoublesSketch extends BaseKllSketch {
       n_ = 1;
       minK_ = k_;
       numLevels_ = 1;
-      levels_ = new int[numLevels_ + 1]; //ALL
-      final int offset = DATA_START_ADR_SINGLE_ITEM;
+      levels_ = new int[numLevels_ + 1];
       final int itemCapacity = KllHelper.computeTotalItemCapacity(k_, m_, numLevels_);
       levels_[0] = itemCapacity - 1;
       levels_[numLevels_] = itemCapacity; //load the last integer in levels_
       items_ = new double[itemCapacity];
-      mem.getDoubleArray(offset, items_, levels_[0], getNumRetained());
+      items_[levels_[0]] = mem.getDouble(DATA_START_ADR_SINGLE_ITEM);
       minValue_ = items_[levels_[0]];
       maxValue_ = items_[levels_[0]];
     } else {
       n_ = memChk.n;
       minK_ = memChk.minK;
       numLevels_ = memChk.numLevels;
-      levels_ = new int[numLevels_ + 1]; //ALL
+      levels_ = new int[numLevels_ + 1];
       int offset = DATA_START_ADR_DOUBLE;
       final int itemCapacity = KllHelper.computeTotalItemCapacity(k_, m_, numLevels_);
-      // the last integer in levels_ is not serialized because it can be derived
-      mem.getIntArray(offset, levels_, 0, numLevels_); //load levels_
-      offset += numLevels_ * Integer.BYTES;
-      levels_[numLevels_] = itemCapacity; //load the last integer in levels_
+      if (memChk.updatable) {
+        // If updatable the last integer in levels_ IS serialized.
+        mem.getIntArray(offset, levels_, 0, numLevels_ + 1); //load levels_
+        offset += (numLevels_ + 1) * Integer.BYTES;
+      } else {
+        // If compact the last integer in levels_ is not serialized.
+        mem.getIntArray(offset, levels_, 0, numLevels_); //load levels_
+        offset += numLevels_ * Integer.BYTES;
+        levels_[numLevels_] = itemCapacity; //load the last integer in levels_
+      }
       minValue_ = mem.getDouble(offset);
       offset += Double.BYTES;
       maxValue_ = mem.getDouble(offset);
@@ -218,6 +225,8 @@ public class KllDoublesSketch extends BaseKllSketch {
     return minValue_;
   }
 
+  //Size related
+
   /**
    * Returns upper bound on the compact serialized size of a sketch given a parameter <em>k</em> and stream
    * length. This method can be used if allocation of storage is necessary beforehand.
@@ -226,7 +235,7 @@ public class KllDoublesSketch extends BaseKllSketch {
    * @return upper bound on the compact serialized size
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final LevelStats lvlStats = getAllLevelStatsGivenN(k, DEFAULT_M, n, false, false, true);
+    final LevelStats lvlStats = getAllLevelStatsGivenN(k, DEFAULT_M, n, false, false, IS_DOUBLE);
     return lvlStats.getCompactBytes();
   }
 
@@ -236,7 +245,25 @@ public class KllDoublesSketch extends BaseKllSketch {
    */
   public int getCurrentCompactSerializedSizeBytes() {
     if (isEmpty()) { return N_LONG_ADR; }
-    return KllHelper.getCompactSerializedSizeBytes(numLevels_, getNumRetained(), true);
+    return KllHelper.getSerializedSizeBytes(numLevels_, getNumRetained(), IS_DOUBLE, false);
+  }
+
+  /**
+   * Returns the current number of bytes this sketch would require to store in updatable form.
+   * @return the current number of bytes this sketch would require to store in updatable form.
+   */
+  public int getCurrentUpdatableSerializedSizeBytes() {
+    return KllHelper.getSerializedSizeBytes(numLevels_, getNumRetained(), IS_DOUBLE, true);
+  }
+
+  /**
+   * Returns the number of bytes this sketch would require to store.
+   * @return the number of bytes this sketch would require to store.
+   * @deprecated use {@link #getCurrentCompactSerializedSizeBytes() }
+   */
+  @Deprecated
+  public int getSerializedSizeBytes() {
+    return getCurrentCompactSerializedSizeBytes();
   }
 
   /**
@@ -409,16 +436,6 @@ public class KllDoublesSketch extends BaseKllSketch {
   }
 
   /**
-   * Returns the number of bytes this sketch would require to store.
-   * @return the number of bytes this sketch would require to store.
-   * @deprecated use {@link #getCurrentCompactSerializedSizeBytes() }
-   */
-  @Deprecated
-  public int getSerializedSizeBytes() {
-    return getCurrentCompactSerializedSizeBytes();
-  }
-
-  /**
    * @return the iterator for this class
    */
   public KllDoublesSketchIterator iterator() {
@@ -489,6 +506,40 @@ public class KllDoublesSketch extends BaseKllSketch {
       wmem.putDouble(offset, maxValue_);
       offset += Double.BYTES;
     }
+    wmem.putDoubleArray(offset, items_, levels_[0], getNumRetained());
+    return bytes;
+  }
+
+  @Override
+  public byte[] toUpdatableByteArray() {
+    final int itemCap = KllHelper.computeTotalItemCapacity(k_, m_, numLevels_);
+    final int numBytes = KllHelper.getSerializedSizeBytes(numLevels_, itemCap, IS_DOUBLE, true);
+    final byte[] bytes = new byte[numBytes];
+    final WritableMemory wmem = WritableMemory.writableWrap(bytes);
+    //load the preamble
+    wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte) PREAMBLE_INTS_DOUBLE);
+    wmem.putByte(SER_VER_BYTE_ADR, SERIAL_VERSION_EMPTY_FULL);
+    wmem.putByte(FAMILY_BYTE_ADR, (byte) Family.KLL.getID());
+    final byte flags = (byte)
+        ((isLevelZeroSorted_ ? LEVEL_ZERO_SORTED_BIT_MASK : 0)
+        | DOUBLES_SKETCH_BIT_MASK
+        | UPDATABLE_BIT_MASK);
+    wmem.putByte(FLAGS_BYTE_ADR, flags);
+    wmem.putShort(K_SHORT_ADR, (short) k_);
+    wmem.putByte(M_BYTE_ADR, (byte) m_);
+    //load data
+    wmem.putLong(N_LONG_ADR, n_);
+    wmem.putShort(MIN_K_SHORT_ADR, (short) minK_);
+    wmem.putByte(NUM_LEVELS_BYTE_ADR, (byte) numLevels_);
+    int offset = DATA_START_ADR_DOUBLE;
+    // the last integer in levels_ IS serialized
+    final int len = levels_.length;
+    wmem.putIntArray(offset, levels_, 0, len);
+    offset += len * Integer.BYTES;
+    wmem.putDouble(offset, minValue_);
+    offset += Double.BYTES;
+    wmem.putDouble(offset, maxValue_);
+    offset += Double.BYTES;
     wmem.putDoubleArray(offset, items_, levels_[0], getNumRetained());
     return bytes;
   }

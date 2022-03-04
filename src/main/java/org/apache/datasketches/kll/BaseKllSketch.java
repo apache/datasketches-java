@@ -176,6 +176,11 @@ abstract class BaseKllSketch {
    */
   public abstract byte[] toByteArray();
 
+  /**
+   * Returns serialized sketch in an updatable byte array form.
+   * @return serialized sketch in an updatable byte array form.
+   */
+  public abstract byte[] toUpdatableByteArray();
 
   @Override
   public String toString() {

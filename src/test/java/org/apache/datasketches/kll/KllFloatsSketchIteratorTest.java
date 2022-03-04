@@ -22,7 +22,6 @@ package org.apache.datasketches.kll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class KllFloatsSketchIteratorTest {
 
   @Test

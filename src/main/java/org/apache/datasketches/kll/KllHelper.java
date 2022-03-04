@@ -86,8 +86,8 @@ class KllHelper {
         System.out.printf("%6d%,12d%8d%,16d\n", level, 1 << level, levelCap, maxNAtLevel);
       }
     }
-    final int compactBytes = getCompactSerializedSizeBytes(numLevels, cumCap, isDouble);
-    final int updatableBytes = getUpdatableSerializedSizeBytes(k, m, numLevels, isDouble);
+    final int compactBytes = getSerializedSizeBytes(numLevels, cumCap, isDouble, false);
+    final int updatableBytes = getSerializedSizeBytes(numLevels, cumCap, isDouble, true);
     if (printDetail) {
       System.out.printf(" TOTALS%10s %8d%,16d\n", "", cumCap, cumN);
       System.out.println(" COMPACT BYTES: " + compactBytes);
@@ -135,28 +135,21 @@ class KllHelper {
     public int getMaxCap() { return maxCap; }
   }
 
-  static int getCompactSerializedSizeBytes(final int numLevels, final int numRetained, final boolean isDouble) {
-    if (numLevels == 1 && numRetained == 1) {
-      return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES);
-    }
-    // The last integer in levels_ is not serialized because it can be derived.
-    // The + 2 is for min and max
-    if (isDouble) {
-      return DATA_START_ADR_DOUBLE + numLevels * Integer.BYTES + (numRetained + 2) * Double.BYTES;
+  static int getSerializedSizeBytes(final int numLevels, final int numRetained, final boolean isDouble,
+      final boolean updatable) {
+    int levelsBytes = 0;
+    if (!updatable) {
+      if (numLevels == 1 && numRetained == 1) {
+        return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES);
+      }
+      levelsBytes = numLevels * Integer.BYTES;
     } else {
-      return DATA_START_ADR_FLOAT + numLevels * Integer.BYTES + (numRetained + 2) * Float.BYTES;
+      levelsBytes = (numLevels + 1) * Integer.BYTES;
     }
-  }
-
-  static int getUpdatableSerializedSizeBytes(final int k, final int m, final int numLevels, final boolean isDouble) {
-    //There are no special accommodations for empty or single item.
-    //The last integer in levels IS serialized.
-    // The + 2 is for min and max
-    final int totCap = computeTotalItemCapacity(k, m, numLevels) + 2;
     if (isDouble) {
-      return DATA_START_ADR_DOUBLE + (numLevels + 1) * Integer.BYTES + totCap * Double.BYTES;
+      return DATA_START_ADR_DOUBLE + levelsBytes + (numRetained + 2) * Double.BYTES;
     } else {
-      return DATA_START_ADR_FLOAT + (numLevels + 1) * Integer.BYTES + totCap * Float.BYTES;
+      return DATA_START_ADR_FLOAT + levelsBytes + (numRetained + 2) * Float.BYTES;
     }
   }
 

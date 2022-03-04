@@ -133,13 +133,12 @@ final class PreambleUtil {
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
   static final int SINGLE_ITEM_BIT_MASK       = 4;
   static final int DOUBLES_SKETCH_BIT_MASK    = 8;
-  static final int UPDATABLE_BIT_MASK       = 16;
+  static final int UPDATABLE_BIT_MASK         = 16;
 
   enum Layout {
     FLOAT_FULL_COMPACT,       FLOAT_EMPTY_COMPACT,      FLOAT_SINGLE_COMPACT,
     DOUBLE_FULL_COMPACT,      DOUBLE_EMPTY_COMPACT,     DOUBLE_SINGLE_COMPACT,
-    FLOAT_FULL_NOT_COMPACT,   FLOAT_EMPTY_NOT_COMPACT,  FLOAT_SINGLE_NOT_COMPACT,
-    DOUBLE_FULL_NOT_COMPACT,  DOUBLE_EMPTY_NOT_COMPACT, DOUBLE_SINGLE_NOT_COMPACT }
+    FLOAT_UPDATABLE,  DOUBLE_UPDATABLE }
 
   /**
    * Returns a human readable string summary of the internal state of the given byte array.
@@ -203,7 +202,7 @@ final class PreambleUtil {
       m = extractM(srcMem);
 
       KllHelper.checkK(k);
-      if (m != 8) { System.err.println("WARNING: Minimum Level width set to non-default value: " + m); }
+      if (m != 8) { throwCustom(7, m); }
       if (familyID != Family.KLL.getID()) { throwCustom(0, familyID); }
       famName = idToFamily(familyID).toString();
       if (famName != "KLL") { throwCustom(23, 0); }
@@ -215,7 +214,7 @@ final class PreambleUtil {
         case 0: { //not empty, not single item, float full
           if (preInts != PREAMBLE_INTS_FLOAT) { throwCustom(6, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
-          layout = updatable ? Layout.FLOAT_FULL_NOT_COMPACT : Layout.FLOAT_FULL_COMPACT;
+          layout = updatable ? Layout.FLOAT_UPDATABLE : Layout.FLOAT_FULL_COMPACT;
           n = extractN(srcMem);
           minK = extractMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
@@ -226,7 +225,7 @@ final class PreambleUtil {
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
           if (updatable) {
-            layout = Layout.FLOAT_EMPTY_NOT_COMPACT;
+            layout = Layout.FLOAT_UPDATABLE;
             n = extractN(srcMem);
             if (n != 0) { throwCustom(21, (int) n); }
             minK = extractMinK(srcMem);
@@ -245,7 +244,7 @@ final class PreambleUtil {
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
           if (serVer != SERIAL_VERSION_SINGLE) { throwCustom(4, serVer); }
           if (updatable) {
-            layout = Layout.FLOAT_SINGLE_NOT_COMPACT;
+            layout = Layout.FLOAT_UPDATABLE;
             n = extractN(srcMem);
             if (n != 1) { throwCustom(22, (int)n); }
             minK = extractMinK(srcMem);
@@ -263,7 +262,7 @@ final class PreambleUtil {
         case 8: { //not empty, not single item, double full
           if (preInts != PREAMBLE_INTS_DOUBLE) { throwCustom(5, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
-          layout = updatable ? Layout.DOUBLE_FULL_NOT_COMPACT : Layout.DOUBLE_FULL_COMPACT;
+          layout = updatable ? Layout.DOUBLE_UPDATABLE : Layout.DOUBLE_FULL_COMPACT;
           n = extractN(srcMem);
           minK = extractMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
@@ -274,7 +273,7 @@ final class PreambleUtil {
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
           if (updatable) {
-            layout = Layout.DOUBLE_EMPTY_NOT_COMPACT;
+            layout = Layout.DOUBLE_UPDATABLE;
             n = extractN(srcMem);
             if (n != 0) { throwCustom(21, (int) n); }
             minK = extractMinK(srcMem);
@@ -293,7 +292,7 @@ final class PreambleUtil {
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { throwCustom(1, preInts); }
           if (serVer != SERIAL_VERSION_SINGLE) { throwCustom(4, serVer); }
           if (updatable) {
-            layout = Layout.DOUBLE_SINGLE_NOT_COMPACT;
+            layout = Layout.DOUBLE_UPDATABLE;
             n = extractN(srcMem);
             if (n != 1) { throwCustom(22, (int)n); }
             minK = extractMinK(srcMem);
@@ -321,6 +320,7 @@ final class PreambleUtil {
         case 4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
         case 5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
         case 6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
+        case 7: msg = "The M field must be set to " + DEFAULT_M + ", NOT: " + value; break;
         case 20: msg = "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
         case 21: msg = "N != 0 and empty bit is set. N: " + value; break;
         case 22: msg = "N != 1 and single item bit is set. N: " + value; break;

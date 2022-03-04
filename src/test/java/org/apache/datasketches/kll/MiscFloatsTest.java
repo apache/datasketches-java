@@ -64,11 +64,11 @@ public class MiscFloatsTest {
     println("LB      : " + lb);
   }
 
-  @Test
+  @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions1() {
     KllFloatsSketch sk = new KllFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(6, (byte)4); //use different M: produces a warning
+    wmem.putByte(6, (byte)4); //corrupt with different M
     KllFloatsSketch.heapify(wmem);
   }
 
