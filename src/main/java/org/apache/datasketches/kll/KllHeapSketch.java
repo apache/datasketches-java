@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-abstract class HeapKllSketch extends KllSketch {
+abstract class KllHeapSketch extends KllSketch {
 
   /*
    * Data is stored in items_.
@@ -48,7 +48,7 @@ abstract class HeapKllSketch extends KllSketch {
    * Heap constructor.
    * @param k configured size of sketch. Range [m, 2^16]
    */
-  HeapKllSketch(final int k, final SketchType sketchType) {
+  KllHeapSketch(final int k, final SketchType sketchType) {
     super(k, sketchType);
     KllHelper.checkK(k);
     dyMinK_ = k;

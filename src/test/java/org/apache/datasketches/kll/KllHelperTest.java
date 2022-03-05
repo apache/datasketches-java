@@ -55,7 +55,7 @@ public class KllHelperTest {
     KllDoublesSketch sk = new KllDoublesSketch(200);
     for (int i = 1; i <= 533; i++) { sk.update(i); }
     int retained = sk.getNumRetained();
-    int numLevels = ((HeapKllSketch)sk).getNumLevels();
+    int numLevels = ((KllHeapSketch)sk).getNumLevels();
     println("NumLevels: " + numLevels);
     println("NumRetained: " + retained);
 

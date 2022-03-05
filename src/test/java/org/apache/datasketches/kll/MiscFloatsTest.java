@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 

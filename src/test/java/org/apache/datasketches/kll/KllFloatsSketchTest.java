@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
-import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
 import static org.apache.datasketches.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -160,23 +160,23 @@ public class KllFloatsSketchTest {
     final KllFloatsSketch sketch2 = new KllFloatsSketch();
     final int n = 10000;
     for (int i = 0; i < n; i++) {
-      sketch1.update(i);
-      sketch2.update(2 * n - i - 1);
+      sketch1.update(i * 1.0f);
+      sketch2.update((2 * n - i - 1) * 1.0f);
     }
 
     assertEquals(sketch1.getMinValue(), 0.0f);
-    assertEquals(sketch1.getMaxValue(), n - 1f);
+    assertEquals(sketch1.getMaxValue(), (n - 1) * 1.0f);
 
-    assertEquals(sketch2.getMinValue(), n);
-    assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
+    assertEquals(sketch2.getMinValue(), n * 1.0f);
+    assertEquals(sketch2.getMaxValue(), (2 * n - 1) * 1.0f);
 
     sketch1.merge(sketch2);
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2L * n);
-    assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), 2f * n - 1);
-    assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinValue(), 0.0f);
+    assertEquals(sketch1.getMaxValue(), (2 * n - 1) * 1.0f);
+    assertEquals(sketch1.getQuantile(0.5), n * 1.0f, n * PMF_EPS_FOR_K_256);
   }
 
   @Test

@@ -21,8 +21,8 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.floorPowerOf2;
-import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.kll.KllSketch.SketchType;

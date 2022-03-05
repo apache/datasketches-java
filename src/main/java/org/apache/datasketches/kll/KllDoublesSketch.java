@@ -22,34 +22,34 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.isOdd;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
-import static org.apache.datasketches.kll.PreambleUtil.DOUBLES_SKETCH_BIT_MASK;
-import static org.apache.datasketches.kll.PreambleUtil.DY_MIN_K_SHORT_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.EMPTY_BIT_MASK;
-import static org.apache.datasketches.kll.PreambleUtil.FAMILY_BYTE_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.FLAGS_BYTE_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.K_SHORT_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
-import static org.apache.datasketches.kll.PreambleUtil.M_BYTE_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.NUM_LEVELS_BYTE_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_BYTE_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_DOUBLE;
-import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
-import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_EMPTY_FULL;
-import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.PreambleUtil.SER_VER_BYTE_ADR;
-import static org.apache.datasketches.kll.PreambleUtil.SINGLE_ITEM_BIT_MASK;
-import static org.apache.datasketches.kll.PreambleUtil.UPDATABLE_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.DY_MIN_K_SHORT_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.FAMILY_BYTE_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.FLAGS_BYTE_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.K_SHORT_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.M_BYTE_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.NUM_LEVELS_BYTE_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_BYTE_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.SER_VER_BYTE_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
 
 import java.util.Arrays;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
-import org.apache.datasketches.kll.PreambleUtil.MemoryCheck;
+import org.apache.datasketches.kll.KllPreambleUtil.MemoryCheck;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -57,7 +57,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}
  */
-public class KllDoublesSketch extends HeapKllSketch {
+public class KllDoublesSketch extends KllHeapSketch {
 
   // Specific to the doubles sketch
   private double[] items_; // the continuous array of double items
@@ -764,8 +764,7 @@ public class KllDoublesSketch extends HeapKllSketch {
     final int theShift = freeSpaceAtBottom - outlevels[0];
 
     if (getLevelsArray().length < finalNumLevels + 1) {
-
-;
+      setLevelsArray(new int[finalNumLevels + 1]);
     }
 
     for (int lvl = 0; lvl < finalNumLevels + 1; lvl++) { // includes the "extra" index

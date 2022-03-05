@@ -85,9 +85,9 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  *  @author Lee Rhodes
  */
-final class PreambleUtil {
+final class KllPreambleUtil {
 
-  private PreambleUtil() {}
+  private KllPreambleUtil() {}
 
   static final String LS = System.getProperty("line.separator");
 

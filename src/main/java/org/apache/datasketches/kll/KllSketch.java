@@ -27,14 +27,14 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
+import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLE_SKETCH;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
-import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
-import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
 
 import java.util.Random;
 
