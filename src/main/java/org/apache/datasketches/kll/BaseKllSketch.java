@@ -26,6 +26,7 @@ import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
+import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
 
@@ -50,16 +51,15 @@ abstract class BaseKllSketch {
    * 5) curTotalCap = items_.length = levels_[numLevels_].
    */
 
-  final int k_; // configured value of K
-  final int m_; // configured minimum buffer "width", Must always be DEFAULT_M for now.
+  static final int M = DEFAULT_M; // configured minimum buffer "width", Must always be 8 for now.
+  private final int k_; // configured value of K
+  private int dyMinK_;      // dynamic minK for error estimation after merging with different k
+  private long n_; // number of items input into this sketch
+  private int numLevels_; // one-based number of current levels,
+  private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
+  private boolean isLevelZeroSorted_;
 
-  int minK_;      // for error estimation after merging with different k
-  long n_;        // number of items input into this sketch
-  int numLevels_; // one-based number of current levels,
-  int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
-  boolean isLevelZeroSorted_;
-
-  final boolean compatible; //compatible with quantiles sketch treatment of rank 0.0 and 1.0.
+  private final boolean compatible; //compatible with quantiles sketch treatment of rank 0.0 and 1.0.
   static final Random random = new Random();
 
   /**
@@ -71,12 +71,75 @@ abstract class BaseKllSketch {
   BaseKllSketch(final int k, final int m, final boolean compatible) {
     KllHelper.checkK(k);
     k_ = k;
-    minK_ = k;
-    m_ = m;
+    dyMinK_ = k;
     numLevels_ = 1;
     levels_ = new int[] {k, k};
     isLevelZeroSorted_ = false;
     this.compatible = compatible;
+  }
+
+  int getDyMinK() {
+    return dyMinK_;
+  }
+
+  void setDyMinK(final int dyMinK) {
+    dyMinK_ = dyMinK;
+  }
+
+  int getNumLevels() {
+    return numLevels_;
+  }
+
+  void setNumLevels(final int numLevels) {
+    numLevels_ = numLevels;
+  }
+
+  void incNumLevels() {
+    numLevels_++;
+  }
+
+  int[] getLevelsArray() {
+    return levels_;
+  }
+
+  int getLevelsArrayAt(final int index) {
+    return levels_[index];
+  }
+
+  void setLevelsArray(final int[] levels) {
+    this.levels_ = levels;
+  }
+
+  void setLevelsArrayAt(final int index, final int value) {
+    this.levels_[index] = value;
+  }
+
+  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    this.levels_[index] += plusEq;
+  }
+
+  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+    this.levels_[index] -= minusEq;
+  }
+
+  boolean isLevelZeroSorted() {
+    return isLevelZeroSorted_;
+  }
+
+  void setLevelZeroSorted(final boolean sorted) {
+    this.isLevelZeroSorted_ = sorted;
+  }
+
+  boolean isCompatible() {
+    return this.compatible;
+  }
+
+  void setN(final long n) {
+    n_ = n;
+  }
+
+  void incN() {
+    n_++;
   }
 
   // public functions
@@ -87,6 +150,14 @@ abstract class BaseKllSketch {
    */
   public int getK() {
     return k_;
+  }
+
+  /**
+   * Returns the length of the input stream.
+   * @return stream length
+   */
+  public long getN() {
+    return n_;
   }
 
   /**
@@ -114,14 +185,6 @@ abstract class BaseKllSketch {
   }
 
   /**
-   * Returns the length of the input stream.
-   * @return stream length
-   */
-  public long getN() {
-    return n_;
-  }
-
-  /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -130,7 +193,7 @@ abstract class BaseKllSketch {
    * @see KllDoublesSketch
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return KllHelper.getNormalizedRankError(minK_, pmf);
+    return KllHelper.getNormalizedRankError(dyMinK_, pmf);
   }
 
   /**

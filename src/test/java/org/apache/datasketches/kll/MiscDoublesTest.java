@@ -116,9 +116,9 @@ public class MiscDoublesTest {
     sk.toByteArray();
     final double[] items = sk.getItems();
     assertEquals(items.length, 16);
-    final int[] levels = sk.levels_;
+    final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
-    assertEquals(sk.numLevels_, 2);
+    assertEquals(sk.getNumLevels(), 2);
   }
 
   @Test //enable static println(..) for visual checking

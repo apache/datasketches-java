@@ -112,7 +112,7 @@ final class PreambleUtil {
 
   // MULTI-ITEM
   static final int N_LONG_ADR                 = 8;  // to 15
-  static final int MIN_K_SHORT_ADR            = 16; // to 17
+  static final int DY_MIN_K_SHORT_ADR         = 16; // to 17
   static final int NUM_LEVELS_BYTE_ADR        = 18;
 
   // FLOAT SKETCH                               19 is reserved for future use in float sketch
@@ -182,7 +182,7 @@ final class PreambleUtil {
     final int k;
     final int m;
     long n;
-    int minK;
+    int dyMinK;
     int dataStart;
     int numLevels;
     int[] levels;
@@ -216,7 +216,7 @@ final class PreambleUtil {
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
           layout = updatable ? Layout.FLOAT_UPDATABLE : Layout.FLOAT_FULL_COMPACT;
           n = extractN(srcMem);
-          minK = extractMinK(srcMem);
+          dyMinK = extractDyMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
           dataStart = DATA_START_ADR_FLOAT;
           break;
@@ -228,13 +228,13 @@ final class PreambleUtil {
             layout = Layout.FLOAT_UPDATABLE;
             n = extractN(srcMem);
             if (n != 0) { throwCustom(21, (int) n); }
-            minK = extractMinK(srcMem);
+            dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_FLOAT;
           } else {
             layout = Layout.FLOAT_EMPTY_COMPACT;
             n = 0;
-            minK = k;
+            dyMinK = k;
             numLevels = 1;
             dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
           }
@@ -247,13 +247,13 @@ final class PreambleUtil {
             layout = Layout.FLOAT_UPDATABLE;
             n = extractN(srcMem);
             if (n != 1) { throwCustom(22, (int)n); }
-            minK = extractMinK(srcMem);
+            dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_FLOAT;
           } else {
             layout = Layout.FLOAT_SINGLE_COMPACT;
             n = 1;
-            minK = k;
+            dyMinK = k;
             numLevels = 1;
             dataStart = DATA_START_ADR_SINGLE_ITEM;
           }
@@ -264,7 +264,7 @@ final class PreambleUtil {
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { throwCustom(2, serVer); }
           layout = updatable ? Layout.DOUBLE_UPDATABLE : Layout.DOUBLE_FULL_COMPACT;
           n = extractN(srcMem);
-          minK = extractMinK(srcMem);
+          dyMinK = extractDyMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
           dataStart = DATA_START_ADR_DOUBLE;
           break;
@@ -276,13 +276,13 @@ final class PreambleUtil {
             layout = Layout.DOUBLE_UPDATABLE;
             n = extractN(srcMem);
             if (n != 0) { throwCustom(21, (int) n); }
-            minK = extractMinK(srcMem);
+            dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_DOUBLE;
           } else {
             layout = Layout.DOUBLE_EMPTY_COMPACT;
             n = 0;
-            minK = k;
+            dyMinK = k;
             numLevels = 1;
             dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
           }
@@ -295,13 +295,13 @@ final class PreambleUtil {
             layout = Layout.DOUBLE_UPDATABLE;
             n = extractN(srcMem);
             if (n != 1) { throwCustom(22, (int)n); }
-            minK = extractMinK(srcMem);
+            dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_DOUBLE;
           } else {
             layout = Layout.DOUBLE_SINGLE_COMPACT;
             n = 1;
-            minK = k;
+            dyMinK = k;
             numLevels = 1;
             dataStart = DATA_START_ADR_SINGLE_ITEM;
           }
@@ -370,8 +370,8 @@ final class PreambleUtil {
     return mem.getLong(N_LONG_ADR);
   }
 
-  static int extractMinK(final Memory mem) {
-    return mem.getShort(MIN_K_SHORT_ADR) & 0XFFFF;
+  static int extractDyMinK(final Memory mem) {
+    return mem.getShort(DY_MIN_K_SHORT_ADR) & 0XFFFF;
   }
 
   static int extractNumLevels(final Memory mem) {
@@ -422,7 +422,7 @@ final class PreambleUtil {
   }
 
   static void insertMinK(final WritableMemory wmem, final int value) {
-    wmem.putShort(MIN_K_SHORT_ADR, (short) value);
+    wmem.putShort(DY_MIN_K_SHORT_ADR, (short) value);
   }
 
   static void insertNumLevels(final WritableMemory wmem, final int value) {
