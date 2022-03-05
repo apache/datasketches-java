@@ -21,9 +21,11 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.KllHelper.getLevelStats;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLE_SKETCH;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.kll.KllHelper.LevelStats;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
@@ -35,7 +37,7 @@ public class KllHelperTest {
     long n = 1L << 30;
     int k = 200;
     int m = 8;
-    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, false, false, true);
+    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, false, false, DOUBLE_SKETCH);
     assertEquals(lvlStats.getCompactBytes(), 5708);
   }
 
@@ -44,7 +46,7 @@ public class KllHelperTest {
     int k = 200;
     int m = 8;
     int numLevels = 23;
-    LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, true);
+    LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, DOUBLE_SKETCH);
     assertEquals(lvlStats.getCompactBytes(), 5708);
   }
 
@@ -53,7 +55,7 @@ public class KllHelperTest {
     KllDoublesSketch sk = new KllDoublesSketch(200);
     for (int i = 1; i <= 533; i++) { sk.update(i); }
     int retained = sk.getNumRetained();
-    int numLevels = ((BaseKllSketch)sk).getNumLevels();
+    int numLevels = ((HeapKllSketch)sk).getNumLevels();
     println("NumLevels: " + numLevels);
     println("NumRetained: " + retained);
 
@@ -92,7 +94,7 @@ public class KllHelperTest {
     long n = 533;
     int k = 200;
     int m = 8;
-    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, true, true, true);
+    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, true, true, DOUBLE_SKETCH);
   }
 
   //@Test
@@ -100,7 +102,7 @@ public class KllHelperTest {
     int k = 20;
     int m = 8;
     int numLevels = 2;
-    LevelStats lvlStats = getLevelStats(k, m, numLevels, true, true, true);
+    LevelStats lvlStats = getLevelStats(k, m, numLevels, true, true, DOUBLE_SKETCH);
   }
 
   /**

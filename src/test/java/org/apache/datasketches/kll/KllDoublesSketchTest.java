@@ -386,7 +386,7 @@ public class KllDoublesSketchTest {
   @Test
   public void getMaxSerializedSizeBytes() {
     final int sizeBytes =
-        KllDoublesSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30);
+        KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30);
     assertEquals(sizeBytes, 5708);
   }
 

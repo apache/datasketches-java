@@ -22,11 +22,9 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.isOdd;
-import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
-import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.PreambleUtil.DOUBLES_SKETCH_BIT_MASK;
 import static org.apache.datasketches.kll.PreambleUtil.DY_MIN_K_SHORT_ADR;
 import static org.apache.datasketches.kll.PreambleUtil.EMPTY_BIT_MASK;
@@ -51,7 +49,6 @@ import java.util.Arrays;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
-import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.kll.PreambleUtil.MemoryCheck;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -60,13 +57,12 @@ import org.apache.datasketches.memory.WritableMemory;
  * Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}
  */
-public class KllDoublesSketch extends BaseKllSketch {
+public class KllDoublesSketch extends HeapKllSketch {
 
   // Specific to the doubles sketch
   private double[] items_; // the continuous array of double items
   private double minValue_;
   private double maxValue_;
-  private static final boolean IS_DOUBLE = true;
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -82,26 +78,7 @@ public class KllDoublesSketch extends BaseKllSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllDoublesSketch(final int k) {
-    this(k, DEFAULT_M, true);
-  }
-
-  /**
-   * Used for testing only.
-   * @param k configured size of sketch. Range [m, 2^16]
-   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
-   */
-  KllDoublesSketch(final int k, final boolean compatible) {
-    this(k, DEFAULT_M, compatible);
-  }
-
-  /**
-   * Heap constructor.
-   * @param k configured size of sketch. Range [m, 2^16]
-   * @param m minimum level size. Default is 8.
-   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
-   */
-  private KllDoublesSketch(final int k, final int m, final boolean compatible) {
-    super(k, m, compatible);
+    super(k, SketchType.DOUBLE_SKETCH);
     items_ = new double[k];
     minValue_ = Double.NaN;
     maxValue_ = Double.NaN;
@@ -113,9 +90,8 @@ public class KllDoublesSketch extends BaseKllSketch {
    * @param memChk the MemoryCheck object
    */
   private KllDoublesSketch(final Memory mem, final MemoryCheck memChk) {
-    super(memChk.k, memChk.m, true);
+    super(memChk.k, SketchType.DOUBLE_SKETCH);
     setLevelZeroSorted(memChk.level0Sorted);
-
     final int k = getK();
     if (memChk.empty) {
       setNumLevels(1);
@@ -225,46 +201,6 @@ public class KllDoublesSketch extends BaseKllSketch {
    */
   public double getMinValue() {
     return minValue_;
-  }
-
-  //Size related
-
-  /**
-   * Returns upper bound on the compact serialized size of a sketch given a parameter <em>k</em> and stream
-   * length. This method can be used if allocation of storage is necessary beforehand.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @return upper bound on the compact serialized size
-   */
-  public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final LevelStats lvlStats = getAllLevelStatsGivenN(k, DEFAULT_M, n, false, false, IS_DOUBLE);
-    return lvlStats.getCompactBytes();
-  }
-
-  /**
-   * Returns the current compact number of bytes this sketch would require to store.
-   * @return the current compact number of bytes this sketch would require to store.
-   */
-  public int getCurrentCompactSerializedSizeBytes() {
-    return KllHelper.getSerializedSizeBytes(getNumLevels(), getNumRetained(), IS_DOUBLE, false);
-  }
-
-  /**
-   * Returns the current updatable number of bytes this sketch would require to store.
-   * @return the current updatable number of bytes this sketch would require to store.
-   */
-  public int getCurrentUpdatableSerializedSizeBytes() {
-    return KllHelper.getSerializedSizeBytes(getNumLevels(), getNumRetained(), IS_DOUBLE, true);
-  }
-
-  /**
-   * Returns the number of bytes this sketch would require to store.
-   * @return the number of bytes this sketch would require to store.
-   * @deprecated use {@link #getCurrentCompactSerializedSizeBytes() }
-   */
-  @Deprecated
-  public int getSerializedSizeBytes() {
-    return getCurrentCompactSerializedSizeBytes();
   }
 
   /**
@@ -511,8 +447,7 @@ public class KllDoublesSketch extends BaseKllSketch {
   @Override
   public byte[] toUpdatableByteArray() {
     final int k = getK();
-    final int itemCap = KllHelper.computeTotalItemCapacity(k, M, getNumLevels());
-    final int numBytes = KllHelper.getSerializedSizeBytes(getNumLevels(), itemCap, IS_DOUBLE, true);
+    final int numBytes = getCurrentUpdatableSerializedSizeBytes();
     final byte[] bytes = new byte[numBytes];
     final WritableMemory wmem = WritableMemory.writableWrap(bytes);
     //load the preamble
@@ -562,7 +497,7 @@ public class KllDoublesSketch extends BaseKllSketch {
     sb.append("   Level 0 Sorted       : ").append(isLevelZeroSorted()).append(Util.LS);
     sb.append("   Capacity Items       : ").append(items_.length).append(Util.LS);
     sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
-    sb.append("   Storage Bytes        : ").append(getCurrentCompactSerializedSizeBytes()).append(Util.LS);
+    sb.append("   Compact Storage Bytes: ").append(getCurrentCompactSerializedSizeBytes()).append(Util.LS);
     sb.append("   Min Value            : ").append(minValue_).append(Util.LS);
     sb.append("   Max Value            : ").append(maxValue_).append(Util.LS);
     sb.append("### End sketch summary").append(Util.LS);
@@ -604,7 +539,6 @@ public class KllDoublesSketch extends BaseKllSketch {
       sb.append(Util.LS);
       sb.append("### End sketch data").append(Util.LS);
     }
-
     return sb.toString();
   }
 
@@ -744,7 +678,6 @@ public class KllDoublesSketch extends BaseKllSketch {
 
     if (oddPop) {
       setLevelsArrayAt(level, getLevelsArrayAt(level + 1) - 1); // the current level now contains one item
-
       items_[getLevelsArrayAt(level)] = items_[rawBeg]; // namely this leftover guy
     } else {
       setLevelsArrayAt(level, getLevelsArrayAt(level + 1)); // the current level is now empty
@@ -831,7 +764,8 @@ public class KllDoublesSketch extends BaseKllSketch {
     final int theShift = freeSpaceAtBottom - outlevels[0];
 
     if (getLevelsArray().length < finalNumLevels + 1) {
-      setLevelsArray(new int[finalNumLevels + 1]);
+
+;
     }
 
     for (int lvl = 0; lvl < finalNumLevels + 1; lvl++) { // includes the "extra" index
@@ -867,7 +801,7 @@ public class KllDoublesSketch extends BaseKllSketch {
     }
   }
 
-  // only for testing
+  // for testing
 
   double[] getItems() {
     return items_;

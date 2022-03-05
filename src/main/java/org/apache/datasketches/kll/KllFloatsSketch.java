@@ -22,11 +22,9 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.isOdd;
-import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
-import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.PreambleUtil.DY_MIN_K_SHORT_ADR;
 import static org.apache.datasketches.kll.PreambleUtil.EMPTY_BIT_MASK;
 import static org.apache.datasketches.kll.PreambleUtil.FAMILY_BYTE_ADR;
@@ -50,7 +48,6 @@ import java.util.Arrays;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
-import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.kll.PreambleUtil.MemoryCheck;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -60,13 +57,12 @@ import org.apache.datasketches.memory.WritableMemory;
  * Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}
  */
-public class KllFloatsSketch extends BaseKllSketch {
+public class KllFloatsSketch extends HeapKllSketch {
 
   // Specific to the floats sketch
   private float[] items_; // the continuous array of float items
   private float minValue_;
   private float maxValue_;
-  private static final boolean IS_DOUBLE = false;
 
   /**
    * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
@@ -82,26 +78,7 @@ public class KllFloatsSketch extends BaseKllSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllFloatsSketch(final int k) {
-    this(k, DEFAULT_M, true);
-  }
-
-  /**
-   * Used for testing only.
-   * @param k configured size of sketch. Range [m, 2^16]
-   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
-   */
-  KllFloatsSketch(final int k, final boolean compatible) {
-    this(k, DEFAULT_M, compatible);
-  }
-
-  /**
-   * Heap constructor.
-   * @param k configured size of sketch. Range [m, 2^16]
-   * @param m minimum level size. Default is 8.
-   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
-   */
-  private KllFloatsSketch(final int k, final int m, final boolean compatible) {
-    super(k, m, compatible);
+    super(k, SketchType.FLOAT_SKETCH);
     items_ = new float[k];
     minValue_ = Float.NaN;
     maxValue_ = Float.NaN;
@@ -113,7 +90,7 @@ public class KllFloatsSketch extends BaseKllSketch {
    * @param memChk the MemoryCheck object
    */
   private KllFloatsSketch(final Memory mem, final MemoryCheck memChk) {
-    super(memChk.k, memChk.m, true);
+    super(memChk.k, SketchType.FLOAT_SKETCH);
     setLevelZeroSorted(memChk.level0Sorted);
     final int k = getK();
     if (memChk.empty) {
@@ -129,7 +106,7 @@ public class KllFloatsSketch extends BaseKllSketch {
       setDyMinK(k);
       setNumLevels(1);
       setLevelsArray(new int[getNumLevels() + 1]);
-      final int itemCapacity = KllHelper.computeTotalItemCapacity(k, DEFAULT_M, getNumLevels());
+      final int itemCapacity = KllHelper.computeTotalItemCapacity(k, M, getNumLevels());
       setLevelsArrayAt(0,itemCapacity - 1);
       setLevelsArrayAt(getNumLevels(), itemCapacity); //load the last integer in levels_
       items_ = new float[itemCapacity];
@@ -142,7 +119,7 @@ public class KllFloatsSketch extends BaseKllSketch {
       setNumLevels(memChk.numLevels);
       setLevelsArray(new int[getNumLevels() + 1]);
       int offset = DATA_START_ADR_FLOAT;
-      final int itemCapacity = KllHelper.computeTotalItemCapacity(k, DEFAULT_M, getNumLevels());
+      final int itemCapacity = KllHelper.computeTotalItemCapacity(k, M, getNumLevels());
       if (memChk.updatable) {
         // If updatable the last integer in levels_ IS serialized.
         mem.getIntArray(offset, getLevelsArray(), 0, getNumLevels() + 1); //load levels_
@@ -224,46 +201,6 @@ public class KllFloatsSketch extends BaseKllSketch {
    */
   public float getMinValue() {
     return minValue_;
-  }
-
-  //Size related
-
-  /**
-   * Returns upper bound on the compact serialized size of a sketch given a parameter <em>k</em> and stream
-   * length. This method can be used if allocation of storage is necessary beforehand.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @return upper bound on the compact serialized size
-   */
-  public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final LevelStats lvlStats = getAllLevelStatsGivenN(k, DEFAULT_M, n, false, false, IS_DOUBLE);
-    return lvlStats.getCompactBytes();
-  }
-
-  /**
-   * Returns the current compact number of bytes this sketch would require to store.
-   * @return the current compact number of bytes this sketch would require to store.
-   */
-  public int getCurrentCompactSerializedSizeBytes() {
-    return KllHelper.getSerializedSizeBytes(getNumLevels(), getNumRetained(), IS_DOUBLE, false);
-  }
-
-  /**
-   * Returns the current updatable number of bytes this sketch would require to store.
-   * @return the current updatable number of bytes this sketch would require to store.
-   */
-  public int getCurrentUpdatableSerializedSizeBytes() {
-    return KllHelper.getSerializedSizeBytes(getNumLevels(), getNumRetained(), IS_DOUBLE, true);
-  }
-
-  /**
-   * Returns the number of bytes this sketch would require to store.
-   * @return the number of bytes this sketch would require to store.
-   * @deprecated use {@link #getCurrentCompactSerializedSizeBytes() }
-   */
-  @Deprecated
-  public int getSerializedSizeBytes() {
-    return getCurrentCompactSerializedSizeBytes();
   }
 
   /**
@@ -510,8 +447,7 @@ public class KllFloatsSketch extends BaseKllSketch {
   @Override
   public byte[] toUpdatableByteArray() {
     final int k = getK();
-    final int itemCap = KllHelper.computeTotalItemCapacity(k, M, getNumLevels());
-    final int numBytes = KllHelper.getSerializedSizeBytes(getNumLevels(), itemCap, IS_DOUBLE, true);
+    final int numBytes = getCurrentUpdatableSerializedSizeBytes();
     final byte[] bytes = new byte[numBytes];
     final WritableMemory wmem = WritableMemory.writableWrap(bytes);
     //load the preamble
@@ -561,7 +497,7 @@ public class KllFloatsSketch extends BaseKllSketch {
     sb.append("   Level 0 Sorted       : ").append(isLevelZeroSorted()).append(Util.LS);
     sb.append("   Capacity Items       : ").append(items_.length).append(Util.LS);
     sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
-    sb.append("   Storage Bytes        : ").append(getSerializedSizeBytes()).append(Util.LS);
+    sb.append("   Compact Storage Bytes: ").append(getCurrentCompactSerializedSizeBytes()).append(Util.LS);
     sb.append("   Min Value            : ").append(minValue_).append(Util.LS);
     sb.append("   Max Value            : ").append(maxValue_).append(Util.LS);
     sb.append("### End sketch summary").append(Util.LS);
@@ -603,7 +539,6 @@ public class KllFloatsSketch extends BaseKllSketch {
       sb.append(Util.LS);
       sb.append("### End sketch data").append(Util.LS);
     }
-
     return sb.toString();
   }
 
@@ -740,6 +675,7 @@ public class KllFloatsSketch extends BaseKllSketch {
           items_, adjBeg + halfAdjPop);
     }
     setLevelsArrayAtMinusEq(level + 1, halfAdjPop); // adjust boundaries of the level above
+
     if (oddPop) {
       setLevelsArrayAt(level, getLevelsArrayAt(level + 1) - 1); // the current level now contains one item
       items_[getLevelsArrayAt(level)] = items_[rawBeg]; // namely this leftover guy

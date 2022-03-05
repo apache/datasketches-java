@@ -21,14 +21,11 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.floorPowerOf2;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
-import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
-import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 
 class KllHelper {
   static final String LS = System.getProperty("line.separator");
@@ -58,20 +55,20 @@ class KllHelper {
   }
 
   static LevelStats getAllLevelStatsGivenN(final int k, final int m, final long n,
-      final boolean printDetail, final boolean printSummaries, final boolean isDouble) {
+      final boolean printDetail, final boolean printSummaries, final SketchType sketchType) {
     long cumN;
     int numLevels = 0;
     LevelStats lvlStats;
     do {
       numLevels++;
-      lvlStats = getLevelStats(k, m, numLevels, printDetail, printSummaries, isDouble);
+      lvlStats = getLevelStats(k, m, numLevels, printDetail, printSummaries, sketchType);
       cumN = lvlStats.getMaxN();
     } while (cumN < n);
     return lvlStats;
   }
 
   static LevelStats getLevelStats(final int k, final int m, final int numLevels,
-      final boolean printDetail, final boolean printSummary, final boolean isDouble) {
+      final boolean printDetail, final boolean printSummary, final SketchType sketchType) {
     int cumN = 0;
     int cumCap = 0;
     if (printDetail) {
@@ -87,8 +84,8 @@ class KllHelper {
         System.out.printf("%6d%,12d%8d%,16d\n", level, 1 << level, levelCap, maxNAtLevel);
       }
     }
-    final int compactBytes = getSerializedSizeBytes(numLevels, cumCap, isDouble, false);
-    final int updatableBytes = getSerializedSizeBytes(numLevels, cumCap, isDouble, true);
+    final int compactBytes = KllSketch.getSerializedSizeBytes(numLevels, cumCap, sketchType, false);
+    final int updatableBytes = KllSketch.getSerializedSizeBytes(numLevels, cumCap, sketchType, true);
     if (printDetail) {
       System.out.printf(" TOTALS%10s %8d%,16d\n", "", cumCap, cumN);
       System.out.println(" COMPACT BYTES: " + compactBytes);
@@ -114,7 +111,6 @@ class KllHelper {
       this.maxCap = maxCap;
       this.compactBytes = compactBytes;
       this.updatableBytes = updatableBytes;
-
     }
 
     @Override
@@ -134,23 +130,6 @@ class KllHelper {
     public int getNumLevels() { return numLevels; }
 
     public int getMaxCap() { return maxCap; }
-  }
-
-  static int getSerializedSizeBytes(final int numLevels, final int numRetained, final boolean isDouble,
-      final boolean updatable) {
-    int levelsBytes = 0;
-    if (!updatable) {
-      if (numRetained == 0) { return N_LONG_ADR; }
-      if (numRetained == 1) { return DATA_START_ADR_SINGLE_ITEM + (isDouble ? Double.BYTES : Float.BYTES); }
-      levelsBytes = numLevels * Integer.BYTES;
-    } else {
-      levelsBytes = (numLevels + 1) * Integer.BYTES;
-    }
-    if (isDouble) {
-      return DATA_START_ADR_DOUBLE + levelsBytes + (numRetained + 2) * Double.BYTES; //+2 is for min & max
-    } else {
-      return DATA_START_ADR_FLOAT + levelsBytes + (numRetained + 2) * Float.BYTES;
-    }
   }
 
   /**
@@ -291,10 +270,6 @@ class KllHelper {
   static int currentLevelSize(final int level, final int numLevels, final int[] levels) {
     if (level >= numLevels) { return 0; }
     return levels[level + 1] - levels[level];
-  }
-
-  static int getNumRetained(final int numLevels, final int[] levels) {
-    return levels[numLevels] - levels[0];
   }
 
   static int getNumRetainedAboveLevelZero(final int numLevels, final int[] levels) {

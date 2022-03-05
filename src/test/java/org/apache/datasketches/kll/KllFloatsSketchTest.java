@@ -386,7 +386,7 @@ public class KllFloatsSketchTest {
   @Test
   public void getMaxSerializedSizeBytes() {
     final int sizeBytes =
-        KllFloatsSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30);
+        KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30);
     assertEquals(sizeBytes, 2908);
   }
 

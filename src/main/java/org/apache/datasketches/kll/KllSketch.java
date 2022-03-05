@@ -26,139 +26,143 @@ import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
+import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLE_SKETCH;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.PreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.PreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
 
 import java.util.Random;
 
-abstract class BaseKllSketch {
+import org.apache.datasketches.kll.KllHelper.LevelStats;
 
-  /*
-   * Data is stored in items_.
-   * The data for level i lies in positions levels_[i] through levels_[i + 1] - 1 inclusive.
-   * Hence, levels_ must contain (numLevels_ + 1) indices.
-   * The valid portion of items_ is completely packed, except for level 0,
-   * which is filled from the top down.
-   *
-   * Invariants:
-   * 1) After a compaction, or an update, or a merge, all levels are sorted except for level zero.
-   * 2) After a compaction, (sum of capacities) - (sum of items) >= 1,
-   *  so there is room for least 1 more item in level zero.
-   * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
-   *  the sketch is exactly filled to capacity and must be compacted.
-   * 4) Sum of weights of all retained items == N.
-   * 5) curTotalCap = items_.length = levels_[numLevels_].
-   */
-
-  static final int M = DEFAULT_M; // configured minimum buffer "width", Must always be 8 for now.
-  private final int k_; // configured value of K
-  private int dyMinK_;      // dynamic minK for error estimation after merging with different k
-  private long n_; // number of items input into this sketch
-  private int numLevels_; // one-based number of current levels,
-  private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
-  private boolean isLevelZeroSorted_;
-
-  private final boolean compatible; //compatible with quantiles sketch treatment of rank 0.0 and 1.0.
+abstract class KllSketch {
   static final Random random = new Random();
+  static final int M = DEFAULT_M; // configured minimum buffer "width", Must always be 8 for now.
+  static final boolean compatible = true; //rank 0.0 and 1.0. compatible with classic Quantiles Sketch
+  private final int k; //configured value of K
 
-  /**
-   * Heap constructor.
-   * @param k configured size of sketch. Range [m, 2^16]
-   * @param m minimum level size. Default is 8.
-   * @param compatible if true, compatible with quantiles sketch treatment of rank 0.0 and 1.0.
-   */
-  BaseKllSketch(final int k, final int m, final boolean compatible) {
-    KllHelper.checkK(k);
-    k_ = k;
-    dyMinK_ = k;
-    numLevels_ = 1;
-    levels_ = new int[] {k, k};
-    isLevelZeroSorted_ = false;
-    this.compatible = compatible;
+  enum SketchType { FLOAT_SKETCH, DOUBLE_SKETCH }
+
+  static SketchType sketchType;
+
+  KllSketch(final int k, final SketchType sketchType) {
+    this.k = k;
+    KllSketch.sketchType = sketchType;
   }
 
-  int getDyMinK() {
-    return dyMinK_;
-  }
+  abstract int getDyMinK();
 
-  void setDyMinK(final int dyMinK) {
-    dyMinK_ = dyMinK;
-  }
+  abstract void setDyMinK(int dyMinK);
 
-  int getNumLevels() {
-    return numLevels_;
-  }
+  abstract int getNumLevels();
 
-  void setNumLevels(final int numLevels) {
-    numLevels_ = numLevels;
-  }
+  abstract void setNumLevels(int numLevels);
 
-  void incNumLevels() {
-    numLevels_++;
-  }
+  abstract void incNumLevels();
 
-  int[] getLevelsArray() {
-    return levels_;
-  }
+  abstract int[] getLevelsArray();
 
-  int getLevelsArrayAt(final int index) {
-    return levels_[index];
-  }
+  abstract int getLevelsArrayAt(int index);
 
-  void setLevelsArray(final int[] levels) {
-    this.levels_ = levels;
-  }
+  abstract void setLevelsArray(int[] levels);
 
-  void setLevelsArrayAt(final int index, final int value) {
-    this.levels_[index] = value;
-  }
+  abstract void setLevelsArrayAt(int index, int value);
 
-  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    this.levels_[index] += plusEq;
-  }
+  abstract void setLevelsArrayAtPlusEq(int index, int plusEq);
 
-  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-    this.levels_[index] -= minusEq;
-  }
+  abstract void setLevelsArrayAtMinusEq(int index, int minusEq);
 
-  boolean isLevelZeroSorted() {
-    return isLevelZeroSorted_;
-  }
+  abstract boolean isLevelZeroSorted();
 
-  void setLevelZeroSorted(final boolean sorted) {
-    this.isLevelZeroSorted_ = sorted;
-  }
+  abstract void setLevelZeroSorted(boolean sorted);
 
   boolean isCompatible() {
-    return this.compatible;
+    return compatible;
   }
 
-  void setN(final long n) {
-    n_ = n;
+  abstract void setN(long n);
+
+  abstract void incN();
+
+  static int getSerializedSizeBytes(final int numLevels, final int numRetained, final SketchType sketchType,
+      final boolean updatable) {
+    int levelsBytes = 0;
+    if (!updatable) {
+      if (numRetained == 0) { return N_LONG_ADR; }
+      if (numRetained == 1) {
+        return DATA_START_ADR_SINGLE_ITEM + (sketchType == DOUBLE_SKETCH ? Double.BYTES : Float.BYTES);
+      }
+      levelsBytes = numLevels * Integer.BYTES;
+    } else {
+      levelsBytes = (numLevels + 1) * Integer.BYTES;
+    }
+    if (sketchType == DOUBLE_SKETCH) {
+      return DATA_START_ADR_DOUBLE + levelsBytes + (numRetained + 2) * Double.BYTES; //+2 is for min & max
+    } else {
+      return DATA_START_ADR_FLOAT + levelsBytes + (numRetained + 2) * Float.BYTES;
+    }
   }
 
-  void incN() {
-    n_++;
+  //Public Methods
+
+  /**
+   * Returns upper bound on the compact serialized size of a sketch given a parameter <em>k</em> and stream
+   * length. This method can be used if allocation of storage is necessary beforehand.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @return upper bound on the compact serialized size
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n) {
+    final LevelStats lvlStats = getAllLevelStatsGivenN(k, M, n, false, false, sketchType);
+    return lvlStats.getCompactBytes();
   }
 
-  // public functions
+  /**
+   * Returns the current compact number of bytes this sketch would require to store.
+   * @return the current compact number of bytes this sketch would require to store.
+   */
+  public int getCurrentCompactSerializedSizeBytes() {
+    return KllSketch.getSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
+  }
+
+  /**
+   * Returns the current updatable number of bytes this sketch would require to store.
+   * @return the current updatable number of bytes this sketch would require to store.
+   */
+  public int getCurrentUpdatableSerializedSizeBytes() {
+    final int itemCap = KllHelper.computeTotalItemCapacity(k, M, getNumLevels());
+    return KllSketch.getSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
+  }
+
+  /**
+   * Returns the number of bytes this sketch would require to store.
+   * @return the number of bytes this sketch would require to store.
+   * @deprecated use <i>getCurrentCompactSerializedSizeBytes()</i>
+   */
+  @Deprecated
+  public int getSerializedSizeBytes() {
+    return getCurrentCompactSerializedSizeBytes();
+  }
+
 
   /**
    * Returns the parameter k
    * @return parameter k
    */
   public int getK() {
-    return k_;
+    return k;
   }
 
   /**
    * Returns the length of the input stream.
    * @return stream length
    */
-  public long getN() {
-    return n_;
-  }
+  public abstract long getN();
 
   /**
    * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
@@ -193,7 +197,7 @@ abstract class BaseKllSketch {
    * @see KllDoublesSketch
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return KllHelper.getNormalizedRankError(dyMinK_, pmf);
+    return KllHelper.getNormalizedRankError(getDyMinK(), pmf);
   }
 
   /**
@@ -214,7 +218,7 @@ abstract class BaseKllSketch {
    * @return the number of retained items (samples) in the sketch
    */
   public int getNumRetained() {
-    return KllHelper.getNumRetained(numLevels_, levels_);
+    return getLevelsArrayAt(getNumLevels()) - getLevelsArrayAt(0);
   }
 
   /**
@@ -222,7 +226,7 @@ abstract class BaseKllSketch {
    * @return empty flag
    */
   public boolean isEmpty() {
-    return n_ == 0;
+    return getN() == 0;
   }
 
   /**
@@ -230,7 +234,7 @@ abstract class BaseKllSketch {
    * @return estimation mode flag
    */
   public boolean isEstimationMode() {
-    return numLevels_ > 1;
+    return getNumLevels() > 1;
   }
 
   /**

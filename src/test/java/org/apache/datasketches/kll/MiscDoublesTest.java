@@ -41,8 +41,8 @@ public class MiscDoublesTest {
     final int k = DEFAULT_K;
     final double eps = KllHelper.getNormalizedRankError(k, false);
     final double epsPmf = KllHelper.getNormalizedRankError(k, true);
-    final int kEps = BaseKllSketch.getKFromEpsilon(eps, false);
-    final int kEpsPmf = BaseKllSketch.getKFromEpsilon(epsPmf, true);
+    final int kEps = KllSketch.getKFromEpsilon(eps, false);
+    final int kEpsPmf = KllSketch.getKFromEpsilon(epsPmf, true);
     assertEquals(kEps, k);
     assertEquals(kEpsPmf, k);
   }
@@ -108,7 +108,7 @@ public class MiscDoublesTest {
 
   @Test
   public void checkMisc() {
-    KllDoublesSketch sk = new KllDoublesSketch(8, true);
+    KllDoublesSketch sk = new KllDoublesSketch(8);
     assertTrue(Objects.isNull(sk.getQuantiles(10)));
     sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
