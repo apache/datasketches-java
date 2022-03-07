@@ -19,50 +19,64 @@
 
 package org.apache.datasketches.kll;
 
-//import static java.lang.Math.max;
-//import static java.lang.Math.min;
-//import static org.apache.datasketches.Util.isOdd;
-//import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
-//import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_DOUBLE;
-//import static org.apache.datasketches.kll.PreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-//import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_K;
-//import static org.apache.datasketches.kll.PreambleUtil.DEFAULT_M;
-//import static org.apache.datasketches.kll.PreambleUtil.DOUBLES_SKETCH_BIT_MASK;
-//import static org.apache.datasketches.kll.PreambleUtil.EMPTY_BIT_MASK;
-//import static org.apache.datasketches.kll.PreambleUtil.FAMILY_BYTE_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.FLAGS_BYTE_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.K_SHORT_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
-//import static org.apache.datasketches.kll.PreambleUtil.MIN_K_SHORT_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.M_BYTE_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.NUM_LEVELS_BYTE_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.N_LONG_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_BYTE_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_DOUBLE;
-//import static org.apache.datasketches.kll.PreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
-//import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_EMPTY_FULL;
-//import static org.apache.datasketches.kll.PreambleUtil.SERIAL_VERSION_SINGLE;
-//import static org.apache.datasketches.kll.PreambleUtil.SER_VER_BYTE_ADR;
-//import static org.apache.datasketches.kll.PreambleUtil.SINGLE_ITEM_BIT_MASK;
-//import static org.apache.datasketches.kll.PreambleUtil.UPDATABLE_BIT_MASK;
-//
-//import java.util.Arrays;
-//
-//import org.apache.datasketches.Family;
-//import org.apache.datasketches.SketchesArgumentException;
-//import org.apache.datasketches.Util;
-//import org.apache.datasketches.kll.KllHelper.LevelStats;
-//import org.apache.datasketches.kll.PreambleUtil.MemoryCheck;
-//import org.apache.datasketches.memory.Memory;
-//import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}
  */
-public class KllDirectDoublesSketch {
+public class KllDirectDoublesSketch extends KllDirectSketch {
+
+  KllDirectDoublesSketch(final WritableMemory wmem) {
+    super(wmem, SketchType.DOUBLE_SKETCH);
+  }
+
+  @Override
+  public byte[] toByteArray() {
+    return null;
+  }
+
+  @Override
+  public String toString(final boolean withLevels, final boolean withData) {
+    return null;
+  }
+
+  @Override
+  public byte[] toUpdatableByteArray() {
+    return null;
+  }
+
+  @Override
+  int[] getLevelsArray() {
+    return null;
+  }
+
+  @Override
+  int getLevelsArrayAt(final int index) {
+    return 0;
+  }
 
 
+  @Override
+  void setLevelsArray(final int[] levels) {
+
+  }
+
+  @Override
+  void setLevelsArrayAt(final int index, final int value) {
+
+  }
+
+  @Override
+  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+
+  }
+
+  @Override
+  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+
+  }
 
 }
 

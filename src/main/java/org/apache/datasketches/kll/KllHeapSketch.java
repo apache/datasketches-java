@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
+
 abstract class KllHeapSketch extends KllSketch {
 
   /*
@@ -38,9 +40,11 @@ abstract class KllHeapSketch extends KllSketch {
    * 5) curTotalCap = items_.length = levels_[numLevels_].
    */
 
-  private int dyMinK_;    // dynamic minK for error estimation after merging with different k
-  private long n_;        // number of items input into this sketch
-  private int numLevels_; // one-based number of current levels,
+  private long n_;        // number of items input into this sketch.
+  private final int k;    // configured value of K.
+  private int dyMinK_;    // dynamic minK for error estimation after merging with different k.
+
+  private int numLevels_; // one-based number of current levels.
   private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   private boolean isLevelZeroSorted_;
 
@@ -49,8 +53,9 @@ abstract class KllHeapSketch extends KllSketch {
    * @param k configured size of sketch. Range [m, 2^16]
    */
   KllHeapSketch(final int k, final SketchType sketchType) {
-    super(k, sketchType);
+    super(sketchType);
     KllHelper.checkK(k);
+    this.k = k;
     dyMinK_ = k;
     numLevels_ = 1;
     levels_ = new int[] {k, k};
@@ -58,28 +63,23 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
+  public int getK() {
+    return k;
+  }
+
+  @Override
+  public long getN() {
+    return n_;
+  }
+
+  @Override
+  public int getNumRetained() {
+    return levels_[numLevels_] - levels_[0];
+  }
+
+  @Override
   int getDyMinK() {
     return dyMinK_;
-  }
-
-  @Override
-  void setDyMinK(final int dyMinK) {
-    dyMinK_ = dyMinK;
-  }
-
-  @Override
-  int getNumLevels() {
-    return numLevels_;
-  }
-
-  @Override
-  void setNumLevels(final int numLevels) {
-    numLevels_ = numLevels;
-  }
-
-  @Override
-  void incNumLevels() {
-    numLevels_++;
   }
 
   @Override
@@ -93,6 +93,31 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
+  int getNumLevels() {
+    return numLevels_;
+  }
+
+  @Override
+  void incN() {
+    n_++;
+  }
+
+  @Override
+  void incNumLevels() {
+    numLevels_++;
+  }
+
+  @Override
+  boolean isLevelZeroSorted() {
+    return isLevelZeroSorted_;
+  }
+
+  @Override
+  void setDyMinK(final int dyMinK) {
+    dyMinK_ = dyMinK;
+  }
+
+  @Override
   void setLevelsArray(final int[] levels) {
     this.levels_ = levels;
   }
@@ -103,18 +128,13 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    this.levels_[index] += plusEq;
-  }
-
-  @Override
   void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
     this.levels_[index] -= minusEq;
   }
 
   @Override
-  boolean isLevelZeroSorted() {
-    return isLevelZeroSorted_;
+  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    this.levels_[index] += plusEq;
   }
 
   @Override
@@ -128,15 +148,8 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  void incN() {
-    n_++;
-  }
-
-  // public functions
-
-  @Override
-  public long getN() {
-    return n_;
+  void setNumLevels(final int numLevels) {
+    numLevels_ = numLevels;
   }
 
 }

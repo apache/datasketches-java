@@ -25,7 +25,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllSketch.SketchType;
+import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
 
 class KllHelper {
   static final String LS = System.getProperty("line.separator");

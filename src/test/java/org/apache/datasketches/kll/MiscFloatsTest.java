@@ -137,6 +137,19 @@ public class MiscFloatsTest {
   }
 
   @Test
+  public void viewAddLevels() {
+    KllFloatsSketch sk = new KllFloatsSketch(20);
+    float f = 1.0f;
+    int i = 1;
+    for ( ; i <= 20; i++) { sk.update(f++); }
+    println(sk.toString(true, true));
+    for ( ; i <= 54; i++) { sk.update(f++); }
+    println(sk.toString(true, true));
+    for ( ; i <= 108; i++) { sk.update(f++); }
+    println(sk.toString(true, true));
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }

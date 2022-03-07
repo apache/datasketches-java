@@ -21,11 +21,11 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.KllHelper.getLevelStats;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLE_SKETCH;
+import static org.apache.datasketches.kll.KllPreambleUtil.SketchType.DOUBLE_SKETCH;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.kll.KllHelper.LevelStats;
-import org.apache.datasketches.kll.KllSketch.SketchType;
+import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 

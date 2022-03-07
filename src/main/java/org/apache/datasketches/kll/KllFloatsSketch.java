@@ -49,6 +49,7 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.kll.KllPreambleUtil.MemoryCheck;
+import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -503,22 +504,24 @@ public class KllFloatsSketch extends KllHeapSketch {
     sb.append("### End sketch summary").append(Util.LS);
 
     if (withLevels) {
-      sb.append("### KLL sketch levels:").append(Util.LS)
+      sb.append("### KLL levels array:").append(Util.LS)
       .append(" level, offset: nominal capacity, actual size").append(Util.LS);
-      for (int i = 0; i < getNumLevels(); i++) {
-        sb.append("   ").append(i).append(", ").append(getLevelsArrayAt(i)).append(": ")
-        .append(KllHelper.levelCapacity(k, getNumLevels(), i, M))
-        .append(", ").append(KllHelper.currentLevelSize(i, getNumLevels(), getLevelsArray())).append(Util.LS);
+      int level = 0;
+      for ( ; level < getNumLevels(); level++) {
+        sb.append("   ").append(level).append(", ").append(getLevelsArrayAt(level)).append(": ")
+        .append(KllHelper.levelCapacity(k, getNumLevels(), level, M))
+        .append(", ").append(KllHelper.currentLevelSize(level, getNumLevels(), getLevelsArray())).append(Util.LS);
       }
-      sb.append("### End sketch levels").append(Util.LS);
+      sb.append("   ").append(level).append(", ").append(getLevelsArrayAt(level)).append(": (Exclusive)")
+      .append(Util.LS);
+      sb.append("### End levels array").append(Util.LS);
     }
 
     if (withData) {
-      sb.append("### KLL sketch data {index, item}:").append(Util.LS);
+      sb.append("### KLL items data {index, item}:").append(Util.LS);
       if (getLevelsArrayAt(0) > 0) {
         sb.append(" Garbage:" + Util.LS);
         for (int i = 0; i < getLevelsArrayAt(0); i++) {
-          if (items_[i] == 0.0f) { continue; }
           sb.append("   ").append(i + ", ").append(items_[i]).append(Util.LS);
         }
       }
@@ -537,7 +540,7 @@ public class KllFloatsSketch extends KllHeapSketch {
       }
       sb.append(" level[" + level + "]: offset: " + getLevelsArrayAt(level) + " (Exclusive)");
       sb.append(Util.LS);
-      sb.append("### End sketch data").append(Util.LS);
+      sb.append("### End items data").append(Util.LS);
     }
     return sb.toString();
   }
@@ -644,18 +647,18 @@ public class KllFloatsSketch extends KllHeapSketch {
   private void compressWhileUpdating() {
     final int level = KllHelper.findLevelToCompact(getK(), M, getNumLevels(), getLevelsArray());
 
-    // It is important to do add the new top level right here. Be aware that this operation
-    // grows the buffer and shifts the data and also the boundaries of the data and grows the
-    // levels array and increments numLevels_
+    // It is important to add the new top level right here. Be aware that this next operation
+    // grows the items array, shifts the items data and the level boundaries of the data.
+    // It also grows the levels array and increments numLevels_.
     if (level == getNumLevels() - 1) {
       addEmptyTopLevelToCompletelyFullSketch();
     }
 
     final int rawBeg = getLevelsArrayAt(level);
-    final int rawLim = getLevelsArrayAt(level + 1);
+    final int rawEnd = getLevelsArrayAt(level + 1);
     // +2 is OK because we already added a new top level if necessary
-    final int popAbove = getLevelsArrayAt(level + 2) - rawLim;
-    final int rawPop = rawLim - rawBeg;
+    final int popAbove = getLevelsArrayAt(level + 2) - rawEnd;
+    final int rawPop = rawEnd - rawBeg;
     final boolean oddPop = isOdd(rawPop);
     final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
@@ -671,7 +674,7 @@ public class KllFloatsSketch extends KllHeapSketch {
       KllFloatsHelper.randomlyHalveDownFloats(items_, adjBeg, adjPop, random);
       KllFloatsHelper.mergeSortedFloatArrays(
           items_, adjBeg, halfAdjPop,
-          items_, rawLim, popAbove,
+          items_, rawEnd, popAbove,
           items_, adjBeg + halfAdjPop);
     }
     setLevelsArrayAtMinusEq(level + 1, halfAdjPop); // adjust boundaries of the level above
@@ -697,36 +700,47 @@ public class KllFloatsSketch extends KllHeapSketch {
     }
   }
 
+  /**
+   * This grows the levels arr by 1 (if needed) and increases the capacity of the items array at the bottom
+   */
   private void addEmptyTopLevelToCompletelyFullSketch() {
-    final int curTotalCap = getLevelsArrayAt(getNumLevels());
+    final int curTotalItemsCap = getLevelsArrayAt(getNumLevels());
 
     // make sure that we are following a certain growth scheme
     assert getLevelsArrayAt(0) == 0; //definition of full
-    assert items_.length == curTotalCap;
+    assert items_.length == curTotalItemsCap;
 
-    // note that merging MIGHT over-grow levels_, in which case we might not have to grow it here
-    if (getLevelsArray().length < getNumLevels() + 2) {
-      setLevelsArray(KllHelper.growIntArray(getLevelsArray(), getNumLevels() + 2));
+    //this is a little out of sequence so that we can pre-compute the total required increase in space
+    final int deltaItemsCap = KllHelper.levelCapacity(getK(), getNumLevels() + 1, 0, M);
+    final int newTotalItemsCap = curTotalItemsCap + deltaItemsCap;
+
+    // Check if growing the levels arr if required.
+    // Note that merging MIGHT over-grow levels_, in which case we might not have to grow it
+    final boolean growLevelsArr = getLevelsArray().length < getNumLevels() + 2;
+
+    //int totalDeltaSpaceRequired = deltaItemsCap * Float.BYTES;
+    //if (growLevelsArr) { totalDeltaSpaceRequired += Integer.BYTES; }
+    //insert memory space management here
+
+    if (growLevelsArr) {
+      setLevelsArray(KllHelper.growIntArray(getLevelsArray(), getNumLevels() + 2)); //grow levels arr by one
     }
 
-    final int deltaCap = KllHelper.levelCapacity(getK(), getNumLevels() + 1, 0, M);
-    final int newTotalCap = curTotalCap + deltaCap;
-
-    final float[] newBuf = new float[newTotalCap];
+    final float[] itemsBuf = new float[newTotalItemsCap];
 
     // copy (and shift) the current data into the new buffer
-    System.arraycopy(items_, getLevelsArrayAt(0), newBuf, getLevelsArrayAt(0) + deltaCap, curTotalCap);
-    items_ = newBuf;
+    System.arraycopy(items_, getLevelsArrayAt(0), itemsBuf, getLevelsArrayAt(0) + deltaItemsCap, curTotalItemsCap);
+    items_ = itemsBuf; //grow the items arr
 
-    // this loop includes the old "extra" index at the top
-    for (int i = 0; i <= getNumLevels(); i++) {
-      setLevelsArrayAtPlusEq(i, deltaCap);
+    // This loop updates all level indices excluding the "extra" index at the top
+    for (int level = 0; level <= getNumLevels(); level++) {
+      setLevelsArrayAtPlusEq(level, deltaItemsCap);
     }
 
-    assert getLevelsArrayAt(getNumLevels()) == newTotalCap;
+    assert getLevelsArrayAt(getNumLevels()) == newTotalItemsCap;
 
     incNumLevels();
-    setLevelsArrayAt(getNumLevels(), newTotalCap); // initialize the new "extra" index at the top
+    setLevelsArrayAt(getNumLevels(), newTotalItemsCap); // initialize the new "extra" index at the top
   }
 
   private void sortLevelZero() {
