@@ -455,8 +455,8 @@ public class KllDoublesSketch extends KllHeapSketch {
     wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte) PREAMBLE_INTS_DOUBLE);
     wmem.putByte(SER_VER_BYTE_ADR, SERIAL_VERSION_EMPTY_FULL);
     wmem.putByte(FAMILY_BYTE_ADR, (byte) Family.KLL.getID());
-    final byte flags = (byte)
-        ((isLevelZeroSorted() ? LEVEL_ZERO_SORTED_BIT_MASK : 0)
+    final byte flags = (byte) (
+          (isLevelZeroSorted() ? LEVEL_ZERO_SORTED_BIT_MASK : 0)
         | DOUBLES_SKETCH_BIT_MASK
         | UPDATABLE_BIT_MASK);
     wmem.putByte(FLAGS_BYTE_ADR, flags);

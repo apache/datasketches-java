@@ -130,6 +130,7 @@ public class MiscFloatsTest {
 
     final KllFloatsSketch sketch2 = new KllFloatsSketch(20);
     for (int i = 0; i < 400; i++) { sketch2.update(i + 1); }
+    println("\n" + sketch2.toString(true, true));
 
     sketch2.merge(sketch);
     final String s2 = sketch2.toString(true, true);
@@ -137,16 +138,131 @@ public class MiscFloatsTest {
   }
 
   @Test
-  public void viewAddLevels() {
+  public void viewCompactions() {
     KllFloatsSketch sk = new KllFloatsSketch(20);
-    float f = 1.0f;
-    int i = 1;
-    for ( ; i <= 20; i++) { sk.update(f++); }
+    show(sk, 20);
+    show(sk, 21); //compaction 1
+    show(sk, 43);
+    show(sk, 44); //compaction 2
+    show(sk, 54);
+    show(sk, 55); //compaction 3
+    show(sk, 73);
+    show(sk, 74); //compaction 4
+    show(sk, 88);
+    show(sk, 89); //compaction 5
+    show(sk, 96);
+    show(sk, 97); //compaction 6
+    show(sk, 108);
+  }
+
+  private static void show(final KllFloatsSketch sk, int limit) {
+    int i = (int) sk.getN();
+    for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
-    for ( ; i <= 54; i++) { sk.update(f++); }
+  }
+
+  @Test
+  public void checkMemoryToStringFloatCompact() {
+    KllFloatsSketch sk = new KllFloatsSketch(20);
+    KllFloatsSketch sk2;
+    byte[] compBytes;
+    byte[] compBytes2;
+    WritableMemory wmem;
+    String s;
+
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
     println(sk.toString(true, true));
-    for ( ; i <= 108; i++) { sk.update(f++); }
+
+    println("CASE 0: FLOAT_FULL_COMPACT");
+    compBytes = sk.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllFloatsSketch.heapify(wmem);
+    compBytes2 = sk2.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(compBytes, compBytes2);
+
+    println("CASE 1: FLOAT_EMPTY_COMPACT");
+    sk = new KllFloatsSketch(20);
+    compBytes = sk.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllFloatsSketch.heapify(wmem);
+    compBytes2 = sk2.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(compBytes, compBytes2);
+
+    println("CASE 4: FLOAT_SINGLE_COMPACT");
+    sk = new KllFloatsSketch(20);
+    sk.update(1);
+    compBytes = sk.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllFloatsSketch.heapify(wmem);
+    compBytes2 = sk2.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(compBytes, compBytes2);
+  }
+
+  @Test
+  public void checkMemoryToStringFloatUpdatable() {
+    KllFloatsSketch sk = new KllFloatsSketch(20);
+    KllFloatsSketch sk2;
+    byte[] upBytes;
+    byte[] upBytes2;
+    WritableMemory wmem;
+    String s;
+
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
     println(sk.toString(true, true));
+
+    println("CASE 0: FLOAT_UPDATABLE");
+    upBytes = sk.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllFloatsSketch.heapify(wmem);
+    upBytes2 = sk2.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(upBytes, upBytes2);
+
+    println("CASE 1: FLOAT_UPDATABLE (empty)");
+    sk = new KllFloatsSketch(20);
+    upBytes = sk.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllFloatsSketch.heapify(wmem);
+    upBytes2 = sk2.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(upBytes, upBytes2);
+
+    println("CASE 4: FLOAT_UPDATABLE (single)");
+    sk = new KllFloatsSketch(20);
+    sk.update(1);
+    upBytes = sk.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllFloatsSketch.heapify(wmem);
+    upBytes2 = sk2.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(upBytes, upBytes2);
   }
 
   @Test

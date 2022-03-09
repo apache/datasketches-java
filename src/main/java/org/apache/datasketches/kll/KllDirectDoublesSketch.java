@@ -34,6 +34,7 @@ public class KllDirectDoublesSketch extends KllDirectSketch {
 
   @Override
   public byte[] toByteArray() {
+
     return null;
   }
 
@@ -45,37 +46,6 @@ public class KllDirectDoublesSketch extends KllDirectSketch {
   @Override
   public byte[] toUpdatableByteArray() {
     return null;
-  }
-
-  @Override
-  int[] getLevelsArray() {
-    return null;
-  }
-
-  @Override
-  int getLevelsArrayAt(final int index) {
-    return 0;
-  }
-
-
-  @Override
-  void setLevelsArray(final int[] levels) {
-
-  }
-
-  @Override
-  void setLevelsArrayAt(final int index, final int value) {
-
-  }
-
-  @Override
-  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-
-  }
-
-  @Override
-  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-
   }
 
 }

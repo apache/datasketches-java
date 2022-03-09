@@ -125,7 +125,8 @@ public class MiscDoublesTest {
   public void visualCheckToString() {
     final KllDoublesSketch sketch = new KllDoublesSketch(20);
     for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
-    println(sketch.toString(true, true));
+    final String s1 = sketch.toString(true, true);
+    println(s1);
 
     final KllDoublesSketch sketch2 = new KllDoublesSketch(20);
     for (int i = 0; i < 400; i++) { sketch2.update(i + 1); }
@@ -134,6 +135,134 @@ public class MiscDoublesTest {
     sketch2.merge(sketch);
     final String s2 = sketch2.toString(true, true);
     println(LS + s2);
+  }
+
+  @Test
+  public void viewCompactions() {
+    KllDoublesSketch sk = new KllDoublesSketch(20);
+    show(sk, 20);
+    show(sk, 21); //compaction 1
+    show(sk, 43);
+    show(sk, 44); //compaction 2
+    show(sk, 54);
+    show(sk, 55); //compaction 3
+    show(sk, 73);
+    show(sk, 74); //compaction 4
+    show(sk, 88);
+    show(sk, 89); //compaction 5
+    show(sk, 96);
+    show(sk, 97); //compaction 6
+    show(sk, 108);
+  }
+
+  private static void show(final KllDoublesSketch sk, int limit) {
+    int i = (int) sk.getN();
+    for ( ; i < limit; i++) { sk.update(i + 1); }
+    println(sk.toString(true, true));
+  }
+
+  @Test
+  public void checkMemoryToStringDoubleCompact() {
+    KllDoublesSketch sk = new KllDoublesSketch(20);
+    KllDoublesSketch sk2;
+    byte[] compBytes;
+    byte[] compBytes2;
+    WritableMemory wmem;
+    String s;
+
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    println(sk.toString(true, true));
+
+    println("CASE 0: DOUBLE_FULL_COMPACT");
+    compBytes = sk.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllDoublesSketch.heapify(wmem);
+    compBytes2 = sk2.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(compBytes, compBytes2);
+
+    println("CASE 1: DOUBLE_EMPTY_COMPACT");
+    sk = new KllDoublesSketch(20);
+    compBytes = sk.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllDoublesSketch.heapify(wmem);
+    compBytes2 = sk2.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(compBytes, compBytes2);
+
+    println("CASE 4: DOUBLE_SINGLE_COMPACT");
+    sk = new KllDoublesSketch(20);
+    sk.update(1);
+    compBytes = sk.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllDoublesSketch.heapify(wmem);
+    compBytes2 = sk2.toByteArray();
+    wmem = WritableMemory.writableWrap(compBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(compBytes, compBytes2);
+  }
+
+  @Test
+  public void checkMemoryToStringDoubleUpdatable() {
+    KllDoublesSketch sk = new KllDoublesSketch(20);
+    KllDoublesSketch sk2;
+    byte[] upBytes;
+    byte[] upBytes2;
+    WritableMemory wmem;
+    String s;
+
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    println(sk.toString(true, true));
+
+    println("CASE 0: DOUBLE_UPDATABLE");
+    upBytes = sk.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllDoublesSketch.heapify(wmem);
+    upBytes2 = sk2.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(upBytes, upBytes2);
+
+    println("CASE 1: DOUBLE_UPDATABLE (empty)");
+    sk = new KllDoublesSketch(20);
+    upBytes = sk.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllDoublesSketch.heapify(wmem);
+    upBytes2 = sk2.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(upBytes, upBytes2);
+
+    println("CASE 4: DOUBLE_UPDATABLE (single)");
+    sk = new KllDoublesSketch(20);
+    sk.update(1);
+    upBytes = sk.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    sk2 = KllDoublesSketch.heapify(wmem);
+    upBytes2 = sk2.toUpdatableByteArray();
+    wmem = WritableMemory.writableWrap(upBytes2);
+    s = KllPreambleUtil.memoryToString(wmem);
+    println(s);
+    assertEquals(upBytes, upBytes2);
   }
 
   @Test

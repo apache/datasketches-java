@@ -85,9 +85,45 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   int[] getLevelsArray() {
-    final int lengthInts = getLevelsArrLengthInts();
-    final int[] levelsArr = new int[lengthInts];
-    wmem.getIntArray(dataStartBytes, levelsArr, 0, lengthInts);
+    final int memLengthInts;
+    final int outLengthInts;
+    final int[] levelsArr;
+    final int k = getK();
+    switch (layout) {
+      case FLOAT_EMPTY_COMPACT:
+      case DOUBLE_EMPTY_COMPACT: {
+        memLengthInts = 0;
+        outLengthInts = 2;
+        levelsArr = new int[] {k, k};
+        break;
+      }
+      case FLOAT_SINGLE_COMPACT:
+      case DOUBLE_SINGLE_COMPACT: {
+        memLengthInts = 0;
+        outLengthInts = 2;
+        levelsArr = new int[] {k - 1, k};
+        break;
+      }
+      case FLOAT_FULL_COMPACT:
+      case DOUBLE_FULL_COMPACT: {
+        memLengthInts = getNumLevels();
+        outLengthInts = getNumLevels() + 1;
+        levelsArr = new int[outLengthInts];
+        wmem.getIntArray(dataStartBytes, levelsArr, 0, memLengthInts);
+        final int itemCapacity = KllHelper.computeTotalItemCapacity(getK(), M, getNumLevels());
+        levelsArr[getNumLevels()] = itemCapacity;
+        break;
+      }
+      case FLOAT_UPDATABLE:
+      case DOUBLE_UPDATABLE: {
+        memLengthInts = getNumLevels() + 1;
+        outLengthInts = memLengthInts;
+        levelsArr = new int[outLengthInts];
+        wmem.getIntArray(dataStartBytes, levelsArr, 0, outLengthInts);
+        break;
+      }
+      default: return null;
+    }
     return levelsArr;
   }
 
@@ -180,22 +216,25 @@ abstract class KllDirectSketch extends KllSketch {
     return getLevelsArrayAt(getNumLevels());
   }
 
+  /**
+   * For determining the actual length of the array as stored in Memory
+   * @return the actual length of the array as stored in Memory
+   */
   int getLevelsArrLengthInts() {
-    final int lengthInts;
+    final int memLengthInts;
 
     switch (layout) {
       case FLOAT_EMPTY_COMPACT:
-      case FLOAT_SINGLE_COMPACT:
       case DOUBLE_EMPTY_COMPACT:
-      case DOUBLE_SINGLE_COMPACT: { return 0; }
-
-      case FLOAT_FULL_COMPACT: { lengthInts = getNumLevels(); break; }
-      case DOUBLE_FULL_COMPACT: { lengthInts = getNumLevels(); break; }
-      case FLOAT_UPDATABLE: { lengthInts = getNumLevels() + 1; break; }
-      case DOUBLE_UPDATABLE: { lengthInts = getNumLevels() + 1; break; }
-      default: return 0;
+      case FLOAT_SINGLE_COMPACT:
+      case DOUBLE_SINGLE_COMPACT: { memLengthInts = 0; break; }
+      case FLOAT_FULL_COMPACT:
+      case DOUBLE_FULL_COMPACT: { memLengthInts = getNumLevels(); break; }
+      case FLOAT_UPDATABLE:
+      case DOUBLE_UPDATABLE: { memLengthInts = getNumLevels() + 1; break; }
+      default: return 0; //can't get here
     }
-    return lengthInts;
+    return memLengthInts;
   }
 
 

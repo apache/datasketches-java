@@ -20,9 +20,11 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.Family.idToFamily;
+import static org.apache.datasketches.Util.zeroPad;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -53,7 +55,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
  *  1   ||---------------------------------N_LONG---------------------------------------|
  *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
- *  2   ||<--------------data----------------| unused |numLevels|-------min K-----------|
+ *  2   ||<--------------data----------------| unused |numLevels|--dynamic-min K--------|
  *
  * Serialized float sketch layout, Empty (8 bytes) and Single Item (12 bytes):
  *  Adr:
@@ -71,7 +73,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
  *  1   ||---------------------------------N_LONG---------------------------------------|
  *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
- *  2   ||--------------unused------------------------|numLevels|-------min K-----------|
+ *  2   ||--------------unused------------------------|numLevels|--dynamic-min K--------|
  *      ||                                                               |      24      |
  *  3   ||<---------------------------------data----------------------------------------|
  *
@@ -191,12 +193,61 @@ final class KllPreambleUtil {
     return null; //memoryToString(mem);
   }
 
+  static String memoryToString(final Memory mem) {
+    final MemoryCheck memChk = new MemoryCheck(mem);
+    final int flags = memChk.flags & 0XFF;
+    final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
+        + zeroPad(Integer.toBinaryString(flags), 8);
+    final int preInts = memChk.preInts;
+    final StringBuilder sb = new StringBuilder();
+    sb.append(Util.LS).append("### KLL SKETCH MEMORY SUMMARY:").append(LS);
+    sb.append("Byte   0   : Preamble Ints      : ").append(preInts).append(LS);
+    sb.append("Byte   1   : SerVer             : ").append(memChk.serVer).append(LS);
+    sb.append("Byte   2   : FamilyID           : ").append(memChk.familyID).append(LS);
+    sb.append("             FamilyName         : ").append(memChk.famName).append(LS);
+    sb.append("Byte   3   : Flags Field        : ").append(flagsStr).append(LS);
+    sb.append("         Bit Flag Name").append(LS);
+    sb.append("           0 EMPTY COMPACT      : ").append(memChk.empty).append(LS);
+    sb.append("           1 LEVEL_ZERO_SORTED  : ").append(memChk.level0Sorted).append(LS);
+    sb.append("           2 SINGLE_ITEM COMPACT: ").append(memChk.singleItem).append(LS);
+    sb.append("           3 DOUBLES_SKETCH     : ").append(memChk.doublesSketch).append(LS);
+    sb.append("           4 UPDATABLE          : ").append(memChk.updatable).append(LS);
+    sb.append("Bytes  4-5 : K                  : ").append(memChk.k).append(LS);
+    sb.append("Byte   6   : Min Level Cap, M   : ").append(memChk.m).append(LS);
+    sb.append("Byte   7   : (Reserved)         : ").append(LS);
 
-
-
-
+    switch (memChk.layout) {
+      case DOUBLE_FULL_COMPACT:
+      case FLOAT_FULL_COMPACT:
+      case FLOAT_UPDATABLE:
+      case DOUBLE_UPDATABLE:
+      {
+        sb.append("Bytes  8-15: N                  : ").append(memChk.n).append(LS);
+        sb.append("Bytes 16-17: DyMinK             : ").append(memChk.dyMinK).append(LS);
+        sb.append("Byte  18   : NumLevels          : ").append(memChk.numLevels).append(LS);
+        break;
+      }
+      case FLOAT_EMPTY_COMPACT:
+      case FLOAT_SINGLE_COMPACT:
+      case DOUBLE_EMPTY_COMPACT:
+      case DOUBLE_SINGLE_COMPACT:
+      {
+        sb.append("Assumed    : N                  : ").append(memChk.n).append(LS);
+        sb.append("Assumed    : DyMinK             : ").append(memChk.dyMinK).append(LS);
+        sb.append("Assumed    : NumLevels          : ").append(memChk.numLevels).append(LS);
+        break;
+      }
+      default: break; //can never happen
+    }
+    sb.append("PreambleBytes                   : ").append(preInts * 4).append(LS);
+    sb.append("Sketch Bytes                    : ").append(memChk.sketchBytes).append(LS);
+    sb.append("Memory Capacity Bytes           : ").append(mem.getCapacity()).append(LS);
+    sb.append("### END KLL Sketch Memory Summary").append(LS);
+    return sb.toString();
+  }
 
   static class MemoryCheck {
+    // first 8 bytes
     final int preInts; // = extractPreInts(srcMem);
     final int serVer;
     final int familyID;
@@ -209,12 +260,19 @@ final class KllPreambleUtil {
     final boolean updatable;
     final int k;
     final int m;
-    long n;
-    int dyMinK;
-    int dataStart;
-    int numLevels;
-    int[] levels;
+
     Layout layout;
+    // next 8 bytes, depending on the Layout, the next fields may be filled with assumed values.
+    long n;
+    // next 4 bytes
+    int dyMinK;
+    int numLevels;
+    // derived
+    int dataStart;
+    int[] levels;
+    int itemsStart;
+    int memItemsCap;
+    int sketchBytes;
 
     MemoryCheck(final Memory srcMem) {
       preInts = extractPreInts(srcMem);
@@ -239,36 +297,59 @@ final class KllPreambleUtil {
       if ((checkFlags & 5) == 5) { memoryCheckThrow(20, flags); }
 
       switch (checkFlags) {
-        case 0: { //not empty, not single item, float full
+        case 0: { //FloatFullCompact or FloatUpdatable (full)
           if (preInts != PREAMBLE_INTS_FLOAT) { memoryCheckThrow(6, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
-          layout = updatable ? Layout.FLOAT_UPDATABLE : Layout.FLOAT_FULL_COMPACT;
           n = extractN(srcMem);
           dyMinK = extractDyMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
           dataStart = DATA_START_ADR_FLOAT;
+          levels = new int[numLevels + 1];
+          if (updatable) {
+            layout = Layout.FLOAT_UPDATABLE;
+            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
+            itemsStart = dataStart + levels.length * Integer.BYTES;
+            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            sketchBytes = itemsStart + (memItemsCap + 2) * Float.BYTES;
+          } else {
+            layout = Layout.FLOAT_FULL_COMPACT;
+            srcMem.getIntArray(dataStart, levels, 0, numLevels);
+            levels[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            itemsStart = dataStart + (levels.length - 1) * Integer.BYTES;
+            memItemsCap = levels[numLevels] - levels[0];
+            sketchBytes = itemsStart + (memItemsCap + 2) * Float.BYTES;
+          }
           break;
         }
-        case 1: { //empty, not single item, float empty
+        case 1: { //FloatEmptyCompact or FloatUpdatable (empty)
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
           if (updatable) {
-            layout = Layout.FLOAT_UPDATABLE;
+            layout = Layout.FLOAT_UPDATABLE; //empty
             n = extractN(srcMem);
             if (n != 0) { memoryCheckThrow(21, (int) n); }
             dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_FLOAT;
+            levels = new int[numLevels + 1];
+            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
+            itemsStart = dataStart + levels.length * Integer.BYTES;
+            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            sketchBytes = itemsStart + memItemsCap * Float.BYTES;
           } else {
             layout = Layout.FLOAT_EMPTY_COMPACT;
             n = 0;
             dyMinK = k;
             numLevels = 1;
             dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
+            levels = new int[] {k, k};
+            itemsStart = dataStart;
+            memItemsCap = 0;
+            sketchBytes = itemsStart;
           }
           break;
         }
-        case 4: { //not empty, single item, float single item
+        case 4: { //FloatSingleCompact or FloatUpdatable (single)
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
           if (serVer != SERIAL_VERSION_SINGLE) { memoryCheckThrow(4, serVer); }
           if (updatable) {
@@ -278,45 +359,77 @@ final class KllPreambleUtil {
             dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_FLOAT;
+            levels = new int[numLevels + 1];
+            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
+            itemsStart = dataStart + levels.length * Integer.BYTES;
+            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            sketchBytes = itemsStart + (memItemsCap + 2) * Float.BYTES;
           } else {
             layout = Layout.FLOAT_SINGLE_COMPACT;
             n = 1;
             dyMinK = k;
             numLevels = 1;
+            levels = new int[] {k - 1, k};
             dataStart = DATA_START_ADR_SINGLE_ITEM;
+            itemsStart = dataStart;
+            memItemsCap = 1;
+            sketchBytes = itemsStart + memItemsCap * Float.BYTES;
           }
           break;
         }
-        case 8: { //not empty, not single item, double full
+        case 8: { //DoubleFullCompact or DoubleUpdatable (full)
           if (preInts != PREAMBLE_INTS_DOUBLE) { memoryCheckThrow(5, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
-          layout = updatable ? Layout.DOUBLE_UPDATABLE : Layout.DOUBLE_FULL_COMPACT;
           n = extractN(srcMem);
           dyMinK = extractDyMinK(srcMem);
           numLevels = extractNumLevels(srcMem);
           dataStart = DATA_START_ADR_DOUBLE;
+          levels = new int[numLevels + 1];
+          if (updatable) {
+            layout = Layout.DOUBLE_UPDATABLE;
+            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
+            itemsStart = dataStart + levels.length * Integer.BYTES;
+            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            sketchBytes = itemsStart + (memItemsCap + 2) * Double.BYTES;
+          } else {
+            layout = Layout.DOUBLE_FULL_COMPACT;
+            srcMem.getIntArray(dataStart, levels, 0, numLevels);
+            levels[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            itemsStart = dataStart + (levels.length - 1) * Integer.BYTES;
+            memItemsCap = levels[numLevels] - levels[0];
+            sketchBytes = itemsStart + (memItemsCap + 2) * Double.BYTES;
+          }
           break;
         }
-        case 9: { //empty, not single item, double empty
+        case 9: { //DoubleEmptyCompact or DoubleUpdatable (empty)
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
           if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
           if (updatable) {
-            layout = Layout.DOUBLE_UPDATABLE;
+            layout = Layout.DOUBLE_UPDATABLE; //empty
             n = extractN(srcMem);
             if (n != 0) { memoryCheckThrow(21, (int) n); }
             dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_DOUBLE;
+            levels = new int[numLevels + 1];
+            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
+            itemsStart = dataStart + levels.length * Integer.BYTES;
+            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            sketchBytes = itemsStart + memItemsCap * Double.BYTES;
           } else {
             layout = Layout.DOUBLE_EMPTY_COMPACT;
             n = 0;
             dyMinK = k;
             numLevels = 1;
             dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
+            levels = new int[] {k, k};
+            itemsStart = dataStart;
+            memItemsCap = 0;
+            sketchBytes = itemsStart;
           }
           break;
         }
-        case 12: { //not empty, single item, double single item
+        case 12: { //DoubleSingleCompact or DoubleUpdatable (single)
           if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
           if (serVer != SERIAL_VERSION_SINGLE) { memoryCheckThrow(4, serVer); }
           if (updatable) {
@@ -326,15 +439,25 @@ final class KllPreambleUtil {
             dyMinK = extractDyMinK(srcMem);
             numLevels = extractNumLevels(srcMem);
             dataStart = DATA_START_ADR_DOUBLE;
+            levels = new int[numLevels + 1];
+            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
+            itemsStart = dataStart + levels.length * Integer.BYTES;
+            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+            sketchBytes = itemsStart + memItemsCap * Double.BYTES;
           } else {
             layout = Layout.DOUBLE_SINGLE_COMPACT;
             n = 1;
             dyMinK = k;
             numLevels = 1;
+            levels = new int[] {k - 1, k};
             dataStart = DATA_START_ADR_SINGLE_ITEM;
+            itemsStart = dataStart;
+            memItemsCap = 1;
+            sketchBytes = itemsStart + memItemsCap * Double.BYTES;
           }
           break;
         }
+        default: break; //can't happen
       }
     }
 
