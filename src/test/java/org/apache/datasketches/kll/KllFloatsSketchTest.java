@@ -89,7 +89,8 @@ public class KllFloatsSketchTest {
   @Test
   public void manyItemsEstimationMode() {
     final KllFloatsSketch sketch = new KllFloatsSketch();
-    final int n = 1000000;
+    final int n = 1_000_000;
+
     for (int i = 0; i < n; i++) {
       sketch.update(i);
       assertEquals(sketch.getN(), i + 1);

@@ -28,13 +28,19 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public class KllDirectDoublesSketch extends KllDirectSketch {
 
-  KllDirectDoublesSketch(final WritableMemory wmem) {
+
+  public KllDirectDoublesSketch(final WritableMemory wmem) {
     super(wmem, SketchType.DOUBLE_SKETCH);
+  }
+
+  //public int getNumRetained()
+  @SuppressWarnings("unused")
+  public double[] getCDF(final double[] splitPoints) {
+    return null;
   }
 
   @Override
   public byte[] toByteArray() {
-
     return null;
   }
 
@@ -47,6 +53,102 @@ public class KllDirectDoublesSketch extends KllDirectSketch {
   public byte[] toUpdatableByteArray() {
     return null;
   }
+
+  @Override
+  double[] getDoubleItemsArray() {
+    return null;
+  }
+
+  @Override
+  float[] getFloatItemsArray() {
+    return null;
+  }
+
+  @Override
+  double getMaxDoubleValue() {
+    return 0;
+  }
+
+  @Override
+  float getMaxFloatValue() {
+    return 0;
+  }
+
+  @Override
+  double getMinDoubleValue() {
+    return 0;
+  }
+
+  @Override
+  float getMinFloatValue() {
+    return 0;
+  }
+
+  @Override
+  void setDoubleItemsArray(final double[] floatItems) {
+  }
+
+  @Override
+  void setFloatItemsArray(final float[] floatItems) {
+  }
+
+  @Override
+  void setMaxDoubleValue(final double value) {
+  }
+
+  @Override
+  void setMaxFloatValue(final float value) {
+  }
+
+  @Override
+  void setMinDoubleValue(final double value) {
+  }
+
+  @Override
+  void setMinFloatValue(final float value) {
+  }
+
+  @Override
+  void setLevelsArray(final int[] levelsArr) {
+
+  }
+
+  //int getDyMinK
+
+  //int[] getLevelsArray
+
+  //int getLevelsArrayAt()
+
+  //int getNumLevels
+
+  //void incN()
+
+  //void incNumLevels()
+
+  //boolean isLevelZeroSorted()
+
+  //void setDyMinK()
+
+  //void updateLevelsArray()
+
+  //void setLevelsArrayAt()
+
+  //void setLevelsArrayAtMinusEq()
+
+  //void setLevelsArrayAtPlusEq()
+
+  //void setLevelZeroSorted()
+
+  //void setN()
+
+  //void setNumLevels()
+
+  //int getItemsDataStartBytes()
+
+  //int getItemsArrLengthItems()
+
+  //int getLevelsArrLengthints()
+
 
 }
 

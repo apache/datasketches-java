@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-//import static org.apache.datasketches.Util.getResourceBytes;
+//import static org.apache.datasketches.Util.getResourceBytes; //don't have matching numbers from C++
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
@@ -89,7 +89,8 @@ public class KllDoublesSketchTest {
   @Test
   public void manyItemsEstimationMode() {
     final KllDoublesSketch sketch = new KllDoublesSketch();
-    final int n = 1000000;
+    final int n = 1_000_000;
+
     for (int i = 0; i < n; i++) {
       sketch.update(i);
       assertEquals(sketch.getN(), i + 1);
@@ -165,7 +166,7 @@ public class KllDoublesSketchTest {
     }
 
     assertEquals(sketch1.getMinValue(), 0.0);
-    assertEquals(sketch1.getMaxValue(), (n - 1)*1.0);
+    assertEquals(sketch1.getMaxValue(), (n - 1) * 1.0);
 
     assertEquals(sketch2.getMinValue(), n * 1.0);
     assertEquals(sketch2.getMaxValue(), (2 * n - 1) * 1.0);

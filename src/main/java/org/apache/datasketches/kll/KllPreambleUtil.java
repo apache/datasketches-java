@@ -19,11 +19,8 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.Family.idToFamily;
 import static org.apache.datasketches.Util.zeroPad;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -152,6 +149,7 @@ final class KllPreambleUtil {
   // Other static values
   static final byte SERIAL_VERSION_EMPTY_FULL = 1; // Empty or full preamble, NOT single item format
   static final byte SERIAL_VERSION_SINGLE     = 2; // only single-item format
+  static final byte SERIAL_VERSION_UPDATABLE  = 3; //
   static final int PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
   static final int PREAMBLE_INTS_FLOAT        = 5; // not empty nor single item, full preamble float
   static final int PREAMBLE_INTS_DOUBLE       = 6; // not empty nor single item, full preamble double
@@ -190,11 +188,11 @@ final class KllPreambleUtil {
    * @return the summary string.
    */
   static String toString(final Memory mem) {
-    return null; //memoryToString(mem);
+    return memoryToString(mem);
   }
 
   static String memoryToString(final Memory mem) {
-    final MemoryCheck memChk = new MemoryCheck(mem);
+    final MemoryValidate memChk = new MemoryValidate(mem);
     final int flags = memChk.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
@@ -244,241 +242,6 @@ final class KllPreambleUtil {
     sb.append("Memory Capacity Bytes           : ").append(mem.getCapacity()).append(LS);
     sb.append("### END KLL Sketch Memory Summary").append(LS);
     return sb.toString();
-  }
-
-  static class MemoryCheck {
-    // first 8 bytes
-    final int preInts; // = extractPreInts(srcMem);
-    final int serVer;
-    final int familyID;
-    final String famName;
-    final int flags;
-    final boolean empty;
-    final boolean level0Sorted;
-    final boolean singleItem;
-    final boolean doublesSketch;
-    final boolean updatable;
-    final int k;
-    final int m;
-
-    Layout layout;
-    // next 8 bytes, depending on the Layout, the next fields may be filled with assumed values.
-    long n;
-    // next 4 bytes
-    int dyMinK;
-    int numLevels;
-    // derived
-    int dataStart;
-    int[] levels;
-    int itemsStart;
-    int memItemsCap;
-    int sketchBytes;
-
-    MemoryCheck(final Memory srcMem) {
-      preInts = extractPreInts(srcMem);
-      serVer = extractSerVer(srcMem);
-      familyID = extractFamilyID(srcMem);
-      flags = extractFlags(srcMem);
-      empty = (flags & EMPTY_BIT_MASK) > 0;
-      level0Sorted  = (flags & LEVEL_ZERO_SORTED_BIT_MASK) > 0;
-      singleItem    = (flags & SINGLE_ITEM_BIT_MASK) > 0;
-      doublesSketch = (flags & DOUBLES_SKETCH_BIT_MASK) > 0;
-      updatable    = (flags & UPDATABLE_BIT_MASK) > 0;
-      k = extractK(srcMem);
-      m = extractM(srcMem);
-
-      KllHelper.checkK(k);
-      if (m != 8) { memoryCheckThrow(7, m); }
-      if (familyID != Family.KLL.getID()) { memoryCheckThrow(0, familyID); }
-      famName = idToFamily(familyID).toString();
-      if (famName != "KLL") { memoryCheckThrow(23, 0); }
-
-      final int checkFlags = (empty ? 1 : 0) | (singleItem ? 4 : 0) | (doublesSketch ? 8 : 0);
-      if ((checkFlags & 5) == 5) { memoryCheckThrow(20, flags); }
-
-      switch (checkFlags) {
-        case 0: { //FloatFullCompact or FloatUpdatable (full)
-          if (preInts != PREAMBLE_INTS_FLOAT) { memoryCheckThrow(6, preInts); }
-          if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
-          n = extractN(srcMem);
-          dyMinK = extractDyMinK(srcMem);
-          numLevels = extractNumLevels(srcMem);
-          dataStart = DATA_START_ADR_FLOAT;
-          levels = new int[numLevels + 1];
-          if (updatable) {
-            layout = Layout.FLOAT_UPDATABLE;
-            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
-            itemsStart = dataStart + levels.length * Integer.BYTES;
-            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            sketchBytes = itemsStart + (memItemsCap + 2) * Float.BYTES;
-          } else {
-            layout = Layout.FLOAT_FULL_COMPACT;
-            srcMem.getIntArray(dataStart, levels, 0, numLevels);
-            levels[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            itemsStart = dataStart + (levels.length - 1) * Integer.BYTES;
-            memItemsCap = levels[numLevels] - levels[0];
-            sketchBytes = itemsStart + (memItemsCap + 2) * Float.BYTES;
-          }
-          break;
-        }
-        case 1: { //FloatEmptyCompact or FloatUpdatable (empty)
-          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
-          if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
-          if (updatable) {
-            layout = Layout.FLOAT_UPDATABLE; //empty
-            n = extractN(srcMem);
-            if (n != 0) { memoryCheckThrow(21, (int) n); }
-            dyMinK = extractDyMinK(srcMem);
-            numLevels = extractNumLevels(srcMem);
-            dataStart = DATA_START_ADR_FLOAT;
-            levels = new int[numLevels + 1];
-            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
-            itemsStart = dataStart + levels.length * Integer.BYTES;
-            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            sketchBytes = itemsStart + memItemsCap * Float.BYTES;
-          } else {
-            layout = Layout.FLOAT_EMPTY_COMPACT;
-            n = 0;
-            dyMinK = k;
-            numLevels = 1;
-            dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
-            levels = new int[] {k, k};
-            itemsStart = dataStart;
-            memItemsCap = 0;
-            sketchBytes = itemsStart;
-          }
-          break;
-        }
-        case 4: { //FloatSingleCompact or FloatUpdatable (single)
-          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
-          if (serVer != SERIAL_VERSION_SINGLE) { memoryCheckThrow(4, serVer); }
-          if (updatable) {
-            layout = Layout.FLOAT_UPDATABLE;
-            n = extractN(srcMem);
-            if (n != 1) { memoryCheckThrow(22, (int)n); }
-            dyMinK = extractDyMinK(srcMem);
-            numLevels = extractNumLevels(srcMem);
-            dataStart = DATA_START_ADR_FLOAT;
-            levels = new int[numLevels + 1];
-            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
-            itemsStart = dataStart + levels.length * Integer.BYTES;
-            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            sketchBytes = itemsStart + (memItemsCap + 2) * Float.BYTES;
-          } else {
-            layout = Layout.FLOAT_SINGLE_COMPACT;
-            n = 1;
-            dyMinK = k;
-            numLevels = 1;
-            levels = new int[] {k - 1, k};
-            dataStart = DATA_START_ADR_SINGLE_ITEM;
-            itemsStart = dataStart;
-            memItemsCap = 1;
-            sketchBytes = itemsStart + memItemsCap * Float.BYTES;
-          }
-          break;
-        }
-        case 8: { //DoubleFullCompact or DoubleUpdatable (full)
-          if (preInts != PREAMBLE_INTS_DOUBLE) { memoryCheckThrow(5, preInts); }
-          if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
-          n = extractN(srcMem);
-          dyMinK = extractDyMinK(srcMem);
-          numLevels = extractNumLevels(srcMem);
-          dataStart = DATA_START_ADR_DOUBLE;
-          levels = new int[numLevels + 1];
-          if (updatable) {
-            layout = Layout.DOUBLE_UPDATABLE;
-            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
-            itemsStart = dataStart + levels.length * Integer.BYTES;
-            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            sketchBytes = itemsStart + (memItemsCap + 2) * Double.BYTES;
-          } else {
-            layout = Layout.DOUBLE_FULL_COMPACT;
-            srcMem.getIntArray(dataStart, levels, 0, numLevels);
-            levels[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            itemsStart = dataStart + (levels.length - 1) * Integer.BYTES;
-            memItemsCap = levels[numLevels] - levels[0];
-            sketchBytes = itemsStart + (memItemsCap + 2) * Double.BYTES;
-          }
-          break;
-        }
-        case 9: { //DoubleEmptyCompact or DoubleUpdatable (empty)
-          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
-          if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryCheckThrow(2, serVer); }
-          if (updatable) {
-            layout = Layout.DOUBLE_UPDATABLE; //empty
-            n = extractN(srcMem);
-            if (n != 0) { memoryCheckThrow(21, (int) n); }
-            dyMinK = extractDyMinK(srcMem);
-            numLevels = extractNumLevels(srcMem);
-            dataStart = DATA_START_ADR_DOUBLE;
-            levels = new int[numLevels + 1];
-            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
-            itemsStart = dataStart + levels.length * Integer.BYTES;
-            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            sketchBytes = itemsStart + memItemsCap * Double.BYTES;
-          } else {
-            layout = Layout.DOUBLE_EMPTY_COMPACT;
-            n = 0;
-            dyMinK = k;
-            numLevels = 1;
-            dataStart = DATA_START_ADR_SINGLE_ITEM; //ignore if empty
-            levels = new int[] {k, k};
-            itemsStart = dataStart;
-            memItemsCap = 0;
-            sketchBytes = itemsStart;
-          }
-          break;
-        }
-        case 12: { //DoubleSingleCompact or DoubleUpdatable (single)
-          if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryCheckThrow(1, preInts); }
-          if (serVer != SERIAL_VERSION_SINGLE) { memoryCheckThrow(4, serVer); }
-          if (updatable) {
-            layout = Layout.DOUBLE_UPDATABLE;
-            n = extractN(srcMem);
-            if (n != 1) { memoryCheckThrow(22, (int)n); }
-            dyMinK = extractDyMinK(srcMem);
-            numLevels = extractNumLevels(srcMem);
-            dataStart = DATA_START_ADR_DOUBLE;
-            levels = new int[numLevels + 1];
-            srcMem.getIntArray(dataStart, levels, 0, numLevels + 1);
-            itemsStart = dataStart + levels.length * Integer.BYTES;
-            memItemsCap = KllHelper.computeTotalItemCapacity(k, m, numLevels);
-            sketchBytes = itemsStart + memItemsCap * Double.BYTES;
-          } else {
-            layout = Layout.DOUBLE_SINGLE_COMPACT;
-            n = 1;
-            dyMinK = k;
-            numLevels = 1;
-            levels = new int[] {k - 1, k};
-            dataStart = DATA_START_ADR_SINGLE_ITEM;
-            itemsStart = dataStart;
-            memItemsCap = 1;
-            sketchBytes = itemsStart + memItemsCap * Double.BYTES;
-          }
-          break;
-        }
-        default: break; //can't happen
-      }
-    }
-
-    private static void memoryCheckThrow(final int errNo, final int value) {
-      String msg = "";
-      switch (errNo) {
-        case 0: msg = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: " + value; break;
-        case 1: msg = "Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-        case 2: msg = "Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: " + value; break;
-        case 3: msg = "Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-        case 4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
-        case 5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
-        case 6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
-        case 7: msg = "The M field must be set to " + DEFAULT_M + ", NOT: " + value; break;
-        case 20: msg = "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
-        case 21: msg = "N != 0 and empty bit is set. N: " + value; break;
-        case 22: msg = "N != 1 and single item bit is set. N: " + value; break;
-        case 23: msg = "Family name is not KLL"; break;
-      }
-      throw new SketchesArgumentException(msg);
-    }
   }
 
   static int extractPreInts(final Memory mem) {

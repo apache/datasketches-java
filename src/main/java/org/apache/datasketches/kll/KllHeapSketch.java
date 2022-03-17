@@ -26,8 +26,8 @@ abstract class KllHeapSketch extends KllSketch {
   /*
    * Data is stored in items_.
    * The data for level i lies in positions levels_[i] through levels_[i + 1] - 1 inclusive.
-   * Hence, levels_ must contain (numLevels_ + 1) indices.
-   * The valid portion of items_ is completely packed, except for level 0,
+   * Hence, levels_ array must contain (numLevels_ + 1) indices.
+   * The valid portion of items_ is completely packed and sorted, except for level 0,
    * which is filled from the top down.
    *
    * Invariants:
@@ -56,6 +56,7 @@ abstract class KllHeapSketch extends KllSketch {
     super(sketchType);
     KllHelper.checkK(k);
     this.k = k;
+    n_ = 0;
     dyMinK_ = k;
     numLevels_ = 1;
     levels_ = new int[] {k, k};
@@ -73,23 +74,16 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  public int getNumRetained() {
-    return levels_[numLevels_] - levels_[0];
-  }
-
-  @Override
   int getDyMinK() {
     return dyMinK_;
   }
 
   @Override
-  int[] getLevelsArray() {
-    return levels_;
-  }
+  String getLayout() { return "HEAP"; }
 
   @Override
-  int getLevelsArrayAt(final int index) {
-    return levels_[index];
+  int[] getLevelsArray() {
+    return levels_;
   }
 
   @Override
@@ -113,28 +107,18 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
+  public boolean isUpdatable() {
+    return true;
+  }
+
+  @Override
   void setDyMinK(final int dyMinK) {
     dyMinK_ = dyMinK;
   }
 
   @Override
-  void setLevelsArray(final int[] levels) {
-    this.levels_ = levels;
-  }
-
-  @Override
-  void setLevelsArrayAt(final int index, final int value) {
-    this.levels_[index] = value;
-  }
-
-  @Override
-  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-    this.levels_[index] -= minusEq;
-  }
-
-  @Override
-  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    this.levels_[index] += plusEq;
+  void setLevelsArray(final int[] levelsArr) {
+    levels_ = levelsArr;
   }
 
   @Override

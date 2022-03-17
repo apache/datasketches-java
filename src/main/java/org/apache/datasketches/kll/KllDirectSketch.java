@@ -28,26 +28,56 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertDyMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
+//import static org.apache.datasketches.kll.KllPreambleUtil.SketchType.DOUBLE_SKETCH;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.kll.KllPreambleUtil.Layout;
-import org.apache.datasketches.kll.KllPreambleUtil.MemoryCheck;
 import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 
 abstract class KllDirectSketch extends KllSketch {
+  //All these members are constant for the life of this object. If the WritableMemory changes, it will require
+  //rebuilding this class
   final WritableMemory wmem;
   final Layout layout;
-  final boolean compact;
-  final int dataStartBytes;
+  final boolean updatable;
+  final int numLevels_;
+  final int memItemsCap;
+  final int sketchBytes;
+  final WritableMemory levelsWmem;
+  final WritableMemory minMaxWmem;
+  final WritableMemory itemsWmem;
+  DefaultMemoryRequestServer defaultMemReqSvr = null;
 
+
+  /**
+   * For the direct sketches it is important that the methods implemented here are designed to work dynamically
+   * as the sketch grows off-heap.
+   * @param wmem the current WritableMemory
+   * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
+   */
   KllDirectSketch(final WritableMemory wmem, final SketchType sketchType) {
     super(sketchType);
-    final MemoryCheck memChk = new MemoryCheck(wmem);
+    final MemoryValidate memVal = new MemoryValidate(wmem);
     this.wmem = wmem;
-    this.layout = memChk.layout;
-    this.compact = !memChk.updatable;
-    this.dataStartBytes = memChk.dataStart;
+    layout = memVal.layout;
+    updatable = memVal.updatable;
+    numLevels_ = memVal.numLevels;
+    memItemsCap = memVal.memItemsCap;
+    sketchBytes = memVal.sketchBytes;
+    levelsWmem = memVal.levelsWmem;
+    minMaxWmem = memVal.minMaxWmem;
+    itemsWmem = memVal.itemsWmem;
+    defaultMemReqSvr = updatable ? new DefaultMemoryRequestServer() : null;
+  }
+
+  private static void kllDirectSketchThrow(final int errNo) {
+    String msg = "";
+    switch (errNo) {
+      case 30: msg = "Sketch Memory is immutable, cannot write."; break;
+    }
+    throw new SketchesArgumentException(msg);
   }
 
   @Override
@@ -61,12 +91,8 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
-  public int getNumRetained() {
-    if (compact) {
-      final int itemCapacity = KllHelper.computeTotalItemCapacity(getK(), M, getNumLevels());
-      return itemCapacity - getLevelsArrayAt(0);
-    }
-    return getLevelsArrayAt(getLevelsArrayAt(getNumLevels()) - getLevelsArrayAt(0) );
+  public boolean isUpdatable() {
+    return updatable;
   }
 
   @Override
@@ -83,137 +109,21 @@ abstract class KllDirectSketch extends KllSketch {
     return extractDyMinK(wmem);
   }
 
+  int getItemsArrLengthItems() {
+    if (updatable) { return getLevelsArray()[getNumLevels()]; }
+    return getNumRetained();
+  }
+
+
+  @Override
+  String getLayout() { return layout.toString(); }
+
   @Override
   int[] getLevelsArray() {
-    final int memLengthInts;
-    final int outLengthInts;
-    final int[] levelsArr;
-    final int k = getK();
-    switch (layout) {
-      case FLOAT_EMPTY_COMPACT:
-      case DOUBLE_EMPTY_COMPACT: {
-        memLengthInts = 0;
-        outLengthInts = 2;
-        levelsArr = new int[] {k, k};
-        break;
-      }
-      case FLOAT_SINGLE_COMPACT:
-      case DOUBLE_SINGLE_COMPACT: {
-        memLengthInts = 0;
-        outLengthInts = 2;
-        levelsArr = new int[] {k - 1, k};
-        break;
-      }
-      case FLOAT_FULL_COMPACT:
-      case DOUBLE_FULL_COMPACT: {
-        memLengthInts = getNumLevels();
-        outLengthInts = getNumLevels() + 1;
-        levelsArr = new int[outLengthInts];
-        wmem.getIntArray(dataStartBytes, levelsArr, 0, memLengthInts);
-        final int itemCapacity = KllHelper.computeTotalItemCapacity(getK(), M, getNumLevels());
-        levelsArr[getNumLevels()] = itemCapacity;
-        break;
-      }
-      case FLOAT_UPDATABLE:
-      case DOUBLE_UPDATABLE: {
-        memLengthInts = getNumLevels() + 1;
-        outLengthInts = memLengthInts;
-        levelsArr = new int[outLengthInts];
-        wmem.getIntArray(dataStartBytes, levelsArr, 0, outLengthInts);
-        break;
-      }
-      default: return null;
-    }
-    return levelsArr;
-  }
-
-  @Override
-  int getLevelsArrayAt(final int index) {
-    return wmem.getInt(dataStartBytes + index * Integer.BYTES);
-  }
-
-  @Override
-  int getNumLevels() {
-    return extractNumLevels(wmem);
-  }
-
-  @Override
-  void incN() {
-    if (compact) { kllDirectSketchThrow(30); }
-    long n = extractN(wmem);
-    insertN(wmem, ++n);
-  }
-
-  @Override
-  void incNumLevels() {
-    if (compact) { kllDirectSketchThrow(30); }
-    int numLevels = extractNumLevels(wmem);
-    insertNumLevels(wmem, ++numLevels);
-  }
-
-  @Override
-  boolean isLevelZeroSorted() {
-    return extractLevelZeroSortedFlag(wmem);
-  }
-
-  @Override
-  void setDyMinK(final int dyMinK) {
-    if (compact) { kllDirectSketchThrow(30); }
-    insertDyMinK(wmem, dyMinK);
-  }
-
-  @Override
-  void setLevelsArray(final int[] levels) {
-    if (compact) { kllDirectSketchThrow(30); }
-    final int lengthInts = getLevelsArrLengthInts();
-    wmem.putIntArray(dataStartBytes, levels, 0, lengthInts);
-  }
-
-  @Override
-  void setLevelsArrayAt(final int index, final int value) {
-    if (compact) { kllDirectSketchThrow(30); }
-    wmem.putInt(dataStartBytes + index * Integer.BYTES, value);
-  }
-
-  @Override
-  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-    if (compact) { kllDirectSketchThrow(30); }
-    final int old = wmem.getInt(dataStartBytes + index * Integer.BYTES);
-    wmem.putInt(dataStartBytes + index * Integer.BYTES, old - minusEq);
-  }
-
-  @Override
-  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    if (compact) { kllDirectSketchThrow(30); }
-    final int old = wmem.getInt(dataStartBytes + index * Integer.BYTES);
-    wmem.putInt(dataStartBytes + index * Integer.BYTES, old + plusEq);
-  }
-
-  @Override
-  void setLevelZeroSorted(final boolean sorted) {
-    if (compact) { kllDirectSketchThrow(30); }
-    insertLevelZeroSortedFlag(wmem, sorted);
-  }
-
-  @Override
-  void setN(final long n) {
-    if (compact) { kllDirectSketchThrow(30); }
-    insertN(wmem, n);
-  }
-
-  @Override
-  void setNumLevels(final int numLevels) {
-    if (compact) { kllDirectSketchThrow(30); }
-    insertNumLevels(wmem, numLevels);
-  }
-
-  int getItemsDataStartBytes() {
-    return dataStartBytes + getLevelsArrLengthInts() * Integer.BYTES;
-  }
-
-  int getItemsArrLengthItems() {
-    if (compact) { return getNumRetained(); }
-    return getLevelsArrayAt(getNumLevels());
+    final int cap = getNumLevels() + 1;
+    final int[] myLevelsArr = new int[cap];
+    levelsWmem.getIntArray(0, myLevelsArr, 0, cap);
+    return myLevelsArr;
   }
 
   /**
@@ -237,12 +147,58 @@ abstract class KllDirectSketch extends KllSketch {
     return memLengthInts;
   }
 
+  @Override
+  int getNumLevels() {
+    return extractNumLevels(wmem);
+  }
 
-  private static void kllDirectSketchThrow(final int errNo) {
-    String msg = "";
-    switch (errNo) {
-      case 30: msg = "Sketch Memory is immutable, cannot write."; break;
-    }
-    throw new SketchesArgumentException(msg);
+  @Override
+  void incN() {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    long n = extractN(wmem);
+    insertN(wmem, ++n);
+  }
+
+  @Override
+  void incNumLevels() {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    int numLevels = extractNumLevels(wmem);
+    insertNumLevels(wmem, ++numLevels);
+  }
+
+  @Override
+  boolean isLevelZeroSorted() {
+    return extractLevelZeroSortedFlag(wmem);
+  }
+
+  @Override
+  void setDyMinK(final int dyMinK) {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    insertDyMinK(wmem, dyMinK);
+  }
+
+  @Override
+  void updateLevelsArray(final int[] levels) {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    levelsWmem.putIntArray(0, levels, 0, levels.length);
+  }
+
+  @Override
+  void setLevelZeroSorted(final boolean sorted) {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    insertLevelZeroSortedFlag(wmem, sorted);
+  }
+
+  @Override
+  void setN(final long n) {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    insertN(wmem, n);
+  }
+
+
+  @Override
+  void setNumLevels(final int numLevels) {
+    if (!updatable) { kllDirectSketchThrow(30); }
+    insertNumLevels(wmem, numLevels);
   }
 }
