@@ -19,15 +19,14 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Objects;
 
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**
@@ -36,17 +35,6 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class MiscDoublesTest {
   static final String LS = System.getProperty("line.separator");
-
-  @Test
-  public void checkGetKFromEps() {
-    final int k = DEFAULT_K;
-    final double eps = KllHelper.getNormalizedRankError(k, false);
-    final double epsPmf = KllHelper.getNormalizedRankError(k, true);
-    final int kEps = KllSketch.getKFromEpsilon(eps, false);
-    final int kEpsPmf = KllSketch.getKFromEpsilon(epsPmf, true);
-    assertEquals(kEps, k);
-    assertEquals(kEpsPmf, k);
-  }
 
   @Test
   public void checkBounds() {
@@ -115,14 +103,14 @@ public class MiscDoublesTest {
     for (int i = 0; i < 20; i++) { sk.update(i); }
     sk.toString(true, true);
     sk.toByteArray();
-    final double[] items = sk.getItems();
+    final double[] items = sk.getDoubleItemsArray();
     assertEquals(items.length, 16);
     final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
     assertEquals(sk.getNumLevels(), 2);
   }
 
-  @Test //enable static println(..) for visual checking
+  //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
     final KllDoublesSketch sketch = new KllDoublesSketch(20);
     for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
@@ -185,7 +173,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
@@ -206,7 +193,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
@@ -228,7 +214,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
@@ -263,7 +248,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
@@ -288,7 +272,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
@@ -314,7 +297,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
@@ -349,7 +331,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
@@ -374,7 +355,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
@@ -400,93 +380,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getFloatItemsArray()));
-    assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
-    assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
-    assertEquals(sk.getNumLevels(), 1);
-    assertFalse(sk.isLevelZeroSorted());
-  }
-
-  //@Test //TODO Work on Direct
-  public void checkSketchInitializeDirectDoubleUpdatableMem() {
-    int k = 20; //don't change this
-    KllDirectDoublesSketch sk;
-    KllDoublesSketch sk2;
-    byte[] compBytes;
-    WritableMemory wmem;
-
-    println("#### CASE: DOUBLE FULL DIRECT FROM UPDATABLE");
-    sk2 = new KllDoublesSketch(k);
-    for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
-    //println(sk2.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
-    wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem);
-    assertEquals(sk.getK(), k);
-    assertEquals(sk.getN(), k + 1);
-    assertEquals(sk.getNumRetained(), 11);
-    assertFalse(sk.isEmpty());
-    assertTrue(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getFloatItemsArray()));
-    assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
-    assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
-    assertEquals(sk.getNumLevels(), 2);
-    assertFalse(sk.isLevelZeroSorted());
-
-    println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllDoublesSketch(k);
-    //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
-    wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem);
-    assertEquals(sk.getK(), k);
-    assertEquals(sk.getN(), 0);
-    assertEquals(sk.getNumRetained(), 0);
-    assertTrue(sk.isEmpty());
-    assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getFloatItemsArray()));
-    assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
-    assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
-    assertEquals(sk.getNumLevels(), 1);
-    assertFalse(sk.isLevelZeroSorted());
-
-    println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllDoublesSketch(k);
-    sk2.update(1);
-    //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
-    wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem);
-    assertEquals(sk.getK(), k);
-    assertEquals(sk.getN(), 1);
-    assertEquals(sk.getNumRetained(), 1);
-    assertFalse(sk.isEmpty());
-    assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isUpdatable());
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
@@ -614,6 +507,25 @@ public class MiscDoublesTest {
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
+  }
+
+  @Test
+  public void checkSimpleMerge() {
+    int k = 20;
+    int n1 = 21;
+    int n2 = 21;
+    KllDoublesSketch sk1 = new KllDoublesSketch(k);
+    KllDoublesSketch sk2 = new KllDoublesSketch(k);
+    for (int i = 1; i <= n1; i++) {
+      sk1.update(i);
+    }
+    for (int i = 1; i <= n2; i++) {
+      sk2.update(i + 100);
+    }
+    println(sk1.toString(true, true));
+    println(sk2.toString(true, true));
+    sk1.merge(sk2);
+    println(sk1.toString(true, true));
   }
 
   @Test

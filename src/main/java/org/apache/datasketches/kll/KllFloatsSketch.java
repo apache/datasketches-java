@@ -21,15 +21,20 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
+import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * Please refer to the documentation in the package-info:<br>
- * {@link org.apache.datasketches.kll}
+ * This class implements an on-heap floats KllSketch.
+ *
+ * <p>Please refer to the documentation in the package-info:<br>
+ * {@link org.apache.datasketches.kll}</p>
+ *
+ * @author Lee Rhodes, Kevin Lang
  */
 public final class KllFloatsSketch extends KllHeapSketch {
 
@@ -52,7 +57,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllFloatsSketch(final int k) {
-    super(k, SketchType.FLOAT_SKETCH);
+    super(k, SketchType.FLOATS_SKETCH);
     floatItems_ = new float[k];
     minFloatValue_ = Float.NaN;
     maxFloatValue_ = Float.NaN;
@@ -64,7 +69,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param memVal the MemoryCheck object
    */
   private KllFloatsSketch(final Memory mem, final MemoryValidate memVal) {
-    super(memVal.k, SketchType.FLOAT_SKETCH);
+    super(memVal.k, SketchType.FLOATS_SKETCH);
     buildHeapKllSketchFromMemory(memVal);
   }
 
@@ -83,6 +88,21 @@ public final class KllFloatsSketch extends KllHeapSketch {
       throw new SketchesArgumentException("Memory object is not a KllFloatsSketch.");
     }
     return new KllFloatsSketch(mem, memVal);
+  }
+
+  /**
+   * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
+   * <em>k</em> and stream length. This method can be used if allocation of storage
+   * is necessary beforehand.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @return upper bound on the compact serialized size
+   * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
+   */
+  @Deprecated
+  public static int getMaxSerializedSizeBytes(final int k, final long n) {
+    final LevelStats lvlStats = getAllLevelStatsGivenN(k, M, n, false, false, SketchType.FLOATS_SKETCH);
+    return lvlStats.getCompactBytes();
   }
 
   /**
@@ -110,37 +130,13 @@ public final class KllFloatsSketch extends KllHeapSketch {
     return getFloatsPmfOrCdf(splitPoints, true);
   }
 
-  @Override //Used internally
-  float[] getFloatItemsArray() { return floatItems_; }
-
-  @Override //Used internally
-  void setFloatItemsArray(final float[] floatItems) { floatItems_ = floatItems; }
-
-  @Override //Dummy
-  double[] getDoubleItemsArray() { return null; }
-
-  @Override //Dummy
-  void setDoubleItemsArray(final double[] doubleItems) { }
-
-  @Override //Dummy
-  double getMaxDoubleValue() { return maxFloatValue_; }
-
-  @Override //Used internally
-  float getMaxFloatValue() { return maxFloatValue_; }
-
   /**
    * Returns the max value of the stream.
    * If the sketch is empty this returns NaN.
    *
    * @return the max value of the stream
    */
-  public float getMaxValue() { return maxFloatValue_; }
-
-  @Override //Dummy
-  double getMinDoubleValue() { return minFloatValue_; }
-
-  @Override //Used internally
-  float getMinFloatValue() { return minFloatValue_; }
+  public float getMaxValue() { return getMaxFloatValue(); }
 
   /**
    * Returns the min value of the stream.
@@ -148,19 +144,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    *
    * @return the min value of the stream
    */
-  public float getMinValue() { return minFloatValue_; }
-
-  @Override //Dummy
-  void setMaxDoubleValue(final double value) { }
-
-  @Override //Used internally
-  void setMaxFloatValue(final float value) { maxFloatValue_ = value; }
-
-  @Override //Dummy
-  void setMinDoubleValue(final double value) { }
-
-  @Override //Used internally
-  void setMinFloatValue(final float value) { minFloatValue_ = value; }
+  public float getMinValue() { return getMinFloatValue(); }
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
@@ -207,6 +191,17 @@ public final class KllFloatsSketch extends KllHeapSketch {
    */
   public float getQuantile(final double fraction) {
     return getFloatsQuantile(fraction);
+  }
+
+  /**
+   * Gets the lower bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%.
+   * @param fraction the given normalized rank as a fraction
+   * @return the lower bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   */
+  public float getQuantileLowerBound(final double fraction) {
+    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDyMinK(), false)));
   }
 
   /**
@@ -262,17 +257,6 @@ public final class KllFloatsSketch extends KllHeapSketch {
   }
 
   /**
-   * Gets the lower bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
-   * @return the lower bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
-   */
-  public float getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDyMinK(), false)));
-  }
-
-  /**
    * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1,
    * inclusive.
    *
@@ -289,6 +273,16 @@ public final class KllFloatsSketch extends KllHeapSketch {
   }
 
   /**
+   * Returns the current number of compact bytes this FloatsSketch would require to store.
+   * @return the number of bytes this sketch would require to store.
+   * @deprecated use {@link KllSketch#getCurrentCompactSerializedSizeBytes()}
+   */
+  @Deprecated
+  public int getSerializedSizeBytes() {
+    return getCurrentCompactSerializedSizeBytes();
+  }
+
+  /**
    * @return the iterator for this class
    */
   public KllFloatsSketchIterator iterator() {
@@ -300,22 +294,9 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllFloatsSketch other) {
-    mergeFloat(other);
-  }
-
-  @Override
-  public byte[] toByteArray() {
-    return toGenericCompactByteArray();
-  }
-
-  @Override
-  public byte[] toUpdatableByteArray() {
-    return toGenericUpdatableByteArray();
-  }
-
-  @Override
-  public String toString(final boolean withLevels, final boolean withData) {
-    return toGenericString(withLevels, withData);
+    if (other.isDirect()) { kllSketchThrow(35); }
+    if (!other.isFloatsSketch()) { kllSketchThrow(34); }
+    mergeFloatImpl(other);
   }
 
   /**
@@ -327,16 +308,52 @@ public final class KllFloatsSketch extends KllHeapSketch {
     updateFloat(value);
   }
 
-  // for testing
+  @Override //Dummy
+  double[] getDoubleItemsArray() { return null; }
 
-  float[] getItems() {
-    return getFloatItemsArray();
-  }
+  @Override //Dummy
+  double getDoubleItemsArrayAt(final int index) { return Double.NaN; }
+
+  @Override //Used internally
+  float[] getFloatItemsArray() { return floatItems_; }
+
+  @Override //Used internally
+  float getFloatItemsArrayAt(final int index) { return floatItems_[index]; }
+
+  @Override //Dummy
+  double getMaxDoubleValue() { return maxFloatValue_; }
+
+  @Override //Used internally
+  float getMaxFloatValue() { return maxFloatValue_; }
+
+  @Override //Dummy
+  double getMinDoubleValue() { return minFloatValue_; }
+
+  @Override //Used internally
+  float getMinFloatValue() { return minFloatValue_; }
+
+  @Override //Dummy
+  void setDoubleItemsArray(final double[] doubleItems) { }
+
+  @Override //Dummy
+  void setDoubleItemsArrayAt(final int index, final double value) { }
+
+  @Override //Used internally
+  void setFloatItemsArray(final float[] floatItems) { floatItems_ = floatItems; }
 
   @Override
-  void updateLevelsArray(final int[] levels) {
-    // TODO Auto-generated method stub
+  void setFloatItemsArrayAt(final int index, final float value) { floatItems_[index] = value; }
 
-  }
+  @Override //Dummy
+  void setMaxDoubleValue(final double value) { }
+
+  @Override //Used internally
+  void setMaxFloatValue(final float value) { maxFloatValue_ = value; }
+
+  @Override //Dummy
+  void setMinDoubleValue(final double value) { }
+
+  @Override //Used internally
+  void setMinFloatValue(final float value) { minFloatValue_ = value; }
 
 }

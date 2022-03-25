@@ -21,11 +21,13 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.KllHelper.getLevelStats;
-import static org.apache.datasketches.kll.KllPreambleUtil.SketchType.DOUBLE_SKETCH;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.kll.KllHelper.LevelStats;
-import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
@@ -37,8 +39,19 @@ public class KllHelperTest {
     long n = 1L << 30;
     int k = 200;
     int m = 8;
-    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, false, false, DOUBLE_SKETCH);
+    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, false, false, DOUBLES_SKETCH);
     assertEquals(lvlStats.getCompactBytes(), 5708);
+  }
+
+  @Test
+  public void checkGetKFromEps() {
+    final int k = DEFAULT_K;
+    final double eps = KllHelper.getNormalizedRankError(k, false);
+    final double epsPmf = KllHelper.getNormalizedRankError(k, true);
+    final int kEps = KllSketch.getKFromEpsilon(eps, false);
+    final int kEpsPmf = KllSketch.getKFromEpsilon(epsPmf, true);
+    assertEquals(kEps, k);
+    assertEquals(kEpsPmf, k);
   }
 
   @Test //convert two false below to true for visual checking
@@ -46,7 +59,7 @@ public class KllHelperTest {
     int k = 200;
     int m = 8;
     int numLevels = 23;
-    LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, DOUBLE_SKETCH);
+    LevelStats lvlStats = getLevelStats(k, m, numLevels, false, false, DOUBLES_SKETCH);
     assertEquals(lvlStats.getCompactBytes(), 5708);
   }
 
@@ -87,22 +100,73 @@ public class KllHelperTest {
     assertEquals(sk2.getNumRetained(), retained);
   }
 
+  @Test
+  public void getMaxCompactFloatsSerializedSizeBytes() {
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30, FLOATS_SKETCH, false);
+    assertEquals(sizeBytes, 2908);
+  }
+
+  @Test
+  public void getMaxUpdatableFloatsSerializedSizeBytes() {
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30, FLOATS_SKETCH, true);
+    assertEquals(sizeBytes, 2912);
+  }
+
+
+  @Test
+  public void getMaxCompactDoublesSerializedSizeBytes() {
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30, DOUBLES_SKETCH, false);
+    assertEquals(sizeBytes, 5708);
+  }
+
+  @Test
+  public void getMaxUpdatableDoubleSerializedSizeBytes() {
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30, DOUBLES_SKETCH, true);
+    assertEquals(sizeBytes, 5712);
+  }
+
+  @Test
+  public void checkUbOnNumLevels() {
+    assertEquals(KllHelper.ubOnNumLevels(0), 1);
+  }
+
+  @Test
+  public void checkIntCapAux() {
+    int lvlCap = KllHelper.levelCapacity(10, 61, 0, 8);
+    assertEquals(lvlCap, 8);
+    lvlCap = KllHelper.levelCapacity(10, 61, 60, 8);
+    assertEquals(lvlCap, 10);
+  }
+
+  @Test
+  public void checkSuperLargeKandLevels() {
+    //This is beyond what the sketch can be configured for.
+    final int size = KllHelper.computeTotalItemCapacity(1 << 29, 8, 61);
+    assertEquals(size, 1_610_612_846);
+  }
+
+
   //Experimental
 
-  //@Test //convert two false below to true for visual checking
+  @Test
   public void testGetAllLevelStats2() {
     long n = 533;
     int k = 200;
     int m = 8;
-    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, true, true, DOUBLE_SKETCH);
+    LevelStats lvlStats = getAllLevelStatsGivenN(k, m, n, true, true, DOUBLES_SKETCH);
+    assertEquals(lvlStats.getNumLevels(), 2);
+    assertEquals(lvlStats.getMaxCap(), 333);
+
   }
 
-  //@Test
+  @Test
   public void getStatsAtNumLevels2() {
     int k = 20;
     int m = 8;
     int numLevels = 2;
-    LevelStats lvlStats = getLevelStats(k, m, numLevels, true, true, DOUBLE_SKETCH);
+    LevelStats lvlStats = getLevelStats(k, m, numLevels, true, true, DOUBLES_SKETCH);
+    assertEquals(lvlStats.getNumLevels(), 2);
+    assertEquals(lvlStats.getMaxCap(), 33);
   }
 
   /**

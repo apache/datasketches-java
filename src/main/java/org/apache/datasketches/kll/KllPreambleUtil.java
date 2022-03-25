@@ -166,8 +166,6 @@ final class KllPreambleUtil {
     DOUBLE_FULL_COMPACT,      DOUBLE_EMPTY_COMPACT,     DOUBLE_SINGLE_COMPACT,
     FLOAT_UPDATABLE,  DOUBLE_UPDATABLE }
 
-  enum SketchType { FLOAT_SKETCH, DOUBLE_SKETCH }
-
   /**
    * Returns a human readable string summary of the internal state of the given byte array.
    * Used primarily in testing.

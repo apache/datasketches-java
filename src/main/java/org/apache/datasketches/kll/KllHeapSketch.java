@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
+import org.apache.datasketches.memory.WritableMemory;
 
 abstract class KllHeapSketch extends KllSketch {
 
@@ -51,9 +51,10 @@ abstract class KllHeapSketch extends KllSketch {
   /**
    * Heap constructor.
    * @param k configured size of sketch. Range [m, 2^16]
+   * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
    */
   KllHeapSketch(final int k, final SketchType sketchType) {
-    super(sketchType);
+    super(sketchType, null, null);
     KllHelper.checkK(k);
     this.k = k;
     n_ = 0;
@@ -64,18 +65,13 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  public int getK() {
-    return k;
-  }
-
-  @Override
-  public long getN() {
-    return n_;
-  }
-
-  @Override
   int getDyMinK() {
     return dyMinK_;
+  }
+
+  @Override
+  public int getK() {
+    return k;
   }
 
   @Override
@@ -84,6 +80,14 @@ abstract class KllHeapSketch extends KllSketch {
   @Override
   int[] getLevelsArray() {
     return levels_;
+  }
+
+  @Override
+  int getLevelsArrayAt(final int index) { return levels_[index]; }
+
+  @Override
+  public long getN() {
+    return n_;
   }
 
   @Override
@@ -107,14 +111,12 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  public boolean isUpdatable() {
-    return true;
-  }
-
-  @Override
   void setDyMinK(final int dyMinK) {
     dyMinK_ = dyMinK;
   }
+
+  @Override
+  void setItemsArrayUpdatable(final WritableMemory itemsMem) { } //dummy
 
   @Override
   void setLevelsArray(final int[] levelsArr) {
@@ -122,9 +124,28 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
+  void setLevelsArrayAt(final int index, final int value) { levels_[index] = value; }
+
+  @Override
+  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+    levels_[index] -= minusEq;
+  }
+
+  @Override
+  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    levels_[index] += plusEq;
+  }
+
+  @Override
+  void setLevelsArrayUpdatable(final WritableMemory levelsMem) { } //dummy
+
+  @Override
   void setLevelZeroSorted(final boolean sorted) {
     this.isLevelZeroSorted_ = sorted;
   }
+
+  @Override
+  void setMinMaxArrayUpdatable(final WritableMemory minMaxMem) { } //dummy
 
   @Override
   void setN(final long n) {

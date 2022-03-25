@@ -24,12 +24,15 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * Please refer to the documentation in the package-info:<br>
- * {@link org.apache.datasketches.kll}
+ * This class implements an on-heap doubles KllSketch.
+ *
+ * <p>Please refer to the documentation in the package-info:<br>
+ * {@link org.apache.datasketches.kll}</p>
+ *
+ * @author Lee Rhodes, Kevin Lang
  */
 public final class KllDoublesSketch extends KllHeapSketch {
 
@@ -52,7 +55,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllDoublesSketch(final int k) {
-    super(k, SketchType.DOUBLE_SKETCH);
+    super(k, SketchType.DOUBLES_SKETCH);
     doubleItems_ = new double[k];
     minDoubleValue_ = Double.NaN;
     maxDoubleValue_ = Double.NaN;
@@ -64,7 +67,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param memVal the MemoryCheck object
    */
   private KllDoublesSketch(final Memory mem, final MemoryValidate memVal) {
-    super(memVal.k, SketchType.DOUBLE_SKETCH);
+    super(memVal.k, SketchType.DOUBLES_SKETCH);
     buildHeapKllSketchFromMemory(memVal);
   }
 
@@ -263,23 +266,10 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * Merges another sketch into this one.
    * @param other sketch to merge into this one
    */
-  public void merge(final KllDoublesSketch other) {
-    mergeDouble(other);
-  }
-
-  @Override
-  public byte[] toByteArray() {
-    return toGenericCompactByteArray();
-  }
-
-  @Override
-  public String toString(final boolean withLevels, final boolean withData) {
-    return toGenericString(withLevels, withData);
-  }
-
-  @Override
-  public byte[] toUpdatableByteArray() {
-    return toGenericUpdatableByteArray();
+  public void merge(final KllSketch other) {
+    if (other.isDirect()) { kllSketchThrow(35); }
+    if (!other.isDoublesSketch()) { kllSketchThrow(33); }
+    mergeDoubleImpl(other);
   }
 
   /**
@@ -294,12 +284,14 @@ public final class KllDoublesSketch extends KllHeapSketch {
   @Override //Used internally
   double[] getDoubleItemsArray() { return doubleItems_; }
 
+  @Override
+  double getDoubleItemsArrayAt(final int index) { return doubleItems_[index]; }
+
   @Override //Dummy
   float[] getFloatItemsArray() { return null; }
 
-  double[] getItems() {
-    return getDoubleItemsArray();
-  }
+  @Override //Dummy
+  float getFloatItemsArrayAt(final int index) { return Float.NaN; }
 
   @Override //Used internally
   double getMaxDoubleValue() { return maxDoubleValue_; }
@@ -316,8 +308,14 @@ public final class KllDoublesSketch extends KllHeapSketch {
   @Override //Used internally
   void setDoubleItemsArray(final double[] doubleItems) { doubleItems_ = doubleItems; }
 
+  @Override //Used internally
+  void setDoubleItemsArrayAt(final int index, final double value) { doubleItems_[index] = value; }
+
   @Override //Dummy
   void setFloatItemsArray(final float[] floatItems) { }
+
+  @Override //Dummy
+  void setFloatItemsArrayAt(final int index, final float value) { }
 
   @Override //Used internally
   void setMaxDoubleValue(final double value) { maxDoubleValue_ = value; }
@@ -328,15 +326,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
   @Override //Used internally
   void setMinDoubleValue(final double value) { minDoubleValue_ = value; }
 
-  // for testing
-
   @Override //Dummy
   void setMinFloatValue(final float value) { }
-
-  @Override
-  void updateLevelsArray(final int[] levels) {
-    // TODO Auto-generated method stub
-
-  }
 
 }

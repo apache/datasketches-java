@@ -219,7 +219,7 @@ public class KllFloatsValidationTest {
       int numLevels = sketch.getNumLevels();
       int numSamples = sketch.getNumRetained();
       int[] levels = sketch.getLevelsArray();
-      long hashedSamples = simpleHashOfSubArray(sketch.getItems(), levels[0], numSamples);
+      long hashedSamples = simpleHashOfSubArray(sketch.getFloatItemsArray(), levels[0], numSamples);
       System.out.print(testI);
       assert correctResultsWithReset[(7 * testI) + 4] == numLevels;
       assert correctResultsWithReset[(7 * testI) + 5] == numSamples;

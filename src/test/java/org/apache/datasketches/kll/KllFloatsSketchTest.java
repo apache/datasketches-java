@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
 import static org.apache.datasketches.Util.getResourceBytes;
@@ -385,33 +384,6 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void getMaxSerializedSizeBytes() {
-    final int sizeBytes =
-        KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, 1L << 30);
-    assertEquals(sizeBytes, 2908);
-  }
-
-  @Test
-  public void checkUbOnNumLevels() {
-    assertEquals(KllHelper.ubOnNumLevels(0), 1);
-  }
-
-  @Test
-  public void checkIntCapAux() {
-    int lvlCap = KllHelper.levelCapacity(10, 61, 0, 8);
-    assertEquals(lvlCap, 8);
-    lvlCap = KllHelper.levelCapacity(10, 61, 60, 8);
-    assertEquals(lvlCap, 10);
-  }
-
-  @Test
-  public void checkSuperLargeKandLevels() {
-    //This is beyond what the sketch can be configured for.
-    final int size = KllHelper.computeTotalItemCapacity(1 << 29, 8, 61);
-    assertEquals(size, 1_610_612_846);
-  }
-
-  @Test
   public void getQuantiles() {
     final KllFloatsSketch sketch = new KllFloatsSketch();
     sketch.update(1);
@@ -423,6 +395,21 @@ public class KllFloatsSketchTest {
     assertEquals(quantiles1[0], 1f);
     assertEquals(quantiles1[1], 2f);
     assertEquals(quantiles1[2], 3f);
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedMethods() {
+    final int k = 200;
+    final int n = 200;
+    int bytes = KllFloatsSketch.getMaxSerializedSizeBytes(k, n); //assumed float before
+    assertEquals(bytes, 832);
+    KllFloatsSketch sk = new KllFloatsSketch(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    final byte[] byteArr = sk.toByteArray();
+    assertEquals(byteArr.length, 832);
+    bytes = sk.getSerializedSizeBytes(); //defaults to compact
+    assertEquals(bytes, 832);
   }
 
 }

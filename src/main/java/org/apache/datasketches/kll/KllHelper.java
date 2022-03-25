@@ -25,25 +25,10 @@ import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllPreambleUtil.SketchType;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 
 class KllHelper {
   static final String LS = System.getProperty("line.separator");
-
-  /**
-   * Copy the old array into a new larger array.
-   * The extra space is at the top.
-   * @param oldArr the given old array with data
-   * @param newLen the new length larger than the oldArr.length.
-   * @return the new array
-   */
-  static int[] growIntArray(final int[] oldArr, final int newLen) {
-    final int oldLen = oldArr.length;
-    assert newLen > oldLen;
-    final int[] newArr = new int[newLen];
-    System.arraycopy(oldArr, 0, newArr, 0, oldLen);
-    return newArr;
-  }
 
   /**
    * Returns very conservative upper bound of the number of levels based on <i>n</i>.
@@ -72,8 +57,8 @@ class KllHelper {
     int cumN = 0;
     int cumCap = 0;
     if (printDetail) {
-      System.out.println("Total Levels: " + numLevels);
-      System.out.printf("%6s%12s%8s%16s\n", "Level","Wt","Cap","N");
+      println("Total Levels: " + numLevels);
+      printf("%6s%12s%8s%16s\n", "Level","Wt","Cap","N");
     }
     for (int level = 0; level < numLevels; level++) {
       final long levelCap = levelCapacity(k, numLevels, level, m);
@@ -81,19 +66,19 @@ class KllHelper {
       cumN += maxNAtLevel;
       cumCap += (int)levelCap;
       if (printDetail) {
-        System.out.printf("%6d%,12d%8d%,16d\n", level, 1 << level, levelCap, maxNAtLevel);
+        printf("%6d%,12d%8d%,16d\n", level, 1 << level, levelCap, maxNAtLevel);
       }
     }
     final int compactBytes = KllSketch.getSerializedSizeBytes(numLevels, cumCap, sketchType, false);
     final int updatableBytes = KllSketch.getSerializedSizeBytes(numLevels, cumCap, sketchType, true);
     if (printDetail) {
-      System.out.printf(" TOTALS%10s %8d%,16d\n", "", cumCap, cumN);
-      System.out.println(" COMPACT BYTES: " + compactBytes);
-      System.out.println(" UPDATABLE BYTES: " + updatableBytes);
-      System.out.println("");
+      printf(" TOTALS%10s %8d%,16d\n", "", cumCap, cumN);
+      println(" COMPACT BYTES: " + compactBytes);
+      println(" UPDATABLE BYTES: " + updatableBytes);
+      println("");
     }
     final LevelStats lvlStats = new LevelStats(cumN, numLevels, cumCap, compactBytes, updatableBytes);
-    if (printSummary) { System.out.println(lvlStats.toString()); }
+    if (printSummary) { println(lvlStats.toString()); }
     return lvlStats;
   }
 
@@ -130,6 +115,8 @@ class KllHelper {
     public int getNumLevels() { return numLevels; }
 
     public int getMaxCap() { return maxCap; }
+
+    public int getUpdatableBytes() { return updatableBytes; }
   }
 
   /**
@@ -276,6 +263,20 @@ class KllHelper {
     return levels[numLevels] - levels[1];
   }
 
+  /**
+   * Println Object o
+   * @param o object to print
+   */
+  static void println(final Object o) {
+    //System.out.println(o.toString());
+  }
 
+  /**
+   * @param fmt format
+   * @param args arguments
+   */
+  static void printf(final String fmt, final Object ... args) {
+    //System.out.printf(fmt, args); //Disable
+  }
 }
 
