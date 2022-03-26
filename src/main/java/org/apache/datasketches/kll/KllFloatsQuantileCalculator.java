@@ -58,41 +58,6 @@ final class KllFloatsQuantileCalculator {
     numLevels_ = 0;  //not used by test
   }
 
-  float getQuantile(final double phi) { //phi is normalized rank [0,1].
-    final long pos = QuantilesHelper.posOfPhi(phi, n_);
-    return approximatelyAnswerPositonalQuery(pos);
-  }
-
-  private float approximatelyAnswerPositonalQuery(final long pos) {
-    assert pos >= 0;
-    assert pos < n_;
-    final int index = QuantilesHelper.chunkContainingPos(weights_, pos);
-    return items_[index];
-  }
-
-  private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
-      final int numLevels, final int numItems) {
-    final int offset = srcLevels[0];
-    System.arraycopy(srcItems, offset, items_, 0, numItems);
-    int srcLevel = 0;
-    int dstLevel = 0;
-    long weight = 1;
-    while (srcLevel < numLevels) {
-      final int fromIndex = srcLevels[srcLevel] - offset;
-      final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
-      if (fromIndex < toIndex) { // if equal, skip empty level
-        Arrays.fill(weights_, fromIndex, toIndex, weight);
-        levels_[dstLevel] = fromIndex;
-        levels_[dstLevel + 1] = toIndex;
-        dstLevel++;
-      }
-      srcLevel++;
-      weight *= 2;
-    }
-    weights_[numItems] = 0;
-    numLevels_ = dstLevel;
-  }
-
   private static void blockyTandemMergeSort(final float[] items, final long[] weights,
       final int[] levels, final int numLevels) {
     if (numLevels == 1) { return; }
@@ -165,6 +130,41 @@ final class KllFloatsQuantileCalculator {
       System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
+  }
+
+  float getQuantile(final double phi) { //phi is normalized rank [0,1].
+    final long pos = QuantilesHelper.posOfPhi(phi, n_);
+    return approximatelyAnswerPositonalQuery(pos);
+  }
+
+  private float approximatelyAnswerPositonalQuery(final long pos) {
+    assert pos >= 0;
+    assert pos < n_;
+    final int index = QuantilesHelper.chunkContainingPos(weights_, pos);
+    return items_[index];
+  }
+
+  private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
+      final int numLevels, final int numItems) {
+    final int offset = srcLevels[0];
+    System.arraycopy(srcItems, offset, items_, 0, numItems);
+    int srcLevel = 0;
+    int dstLevel = 0;
+    long weight = 1;
+    while (srcLevel < numLevels) {
+      final int fromIndex = srcLevels[srcLevel] - offset;
+      final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+      if (fromIndex < toIndex) { // if equal, skip empty level
+        Arrays.fill(weights_, fromIndex, toIndex, weight);
+        levels_[dstLevel] = fromIndex;
+        levels_[dstLevel + 1] = toIndex;
+        dstLevel++;
+      }
+      srcLevel++;
+      weight *= 2;
+    }
+    weights_[numItems] = 0;
+    numLevels_ = dstLevel;
   }
 
 }

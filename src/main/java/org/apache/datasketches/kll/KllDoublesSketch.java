@@ -26,6 +26,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
+//intentional space
+//intentional space
 /**
  * This class implements an on-heap doubles KllSketch.
  *
@@ -78,8 +80,8 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
-  //To simplify the code, the PreambleUtil.MemoryCheck does nearly all the validity checking.
-  //The verified Memory is then passed to the actual private heapify constructor.
+  //To simplify the code, the MemoryValidate class does nearly all the validity checking.
+  //The validated Memory is then passed to the actual private heapify constructor.
   public static KllDoublesSketch heapify(final Memory mem) {
     final MemoryValidate memChk = new MemoryValidate(mem);
     if (!memChk.doublesSketch) {
@@ -104,10 +106,10 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
-   * of the input stream given the splitPoints. The value at array position j of the returned
-   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
-   * array.
+   * @return an array of m+1 double values on the interval [0.0, 1.0) exclusive,
+   * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
+   * The value at array position j of the returned CDF array is the sum of the returned values
+   * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final double[] splitPoints) {
     return getDoublesPmfOrCdf(splitPoints, true);
@@ -145,8 +147,9 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
+   * @return an array of m+1 doubles on the interval [0.0, 1.0) exclusive,
+   * each of which is an approximation to the fraction of the total input stream values
+   * (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */

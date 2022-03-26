@@ -51,6 +51,13 @@ import org.apache.datasketches.kll.KllPreambleUtil.Layout;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * This class performs all the error checking of an incoming Memory object and extracts the key fields in the process.
+ * This is used by all sketches that read or import Memory objects.
+ *
+ * @author lrhodes
+ *
+ */
 final class MemoryValidate {
   // first 8 bytes
   final int preInts; // = extractPreInts(srcMem);
@@ -128,10 +135,10 @@ final class MemoryValidate {
         srcMem.getIntArray(offset, myLevelsArr, 0, numLevels); //copies all except the last one
         myLevelsArr[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels); //load the last one
         levelsArrCompact = Memory.wrap(myLevelsArr); //separate from srcMem,
-        offset += levelsArrCompact.getCapacity() - Integer.BYTES; // but one larger than srcMem
+        offset += (int)levelsArrCompact.getCapacity() - Integer.BYTES; // but one larger than srcMem
         // MIN/MAX MEM
-        minMaxArrCompact = srcMem.region(offset, 2 * Float.BYTES);
-        offset += minMaxArrCompact.getCapacity();
+        minMaxArrCompact = srcMem.region(offset, 2L * Float.BYTES);
+        offset += (int)minMaxArrCompact.getCapacity();
         // ITEMS MEM
         itemsArrStart = offset;
         capacityItems = myLevelsArr[numLevels];
@@ -196,10 +203,10 @@ final class MemoryValidate {
         srcMem.getIntArray(offset, myLevelsArr, 0, numLevels); //all except the last one
         myLevelsArr[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels); //load the last one
         levelsArrCompact = Memory.wrap(myLevelsArr); //separate from srcMem
-        offset += levelsArrCompact.getCapacity() - Integer.BYTES;
+        offset += (int)levelsArrCompact.getCapacity() - Integer.BYTES;
         // MIN/MAX MEM
-        minMaxArrCompact = srcMem.region(offset, 2 * Double.BYTES);
-        offset += minMaxArrCompact.getCapacity();
+        minMaxArrCompact = srcMem.region(offset, 2L * Double.BYTES);
+        offset += (int)minMaxArrCompact.getCapacity();
         // ITEMS MEM
         itemsArrStart = offset;
         capacityItems = myLevelsArr[numLevels];
@@ -269,13 +276,13 @@ final class MemoryValidate {
 
       int offset = DATA_START_ADR_DOUBLE;
       //LEVELS
-      levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1) * Integer.BYTES);
+      levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1L) * Integer.BYTES);
       offset += (int)levelsArrUpdatable.getCapacity();
       //MIN/MAX
-      minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2 * Double.BYTES);
+      minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2L * Double.BYTES);
       offset += (int)minMaxArrUpdatable.getCapacity();
       //ITEMS
-      capacityItems = levelsArrUpdatable.getInt(numLevels * Integer.BYTES);
+      capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES);
       final int itemsArrBytes = capacityItems * Double.BYTES;
       itemsArrStart = offset;
       itemsArrStart = memCapacity - itemsArrBytes;
@@ -293,13 +300,13 @@ final class MemoryValidate {
       numLevels = extractNumLevels(wSrcMem);
       int offset = DATA_START_ADR_FLOAT;
       //LEVELS
-      levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1) * Integer.BYTES);
+      levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1L) * Integer.BYTES);
       offset += (int)levelsArrUpdatable.getCapacity();
       //MIN/MAX
-      minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2 * Float.BYTES);
+      minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2L * Float.BYTES);
       offset += (int)minMaxArrUpdatable.getCapacity();
       //ITEMS
-      capacityItems = levelsArrUpdatable.getInt(numLevels * Integer.BYTES);
+      capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES);
       final int itemsArrBytes = capacityItems * Float.BYTES;
       itemsArrStart = offset;
       itemsArrStart = memCapacity - itemsArrBytes;
@@ -328,6 +335,7 @@ final class MemoryValidate {
       //case 22: msg = "N != 1 and single item bit is set. N: " + value; break;
       //case 23: msg = "Family name is not KLL"; break;
       case 24: msg = "Given Memory has insufficient capacity. Need " + value + " bytes."; break;
+      default: msg = "Unknown error: errNo: " + errNo; break;
     }
     throw new SketchesArgumentException(msg);
   }

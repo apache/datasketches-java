@@ -35,54 +35,6 @@ import org.apache.datasketches.SketchesArgumentException;
 class KllFloatsHelper {
 
   /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of values
-   */
-  static void validateFloatValues(final float[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
-    }
-  }
-
-  static void mergeSortedFloatArrays(
-      final float[] bufA, final int startA, final int lenA,
-      final float[] bufB, final int startB, final int lenB,
-      final float[] bufC, final int startC) {
-    final int lenC = lenA + lenB;
-    final int limA = startA + lenA;
-    final int limB = startB + lenB;
-    final int limC = startC + lenC;
-
-    int a = startA;
-    int b = startB;
-
-    for (int c = startC; c < limC; c++) {
-      if (a == limA) {
-        bufC[c] = bufB[b];
-        b++;
-      } else if (b == limB) {
-        bufC[c] = bufA[a];
-        a++;
-      } else if (bufA[a] < bufB[b]) {
-        bufC[c] = bufA[a];
-        a++;
-      } else {
-        bufC[c] = bufB[b];
-        b++;
-      }
-    }
-    assert a == limA;
-    assert b == limB;
-  }
-
-  /**
    * Compression algorithm used to merge higher levels.
    * <p>Here is what we do for each level:</p>
    * <ul><li>If it does not need to be compacted, then simply copy it over.</li>
@@ -193,18 +145,45 @@ class KllFloatsHelper {
           numLevels++;
           targetItemCount += KllHelper.levelCapacity(k, numLevels, 0, m);
         }
-
       } // end of code for compacting a level
 
       // determine whether we have processed all levels yet (including any new levels that we created)
-
       if (curLevel == (numLevels - 1)) { doneYet = true; }
-
     } // end of loop over levels
 
     assert (outLevels[numLevels] - outLevels[0]) == currentItemCount;
-
     return new int[] {numLevels, targetItemCount, currentItemCount};
+  }
+
+  static void mergeSortedFloatArrays(
+      final float[] bufA, final int startA, final int lenA,
+      final float[] bufB, final int startB, final int lenB,
+      final float[] bufC, final int startC) {
+    final int lenC = lenA + lenB;
+    final int limA = startA + lenA;
+    final int limB = startB + lenB;
+    final int limC = startC + lenC;
+
+    int a = startA;
+    int b = startB;
+
+    for (int c = startC; c < limC; c++) {
+      if (a == limA) {
+        bufC[c] = bufB[b];
+        b++;
+      } else if (b == limB) {
+        bufC[c] = bufA[a];
+        a++;
+      } else if (bufA[a] < bufB[b]) {
+        bufC[c] = bufA[a];
+        a++;
+      } else {
+        bufC[c] = bufB[b];
+        b++;
+      }
+    }
+    assert a == limA;
+    assert b == limB;
   }
 
   //This must be modified for validation
@@ -233,9 +212,26 @@ class KllFloatsHelper {
     }
   }
 
+  /**
+   * Checks the sequential validity of the given array of float values.
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of values
+   */
+  static void validateFloatValues(final float[] values) {
+    for (int i = 0; i < values.length; i++) {
+      if (!Float.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
+    }
+  }
+
   /*
    * The following must be enabled for use with the KllFloatsValidationTest,
-   * which is only enabled for manual testing. In addition, the two methods
+   * which is only enabled for manual testing. In addition, two methods
    * above need to be modified as commented.
    */
 

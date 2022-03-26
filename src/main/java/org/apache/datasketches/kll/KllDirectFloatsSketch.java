@@ -60,10 +60,10 @@ public class KllDirectFloatsSketch extends KllDirectSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
-   * of the input stream given the splitPoints. The value at array position j of the returned
-   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
-   * array.
+   * @return an array of m+1 double values on the interval [0.0, 1.0) exclusive,
+   * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
+   * The value at array position j of the returned CDF array is the sum of the returned values
+   * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints) {
     return getFloatsPmfOrCdf(splitPoints, true);
@@ -105,8 +105,9 @@ public class KllDirectFloatsSketch extends KllDirectSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
+   * @return an array of m+1 doubles on the interval [0.0, 1.0) exclusive,
+   * each of which is an approximation to the fraction of the total input stream values
+   * (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
@@ -242,6 +243,11 @@ public class KllDirectFloatsSketch extends KllDirectSketch {
     return toStringImpl(withLevels, withData);
   }
 
+  /**
+   * Updates this sketch with the given data item.
+   *
+   * @param value an item from a stream of items. NaNs are ignored.
+   */
   public void update(final float value) {
     updateFloat(value);
   }
