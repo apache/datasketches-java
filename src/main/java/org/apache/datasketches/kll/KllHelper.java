@@ -54,7 +54,7 @@ class KllHelper {
 
   static LevelStats getLevelStats(final int k, final int m, final int numLevels,
       final boolean printDetail, final boolean printSummary, final SketchType sketchType) {
-    int cumN = 0;
+    long cumN = 0;
     int cumCap = 0;
     if (printDetail) {
       println("Total Levels: " + numLevels);

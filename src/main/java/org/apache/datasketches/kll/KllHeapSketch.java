@@ -21,25 +21,13 @@ package org.apache.datasketches.kll;
 
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * This class implements all the methods for the heap sketches that are independent
+ * of the sketch type (float or double).
+ *
+ * @author lrhodes
+ */
 abstract class KllHeapSketch extends KllSketch {
-
-  /*
-   * Data is stored in items_.
-   * The data for level i lies in positions levels_[i] through levels_[i + 1] - 1 inclusive.
-   * Hence, levels_ array must contain (numLevels_ + 1) indices.
-   * The valid portion of items_ is completely packed and sorted, except for level 0,
-   * which is filled from the top down.
-   *
-   * Invariants:
-   * 1) After a compaction, or an update, or a merge, all levels are sorted except for level zero.
-   * 2) After a compaction, (sum of capacities) - (sum of items) >= 1,
-   *  so there is room for least 1 more item in level zero.
-   * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
-   *  the sketch is exactly filled to capacity and must be compacted.
-   * 4) Sum of weights of all retained items == N.
-   * 5) curTotalCap = items_.length = levels_[numLevels_].
-   */
-
   private long n_;        // number of items input into this sketch.
   private final int k;    // configured value of K.
   private int dyMinK_;    // dynamic minK for error estimation after merging with different k.
@@ -65,13 +53,18 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  int getDyMinK() {
-    return dyMinK_;
+  public int getK() {
+    return k;
   }
 
   @Override
-  public int getK() {
-    return k;
+  public long getN() {
+    return n_;
+  }
+
+  @Override
+  int getDyMinK() {
+    return dyMinK_;
   }
 
   @Override
@@ -84,11 +77,6 @@ abstract class KllHeapSketch extends KllSketch {
 
   @Override
   int getLevelsArrayAt(final int index) { return levels_[index]; }
-
-  @Override
-  public long getN() {
-    return n_;
-  }
 
   @Override
   int getNumLevels() {

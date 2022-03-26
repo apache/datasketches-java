@@ -66,8 +66,32 @@ import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
+/*
+ * Sampled stream data (floats or doubles) is stored as arrays or Memory objects of items.
+ * This array is partitioned into sections called levels and the indices into the array of items
+ * is tracked by a small integer array called levels or levels array.
+ * The data for level i lies in positions levelsArray[i] through levelsArray[i + 1] - 1 inclusive.
+ * Hence, the levelsArray must contain (numLevels + 1) indices.
+ * The valid portion of items array is completely packed and sorted, except for level 0,
+ * which is filled from the top down. Any items below the index levelsArray[0] is garbage and will be
+ * overwritten by subsequent updates.
+ *
+ * Invariants:
+ * 1) After a compaction, or an update, or a merge, all levels are sorted except for level zero.
+ * 2) After a compaction, (sum of capacities) - (sum of items) >= 1,
+ *  so there is room for least 1 more item in level zero.
+ * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
+ *  the sketch is exactly filled to capacity and must be compacted or the itemsArray and levelsArray
+ *  must be expanded to include more levels.
+ * 4) Sum of weights of all retained items == N.
+ * 5) Current total item capacity = itemsArray.length = levelsArray[numLevels].
+ */
+
+
 /**
- * This class is the root of the KLL sketch class hierarchy.
+ * This class is the root of the KLL sketch class hierarchy. It includes the public API that is independent
+ * of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
+ * heap or Direct (off-heap.
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
@@ -190,6 +214,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       case 33: msg = "Given sketch must be of type Double."; break;
       case 34: msg = "Given sketch must be of type Float."; break;
       case 35: msg = "Given sketch must not be of type Direct."; break;
+      default: msg = "Unknown error: errNo: " + errNo; break;
     }
     throw new SketchesArgumentException(msg);
   }
@@ -288,8 +313,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   }
 
   @Override
-  public final String toString() { //TODO set back to false, false
-    return toString(true, true);
+  public final String toString() {
+    return toString(false, false);
   }
 
   /**

@@ -35,10 +35,13 @@ import org.apache.datasketches.kll.KllPreambleUtil.Layout;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
-
+/**
+ * This class implements all the methods for the Direct (off-heap) sketches that are independent
+ * of the sketch type (float or double).
+ */
 abstract class KllDirectSketch extends KllSketch {
-  //All these members are constant for the life of this object. If the WritableMemory changes, it will require
-  //rebuilding this class
+  //All these members are constant for the life of this object. If the WritableMemory changes,
+  // it may require rebuilding this class
   final Layout layout;
   final boolean updatable;
   WritableMemory levelsArrUpdatable;
@@ -69,28 +72,16 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
-  double getMaxDoubleValue() {
-    return minMaxArrUpdatable.getDouble(Double.BYTES);
-  }
-
-  @Override
-  float getMaxFloatValue() {
-    return minMaxArrUpdatable.getFloat(Float.BYTES);
-  }
-
-  @Override
-  double getMinDoubleValue() {
-    return minMaxArrUpdatable.getDouble(0);
-  }
-
-  @Override
-  float getMinFloatValue() {
-    return minMaxArrUpdatable.getFloat(0);
-  }
-
-  @Override
   public long getN() {
     return extractN(wmem);
+  }
+
+  @Override
+  public byte[] toUpdatableByteArray() {
+    final int bytes = (int) wmem.getCapacity();
+    final byte[] byteArr = new byte[bytes];
+    wmem.getByteArray(0, byteArr, 0, bytes);
+    return byteArr;
   }
 
   @Override
@@ -105,7 +96,7 @@ abstract class KllDirectSketch extends KllSketch {
   @Override
   double getDoubleItemsArrayAt(final int index) {
     if (sketchType == FLOATS_SKETCH) { return Double.NaN; }
-    return itemsArrUpdatable.getDouble(index * Double.BYTES);
+    return itemsArrUpdatable.getDouble((long)index * Double.BYTES);
   }
 
   @Override
@@ -125,7 +116,7 @@ abstract class KllDirectSketch extends KllSketch {
   @Override
   float getFloatItemsArrayAt(final int index) {
     if (sketchType == DOUBLES_SKETCH) { return Float.NaN; }
-    return itemsArrUpdatable.getFloat(index * Float.BYTES);
+    return itemsArrUpdatable.getFloat((long)index * Float.BYTES);
   }
 
   int getItemsArrLengthItems() {
@@ -145,7 +136,27 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   int getLevelsArrayAt(final int index) {
-    return levelsArrUpdatable.getInt(index * Integer.BYTES);
+    return levelsArrUpdatable.getInt((long)index * Integer.BYTES);
+  }
+
+  @Override
+  double getMaxDoubleValue() {
+    return minMaxArrUpdatable.getDouble(Double.BYTES);
+  }
+
+  @Override
+  float getMaxFloatValue() {
+    return minMaxArrUpdatable.getFloat(Float.BYTES);
+  }
+
+  @Override
+  double getMinDoubleValue() {
+    return minMaxArrUpdatable.getDouble(0);
+  }
+
+  @Override
+  float getMinFloatValue() {
+    return minMaxArrUpdatable.getFloat(0);
   }
 
   @Override
@@ -180,7 +191,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setDoubleItemsArrayAt(final int index, final double value) {
-    itemsArrUpdatable.putDouble(index * Double.BYTES, value);
+    itemsArrUpdatable.putDouble((long)index * Double.BYTES, value);
   }
 
   @Override
@@ -197,7 +208,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setFloatItemsArrayAt(final int index, final float value) {
-    itemsArrUpdatable.putFloat(index * Float.BYTES, value);
+    itemsArrUpdatable.putFloat((long)index * Float.BYTES, value);
   }
 
   @Override
@@ -213,7 +224,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelsArrayAt(final int index, final int value) {
-    levelsArrUpdatable.putInt(index * Integer.BYTES, value);
+    levelsArrUpdatable.putInt((long)index * Integer.BYTES, value);
   }
 
   @Override
@@ -276,19 +287,10 @@ abstract class KllDirectSketch extends KllSketch {
     insertN(wmem, n);
   }
 
-
   @Override
   void setNumLevels(final int numLevels) {
     if (!updatable) { kllSketchThrow(30); }
     insertNumLevels(wmem, numLevels);
-  }
-
-  @Override
-  public byte[] toUpdatableByteArray() {
-    final int bytes = (int) wmem.getCapacity();
-    final byte[] byteArr = new byte[bytes];
-    wmem.getByteArray(0, byteArr, 0, bytes);
-    return byteArr;
   }
 
 }
