@@ -352,6 +352,7 @@ under the License.
     <!-- Whitespace -->
     <module name="EmptyLineSeparator">
       <property name="allowNoEmptyLineBetweenFields" value="true"/>
+      <property name="allowMultipleEmptyLines" value="false"/>
     </module>
     
     <module name="GenericWhitespace">

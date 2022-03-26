@@ -67,9 +67,9 @@ import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 /*
- * Sampled stream data (floats or doubles) is stored as arrays or Memory objects of items.
+ * Sampled stream data (floats or doubles) is stored as an array or as part of a Memory object.
  * This array is partitioned into sections called levels and the indices into the array of items
- * is tracked by a small integer array called levels or levels array.
+ * are tracked by a small integer array called levels or levels array.
  * The data for level i lies in positions levelsArray[i] through levelsArray[i + 1] - 1 inclusive.
  * Hence, the levelsArray must contain (numLevels + 1) indices.
  * The valid portion of items array is completely packed and sorted, except for level 0,
@@ -86,7 +86,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * 4) Sum of weights of all retained items == N.
  * 5) Current total item capacity = itemsArray.length = levelsArray[numLevels].
  */
-
 
 /**
  * This class is the root of the KLL sketch class hierarchy. It includes the public API that is independent
@@ -218,7 +217,6 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     }
     throw new SketchesArgumentException(msg);
   }
-
 
   //Public Non-static methods
 
@@ -778,7 +776,6 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     return max(myMax, otherMax);
   }
 
-
   final void mergeFloatImpl(final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = getN() + other.getN();
@@ -888,7 +885,6 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     if (Float.isNaN(otherMax)) { return myMax; }
     return max(myMax, otherMax);
   }
-
 
   abstract void setDoubleItemsArray(double[] floatItems);
 
