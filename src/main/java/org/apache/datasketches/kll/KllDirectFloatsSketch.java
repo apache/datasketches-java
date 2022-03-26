@@ -26,22 +26,22 @@ import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This class implements an off-heap doubles KllSketch via a WritableMemory instance of the sketch.
+ * This class implements an off-heap floats KllSketch via a WritableMemory instance of the sketch.
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
  *
  * @author Lee Rhodes, Kevin Lang
  */
-public final class KllDirectDoublesSketch extends KllDirectSketch {
+public class KllDirectFloatsSketch extends KllDirectSketch {
 
   /**
    *
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    */
-  public KllDirectDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
+  public KllDirectFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+   super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
   }
 
   /**
@@ -53,7 +53,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
@@ -65,8 +65,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public double[] getCDF(final double[] splitPoints) {
-    return getDoublesPmfOrCdf(splitPoints, true);
+  public double[] getCDF(final float[] splitPoints) {
+    return getFloatsPmfOrCdf(splitPoints, true);
   }
 
   /**
@@ -75,8 +75,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * @return the max value of the stream
    */
-  public double getMaxValue() {
-    return getMaxDoubleValue();
+  public float getMaxValue() {
+    return getMaxFloatValue();
   }
 
   /**
@@ -85,8 +85,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * @return the min value of the stream
    */
-  public double getMinValue() {
-    return getMinDoubleValue();
+  public float getMinValue() {
+    return getMinFloatValue();
   }
 
   /**
@@ -98,7 +98,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
@@ -110,8 +110,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
-  public double[] getPMF(final double[] splitPoints) {
-    return getDoublesPmfOrCdf(splitPoints, false);
+  public double[] getPMF(final float[] splitPoints) {
+    return getFloatsPmfOrCdf(splitPoints, false);
   }
 
   /**
@@ -132,8 +132,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * @return the approximation to the value at the given fraction
    */
-  public double getQuantile(final double fraction) {
-    return getDoublesQuantile(fraction);
+  public float getQuantile(final double fraction) {
+    return getFloatsQuantile(fraction);
   }
 
   /**
@@ -143,7 +143,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return the lower bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public double getQuantileLowerBound(final double fraction) {
+  public float getQuantileLowerBound(final double fraction) {
     return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDyMinK(), false)));
   }
 
@@ -165,8 +165,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public double[] getQuantiles(final double[] fractions) {
-    return getDoublesQuantiles(fractions);
+  public float[] getQuantiles(final double[] fractions) {
+    return getFloatsQuantiles(fractions);
   }
 
   /**
@@ -183,7 +183,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public double[] getQuantiles(final int numEvenlySpaced) {
+  public float[] getQuantiles(final int numEvenlySpaced) {
     if (isEmpty()) { return null; }
     return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
   }
@@ -195,7 +195,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public double getQuantileUpperBound(final double fraction) {
+  public float getQuantileUpperBound(final double fraction) {
     return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDyMinK(), false)));
   }
 
@@ -211,15 +211,15 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param value to be ranked
    * @return an approximate rank of the given value
    */
-  public double getRank(final double value) {
-    return getDoubleRank(value);
+  public double getRank(final float value) {
+    return getFloatRank(value);
   }
 
   /**
    * @return the iterator for this class
    */
-  public KllDoublesSketchIterator iterator() {
-    return new KllDoublesSketchIterator(getDoubleItemsArray(), getLevelsArray(), getNumLevels());
+  public KllFloatsSketchIterator iterator() {
+    return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
   }
 
   /**
@@ -228,8 +228,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    */
   public void merge(final KllSketch other) {
     if (!other.isDirect()) { kllSketchThrow(32); }
-    if (!other.isDoublesSketch()) { kllSketchThrow(33); }
-    mergeDoubleImpl(other);
+    if (!other.isFloatsSketch()) { kllSketchThrow(34); }
+    mergeFloatImpl(other);
   }
 
   @Override
@@ -242,8 +242,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
     return toStringImpl(withLevels, withData);
   }
 
-  public void update(final double value) {
-    updateDouble(value);
+  public void update(final float value) {
+    updateFloat(value);
   }
 
 }

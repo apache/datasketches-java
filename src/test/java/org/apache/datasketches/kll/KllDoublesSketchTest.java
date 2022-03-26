@@ -80,9 +80,9 @@ public class KllDoublesSketchTest {
     assertEquals(sketch.getNumRetained(), 1);
     assertEquals(sketch.getRank(1), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
-    assertEquals(sketch.getMinValue(), 1f);
-    assertEquals(sketch.getMaxValue(), 1f);
-    assertEquals(sketch.getQuantile(0.5), 1f);
+    assertEquals(sketch.getMinValue(), 1.0);
+    assertEquals(sketch.getMaxValue(), 1.0);
+    assertEquals(sketch.getQuantile(0.5), 1.0);
   }
 
   @Test
@@ -193,7 +193,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch1.getMaxValue(), n - 1f);
 
     assertEquals(sketch2.getMinValue(), n);
-    assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
+    assertEquals(sketch2.getMaxValue(), 2f * n - 1.0);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -205,8 +205,8 @@ public class KllDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
-    assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), 2f * n - 1f);
+    assertEquals(sketch1.getMinValue(), 0);
+    assertEquals(sketch1.getMaxValue(), 2f * n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_128);
   }
 
@@ -226,17 +226,17 @@ public class KllDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), n - 1f);
-    assertEquals(sketch1.getQuantile(0.5), n / 2f, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinValue(), 0);
+    assertEquals(sketch1.getMaxValue(), n - 1.0);
+    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
 
     //merge the other way
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
     assertEquals(sketch1.getMinValue(), 0f);
-    assertEquals(sketch1.getMaxValue(), n - 1f);
-    assertEquals(sketch1.getQuantile(0.5), n / 2f, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMaxValue(), n - 1.0);
+    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
   }
 
   @Test
@@ -262,7 +262,7 @@ public class KllDoublesSketchTest {
     sketch1.update(1);
     sketch2.update(2);
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 1.0F);
+    assertEquals(sketch2.getMinValue(), 1.0);
   }
 
   @Test
@@ -273,8 +273,8 @@ public class KllDoublesSketchTest {
     }
     final KllDoublesSketch sketch2 = new KllDoublesSketch();
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 1F);
-    assertEquals(sketch2.getMaxValue(), 1_000_000F);
+    assertEquals(sketch2.getMinValue(), 1);
+    assertEquals(sketch2.getMaxValue(), 1_000_000);
   }
 
   @SuppressWarnings("unused")
@@ -392,9 +392,9 @@ public class KllDoublesSketchTest {
     final double[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
     final double[] quantiles2 = sketch.getQuantiles(3);
     assertEquals(quantiles1, quantiles2);
-    assertEquals(quantiles1[0], 1f);
-    assertEquals(quantiles1[1], 2f);
-    assertEquals(quantiles1[2], 3f);
+    assertEquals(quantiles1[0], 1.0);
+    assertEquals(quantiles1[1], 2.0);
+    assertEquals(quantiles1[2], 3.0);
   }
 
 }

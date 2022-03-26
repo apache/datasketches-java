@@ -729,8 +729,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update min, max values
     final double otherMin = other.getMinDoubleValue();
     final double otherMax = other.getMaxDoubleValue();
-    if (Double.isNaN(myMin) || otherMin <= myMin) { setMinDoubleValue(otherMin); }
-    if (Double.isNaN(myMax) || otherMax >= myMax) { setMaxDoubleValue(otherMax); }
+    setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
+    setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
 
     //Update numLevels, levelsArray, items
     setNumLevels(myNewNumLevels);
@@ -738,6 +738,21 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     setDoubleItemsArray(myNewDoubleItemsArr);
     assert KllHelper.sumTheSampleWeights(getNumLevels(), getLevelsArray()) == getN();
   }
+
+  private static double resolveDoubleMinValue(final double myMin, final double otherMin) {
+    if (Double.isNaN(myMin) && Double.isNaN(otherMin)) { return Double.NaN; }
+    if (Double.isNaN(myMin)) { return otherMin; }
+    if (Double.isNaN(otherMin)) { return myMin; }
+    return min(myMin, otherMin);
+  }
+
+  private static double resolveDoubleMaxValue(final double myMax, final double otherMax) {
+    if (Double.isNaN(myMax) && Double.isNaN(otherMax)) { return Double.NaN; }
+    if (Double.isNaN(myMax)) { return otherMax; }
+    if (Double.isNaN(otherMax)) { return myMax; }
+    return max(myMax, otherMax);
+  }
+
 
   final void mergeFloatImpl(final KllSketch other) {
     if (other.isEmpty()) { return; }
@@ -825,8 +840,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update min, max values
     final float otherMin = other.getMinFloatValue();
     final float otherMax = other.getMaxFloatValue();
-    if (Float.isNaN(myMin) || otherMin < myMin) { setMinFloatValue(otherMin); }
-    if (Float.isNaN(myMax) || otherMax > myMax) { setMaxFloatValue(otherMax); }
+    setMinFloatValue(resolveFloatMinValue(myMin, otherMin));
+    setMaxFloatValue(resolveFloatMaxValue(myMax, otherMax));
 
     //Update numLevels, levelsArray, items
     setNumLevels(myNewNumLevels);
@@ -834,6 +849,21 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     setFloatItemsArray(myNewFloatItemsArr);
     assert KllHelper.sumTheSampleWeights(getNumLevels(), getLevelsArray()) == getN();
   }
+
+  private static float resolveFloatMinValue(final float myMin, final float otherMin) {
+    if (Float.isNaN(myMin) && Float.isNaN(otherMin)) { return Float.NaN; }
+    if (Float.isNaN(myMin)) { return otherMin; }
+    if (Float.isNaN(otherMin)) { return myMin; }
+    return min(myMin, otherMin);
+  }
+
+  private static float resolveFloatMaxValue(final float myMax, final float otherMax) {
+    if (Float.isNaN(myMax) && Float.isNaN(otherMax)) { return Float.NaN; }
+    if (Float.isNaN(myMax)) { return otherMax; }
+    if (Float.isNaN(otherMax)) { return myMax; }
+    return max(myMax, otherMax);
+  }
+
 
   abstract void setDoubleItemsArray(double[] floatItems);
 
@@ -1381,7 +1411,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       } else {
         if (direct) {
           myFloatItemsArr = getFloatItemsArray();
-          System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
+          System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);
           setFloatItemsArray(myFloatItemsArr);
         } else {
           System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);

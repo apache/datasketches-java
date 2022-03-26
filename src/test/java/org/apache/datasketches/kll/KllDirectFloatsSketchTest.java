@@ -34,9 +34,7 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-
-@SuppressWarnings("javadoc")
-public class KllDirectDoublesSketchTest {
+public class KllDirectFloatsSketchTest {
 
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
@@ -46,52 +44,52 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void empty() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
-    sketch.update(Double.NaN); // this must not change anything
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
+    sketch.update(Float.NaN); // this must not change anything
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
     assertTrue(Double.isNaN(sketch.getRank(0)));
-    assertTrue(Double.isNaN(sketch.getMinValue()));
-    assertTrue(Double.isNaN(sketch.getMaxValue()));
-    assertTrue(Double.isNaN(sketch.getQuantile(0.5)));
+    assertTrue(Float.isNaN(sketch.getMinValue()));
+    assertTrue(Float.isNaN(sketch.getMaxValue()));
+    assertTrue(Float.isNaN(sketch.getQuantile(0.5)));
     assertNull(sketch.getQuantiles(new double[] {0}));
-    assertNull(sketch.getPMF(new double[] {0}));
+    assertNull(sketch.getPMF(new float[] {0}));
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void getQuantileInvalidArg() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(1);
     sketch.getQuantile(-1.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void getQuantilesInvalidArg() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(1);
     sketch.getQuantiles(new double[] {2.0});
   }
 
   @Test
   public void oneItem() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(1);
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
     assertEquals(sketch.getRank(1), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
-    assertEquals(sketch.getMinValue(), 1.0);
-    assertEquals(sketch.getMaxValue(), 1.0);
-    assertEquals(sketch.getQuantile(0.5), 1.0);
+    assertEquals(sketch.getMinValue(), 1f);
+    assertEquals(sketch.getMaxValue(), 1f);
+    assertEquals(sketch.getQuantile(0.5), 1f);
   }
 
   @Test
   public void manyItemsEstimationMode() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     final int n = 1_000_000;
 
     for (int i = 0; i < n; i++) {
@@ -106,7 +104,7 @@ public class KllDirectDoublesSketchTest {
     }
 
     // test getPMF
-    final double[] pmf = sketch.getPMF(new double[] {n / 2}); // split at median
+    final double[] pmf = sketch.getPMF(new float[] {n / 2}); // split at median
     assertEquals(pmf.length, 2);
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
@@ -123,8 +121,8 @@ public class KllDirectDoublesSketchTest {
       fractions[i] = (double) i / 1000;
       reverseFractions[1000 - i] = fractions[i];
     }
-    final double[] quantiles = sketch.getQuantiles(fractions);
-    final double[] reverseQuantiles = sketch.getQuantiles(reverseFractions);
+    final float[] quantiles = sketch.getQuantiles(fractions);
+    final float[] reverseQuantiles = sketch.getQuantiles(reverseFractions);
     double previousQuantile = 0;
     for (int i = 0; i <= 1000; i++) {
       final double quantile = sketch.getQuantile(fractions[i]);
@@ -137,9 +135,9 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void getRankGetCdfGetPmfConsistency() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     final int n = 1000;
-    final double[] values = new double[n];
+    final float[] values = new float[n];
     for (int i = 0; i < n; i++) {
       sketch.update(i);
       values[i] = i;
@@ -160,12 +158,12 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void merge() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
-    final KllDirectDoublesSketch sketch2 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
+    final KllDirectFloatsSketch sketch2 = getDFSketch(200, 0);
     final int n = 10_000;
     for (int i = 0; i < n; i++) {
-      sketch1.update(i * 1.0);
-      sketch2.update((2 * n - i - 1) * 1.0);
+      sketch1.update(i * 1.0F);
+      sketch2.update((2 * n - i - 1) * 1.0F);
     }
 
     assertEquals(sketch1.getMinValue(), 0.0);
@@ -179,14 +177,14 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2L * n);
     assertEquals(sketch1.getMinValue(), 0.0);
-    assertEquals(sketch1.getMaxValue(), (2 * n - 1) * 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n * 1.0, n * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMaxValue(), (2 * n - 1) * 1.0F);
+    assertEquals(sketch1.getQuantile(0.5), n * 1.0F, n * PMF_EPS_FOR_K_256);
   }
 
   @Test
   public void mergeLowerK() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(256, 0);
-    final KllDirectDoublesSketch sketch2 = getDDSketch(128, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(256, 0);
+    final KllDirectFloatsSketch sketch2 = getDFSketch(128, 0);
     final int n = 10_000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
@@ -209,15 +207,15 @@ public class KllDirectDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
-    assertEquals(sketch1.getMinValue(), 0);
-    assertEquals(sketch1.getMaxValue(), 2.0 * n - 1.0);
+    assertEquals(sketch1.getMinValue(), 0f);
+    assertEquals(sketch1.getMaxValue(), 2f * n - 1f);
     assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_128);
   }
 
   @Test
   public void mergeEmptyLowerK() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(256, 0);
-    final KllDirectDoublesSketch sketch2 = getDDSketch(128, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(256, 0);
+    final KllDirectFloatsSketch sketch2 = getDFSketch(128, 0);
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
@@ -230,23 +228,23 @@ public class KllDirectDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinValue(), 0);
-    assertEquals(sketch1.getMaxValue(), n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinValue(), 0f);
+    assertEquals(sketch1.getMaxValue(), n - 1f);
+    assertEquals(sketch1.getQuantile(0.5), n / 2f, n / 2 * PMF_EPS_FOR_K_256);
 
     //merge the other way
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinValue(), 0);
-    assertEquals(sketch1.getMaxValue(), n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getMinValue(), 0f);
+    assertEquals(sketch1.getMaxValue(), n - 1f);
+    assertEquals(sketch1.getQuantile(0.5), n / 2f, n / 2 * PMF_EPS_FOR_K_256);
   }
 
   @Test
   public void mergeExactModeLowerK() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(256, 0);
-    final KllDirectDoublesSketch sketch2 = getDDSketch(128, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(256, 0);
+    final KllDirectFloatsSketch sketch2 = getDFSketch(128, 0);
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
@@ -261,41 +259,42 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void mergeMinMinValueFromOther() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
-    final KllDirectDoublesSketch sketch2 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
+    final KllDirectFloatsSketch sketch2 = getDFSketch(200, 0);
     sketch1.update(1);
     sketch2.update(2);
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 1.0);
+    assertEquals(sketch2.getMinValue(), 1.0F);
   }
 
   @Test
   public void mergeMinAndMaxFromOther() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
-    final KllDirectDoublesSketch sketch2 = getDDSketch(200, 0);
-    for (int i = 1; i <= 1_000_000; i++) {
+    final KllDirectFloatsSketch sketch1 = getDFSketch(8, 0); //was 200
+    final KllDirectFloatsSketch sketch2 = getDFSketch(8, 0); //was 200
+    for (int i = 1; i <= 9; i++) { //was 1_000_000
       sketch1.update(i);
     }
+    //System.out.println(sketch1.toString(true, true));
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 1);
-    assertEquals(sketch2.getMaxValue(), 1_000_000);
+    assertEquals(sketch2.getMinValue(), 1F);
+    assertEquals(sketch2.getMaxValue(), 9F); //was 1_000_000
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(MIN_K - 1, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(MIN_K - 1, 0);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(MAX_K + 1, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(MAX_K + 1, 0);
   }
 
   @Test
   public void minK() {
-    final KllDirectDoublesSketch sketch = getDDSketch(MIN_K, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(MIN_K, 0);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
@@ -305,7 +304,7 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void maxK() {
-    final KllDirectDoublesSketch sketch = getDDSketch(MAX_K, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(MAX_K, 0);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
@@ -315,9 +314,9 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void serializeDeserializeEmpty() { //compact serialize then heapify using KllDoublesSketch
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertTrue(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -330,9 +329,9 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void serializeDeserializeEmpty2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final byte[] bytes = sketch1.toUpdatableByteArray();
-    final KllDirectDoublesSketch sketch2 = new KllDirectDoublesSketch(WritableMemory.writableWrap(bytes),memReqSvr);
+    final KllDirectFloatsSketch sketch2 = new KllDirectFloatsSketch(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
     assertTrue(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -345,10 +344,10 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void serializeDeserializeOneItem() { //compact serialize then heapify using KllDoublesSketch
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
@@ -356,15 +355,15 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertFalse(Double.isNaN(sketch2.getMinValue()));
     assertFalse(Double.isNaN(sketch2.getMaxValue()));
-    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
+    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Float.BYTES);
   }
 
   @Test
   public void serializeDeserializeOneItem2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = sketch1.toUpdatableByteArray();
-    final KllDirectDoublesSketch sketch2 = new KllDirectDoublesSketch(WritableMemory.writableWrap(bytes),memReqSvr);
+    final KllDirectFloatsSketch sketch2 = new KllDirectFloatsSketch(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
@@ -372,18 +371,18 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertFalse(Double.isNaN(sketch2.getMinValue()));
     assertFalse(Double.isNaN(sketch2.getMaxValue()));
-    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
+    assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Float.BYTES);
   }
 
   @Test
   public void serializeDeserialize() { //compact serialize then heapify using KllDoublesSketch
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final int n = 1000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
     }
     final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 =  KllDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllFloatsSketch sketch2 =  KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -396,13 +395,13 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void serializeDeserialize2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
-    final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final int n = 1000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
     }
     final byte[] bytes = sketch1.toUpdatableByteArray();
-    final KllDirectDoublesSketch sketch2 = new KllDirectDoublesSketch(WritableMemory.writableWrap(bytes),memReqSvr);
+    final KllDirectFloatsSketch sketch2 = new KllDirectFloatsSketch(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -415,30 +414,30 @@ public class KllDirectDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void outOfOrderSplitPoints() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(0);
-    sketch.getCDF(new double[] {1, 0});
+    sketch.getCDF(new float[] {1, 0});
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void nanSplitPoint() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(0);
-    sketch.getCDF(new double[] {Double.NaN});
+    sketch.getCDF(new float[] {Float.NaN});
   }
 
   @Test
   public void getQuantiles() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 0);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
-    final double[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
-    final double[] quantiles2 = sketch.getQuantiles(3);
+    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
+    final float[] quantiles2 = sketch.getQuantiles(3);
     assertEquals(quantiles1, quantiles2);
-    assertEquals(quantiles1[0], 1.0);
-    assertEquals(quantiles1[1], 2.0);
-    assertEquals(quantiles1[2], 3.0);
+    assertEquals(quantiles1[0], 1f);
+    assertEquals(quantiles1[1], 2f);
+    assertEquals(quantiles1[2], 3f);
   }
 
   @Test
@@ -446,8 +445,8 @@ public class KllDirectDoublesSketchTest {
     int k = 20;
     int n1 = 21;
     int n2 = 43;
-    KllDoublesSketch sk1 = new KllDoublesSketch(k);
-    KllDoublesSketch sk2 = new KllDoublesSketch(k);
+    KllFloatsSketch sk1 = new KllFloatsSketch(k);
+    KllFloatsSketch sk2 = new KllFloatsSketch(k);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
@@ -460,8 +459,8 @@ public class KllDirectDoublesSketchTest {
     println(sk2.toString(true, true));
     WritableMemory wmem1 = WritableMemory.writableWrap(sk1.toUpdatableByteArray());
     WritableMemory wmem2 = WritableMemory.writableWrap(sk2.toUpdatableByteArray());
-    KllDirectDoublesSketch dsk1 = new KllDirectDoublesSketch(wmem1, new DefaultMemoryRequestServer());
-    KllDirectDoublesSketch dsk2 = new KllDirectDoublesSketch(wmem2, new DefaultMemoryRequestServer());
+    KllDirectFloatsSketch dsk1 = new KllDirectFloatsSketch(wmem1, new DefaultMemoryRequestServer());
+    KllDirectFloatsSketch dsk2 = new KllDirectFloatsSketch(wmem2, new DefaultMemoryRequestServer());
     println("BEFORE MERGE");
     println(dsk1.toString(true, true));
     dsk1.merge(dsk2);
@@ -472,111 +471,111 @@ public class KllDirectDoublesSketchTest {
   @Test
   public void checkSketchInitializeDirectDoubleUpdatableMem() {
     int k = 20; //don't change this
-    KllDirectDoublesSketch sk;
-    KllDoublesSketch sk2;
+    KllDirectFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
     println("#### CASE: DOUBLE FULL DIRECT FROM UPDATABLE");
-    sk2 = new KllDoublesSketch(k);
+    sk2 = new KllFloatsSketch(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem, new DefaultMemoryRequestServer());
+    sk = new KllDirectFloatsSketch(wmem, new DefaultMemoryRequestServer());
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getDyMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
+    assertEquals(sk.getFloatItemsArray().length, 33);
+    assertEquals(sk.getLayout(), "FLOAT_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 21.0);
+    assertEquals(sk.getMinFloatValue(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllDoublesSketch(k);
+    sk2 = new KllFloatsSketch(k);
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem, new DefaultMemoryRequestServer());
+    sk = new KllDirectFloatsSketch(wmem, new DefaultMemoryRequestServer());
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getDyMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
+    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getLayout(), "FLOAT_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
+    assertEquals(sk.getMaxFloatValue(), Double.NaN);
+    assertEquals(sk.getMinFloatValue(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllDoublesSketch(k);
+    sk2 = new KllFloatsSketch(k);
     sk2.update(1);
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem, new DefaultMemoryRequestServer());
+    sk = new KllDirectFloatsSketch(wmem, new DefaultMemoryRequestServer());
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getDyMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
+    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getLayout(), "FLOAT_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 1.0);
+    assertEquals(sk.getMinFloatValue(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
 
   @Test
   public void checkGetWritableMemory() {
-    final KllDirectDoublesSketch sketch = getDDSketch(200, 200);
+    final KllDirectFloatsSketch sketch = getDFSketch(200, 200);
     assertEquals(sketch.getK(), 200);
     assertEquals(sketch.getN(), 200);
     assertFalse(sketch.isEmpty());
     assertTrue(sketch.isDirect());
     assertFalse(sketch.isEstimationMode());
-    assertTrue(sketch.isDoublesSketch());
+    assertTrue(sketch.isFloatsSketch());
     assertFalse(sketch.isLevelZeroSorted());
-    assertFalse(sketch.isFloatsSketch());
+    assertFalse(sketch.isDoublesSketch());
 
     final WritableMemory wmem = sketch.getWritableMemory();
-    final KllDoublesSketch sk = KllDoublesSketch.heapify(wmem);
+    final KllFloatsSketch sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), 200);
     assertEquals(sk.getN(), 200);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isDirect());
     assertFalse(sk.isEstimationMode());
-    assertTrue(sk.isDoublesSketch());
+    assertTrue(sk.isFloatsSketch());
     assertFalse(sk.isLevelZeroSorted());
-    assertFalse(sk.isFloatsSketch());
+    assertFalse(sk.isDoublesSketch());
     assertTrue(KllSketch.isCompatible());
   }
 
 
-  private static KllDirectDoublesSketch getDDSketch(final int k, final int n) {
-    KllDoublesSketch sk = new KllDoublesSketch(k);
+  private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
+    KllFloatsSketch sk = new KllFloatsSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
 
-    KllDirectDoublesSketch ddsk = new KllDirectDoublesSketch(wmem, memReqSvr);
-    return ddsk;
+    KllDirectFloatsSketch dfsk = new KllDirectFloatsSketch(wmem, memReqSvr);
+    return dfsk;
   }
 
   @Test
