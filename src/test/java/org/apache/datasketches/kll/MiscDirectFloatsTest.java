@@ -399,19 +399,31 @@ public class MiscDirectFloatsTest {
     assertEquals(sk1.getMinValue(), 1.0F);
   }
 
+  @Test
+  public void checkSizes() {
+    KllDirectFloatsSketch sk = getDFSketch(20, 0);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    //println(sk.toString(true, true));
+    byte[] byteArr1 = sk.toUpdatableByteArray();
+    int size1 = sk.getCurrentUpdatableSerializedSizeBytes();
+    assertEquals(size1, byteArr1.length);
+    byte[] byteArr2 = sk.toByteArray();
+    int size2 = sk.getCurrentCompactSerializedSizeBytes();
+    assertEquals(size2, byteArr2.length);
+  }
+
   private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = new KllFloatsSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-
     KllDirectFloatsSketch dfsk = new KllDirectFloatsSketch(wmem, memReqSvr);
     return dfsk;
   }
 
   @Test
   public void printlnTest() {
-    //println("PRINTING: " + this.getClass().getName());
+    println("PRINTING: " + this.getClass().getName());
   }
 
   /**
@@ -422,4 +434,3 @@ public class MiscDirectFloatsTest {
   }
 
 }
-

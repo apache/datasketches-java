@@ -26,8 +26,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
-//intentional space
-//intentional space
 /**
  * This class implements an on-heap doubles KllSketch.
  *

@@ -21,11 +21,9 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -331,31 +329,5 @@ public final class KllFloatsSketch extends KllHeapSketch {
 
   @Override //Used internally
   void setMinFloatValue(final float value) { minFloatValue_ = value; }
-
-  /**
-   * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
-   * <em>k</em> and stream length. This method can be used if allocation of storage
-   * is necessary beforehand.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @return upper bound on the compact serialized size
-   * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
-   */
-  @Deprecated
-  public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final LevelStats lvlStats = getAllLevelStatsGivenN(k, M, n, false, false, SketchType.FLOATS_SKETCH);
-    return lvlStats.getCompactBytes();
-  }
-
-
-  /**
-   * Returns the current number of compact bytes this FloatsSketch would require to store.
-   * @return the number of bytes this sketch would require to store.
-   * @deprecated use {@link KllSketch#getCurrentCompactSerializedSizeBytes()}
-   */
-  @Deprecated
-  public int getSerializedSizeBytes() {
-    return getCurrentCompactSerializedSizeBytes();
-  }
 
 }

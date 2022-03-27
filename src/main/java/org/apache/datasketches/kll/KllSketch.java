@@ -155,6 +155,21 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   }
 
   /**
+   * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
+   * <em>k</em> and stream length. This method can be used if allocation of storage
+   * is necessary beforehand.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @return upper bound on the compact serialized size
+   * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
+   */
+  @Deprecated
+  public static int getMaxSerializedSizeBytes(final int k, final long n) {
+    final LevelStats lvlStats = getAllLevelStatsGivenN(k, M, n, false, false, SketchType.FLOATS_SKETCH);
+    return lvlStats.getCompactBytes();
+  }
+
+  /**
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
@@ -181,12 +196,22 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     return KllHelper.getNormalizedRankError(k, pmf);
   }
 
-  static int getSerializedSizeBytes(final int numLevels, final int numRetained,
+  /**
+   * Returns the current number of bytes this Sketch would require if serialized.
+   * @return the number of bytes this sketch would require if serialized.
+   */
+  public int getSerializedSizeBytes() {
+    return (direct)
+        ? getCurrentUpdatableSerializedSizeBytes()
+        : getCurrentCompactSerializedSizeBytes();
+  }
+
+  static int getSerializedSizeBytes(final int numLevels, final int numItems,
       final SketchType sketchType, final boolean updatable) {
     int levelsBytes = 0;
     if (!updatable) {
-      if (numRetained == 0) { return N_LONG_ADR; }
-      if (numRetained == 1) {
+      if (numItems == 0) { return N_LONG_ADR; }
+      if (numItems == 1) {
         return DATA_START_ADR_SINGLE_ITEM + (sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES);
       }
       levelsBytes = numLevels * Integer.BYTES;
@@ -194,9 +219,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     }
     if (sketchType == DOUBLES_SKETCH) {
-      return DATA_START_ADR_DOUBLE + levelsBytes + (numRetained + 2) * Double.BYTES; //+2 is for min & max
+      return DATA_START_ADR_DOUBLE + levelsBytes + (numItems + 2) * Double.BYTES; //+2 is for min & max
     } else {
-      return DATA_START_ADR_FLOAT + levelsBytes + (numRetained + 2) * Float.BYTES;
+      return DATA_START_ADR_FLOAT + levelsBytes + (numItems + 2) * Float.BYTES;
     }
   }
 

@@ -399,12 +399,24 @@ public class MiscDirectDoublesTest {
     assertEquals(sk1.getMinValue(), 1.0);
   }
 
+  @Test
+  public void checkSizes() {
+    KllDirectDoublesSketch sk = getDDSketch(20, 0);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    //println(sk.toString(true, true));
+    byte[] byteArr1 = sk.toUpdatableByteArray();
+    int size1 = sk.getCurrentUpdatableSerializedSizeBytes();
+    assertEquals(size1, byteArr1.length);
+    byte[] byteArr2 = sk.toByteArray();
+    int size2 = sk.getCurrentCompactSerializedSizeBytes();
+    assertEquals(size2, byteArr2.length);
+  }
+
   private static KllDirectDoublesSketch getDDSketch(final int k, final int n) {
     KllDoublesSketch sk = new KllDoublesSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-
     KllDirectDoublesSketch ddsk = new KllDirectDoublesSketch(wmem, memReqSvr);
     return ddsk;
   }
@@ -422,4 +434,3 @@ public class MiscDirectDoublesTest {
   }
 
 }
-

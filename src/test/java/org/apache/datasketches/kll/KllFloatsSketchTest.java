@@ -402,13 +402,13 @@ public class KllFloatsSketchTest {
   public void checkDeprecatedMethods() {
     final int k = 200;
     final int n = 200;
-    int bytes = KllFloatsSketch.getMaxSerializedSizeBytes(k, n); //assumed float before
+    int bytes = KllSketch.getMaxSerializedSizeBytes(k, n); //assumed float before
     assertEquals(bytes, 832);
     KllFloatsSketch sk = new KllFloatsSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     final byte[] byteArr = sk.toByteArray();
     assertEquals(byteArr.length, 832);
-    bytes = sk.getSerializedSizeBytes(); //defaults to compact
+    bytes = sk.getSerializedSizeBytes();
     assertEquals(bytes, 832);
   }
 
