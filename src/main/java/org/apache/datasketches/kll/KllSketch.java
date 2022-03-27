@@ -27,7 +27,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.isOdd;
-import static org.apache.datasketches.kll.KllHelper.getAllLevelStatsGivenN;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
@@ -55,6 +54,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertSingleItemFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertUpdatableFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -62,7 +62,6 @@ import java.util.Random;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
-import org.apache.datasketches.kll.KllHelper.LevelStats;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -165,8 +164,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    */
   @Deprecated
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final LevelStats lvlStats = getAllLevelStatsGivenN(k, M, n, false, false, SketchType.FLOATS_SKETCH);
-    return lvlStats.getCompactBytes();
+    final KllHelper.GrowthStats gStats =  KllHelper.getGrowthSchemeForGivenN(k, n, FLOATS_SKETCH, false);
+    return gStats.compactBytes;
   }
 
   /**
@@ -179,8 +178,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatable) {
-    final LevelStats lvlStats = getAllLevelStatsGivenN(k, M, n, false, false, sketchType);
-    return updatable ? lvlStats.getUpdatableBytes() : lvlStats.getCompactBytes();
+    final KllHelper.GrowthStats gStats = KllHelper.getGrowthSchemeForGivenN(k, n, sketchType, false);
+    return updatable ? gStats.updatableBytes : gStats.compactBytes;
   }
 
   /**
