@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 //import static org.apache.datasketches.Util.getResourceBytes; //don't have matching numbers from C++
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -284,7 +284,7 @@ public class KllDirectDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    final KllDirectDoublesSketch sketch1 = getDDSketch(MIN_K - 1, 0);
+    final KllDirectDoublesSketch sketch1 = getDDSketch(DEFAULT_M - 1, 0);
   }
 
   @SuppressWarnings("unused")
@@ -295,11 +295,11 @@ public class KllDirectDoublesSketchTest {
 
   @Test
   public void minK() {
-    final KllDirectDoublesSketch sketch = getDDSketch(MIN_K, 0);
+    final KllDirectDoublesSketch sketch = getDDSketch(DEFAULT_M, 0);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), MIN_K);
+    assertEquals(sketch.getK(), DEFAULT_M);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
@@ -332,7 +332,8 @@ public class KllDirectDoublesSketchTest {
   public void serializeDeserializeEmpty2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
     final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
     final byte[] bytes = sketch1.toUpdatableByteArray();
-    final KllDirectDoublesSketch sketch2 = new KllDirectDoublesSketch(WritableMemory.writableWrap(bytes),memReqSvr);
+    final KllDirectDoublesSketch sketch2 =
+        KllDirectDoublesSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
     assertTrue(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -364,7 +365,8 @@ public class KllDirectDoublesSketchTest {
     final KllDirectDoublesSketch sketch1 = getDDSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = sketch1.toUpdatableByteArray();
-    final KllDirectDoublesSketch sketch2 = new KllDirectDoublesSketch(WritableMemory.writableWrap(bytes),memReqSvr);
+    final KllDirectDoublesSketch sketch2 =
+        KllDirectDoublesSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
@@ -402,7 +404,8 @@ public class KllDirectDoublesSketchTest {
       sketch1.update(i);
     }
     final byte[] bytes = sketch1.toUpdatableByteArray();
-    final KllDirectDoublesSketch sketch2 = new KllDirectDoublesSketch(WritableMemory.writableWrap(bytes),memReqSvr);
+    final KllDirectDoublesSketch sketch2 =
+        KllDirectDoublesSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -460,8 +463,8 @@ public class KllDirectDoublesSketchTest {
     println(sk2.toString(true, true));
     WritableMemory wmem1 = WritableMemory.writableWrap(sk1.toUpdatableByteArray());
     WritableMemory wmem2 = WritableMemory.writableWrap(sk2.toUpdatableByteArray());
-    KllDirectDoublesSketch dsk1 = new KllDirectDoublesSketch(wmem1, new DefaultMemoryRequestServer());
-    KllDirectDoublesSketch dsk2 = new KllDirectDoublesSketch(wmem2, new DefaultMemoryRequestServer());
+    KllDirectDoublesSketch dsk1 = KllDirectDoublesSketch.writableWrap(wmem1, new DefaultMemoryRequestServer());
+    KllDirectDoublesSketch dsk2 = KllDirectDoublesSketch.writableWrap(wmem2, new DefaultMemoryRequestServer());
     println("BEFORE MERGE");
     println(dsk1.toString(true, true));
     dsk1.merge(dsk2);
@@ -484,7 +487,7 @@ public class KllDirectDoublesSketchTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem, new DefaultMemoryRequestServer());
+    sk = KllDirectDoublesSketch.writableWrap(wmem, new DefaultMemoryRequestServer());
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -492,7 +495,6 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getDyMinK(), k);
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -505,7 +507,7 @@ public class KllDirectDoublesSketchTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem, new DefaultMemoryRequestServer());
+    sk = KllDirectDoublesSketch.writableWrap(wmem, new DefaultMemoryRequestServer());
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -513,7 +515,6 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getDyMinK(), k);
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -527,7 +528,7 @@ public class KllDirectDoublesSketchTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = new KllDirectDoublesSketch(wmem, new DefaultMemoryRequestServer());
+    sk = KllDirectDoublesSketch.writableWrap(wmem, new DefaultMemoryRequestServer());
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -535,7 +536,6 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getDyMinK(), k);
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -575,7 +575,7 @@ public class KllDirectDoublesSketchTest {
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
 
-    KllDirectDoublesSketch ddsk = new KllDirectDoublesSketch(wmem, memReqSvr);
+    KllDirectDoublesSketch ddsk = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
     return ddsk;
   }
 

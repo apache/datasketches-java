@@ -23,7 +23,6 @@ import static org.apache.datasketches.Family.idToFamily;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FLOAT;
@@ -108,9 +107,9 @@ final class MemoryValidate {
     doublesSketch = extractDoubleSketchFlag(srcMem);
     updatable    = extractUpdatableFlag(srcMem);
     k = extractK(srcMem);
-    KllHelper.checkK(k);
     m = extractM(srcMem);
-    if (m != DEFAULT_M) { memoryValidateThrow(7, m); }
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
     if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(10, 0); }
 
     if (updatable) { updatableMemoryValidate((WritableMemory) srcMem); }
@@ -121,10 +120,9 @@ final class MemoryValidate {
     if (empty && singleItem) { memoryValidateThrow(20, 0); }
     final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0) | (doublesSketch ? 8 : 0);
     switch (sw) {
-      case 0: { //Float Compact FULL
+      case 0: { //FLOAT_FULL_COMPACT
         if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(6, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
-
         layout = Layout.FLOAT_FULL_COMPACT;
         n = extractN(srcMem);
         dyMinK = extractDyMinK(srcMem);
@@ -149,7 +147,7 @@ final class MemoryValidate {
         sketchBytes = offset + itemsRetained * Float.BYTES;
         break;
       }
-      case 1: { //Float Compact EMPTY
+      case 1: { //FLOAT_EMPTY_COMPACT
         if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
         layout = Layout.FLOAT_EMPTY_COMPACT;
@@ -168,7 +166,7 @@ final class MemoryValidate {
         itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
         break;
       }
-      case 4: { //Float Compact SINGLE
+      case 4: { //FLOAT_SINGLE_COMPACT
         if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
         if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(4, serVer); }
         layout = Layout.FLOAT_SINGLE_COMPACT;
@@ -190,7 +188,7 @@ final class MemoryValidate {
         itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
         break;
       }
-      case 8: { //Double Compact FULL
+      case 8: { //DOUBLE_FULL_COMPACT
         if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(5, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
         layout = Layout.DOUBLE_FULL_COMPACT;
@@ -217,7 +215,7 @@ final class MemoryValidate {
         sketchBytes = offset + itemsRetained * Double.BYTES;
         break;
       }
-      case 9: { //Double Compact EMPTY
+      case 9: { //DOUBLE_EMPTY_COMPACT
         if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
         layout = Layout.DOUBLE_EMPTY_COMPACT;
@@ -237,7 +235,7 @@ final class MemoryValidate {
         itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
         break;
       }
-      case 12: { //Double Compact SINGLE
+      case 12: { //DOUBLE_SINGLE_COMPACT
         if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
         if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(4, serVer); }
         layout = Layout.DOUBLE_SINGLE_COMPACT;
@@ -265,7 +263,7 @@ final class MemoryValidate {
   }
 
   void updatableMemoryValidate(final WritableMemory wSrcMem) {
-    if (doublesSketch) { //Double Updatable FULL
+    if (doublesSketch) { //DOUBLE_UPDATABLE
       if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(5, preInts); }
       layout = Layout.DOUBLE_UPDATABLE;
       n = extractN(wSrcMem);
@@ -285,12 +283,10 @@ final class MemoryValidate {
       capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES);
       final int itemsArrBytes = capacityItems * Double.BYTES;
       itemsArrStart = offset;
-      itemsArrStart = memCapacity - itemsArrBytes;
-      if (itemsArrStart < offset) { memoryValidateThrow(24, offset - itemsArrStart); }
-      itemsArrUpdatable = wSrcMem.writableRegion(itemsArrStart, itemsArrBytes);
-      sketchBytes = itemsArrStart + itemsArrBytes;
+      itemsArrUpdatable = wSrcMem.writableRegion(offset, itemsArrBytes);
+      sketchBytes = offset + itemsArrBytes;
     }
-    else { //Float Updatable FULL
+    else { //FLOAT_UPDATABLE
       if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(6, preInts); }
       layout = Layout.FLOAT_UPDATABLE;
       n = extractN(wSrcMem);
@@ -309,9 +305,7 @@ final class MemoryValidate {
       capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES);
       final int itemsArrBytes = capacityItems * Float.BYTES;
       itemsArrStart = offset;
-      itemsArrStart = memCapacity - itemsArrBytes;
-      if (itemsArrStart < offset) { memoryValidateThrow(24, offset - itemsArrStart); }
-      itemsArrUpdatable = wSrcMem.writableRegion(itemsArrStart, itemsArrBytes);
+      itemsArrUpdatable = wSrcMem.writableRegion(offset, itemsArrBytes);
       sketchBytes = itemsArrStart + itemsArrBytes;
     }
   }
@@ -326,7 +320,7 @@ final class MemoryValidate {
       case 4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
       case 5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
       case 6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
-      case 7: msg = "The M field must be set to " + DEFAULT_M + ", NOT: " + value; break;
+      //case 7: msg = "The M field must be set to " + DEFAULT_M + ", NOT: " + value; break;
       //case 8: msg = "The dynamic MinK must be equal to K, NOT: " + value; break;
       //case 9: msg = "numLevels must be one, NOT: " + value; break;
       case 10: msg = "((SerVer == 3) ^ (Updatable Bit)) must = 0."; break;
@@ -334,7 +328,7 @@ final class MemoryValidate {
       //case 21: msg = "N != 0 and empty bit is set. N: " + value; break;
       //case 22: msg = "N != 1 and single item bit is set. N: " + value; break;
       //case 23: msg = "Family name is not KLL"; break;
-      case 24: msg = "Given Memory has insufficient capacity. Need " + value + " bytes."; break;
+      //case 24: msg = "Given Memory has insufficient capacity. Need " + value + " bytes."; break;
       default: msg = "Unknown error: errNo: " + errNo; break;
     }
     throw new SketchesArgumentException(msg);

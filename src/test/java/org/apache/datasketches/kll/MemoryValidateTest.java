@@ -21,6 +21,7 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.*;
 
+import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -28,13 +29,12 @@ import org.testng.annotations.Test;
 @SuppressWarnings("unused")
 public class MemoryValidateTest {
 
-
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFamily() {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFamilyID(wmem, 14);
+    insertFamilyID(wmem, Family.KLL.getID() - 1);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -43,7 +43,7 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertSerVer(wmem, 4);
+    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL - 1);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -52,7 +52,7 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 5);
+    insertFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -61,8 +61,8 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 16);
-    insertSerVer(wmem, 2);
+    insertFlags(wmem, UPDATABLE_BIT_MASK);
+    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -71,8 +71,8 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 16);
-    insertSerVer(wmem, 2);
+    insertFlags(wmem, UPDATABLE_BIT_MASK);
+    insertSerVer(wmem, SERIAL_VERSION_SINGLE);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -81,8 +81,8 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 4);
-    insertSerVer(wmem, 1);
+    insertFlags(wmem, SINGLE_ITEM_BIT_MASK);
+    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -91,8 +91,8 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 4);
-    insertPreInts(wmem, 1);
+    insertFlags(wmem, SINGLE_ITEM_BIT_MASK);
+    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -101,9 +101,9 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 8);
-    insertPreInts(wmem, 6);
-    insertSerVer(wmem, 2);
+    insertFlags(wmem, DOUBLES_SKETCH_BIT_MASK);
+    insertPreInts(wmem, PREAMBLE_INTS_DOUBLE);
+    insertSerVer(wmem, SERIAL_VERSION_SINGLE);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -112,9 +112,9 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 12); //double & single
-    insertPreInts(wmem, 2);//should be 2
-    insertSerVer(wmem, 1); //should be 2
+    insertFlags(wmem, SINGLE_ITEM_BIT_MASK | DOUBLES_SKETCH_BIT_MASK);
+    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
+    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -123,9 +123,9 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertSerVer(wmem, 3);
-    insertFlags(wmem, 24); //double & updatable
-    insertPreInts(wmem, 5);//should be 6
+    insertSerVer(wmem, SERIAL_VERSION_UPDATABLE);
+    insertFlags(wmem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
+    insertPreInts(wmem, PREAMBLE_INTS_DOUBLE - 1);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -135,8 +135,8 @@ public class MemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     insertFlags(wmem, 0); //float full
-    insertSerVer(wmem, 2); //should be 1
-    insertPreInts(wmem, 5);//should be 5
+    insertSerVer(wmem, SERIAL_VERSION_SINGLE); //should be 1
+    insertPreInts(wmem, PREAMBLE_INTS_FLOAT);
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -145,9 +145,9 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 16); //float updatable full
-    insertSerVer(wmem, 3); //should be 3
-    insertPreInts(wmem, 6);//should be 5
+    insertFlags(wmem, UPDATABLE_BIT_MASK); //float updatable full
+    insertSerVer(wmem, SERIAL_VERSION_UPDATABLE);
+    insertPreInts(wmem, 0);//should be 5
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 
@@ -156,9 +156,9 @@ public class MemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 12); //double & single
+    insertFlags(wmem, DOUBLES_SKETCH_BIT_MASK | SINGLE_ITEM_BIT_MASK);
     insertPreInts(wmem, 5);//should be 2
-    insertSerVer(wmem, 2); //should be 2
+    insertSerVer(wmem, SERIAL_VERSION_SINGLE); //should be 2
     MemoryValidate memVal = new MemoryValidate(wmem);
   }
 

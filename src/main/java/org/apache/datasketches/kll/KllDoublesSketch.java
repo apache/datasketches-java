@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -42,20 +43,37 @@ public final class KllDoublesSketch extends KllHeapSketch {
   private double maxDoubleValue_;
 
   /**
-   * Heap constructor with the default <em>k = 200</em>, which has a rank error of about 1.65%.
+   * Heap constructor with the default <em>k = 200</em>, and DEFAULT_M of 8.
+   * This will have a rank error of about 1.65%.
    */
   public KllDoublesSketch() {
     this(DEFAULT_K);
   }
 
   /**
-   * Heap constructor with a given parameter <em>k</em>. <em>k</em> can be any value between 8 and
+   * Heap constructor with a given parameter <em>k</em>. <em>k</em> can be any value between DEFAULT_M and
    * 65535, inclusive. The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
+   * This constructor assumes the DEFAULT_M, which is 8.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllDoublesSketch(final int k) {
-    super(k, SketchType.DOUBLES_SKETCH);
+    this(k, DEFAULT_M);
+  }
+
+  /**
+   * Heap constructor with a given parameter <em>k</em> and <em>m</em>.
+   * <em>k</em> can be any value between DEFAULT_M and 65535, inclusive.
+   * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
+   * Higher values of K will have smaller error but the sketch will be larger (and slower).
+   * The DEFAULT_M, which is 8 is recommended for the given parameter <em>m</em>.
+   * Other values of <em>m</em> should be considered experimental as they have not been
+   * as well characterized.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param m parameter that controls the minimum level width.
+   */
+  public KllDoublesSketch(final int k, final int m) {
+    super(k, m, SketchType.DOUBLES_SKETCH);
     doubleItems_ = new double[k];
     minDoubleValue_ = Double.NaN;
     maxDoubleValue_ = Double.NaN;
@@ -67,7 +85,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param memVal the MemoryCheck object
    */
   private KllDoublesSketch(final Memory mem, final MemoryValidate memVal) {
-    super(memVal.k, SketchType.DOUBLES_SKETCH);
+    super(memVal.k, memVal.m, SketchType.DOUBLES_SKETCH);
     buildHeapKllSketchFromMemory(memVal);
   }
 

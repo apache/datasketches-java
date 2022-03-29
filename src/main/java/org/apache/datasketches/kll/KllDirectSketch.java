@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractDyMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractK;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.extractM;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractN;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertDyMinK;
@@ -31,7 +32,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
-import org.apache.datasketches.kll.KllPreambleUtil.Layout;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -42,8 +42,7 @@ import org.apache.datasketches.memory.WritableMemory;
 abstract class KllDirectSketch extends KllSketch {
   //All these members are constant for the life of this object. If the WritableMemory changes,
   // it may require rebuilding this class
-  final Layout layout;
-  final boolean updatable;
+  final boolean updatable = true;
   WritableMemory levelsArrUpdatable;
   WritableMemory minMaxArrUpdatable;
   WritableMemory itemsArrUpdatable;
@@ -55,12 +54,9 @@ abstract class KllDirectSketch extends KllSketch {
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    */
-  KllDirectSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+  KllDirectSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr,
+      final MemoryValidate memVal) {
     super(sketchType, wmem, memReqSvr);
-    final MemoryValidate memVal = new MemoryValidate(wmem);
-    layout = memVal.layout;
-    updatable = memVal.updatable;
-    if (!updatable) { kllSketchThrow(31); }
     levelsArrUpdatable = memVal.levelsArrUpdatable;
     minMaxArrUpdatable = memVal.minMaxArrUpdatable;
     itemsArrUpdatable = memVal.itemsArrUpdatable;
@@ -69,6 +65,11 @@ abstract class KllDirectSketch extends KllSketch {
   @Override
   public int getK() {
     return extractK(wmem);
+  }
+
+  @Override
+  public int getM() {
+    return extractM(wmem);
   }
 
   @Override
@@ -122,9 +123,6 @@ abstract class KllDirectSketch extends KllSketch {
   int getItemsArrLengthItems() {
     return getLevelsArray()[getNumLevels()];
   }
-
-  @Override
-  String getLayout() { return layout.toString(); }
 
   @Override
   int[] getLevelsArray() {

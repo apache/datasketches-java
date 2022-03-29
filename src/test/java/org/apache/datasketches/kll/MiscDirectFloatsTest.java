@@ -121,7 +121,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "FLOAT_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -139,7 +138,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "FLOAT_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
     assertEquals(sk.getMinFloatValue(), Float.NaN);
@@ -158,7 +156,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "FLOAT_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -190,7 +187,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
     assertEquals(sk.getMinFloatValue(), 1.0f);
@@ -212,7 +208,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
     assertEquals(sk.getMinFloatValue(), Float.NaN);
@@ -235,7 +230,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -267,7 +261,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -289,7 +282,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
     assertEquals(sk.getMinFloatValue(), Float.NaN);
@@ -312,7 +304,6 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -338,7 +329,7 @@ public class MiscDirectFloatsTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = new KllDirectFloatsSketch(wmem, memReqSvr);
+    sk2 = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -353,7 +344,7 @@ public class MiscDirectFloatsTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = new KllDirectFloatsSketch(wmem, memReqSvr);
+    sk2 = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -369,7 +360,7 @@ public class MiscDirectFloatsTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = new KllDirectFloatsSketch(wmem, memReqSvr);
+    sk2 = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -412,12 +403,21 @@ public class MiscDirectFloatsTest {
     assertEquals(size2, byteArr2.length);
   }
 
+  @Test
+  public void checkNewInstance() {
+    int k = 200;
+    WritableMemory dstMem = WritableMemory.allocate(3000);
+    KllDirectFloatsSketch sk = KllDirectFloatsSketch.newInstance(k, dstMem, memReqSvr);
+    for (int i = 1; i <= 10_000; i++) {sk.update(i); }
+    println(sk.toString(true, true));
+  }
+
   private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = new KllFloatsSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    KllDirectFloatsSketch dfsk = new KllDirectFloatsSketch(wmem, memReqSvr);
+    KllDirectFloatsSketch dfsk = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }
 
@@ -430,7 +430,7 @@ public class MiscDirectFloatsTest {
    * @param s value to print
    */
   static void println(final String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }

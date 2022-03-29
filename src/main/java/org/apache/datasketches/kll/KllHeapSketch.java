@@ -28,23 +28,26 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author lrhodes
  */
 abstract class KllHeapSketch extends KllSketch {
-  private long n_;        // number of items input into this sketch.
   private final int k;    // configured value of K.
+  private final int m;    // configured value of M.
+  private long n_;        // number of items input into this sketch.
   private int dyMinK_;    // dynamic minK for error estimation after merging with different k.
-
   private int numLevels_; // one-based number of current levels.
   private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   private boolean isLevelZeroSorted_;
 
   /**
    * Heap constructor.
-   * @param k configured size of sketch. Range [m, 2^16]
+   * @param k user configured size of sketch. Range [m, 2^16]
+   * @param m user configured minimum level width
    * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
    */
-  KllHeapSketch(final int k, final SketchType sketchType) {
+  KllHeapSketch(final int k, final int m, final SketchType sketchType) {
     super(sketchType, null, null);
-    KllHelper.checkK(k);
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
     this.k = k;
+    this.m = m;
     n_ = 0;
     dyMinK_ = k;
     numLevels_ = 1;
@@ -58,6 +61,11 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
+  public int getM() {
+    return m;
+  }
+
+  @Override
   public long getN() {
     return n_;
   }
@@ -66,9 +74,6 @@ abstract class KllHeapSketch extends KllSketch {
   int getDyMinK() {
     return dyMinK_;
   }
-
-  @Override
-  String getLayout() { return "HEAP"; }
 
   @Override
   int[] getLevelsArray() {

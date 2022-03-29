@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 //import static org.apache.datasketches.Util.getResourceBytes; //don't have matching numbers from C++
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -280,7 +280,7 @@ public class KllDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllDoublesSketch(MIN_K - 1);
+    new KllDoublesSketch(DEFAULT_M - 1);
   }
 
   @SuppressWarnings("unused")
@@ -291,11 +291,11 @@ public class KllDoublesSketchTest {
 
   @Test
   public void minK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(MIN_K);
+    final KllDoublesSketch sketch = new KllDoublesSketch(DEFAULT_M);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), MIN_K);
+    assertEquals(sketch.getK(), DEFAULT_M);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
@@ -340,15 +340,15 @@ public class KllDoublesSketchTest {
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 
-//  @Test //not implemented from C++ yet
-//  public void deserializeOneItemV1() throws Exception {
-//    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
-//    final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
-//    assertFalse(sketch.isEmpty());
-//    assertFalse(sketch.isEstimationMode());
-//    assertEquals(sketch.getN(), 1);
-//    assertEquals(sketch.getNumRetained(), 1);
-//  }
+  //@Test //not implemented from C++ yet
+  //public void deserializeOneItemV1() throws Exception {
+  //  final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
+  //  final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
+  //  assertFalse(sketch.isEmpty());
+  //  assertFalse(sketch.isEstimationMode());
+  //  assertEquals(sketch.getN(), 1);
+  //  assertEquals(sketch.getNumRetained(), 1);
+  //}
 
   @Test
   public void serializeDeserialize() {

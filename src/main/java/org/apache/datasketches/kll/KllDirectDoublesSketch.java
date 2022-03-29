@@ -21,7 +21,23 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
+import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertDyMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertFlags;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertK;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertM;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
 
+import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -36,12 +52,67 @@ import org.apache.datasketches.memory.WritableMemory;
 public final class KllDirectDoublesSketch extends KllDirectSketch {
 
   /**
-   *
+   * The actual constructor.
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @param memVal the MemoryValadate object
    */
-  public KllDirectDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
+  private KllDirectDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr,
+      final MemoryValidate memVal) {
+    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr, memVal);
+  }
+
+  /**
+   * Wrap a sketch around the given source Memory containing sketch data that originated from
+   * this sketch.
+   * @param srcMem a WritableMemory that contains data.
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return instance of this sketch
+   */
+  public static KllDirectDoublesSketch writableWrap(final WritableMemory srcMem, final MemoryRequestServer memReqSvr) {
+    final MemoryValidate memVal = new MemoryValidate(srcMem);
+    return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
+  }
+
+  /**
+   * Create a new instance of this sketch using default M.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new instance of this sketch
+   */
+  public static KllDirectDoublesSketch newInstance(final int k, final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    return newInstance(k, DEFAULT_M, dstMem, memReqSvr);
+  }
+
+  /**
+   * Create a new instance of this sketch.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param m parameter that controls the minimum level width.
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new instance of this sketch
+   */
+  public static KllDirectDoublesSketch newInstance(final int k, final int m, final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    insertPreInts(dstMem, PREAMBLE_INTS_DOUBLE);
+    insertSerVer(dstMem, SERIAL_VERSION_UPDATABLE);
+    insertFamilyID(dstMem, Family.KLL.getID());
+    insertFlags(dstMem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
+    insertK(dstMem, k);
+    insertM(dstMem, m);
+    insertN(dstMem, 0);
+    insertDyMinK(dstMem, k);
+    insertNumLevels(dstMem, 1);
+    int offset = DATA_START_ADR_DOUBLE;
+    dstMem.putIntArray(offset, new int[] {k, k}, 0, 2);
+    offset += 2 * Integer.BYTES;
+    dstMem.putDoubleArray(offset, new double[] {Double.NaN, Double.NaN}, 0, 2);
+    offset += 2 * Double.BYTES;
+    dstMem.putDoubleArray(offset, new double[k], 0, k);
+    final MemoryValidate memVal = new MemoryValidate(dstMem);
+    return new KllDirectDoublesSketch(dstMem, memReqSvr, memVal);
   }
 
   /**

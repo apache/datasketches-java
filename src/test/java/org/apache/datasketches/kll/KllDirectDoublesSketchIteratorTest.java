@@ -70,7 +70,7 @@ public class KllDirectDoublesSketchIteratorTest {
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
 
-    KllDirectDoublesSketch ddsk = new KllDirectDoublesSketch(wmem, memReqSvr);
+    KllDirectDoublesSketch ddsk = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
     return ddsk;
   }
 

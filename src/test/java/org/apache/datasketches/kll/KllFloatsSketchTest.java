@@ -20,7 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -280,7 +280,7 @@ public class KllFloatsSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllFloatsSketch(MIN_K - 1);
+    new KllFloatsSketch(DEFAULT_M - 1);
   }
 
   @SuppressWarnings("unused")
@@ -291,11 +291,11 @@ public class KllFloatsSketchTest {
 
   @Test
   public void minK() {
-    final KllFloatsSketch sketch = new KllFloatsSketch(MIN_K);
+    final KllFloatsSketch sketch = new KllFloatsSketch(DEFAULT_M);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), MIN_K);
+    assertEquals(sketch.getK(), DEFAULT_M);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 

@@ -57,7 +57,7 @@ public class MiscFloatsTest {
   public void checkHeapifyExceptions1() {
     KllFloatsSketch sk = new KllFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(6, (byte)4); //corrupt with different M
+    wmem.putByte(6, (byte)3); //corrupt with odd M
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -176,7 +176,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -196,7 +195,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -217,7 +215,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -251,7 +248,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -275,7 +271,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -300,7 +295,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -334,7 +328,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -358,7 +351,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -383,7 +375,6 @@ public class MiscFloatsTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -512,10 +503,11 @@ public class MiscFloatsTest {
   @Test
   public void checkSimpleMerge() {
     int k = 20;
+    int m = 4;
     int n1 = 21;
     int n2 = 43;
-    KllFloatsSketch sk1 = new KllFloatsSketch(k);
-    KllFloatsSketch sk2 = new KllFloatsSketch(k);
+    KllFloatsSketch sk1 = new KllFloatsSketch(k, m);
+    KllFloatsSketch sk2 = new KllFloatsSketch(k, m);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
@@ -526,6 +518,11 @@ public class MiscFloatsTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
+  }
+
+  @Test
+  public void checkOtherM() {
+
   }
 
   @Test

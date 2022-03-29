@@ -57,7 +57,7 @@ public class MiscDoublesTest {
   public void checkHeapifyExceptions1() {
     KllDoublesSketch sk = new KllDoublesSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(6, (byte)4); //corrupt with different M
+    wmem.putByte(6, (byte)3); //corrupt with odd M
     KllDoublesSketch.heapify(wmem);
   }
 
@@ -176,7 +176,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -196,7 +195,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -217,7 +215,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -251,7 +248,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -275,7 +271,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -300,7 +295,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -334,7 +328,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -358,7 +351,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -383,7 +375,6 @@ public class MiscDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMaxFloatValue(), 1.0F);

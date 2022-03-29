@@ -24,8 +24,6 @@ import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
-import static org.apache.datasketches.kll.KllSketch.M;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -44,6 +42,7 @@ public class KllHelper {
   public static class GrowthStats {
     SketchType sketchType;
     int k;
+    int m;
     long givenN;
     long maxN;
     int numLevels;
@@ -75,9 +74,10 @@ public class KllHelper {
   205891132094649L};
 
   /**
-   * Given K and numLevels, this computes and optionally prints the structure of the sketch when the given
+   * Given k, m, and numLevels, this computes and optionally prints the structure of the sketch when the given
    * number of levels are completely filled.
-   * @param k the given sketch parameter
+   * @param k the given user configured sketch parameter
+   * @param m the given user configured sketch parameter
    * @param numLevels the given number of levels of the sketch
    * @param printSketchStructure if true will print the details of the sketch structure at the given numLevels.
    * @return LevelStats with the final summary of the sketch's cumulative N,
@@ -85,6 +85,7 @@ public class KllHelper {
    */
   public static LevelStats getFinalSketchStatsAtNumLevels(
       final int k,
+      final int m,
       final int numLevels,
       final boolean printSketchStructure) {
     int cumItems = 0;
@@ -92,11 +93,12 @@ public class KllHelper {
     if (printSketchStructure) {
       println("SKETCH STRUCTURE:");
       println("Given K        : " + k);
+      println("Given M        : " + m);
       println("Given NumLevels: " + numLevels);
       printf("%6s %8s %12s %18s %18s\n", "Level", "Items", "CumItems", "N at Level", "CumN");
     }
     for (int level = 0; level < numLevels; level++) {
-      final LevelStats lvlStats = getLevelCapacityItems(k, numLevels, level);
+      final LevelStats lvlStats = getLevelCapacityItems(k, m, numLevels, level);
       cumItems += lvlStats.items;
       cumN += lvlStats.n;
       if (printSketchStructure) {
@@ -107,9 +109,10 @@ public class KllHelper {
   }
 
   /**
-   * Given k, n, and the sketch type, this computes (and optionally prints) the growth scheme for a sketch as it
+   * Given k, m, n, and the sketch type, this computes (and optionally prints) the growth scheme for a sketch as it
    * grows large enough to accommodate a stream length of n items.
-   * @param k the given sketch parameter
+   * @param k the given user configured sketch parameter
+   * @param m the given user configured sketch parameter
    * @param n the desired stream length
    * @param sketchType the given sketch type (DOUBLES_SKETCH or FLOATS_SKETCH)
    * @param printGrowthScheme if true the entire growth scheme of the sketch will be printed.
@@ -117,6 +120,7 @@ public class KllHelper {
    */
   public static GrowthStats getGrowthSchemeForGivenN(
       final int k,
+      final int m,
       final long n,
       final SketchType sketchType,
       final boolean printGrowthScheme) {
@@ -124,12 +128,14 @@ public class KllHelper {
     LevelStats lvlStats;
     final GrowthStats gStats = new GrowthStats();
     gStats.k = k;
+    gStats.m = m;
     gStats.givenN = n;
     gStats.sketchType = sketchType;
     if (printGrowthScheme) {
       println("GROWTH SCHEME:");
       println("Given SketchType: " + sketchType.toString());
       println("Given K         : " + k);
+      println("Given M         : " + m);
       println("Given N         : " + n);
       printf("%10s %10s %20s %13s %15s\n", "NumLevels", "MaxItems", "MaxN", "CompactBytes", "UpdatableBytes");
     }
@@ -137,7 +143,7 @@ public class KllHelper {
     int updatableBytes;
     do {
       numLevels++;
-      lvlStats = getFinalSketchStatsAtNumLevels(k, numLevels, false);
+      lvlStats = getFinalSketchStatsAtNumLevels(k, m, numLevels, false);
       final int maxItems = lvlStats.items;
       final long maxN = lvlStats.n;
       if (sketchType == DOUBLES_SKETCH) {
@@ -160,17 +166,19 @@ public class KllHelper {
   }
 
   /**
-   * Given k, numLevels, this computes the item capacity of a single level.
-   * @param k the given sketch parameter
+   * Given k, m, numLevels, this computes the item capacity of a single level.
+   * @param k the given user sketch configuration parameter
+   * @param m the given user sketch configuration parameter
    * @param numLevels the given number of levels of the sketch
    * @param level the specific level to compute its item capacity
    * @return LevelStats with the computed N and items for the given level.
    */
   public static LevelStats getLevelCapacityItems(
       final int k,
+      final int m,
       final int numLevels,
       final int level) {
-    final int items = KllHelper.levelCapacity(k, numLevels, level, M);
+    final int items = KllHelper.levelCapacity(k, numLevels, level, m);
     final long n = (long)items << level;
     return new LevelStats(n, numLevels, items);
   }
@@ -179,10 +187,17 @@ public class KllHelper {
    * Checks the validity of the given value k
    * @param k must be greater than 7 and less than 65536.
    */
-  static void checkK(final int k) {
-    if (k < MIN_K || k > MAX_K) {
+  static void checkK(final int k, final int m) {
+    if (k < m || k > MAX_K) {
       throw new SketchesArgumentException(
-          "K must be >= " + MIN_K + " and <= " + MAX_K + ": " + k);
+          "K must be >= " + m + " and <= " + MAX_K + ": " + k);
+    }
+  }
+
+  static void checkM(final int m) {
+    if (m < 2 || m > 8 || ((m & 1) == 1)) {
+      throw new SketchesArgumentException(
+          "M must be >= 2, <= 8 and even: " + m);
     }
   }
 

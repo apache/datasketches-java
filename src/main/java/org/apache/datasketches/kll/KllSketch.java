@@ -27,12 +27,11 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.isOdd;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
@@ -98,8 +97,8 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public abstract class KllSketch {
   static final Random random = new Random();
-  static final int M = DEFAULT_M; // configured minimum buffer "width", Must always be 8 for now.
   static final boolean compatible = true; //rank 0.0 and 1.0. compatible with classic Quantiles Sketch
+  //final int M = DEFAULT_M; // configured minimum buffer "width", default is 8.
   SketchType sketchType;
   WritableMemory wmem;
   MemoryRequestServer memReqSvr;
@@ -150,35 +149,38 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final double krnd = round(kdbl);
     final double del = abs(krnd - kdbl);
     final int k = (int) (del < 1E-6 ? krnd : ceil(kdbl));
-    return max(MIN_K, min(MAX_K, k));
+    return max(2, min(MAX_K, k));
   }
 
   /**
    * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
    * <em>k</em> and stream length. This method can be used if allocation of storage
-   * is necessary beforehand.
+   * is necessary beforehand. This assumes the DEFAULT_M = 8 used in older sketches, it will not
+   * work with other values of m.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the compact serialized size
-   * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
+   * @deprecated use {@link #getMaxSerializedSizeBytes(int, int, long, SketchType, boolean)} instead.
    */
   @Deprecated
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final KllHelper.GrowthStats gStats =  KllHelper.getGrowthSchemeForGivenN(k, n, FLOATS_SKETCH, false);
+    final KllHelper.GrowthStats gStats =  KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, FLOATS_SKETCH, false);
     return gStats.compactBytes;
   }
 
   /**
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
    * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param m parameter that controls the smallest value of k, and the smallest level width.
+   * If in doubt, use the default value of 8.
    * @param n stream length
    * @param sketchType either DOUBLES_SKETCH or FLOATS_SKETCH
    * @param updatable true if updatable form, otherwise the standard compact form.
    * @return upper bound on the serialized size of a KllSketch.
    */
-  public static int getMaxSerializedSizeBytes(final int k, final long n,
+  public static int getMaxSerializedSizeBytes(final int k, final int m, final long n,
       final SketchType sketchType, final boolean updatable) {
-    final KllHelper.GrowthStats gStats = KllHelper.getGrowthSchemeForGivenN(k, n, sketchType, false);
+    final KllHelper.GrowthStats gStats = KllHelper.getGrowthSchemeForGivenN(k, m, n, sketchType, false);
     return updatable ? gStats.updatableBytes : gStats.compactBytes;
   }
 
@@ -257,18 +259,24 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    * @return the current updatable number of bytes this sketch would require to store.
    */
   public final int getCurrentUpdatableSerializedSizeBytes() {
-    final int itemCap = KllHelper.computeTotalItemCapacity(getK(), M, getNumLevels());
+    final int itemCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
     return KllSketch.getSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
   }
 
   /**
-   * Returns the parameter k
-   * @return parameter k
+   * Returns the user configured parameter k
+   * @return the user configured parameter k
    */
   public abstract int getK();
 
   /**
-   * Returns the length of the input stream.
+   * Returns the user configured parameter m
+   * @return the user configured parameter m
+   */
+  public abstract int getM();
+
+  /**
+   * Returns the length of the input stream in items.
    * @return stream length
    */
   public abstract long getN();
@@ -605,8 +613,6 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   abstract float getFloatItemsArrayAt(int index);
 
-  abstract String getLayout();
-
   abstract int[] getLevelsArray();
 
   abstract int getLevelsArrayAt(int index);
@@ -627,14 +633,17 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }
 
-  boolean isFloatsSketch() { return sketchType != DOUBLES_SKETCH; }
+  boolean isFloatsSketch() { return sketchType == FLOATS_SKETCH; }
 
   abstract boolean isLevelZeroSorted();
 
   /**
    * This method is for direct Double and Float sketches only and does the following:
-   * <ul><li>Allocates a new WritableMemory of the required size</li>
-   * <li>Copies over the preamble as is (20 or 24 bytes)</li>
+   * <ul>
+   * <li>Determines if the required sketch bytes will fit in the current Memory.
+   * If so, it will stretch the positioning of the arrays to fit. Otherwise:
+   * <li>Allocates a new WritableMemory of the required size</li>
+   * <li>Copies over the preamble as is (20 bytes)</li>
    * <li>Creates new memory regions for Levels Array, Min/Max Array, Items Array, but
    * does not fill them. They may contain garbage.</li>
    * </ul>
@@ -650,9 +659,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       final int newItemsArrLen) {
     final SketchType sketchType = sketch.sketchType;
     final WritableMemory oldWmem = sketch.wmem;
+
     final int typeBytes;
     final int startAdr;
-
     if (sketchType == DOUBLES_SKETCH) {
       typeBytes = Double.BYTES;
       startAdr = DATA_START_ADR_DOUBLE;
@@ -660,14 +669,14 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       typeBytes = Float.BYTES;
       startAdr = DATA_START_ADR_FLOAT;
     }
-    int totalSketchBytes = startAdr;
-    totalSketchBytes += newLevelsArrLen * Integer.BYTES;
-    totalSketchBytes += 2 * typeBytes;
-    totalSketchBytes += newItemsArrLen * typeBytes;
+    int requiredSketchBytes = startAdr;
+    requiredSketchBytes += newLevelsArrLen * Integer.BYTES;
+    requiredSketchBytes += 2 * typeBytes;
+    requiredSketchBytes += newItemsArrLen * typeBytes;
     final WritableMemory newWmem;
 
-    if (totalSketchBytes > oldWmem.getCapacity()) { //Acquire new WritableMemory
-      newWmem = sketch.memReqSvr.request(oldWmem, totalSketchBytes);
+    if (requiredSketchBytes > oldWmem.getCapacity()) { //Acquire new WritableMemory
+      newWmem = sketch.memReqSvr.request(oldWmem, requiredSketchBytes);
       oldWmem.copyTo(0, newWmem, 0, startAdr); //copy preamble
     }
     else { //Expand in current memory
@@ -686,7 +695,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //ITEMS ARR
     lengthBytes = newItemsArrLen * typeBytes;
     sketch.setItemsArrayUpdatable(newWmem.writableRegion(offset, lengthBytes));
-    assert totalSketchBytes <= newWmem.getCapacity();
+    assert requiredSketchBytes <= newWmem.getCapacity();
     return newWmem;
   }
 
@@ -725,7 +734,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       populateDoubleWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
       // notice that workbuf is being used as both the input and output
-      final int[] result = KllDoublesHelper.generalDoublesCompress(getK(), M, provisionalNumLevels, workbuf,
+      final int[] result = KllDoublesHelper.generalDoublesCompress(getK(), getM(), provisionalNumLevels, workbuf,
           worklevels, workbuf, outlevels, isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
@@ -835,7 +844,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       populateFloatWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
       // notice that workbuf is being used as both the input and output
-      final int[] result = KllFloatsHelper.generalFloatsCompress(getK(), M, provisionalNumLevels, workbuf,
+      final int[] result = KllFloatsHelper.generalFloatsCompress(getK(), getM(), provisionalNumLevels, workbuf,
           worklevels, workbuf, outlevels, isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
@@ -1018,38 +1027,44 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     insertDoubleSketchFlag(wmem, doubleType);
     insertUpdatableFlag(wmem, updatable);
     insertK(wmem, sk.getK());
-    insertM(wmem, M);
+    insertM(wmem, sk.getM());
   }
 
   @SuppressWarnings("null")
   final String toStringImpl(final boolean withLevels, final boolean withData) {
     final boolean doubleType = (sketchType == DOUBLES_SKETCH);
     final int k = getK();
+    final int m = getM();
     final String epsPct = String.format("%.3f%%", getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", getNormalizedRankError(true) * 100);
     final StringBuilder sb = new StringBuilder();
-    final String skType = (doubleType) ? "Doubles" : "Floats";
-    sb.append(Util.LS).append("### KLL ").append(skType).append("Sketch summary:").append(Util.LS);
-    sb.append("   K                    : ").append(k).append(Util.LS);
-    sb.append("   Dynamic min K        : ").append(getDyMinK()).append(Util.LS);
-    sb.append("   M                    : ").append(M).append(Util.LS);
-    sb.append("   N                    : ").append(getN()).append(Util.LS);
-    sb.append("   Epsilon              : ").append(epsPct).append(Util.LS);
-    sb.append("   Epsison PMF          : ").append(epsPMFPct).append(Util.LS);
-    sb.append("   Empty                : ").append(isEmpty()).append(Util.LS);
-    sb.append("   Estimation Mode      : ").append(isEstimationMode()).append(Util.LS);
-    sb.append("   Levels               : ").append(getNumLevels()).append(Util.LS);
-    sb.append("   Level 0 Sorted       : ").append(isLevelZeroSorted()).append(Util.LS);
+    final String skType = (direct ? "Direct" : "") + (doubleType ? "Doubles" : "Floats");
+    sb.append(Util.LS).append("### Kll").append(skType).append("Sketch Summary:").append(Util.LS);
+    sb.append("   K                      : ").append(k).append(Util.LS);
+    sb.append("   Dynamic min K          : ").append(getDyMinK()).append(Util.LS);
+    sb.append("   M                      : ").append(m).append(Util.LS);
+    sb.append("   N                      : ").append(getN()).append(Util.LS);
+    sb.append("   Epsilon                : ").append(epsPct).append(Util.LS);
+    sb.append("   Epsison PMF            : ").append(epsPMFPct).append(Util.LS);
+    sb.append("   Empty                  : ").append(isEmpty()).append(Util.LS);
+    sb.append("   Estimation Mode        : ").append(isEstimationMode()).append(Util.LS);
+    sb.append("   Levels                 : ").append(getNumLevels()).append(Util.LS);
+    sb.append("   Level 0 Sorted         : ").append(isLevelZeroSorted()).append(Util.LS);
     final int cap = (doubleType) ? getDoubleItemsArray().length : getFloatItemsArray().length;
-    sb.append("   Capacity Items       : ").append(cap).append(Util.LS);
-    sb.append("   Retained Items       : ").append(getNumRetained()).append(Util.LS);
-    sb.append("   Compact Storage Bytes: ").append(getCurrentCompactSerializedSizeBytes()).append(Util.LS);
-    if (doubleType) {
-      sb.append("   Min Value            : ").append(getMinDoubleValue()).append(Util.LS);
-      sb.append("   Max Value            : ").append(getMaxDoubleValue()).append(Util.LS);
+    sb.append("   Capacity Items         : ").append(cap).append(Util.LS);
+    sb.append("   Retained Items         : ").append(getNumRetained()).append(Util.LS);
+    if (direct) {
+      sb.append("   Updatable Storage Bytes: ").append(getCurrentUpdatableSerializedSizeBytes()).append(Util.LS);
     } else {
-      sb.append("   Min Value            : ").append(getMinFloatValue()).append(Util.LS);
-      sb.append("   Max Value            : ").append(getMaxFloatValue()).append(Util.LS);
+      sb.append("   Compact Storage Bytes  : ").append(getCurrentCompactSerializedSizeBytes()).append(Util.LS);
+    }
+
+    if (doubleType) {
+      sb.append("   Min Value              : ").append(getMinDoubleValue()).append(Util.LS);
+      sb.append("   Max Value              : ").append(getMaxDoubleValue()).append(Util.LS);
+    } else {
+      sb.append("   Min Value              : ").append(getMinFloatValue()).append(Util.LS);
+      sb.append("   Max Value              : ").append(getMaxFloatValue()).append(Util.LS);
     }
     sb.append("### End sketch summary").append(Util.LS);
 
@@ -1063,7 +1078,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       myFloatItemsArr = getFloatItemsArray();
     }
     if (withLevels) {
-      sb.append(outputLevels(k, myNumLevels, myLevelsArr));
+      sb.append(outputLevels(k, m, myNumLevels, myLevelsArr));
     }
     if (withData) {
       sb.append(outputData(doubleType, myNumLevels, myLevelsArr, myFloatItemsArr, myDoubleItemsArr));
@@ -1071,14 +1086,14 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     return sb.toString();
   }
 
-  static String outputLevels(final int k, final int numLevels, final int[] levelsArr) {
+  static String outputLevels(final int k, final int m, final int numLevels, final int[] levelsArr) {
     final StringBuilder sb =  new StringBuilder();
     sb.append("### KLL levels array:").append(Util.LS)
     .append(" level, offset: nominal capacity, actual size").append(Util.LS);
     int level = 0;
     for ( ; level < numLevels; level++) {
       sb.append("   ").append(level).append(", ").append(levelsArr[level]).append(": ")
-      .append(KllHelper.levelCapacity(k, numLevels, level, M))
+      .append(KllHelper.levelCapacity(k, numLevels, level, m))
       .append(", ").append(KllHelper.currentLevelSize(level, numLevels, levelsArr)).append(Util.LS);
     }
     sb.append("   ").append(level).append(", ").append(levelsArr[level]).append(": (Exclusive)")
@@ -1256,7 +1271,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     }
     assert myCurLevelsArr[0] == 0; //definition of full is part of the growth scheme
 
-    final int deltaItemsCap = KllHelper.levelCapacity(getK(), myCurNumLevels + 1, 0, M);
+    final int deltaItemsCap = KllHelper.levelCapacity(getK(), myCurNumLevels + 1, 0, getM());
     myNewTotalItemsCapacity = myCurTotalItemsCapacity + deltaItemsCap;
 
     // Check if growing the levels arr if required.
@@ -1313,7 +1328,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   // It cannot be used while merging, while reducing k, or anything else.
   @SuppressWarnings("null")
   private void compressWhileUpdatingSketch() {
-    final int level = KllHelper.findLevelToCompact(getK(), M, getNumLevels(), getLevelsArray());
+    final int level = KllHelper.findLevelToCompact(getK(), getM(), getNumLevels(), getLevelsArray());
     if (level == getNumLevels() - 1) {
       //The level to compact is the top level, thus we need to add a level.
       //Be aware that this operation grows the items array,

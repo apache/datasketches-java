@@ -70,7 +70,7 @@ public class KllDirectFloatsSketchIteratorTest {
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
 
-    KllDirectFloatsSketch dfsk = new KllDirectFloatsSketch(wmem, memReqSvr);
+    KllDirectFloatsSketch dfsk = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }
 

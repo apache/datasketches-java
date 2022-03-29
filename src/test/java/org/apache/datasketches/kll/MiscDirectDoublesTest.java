@@ -121,7 +121,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -139,7 +138,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -158,7 +156,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "DOUBLE_UPDATABLE");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -190,7 +187,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -212,7 +208,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -235,7 +230,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -267,7 +261,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 33);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -289,7 +282,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -312,7 +304,6 @@ public class MiscDirectDoublesTest {
     assertEquals(sk.getDyMinK(), k);
     assertTrue(Objects.isNull(sk.getFloatItemsArray()));
     assertEquals(sk.getDoubleItemsArray().length, 20);
-    assertEquals(sk.getLayout(), "HEAP");
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -338,7 +329,7 @@ public class MiscDirectDoublesTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = new KllDirectDoublesSketch(wmem, memReqSvr);
+    sk2 = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -353,7 +344,7 @@ public class MiscDirectDoublesTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = new KllDirectDoublesSketch(wmem, memReqSvr);
+    sk2 = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -369,7 +360,7 @@ public class MiscDirectDoublesTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = new KllDirectDoublesSketch(wmem, memReqSvr);
+    sk2 = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -412,12 +403,21 @@ public class MiscDirectDoublesTest {
     assertEquals(size2, byteArr2.length);
   }
 
+  @Test
+  public void checkNewInstance() {
+    int k = 200;
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllDirectDoublesSketch sk = KllDirectDoublesSketch.newInstance(k, dstMem, memReqSvr);
+    for (int i = 1; i <= 10_000; i++) {sk.update(i); }
+    println(sk.toString(true, true));
+  }
+
   private static KllDirectDoublesSketch getDDSketch(final int k, final int n) {
     KllDoublesSketch sk = new KllDoublesSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    KllDirectDoublesSketch ddsk = new KllDirectDoublesSketch(wmem, memReqSvr);
+    KllDirectDoublesSketch ddsk = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
     return ddsk;
   }
 
@@ -430,7 +430,7 @@ public class MiscDirectDoublesTest {
    * @param s value to print
    */
   static void println(final String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }

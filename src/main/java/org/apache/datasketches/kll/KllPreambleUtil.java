@@ -51,15 +51,21 @@ import org.apache.datasketches.memory.WritableMemory;
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
  *  1   ||---------------------------------N_LONG---------------------------------------|
- *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
- *  2   ||<--------------data----------------| unused |numLevels|--dynamic-min K--------|
+ *      ||         |       |        |   20   |   19   |    18   |   17   |      16      |
+ *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|--Dynamic-Min K--------|
+ *      ||         |       |        |        |        |         |        |              |
+ *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
+ *      ||         |       |        |        |        |         |        |              |
+ *  ?   ||<-----Float Items Arr Start-------]|[<---------Min/Max Arr End----------------|
+ *      ||         |       |        |        |        |         |        |              |
+ *  ?   ||         |       |        |        |[<-------Float Items Arr End--------------|
  *
  * Serialized float sketch layout, Empty (8 bytes) and Single Item (12 bytes):
  *  Adr:
  *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
- *  1   ||                                   |-------------------data-------------------|
+ *  1   ||                                   |-------------Single Item------------------|
  *
  *
  *
@@ -70,16 +76,20 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
  *  1   ||---------------------------------N_LONG---------------------------------------|
  *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
- *  2   ||--------------unused------------------------|numLevels|--dynamic-min K--------|
- *      ||                                                               |      24      |
- *  3   ||<---------------------------------data----------------------------------------|
+ *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|--Dynamic-Min K--------|
+ *      ||         |       |        |        |        |         |        |              |
+ *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
+ *      ||         |       |        |        |        |         |        |              |
+ *  ?   ||<----Double Items Arr Start-------]|[<---------Min/Max Arr End----------------|
+ *      ||         |       |        |        |        |         |        |              |
+ *  ?   ||         |       |        |        |[<------Double Items Arr End--------------|
  *
  * Serialized double sketch layout, Empty (8 bytes) and Single Item (16 bytes):
  *  Adr:
  *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
  *      ||                                                               |      8       |
- *  1   ||----------------------------------data----------------------------------------|
+ *  1   ||------------------------------Single Item-------------------------------------|
  *
  * The structure of the data block depends on Layout:
  *
@@ -92,7 +102,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *     Followed by an array of Floats of length retainedItems()
  *
  *   For DOUBLE_FULL_COMPACT
- *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 24 with a length of numLevels integers;
+ *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 20 with a length of numLevels integers;
  *     Followed by Double Min_Value, then Double Max_Value
  *     Followed by an array of Doubles of length retainedItems()
  *
@@ -102,7 +112,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *     Followed by an array of Floats of length KllHelper.computeTotalItemCapacity(...).
  *
  *   For DOUBLE_UPDATABLE
- *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 24 with a length of (numLevels + 1) integers;
+ *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 20 with a length of (numLevels + 1) integers;
  *     Followed by Double Min_Value, then Double Max_Value
  *     Followed by an array of Doubles of length KllHelper.computeTotalItemCapacity(...).
  *
@@ -120,8 +130,7 @@ final class KllPreambleUtil {
    * The default value of K
    */
   public static final int DEFAULT_K = 200;
-  static final int DEFAULT_M = 8;
-  static final int MIN_K = DEFAULT_M;
+  public static final int DEFAULT_M = 8;
   static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   // Preamble byte addresses
@@ -144,7 +153,7 @@ final class KllPreambleUtil {
   static final int DATA_START_ADR_FLOAT       = 20; // float sketch, not single item
 
   // DOUBLE SKETCH                              19 to 23 is reserved for future use in double sketch
-  static final int DATA_START_ADR_DOUBLE      = 24; // double sketch, not single item
+  static final int DATA_START_ADR_DOUBLE      = 20; // double sketch, not single item //TODO??
 
   // Other static values
   static final byte SERIAL_VERSION_EMPTY_FULL = 1; // Empty or full preamble, NOT single item format
@@ -152,7 +161,7 @@ final class KllPreambleUtil {
   static final byte SERIAL_VERSION_UPDATABLE  = 3; //
   static final int PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
   static final int PREAMBLE_INTS_FLOAT        = 5; // not empty nor single item, full preamble float
-  static final int PREAMBLE_INTS_DOUBLE       = 6; // not empty nor single item, full preamble double
+  static final int PREAMBLE_INTS_DOUBLE       = 5; // not empty nor single item, full preamble double
 
   // Flag bit masks
   static final int EMPTY_BIT_MASK             = 1;
