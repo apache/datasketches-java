@@ -35,8 +35,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_SRC_IS_NOT_DIRECT;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_SRC_IS_NOT_FLOAT;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DIRECT;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_FLOAT;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -301,8 +301,8 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (!other.isDirect()) { kllSketchThrow(ERR_SRC_IS_NOT_DIRECT); }
-    if (!other.isFloatsSketch()) { kllSketchThrow(ERR_SRC_IS_NOT_FLOAT); }
+    if (!other.isDirect()) { kllSketchThrow(SRC_IS_NOT_DIRECT); }
+    if (!other.isFloatsSketch()) { kllSketchThrow(SRC_IS_NOT_FLOAT); }
     mergeFloatImpl(other);
   }
 

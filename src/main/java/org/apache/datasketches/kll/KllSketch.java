@@ -236,18 +236,18 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     return compatible;
   }
 
-  enum ERRNO { ERR_TGT_IS_IMMUTABLE, ERR_SRC_IS_NOT_DIRECT, ERR_SRC_IS_NOT_DOUBLE,
-    ERR_SRC_IS_NOT_FLOAT, ERR_SRC_CANNOT_BE_DIRECT, ERR_MUST_NOT_CALL }
+  enum Error { TGT_IS_IMMUTABLE, SRC_IS_NOT_DIRECT, SRC_IS_NOT_DOUBLE,
+   SRC_IS_NOT_FLOAT, SRC_CANNOT_BE_DIRECT, MUST_NOT_CALL }
 
-  final static void kllSketchThrow(final ERRNO errType) {
+  final static void kllSketchThrow(final Error errType) {
     String msg = "";
     switch (errType) {
-      case ERR_TGT_IS_IMMUTABLE: msg = "Given sketch Memory is immutable, cannot write."; break;
-      case ERR_SRC_IS_NOT_DIRECT: msg = "Given sketch must be of type Direct."; break;
-      case ERR_SRC_IS_NOT_DOUBLE: msg = "Given sketch must be of type Double."; break;
-      case ERR_SRC_IS_NOT_FLOAT: msg = "Given sketch must be of type Float."; break;
-      case ERR_SRC_CANNOT_BE_DIRECT: msg = "Given sketch must not be of type Direct."; break;
-      case ERR_MUST_NOT_CALL: msg = "This is an artifact of inheritance and should never be called."; break;
+      case TGT_IS_IMMUTABLE: msg = "Given sketch Memory is immutable, cannot write."; break;
+      case SRC_IS_NOT_DIRECT: msg = "Given sketch must be of type Direct."; break;
+      case SRC_IS_NOT_DOUBLE: msg = "Given sketch must be of type Double."; break;
+      case SRC_IS_NOT_FLOAT: msg = "Given sketch must be of type Float."; break;
+      case SRC_CANNOT_BE_DIRECT: msg = "Given sketch must not be of type Direct."; break;
+      case MUST_NOT_CALL: msg = "This is an artifact of inheritance and should never be called."; break;
       default: msg = "Unknown error."; break;
     }
     throw new SketchesArgumentException(msg);

@@ -31,7 +31,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_TGT_IS_IMMUTABLE;
+import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -165,14 +165,14 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void incN() {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     long n = extractN(wmem);
     insertN(wmem, ++n);
   }
 
   @Override
   void incNumLevels() {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     int numLevels = extractNumLevels(wmem);
     insertNumLevels(wmem, ++numLevels);
   }
@@ -184,7 +184,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setDoubleItemsArray(final double[] doubleItems) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putDoubleArray(0, doubleItems, 0, doubleItems.length);
   }
 
@@ -195,13 +195,13 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setDyMinK(final int dyMinK) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     insertDyMinK(wmem, dyMinK);
   }
 
   @Override
   void setFloatItemsArray(final float[] floatItems) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putFloatArray(0, floatItems, 0, floatItems.length);
   }
 
@@ -217,7 +217,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelsArray(final int[] levelsArr) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     levelsArrUpdatable.putIntArray(0, levelsArr, 0, levelsArr.length);
   }
 
@@ -247,31 +247,31 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelZeroSorted(final boolean sorted) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     insertLevelZeroSortedFlag(wmem, sorted);
   }
 
   @Override
   void setMaxDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putDouble(Double.BYTES, value);
   }
 
   @Override
   void setMaxFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putFloat(Float.BYTES, value);
   }
 
   @Override
   void setMinDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putDouble(0, value);
   }
 
   @Override
   void setMinFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putFloat(0, value);
   }
 
@@ -282,13 +282,13 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setN(final long n) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     insertN(wmem, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
-    if (!updatable) { kllSketchThrow(ERR_TGT_IS_IMMUTABLE); }
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     insertNumLevels(wmem, numLevels);
   }
 
