@@ -36,8 +36,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR32;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR33;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_SRC_IS_NOT_DIRECT;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_SRC_IS_NOT_DOUBLE;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -301,8 +301,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (!other.isDirect()) { kllSketchThrow(ERR32); }
-    if (!other.isDoublesSketch()) { kllSketchThrow(ERR33); }
+    if (!other.isDirect()) { kllSketchThrow(ERR_SRC_IS_NOT_DIRECT); }
+    if (!other.isDoublesSketch()) { kllSketchThrow(ERR_SRC_IS_NOT_DOUBLE); }
     mergeDoubleImpl(other);
   }
 

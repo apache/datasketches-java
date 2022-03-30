@@ -23,9 +23,9 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR34;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR35;
-import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR50;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_SRC_IS_NOT_FLOAT;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_SRC_CANNOT_BE_DIRECT;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR_MUST_NOT_CALL;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -289,8 +289,8 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllFloatsSketch other) {
-    if (other.isDirect()) { kllSketchThrow(ERR35); }
-    if (!other.isFloatsSketch()) { kllSketchThrow(ERR34); }
+    if (other.isDirect()) { kllSketchThrow(ERR_SRC_CANNOT_BE_DIRECT); }
+    if (!other.isFloatsSketch()) { kllSketchThrow(ERR_SRC_IS_NOT_FLOAT); }
     mergeFloatImpl(other);
   }
 
@@ -304,10 +304,10 @@ public final class KllFloatsSketch extends KllHeapSketch {
   }
 
   @Override //Dummy
-  double[] getDoubleItemsArray() { kllSketchThrow(ERR50); return null; }
+  double[] getDoubleItemsArray() { kllSketchThrow(ERR_MUST_NOT_CALL); return null; }
 
   @Override //Dummy
-  double getDoubleItemsArrayAt(final int index) { kllSketchThrow(ERR50); return Double.NaN; }
+  double getDoubleItemsArrayAt(final int index) { kllSketchThrow(ERR_MUST_NOT_CALL); return Double.NaN; }
 
   @Override //Used internally
   float[] getFloatItemsArray() { return floatItems_; }
@@ -316,22 +316,22 @@ public final class KllFloatsSketch extends KllHeapSketch {
   float getFloatItemsArrayAt(final int index) { return floatItems_[index]; }
 
   @Override //Dummy
-  double getMaxDoubleValue() { kllSketchThrow(ERR50); return maxFloatValue_; }
+  double getMaxDoubleValue() { kllSketchThrow(ERR_MUST_NOT_CALL); return maxFloatValue_; }
 
   @Override //Used internally
   float getMaxFloatValue() { return maxFloatValue_; }
 
   @Override //Dummy
-  double getMinDoubleValue() { kllSketchThrow(ERR50); return minFloatValue_; }
+  double getMinDoubleValue() { kllSketchThrow(ERR_MUST_NOT_CALL); return minFloatValue_; }
 
   @Override //Used internally
   float getMinFloatValue() { return minFloatValue_; }
 
   @Override //Dummy
-  void setDoubleItemsArray(final double[] doubleItems) { kllSketchThrow(ERR50); }
+  void setDoubleItemsArray(final double[] doubleItems) { kllSketchThrow(ERR_MUST_NOT_CALL); }
 
   @Override //Dummy
-  void setDoubleItemsArrayAt(final int index, final double value) { kllSketchThrow(ERR50); }
+  void setDoubleItemsArrayAt(final int index, final double value) { kllSketchThrow(ERR_MUST_NOT_CALL); }
 
   @Override //Used internally
   void setFloatItemsArray(final float[] floatItems) { floatItems_ = floatItems; }
@@ -340,13 +340,13 @@ public final class KllFloatsSketch extends KllHeapSketch {
   void setFloatItemsArrayAt(final int index, final float value) { floatItems_[index] = value; }
 
   @Override //Dummy
-  void setMaxDoubleValue(final double value) { kllSketchThrow(ERR50); }
+  void setMaxDoubleValue(final double value) { kllSketchThrow(ERR_MUST_NOT_CALL); }
 
   @Override //Used internally
   void setMaxFloatValue(final float value) { maxFloatValue_ = value; }
 
   @Override //Dummy
-  void setMinDoubleValue(final double value) { kllSketchThrow(ERR50); }
+  void setMinDoubleValue(final double value) { kllSketchThrow(ERR_MUST_NOT_CALL); }
 
   @Override //Used internally
   void setMinFloatValue(final float value) { minFloatValue_ = value; }
