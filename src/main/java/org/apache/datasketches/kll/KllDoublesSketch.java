@@ -39,11 +39,19 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes, Kevin Lang
  */
 public final class KllDoublesSketch extends KllHeapSketch {
-
-  // Specific to the doubles sketch
-  private double[] doubleItems_; // the continuous array of double items
+  private double[] doubleItems_;
   private double minDoubleValue_;
   private double maxDoubleValue_;
+
+  /**
+   * Private heapify constructor.
+   * @param mem Memory object that contains data serialized by this sketch.
+   * @param memVal the MemoryCheck object
+   */
+  private KllDoublesSketch(final Memory mem, final KllMemoryValidate memVal) {
+    super(memVal.k, memVal.m, SketchType.DOUBLES_SKETCH);
+    buildHeapKllSketchFromMemory(memVal);
+  }
 
   /**
    * Heap constructor with the default <em>k = 200</em>, and DEFAULT_M of 8.
@@ -75,21 +83,11 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width.
    */
-  public KllDoublesSketch(final int k, final int m) {
+  KllDoublesSketch(final int k, final int m) {
     super(k, m, SketchType.DOUBLES_SKETCH);
     doubleItems_ = new double[k];
     minDoubleValue_ = Double.NaN;
     maxDoubleValue_ = Double.NaN;
-  }
-
-  /**
-   * Private heapify constructor.
-   * @param mem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryCheck object
-   */
-  private KllDoublesSketch(final Memory mem, final KllMemoryValidate memVal) {
-    super(memVal.k, memVal.m, SketchType.DOUBLES_SKETCH);
-    buildHeapKllSketchFromMemory(memVal);
   }
 
   /**
@@ -99,8 +97,6 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
-  //To simplify the code, the MemoryValidate class does nearly all the validity checking.
-  //The validated Memory is then passed to the actual private heapify constructor.
   public static KllDoublesSketch heapify(final Memory mem) {
     final KllMemoryValidate memChk = new KllMemoryValidate(mem);
     if (!memChk.doublesSketch) {

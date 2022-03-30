@@ -32,6 +32,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.KllPreambleUtil.MIN_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
@@ -96,8 +97,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 public abstract class KllSketch {
-  static final int MIN_M = 2;
-  static final int MAX_M = 8;
   static final double EPS_DELTA_THRESHOLD = 1E-6;
   static final double MIN_EPS = 4.7634E-5;
   static final double PMF_COEF = 2.446;

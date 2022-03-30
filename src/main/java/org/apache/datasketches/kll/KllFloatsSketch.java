@@ -39,11 +39,19 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes, Kevin Lang
  */
 public final class KllFloatsSketch extends KllHeapSketch {
-
-  // Specific to the floats sketch
-  private float[] floatItems_; // the continuous array of float items
+  private float[] floatItems_;
   private float minFloatValue_;
   private float maxFloatValue_;
+
+  /**
+   * Private heapify constructor.
+   * @param mem Memory object that contains data serialized by this sketch.
+   * @param memVal the MemoryCheck object
+   */
+  private KllFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
+    super(memVal.k, memVal.m, SketchType.FLOATS_SKETCH);
+    buildHeapKllSketchFromMemory(memVal);
+  }
 
   /**
    * Heap constructor with the default <em>k = 200</em>, and DEFAULT_M of 8.
@@ -75,21 +83,11 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width.
    */
-  public KllFloatsSketch(final int k, final int m) {
+  KllFloatsSketch(final int k, final int m) {
     super(k, m, SketchType.FLOATS_SKETCH);
     floatItems_ = new float[k];
     minFloatValue_ = Float.NaN;
     maxFloatValue_ = Float.NaN;
-  }
-
-  /**
-   * Private heapify constructor.
-   * @param mem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryCheck object
-   */
-  private KllFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
-    super(memVal.k, memVal.m, SketchType.FLOATS_SKETCH);
-    buildHeapKllSketchFromMemory(memVal);
   }
 
   /**
@@ -99,8 +97,6 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
-  //To simplify the code, the MemoryValidate class does nearly all the validity checking.
-  //The validated Memory is then passed to the actual private heapify constructor.
   public static KllFloatsSketch heapify(final Memory mem) {
     final KllMemoryValidate memVal = new KllMemoryValidate(mem);
     if (memVal.doublesSketch) {

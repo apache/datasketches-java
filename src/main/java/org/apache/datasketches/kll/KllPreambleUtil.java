@@ -131,7 +131,9 @@ final class KllPreambleUtil {
    */
   public static final int DEFAULT_K = 200;
   public static final int DEFAULT_M = 8;
-  static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
+  public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
+  public static final int MAX_M = 8;
+  public static final int MIN_M = 2;
 
   // Preamble byte addresses
   static final int PREAMBLE_INTS_BYTE_ADR     = 0;
@@ -153,7 +155,7 @@ final class KllPreambleUtil {
   static final int DATA_START_ADR_FLOAT       = 20; // float sketch, not single item
 
   // DOUBLE SKETCH                              19 to 23 is reserved for future use in double sketch
-  static final int DATA_START_ADR_DOUBLE      = 20; // double sketch, not single item //TODO??
+  static final int DATA_START_ADR_DOUBLE      = 20; // double sketch, not single item
 
   // Other static values
   static final byte SERIAL_VERSION_EMPTY_FULL = 1; // Empty or full preamble, NOT single item format
