@@ -199,7 +199,7 @@ final class KllPreambleUtil {
   }
 
   static String memoryToString(final Memory mem) {
-    final MemoryValidate memChk = new MemoryValidate(mem);
+    final KllMemoryValidate memChk = new KllMemoryValidate(mem);
     final int flags = memChk.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);

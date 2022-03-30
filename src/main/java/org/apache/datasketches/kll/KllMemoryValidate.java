@@ -20,6 +20,14 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.Family.idToFamily;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR0;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR1;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR10;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR2;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR20;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR4;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR5;
+import static org.apache.datasketches.kll.KllMemoryValidate.MERRNO.MERR6;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
@@ -57,7 +65,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author lrhodes
  *
  */
-final class MemoryValidate {
+final class KllMemoryValidate {
   // first 8 bytes
   final int preInts; // = extractPreInts(srcMem);
   final int serVer;
@@ -92,13 +100,13 @@ final class MemoryValidate {
   WritableMemory minMaxArrUpdatable;
   WritableMemory itemsArrUpdatable;
 
-  MemoryValidate(final Memory srcMem) {
+  KllMemoryValidate(final Memory srcMem) {
     memCapacity = (int) srcMem.getCapacity();
     preInts = extractPreInts(srcMem);
     serVer = extractSerVer(srcMem);
 
     familyID = extractFamilyID(srcMem);
-    if (familyID != Family.KLL.getID()) { memoryValidateThrow(0, familyID); }
+    if (familyID != Family.KLL.getID()) { memoryValidateThrow(MERR0, familyID); }
     famName = idToFamily(familyID).toString();
     flags = extractFlags(srcMem);
     empty = extractEmptyFlag(srcMem);
@@ -110,19 +118,19 @@ final class MemoryValidate {
     m = extractM(srcMem);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(10, 0); }
+    if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(MERR10, 0); }
 
     if (updatable) { updatableMemoryValidate((WritableMemory) srcMem); }
     else { compactMemoryValidate(srcMem); }
   }
 
   void compactMemoryValidate(final Memory srcMem) {
-    if (empty && singleItem) { memoryValidateThrow(20, 0); }
+    if (empty && singleItem) { memoryValidateThrow(MERR20, 0); }
     final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0) | (doublesSketch ? 8 : 0);
     switch (sw) {
       case 0: { //FLOAT_FULL_COMPACT
-        if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(6, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
+        if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(MERR6, preInts); }
+        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(MERR2, serVer); }
         layout = Layout.FLOAT_FULL_COMPACT;
         n = extractN(srcMem);
         dyMinK = extractDyMinK(srcMem);
@@ -148,8 +156,8 @@ final class MemoryValidate {
         break;
       }
       case 1: { //FLOAT_EMPTY_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
+        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(MERR1, preInts); }
+        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(MERR2, serVer); }
         layout = Layout.FLOAT_EMPTY_COMPACT;
         n = 0;           //assumed
         dyMinK = k;      //assumed
@@ -167,8 +175,8 @@ final class MemoryValidate {
         break;
       }
       case 4: { //FLOAT_SINGLE_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
-        if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(4, serVer); }
+        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(MERR1, preInts); }
+        if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(MERR4, serVer); }
         layout = Layout.FLOAT_SINGLE_COMPACT;
         n = 1;
         dyMinK = k;
@@ -189,8 +197,8 @@ final class MemoryValidate {
         break;
       }
       case 8: { //DOUBLE_FULL_COMPACT
-        if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(5, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
+        if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(MERR5, preInts); }
+        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(MERR2, serVer); }
         layout = Layout.DOUBLE_FULL_COMPACT;
         n = extractN(srcMem);
         dyMinK = extractDyMinK(srcMem);
@@ -216,8 +224,8 @@ final class MemoryValidate {
         break;
       }
       case 9: { //DOUBLE_EMPTY_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(2, serVer); }
+        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(MERR1, preInts); }
+        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(MERR2, serVer); }
         layout = Layout.DOUBLE_EMPTY_COMPACT;
         n = 0;
         dyMinK = k;
@@ -236,8 +244,8 @@ final class MemoryValidate {
         break;
       }
       case 12: { //DOUBLE_SINGLE_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(1, preInts); }
-        if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(4, serVer); }
+        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(MERR1, preInts); }
+        if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(MERR4, serVer); }
         layout = Layout.DOUBLE_SINGLE_COMPACT;
         n = 1;
         dyMinK = k;
@@ -264,7 +272,7 @@ final class MemoryValidate {
 
   void updatableMemoryValidate(final WritableMemory wSrcMem) {
     if (doublesSketch) { //DOUBLE_UPDATABLE
-      if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(5, preInts); }
+      if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(MERR5, preInts); }
       layout = Layout.DOUBLE_UPDATABLE;
       n = extractN(wSrcMem);
       empty = n == 0;       //empty & singleItem are set for convenience
@@ -287,7 +295,7 @@ final class MemoryValidate {
       sketchBytes = offset + itemsArrBytes;
     }
     else { //FLOAT_UPDATABLE
-      if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(6, preInts); }
+      if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(MERR6, preInts); }
       layout = Layout.FLOAT_UPDATABLE;
       n = extractN(wSrcMem);
       empty = n == 0;       //empty & singleItem are set for convenience
@@ -310,25 +318,19 @@ final class MemoryValidate {
     }
   }
 
-  private static void memoryValidateThrow(final int errNo, final int value) {
+  enum MERRNO { MERR0, MERR1, MERR2, MERR4, MERR5, MERR6, MERR10, MERR20 }
+
+  private static void memoryValidateThrow(final MERRNO errNo, final int value) {
     String msg = "";
     switch (errNo) {
-      case 0: msg = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: " + value; break;
-      case 1: msg = "Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-      case 2: msg = "Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: " + value; break;
-      //case 3: msg = "Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-      case 4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
-      case 5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
-      case 6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
-      //case 7: msg = "The M field must be set to " + DEFAULT_M + ", NOT: " + value; break;
-      //case 8: msg = "The dynamic MinK must be equal to K, NOT: " + value; break;
-      //case 9: msg = "numLevels must be one, NOT: " + value; break;
-      case 10: msg = "((SerVer == 3) ^ (Updatable Bit)) must = 0."; break;
-      case 20: msg = "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
-      //case 21: msg = "N != 0 and empty bit is set. N: " + value; break;
-      //case 22: msg = "N != 1 and single item bit is set. N: " + value; break;
-      //case 23: msg = "Family name is not KLL"; break;
-      //case 24: msg = "Given Memory has insufficient capacity. Need " + value + " bytes."; break;
+      case MERR0: msg = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: " + value; break;
+      case MERR1: msg = "Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
+      case MERR2: msg = "Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: " + value; break;
+      case MERR4: msg = "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
+      case MERR5: msg = "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
+      case MERR6: msg = "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
+      case MERR10: msg = "((SerVer == 3) ^ (Updatable Bit)) must = 0."; break;
+      case MERR20: msg = "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
       default: msg = "Unknown error: errNo: " + errNo; break;
     }
     throw new SketchesArgumentException(msg);

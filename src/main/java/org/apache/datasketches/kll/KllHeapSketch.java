@@ -71,7 +71,7 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  int getDyMinK() {
+  int getDynamicMinK() {
     return dyMinK_;
   }
 

@@ -109,7 +109,7 @@ public class MiscDirectFloatsTest {
     int k = 20; //don't change this
     KllDirectFloatsSketch sk;
 
-    //println("#### CASE: DOUBLE FULL HEAP");
+    //println("#### CASE: FLOAT FULL HEAP");
     sk = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     //println(sk.toString(true, true));
@@ -118,8 +118,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -127,7 +126,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE HEAP EMPTY");
+    //println("#### CASE: FLOAT HEAP EMPTY");
     sk = getDFSketch(k, 0);
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -135,8 +134,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -144,7 +142,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE HEAP SINGLE");
+    //println("#### CASE: FLOAT HEAP SINGLE");
     sk = getDFSketch(k, 0);
     sk.update(1);
     //println(sk.toString(true, true));
@@ -153,8 +151,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -171,7 +168,7 @@ public class MiscDirectFloatsTest {
     byte[] compBytes;
     WritableMemory wmem;
 
-    //println("#### CASE: DOUBLE FULL HEAPIFIED FROM COMPACT");
+    //println("#### CASE: FLOAT FULL HEAPIFIED FROM COMPACT");
     sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk.toString(true, true));
@@ -184,8 +181,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -193,7 +189,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM COMPACT");
+    //println("#### CASE: FLOAT EMPTY HEAPIFIED FROM COMPACT");
     sk2 = getDFSketch(k, 0);
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
@@ -205,8 +201,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -214,7 +209,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM COMPACT");
+    //println("#### CASE: FLOAT SINGLE HEAPIFIED FROM COMPACT");
     sk2 = getDFSketch(k, 0);
     sk2.update(1);
     //println(sk2.toString(true, true));
@@ -227,8 +222,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -245,7 +239,7 @@ public class MiscDirectFloatsTest {
     byte[] compBytes;
     WritableMemory wmem;
 
-    //println("#### CASE: DOUBLE FULL HEAPIFIED FROM UPDATABLE");
+    //println("#### CASE: FLOAT FULL HEAPIFIED FROM UPDATABLE");
     sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
@@ -258,8 +252,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -267,7 +260,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-   // println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
+   // println("#### CASE: FLOAT EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = getDFSketch(k, 0);
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
@@ -279,8 +272,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -288,7 +280,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM UPDATABLE");
+    //println("#### CASE: FLOAT SINGLE HEAPIFIED FROM UPDATABLE");
     sk2 = getDFSketch(k, 0);
     sk2.update(1);
     //println(sk.toString(true, true));
@@ -301,8 +293,7 @@ public class MiscDirectFloatsTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
-    assertTrue(Objects.isNull(sk.getDoubleItemsArray()));
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -321,7 +312,7 @@ public class MiscDirectFloatsTest {
     WritableMemory wmem;
     String s;
 
-    println("#### CASE: DOUBLE FULL UPDATABLE");
+    println("#### CASE: FLOAT FULL UPDATABLE");
     sk = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = sk.toUpdatableByteArray();
@@ -337,7 +328,7 @@ public class MiscDirectFloatsTest {
     println(s);
     assertEquals(upBytes, upBytes2);
 
-    println("#### CASE: DOUBLE EMPTY UPDATABLE");
+    println("#### CASE: FLOAT EMPTY UPDATABLE");
     sk = getDFSketch(k, 0);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
@@ -352,7 +343,7 @@ public class MiscDirectFloatsTest {
     println(s);
     assertEquals(upBytes, upBytes2);
 
-    println("#### CASE: DOUBLE SINGLE UPDATABL");
+    println("#### CASE: FLOAT SINGLE UPDATABL");
     sk = getDFSketch(k, 0);
     sk.update(1);
     upBytes = sk.toUpdatableByteArray();
@@ -409,7 +400,20 @@ public class MiscDirectFloatsTest {
     WritableMemory dstMem = WritableMemory.allocate(3000);
     KllDirectFloatsSketch sk = KllDirectFloatsSketch.newInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
-    println(sk.toString(true, true));
+    assertEquals(sk.getMinValue(), 1.0F);
+    assertEquals(sk.getMaxValue(), 10000.0F);
+    //println(sk.toString(true, true));
+  }
+
+  @Test
+  public void checkDifferentM() {
+    int k = 20;
+    int m = 4;
+    WritableMemory dstMem = WritableMemory.allocate(1000);
+    KllDirectFloatsSketch sk = KllDirectFloatsSketch.newInstance(k, m, dstMem, memReqSvr);
+    for (int i = 1; i <= 200; i++) {sk.update(i); }
+    assertEquals(sk.getMinValue(), 1.0);
+    assertEquals(sk.getMaxValue(), 200.0);
   }
 
   private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
@@ -430,7 +434,7 @@ public class MiscDirectFloatsTest {
    * @param s value to print
    */
   static void println(final String s) {
-    System.out.println(s); //disable here
+    //System.out.println(s); //disable here
   }
 
 }

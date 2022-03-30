@@ -313,7 +313,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeEmpty() { //compact serialize then heapify using KllDoublesSketch
+  public void serializeDeserializeEmptyViaCompactHeapify() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final byte[] bytes = sketch1.toByteArray();
     final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
@@ -328,7 +328,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeEmpty2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
+  public void serializeDeserializeEmptyViaUpdatableWritableWrap() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final byte[] bytes = sketch1.toUpdatableByteArray();
     final KllDirectFloatsSketch sketch2 =
@@ -344,7 +344,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeOneItem() { //compact serialize then heapify using KllDoublesSketch
+  public void serializeDeserializeOneItemViaCompactHeapify() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
@@ -360,7 +360,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeOneItem2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
+  public void serializeDeserializeOneItemViaUpdatableWritableWrap() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = sketch1.toUpdatableByteArray();
@@ -377,7 +377,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserialize() { //compact serialize then heapify using KllDoublesSketch
+  public void serializeDeserializeFullViaCompactHeapify() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final int n = 1000;
     for (int i = 0; i < n; i++) {
@@ -396,7 +396,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserialize2() { //updatable serialize then new (loaded) KllDirectDoublesSketch
+  public void serializeDeserializeFullViaUpdatableWritableWrap() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final int n = 1000;
     for (int i = 0; i < n; i++) {
@@ -492,7 +492,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0);
@@ -512,7 +512,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Double.NaN);
@@ -533,7 +533,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDyMinK(), k);
+    assertEquals(sk.getDynamicMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0);

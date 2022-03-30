@@ -24,6 +24,12 @@ import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
+import static org.apache.datasketches.kll.KllSketch.CDF_COEF;
+import static org.apache.datasketches.kll.KllSketch.CDF_EXP;
+import static org.apache.datasketches.kll.KllSketch.MAX_M;
+import static org.apache.datasketches.kll.KllSketch.MIN_M;
+import static org.apache.datasketches.kll.KllSketch.PMF_COEF;
+import static org.apache.datasketches.kll.KllSketch.PMF_EXP;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import org.apache.datasketches.SketchesArgumentException;
@@ -195,7 +201,7 @@ public class KllHelper {
   }
 
   static void checkM(final int m) {
-    if (m < 2 || m > 8 || ((m & 1) == 1)) {
+    if (m < MIN_M || m > MAX_M || ((m & 1) == 1)) {
       throw new SketchesArgumentException(
           "M must be >= 2, <= 8 and even: " + m);
     }
@@ -257,8 +263,8 @@ public class KllHelper {
   // thousands of trials
   static double getNormalizedRankError(final int k, final boolean pmf) {
     return pmf
-        ? 2.446 / pow(k, 0.9433)
-        : 2.296 / pow(k, 0.9723);
+        ? PMF_COEF / pow(k, PMF_EXP)
+        : CDF_COEF / pow(k, CDF_EXP);
   }
 
   static int getNumRetainedAboveLevelZero(final int numLevels, final int[] levels) {

@@ -31,6 +31,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR30;
 
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -55,7 +56,7 @@ abstract class KllDirectSketch extends KllSketch {
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    */
   KllDirectSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr,
-      final MemoryValidate memVal) {
+      final KllMemoryValidate memVal) {
     super(sketchType, wmem, memReqSvr);
     levelsArrUpdatable = memVal.levelsArrUpdatable;
     minMaxArrUpdatable = memVal.minMaxArrUpdatable;
@@ -101,7 +102,7 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
-  int getDyMinK() {
+  int getDynamicMinK() {
     return extractDyMinK(wmem);
   }
 
@@ -164,14 +165,14 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void incN() {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     long n = extractN(wmem);
     insertN(wmem, ++n);
   }
 
   @Override
   void incNumLevels() {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     int numLevels = extractNumLevels(wmem);
     insertNumLevels(wmem, ++numLevels);
   }
@@ -183,7 +184,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setDoubleItemsArray(final double[] doubleItems) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     itemsArrUpdatable.putDoubleArray(0, doubleItems, 0, doubleItems.length);
   }
 
@@ -194,13 +195,13 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setDyMinK(final int dyMinK) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     insertDyMinK(wmem, dyMinK);
   }
 
   @Override
   void setFloatItemsArray(final float[] floatItems) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     itemsArrUpdatable.putFloatArray(0, floatItems, 0, floatItems.length);
   }
 
@@ -216,7 +217,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelsArray(final int[] levelsArr) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     levelsArrUpdatable.putIntArray(0, levelsArr, 0, levelsArr.length);
   }
 
@@ -246,31 +247,31 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelZeroSorted(final boolean sorted) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     insertLevelZeroSortedFlag(wmem, sorted);
   }
 
   @Override
   void setMaxDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     minMaxArrUpdatable.putDouble(Double.BYTES, value);
   }
 
   @Override
   void setMaxFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     minMaxArrUpdatable.putFloat(Float.BYTES, value);
   }
 
   @Override
   void setMinDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     minMaxArrUpdatable.putDouble(0, value);
   }
 
   @Override
   void setMinFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     minMaxArrUpdatable.putFloat(0, value);
   }
 
@@ -281,13 +282,13 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setN(final long n) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     insertN(wmem, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
-    if (!updatable) { kllSketchThrow(30); }
+    if (!updatable) { kllSketchThrow(ERR30); }
     insertNumLevels(wmem, numLevels);
   }
 

@@ -23,6 +23,9 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR33;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR35;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR50;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -84,7 +87,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param mem Memory object that contains data serialized by this sketch.
    * @param memVal the MemoryCheck object
    */
-  private KllDoublesSketch(final Memory mem, final MemoryValidate memVal) {
+  private KllDoublesSketch(final Memory mem, final KllMemoryValidate memVal) {
     super(memVal.k, memVal.m, SketchType.DOUBLES_SKETCH);
     buildHeapKllSketchFromMemory(memVal);
   }
@@ -99,7 +102,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
   //To simplify the code, the MemoryValidate class does nearly all the validity checking.
   //The validated Memory is then passed to the actual private heapify constructor.
   public static KllDoublesSketch heapify(final Memory mem) {
-    final MemoryValidate memChk = new MemoryValidate(mem);
+    final KllMemoryValidate memChk = new KllMemoryValidate(mem);
     if (!memChk.doublesSketch) {
       throw new SketchesArgumentException("Memory object is not a KllDoublesSketch.");
     }
@@ -203,7 +206,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDyMinK(), false)));
+    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
   }
 
   /**
@@ -255,7 +258,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDyMinK(), false)));
+    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
   }
 
   /**
@@ -286,8 +289,8 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (other.isDirect()) { kllSketchThrow(35); }
-    if (!other.isDoublesSketch()) { kllSketchThrow(33); }
+    if (other.isDirect()) { kllSketchThrow(ERR35); }
+    if (!other.isDoublesSketch()) { kllSketchThrow(ERR33); }
     mergeDoubleImpl(other);
   }
 
@@ -296,7 +299,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    *
    * @param value an item from a stream of items. NaNs are ignored.
    */
-  public void update(final double value) {  //possibly move proxy
+  public void update(final double value) {
     updateDouble(value);
   }
 
@@ -307,22 +310,22 @@ public final class KllDoublesSketch extends KllHeapSketch {
   double getDoubleItemsArrayAt(final int index) { return doubleItems_[index]; }
 
   @Override //Dummy
-  float[] getFloatItemsArray() { return null; }
+  float[] getFloatItemsArray() { kllSketchThrow(ERR50); return null; }
 
   @Override //Dummy
-  float getFloatItemsArrayAt(final int index) { return Float.NaN; }
+  float getFloatItemsArrayAt(final int index) { kllSketchThrow(ERR50); return Float.NaN; }
 
   @Override //Used internally
   double getMaxDoubleValue() { return maxDoubleValue_; }
 
   @Override //Dummy
-  float getMaxFloatValue() { return (float) maxDoubleValue_; }
+  float getMaxFloatValue() { kllSketchThrow(ERR50); return (float) maxDoubleValue_; }
 
   @Override //Used internally
   double getMinDoubleValue() { return minDoubleValue_; }
 
   @Override //Dummy
-  float getMinFloatValue() { return (float) minDoubleValue_; }
+  float getMinFloatValue() { kllSketchThrow(ERR50); return (float) minDoubleValue_; }
 
   @Override //Used internally
   void setDoubleItemsArray(final double[] doubleItems) { doubleItems_ = doubleItems; }
@@ -331,21 +334,21 @@ public final class KllDoublesSketch extends KllHeapSketch {
   void setDoubleItemsArrayAt(final int index, final double value) { doubleItems_[index] = value; }
 
   @Override //Dummy
-  void setFloatItemsArray(final float[] floatItems) { }
+  void setFloatItemsArray(final float[] floatItems) { kllSketchThrow(ERR50); }
 
   @Override //Dummy
-  void setFloatItemsArrayAt(final int index, final float value) { }
+  void setFloatItemsArrayAt(final int index, final float value) { kllSketchThrow(ERR50); }
 
   @Override //Used internally
   void setMaxDoubleValue(final double value) { maxDoubleValue_ = value; }
 
   @Override //Dummy
-  void setMaxFloatValue(final float value) { }
+  void setMaxFloatValue(final float value) { kllSketchThrow(ERR50); }
 
   @Override //Used internally
   void setMinDoubleValue(final double value) { minDoubleValue_ = value; }
 
   @Override //Dummy
-  void setMinFloatValue(final float value) { }
+  void setMinFloatValue(final float value) { kllSketchThrow(ERR50); }
 
 }

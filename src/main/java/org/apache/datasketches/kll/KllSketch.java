@@ -27,10 +27,10 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.isOdd;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
@@ -96,9 +96,16 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 public abstract class KllSketch {
+  static final int MIN_M = 2;
+  static final int MAX_M = 8;
+  static final double EPS_DELTA_THRESHOLD = 1E-6;
+  static final double MIN_EPS = 4.7634E-5;
+  static final double PMF_COEF = 2.446;
+  static final double PMF_EXP = 0.9433;
+  static final double CDF_COEF = 2.296;
+  static final double CDF_EXP = 0.9723;
   static final Random random = new Random();
   static final boolean compatible = true; //rank 0.0 and 1.0. compatible with classic Quantiles Sketch
-  //final int M = DEFAULT_M; // configured minimum buffer "width", default is 8.
   SketchType sketchType;
   WritableMemory wmem;
   MemoryRequestServer memReqSvr;
@@ -142,14 +149,14 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   // thousands of trials
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
     //Ensure that eps is >= than the lowest possible eps given MAX_K and pmf=false.
-    final double eps = max(epsilon, 4.7634E-5);
+    final double eps = max(epsilon, MIN_EPS);
     final double kdbl = pmf
-        ? exp(log(2.446 / eps) / 0.9433)
-        : exp(log(2.296 / eps) / 0.9723);
+        ? exp(log(PMF_COEF / eps) / PMF_EXP)
+        : exp(log(CDF_COEF / eps) / CDF_EXP);
     final double krnd = round(kdbl);
     final double del = abs(krnd - kdbl);
-    final int k = (int) (del < 1E-6 ? krnd : ceil(kdbl));
-    return max(2, min(MAX_K, k));
+    final int k = (int) (del < EPS_DELTA_THRESHOLD ? krnd : ceil(kdbl));
+    return max(MIN_M, min(MAX_K, k));
   }
 
   /**
@@ -230,15 +237,18 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     return compatible;
   }
 
-  final static void kllSketchThrow(final int errNo) {
+  enum ERRNO { ERR30, ERR31, ERR32, ERR33, ERR34, ERR35, ERR50 }
+
+  final static void kllSketchThrow(final ERRNO errNo) {
     String msg = "";
     switch (errNo) {
-      case 30: msg = "Given sketch Memory is immutable, cannot write."; break;
-      case 31: msg = "Given sketch Memory is immutable and incompatible."; break;
-      case 32: msg = "Given sketch must be of type Direct."; break;
-      case 33: msg = "Given sketch must be of type Double."; break;
-      case 34: msg = "Given sketch must be of type Float."; break;
-      case 35: msg = "Given sketch must not be of type Direct."; break;
+      case ERR30: msg = "Given sketch Memory is immutable, cannot write."; break;
+      case ERR31: msg = "Given sketch Memory is immutable and incompatible."; break;
+      case ERR32: msg = "Given sketch must be of type Direct."; break;
+      case ERR33: msg = "Given sketch must be of type Double."; break;
+      case ERR34: msg = "Given sketch must be of type Float."; break;
+      case ERR35: msg = "Given sketch must not be of type Direct."; break;
+      case ERR50: msg = "This is an artifact of inheritance and should never be called."; break;
       default: msg = "Unknown error: errNo: " + errNo; break;
     }
     throw new SketchesArgumentException(msg);
@@ -294,7 +304,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    * {@link org.apache.datasketches.kll}</p>
    */
   public final double getNormalizedRankError(final boolean pmf) {
-    return getNormalizedRankError(getDyMinK(), pmf);
+    return getNormalizedRankError(getDynamicMinK(), pmf);
   }
 
   /**
@@ -367,7 +377,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   //package-private non-static methods
 
-  final void buildHeapKllSketchFromMemory(final MemoryValidate memVal) {
+  final void buildHeapKllSketchFromMemory(final KllMemoryValidate memVal) {
     final boolean doubleType = (sketchType == DOUBLES_SKETCH);
     final boolean updatable = memVal.updatable;
     setLevelZeroSorted(memVal.level0Sorted);
@@ -511,7 +521,12 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     return quantiles;
   }
 
-  abstract int getDyMinK();
+  /**
+   * Dynamic MinK is the value of K that results from a merge with a sketch configured with a value of K lower than
+   * the k of this sketch. This value is then used in computing the estimated upper and lower bounds of error.
+   * @return The dynamic minimum K as a result of merging with lower values of k.
+   */
+  abstract int getDynamicMinK();
 
   /**
    * @return full size of internal items array including garbage; for a doubles sketch this will be null.
@@ -711,7 +726,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     // after the level 0 update, we capture the key mutable variables
     final double myMin = getMinDoubleValue();
     final double myMax = getMaxDoubleValue();
-    final int myDyMinK = getDyMinK();
+    final int myDyMinK = getDynamicMinK();
 
     final int myCurNumLevels = getNumLevels();
     final int[] myCurLevelsArr = getLevelsArray();
@@ -779,7 +794,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update Preamble:
     setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      setDyMinK(min(myDyMinK, other.getDyMinK()));
+      setDyMinK(min(myDyMinK, other.getDynamicMinK()));
     }
 
     //Update min, max values
@@ -821,7 +836,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     // after the level 0 update, we capture the key mutable variables
     final float myMin = getMinFloatValue();
     final float myMax = getMaxFloatValue();
-    final int myDyMinK = getDyMinK();
+    final int myDyMinK = getDynamicMinK();
 
     final int myCurNumLevels = getNumLevels();
     final int[] myCurLevelsArr = getLevelsArray();
@@ -889,7 +904,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update Preamble:
     setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      setDyMinK(min(myDyMinK, other.getDyMinK()));
+      setDyMinK(min(myDyMinK, other.getDynamicMinK()));
     }
 
     //Update min, max values
@@ -976,7 +991,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     } else { // n > 1
       //remainder of preamble after first 8 bytes
       insertN(wmem, getN());
-      insertDyMinK(wmem, getDyMinK());
+      insertDyMinK(wmem, getDynamicMinK());
       insertNumLevels(wmem, getNumLevels());
       offset = (doubleType) ? DATA_START_ADR_DOUBLE : DATA_START_ADR_FLOAT;
 
@@ -1041,7 +1056,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final String skType = (direct ? "Direct" : "") + (doubleType ? "Doubles" : "Floats");
     sb.append(Util.LS).append("### Kll").append(skType).append("Sketch Summary:").append(Util.LS);
     sb.append("   K                      : ").append(k).append(Util.LS);
-    sb.append("   Dynamic min K          : ").append(getDyMinK()).append(Util.LS);
+    sb.append("   Dynamic min K          : ").append(getDynamicMinK()).append(Util.LS);
     sb.append("   M                      : ").append(m).append(Util.LS);
     sb.append("   N                      : ").append(getN()).append(Util.LS);
     sb.append("   Epsilon                : ").append(epsPct).append(Util.LS);
@@ -1162,7 +1177,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     loadFirst8Bytes(this, wmem, true);
     //remainder of preamble after first 8 bytes
     insertN(wmem, getN());
-    insertDyMinK(wmem, getDyMinK());
+    insertDyMinK(wmem, getDynamicMinK());
     insertNumLevels(wmem, getNumLevels());
 
     //load data

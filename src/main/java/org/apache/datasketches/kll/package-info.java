@@ -35,7 +35,7 @@
  *
  * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific value is defined as its
  * <i>absolute rank</i> divided by <i>N</i>.
- * Thus, the <i>normalized rank</i> is a value in the interval [0.0, 1.0), exclusive.
+ * Thus, the <i>normalized rank</i> is a value in the interval [0.0, 1.0).
  * In the documentation and Javadocs for this sketch <i>absolute rank</i> is never used so any
  * reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.
  *

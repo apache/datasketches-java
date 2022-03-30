@@ -36,6 +36,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR32;
+import static org.apache.datasketches.kll.KllSketch.ERRNO.ERR33;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -58,7 +60,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param memVal the MemoryValadate object
    */
   private KllDirectDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr,
-      final MemoryValidate memVal) {
+      final KllMemoryValidate memVal) {
     super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr, memVal);
   }
 
@@ -70,12 +72,12 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return instance of this sketch
    */
   public static KllDirectDoublesSketch writableWrap(final WritableMemory srcMem, final MemoryRequestServer memReqSvr) {
-    final MemoryValidate memVal = new MemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
     return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
   }
 
   /**
-   * Create a new instance of this sketch using default M.
+   * Create a new instance of this sketch using the default <i>m</i> of 8.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
@@ -94,7 +96,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new instance of this sketch
    */
-  public static KllDirectDoublesSketch newInstance(final int k, final int m, final WritableMemory dstMem,
+  static KllDirectDoublesSketch newInstance(final int k, final int m, final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
     insertPreInts(dstMem, PREAMBLE_INTS_DOUBLE);
     insertSerVer(dstMem, SERIAL_VERSION_UPDATABLE);
@@ -111,7 +113,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
     dstMem.putDoubleArray(offset, new double[] {Double.NaN, Double.NaN}, 0, 2);
     offset += 2 * Double.BYTES;
     dstMem.putDoubleArray(offset, new double[k], 0, k);
-    final MemoryValidate memVal = new MemoryValidate(dstMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem);
     return new KllDirectDoublesSketch(dstMem, memReqSvr, memVal);
   }
 
@@ -216,7 +218,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDyMinK(), false)));
+    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
   }
 
   /**
@@ -268,7 +270,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDyMinK(), false)));
+    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
   }
 
   /**
@@ -299,8 +301,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (!other.isDirect()) { kllSketchThrow(32); }
-    if (!other.isDoublesSketch()) { kllSketchThrow(33); }
+    if (!other.isDirect()) { kllSketchThrow(ERR32); }
+    if (!other.isDoublesSketch()) { kllSketchThrow(ERR33); }
     mergeDoubleImpl(other);
   }
 
