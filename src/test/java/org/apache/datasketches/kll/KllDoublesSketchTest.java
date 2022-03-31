@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-//import static org.apache.datasketches.Util.getResourceBytes; //don't have matching numbers from C++
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.testng.Assert.assertEquals;

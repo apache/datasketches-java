@@ -52,7 +52,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
  *  1   ||---------------------------------N_LONG---------------------------------------|
  *      ||         |       |        |   20   |   19   |    18   |   17   |      16      |
- *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|--Dynamic-Min K--------|
+ *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|------Min K------------|
  *      ||         |       |        |        |        |         |        |              |
  *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
  *      ||         |       |        |        |        |         |        |              |
@@ -76,7 +76,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
  *  1   ||---------------------------------N_LONG---------------------------------------|
  *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
- *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|--Dynamic-Min K--------|
+ *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|------Min K------------|
  *      ||         |       |        |        |        |         |        |              |
  *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
  *      ||         |       |        |        |        |         |        |              |
@@ -148,7 +148,7 @@ final class KllPreambleUtil {
 
   // MULTI-ITEM
   static final int N_LONG_ADR                 = 8;  // to 15
-  static final int DY_MIN_K_SHORT_ADR         = 16; // to 17
+  static final int MIN_K_SHORT_ADR         = 16; // to 17
   static final int NUM_LEVELS_BYTE_ADR        = 18;
 
   // FLOAT SKETCH                               19 is reserved for future use in float sketch
@@ -301,8 +301,8 @@ final class KllPreambleUtil {
     return mem.getLong(N_LONG_ADR);
   }
 
-  static int extractDyMinK(final Memory mem) {
-    return mem.getShort(DY_MIN_K_SHORT_ADR) & 0XFFFF;
+  static int extractMinK(final Memory mem) {
+    return mem.getShort(MIN_K_SHORT_ADR) & 0XFFFF;
   }
 
   static int extractNumLevels(final Memory mem) {
@@ -362,8 +362,8 @@ final class KllPreambleUtil {
     wmem.putLong(N_LONG_ADR, value);
   }
 
-  static void insertDyMinK(final WritableMemory wmem, final int value) {
-    wmem.putShort(DY_MIN_K_SHORT_ADR, (short) value);
+  static void insertMinK(final WritableMemory wmem, final int value) {
+    wmem.putShort(MIN_K_SHORT_ADR, (short) value);
   }
 
   static void insertNumLevels(final WritableMemory wmem, final int value) {

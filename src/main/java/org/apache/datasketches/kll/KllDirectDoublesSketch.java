@@ -27,7 +27,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MAS
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertDyMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertFlags;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertK;
@@ -36,8 +36,10 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
+import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DOUBLE;
+import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -105,7 +107,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
     insertK(dstMem, k);
     insertM(dstMem, m);
     insertN(dstMem, 0);
-    insertDyMinK(dstMem, k);
+    insertMinK(dstMem, k);
     insertNumLevels(dstMem, 1);
     int offset = DATA_START_ADR_DOUBLE;
     dstMem.putIntArray(offset, new int[] {k, k}, 0, 2);
@@ -218,7 +220,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
+    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
@@ -270,7 +272,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
+    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
@@ -324,5 +326,75 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
   public void update(final double value) {
     updateDouble(value);
   }
+
+  @Override
+  double[] getDoubleItemsArray() {
+    final int items = getItemsArrLengthItems();
+    final double[] itemsArr = new double[items];
+    itemsArrUpdatable.getDoubleArray(0, itemsArr, 0, items);
+    return itemsArr;
+  }
+
+  @Override
+  double getDoubleItemsArrayAt(final int index) {
+    return itemsArrUpdatable.getDouble((long)index * Double.BYTES);
+  }
+
+  @Override
+  float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
+
+  @Override
+  float getFloatItemsArrayAt(final int index) { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+
+  @Override
+  double getMaxDoubleValue() {
+    return minMaxArrUpdatable.getDouble(Double.BYTES);
+  }
+
+  @Override
+  float getMaxFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+
+  @Override
+  double getMinDoubleValue() {
+    return minMaxArrUpdatable.getDouble(0);
+  }
+
+  @Override
+  float getMinFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+
+  @Override
+  void setDoubleItemsArray(final double[] doubleItems) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    itemsArrUpdatable.putDoubleArray(0, doubleItems, 0, doubleItems.length);
+  }
+
+  @Override
+  void setDoubleItemsArrayAt(final int index, final double value) {
+    itemsArrUpdatable.putDouble((long)index * Double.BYTES, value);
+  }
+
+  @Override
+  void setFloatItemsArray(final float[] floatItems) { kllSketchThrow(MUST_NOT_CALL); }
+
+  @Override
+  void setFloatItemsArrayAt(final int index, final float value) { kllSketchThrow(MUST_NOT_CALL); }
+
+  @Override
+  void setMaxDoubleValue(final double value) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    minMaxArrUpdatable.putDouble(Double.BYTES, value);
+  }
+
+  @Override
+  void setMaxFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
+
+  @Override
+  void setMinDoubleValue(final double value) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    minMaxArrUpdatable.putDouble(0, value);
+  }
+
+  @Override
+  void setMinFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
 }

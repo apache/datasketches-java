@@ -173,7 +173,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -189,7 +189,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -206,7 +206,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -236,7 +236,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -256,7 +256,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -277,7 +277,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
@@ -307,7 +307,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
@@ -327,7 +327,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
@@ -348,7 +348,7 @@ public class MiscFloatsTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);

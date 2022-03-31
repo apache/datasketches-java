@@ -19,18 +19,16 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.extractDyMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.extractMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractK;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractM;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractN;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertDyMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -41,8 +39,6 @@ import org.apache.datasketches.memory.WritableMemory;
  * of the sketch type (float or double).
  */
 abstract class KllDirectSketch extends KllSketch {
-  //All these members are constant for the life of this object. If the WritableMemory changes,
-  // it may require rebuilding this class
   final boolean updatable = true;
   WritableMemory levelsArrUpdatable;
   WritableMemory minMaxArrUpdatable;
@@ -87,38 +83,8 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
-  double[] getDoubleItemsArray() {
-    if (sketchType == FLOATS_SKETCH) { return null; }
-    final int items = getItemsArrLengthItems();
-    final double[] itemsArr = new double[items];
-    itemsArrUpdatable.getDoubleArray(0, itemsArr, 0, items);
-    return itemsArr;
-  }
-
-  @Override
-  double getDoubleItemsArrayAt(final int index) {
-    if (sketchType == FLOATS_SKETCH) { return Double.NaN; }
-    return itemsArrUpdatable.getDouble((long)index * Double.BYTES);
-  }
-
-  @Override
-  int getDynamicMinK() {
-    return extractDyMinK(wmem);
-  }
-
-  @Override
-  float[] getFloatItemsArray() {
-    if (sketchType == DOUBLES_SKETCH) { return null; }
-    final int items = getItemsArrLengthItems();
-    final float[] itemsArr = new float[items];
-    itemsArrUpdatable.getFloatArray(0, itemsArr, 0, items);
-    return itemsArr;
-  }
-
-  @Override
-  float getFloatItemsArrayAt(final int index) {
-    if (sketchType == DOUBLES_SKETCH) { return Float.NaN; }
-    return itemsArrUpdatable.getFloat((long)index * Float.BYTES);
+  int getMinK() {
+    return extractMinK(wmem);
   }
 
   int getItemsArrLengthItems() {
@@ -136,26 +102,6 @@ abstract class KllDirectSketch extends KllSketch {
   @Override
   int getLevelsArrayAt(final int index) {
     return levelsArrUpdatable.getInt((long)index * Integer.BYTES);
-  }
-
-  @Override
-  double getMaxDoubleValue() {
-    return minMaxArrUpdatable.getDouble(Double.BYTES);
-  }
-
-  @Override
-  float getMaxFloatValue() {
-    return minMaxArrUpdatable.getFloat(Float.BYTES);
-  }
-
-  @Override
-  double getMinDoubleValue() {
-    return minMaxArrUpdatable.getDouble(0);
-  }
-
-  @Override
-  float getMinFloatValue() {
-    return minMaxArrUpdatable.getFloat(0);
   }
 
   @Override
@@ -183,31 +129,9 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
-  void setDoubleItemsArray(final double[] doubleItems) {
+  void setMinK(final int minK) {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    itemsArrUpdatable.putDoubleArray(0, doubleItems, 0, doubleItems.length);
-  }
-
-  @Override
-  void setDoubleItemsArrayAt(final int index, final double value) {
-    itemsArrUpdatable.putDouble((long)index * Double.BYTES, value);
-  }
-
-  @Override
-  void setDyMinK(final int dyMinK) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    insertDyMinK(wmem, dyMinK);
-  }
-
-  @Override
-  void setFloatItemsArray(final float[] floatItems) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    itemsArrUpdatable.putFloatArray(0, floatItems, 0, floatItems.length);
-  }
-
-  @Override
-  void setFloatItemsArrayAt(final int index, final float value) {
-    itemsArrUpdatable.putFloat((long)index * Float.BYTES, value);
+    insertMinK(wmem, minK);
   }
 
   @Override
@@ -249,30 +173,6 @@ abstract class KllDirectSketch extends KllSketch {
   void setLevelZeroSorted(final boolean sorted) {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     insertLevelZeroSortedFlag(wmem, sorted);
-  }
-
-  @Override
-  void setMaxDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    minMaxArrUpdatable.putDouble(Double.BYTES, value);
-  }
-
-  @Override
-  void setMaxFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    minMaxArrUpdatable.putFloat(Float.BYTES, value);
-  }
-
-  @Override
-  void setMinDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    minMaxArrUpdatable.putDouble(0, value);
-  }
-
-  @Override
-  void setMinFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    minMaxArrUpdatable.putFloat(0, value);
   }
 
   @Override

@@ -31,7 +31,7 @@ abstract class KllHeapSketch extends KllSketch {
   private final int k;    // configured value of K.
   private final int m;    // configured value of M.
   private long n_;        // number of items input into this sketch.
-  private int dyMinK_;    // dynamic minK for error estimation after merging with different k.
+  private int minK_;    // dynamic minK for error estimation after merging with different k.
   private int numLevels_; // one-based number of current levels.
   private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   private boolean isLevelZeroSorted_;
@@ -49,7 +49,7 @@ abstract class KllHeapSketch extends KllSketch {
     this.k = k;
     this.m = m;
     n_ = 0;
-    dyMinK_ = k;
+    minK_ = k;
     numLevels_ = 1;
     levels_ = new int[] {k, k};
     isLevelZeroSorted_ = false;
@@ -71,8 +71,8 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  int getDynamicMinK() {
-    return dyMinK_;
+  int getMinK() {
+    return minK_;
   }
 
   @Override
@@ -104,8 +104,8 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  void setDyMinK(final int dyMinK) {
-    dyMinK_ = dyMinK;
+  void setMinK(final int minK) {
+    minK_ = minK;
   }
 
   @Override

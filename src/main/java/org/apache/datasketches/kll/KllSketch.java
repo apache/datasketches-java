@@ -41,7 +41,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_F
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertDoubleSketchFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertDyMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertK;
@@ -303,7 +303,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    * {@link org.apache.datasketches.kll}</p>
    */
   public final double getNormalizedRankError(final boolean pmf) {
-    return getNormalizedRankError(getDynamicMinK(), pmf);
+    return getNormalizedRankError(getMinK(), pmf);
   }
 
   /**
@@ -381,7 +381,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final boolean updatable = memVal.updatable;
     setLevelZeroSorted(memVal.level0Sorted);
     setN(memVal.n);
-    setDyMinK(memVal.dyMinK);
+    setMinK(memVal.dyMinK);
     setNumLevels(memVal.numLevels);
     final int[] myLevelsArr = new int[getNumLevels() + 1];
 
@@ -521,11 +521,11 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   }
 
   /**
-   * Dynamic MinK is the value of K that results from a merge with a sketch configured with a value of K lower than
+   * MinK is the value of K that results from a merge with a sketch configured with a value of K lower than
    * the k of this sketch. This value is then used in computing the estimated upper and lower bounds of error.
-   * @return The dynamic minimum K as a result of merging with lower values of k.
+   * @return The minimum K as a result of merging with lower values of k.
    */
-  abstract int getDynamicMinK();
+  abstract int getMinK();
 
   /**
    * @return full size of internal items array including garbage; for a doubles sketch this will be null.
@@ -725,7 +725,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     // after the level 0 update, we capture the key mutable variables
     final double myMin = getMinDoubleValue();
     final double myMax = getMaxDoubleValue();
-    final int myDyMinK = getDynamicMinK();
+    final int myDyMinK = getMinK();
 
     final int myCurNumLevels = getNumLevels();
     final int[] myCurLevelsArr = getLevelsArray();
@@ -793,7 +793,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update Preamble:
     setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      setDyMinK(min(myDyMinK, other.getDynamicMinK()));
+      setMinK(min(myDyMinK, other.getMinK()));
     }
 
     //Update min, max values
@@ -835,7 +835,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     // after the level 0 update, we capture the key mutable variables
     final float myMin = getMinFloatValue();
     final float myMax = getMaxFloatValue();
-    final int myDyMinK = getDynamicMinK();
+    final int myDyMinK = getMinK();
 
     final int myCurNumLevels = getNumLevels();
     final int[] myCurLevelsArr = getLevelsArray();
@@ -903,7 +903,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update Preamble:
     setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      setDyMinK(min(myDyMinK, other.getDynamicMinK()));
+      setMinK(min(myDyMinK, other.getMinK()));
     }
 
     //Update min, max values
@@ -937,7 +937,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   abstract void setDoubleItemsArrayAt(int index, double value);
 
-  abstract void setDyMinK(int dyMinK);
+  abstract void setMinK(int minK);
 
   abstract void setFloatItemsArray(float[] floatItems);
 
@@ -990,7 +990,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     } else { // n > 1
       //remainder of preamble after first 8 bytes
       insertN(wmem, getN());
-      insertDyMinK(wmem, getDynamicMinK());
+      insertMinK(wmem, getMinK());
       insertNumLevels(wmem, getNumLevels());
       offset = (doubleType) ? DATA_START_ADR_DOUBLE : DATA_START_ADR_FLOAT;
 
@@ -1055,7 +1055,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final String skType = (direct ? "Direct" : "") + (doubleType ? "Doubles" : "Floats");
     sb.append(Util.LS).append("### Kll").append(skType).append("Sketch Summary:").append(Util.LS);
     sb.append("   K                      : ").append(k).append(Util.LS);
-    sb.append("   Dynamic min K          : ").append(getDynamicMinK()).append(Util.LS);
+    sb.append("   Dynamic min K          : ").append(getMinK()).append(Util.LS);
     sb.append("   M                      : ").append(m).append(Util.LS);
     sb.append("   N                      : ").append(getN()).append(Util.LS);
     sb.append("   Epsilon                : ").append(epsPct).append(Util.LS);
@@ -1176,7 +1176,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     loadFirst8Bytes(this, wmem, true);
     //remainder of preamble after first 8 bytes
     insertN(wmem, getN());
-    insertDyMinK(wmem, getDynamicMinK());
+    insertMinK(wmem, getMinK());
     insertNumLevels(wmem, getNumLevels());
 
     //load data

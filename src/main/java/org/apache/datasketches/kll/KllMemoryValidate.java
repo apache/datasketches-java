@@ -38,7 +38,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_F
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractDoubleSketchFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractDyMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.extractMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.extractFlags;
@@ -133,7 +133,7 @@ final class KllMemoryValidate {
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
         layout = Layout.FLOAT_FULL_COMPACT;
         n = extractN(srcMem);
-        dyMinK = extractDyMinK(srcMem);
+        dyMinK = extractMinK(srcMem);
         numLevels = extractNumLevels(srcMem);
         int offset = DATA_START_ADR_FLOAT;
         // LEVELS MEM
@@ -201,7 +201,7 @@ final class KllMemoryValidate {
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
         layout = Layout.DOUBLE_FULL_COMPACT;
         n = extractN(srcMem);
-        dyMinK = extractDyMinK(srcMem);
+        dyMinK = extractMinK(srcMem);
         numLevels = extractNumLevels(srcMem);
         int offset = DATA_START_ADR_DOUBLE;
         // LEVELS MEM
@@ -277,7 +277,7 @@ final class KllMemoryValidate {
       n = extractN(wSrcMem);
       empty = n == 0;       //empty & singleItem are set for convenience
       singleItem = n == 1;  // there is no error checking on these bits
-      dyMinK = extractDyMinK(wSrcMem);
+      dyMinK = extractMinK(wSrcMem);
       numLevels = extractNumLevels(wSrcMem);
 
       int offset = DATA_START_ADR_DOUBLE;
@@ -300,7 +300,7 @@ final class KllMemoryValidate {
       n = extractN(wSrcMem);
       empty = n == 0;       //empty & singleItem are set for convenience
       singleItem = n == 1;  // there is no error checking on these bits
-      dyMinK = extractDyMinK(wSrcMem);
+      dyMinK = extractMinK(wSrcMem);
       numLevels = extractNumLevels(wSrcMem);
       int offset = DATA_START_ADR_FLOAT;
       //LEVELS

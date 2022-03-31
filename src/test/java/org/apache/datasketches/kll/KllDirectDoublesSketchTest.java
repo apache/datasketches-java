@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-//import static org.apache.datasketches.Util.getResourceBytes; //don't have matching numbers from C++
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.testng.Assert.assertEquals;
@@ -33,7 +32,6 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
-
 
 @SuppressWarnings("javadoc")
 public class KllDirectDoublesSketchTest {
@@ -493,7 +491,7 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
@@ -513,7 +511,7 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
@@ -534,7 +532,7 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
@@ -592,4 +590,3 @@ public class KllDirectDoublesSketchTest {
   }
 
 }
-

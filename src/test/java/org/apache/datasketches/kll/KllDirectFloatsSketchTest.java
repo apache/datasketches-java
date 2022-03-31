@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-//import static org.apache.datasketches.Util.getResourceBytes; //don't have matching numbers from C++
 import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
 import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.testng.Assert.assertEquals;
@@ -492,7 +491,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0);
@@ -512,7 +511,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Double.NaN);
@@ -533,7 +532,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
-    assertEquals(sk.getDynamicMinK(), k);
+    assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0);
@@ -591,4 +590,3 @@ public class KllDirectFloatsSketchTest {
   }
 
 }
-

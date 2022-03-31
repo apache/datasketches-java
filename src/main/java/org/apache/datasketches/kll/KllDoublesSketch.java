@@ -202,7 +202,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
+    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
@@ -254,7 +254,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getDynamicMinK(), false)));
+    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
