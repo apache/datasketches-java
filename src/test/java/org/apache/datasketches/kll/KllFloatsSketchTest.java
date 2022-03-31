@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -280,32 +278,32 @@ public class KllFloatsSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllFloatsSketch(DEFAULT_M - 1);
+    new KllFloatsSketch(KllSketch.DEFAULT_M - 1);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    new KllFloatsSketch(MAX_K + 1);
+    new KllFloatsSketch(KllSketch.MAX_K + 1);
   }
 
   @Test
   public void minK() {
-    final KllFloatsSketch sketch = new KllFloatsSketch(DEFAULT_M);
+    final KllFloatsSketch sketch = new KllFloatsSketch(KllSketch.DEFAULT_M);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), DEFAULT_M);
+    assertEquals(sketch.getK(), KllSketch.DEFAULT_M);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test
   public void maxK() {
-    final KllFloatsSketch sketch = new KllFloatsSketch(MAX_K);
+    final KllFloatsSketch sketch = new KllFloatsSketch(KllSketch.MAX_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), MAX_K);
+    assertEquals(sketch.getK(), KllSketch.MAX_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
@@ -410,6 +408,23 @@ public class KllFloatsSketchTest {
     assertEquals(byteArr.length, 832);
     bytes = sk.getSerializedSizeBytes();
     assertEquals(bytes, 832);
+  }
+
+  @Test
+  public void checkReset() {
+    KllFloatsSketch sk = new KllFloatsSketch(20);
+    for (int i = 1; i <= 100; i++) { sk.update(i); }
+    long n1 = sk.getN();
+    float min1 = sk.getMinValue();
+    float max1 = sk.getMaxValue();
+    sk.reset();
+    for (int i = 1; i <= 100; i++) { sk.update(i); }
+    long n2 = sk.getN();
+    float min2 = sk.getMinValue();
+    float max2 = sk.getMaxValue();
+    assertEquals(n2, n1);
+    assertEquals(min2, min1);
+    assertEquals(max2, max1);
   }
 
 }

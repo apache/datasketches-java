@@ -21,8 +21,6 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_CANNOT_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
@@ -58,7 +56,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * This will have a rank error of about 1.65%.
    */
   public KllFloatsSketch() {
-    this(DEFAULT_K);
+    this(KllSketch.DEFAULT_K);
   }
 
   /**
@@ -69,7 +67,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllFloatsSketch(final int k) {
-    this(k, DEFAULT_M);
+    this(k, KllSketch.DEFAULT_M);
   }
 
   /**
@@ -288,6 +286,19 @@ public final class KllFloatsSketch extends KllHeapSketch {
     if (other.isDirect()) { kllSketchThrow(SRC_CANNOT_BE_DIRECT); }
     if (!other.isFloatsSketch()) { kllSketchThrow(SRC_IS_NOT_FLOAT); }
     mergeFloatImpl(other);
+  }
+
+  @Override
+  public void reset() {
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelsArray(new int[] {k, k});
+    setLevelZeroSorted(false);
+    floatItems_ = new float[k];
+    minFloatValue_ = Float.NaN;
+    maxFloatValue_ = Float.NaN;
   }
 
   /**

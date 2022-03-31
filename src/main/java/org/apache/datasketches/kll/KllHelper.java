@@ -23,9 +23,6 @@ import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
-import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MAX_M;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_M;
 import static org.apache.datasketches.kll.KllSketch.CDF_COEF;
 import static org.apache.datasketches.kll.KllSketch.CDF_EXP;
 import static org.apache.datasketches.kll.KllSketch.PMF_COEF;
@@ -194,14 +191,14 @@ public class KllHelper {
    * @param k must be greater than 7 and less than 65536.
    */
   static void checkK(final int k, final int m) {
-    if (k < m || k > MAX_K) {
+    if (k < m || k > KllSketch.MAX_K) {
       throw new SketchesArgumentException(
-          "K must be >= " + m + " and <= " + MAX_K + ": " + k);
+          "K must be >= " + m + " and <= " + KllSketch.MAX_K + ": " + k);
     }
   }
 
   static void checkM(final int m) {
-    if (m < MIN_M || m > MAX_M || ((m & 1) == 1)) {
+    if (m < KllSketch.MIN_M || m > KllSketch.MAX_M || ((m & 1) == 1)) {
       throw new SketchesArgumentException(
           "M must be >= 2, <= 8 and even: " + m);
     }

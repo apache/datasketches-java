@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -279,32 +277,32 @@ public class KllDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllDoublesSketch(DEFAULT_M - 1);
+    new KllDoublesSketch(KllSketch.DEFAULT_M - 1);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    new KllDoublesSketch(MAX_K + 1);
+    new KllDoublesSketch(KllSketch.MAX_K + 1);
   }
 
   @Test
   public void minK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(DEFAULT_M);
+    final KllDoublesSketch sketch = new KllDoublesSketch(KllSketch.DEFAULT_M);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), DEFAULT_M);
+    assertEquals(sketch.getK(), KllSketch.DEFAULT_M);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test
   public void maxK() {
-    final KllDoublesSketch sketch = new KllDoublesSketch(MAX_K);
+    final KllDoublesSketch sketch = new KllDoublesSketch(KllSketch.MAX_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
-    assertEquals(sketch.getK(), MAX_K);
+    assertEquals(sketch.getK(), KllSketch.MAX_K);
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
@@ -394,6 +392,23 @@ public class KllDoublesSketchTest {
     assertEquals(quantiles1[0], 1.0);
     assertEquals(quantiles1[1], 2.0);
     assertEquals(quantiles1[2], 3.0);
+  }
+
+  @Test
+  public void checkReset() {
+    KllDoublesSketch sk = new KllDoublesSketch(20);
+    for (int i = 1; i <= 100; i++) { sk.update(i); }
+    long n1 = sk.getN();
+    double min1 = sk.getMinValue();
+    double max1 = sk.getMaxValue();
+    sk.reset();
+    for (int i = 1; i <= 100; i++) { sk.update(i); }
+    long n2 = sk.getN();
+    double min2 = sk.getMinValue();
+    double max2 = sk.getMaxValue();
+    assertEquals(n2, n1);
+    assertEquals(min2, min1);
+    assertEquals(max2, max1);
   }
 
 }

@@ -30,9 +30,6 @@ import static org.apache.datasketches.Util.isOdd;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
-import static org.apache.datasketches.kll.KllPreambleUtil.MAX_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.MIN_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
@@ -111,6 +108,31 @@ public abstract class KllSketch {
   boolean direct;
 
   /**
+   * The default value of K
+   */
+  public static final int DEFAULT_K = 200;
+
+  /**
+   * The default value of M
+   */
+  static final int DEFAULT_M = 8;
+
+  /**
+   * The maximum value of K
+   */
+  public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
+
+  /**
+   * The maximum value of M
+   */
+  static final int MAX_M = 8;
+
+  /**
+   * The minimum value of M
+   */
+  static final int MIN_M = 2;
+
+  /**
    *
    * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
    * @param wmem  the current WritableMemory or null
@@ -155,7 +177,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final double krnd = round(kdbl);
     final double del = abs(krnd - kdbl);
     final int k = (int) (del < EPS_DELTA_THRESHOLD ? krnd : ceil(kdbl));
-    return max(MIN_M, min(MAX_K, k));
+    return max(KllSketch.MIN_M, min(KllSketch.MAX_K, k));
   }
 
   /**
@@ -166,27 +188,28 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the compact serialized size
-   * @deprecated use {@link #getMaxSerializedSizeBytes(int, int, long, SketchType, boolean)} instead.
+   * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
    */
   @Deprecated
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final KllHelper.GrowthStats gStats =  KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, FLOATS_SKETCH, false);
+    final KllHelper.GrowthStats gStats =
+        KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, FLOATS_SKETCH, false);
     return gStats.compactBytes;
   }
 
   /**
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
+   * It assumes the default value of <i>m</i>, which is 8.
    * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param m parameter that controls the smallest value of k, and the smallest level width.
-   * If in doubt, use the default value of 8.
    * @param n stream length
    * @param sketchType either DOUBLES_SKETCH or FLOATS_SKETCH
    * @param updatable true if updatable form, otherwise the standard compact form.
    * @return upper bound on the serialized size of a KllSketch.
    */
-  public static int getMaxSerializedSizeBytes(final int k, final int m, final long n,
+  public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatable) {
-    final KllHelper.GrowthStats gStats = KllHelper.getGrowthSchemeForGivenN(k, m, n, sketchType, false);
+    final KllHelper.GrowthStats gStats =
+        KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, sketchType, false);
     return updatable ? gStats.updatableBytes : gStats.compactBytes;
   }
 
@@ -342,6 +365,13 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   public final boolean isEstimationMode() {
     return getNumLevels() > 1;
   }
+
+  /**
+   * This resets the current sketch back to zero entries.
+   * It retains key parameters such as <i>k</i>, <i>m</i>, and
+   * <i>SketchType (double or float)</i>.
+   */
+  public abstract void reset();
 
   /**
    * Returns serialized sketch in a compact byte array form.
@@ -693,7 +723,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       newWmem = sketch.memReqSvr.request(oldWmem, requiredSketchBytes);
       oldWmem.copyTo(0, newWmem, 0, startAdr); //copy preamble
     }
-    else { //Expand in current memory
+    else { //Expand or contract in current memory
       newWmem = oldWmem;
     }
 

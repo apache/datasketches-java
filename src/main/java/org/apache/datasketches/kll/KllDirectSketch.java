@@ -75,6 +75,27 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
+  public void reset() {
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelsArray(new int[] {k, k});
+    setLevelZeroSorted(false);
+    final int newLevelsArrLen = 2 * Integer.BYTES;
+    final int newItemsArrLen = k;
+    KllSketch.memorySpaceMgmt(this, newLevelsArrLen, newItemsArrLen);
+    levelsArrUpdatable.putIntArray(0L, new int[] {k, k}, 0, 2);
+    if (sketchType == SketchType.DOUBLES_SKETCH) {
+      minMaxArrUpdatable.putDoubleArray(0L, new double[] {Double.NaN, Double.NaN}, 0, 2);
+      itemsArrUpdatable.putDoubleArray(0L, new double[k], 0, k);
+    } else {
+      minMaxArrUpdatable.putFloatArray(0L, new float[] {Float.NaN, Float.NaN}, 0, 2);
+      itemsArrUpdatable.putFloatArray(0L, new float[k], 0, k);
+    }
+  }
+
+  @Override
   public byte[] toUpdatableByteArray() {
     final int bytes = (int) wmem.getCapacity();
     final byte[] byteArr = new byte[bytes];

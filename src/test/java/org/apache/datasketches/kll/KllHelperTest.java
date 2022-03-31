@@ -20,8 +20,6 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.checkM;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_K;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.testng.Assert.assertEquals;
@@ -57,7 +55,7 @@ public class KllHelperTest {
 
   @Test
   public void checkGetKFromEps() {
-    final int k = DEFAULT_K;
+    final int k = KllSketch.DEFAULT_K;
     final double eps = KllHelper.getNormalizedRankError(k, false);
     final double epsPmf = KllHelper.getNormalizedRankError(k, true);
     final int kEps = KllSketch.getKFromEpsilon(eps, false);
@@ -126,25 +124,25 @@ public class KllHelperTest {
 
   @Test
   public void getMaxCompactDoublesSerializedSizeBytes() {
-    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, DEFAULT_M, 1L << 30, DOUBLES_SKETCH, false);
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, DOUBLES_SKETCH, false);
     assertEquals(sizeBytes, 5704);
   }
 
   @Test
   public void getMaxCompactFloatsSerializedSizeBytes() {
-    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, DEFAULT_M, 1L << 30, FLOATS_SKETCH, false);
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, FLOATS_SKETCH, false);
     assertEquals(sizeBytes, 2908);
   }
 
   @Test
   public void getMaxUpdatableDoubleSerializedSizeBytes() {
-    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, DEFAULT_M, 1L << 30, DOUBLES_SKETCH, true);
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, DOUBLES_SKETCH, true);
     assertEquals(sizeBytes, 5708);
   }
 
   @Test
   public void getMaxUpdatableFloatsSerializedSizeBytes() {
-    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(DEFAULT_K, DEFAULT_M, 1L << 30, FLOATS_SKETCH, true);
+    final int sizeBytes = KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, FLOATS_SKETCH, true);
     assertEquals(sizeBytes, 2912);
   }
 
@@ -163,7 +161,7 @@ public class KllHelperTest {
     int k = 20;
     int m = 8;
     int numLevels = 2;
-    KllHelper.LevelStats lvlStats = KllHelper.getFinalSketchStatsAtNumLevels(k, DEFAULT_M, numLevels, false);
+    KllHelper.LevelStats lvlStats = KllHelper.getFinalSketchStatsAtNumLevels(k, KllSketch.DEFAULT_M, numLevels, false);
     assertEquals(lvlStats.numLevels, 2);
     assertEquals(lvlStats.items, 33);
   }
@@ -182,7 +180,7 @@ public class KllHelperTest {
     long n = 533;
     int k = 200;
     int m = 8;
-    KllHelper.GrowthStats gStats = KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, DOUBLES_SKETCH, false);
+    KllHelper.GrowthStats gStats = KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, DOUBLES_SKETCH, false);
     assertEquals(gStats.numLevels, 2);
     assertEquals(gStats.maxItems, 333);
 

@@ -126,15 +126,6 @@ final class KllPreambleUtil {
 
   static final String LS = System.getProperty("line.separator");
 
-  /**
-   * The default value of K
-   */
-  public static final int DEFAULT_K = 200;
-  public static final int DEFAULT_M = 8;
-  public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
-  public static final int MAX_M = 8;
-  public static final int MIN_M = 2;
-
   // Preamble byte addresses
   static final int PREAMBLE_INTS_BYTE_ADR     = 0;
   static final int SER_VER_BYTE_ADR           = 1;

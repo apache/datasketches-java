@@ -22,7 +22,6 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
-import static org.apache.datasketches.kll.KllPreambleUtil.DEFAULT_M;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FLOAT;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
@@ -87,7 +86,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    */
   public static KllDirectFloatsSketch newInstance(final int k, final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
-    return newInstance(k, DEFAULT_M, dstMem, memReqSvr);
+    return newInstance(k, KllSketch.DEFAULT_M, dstMem, memReqSvr);
   }
 
   /**
@@ -306,16 +305,6 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
     if (!other.isDirect()) { kllSketchThrow(SRC_IS_NOT_DIRECT); }
     if (!other.isFloatsSketch()) { kllSketchThrow(SRC_IS_NOT_FLOAT); }
     mergeFloatImpl(other);
-  }
-
-  @Override
-  public byte[] toByteArray() {
-    return toCompactByteArrayImpl();
-  }
-
-  @Override
-  public String toString(final boolean withLevels, final boolean withData) {
-    return toStringImpl(withLevels, withData);
   }
 
   /**
