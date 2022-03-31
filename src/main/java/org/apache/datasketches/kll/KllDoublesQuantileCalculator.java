@@ -132,8 +132,8 @@ final class KllDoublesQuantileCalculator {
     }
   }
 
-  double getQuantile(final double phi) { //phi is normalized rank [0,1].
-    final long pos = QuantilesHelper.posOfPhi(phi, n_);
+  double getQuantile(final double rank) {
+    final long pos = QuantilesHelper.posOfRank(rank, n_);
     return approximatelyAnswerPositonalQuery(pos);
   }
 

@@ -29,7 +29,7 @@ public class QuantilesHelper {
    * An array of {1,1,1,0} becomes {0,1,2,3}
    * @param array of weights where first element is zero
    * @return total weight
-   */ //also used by KLL
+   */ //used by classic Quantiles and KLL
   public static long convertToPrecedingCummulative(final long[] array) {
     long subtotal = 0;
     for (int i = 0; i < array.length; i++) {
@@ -43,13 +43,26 @@ public class QuantilesHelper {
   /**
    * Returns the linear zero-based index (position) of a value in the hypothetical sorted stream of
    * values of size n.
-   * @param phi the fractional position where: 0 &le; &#966; &le; 1.0.
+   * @param rank the fractional position where: 0 &le; &#966; &le; 1.0.
    * @param n the size of the stream
    * @return the index, a value between 0 and n-1.
-   */ //also used by KLL
-  public static long posOfPhi(final double phi, final long n) {
-    final long pos = (long) Math.floor(phi * n);
+   */ //used by classic Quantiles and KLL
+  public static long posOfRank(final double rank, final long n) {
+    final long pos = (long) Math.floor(rank * n);
     return pos == n ? n - 1 : pos; //avoids ArrayIndexOutOfBoundException
+  }
+
+  /**
+   * Returns the linear zero-based index (position) of a value in the hypothetical sorted stream of
+   * values of size n.
+   * @param rank the fractional position where: 0 &le; &#966; &le; 1.0.
+   * @param n the size of the stream
+   * @return the index, a value between 0 and n-1.
+   * @deprecated use {@link #posOfRank(double, long)} instead. Version 3.2.0.
+   */ //used by classic Quantiles and KLL
+  @Deprecated
+  public static long posOfPhi(final double rank, final long n) {
+    return posOfRank(rank, n);
   }
 
   /**

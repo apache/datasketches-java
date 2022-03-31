@@ -121,7 +121,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 double values on the interval [0.0, 1.0) exclusive,
+   * @return an array of m+1 double values on the interval [0.0, 1.0),
    * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
    * The value at array position j of the returned CDF array is the sum of the returned values
    * in positions 0 through j of the returned PMF array.
@@ -162,7 +162,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 doubles on the interval [0.0, 1.0) exclusive,
+   * @return an array of m+1 doubles on the interval [0.0, 1.0),
    * each of which is an approximation to the fraction of the total input stream values
    * (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
