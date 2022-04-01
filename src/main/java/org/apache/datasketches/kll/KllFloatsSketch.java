@@ -52,7 +52,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
   }
 
   /**
-   * Heap constructor with the default <em>k = 200</em>, and DEFAULT_M of 8.
+   * Heap constructor with the default <em>k = 200</em>.
    * This will have a rank error of about 1.65%.
    */
   public KllFloatsSketch() {
@@ -63,7 +63,6 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * Heap constructor with a given parameter <em>k</em>. <em>k</em> can be any value between DEFAULT_M and
    * 65535, inclusive. The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
-   * This constructor assumes the DEFAULT_M, which is 8.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
   public KllFloatsSketch(final int k) {

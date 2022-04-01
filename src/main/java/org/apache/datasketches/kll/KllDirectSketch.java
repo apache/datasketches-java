@@ -65,7 +65,7 @@ abstract class KllDirectSketch extends KllSketch {
   }
 
   @Override
-  public int getM() {
+  int getM() {
     return extractM(wmem);
   }
 

@@ -61,7 +61,7 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  public int getM() {
+  int getM() {
     return m;
   }
 

@@ -183,8 +183,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   /**
    * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
    * <em>k</em> and stream length. This method can be used if allocation of storage
-   * is necessary beforehand. This assumes the DEFAULT_M = 8 used in older sketches, it will not
-   * work with other values of m.
+   * is necessary beforehand.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the compact serialized size
@@ -199,7 +198,6 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   /**
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
-   * It assumes the default value of <i>m</i>, which is 8.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @param sketchType either DOUBLES_SKETCH or FLOATS_SKETCH
@@ -302,10 +300,10 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   public abstract int getK();
 
   /**
-   * Returns the user configured parameter m
-   * @return the user configured parameter m
+   * Returns the configured parameter m
+   * @return the configured parameter m
    */
-  public abstract int getM();
+  abstract int getM();
 
   /**
    * Returns the length of the input stream in items.
@@ -368,7 +366,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   /**
    * This resets the current sketch back to zero entries.
-   * It retains key parameters such as <i>k</i>, <i>m</i>, and
+   * It retains key parameters such as <i>k</i> and
    * <i>SketchType (double or float)</i>.
    */
   public abstract void reset();
