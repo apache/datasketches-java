@@ -252,10 +252,10 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   enum Error {
     TGT_IS_IMMUTABLE("Given sketch Memory is immutable, cannot write."),
-    SRC_IS_NOT_DIRECT("Given sketch must be of type Direct."),
-    SRC_IS_NOT_DOUBLE("Given sketch must be of type Double."),
-    SRC_IS_NOT_FLOAT("Given sketch must be of type Float."),
-    SRC_CANNOT_BE_DIRECT("Given sketch must not be of type Direct."),
+    SRC_MUST_BE_DIRECT("Given sketch must be of type Direct."),
+    SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
+    SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
+    SRC_CANNOT_BE_DIRECT("Given sketch cannot be of type Direct."),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called.");
 
     private String msg;
@@ -740,6 +740,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final long finalN = getN() + other.getN();
     //update this sketch with level0 items from the other sketch
     final double[] otherDoubleItemsArr = other.getDoubleItemsArray();
+    final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
     for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
       updateDouble(otherDoubleItemsArr[i]);
@@ -747,7 +748,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     // after the level 0 update, we capture the key mutable variables
     final double myMin = getMinDoubleValue();
     final double myMax = getMaxDoubleValue();
-    final int myDyMinK = getMinK();
+    final int myMinK = getMinK();
 
     final int myCurNumLevels = getNumLevels();
     final int[] myCurLevelsArr = getLevelsArray();
@@ -757,21 +758,21 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final int[] myNewLevelsArr;
     final double[] myNewDoubleItemsArr;
 
-    if (other.getNumLevels() > 1) { //now merge other levels if they exist
+    if (otherNumLevels > 1) { //now merge other levels if they exist
       final int tmpSpaceNeeded = getNumRetained()
-          + KllHelper.getNumRetainedAboveLevelZero(other.getNumLevels(), otherLevelsArr);
+          + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final double[] workbuf = new double[tmpSpaceNeeded];
       final int ub = KllHelper.ubOnNumLevels(finalN);
       final int[] worklevels = new int[ub + 2]; // ub+1 does not work
       final int[] outlevels  = new int[ub + 2];
 
-      final int provisionalNumLevels = max(myCurNumLevels, other.getNumLevels());
+      final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
 
       populateDoubleWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
       // notice that workbuf is being used as both the input and output
-      final int[] result = KllDoublesHelper.generalDoublesCompress(getK(), getM(), provisionalNumLevels, workbuf,
-          worklevels, workbuf, outlevels, isLevelZeroSorted(), random);
+      final int[] result = KllDoublesHelper.generalDoublesCompress(getK(), getM(), provisionalNumLevels,
+          workbuf, worklevels, workbuf, outlevels, isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
@@ -815,7 +816,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update Preamble:
     setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      setMinK(min(myDyMinK, other.getMinK()));
+      setMinK(min(myMinK, other.getMinK()));
     }
 
     //Update min, max values
@@ -850,6 +851,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final long finalN = getN() + other.getN();
     //update this sketch with level0 items from the other sketch
     final float[] otherFloatItemsArr = other.getFloatItemsArray();
+    final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
     for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
       updateFloat(otherFloatItemsArr[i]);
@@ -857,7 +859,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     // after the level 0 update, we capture the key mutable variables
     final float myMin = getMinFloatValue();
     final float myMax = getMaxFloatValue();
-    final int myDyMinK = getMinK();
+    final int myMinK = getMinK();
 
     final int myCurNumLevels = getNumLevels();
     final int[] myCurLevelsArr = getLevelsArray();
@@ -867,21 +869,21 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final int[] myNewLevelsArr;
     final float[] myNewFloatItemsArr;
 
-    if (other.getNumLevels() > 1) { //now merge other levels if they exist
+    if (otherNumLevels > 1) { //now merge higher levels if they exist
       final int tmpSpaceNeeded = getNumRetained()
-          + KllHelper.getNumRetainedAboveLevelZero(other.getNumLevels(), otherLevelsArr);
+          + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final float[] workbuf = new float[tmpSpaceNeeded];
       final int ub = KllHelper.ubOnNumLevels(finalN);
       final int[] worklevels = new int[ub + 2]; // ub+1 does not work
       final int[] outlevels  = new int[ub + 2];
 
-      final int provisionalNumLevels = max(myCurNumLevels, other.getNumLevels());
+      final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
 
       populateFloatWorkArrays(other, workbuf, worklevels, provisionalNumLevels);
 
       // notice that workbuf is being used as both the input and output
-      final int[] result = KllFloatsHelper.generalFloatsCompress(getK(), getM(), provisionalNumLevels, workbuf,
-          worklevels, workbuf, outlevels, isLevelZeroSorted(), random);
+      final int[] result = KllFloatsHelper.generalFloatsCompress(getK(), getM(), provisionalNumLevels,
+          workbuf, worklevels, workbuf, outlevels, isLevelZeroSorted(), random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
@@ -925,7 +927,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     //Update Preamble:
     setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      setMinK(min(myDyMinK, other.getMinK()));
+      setMinK(min(myMinK, other.getMinK()));
     }
 
     //Update min, max values

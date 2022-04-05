@@ -77,6 +77,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   public void reset() {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     final int k = getK();
     setN(0);
     setMinK(k);
@@ -158,6 +159,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setItemsArrayUpdatable(final WritableMemory itemsMem) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable = itemsMem;
   }
 
@@ -169,11 +171,13 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelsArrayAt(final int index, final int value) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     levelsArrUpdatable.putInt((long)index * Integer.BYTES, value);
   }
 
   @Override
   void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     final int offset = index * Integer.BYTES;
     final int curV = levelsArrUpdatable.getInt(offset);
     levelsArrUpdatable.putInt(offset, curV - minusEq);
@@ -181,6 +185,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     final int offset = index * Integer.BYTES;
     final int curV = levelsArrUpdatable.getInt(offset);
     levelsArrUpdatable.putInt(offset, curV + plusEq);
@@ -188,6 +193,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setLevelsArrayUpdatable(final WritableMemory levelsMem) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     levelsArrUpdatable = levelsMem;
   }
 
@@ -199,6 +205,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   void setMinMaxArrayUpdatable(final WritableMemory minMaxMem) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable = minMaxMem;
   }
 

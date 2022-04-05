@@ -36,8 +36,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DIRECT;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DOUBLE;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DIRECT;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -150,9 +150,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * @return the max value of the stream
    */
-  public double getMaxValue() {
-    return getMaxDoubleValue();
-  }
+  public double getMaxValue() { return getMaxDoubleValue(); }
 
   /**
    * Returns the min value of the stream.
@@ -160,9 +158,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    *
    * @return the min value of the stream
    */
-  public double getMinValue() {
-    return getMinDoubleValue();
-  }
+  public double getMinValue() { return getMinDoubleValue(); }
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
@@ -303,8 +299,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (!other.isDirect()) { kllSketchThrow(SRC_IS_NOT_DIRECT); }
-    if (!other.isDoublesSketch()) { kllSketchThrow(SRC_IS_NOT_DOUBLE); }
+    if (!other.isDirect()) { kllSketchThrow(SRC_MUST_BE_DIRECT); }
+    if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
     mergeDoubleImpl(other);
   }
 

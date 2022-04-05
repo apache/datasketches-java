@@ -217,7 +217,7 @@ final class KllPreambleUtil {
       case DOUBLE_UPDATABLE:
       {
         sb.append("Bytes  8-15: N                  : ").append(memChk.n).append(LS);
-        sb.append("Bytes 16-17: DyMinK             : ").append(memChk.minK).append(LS);
+        sb.append("Bytes 16-17: MinK               : ").append(memChk.minK).append(LS);
         sb.append("Byte  18   : NumLevels          : ").append(memChk.numLevels).append(LS);
         break;
       }
@@ -227,7 +227,7 @@ final class KllPreambleUtil {
       case DOUBLE_SINGLE_COMPACT:
       {
         sb.append("Assumed    : N                  : ").append(memChk.n).append(LS);
-        sb.append("Assumed    : DyMinK             : ").append(memChk.minK).append(LS);
+        sb.append("Assumed    : MinK               : ").append(memChk.minK).append(LS);
         sb.append("Assumed    : NumLevels          : ").append(memChk.numLevels).append(LS);
         break;
       }

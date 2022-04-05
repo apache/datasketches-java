@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DOUBLE;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_CANNOT_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
@@ -284,7 +284,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    */
   public void merge(final KllSketch other) {
     if (other.isDirect()) { kllSketchThrow(SRC_CANNOT_BE_DIRECT); }
-    if (!other.isDoublesSketch()) { kllSketchThrow(SRC_IS_NOT_DOUBLE); }
+    if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
     mergeDoubleImpl(other);
   }
 
