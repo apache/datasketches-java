@@ -24,6 +24,7 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_CANNOT_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
+import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -78,7 +79,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * Other values of <em>m</em> should be considered experimental as they have not been
    * as well characterized.
    * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param m parameter that controls the minimum level width.
+   * @param m parameter that controls the minimum level width in items.
    */
   KllDoublesSketch(final int k, final int m) {
     super(k, m, SketchType.DOUBLES_SKETCH);

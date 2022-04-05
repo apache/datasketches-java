@@ -102,7 +102,7 @@ public class KllDirectDoublesSketchTest {
     }
 
     // test getPMF
-    final double[] pmf = sketch.getPMF(new double[] {n / 2}); // split at median
+    final double[] pmf = sketch.getPMF(new double[] {n / 2.0}); // split at median
     assertEquals(pmf.length, 2);
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
@@ -561,7 +561,6 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sk.isDoublesSketch());
     assertFalse(sk.isLevelZeroSorted());
     assertFalse(sk.isFloatsSketch());
-    assertTrue(KllSketch.isCompatible());
   }
 
   @Test

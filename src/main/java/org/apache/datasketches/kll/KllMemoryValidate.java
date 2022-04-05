@@ -26,14 +26,13 @@ import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.UPD
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SER_VER;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SINGLEBIT;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SINGLEBIT_AND_SER_VER;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.DOUBLEBIT_AND_PREINTS;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.FLOATBIT_AND_PREINTS;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SINGLEBIT_AND_PREINTS;
+import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.INVALID_PREINTS;
+import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.memoryValidateThrow;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FLOAT;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
@@ -86,7 +85,7 @@ final class KllMemoryValidate {
   // For example, if the layout is compact & empty, n = 0, if compact and single, n = 1, etc.
   long n;
   // next 4 bytes
-  int dyMinK;
+  int minK;
   int numLevels;
   // derived
   int capacityItems; //capacity of Items array for exporting and for Updatable form
@@ -118,232 +117,156 @@ final class KllMemoryValidate {
     m = extractM(srcMem);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(UPDATABLEBIT_AND_SER_VER, 0); }
+    if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(UPDATABLEBIT_AND_SER_VER, 1); }
 
     if (updatable) { updatableMemoryValidate((WritableMemory) srcMem); }
     else { compactMemoryValidate(srcMem); }
   }
 
   void compactMemoryValidate(final Memory srcMem) {
-    if (empty && singleItem) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, 0); }
-    final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0) | (doublesSketch ? 8 : 0);
+    if (empty && singleItem) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, flags); }
+    final int typeBytes = doublesSketch ? Double.BYTES : Float.BYTES;
+    final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0);
     switch (sw) {
-      case 0: { //FLOAT_FULL_COMPACT
-        if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(FLOATBIT_AND_PREINTS, preInts); }
+      case 0: { //FULL_COMPACT
+        if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
-        layout = Layout.FLOAT_FULL_COMPACT;
+        layout = doublesSketch ? Layout.DOUBLE_FULL_COMPACT : Layout.FLOAT_FULL_COMPACT;
         n = extractN(srcMem);
-        dyMinK = extractMinK(srcMem);
+        minK = extractMinK(srcMem);
         numLevels = extractNumLevels(srcMem);
-        int offset = DATA_START_ADR_FLOAT;
+        int offset = DATA_START_ADR;
+
         // LEVELS MEM
         final int[] myLevelsArr = new int[numLevels + 1];
         srcMem.getIntArray(offset, myLevelsArr, 0, numLevels); //copies all except the last one
         myLevelsArr[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels); //load the last one
         levelsArrCompact = Memory.wrap(myLevelsArr); //separate from srcMem,
         offset += (int)levelsArrCompact.getCapacity() - Integer.BYTES; // but one larger than srcMem
-        // MIN/MAX MEM
-        minMaxArrCompact = srcMem.region(offset, 2L * Float.BYTES);
+
+        minMaxArrCompact = srcMem.region(offset, 2L * typeBytes); // MIN/MAX MEM
         offset += (int)minMaxArrCompact.getCapacity();
+
         // ITEMS MEM
         itemsArrStart = offset;
         capacityItems = myLevelsArr[numLevels];
         itemsRetained = capacityItems - myLevelsArr[0];
-        final float[] myItemsArr = new float[capacityItems];
-        srcMem.getFloatArray(offset, myItemsArr, myLevelsArr[0], itemsRetained);
-        itemsArrCompact = Memory.wrap(myItemsArr);
-        sketchBytes = offset + itemsRetained * Float.BYTES;
+        if (doublesSketch) {
+          final double[] myItemsArr = new double[capacityItems];
+          srcMem.getDoubleArray(offset, myItemsArr, myLevelsArr[0], itemsRetained);
+          itemsArrCompact = Memory.wrap(myItemsArr);
+        } else {
+          final float[] myItemsArr = new float[capacityItems];
+          srcMem.getFloatArray(offset, myItemsArr, myLevelsArr[0], itemsRetained);
+          itemsArrCompact = Memory.wrap(myItemsArr);
+        }
+        sketchBytes = offset + itemsRetained * typeBytes;
         break;
       }
-      case 1: { //FLOAT_EMPTY_COMPACT
+      case 1: { //EMPTY_COMPACT
         if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(EMPTYBIT_AND_PREINTS, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
-        layout = Layout.FLOAT_EMPTY_COMPACT;
+        layout = doublesSketch ? Layout.DOUBLE_EMPTY_COMPACT : Layout.FLOAT_EMPTY_COMPACT;
         n = 0;           //assumed
-        dyMinK = k;      //assumed
+        minK = k;      //assumed
         numLevels = 1;   //assumed
-        // LEVELS MEM
-        levelsArrCompact = Memory.wrap(new int[] {k, k});
-        // MIN/MAX MEM
-        minMaxArrCompact = Memory.wrap(new float[] {Float.NaN, Float.NaN});
-        // ITEMS MEM
         capacityItems = k;
         itemsRetained = 0;
-        itemsArrCompact = Memory.wrap(new float[k]);
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM; //also used for empty
+
+        levelsArrCompact = Memory.wrap(new int[] {k, k}); // LEVELS MEM
+        if (doublesSketch) {
+          minMaxArrCompact = Memory.wrap(new double[] {Double.NaN, Double.NaN}); // MIN/MAX MEM
+          itemsArrCompact = Memory.wrap(new double[k]);                          // ITEMS MEM
+        } else { //Floats Sketch
+          minMaxArrCompact = Memory.wrap(new float[] {Float.NaN, Float.NaN});    // MIN/MAX MEM
+          itemsArrCompact = Memory.wrap(new float[k]);                           // ITEMS MEM
+        }
+        sketchBytes = DATA_START_ADR_SINGLE_ITEM;   //used for empty and single item
         itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
         break;
       }
-      case 4: { //FLOAT_SINGLE_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(EMPTYBIT_AND_PREINTS, preInts); }
+      case 4: { //SINGLE_COMPACT
+        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(SINGLEBIT_AND_PREINTS, preInts); }
         if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(SINGLEBIT_AND_SER_VER, serVer); }
-        layout = Layout.FLOAT_SINGLE_COMPACT;
+        layout = doublesSketch ? Layout.DOUBLE_SINGLE_COMPACT : Layout.FLOAT_SINGLE_COMPACT;
         n = 1;
-        dyMinK = k;
+        minK = k;
         numLevels = 1;
-        // LEVELS MEM
-        levelsArrCompact = Memory.wrap(new int[] {k - 1, k});
-        final float minMax = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
-        // MIN/MAX MEM
-        minMaxArrCompact = Memory.wrap(new float[] {minMax, minMax});
-        // ITEMS MEM
         capacityItems = k;
         itemsRetained = 1;
-        final float[] myFloatItems = new float[k];
-        myFloatItems[k - 1] = minMax;
-        itemsArrCompact = Memory.wrap(myFloatItems);
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM + Float.BYTES;
-        itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
-        break;
-      }
-      case 8: { //DOUBLE_FULL_COMPACT
-        if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(DOUBLEBIT_AND_PREINTS, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
-        layout = Layout.DOUBLE_FULL_COMPACT;
-        n = extractN(srcMem);
-        dyMinK = extractMinK(srcMem);
-        numLevels = extractNumLevels(srcMem);
-        int offset = DATA_START_ADR_DOUBLE;
-        // LEVELS MEM
-        final int[] myLevelsArr = new int[numLevels + 1];
-        srcMem.getIntArray(offset, myLevelsArr, 0, numLevels); //all except the last one
-        myLevelsArr[numLevels] = KllHelper.computeTotalItemCapacity(k, m, numLevels); //load the last one
-        levelsArrCompact = Memory.wrap(myLevelsArr); //separate from srcMem
-        offset += (int)levelsArrCompact.getCapacity() - Integer.BYTES;
-        // MIN/MAX MEM
-        minMaxArrCompact = srcMem.region(offset, 2L * Double.BYTES);
-        offset += (int)minMaxArrCompact.getCapacity();
-        // ITEMS MEM
-        itemsArrStart = offset;
-        capacityItems = myLevelsArr[numLevels];
-        itemsRetained = capacityItems - myLevelsArr[0];
-        final double[] myItemsArr = new double[capacityItems];
-        srcMem.getDoubleArray(offset, myItemsArr, myLevelsArr[0], itemsRetained);
-        itemsArrCompact = Memory.wrap(myItemsArr);
-        sketchBytes = offset + itemsRetained * Double.BYTES;
-        break;
-      }
-      case 9: { //DOUBLE_EMPTY_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(EMPTYBIT_AND_PREINTS, preInts); }
-        if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
-        layout = Layout.DOUBLE_EMPTY_COMPACT;
-        n = 0;
-        dyMinK = k;
-        numLevels = 1;
 
-        // LEVELS MEM
-        levelsArrCompact = Memory.wrap(new int[] {k, k});
-        // MIN/MAX MEM
-        minMaxArrCompact = Memory.wrap(new double[] {Double.NaN, Double.NaN});
-        // ITEMS MEM
-        capacityItems = k;
-        itemsRetained = 0;
-        itemsArrCompact = Memory.wrap(new double[k]);
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM; //also used for empty
+        levelsArrCompact = Memory.wrap(new int[] {k - 1, k}); // LEVELS MEM
+        if (doublesSketch) {
+          final double minMax = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
+          minMaxArrCompact = Memory.wrap(new double[] {minMax, minMax}); // MIN/MAX MEM
+          final double[] myDoubleItems = new double[k];                    // ITEMS MEM
+          myDoubleItems[k - 1] = minMax;
+          itemsArrCompact = Memory.wrap(myDoubleItems);
+        } else {
+          final float minMax = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+          minMaxArrCompact = Memory.wrap(new float[] {minMax, minMax}); // MIN/MAX MEM
+          final float[] myFloatItems = new float[k];                    // ITEMS MEM
+          myFloatItems[k - 1] = minMax;
+          itemsArrCompact = Memory.wrap(myFloatItems);
+        }
+        sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
         itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
         break;
       }
-      case 12: { //DOUBLE_SINGLE_COMPACT
-        if (preInts != PREAMBLE_INTS_EMPTY_SINGLE) { memoryValidateThrow(EMPTYBIT_AND_PREINTS, preInts); }
-        if (serVer != SERIAL_VERSION_SINGLE) { memoryValidateThrow(SINGLEBIT_AND_SER_VER, serVer); }
-        layout = Layout.DOUBLE_SINGLE_COMPACT;
-        n = 1;
-        dyMinK = k;
-        numLevels = 1;
-
-        // LEVELS MEM
-        levelsArrCompact = Memory.wrap(new int[] {k - 1, k});
-        final double minMax = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
-        // MIN/MAX MEM
-        minMaxArrCompact = Memory.wrap(new double[] {minMax, minMax});
-        // ITEMS MEM
-        capacityItems = k;
-        itemsRetained = 1;
-        final double[] myDoubleItems = new double[k];
-        myDoubleItems[k - 1] = minMax;
-        itemsArrCompact = Memory.wrap(myDoubleItems);
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM + Double.BYTES;
-        itemsArrStart = DATA_START_ADR_SINGLE_ITEM;
-        break;
-      }
-      default: break; //can't happen
+      default: //can not happen
     }
   }
 
   void updatableMemoryValidate(final WritableMemory wSrcMem) {
-    if (doublesSketch) { //DOUBLE_UPDATABLE
-      if (preInts != PREAMBLE_INTS_DOUBLE) { memoryValidateThrow(DOUBLEBIT_AND_PREINTS, preInts); }
-      layout = Layout.DOUBLE_UPDATABLE;
-      n = extractN(wSrcMem);
-      empty = n == 0;       //empty & singleItem are set for convenience
-      singleItem = n == 1;  // there is no error checking on these bits
-      dyMinK = extractMinK(wSrcMem);
-      numLevels = extractNumLevels(wSrcMem);
+    final int typeBytes = doublesSketch ? Double.BYTES : Float.BYTES;
+    if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
+    layout = doublesSketch ? Layout.DOUBLE_UPDATABLE : Layout.FLOAT_UPDATABLE;
 
-      int offset = DATA_START_ADR_DOUBLE;
-      //LEVELS
-      levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1L) * Integer.BYTES);
-      offset += (int)levelsArrUpdatable.getCapacity();
-      //MIN/MAX
-      minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2L * Double.BYTES);
-      offset += (int)minMaxArrUpdatable.getCapacity();
-      //ITEMS
-      capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES);
-      final int itemsArrBytes = capacityItems * Double.BYTES;
-      itemsArrStart = offset;
-      itemsArrUpdatable = wSrcMem.writableRegion(offset, itemsArrBytes);
-      sketchBytes = offset + itemsArrBytes;
-    }
-    else { //FLOAT_UPDATABLE
-      if (preInts != PREAMBLE_INTS_FLOAT) { memoryValidateThrow(FLOATBIT_AND_PREINTS, preInts); }
-      layout = Layout.FLOAT_UPDATABLE;
-      n = extractN(wSrcMem);
-      empty = n == 0;       //empty & singleItem are set for convenience
-      singleItem = n == 1;  // there is no error checking on these bits
-      dyMinK = extractMinK(wSrcMem);
-      numLevels = extractNumLevels(wSrcMem);
-      int offset = DATA_START_ADR_FLOAT;
-      //LEVELS
-      levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1L) * Integer.BYTES);
-      offset += (int)levelsArrUpdatable.getCapacity();
-      //MIN/MAX
-      minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2L * Float.BYTES);
-      offset += (int)minMaxArrUpdatable.getCapacity();
-      //ITEMS
-      capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES);
-      final int itemsArrBytes = capacityItems * Float.BYTES;
-      itemsArrStart = offset;
-      itemsArrUpdatable = wSrcMem.writableRegion(offset, itemsArrBytes);
-      sketchBytes = itemsArrStart + itemsArrBytes;
-    }
+    n = extractN(wSrcMem);
+    empty = n == 0;       //empty & singleItem are set for convenience
+    singleItem = n == 1;  // there is no error checking on these bits
+    minK = extractMinK(wSrcMem);
+    numLevels = extractNumLevels(wSrcMem);
+
+    int offset = DATA_START_ADR;
+
+    levelsArrUpdatable = wSrcMem.writableRegion(offset, (numLevels + 1L) * Integer.BYTES); //LEVELS
+    offset += (int)levelsArrUpdatable.getCapacity();
+
+    minMaxArrUpdatable = wSrcMem.writableRegion(offset, 2L * typeBytes);        //MIN/MAX
+    offset += (int)minMaxArrUpdatable.getCapacity();
+
+    capacityItems = levelsArrUpdatable.getInt((long)numLevels * Integer.BYTES); //ITEMS
+    final int itemsArrBytes = capacityItems * typeBytes;
+    itemsArrStart = offset;
+    itemsArrUpdatable = wSrcMem.writableRegion(offset, itemsArrBytes);
+    sketchBytes = offset + itemsArrBytes;
   }
 
-  enum MemoryInputError { SRC_NOT_KLL, EMPTYBIT_AND_PREINTS, EMPTYBIT_AND_SER_VER,
-    SINGLEBIT_AND_SER_VER, DOUBLEBIT_AND_PREINTS, FLOATBIT_AND_PREINTS, UPDATABLEBIT_AND_SER_VER,
-    EMPTYBIT_AND_SINGLEBIT }
+  enum MemoryInputError {
+    SRC_NOT_KLL("FamilyID Field must be: " + Family.KLL.getID() + ", NOT: "),
+    EMPTYBIT_AND_PREINTS("Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
+    EMPTYBIT_AND_SER_VER("Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: "),
+    SINGLEBIT_AND_SER_VER("Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: "),
+    SINGLEBIT_AND_PREINTS("Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
+    INVALID_PREINTS("PreInts Must Be: " + PREAMBLE_INTS_FULL + ", NOT: "),
+    UPDATABLEBIT_AND_SER_VER("((SerVer == 3) ^ (Updatable Bit)) must = 0, NOT: "),
+    EMPTYBIT_AND_SINGLEBIT("Empty flag bit and SingleItem flag bit cannot both be set. Flags: ");
 
-  private static void memoryValidateThrow(final MemoryInputError errType, final int value) {
-    String msg = "";
-    switch (errType) {
-      case SRC_NOT_KLL: msg = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: " + value; break;
-      case EMPTYBIT_AND_PREINTS: msg =
-          "Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: " + value; break;
-      case EMPTYBIT_AND_SER_VER: msg =
-          "Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: " + value; break;
-      case SINGLEBIT_AND_SER_VER: msg =
-          "Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: " + value; break;
-      case DOUBLEBIT_AND_PREINTS: msg =
-          "Double Sketch Bit: 1 -> PreInts: " + PREAMBLE_INTS_DOUBLE + ", NOT: " + value; break;
-      case FLOATBIT_AND_PREINTS: msg =
-          "Double Sketch Bit: 0 -> PreInts: " + PREAMBLE_INTS_FLOAT + ", NOT: " + value; break;
-      case UPDATABLEBIT_AND_SER_VER: msg =
-          "((SerVer == 3) ^ (Updatable Bit)) must = 0."; break;
-      case EMPTYBIT_AND_SINGLEBIT: msg =
-          "Empty flag bit and SingleItem flag bit cannot both be set. Flags: " + value; break;
-      default: msg = "Unknown error"; break;
+    private String msg;
+
+    private MemoryInputError(final String msg) {
+      this.msg = msg;
     }
-    throw new SketchesArgumentException(msg);
+
+    private String getMessage() {
+      return msg;
+    }
+
+    final static void memoryValidateThrow(final MemoryInputError errType, final int value) {
+      throw new SketchesArgumentException(errType.getMessage() + value);
+    }
+
   }
 
 }
-

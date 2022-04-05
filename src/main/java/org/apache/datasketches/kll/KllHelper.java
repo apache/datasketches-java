@@ -21,8 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.floorPowerOf2;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllSketch.CDF_COEF;
 import static org.apache.datasketches.kll.KllSketch.CDF_EXP;
 import static org.apache.datasketches.kll.KllSketch.PMF_COEF;
@@ -144,18 +143,14 @@ public class KllHelper {
     }
     int compactBytes;
     int updatableBytes;
+    final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     do {
       numLevels++;
       lvlStats = getFinalSketchStatsAtNumLevels(k, m, numLevels, false);
       final int maxItems = lvlStats.items;
       final long maxN = lvlStats.n;
-      if (sketchType == DOUBLES_SKETCH) {
-        compactBytes = maxItems * Double.BYTES + numLevels * Integer.BYTES + 2 * Double.BYTES + DATA_START_ADR_DOUBLE;
-        updatableBytes = compactBytes + Integer.BYTES;
-      } else {
-        compactBytes = maxItems * Float.BYTES + numLevels * Integer.BYTES + 2 * Float.BYTES + DATA_START_ADR_FLOAT;
-        updatableBytes = compactBytes + Integer.BYTES;
-      }
+      compactBytes = maxItems * typeBytes + numLevels * Integer.BYTES + 2 * typeBytes + DATA_START_ADR;
+      updatableBytes = compactBytes + Integer.BYTES;
       if (printGrowthScheme) {
         printf("%10d %,10d %,20d %,13d %,15d\n", numLevels, maxItems, maxN, compactBytes, updatableBytes);
       }

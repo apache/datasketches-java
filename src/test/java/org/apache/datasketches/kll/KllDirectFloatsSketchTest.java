@@ -377,9 +377,7 @@ public class KllDirectFloatsSketchTest {
   public void serializeDeserializeFullViaCompactHeapify() {
     final KllDirectFloatsSketch sketch1 = getDFSketch(200, 0);
     final int n = 1000;
-    for (int i = 0; i < n; i++) {
-      sketch1.update(i);
-    }
+    for (int i = 0; i < n; i++) { sketch1.update(i); }
     final byte[] bytes = sketch1.toByteArray();
     final KllFloatsSketch sketch2 =  KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
@@ -561,7 +559,6 @@ public class KllDirectFloatsSketchTest {
     assertTrue(sk.isFloatsSketch());
     assertFalse(sk.isLevelZeroSorted());
     assertFalse(sk.isDoublesSketch());
-    assertTrue(KllSketch.isCompatible());
   }
 
   @Test

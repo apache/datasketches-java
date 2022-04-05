@@ -27,13 +27,11 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.round;
 import static org.apache.datasketches.Util.isOdd;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_FLOAT;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FLOAT;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
@@ -73,7 +71,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * overwritten by subsequent updates.
  *
  * Invariants:
- * 1) After a compaction, or an update, or a merge, all levels are sorted except for level zero.
+ * 1) After a compaction, or an update, or a merge, every level is sorted except for level zero.
  * 2) After a compaction, (sum of capacities) - (sum of items) >= 1,
  *  so there is room for least 1 more item in level zero.
  * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
@@ -101,7 +99,6 @@ public abstract class KllSketch {
   static final double CDF_COEF = 2.296;
   static final double CDF_EXP = 0.9723;
   static final Random random = new Random();
-  static final boolean compatible = true; //rank 0.0 and 1.0. compatible with classic Quantiles Sketch
   SketchType sketchType;
   WritableMemory wmem;
   MemoryRequestServer memReqSvr;
@@ -113,7 +110,10 @@ public abstract class KllSketch {
   public static final int DEFAULT_K = 200;
 
   /**
-   * The default value of M
+   * The default value of M. The parameter <i>m</i> is the minimum level size in number of items.
+   * Currently, the public default is 8, but this can be overridden using Package Private methods to
+   * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
+   * Choosing smaller values of <i>m</i> less than 8 will make the sketch much slower.
    */
   static final int DEFAULT_M = 8;
 
@@ -123,12 +123,12 @@ public abstract class KllSketch {
   public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   /**
-   * The maximum value of M
+   * The maximum value of M. See the Javadoc on DEFAULT_M.
    */
   static final int MAX_M = 8;
 
   /**
-   * The minimum value of M
+   * The minimum value of M. See the Javadoc on DEFAULT_M.
    */
   static final int MIN_M = 2;
 
@@ -188,6 +188,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    * @param n stream length
    * @return upper bound on the compact serialized size
    * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
+   * Version 3.2.0
    */
   @Deprecated
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
@@ -234,44 +235,42 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
         : getCurrentCompactSerializedSizeBytes();
   }
 
-  static int getSerializedSizeBytes(final int numLevels, final int numItems,
+  //numItems can be either numRetained, or current max capacity at given K and numLevels.
+  static int getCurrentSerializedSizeBytes(final int numLevels, final int numItems,
       final SketchType sketchType, final boolean updatable) {
+    final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     int levelsBytes = 0;
-    if (!updatable) {
-      if (numItems == 0) { return N_LONG_ADR; }
-      if (numItems == 1) {
-        return DATA_START_ADR_SINGLE_ITEM + (sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES);
-      }
-      levelsBytes = numLevels * Integer.BYTES;
-    } else {
+    if (updatable) {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
-    }
-    if (sketchType == DOUBLES_SKETCH) {
-      return DATA_START_ADR_DOUBLE + levelsBytes + (numItems + 2) * Double.BYTES; //+2 is for min & max
     } else {
-      return DATA_START_ADR_FLOAT + levelsBytes + (numItems + 2) * Float.BYTES;
+      if (numItems == 0) { return N_LONG_ADR; }
+      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + typeBytes; }
+      levelsBytes = numLevels * Integer.BYTES;
     }
+    return DATA_START_ADR + levelsBytes + (numItems + 2) * typeBytes; //+2 is for min & max
   }
 
-  final static boolean isCompatible() {
-    return compatible;
-  }
+  enum Error {
+    TGT_IS_IMMUTABLE("Given sketch Memory is immutable, cannot write."),
+    SRC_IS_NOT_DIRECT("Given sketch must be of type Direct."),
+    SRC_IS_NOT_DOUBLE("Given sketch must be of type Double."),
+    SRC_IS_NOT_FLOAT("Given sketch must be of type Float."),
+    SRC_CANNOT_BE_DIRECT("Given sketch must not be of type Direct."),
+    MUST_NOT_CALL("This is an artifact of inheritance and should never be called.");
 
-  enum Error { TGT_IS_IMMUTABLE, SRC_IS_NOT_DIRECT, SRC_IS_NOT_DOUBLE,
-   SRC_IS_NOT_FLOAT, SRC_CANNOT_BE_DIRECT, MUST_NOT_CALL }
+    private String msg;
 
-  final static void kllSketchThrow(final Error errType) {
-    String msg = "";
-    switch (errType) {
-      case TGT_IS_IMMUTABLE: msg = "Given sketch Memory is immutable, cannot write."; break;
-      case SRC_IS_NOT_DIRECT: msg = "Given sketch must be of type Direct."; break;
-      case SRC_IS_NOT_DOUBLE: msg = "Given sketch must be of type Double."; break;
-      case SRC_IS_NOT_FLOAT: msg = "Given sketch must be of type Float."; break;
-      case SRC_CANNOT_BE_DIRECT: msg = "Given sketch must not be of type Direct."; break;
-      case MUST_NOT_CALL: msg = "This is an artifact of inheritance and should never be called."; break;
-      default: msg = "Unknown error."; break;
+    private Error(final String msg) {
+      this.msg = msg;
     }
-    throw new SketchesArgumentException(msg);
+
+    private String getMessage() {
+      return msg;
+    }
+
+    final static void kllSketchThrow(final Error errType) {
+      throw new SketchesArgumentException(errType.getMessage());
+    }
   }
 
   //Public Non-static methods
@@ -281,7 +280,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    * @return the current compact number of bytes this sketch would require to store.
    */
   public final int getCurrentCompactSerializedSizeBytes() {
-    return KllSketch.getSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
+    return KllSketch.getCurrentSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
   }
 
   /**
@@ -290,7 +289,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
    */
   public final int getCurrentUpdatableSerializedSizeBytes() {
     final int itemCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
-    return KllSketch.getSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
+    return KllSketch.getCurrentSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
   }
 
   /**
@@ -300,7 +299,10 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
   public abstract int getK();
 
   /**
-   * Returns the configured parameter m
+   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of items.
+   * Currently, the public default is 8, but this can be overridden using Package Private methods to
+   * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
+   * Choosing smaller values of <i>m</i> will make the sketch much slower.
    * @return the configured parameter m
    */
   abstract int getM();
@@ -409,7 +411,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final boolean updatable = memVal.updatable;
     setLevelZeroSorted(memVal.level0Sorted);
     setN(memVal.n);
-    setMinK(memVal.dyMinK);
+    setMinK(memVal.minK);
     setNumLevels(memVal.numLevels);
     final int[] myLevelsArr = new int[getNumLevels() + 1];
 
@@ -519,10 +521,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
     }
-    if (isCompatible()) {
-      if (fraction == 0.0) { return getMinDoubleValue(); }
-      if (fraction == 1.0) { return getMaxDoubleValue(); }
-    }
+    //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
+    if (fraction == 0.0) { return getMinDoubleValue(); }
+    if (fraction == 1.0) { return getMaxDoubleValue(); }
     final KllDoublesQuantileCalculator quant = getDoublesQuantileCalculator();
     return quant.getQuantile(fraction);
   }
@@ -536,8 +537,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       if (fraction < 0.0 || fraction > 1.0) {
         throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
       }
-      if      (fraction == 0.0 && isCompatible()) { quantiles[i] = getMinDoubleValue(); }
-      else if (fraction == 1.0 && isCompatible()) { quantiles[i] = getMaxDoubleValue(); }
+      if      (fraction == 0.0) { quantiles[i] = getMinDoubleValue(); }
+      else if (fraction == 1.0) { quantiles[i] = getMaxDoubleValue(); }
       else {
         if (quant == null) {
           quant = getDoublesQuantileCalculator();
@@ -622,10 +623,10 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
     }
-    if (isCompatible()) {
-      if (fraction == 0.0) { return getMinFloatValue(); }
-      if (fraction == 1.0) { return getMaxFloatValue(); }
-    }
+    //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
+    if (fraction == 0.0) { return getMinFloatValue(); }
+    if (fraction == 1.0) { return getMaxFloatValue(); }
+
     final KllFloatsQuantileCalculator quant = getFloatsQuantileCalculator();
     return quant.getQuantile(fraction);
   }
@@ -639,8 +640,8 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       if (fraction < 0.0 || fraction > 1.0) {
         throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
       }
-      if      (fraction == 0.0 && isCompatible()) { quantiles[i] = getMinFloatValue(); }
-      else if (fraction == 1.0 && isCompatible()) { quantiles[i] = getMaxFloatValue(); }
+      if      (fraction == 0.0) { quantiles[i] = getMinFloatValue(); }
+      else if (fraction == 1.0) { quantiles[i] = getMaxFloatValue(); }
       else {
         if (quant == null) {
           quant = getFloatsQuantileCalculator();
@@ -701,16 +702,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       final int newItemsArrLen) {
     final SketchType sketchType = sketch.sketchType;
     final WritableMemory oldWmem = sketch.wmem;
+    final int startAdr = DATA_START_ADR;
+    final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
 
-    final int typeBytes;
-    final int startAdr;
-    if (sketchType == DOUBLES_SKETCH) {
-      typeBytes = Double.BYTES;
-      startAdr = DATA_START_ADR_DOUBLE;
-    } else {
-      typeBytes = Float.BYTES;
-      startAdr = DATA_START_ADR_FLOAT;
-    }
     int requiredSketchBytes = startAdr;
     requiredSketchBytes += newLevelsArrLen * Integer.BYTES;
     requiredSketchBytes += 2 * typeBytes;
@@ -1020,7 +1014,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       insertN(wmem, getN());
       insertMinK(wmem, getMinK());
       insertNumLevels(wmem, getNumLevels());
-      offset = (doubleType) ? DATA_START_ADR_DOUBLE : DATA_START_ADR_FLOAT;
+      offset = DATA_START_ADR;
 
       //LOAD LEVELS ARR the last integer in levels_ is NOT serialized
       final int len = myLevelsArr.length - 1;
@@ -1051,12 +1045,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final boolean lvlZeroSorted = sk.isLevelZeroSorted();
     final boolean singleItem = sk.getN() == 1;
     final boolean doubleType = (sk.sketchType == DOUBLES_SKETCH);
-    final int preInts =
-        updatable
-        ? (doubleType ? PREAMBLE_INTS_DOUBLE : PREAMBLE_INTS_FLOAT)
-        : ((empty || singleItem)
-          ? PREAMBLE_INTS_EMPTY_SINGLE
-          : (doubleType) ? PREAMBLE_INTS_DOUBLE : PREAMBLE_INTS_FLOAT);
+    final int preInts = updatable
+        ? PREAMBLE_INTS_FULL
+        : (empty || singleItem) ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FULL;
     //load the preamble
     insertPreInts(wmem, preInts);
     final int server = updatable ? SERIAL_VERSION_UPDATABLE
@@ -1209,7 +1200,7 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
     //load data
     final boolean doubleType = (sketchType == DOUBLES_SKETCH);
-    int offset = (doubleType) ? DATA_START_ADR_DOUBLE : DATA_START_ADR_FLOAT;
+    int offset = DATA_START_ADR;
 
     //LOAD LEVELS ARRAY the last integer in levels_ IS serialized
     final int[] myLevelsArr = getLevelsArray();

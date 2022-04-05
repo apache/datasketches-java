@@ -139,22 +139,18 @@ final class KllPreambleUtil {
 
   // MULTI-ITEM
   static final int N_LONG_ADR                 = 8;  // to 15
-  static final int MIN_K_SHORT_ADR         = 16; // to 17
+  static final int MIN_K_SHORT_ADR            = 16; // to 17
   static final int NUM_LEVELS_BYTE_ADR        = 18;
 
-  // FLOAT SKETCH                               19 is reserved for future use in float sketch
-  static final int DATA_START_ADR_FLOAT       = 20; // float sketch, not single item
-
-  // DOUBLE SKETCH                              19 to 23 is reserved for future use in double sketch
-  static final int DATA_START_ADR_DOUBLE      = 20; // double sketch, not single item
+  //                                                19 is reserved for future use
+  static final int DATA_START_ADR             = 20; // Full Sketch, not single item
 
   // Other static values
   static final byte SERIAL_VERSION_EMPTY_FULL = 1; // Empty or full preamble, NOT single item format
   static final byte SERIAL_VERSION_SINGLE     = 2; // only single-item format
   static final byte SERIAL_VERSION_UPDATABLE  = 3; //
   static final int PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
-  static final int PREAMBLE_INTS_FLOAT        = 5; // not empty nor single item, full preamble float
-  static final int PREAMBLE_INTS_DOUBLE       = 5; // not empty nor single item, full preamble double
+  static final int PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item
 
   // Flag bit masks
   static final int EMPTY_BIT_MASK             = 1;
@@ -221,7 +217,7 @@ final class KllPreambleUtil {
       case DOUBLE_UPDATABLE:
       {
         sb.append("Bytes  8-15: N                  : ").append(memChk.n).append(LS);
-        sb.append("Bytes 16-17: DyMinK             : ").append(memChk.dyMinK).append(LS);
+        sb.append("Bytes 16-17: DyMinK             : ").append(memChk.minK).append(LS);
         sb.append("Byte  18   : NumLevels          : ").append(memChk.numLevels).append(LS);
         break;
       }
@@ -231,7 +227,7 @@ final class KllPreambleUtil {
       case DOUBLE_SINGLE_COMPACT:
       {
         sb.append("Assumed    : N                  : ").append(memChk.n).append(LS);
-        sb.append("Assumed    : DyMinK             : ").append(memChk.dyMinK).append(LS);
+        sb.append("Assumed    : DyMinK             : ").append(memChk.minK).append(LS);
         sb.append("Assumed    : NumLevels          : ").append(memChk.numLevels).append(LS);
         break;
       }

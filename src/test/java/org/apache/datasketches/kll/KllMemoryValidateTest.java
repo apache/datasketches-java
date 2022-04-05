@@ -27,7 +27,7 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("unused")
-public class MemoryValidateTest {
+public class KllMemoryValidateTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFamily() {
@@ -67,98 +67,80 @@ public class MemoryValidateTest {
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidPreIntsAndSingle() {
+  public void checkInvalidSingleAndPreInts() {
     KllFloatsSketch sk = new KllFloatsSketch();
+    sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, UPDATABLE_BIT_MASK);
-    insertSerVer(wmem, SERIAL_VERSION_SINGLE);
+    insertPreInts(wmem, PREAMBLE_INTS_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidSerVerAndSingle2() {
+  public void checkInvalidSingleAndSerVer() {
     KllFloatsSketch sk = new KllFloatsSketch();
+    sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, SINGLE_ITEM_BIT_MASK);
     insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidPreIntsAndSingle2() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+  public void checkInvalidEmptyDoublesAndPreIntsFull() {
+    KllDoublesSketch sk = new KllDoublesSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, SINGLE_ITEM_BIT_MASK);
-    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
+    insertPreInts(wmem, PREAMBLE_INTS_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidPreIntsAndDouble() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+  public void checkInvalidSingleDoubleCompactAndSerVer() {
+    KllDoublesSketch sk = new KllDoublesSketch();
+    sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, DOUBLES_SKETCH_BIT_MASK);
-    insertPreInts(wmem, PREAMBLE_INTS_DOUBLE);
-    insertSerVer(wmem, SERIAL_VERSION_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidDoubleCompactAndSingle() {
-    KllFloatsSketch sk = new KllFloatsSketch();
-    byte[] byteArr = sk.toByteArray();
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, SINGLE_ITEM_BIT_MASK | DOUBLES_SKETCH_BIT_MASK);
-    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkInvalidDoubleUpdatableAndSerVer() {
-    KllFloatsSketch sk = new KllFloatsSketch();
-    byte[] byteArr = sk.toByteArray();
+  public void checkInvalidDoubleUpdatableAndPreInts() {
+    KllDoublesSketch sk = new KllDoublesSketch();
+    byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertSerVer(wmem, SERIAL_VERSION_UPDATABLE);
-    insertFlags(wmem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
-    insertPreInts(wmem, PREAMBLE_INTS_DOUBLE - 1);
+    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFloatFullAndPreInts() {
     KllFloatsSketch sk = new KllFloatsSketch();
+    sk.update(1); sk.update(2);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, 0); //float full
-    insertSerVer(wmem, SERIAL_VERSION_SINGLE); //should be 1
-    insertPreInts(wmem, PREAMBLE_INTS_FLOAT);
+    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidFloatUpdatableFullAndPreInts() {
     KllFloatsSketch sk = new KllFloatsSketch();
-    byte[] byteArr = sk.toByteArray();
+    sk.update(1); sk.update(2);
+    byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, UPDATABLE_BIT_MASK); //float updatable full
-    insertSerVer(wmem, SERIAL_VERSION_UPDATABLE);
-    insertPreInts(wmem, 0);//should be 5
+    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidDoubleCompactSingleAndPreInts() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+    KllDoublesSketch sk = new KllDoublesSketch();
+    sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, DOUBLES_SKETCH_BIT_MASK | SINGLE_ITEM_BIT_MASK);
-    insertPreInts(wmem, 5);//should be 2
-    insertSerVer(wmem, SERIAL_VERSION_SINGLE); //should be 2
+    insertPreInts(wmem, PREAMBLE_INTS_FULL);//should be 2, single
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 

@@ -21,16 +21,16 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_DOUBLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertFlags;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertM;
+import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
@@ -39,6 +39,7 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
+import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -92,14 +93,14 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
   /**
    * Create a new instance of this sketch.
    * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param m parameter that controls the minimum level width.
+   * @param m parameter that controls the minimum level width in items.
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new instance of this sketch
    */
   static KllDirectDoublesSketch newInstance(final int k, final int m, final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
-    insertPreInts(dstMem, PREAMBLE_INTS_DOUBLE);
+    insertPreInts(dstMem, PREAMBLE_INTS_FULL);
     insertSerVer(dstMem, SERIAL_VERSION_UPDATABLE);
     insertFamilyID(dstMem, Family.KLL.getID());
     insertFlags(dstMem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
@@ -108,7 +109,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
     insertN(dstMem, 0);
     insertMinK(dstMem, k);
     insertNumLevels(dstMem, 1);
-    int offset = DATA_START_ADR_DOUBLE;
+    int offset = DATA_START_ADR;
     dstMem.putIntArray(offset, new int[] {k, k}, 0, 2);
     offset += 2 * Integer.BYTES;
     dstMem.putDoubleArray(offset, new double[] {Double.NaN, Double.NaN}, 0, 2);
@@ -359,6 +360,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
 
   @Override
   void setDoubleItemsArrayAt(final int index, final double value) {
+    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putDouble((long)index * Double.BYTES, value);
   }
 

@@ -30,6 +30,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.insertLevelZeroSortedF
 import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
 import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
+import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
