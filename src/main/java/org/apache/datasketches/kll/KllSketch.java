@@ -35,19 +35,19 @@ import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertDoubleSketchFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertEmptyFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertM;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertSingleItemFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertUpdatableFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryDoubleSketchFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySingleItemFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryUpdatableFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
@@ -1011,9 +1011,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
       }
     } else { // n > 1
       //remainder of preamble after first 8 bytes
-      insertN(wmem, getN());
-      insertMinK(wmem, getMinK());
-      insertNumLevels(wmem, getNumLevels());
+      setMemoryN(wmem, getN());
+      setMemoryMinK(wmem, getMinK());
+      setMemoryNumLevels(wmem, getNumLevels());
       offset = DATA_START_ADR;
 
       //LOAD LEVELS ARR the last integer in levels_ is NOT serialized
@@ -1049,18 +1049,18 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
         ? PREAMBLE_INTS_FULL
         : (empty || singleItem) ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FULL;
     //load the preamble
-    insertPreInts(wmem, preInts);
+    setMemoryPreInts(wmem, preInts);
     final int server = updatable ? SERIAL_VERSION_UPDATABLE
         : (singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL);
-    insertSerVer(wmem, server);
-    insertFamilyID(wmem, Family.KLL.getID());
-    insertEmptyFlag(wmem, empty);
-    insertLevelZeroSortedFlag(wmem, lvlZeroSorted);
-    insertSingleItemFlag(wmem, singleItem);
-    insertDoubleSketchFlag(wmem, doubleType);
-    insertUpdatableFlag(wmem, updatable);
-    insertK(wmem, sk.getK());
-    insertM(wmem, sk.getM());
+    setMemorySerVer(wmem, server);
+    setMemoryFamilyID(wmem, Family.KLL.getID());
+    setMemoryEmptyFlag(wmem, empty);
+    setMemoryLevelZeroSortedFlag(wmem, lvlZeroSorted);
+    setMemorySingleItemFlag(wmem, singleItem);
+    setMemoryDoubleSketchFlag(wmem, doubleType);
+    setMemoryUpdatableFlag(wmem, updatable);
+    setMemoryK(wmem, sk.getK());
+    setMemoryM(wmem, sk.getM());
   }
 
   @SuppressWarnings("null")
@@ -1194,9 +1194,9 @@ public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     loadFirst8Bytes(this, wmem, true);
     //remainder of preamble after first 8 bytes
-    insertN(wmem, getN());
-    insertMinK(wmem, getMinK());
-    insertNumLevels(wmem, getNumLevels());
+    setMemoryN(wmem, getN());
+    setMemoryMinK(wmem, getMinK());
+    setMemoryNumLevels(wmem, getNumLevels());
 
     //load data
     final boolean doubleType = (sketchType == DOUBLES_SKETCH);

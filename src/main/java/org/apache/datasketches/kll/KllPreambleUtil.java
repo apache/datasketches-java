@@ -240,120 +240,120 @@ final class KllPreambleUtil {
     return sb.toString();
   }
 
-  static int extractPreInts(final Memory mem) {
+  static int getMemoryPreInts(final Memory mem) {
     return mem.getByte(PREAMBLE_INTS_BYTE_ADR) & 0XFF;
   }
 
-  static int extractSerVer(final Memory mem) {
+  static int getMemorySerVer(final Memory mem) {
     return mem.getByte(SER_VER_BYTE_ADR) & 0XFF;
   }
 
-  static int extractFamilyID(final Memory mem) {
+  static int getMemoryFamilyID(final Memory mem) {
     return mem.getByte(FAMILY_BYTE_ADR) & 0XFF;
   }
 
-  static int extractFlags(final Memory mem) {
+  static int getMemoryFlags(final Memory mem) {
     return mem.getByte(FLAGS_BYTE_ADR) & 0XFF;
   }
 
-  static boolean extractEmptyFlag(final Memory mem) {
-    return (extractFlags(mem) & EMPTY_BIT_MASK) != 0;
+  static boolean getMemoryEmptyFlag(final Memory mem) {
+    return (getMemoryFlags(mem) & EMPTY_BIT_MASK) != 0;
   }
 
-  static boolean extractLevelZeroSortedFlag(final Memory mem) {
-    return (extractFlags(mem) & LEVEL_ZERO_SORTED_BIT_MASK) != 0;
+  static boolean getMemoryLevelZeroSortedFlag(final Memory mem) {
+    return (getMemoryFlags(mem) & LEVEL_ZERO_SORTED_BIT_MASK) != 0;
   }
 
-  static boolean extractSingleItemFlag(final Memory mem) {
-    return (extractFlags(mem) & SINGLE_ITEM_BIT_MASK) != 0;
+  static boolean getMemorySingleItemFlag(final Memory mem) {
+    return (getMemoryFlags(mem) & SINGLE_ITEM_BIT_MASK) != 0;
   }
 
-  static boolean extractDoubleSketchFlag(final Memory mem) {
-    return (extractFlags(mem) & DOUBLES_SKETCH_BIT_MASK) != 0;
+  static boolean getMemoryDoubleSketchFlag(final Memory mem) {
+    return (getMemoryFlags(mem) & DOUBLES_SKETCH_BIT_MASK) != 0;
   }
 
-  static boolean extractUpdatableFlag(final Memory mem) {
-    return (extractFlags(mem) & UPDATABLE_BIT_MASK) != 0;
+  static boolean getMemoryUpdatableFlag(final Memory mem) {
+    return (getMemoryFlags(mem) & UPDATABLE_BIT_MASK) != 0;
   }
 
-  static int extractK(final Memory mem) {
+  static int getMemoryK(final Memory mem) {
     return mem.getShort(K_SHORT_ADR) & 0XFFFF;
   }
 
-  static int extractM(final Memory mem) {
+  static int getMemoryM(final Memory mem) {
     return mem.getByte(M_BYTE_ADR) & 0XFF;
   }
 
-  static long extractN(final Memory mem) {
+  static long getMemoryN(final Memory mem) {
     return mem.getLong(N_LONG_ADR);
   }
 
-  static int extractMinK(final Memory mem) {
+  static int getMemoryMinK(final Memory mem) {
     return mem.getShort(MIN_K_SHORT_ADR) & 0XFFFF;
   }
 
-  static int extractNumLevels(final Memory mem) {
+  static int getMemoryNumLevels(final Memory mem) {
     return mem.getByte(NUM_LEVELS_BYTE_ADR) & 0XFF;
   }
 
-  static void insertPreInts(final WritableMemory wmem, final int value) {
+  static void setMemoryPreInts(final WritableMemory wmem, final int value) {
     wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte) value);
   }
 
-  static void insertSerVer(final WritableMemory wmem, final int value) {
+  static void setMemorySerVer(final WritableMemory wmem, final int value) {
     wmem.putByte(SER_VER_BYTE_ADR, (byte) value);
   }
 
-  static void insertFamilyID(final WritableMemory wmem, final int value) {
+  static void setMemoryFamilyID(final WritableMemory wmem, final int value) {
     wmem.putByte(FAMILY_BYTE_ADR, (byte) value);
   }
 
-  static void insertFlags(final WritableMemory wmem, final int value) {
+  static void setMemoryFlags(final WritableMemory wmem, final int value) {
     wmem.putByte(FLAGS_BYTE_ADR, (byte) value);
   }
 
-  static void insertEmptyFlag(final WritableMemory wmem,  final boolean empty) {
-    final int flags = extractFlags(wmem);
-    insertFlags(wmem, empty ? flags | EMPTY_BIT_MASK : flags & ~EMPTY_BIT_MASK);
+  static void setMemoryEmptyFlag(final WritableMemory wmem,  final boolean empty) {
+    final int flags = getMemoryFlags(wmem);
+    setMemoryFlags(wmem, empty ? flags | EMPTY_BIT_MASK : flags & ~EMPTY_BIT_MASK);
   }
 
-  static void insertLevelZeroSortedFlag(final WritableMemory wmem,  final boolean levelZeroSorted) {
-    final int flags = extractFlags(wmem);
-    insertFlags(wmem, levelZeroSorted ? flags | LEVEL_ZERO_SORTED_BIT_MASK : flags & ~LEVEL_ZERO_SORTED_BIT_MASK);
+  static void setMemoryLevelZeroSortedFlag(final WritableMemory wmem,  final boolean levelZeroSorted) {
+    final int flags = getMemoryFlags(wmem);
+    setMemoryFlags(wmem, levelZeroSorted ? flags | LEVEL_ZERO_SORTED_BIT_MASK : flags & ~LEVEL_ZERO_SORTED_BIT_MASK);
   }
 
-  static void insertSingleItemFlag(final WritableMemory wmem,  final boolean singleItem) {
-    final int flags = extractFlags(wmem);
-    insertFlags(wmem, singleItem ? flags | SINGLE_ITEM_BIT_MASK : flags & ~SINGLE_ITEM_BIT_MASK);
+  static void setMemorySingleItemFlag(final WritableMemory wmem,  final boolean singleItem) {
+    final int flags = getMemoryFlags(wmem);
+    setMemoryFlags(wmem, singleItem ? flags | SINGLE_ITEM_BIT_MASK : flags & ~SINGLE_ITEM_BIT_MASK);
   }
 
-  static void insertDoubleSketchFlag(final WritableMemory wmem,  final boolean doubleSketch) {
-    final int flags = extractFlags(wmem);
-    insertFlags(wmem, doubleSketch ? flags | DOUBLES_SKETCH_BIT_MASK : flags & ~DOUBLES_SKETCH_BIT_MASK);
+  static void setMemoryDoubleSketchFlag(final WritableMemory wmem,  final boolean doubleSketch) {
+    final int flags = getMemoryFlags(wmem);
+    setMemoryFlags(wmem, doubleSketch ? flags | DOUBLES_SKETCH_BIT_MASK : flags & ~DOUBLES_SKETCH_BIT_MASK);
   }
 
-  static void insertUpdatableFlag(final WritableMemory wmem,  final boolean updatable) {
-    final int flags = extractFlags(wmem);
-    insertFlags(wmem, updatable ? flags | UPDATABLE_BIT_MASK : flags & ~UPDATABLE_BIT_MASK);
+  static void setMemoryUpdatableFlag(final WritableMemory wmem,  final boolean updatable) {
+    final int flags = getMemoryFlags(wmem);
+    setMemoryFlags(wmem, updatable ? flags | UPDATABLE_BIT_MASK : flags & ~UPDATABLE_BIT_MASK);
   }
 
-  static void insertK(final WritableMemory wmem, final int value) {
+  static void setMemoryK(final WritableMemory wmem, final int value) {
     wmem.putShort(K_SHORT_ADR, (short) value);
   }
 
-  static void insertM(final WritableMemory wmem, final int value) {
+  static void setMemoryM(final WritableMemory wmem, final int value) {
     wmem.putByte(M_BYTE_ADR, (byte) value);
   }
 
-  static void insertN(final WritableMemory wmem, final long value) {
+  static void setMemoryN(final WritableMemory wmem, final long value) {
     wmem.putLong(N_LONG_ADR, value);
   }
 
-  static void insertMinK(final WritableMemory wmem, final int value) {
+  static void setMemoryMinK(final WritableMemory wmem, final int value) {
     wmem.putShort(MIN_K_SHORT_ADR, (short) value);
   }
 
-  static void insertNumLevels(final WritableMemory wmem, final int value) {
+  static void setMemoryNumLevels(final WritableMemory wmem, final int value) {
     wmem.putByte(NUM_LEVELS_BYTE_ADR, (byte) value);
   }
 

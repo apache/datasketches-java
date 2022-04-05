@@ -36,20 +36,20 @@ import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractDoubleSketchFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractEmptyFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractFlags;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractK;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractM;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractN;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractSerVer;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractSingleItemFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractUpdatableFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryDoubleSketchFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFlags;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFlag;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -101,20 +101,20 @@ final class KllMemoryValidate {
 
   KllMemoryValidate(final Memory srcMem) {
     memCapacity = (int) srcMem.getCapacity();
-    preInts = extractPreInts(srcMem);
-    serVer = extractSerVer(srcMem);
+    preInts = getMemoryPreInts(srcMem);
+    serVer = getMemorySerVer(srcMem);
 
-    familyID = extractFamilyID(srcMem);
+    familyID = getMemoryFamilyID(srcMem);
     if (familyID != Family.KLL.getID()) { memoryValidateThrow(SRC_NOT_KLL, familyID); }
     famName = idToFamily(familyID).toString();
-    flags = extractFlags(srcMem);
-    empty = extractEmptyFlag(srcMem);
-    level0Sorted  = extractLevelZeroSortedFlag(srcMem);
-    singleItem    = extractSingleItemFlag(srcMem);
-    doublesSketch = extractDoubleSketchFlag(srcMem);
-    updatable    = extractUpdatableFlag(srcMem);
-    k = extractK(srcMem);
-    m = extractM(srcMem);
+    flags = getMemoryFlags(srcMem);
+    empty = getMemoryEmptyFlag(srcMem);
+    level0Sorted  = getMemoryLevelZeroSortedFlag(srcMem);
+    singleItem    = getMemorySingleItemFlag(srcMem);
+    doublesSketch = getMemoryDoubleSketchFlag(srcMem);
+    updatable    = getMemoryUpdatableFlag(srcMem);
+    k = getMemoryK(srcMem);
+    m = getMemoryM(srcMem);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(UPDATABLEBIT_AND_SER_VER, 1); }
@@ -132,9 +132,9 @@ final class KllMemoryValidate {
         if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
         if (serVer != SERIAL_VERSION_EMPTY_FULL) { memoryValidateThrow(EMPTYBIT_AND_SER_VER, serVer); }
         layout = doublesSketch ? Layout.DOUBLE_FULL_COMPACT : Layout.FLOAT_FULL_COMPACT;
-        n = extractN(srcMem);
-        minK = extractMinK(srcMem);
-        numLevels = extractNumLevels(srcMem);
+        n = getMemoryN(srcMem);
+        minK = getMemoryMinK(srcMem);
+        numLevels = getMemoryNumLevels(srcMem);
         int offset = DATA_START_ADR;
 
         // LEVELS MEM
@@ -222,11 +222,11 @@ final class KllMemoryValidate {
     if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
     layout = doublesSketch ? Layout.DOUBLE_UPDATABLE : Layout.FLOAT_UPDATABLE;
 
-    n = extractN(wSrcMem);
+    n = getMemoryN(wSrcMem);
     empty = n == 0;       //empty & singleItem are set for convenience
     singleItem = n == 1;  // there is no error checking on these bits
-    minK = extractMinK(wSrcMem);
-    numLevels = extractNumLevels(wSrcMem);
+    minK = getMemoryMinK(wSrcMem);
+    numLevels = getMemoryNumLevels(wSrcMem);
 
     int offset = DATA_START_ADR;
 

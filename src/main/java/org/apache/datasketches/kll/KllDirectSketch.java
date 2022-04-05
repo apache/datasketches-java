@@ -19,16 +19,16 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.extractMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractK;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractM;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractN;
-import static org.apache.datasketches.kll.KllPreambleUtil.extractNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertLevelZeroSortedFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -62,17 +62,17 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   public int getK() {
-    return extractK(wmem);
+    return getMemoryK(wmem);
   }
 
   @Override
   int getM() {
-    return extractM(wmem);
+    return getMemoryM(wmem);
   }
 
   @Override
   public long getN() {
-    return extractN(wmem);
+    return getMemoryN(wmem);
   }
 
   @Override
@@ -106,7 +106,7 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   int getMinK() {
-    return extractMinK(wmem);
+    return getMemoryMinK(wmem);
   }
 
   int getItemsArrLengthItems() {
@@ -128,32 +128,32 @@ abstract class KllDirectSketch extends KllSketch {
 
   @Override
   int getNumLevels() {
-    return extractNumLevels(wmem);
+    return getMemoryNumLevels(wmem);
   }
 
   @Override
   void incN() {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    long n = extractN(wmem);
-    insertN(wmem, ++n);
+    long n = getMemoryN(wmem);
+    setMemoryN(wmem, ++n);
   }
 
   @Override
   void incNumLevels() {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    int numLevels = extractNumLevels(wmem);
-    insertNumLevels(wmem, ++numLevels);
+    int numLevels = getMemoryNumLevels(wmem);
+    setMemoryNumLevels(wmem, ++numLevels);
   }
 
   @Override
   boolean isLevelZeroSorted() {
-    return extractLevelZeroSortedFlag(wmem);
+    return getMemoryLevelZeroSortedFlag(wmem);
   }
 
   @Override
   void setMinK(final int minK) {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    insertMinK(wmem, minK);
+    setMemoryMinK(wmem, minK);
   }
 
   @Override
@@ -194,7 +194,7 @@ abstract class KllDirectSketch extends KllSketch {
   @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    insertLevelZeroSortedFlag(wmem, sorted);
+    setMemoryLevelZeroSortedFlag(wmem, sorted);
   }
 
   @Override
@@ -205,13 +205,13 @@ abstract class KllDirectSketch extends KllSketch {
   @Override
   void setN(final long n) {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    insertN(wmem, n);
+    setMemoryN(wmem, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
     if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
-    insertNumLevels(wmem, numLevels);
+    setMemoryNumLevels(wmem, numLevels);
   }
 
 }

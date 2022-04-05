@@ -34,7 +34,7 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFamilyID(wmem, Family.KLL.getID() - 1);
+    setMemoryFamilyID(wmem, Family.KLL.getID() - 1);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -43,7 +43,7 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL - 1);
+    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL - 1);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -52,7 +52,7 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
+    setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -61,8 +61,8 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = new KllFloatsSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertFlags(wmem, UPDATABLE_BIT_MASK);
-    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
+    setMemoryFlags(wmem, UPDATABLE_BIT_MASK);
+    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -72,7 +72,7 @@ public class KllMemoryValidateTest {
     sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertPreInts(wmem, PREAMBLE_INTS_FULL);
+    setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -82,7 +82,7 @@ public class KllMemoryValidateTest {
     sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
+    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -91,7 +91,7 @@ public class KllMemoryValidateTest {
     KllDoublesSketch sk = new KllDoublesSketch();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertPreInts(wmem, PREAMBLE_INTS_FULL);
+    setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -101,7 +101,7 @@ public class KllMemoryValidateTest {
     sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertSerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
+    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -110,7 +110,7 @@ public class KllMemoryValidateTest {
     KllDoublesSketch sk = new KllDoublesSketch();
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
+    setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -120,7 +120,7 @@ public class KllMemoryValidateTest {
     sk.update(1); sk.update(2);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
+    setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -130,7 +130,7 @@ public class KllMemoryValidateTest {
     sk.update(1); sk.update(2);
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
+    setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 
@@ -140,7 +140,7 @@ public class KllMemoryValidateTest {
     sk.update(1);
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    insertPreInts(wmem, PREAMBLE_INTS_FULL);//should be 2, single
+    setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);//should be 2, single
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 

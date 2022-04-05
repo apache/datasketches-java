@@ -26,15 +26,15 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MAS
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertFlags;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertM;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertN;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.insertSerVer;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFlags;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_IS_NOT_DOUBLE;
@@ -100,15 +100,15 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    */
   static KllDirectDoublesSketch newInstance(final int k, final int m, final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
-    insertPreInts(dstMem, PREAMBLE_INTS_FULL);
-    insertSerVer(dstMem, SERIAL_VERSION_UPDATABLE);
-    insertFamilyID(dstMem, Family.KLL.getID());
-    insertFlags(dstMem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
-    insertK(dstMem, k);
-    insertM(dstMem, m);
-    insertN(dstMem, 0);
-    insertMinK(dstMem, k);
-    insertNumLevels(dstMem, 1);
+    setMemoryPreInts(dstMem, PREAMBLE_INTS_FULL);
+    setMemorySerVer(dstMem, SERIAL_VERSION_UPDATABLE);
+    setMemoryFamilyID(dstMem, Family.KLL.getID());
+    setMemoryFlags(dstMem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
+    setMemoryK(dstMem, k);
+    setMemoryM(dstMem, m);
+    setMemoryN(dstMem, 0);
+    setMemoryMinK(dstMem, k);
+    setMemoryNumLevels(dstMem, 1);
     int offset = DATA_START_ADR;
     dstMem.putIntArray(offset, new int[] {k, k}, 0, 2);
     offset += 2 * Integer.BYTES;
