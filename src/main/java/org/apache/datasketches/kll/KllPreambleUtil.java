@@ -205,7 +205,7 @@ final class KllPreambleUtil {
     sb.append("           1 LEVEL_ZERO_SORTED  : ").append(memChk.level0Sorted).append(LS);
     sb.append("           2 SINGLE_ITEM COMPACT: ").append(memChk.singleItem).append(LS);
     sb.append("           3 DOUBLES_SKETCH     : ").append(memChk.doublesSketch).append(LS);
-    sb.append("           4 UPDATABLE          : ").append(memChk.updatable).append(LS);
+    sb.append("           4 UPDATABLE          : ").append(memChk.updatableMemory).append(LS);
     sb.append("Bytes  4-5 : K                  : ").append(memChk.k).append(LS);
     sb.append("Byte   6   : Min Level Cap, M   : ").append(memChk.m).append(LS);
     sb.append("Byte   7   : (Reserved)         : ").append(LS);

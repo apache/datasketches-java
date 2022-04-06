@@ -543,7 +543,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch.getK(), 200);
     assertEquals(sketch.getN(), 200);
     assertFalse(sketch.isEmpty());
-    assertTrue(sketch.isDirect());
+    assertTrue(sketch.isUpdatableMemory());
     assertFalse(sketch.isEstimationMode());
     assertTrue(sketch.isFloatsSketch());
     assertFalse(sketch.isLevelZeroSorted());
@@ -554,7 +554,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getK(), 200);
     assertEquals(sk.getN(), 200);
     assertFalse(sk.isEmpty());
-    assertFalse(sk.isDirect());
+    assertFalse(sk.isUpdatableMemory());
     assertFalse(sk.isEstimationMode());
     assertTrue(sk.isFloatsSketch());
     assertFalse(sk.isLevelZeroSorted());
@@ -577,6 +577,16 @@ public class KllDirectFloatsSketchTest {
     assertEquals(n2, n1);
     assertEquals(min2, min1);
     assertEquals(max2, max1);
+  }
+
+  @Test
+  public void checkHeapify() {
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllDirectFloatsSketch sk = KllDirectFloatsSketch.newInstance(20, dstMem, memReqSvr);
+    for (int i = 1; i <= 100; i++) { sk.update(i); }
+    KllFloatsSketch sk2 = KllDirectFloatsSketch.heapify(dstMem);
+    assertEquals(sk2.getMinValue(), 1.0);
+    assertEquals(sk2.getMaxValue(), 100.0);
   }
 
   private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {

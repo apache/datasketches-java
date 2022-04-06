@@ -75,7 +75,7 @@ final class KllMemoryValidate {
   boolean singleItem;
   final boolean level0Sorted;
   final boolean doublesSketch;
-  final boolean updatable;
+  final boolean updatableMemory;
   final int k;
   final int m;
   final int memCapacity;
@@ -112,14 +112,14 @@ final class KllMemoryValidate {
     level0Sorted  = getMemoryLevelZeroSortedFlag(srcMem);
     singleItem    = getMemorySingleItemFlag(srcMem);
     doublesSketch = getMemoryDoubleSketchFlag(srcMem);
-    updatable    = getMemoryUpdatableFlag(srcMem);
+    updatableMemory = getMemoryUpdatableFlag(srcMem);
     k = getMemoryK(srcMem);
     m = getMemoryM(srcMem);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatable) { memoryValidateThrow(UPDATABLEBIT_AND_SER_VER, 1); }
+    if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatableMemory) { memoryValidateThrow(UPDATABLEBIT_AND_SER_VER, 1); }
 
-    if (updatable) { updatableMemoryValidate((WritableMemory) srcMem); }
+    if (updatableMemory) { updatableMemoryValidate((WritableMemory) srcMem); }
     else { compactMemoryValidate(srcMem); }
   }
 

@@ -22,11 +22,9 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_CANNOT_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -49,7 +47,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    */
   private KllFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
     super(memVal.k, memVal.m, SketchType.FLOATS_SKETCH);
-    buildHeapKllSketchFromMemory(memVal);
+    KllHelper.buildHeapKllSketchFromMemory(this, memVal);
   }
 
   /**
@@ -57,11 +55,11 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * This will have a rank error of about 1.65%.
    */
   public KllFloatsSketch() {
-    this(KllSketch.DEFAULT_K);
+    this(KllSketch.DEFAULT_K, KllSketch.DEFAULT_M);
   }
 
   /**
-   * Heap constructor with a given parameter <em>k</em>. <em>k</em> can be any value between DEFAULT_M and
+   * Heap constructor with a given parameter <em>k</em>. <em>k</em> can be any value between 8 and
    * 65535, inclusive. The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates
@@ -71,15 +69,15 @@ public final class KllFloatsSketch extends KllHeapSketch {
   }
 
   /**
-   * Heap constructor with a given parameter <em>k</em> and <em>m</em>.
-   * <em>k</em> can be any value between DEFAULT_M and 65535, inclusive.
+   * Heap constructor with a given parameters <em>k</em> and <em>m</em>.
+   *
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * <em>k</em> can be any value between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
-   * Higher values of K will have smaller error but the sketch will be larger (and slower).
-   * The DEFAULT_M, which is 8 is recommended for the given parameter <em>m</em>.
-   * Other values of <em>m</em> should be considered experimental as they have not been
-   * as well characterized.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param m parameter that controls the minimum level width in items.
+   * Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * @param m parameter that controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * The DEFAULT_M, which is 8 is recommended. Other values of <em>m</em> should be considered
+   * experimental as they have not been as well characterized.
    */
   KllFloatsSketch(final int k, final int m) {
     super(k, m, SketchType.FLOATS_SKETCH);
@@ -97,9 +95,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    */
   public static KllFloatsSketch heapify(final Memory mem) {
     final KllMemoryValidate memVal = new KllMemoryValidate(mem);
-    if (memVal.doublesSketch) {
-      throw new SketchesArgumentException("Memory object is not a KllFloatsSketch.");
-    }
+    if (memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
     return new KllFloatsSketch(mem, memVal);
   }
 
@@ -125,7 +121,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints) {
-    return getFloatsPmfOrCdf(splitPoints, true);
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true);
   }
 
   /**
@@ -167,7 +163,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final float[] splitPoints) {
-    return getFloatsPmfOrCdf(splitPoints, false);
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false);
   }
 
   /**
@@ -189,7 +185,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @return the approximation to the value at the given fraction
    */
   public float getQuantile(final double fraction) {
-    return getFloatsQuantile(fraction);
+    return KllFloatsHelper.getFloatsQuantile(this, fraction);
   }
 
   /**
@@ -222,7 +218,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * array.
    */
   public float[] getQuantiles(final double[] fractions) {
-    return getFloatsQuantiles(fractions);
+    return KllFloatsHelper.getFloatsQuantiles(this, fractions);
   }
 
   /**
@@ -268,7 +264,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @return an approximate rank of the given value
    */
   public double getRank(final float value) {
-    return getFloatRank(value);
+    return KllFloatsHelper.getFloatRank(this, value);
   }
 
   /**
@@ -283,9 +279,8 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllFloatsSketch other) {
-    if (other.isDirect()) { kllSketchThrow(SRC_CANNOT_BE_DIRECT); }
     if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
-    mergeFloatImpl(other);
+    KllFloatsHelper.mergeFloatImpl(this, other);
   }
 
   @Override
@@ -307,7 +302,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final float value) {
-    updateFloat(value);
+    KllFloatsHelper.updateFloat(this, value);
   }
 
   @Override //Dummy

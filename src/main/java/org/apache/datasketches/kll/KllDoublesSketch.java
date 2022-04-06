@@ -22,11 +22,9 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_CANNOT_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -49,7 +47,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    */
   private KllDoublesSketch(final Memory mem, final KllMemoryValidate memVal) {
     super(memVal.k, memVal.m, SketchType.DOUBLES_SKETCH);
-    buildHeapKllSketchFromMemory(memVal);
+    KllHelper.buildHeapKllSketchFromMemory(this, memVal);
   }
 
   /**
@@ -57,7 +55,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * This will have a rank error of about 1.65%.
    */
   public KllDoublesSketch() {
-    this(KllSketch.DEFAULT_K);
+    this(KllSketch.DEFAULT_K, KllSketch.DEFAULT_M);
   }
 
   /**
@@ -71,15 +69,15 @@ public final class KllDoublesSketch extends KllHeapSketch {
   }
 
   /**
-   * Heap constructor with a given parameter <em>k</em> and <em>m</em>.
-   * <em>k</em> can be any value between DEFAULT_M and 65535, inclusive.
+   * Heap constructor with a given parameters <em>k</em> and <em>m</em>.
+   *
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * <em>k</em> can be any value between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
-   * Higher values of K will have smaller error but the sketch will be larger (and slower).
-   * The DEFAULT_M, which is 8 is recommended for the given parameter <em>m</em>.
-   * Other values of <em>m</em> should be considered experimental as they have not been
-   * as well characterized.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param m parameter that controls the minimum level width in items.
+   * Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * The DEFAULT_M, which is 8 is recommended. Other values of <em>m</em> should be considered
+   * experimental as they have not been as well characterized.
    */
   KllDoublesSketch(final int k, final int m) {
     super(k, m, SketchType.DOUBLES_SKETCH);
@@ -97,9 +95,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    */
   public static KllDoublesSketch heapify(final Memory mem) {
     final KllMemoryValidate memChk = new KllMemoryValidate(mem);
-    if (!memChk.doublesSketch) {
-      throw new SketchesArgumentException("Memory object is not a KllDoublesSketch.");
-    }
+    if (!memChk.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_DOUBLE); }
     return new KllDoublesSketch(mem, memChk);
   }
 
@@ -125,7 +121,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final double[] splitPoints) {
-    return getDoublesPmfOrCdf(splitPoints, true);
+    return KllDoublesHelper.getDoublesPmfOrCdf(this, splitPoints, true);
   }
 
   /**
@@ -167,7 +163,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final double[] splitPoints) {
-    return getDoublesPmfOrCdf(splitPoints, false);
+    return KllDoublesHelper.getDoublesPmfOrCdf(this, splitPoints, false);
   }
 
   /**
@@ -189,7 +185,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @return the approximation to the value at the given fraction
    */
   public double getQuantile(final double fraction) {
-    return getDoublesQuantile(fraction);
+    return KllDoublesHelper.getDoublesQuantile(this, fraction);
   }
 
   /**
@@ -222,7 +218,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * array.
    */
   public double[] getQuantiles(final double[] fractions) {
-    return getDoublesQuantiles(fractions);
+    return KllDoublesHelper.getDoublesQuantiles(this, fractions);
   }
 
   /**
@@ -268,7 +264,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @return an approximate rank of the given value
    */
   public double getRank(final double value) {
-    return getDoubleRank(value);
+    return KllDoublesHelper.getDoubleRank(this, value);
   }
 
   /**
@@ -283,9 +279,8 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (other.isDirect()) { kllSketchThrow(SRC_CANNOT_BE_DIRECT); }
     if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
-    mergeDoubleImpl(other);
+    KllDoublesHelper.mergeDoubleImpl(this, other);
   }
 
   @Override
@@ -307,7 +302,7 @@ public final class KllDoublesSketch extends KllHeapSketch {
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final double value) {
-    updateDouble(value);
+    KllDoublesHelper.updateDouble(this, value);
   }
 
   @Override //Used internally

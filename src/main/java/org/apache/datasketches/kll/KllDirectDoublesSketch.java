@@ -36,12 +36,12 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.Family;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -67,15 +67,12 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
   }
 
   /**
-   * Wrap a sketch around the given source Memory containing sketch data that originated from
-   * this sketch.
-   * @param srcMem a WritableMemory that contains data.
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return instance of this sketch
+   * Heapifies the given Memory object and returns a KllDoublesSketch
+   * @param mem the given Memory object.
+   * @return a KllDoublesSketch
    */
-  public static KllDirectDoublesSketch writableWrap(final WritableMemory srcMem, final MemoryRequestServer memReqSvr) {
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
+  public static KllDoublesSketch heapify(final Memory mem) {
+    return KllDoublesSketch.heapify(mem);
   }
 
   /**
@@ -120,6 +117,18 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
   }
 
   /**
+   * Wrap a sketch around the given source Memory containing sketch data that originated from
+   * this sketch.
+   * @param srcMem a WritableMemory that contains data.
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return instance of this sketch
+   */
+  public static KllDirectDoublesSketch writableWrap(final WritableMemory srcMem, final MemoryRequestServer memReqSvr) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
+  }
+
+  /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
    * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
    *
@@ -141,7 +150,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final double[] splitPoints) {
-    return getDoublesPmfOrCdf(splitPoints, true);
+    return KllDoublesHelper.getDoublesPmfOrCdf(this, splitPoints, true);
   }
 
   /**
@@ -183,7 +192,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final double[] splitPoints) {
-    return getDoublesPmfOrCdf(splitPoints, false);
+    return KllDoublesHelper.getDoublesPmfOrCdf(this, splitPoints, false);
   }
 
   /**
@@ -205,7 +214,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return the approximation to the value at the given fraction
    */
   public double getQuantile(final double fraction) {
-    return getDoublesQuantile(fraction);
+    return KllDoublesHelper.getDoublesQuantile(this, fraction);
   }
 
   /**
@@ -238,7 +247,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * array.
    */
   public double[] getQuantiles(final double[] fractions) {
-    return getDoublesQuantiles(fractions);
+    return KllDoublesHelper.getDoublesQuantiles(this, fractions);
   }
 
   /**
@@ -284,7 +293,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @return an approximate rank of the given value
    */
   public double getRank(final double value) {
-    return getDoubleRank(value);
+    return KllDoublesHelper.getDoubleRank(this, value);
   }
 
   /**
@@ -299,9 +308,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (!other.isDirect()) { kllSketchThrow(SRC_MUST_BE_DIRECT); }
     if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
-    mergeDoubleImpl(other);
+    KllDoublesHelper.mergeDoubleImpl(this, other);
   }
 
   /**
@@ -310,7 +318,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final double value) {
-    updateDouble(value);
+    KllDoublesHelper.updateDouble(this, value);
   }
 
   @Override
@@ -350,13 +358,13 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
 
   @Override
   void setDoubleItemsArray(final double[] doubleItems) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putDoubleArray(0, doubleItems, 0, doubleItems.length);
   }
 
   @Override
   void setDoubleItemsArrayAt(final int index, final double value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putDouble((long)index * Double.BYTES, value);
   }
 
@@ -368,7 +376,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
 
   @Override
   void setMaxDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putDouble(Double.BYTES, value);
   }
 
@@ -377,7 +385,7 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
 
   @Override
   void setMinDoubleValue(final double value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putDouble(0, value);
   }
 

@@ -35,12 +35,12 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DIRECT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.Family;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -67,15 +67,12 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
   }
 
   /**
-   * Wrap a sketch around the given source Memory containing sketch data that originated from
-   * this sketch.
-   * @param srcMem a WritableMemory that contains data.
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return instance of this sketch
+   * Heapifies the given Memory object and returns a KllFloatsSketch
+   * @param mem the given Memory object.
+   * @return a KllFloatsSketch
    */
-  public static KllDirectFloatsSketch writableWrap(final WritableMemory srcMem, final MemoryRequestServer memReqSvr) {
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
+  public static KllFloatsSketch heapify(final Memory mem) {
+    return KllFloatsSketch.heapify(mem);
   }
 
   /**
@@ -120,6 +117,18 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
   }
 
   /**
+   * Wrap a sketch around the given source Memory containing sketch data that originated from
+   * this sketch.
+   * @param srcMem a WritableMemory that contains data.
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return instance of this sketch
+   */
+  public static KllDirectFloatsSketch writableWrap(final WritableMemory srcMem, final MemoryRequestServer memReqSvr) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
+  }
+
+  /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
    * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
    *
@@ -141,7 +150,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints) {
-    return getFloatsPmfOrCdf(splitPoints, true);
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true);
   }
 
   /**
@@ -183,7 +192,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final float[] splitPoints) {
-    return getFloatsPmfOrCdf(splitPoints, false);
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false);
   }
 
   /**
@@ -205,7 +214,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * @return the approximation to the value at the given fraction
    */
   public float getQuantile(final double fraction) {
-    return getFloatsQuantile(fraction);
+    return KllFloatsHelper.getFloatsQuantile(this, fraction);
   }
 
   /**
@@ -238,7 +247,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * array.
    */
   public float[] getQuantiles(final double[] fractions) {
-    return getFloatsQuantiles(fractions);
+    return KllFloatsHelper.getFloatsQuantiles(this, fractions);
   }
 
   /**
@@ -284,7 +293,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * @return an approximate rank of the given value
    */
   public double getRank(final float value) {
-    return getFloatRank(value);
+    return KllFloatsHelper.getFloatRank(this, value);
   }
 
   /**
@@ -299,9 +308,8 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * @param other sketch to merge into this one
    */
   public void merge(final KllSketch other) {
-    if (!other.isDirect()) { kllSketchThrow(SRC_MUST_BE_DIRECT); }
     if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
-    mergeFloatImpl(other);
+    KllFloatsHelper.mergeFloatImpl(this, other);
   }
 
   /**
@@ -310,7 +318,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final float value) {
-    updateFloat(value);
+    KllFloatsHelper.updateFloat(this, value);
   }
 
   @Override
@@ -356,13 +364,13 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
 
   @Override
   void setFloatItemsArray(final float[] floatItems) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putFloatArray(0, floatItems, 0, floatItems.length);
   }
 
   @Override
   void setFloatItemsArrayAt(final int index, final float value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     itemsArrUpdatable.putFloat((long)index * Float.BYTES, value);
   }
 
@@ -371,7 +379,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
 
   @Override
   void setMaxFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putFloat(Float.BYTES, value);
   }
 
@@ -380,7 +388,7 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
 
   @Override
   void setMinFloatValue(final float value) {
-    if (!updatable) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
     minMaxArrUpdatable.putFloat(0, value);
   }
 

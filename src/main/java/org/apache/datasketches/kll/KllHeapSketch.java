@@ -61,18 +61,8 @@ abstract class KllHeapSketch extends KllSketch {
   }
 
   @Override
-  int getM() {
-    return m;
-  }
-
-  @Override
   public long getN() {
     return n_;
-  }
-
-  @Override
-  int getMinK() {
-    return minK_;
   }
 
   @Override
@@ -82,6 +72,16 @@ abstract class KllHeapSketch extends KllSketch {
 
   @Override
   int getLevelsArrayAt(final int index) { return levels_[index]; }
+
+  @Override
+  int getM() {
+    return m;
+  }
+
+  @Override
+  int getMinK() {
+    return minK_;
+  }
 
   @Override
   int getNumLevels() {
@@ -101,11 +101,6 @@ abstract class KllHeapSketch extends KllSketch {
   @Override
   boolean isLevelZeroSorted() {
     return isLevelZeroSorted_;
-  }
-
-  @Override
-  void setMinK(final int minK) {
-    minK_ = minK;
   }
 
   @Override
@@ -135,6 +130,11 @@ abstract class KllHeapSketch extends KllSketch {
   @Override
   void setLevelZeroSorted(final boolean sorted) {
     this.isLevelZeroSorted_ = sorted;
+  }
+
+  @Override
+  void setMinK(final int minK) {
+    minK_ = minK;
   }
 
   @Override
