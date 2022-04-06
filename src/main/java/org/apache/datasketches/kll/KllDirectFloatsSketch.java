@@ -71,8 +71,8 @@ public final class KllDirectFloatsSketch extends KllDirectSketch {
    * @param mem the given Memory object.
    * @return a KllFloatsSketch
    */
-  public static KllFloatsSketch heapify(final Memory mem) {
-    return KllFloatsSketch.heapify(mem);
+  public static KllHeapFloatsSketch heapify(final Memory mem) {
+    return KllHeapFloatsSketch.heapify(mem);
   }
 
   /**

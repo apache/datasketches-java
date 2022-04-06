@@ -65,7 +65,7 @@ public class KllDirectFloatsSketchIteratorTest {
   }
 
   private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
-    KllFloatsSketch sk = new KllFloatsSketch(k);
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);

@@ -71,8 +71,8 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    * @param mem the given Memory object.
    * @return a KllDoublesSketch
    */
-  public static KllDoublesSketch heapify(final Memory mem) {
-    return KllDoublesSketch.heapify(mem);
+  public static KllHeapDoublesSketch heapify(final Memory mem) {
+    return KllHeapDoublesSketch.heapify(mem);
   }
 
   /**

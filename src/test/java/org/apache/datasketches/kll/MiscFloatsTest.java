@@ -38,7 +38,7 @@ public class MiscFloatsTest {
 
   @Test
   public void checkBounds() {
-    final KllFloatsSketch kll = new KllFloatsSketch(); //default k = 200
+    final KllHeapFloatsSketch kll = new KllHeapFloatsSketch(); //default k = 200
     for (int i = 0; i < 1000; i++) {
       kll.update(i);
     }
@@ -55,49 +55,49 @@ public class MiscFloatsTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions1() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     wmem.putByte(6, (byte)3); //corrupt with odd M
-    KllFloatsSketch.heapify(wmem);
+    KllHeapFloatsSketch.heapify(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions2() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     wmem.putByte(0, (byte)1); //corrupt preamble ints, should be 2
-    KllFloatsSketch.heapify(wmem);
+    KllHeapFloatsSketch.heapify(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions3() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch();
     sk.update(1.0f);
     sk.update(2.0f);
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     wmem.putByte(0, (byte)1); //corrupt preamble ints, should be 5
-    KllFloatsSketch.heapify(wmem);
+    KllHeapFloatsSketch.heapify(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions4() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     wmem.putByte(1, (byte)0); //corrupt SerVer, should be 1 or 2
-    KllFloatsSketch.heapify(wmem);
+    KllHeapFloatsSketch.heapify(wmem);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifyExceptions5() {
-    KllFloatsSketch sk = new KllFloatsSketch();
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     wmem.putByte(2, (byte)0); //corrupt FamilyID, should be 15
-    KllFloatsSketch.heapify(wmem);
+    KllHeapFloatsSketch.heapify(wmem);
   }
 
   @Test
   public void checkMisc() {
-    KllFloatsSketch sk = new KllFloatsSketch(8);
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch(8);
     assertTrue(Objects.isNull(sk.getQuantiles(10)));
     sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
@@ -112,12 +112,12 @@ public class MiscFloatsTest {
 
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
-    final KllFloatsSketch sketch = new KllFloatsSketch(20);
+    final KllHeapFloatsSketch sketch = new KllHeapFloatsSketch(20);
     for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
     final String s1 = sketch.toString(true, true);
     println(s1);
 
-    final KllFloatsSketch sketch2 = new KllFloatsSketch(20);
+    final KllHeapFloatsSketch sketch2 = new KllHeapFloatsSketch(20);
     for (int i = 0; i < 400; i++) { sketch2.update(i + 1); }
     println("\n" + sketch2.toString(true, true));
 
@@ -128,7 +128,7 @@ public class MiscFloatsTest {
 
   @Test
   public void viewCompactions() {
-    KllFloatsSketch sk = new KllFloatsSketch(20);
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch(20);
     show(sk, 20);
     show(sk, 21); //compaction 1
     show(sk, 43);
@@ -144,7 +144,7 @@ public class MiscFloatsTest {
     show(sk, 108);
   }
 
-  private static void show(final KllFloatsSketch sk, int limit) {
+  private static void show(final KllHeapFloatsSketch sk, int limit) {
     int i = (int) sk.getN();
     for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
@@ -152,7 +152,7 @@ public class MiscFloatsTest {
 
   @Test
   public void checkGrowLevels() {
-    KllFloatsSketch sk = new KllFloatsSketch(20);
+    KllHeapFloatsSketch sk = new KllHeapFloatsSketch(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     assertEquals(sk.getNumLevels(), 2);
     assertEquals(sk.getFloatItemsArray().length, 33);
@@ -162,10 +162,10 @@ public class MiscFloatsTest {
   @Test
   public void checkSketchInitializeFloatHeap() {
     int k = 20; //don't change this
-    KllFloatsSketch sk;
+    KllHeapFloatsSketch sk;
 
     println("#### CASE: FLOAT FULL HEAP");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -182,7 +182,7 @@ public class MiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: FLOAT HEAP EMPTY");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -198,7 +198,7 @@ public class MiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: FLOAT HEAP SINGLE");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     sk.update(1);
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -218,19 +218,19 @@ public class MiscFloatsTest {
   @Test
   public void checkSketchInitializeFloatHeapifyCompactMem() {
     int k = 20; //don't change this
-    KllFloatsSketch sk;
-    KllFloatsSketch sk2;
+    KllHeapFloatsSketch sk;
+    KllHeapFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
     println("#### CASE: FLOAT FULL HEAPIFIED FROM COMPACT");
-    sk2 = new KllFloatsSketch(k);
+    sk2 = new KllHeapFloatsSketch(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -245,12 +245,12 @@ public class MiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: FLOAT EMPTY HEAPIFIED FROM COMPACT");
-    sk2 = new KllFloatsSketch(k);
+    sk2 = new KllHeapFloatsSketch(k);
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -265,13 +265,13 @@ public class MiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: FLOAT SINGLE HEAPIFIED FROM COMPACT");
-    sk2 = new KllFloatsSketch(k);
+    sk2 = new KllHeapFloatsSketch(k);
     sk2.update(1);
     //println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -289,19 +289,19 @@ public class MiscFloatsTest {
   @Test
   public void checkSketchInitializeFloatHeapifyUpdatableMem() {
     int k = 20; //don't change this
-    KllFloatsSketch sk;
-    KllFloatsSketch sk2;
+    KllHeapFloatsSketch sk;
+    KllHeapFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
     println("#### CASE: FLOAT FULL HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllFloatsSketch(k);
+    sk2 = new KllHeapFloatsSketch(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -316,12 +316,12 @@ public class MiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: FLOAT EMPTY HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllFloatsSketch(k);
+    sk2 = new KllHeapFloatsSketch(k);
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -336,13 +336,13 @@ public class MiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
 
     println("#### CASE: FLOAT SINGLE HEAPIFIED FROM UPDATABLE");
-    sk2 = new KllFloatsSketch(k);
+    sk2 = new KllHeapFloatsSketch(k);
     sk2.update(1);
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -360,22 +360,22 @@ public class MiscFloatsTest {
   @Test
   public void checkMemoryToStringFloatCompact() {
     int k = 20; //don't change this
-    KllFloatsSketch sk;
-    KllFloatsSketch sk2;
+    KllHeapFloatsSketch sk;
+    KllHeapFloatsSketch sk2;
     byte[] compBytes;
     byte[] compBytes2;
     WritableMemory wmem;
     String s;
 
     println("#### CASE: FLOAT FULL COMPACT");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -384,13 +384,13 @@ public class MiscFloatsTest {
     assertEquals(compBytes, compBytes2);
 
     println("#### CASE: FLOAT EMPTY COMPACT");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -399,14 +399,14 @@ public class MiscFloatsTest {
     assertEquals(compBytes, compBytes2);
 
     println("#### CASE: FLOAT SINGLE COMPACT");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     sk.update(1);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -418,22 +418,22 @@ public class MiscFloatsTest {
   @Test
   public void checkMemoryToStringFloatUpdatable() {
     int k = 20; //don't change this
-    KllFloatsSketch sk;
-    KllFloatsSketch sk2;
+    KllHeapFloatsSketch sk;
+    KllHeapFloatsSketch sk2;
     byte[] upBytes;
     byte[] upBytes2;
     WritableMemory wmem;
     String s;
 
     println("#### CASE: FLOAT FULL UPDATABLE");
-    sk = new KllFloatsSketch(20);
+    sk = new KllHeapFloatsSketch(20);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -442,13 +442,13 @@ public class MiscFloatsTest {
     assertEquals(upBytes, upBytes2);
 
     println("#### CASE: FLOAT EMPTY UPDATABLE");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -457,14 +457,14 @@ public class MiscFloatsTest {
     assertEquals(upBytes, upBytes2);
 
     println("#### CASE: FLOAT SINGLE UPDATABLE");
-    sk = new KllFloatsSketch(k);
+    sk = new KllHeapFloatsSketch(k);
     sk.update(1);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -479,8 +479,8 @@ public class MiscFloatsTest {
     int m = 4;
     int n1 = 21;
     int n2 = 43;
-    KllFloatsSketch sk1 = new KllFloatsSketch(k, m);
-    KllFloatsSketch sk2 = new KllFloatsSketch(k, m);
+    KllHeapFloatsSketch sk1 = new KllHeapFloatsSketch(k, m);
+    KllHeapFloatsSketch sk2 = new KllHeapFloatsSketch(k, m);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }

@@ -487,7 +487,7 @@ final class KllHelper {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllDoublesSketch
+   * @see KllHeapDoublesSketch
    */
   // constants were derived as the best fit to 99 percentile empirically measured max error in
   // thousands of trials

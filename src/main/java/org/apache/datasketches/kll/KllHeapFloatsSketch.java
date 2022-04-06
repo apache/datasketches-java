@@ -26,6 +26,7 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap floats KllSketch.
@@ -35,7 +36,7 @@ import org.apache.datasketches.memory.Memory;
  *
  * @author Lee Rhodes, Kevin Lang
  */
-public final class KllFloatsSketch extends KllHeapSketch {
+public final class KllHeapFloatsSketch extends KllSketch {
   private float[] floatItems_;
   private float minFloatValue_;
   private float maxFloatValue_;
@@ -45,8 +46,10 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * @param mem Memory object that contains data serialized by this sketch.
    * @param memVal the MemoryCheck object
    */
-  private KllFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
-    super(memVal.k, memVal.m, SketchType.FLOATS_SKETCH);
+  private KllHeapFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
+    super(SketchType.FLOATS_SKETCH, null, null);
+    k = memVal.k;
+    m = memVal.m;
     KllHelper.buildHeapKllSketchFromMemory(this, memVal);
   }
 
@@ -54,7 +57,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * Heap constructor with the default <em>k = 200</em>.
    * This will have a rank error of about 1.65%.
    */
-  public KllFloatsSketch() {
+  public KllHeapFloatsSketch() {
     this(KllSketch.DEFAULT_K, KllSketch.DEFAULT_M);
   }
 
@@ -64,7 +67,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates
    */
-  public KllFloatsSketch(final int k) {
+  public KllHeapFloatsSketch(final int k) {
     this(k, KllSketch.DEFAULT_M);
   }
 
@@ -79,8 +82,17 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * The DEFAULT_M, which is 8 is recommended. Other values of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
    */
-  KllFloatsSketch(final int k, final int m) {
-    super(k, m, SketchType.FLOATS_SKETCH);
+  KllHeapFloatsSketch(final int k, final int m) {
+    super(SketchType.FLOATS_SKETCH, null, null);
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
+    this.k = k;
+    this.m = m;
+    n_ = 0;
+    minK_ = k;
+    numLevels_ = 1;
+    levels_ = new int[] {k, k};
+    isLevelZeroSorted_ = false;
     floatItems_ = new float[k];
     minFloatValue_ = Float.NaN;
     maxFloatValue_ = Float.NaN;
@@ -93,10 +105,10 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
-  public static KllFloatsSketch heapify(final Memory mem) {
+  public static KllHeapFloatsSketch heapify(final Memory mem) {
     final KllMemoryValidate memVal = new KllMemoryValidate(mem);
     if (memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
-    return new KllFloatsSketch(mem, memVal);
+    return new KllHeapFloatsSketch(mem, memVal);
   }
 
   /**
@@ -278,7 +290,7 @@ public final class KllFloatsSketch extends KllHeapSketch {
    * Merges another sketch into this one.
    * @param other sketch to merge into this one
    */
-  public void merge(final KllFloatsSketch other) {
+  public void merge(final KllHeapFloatsSketch other) {
     if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
     KllFloatsHelper.mergeFloatImpl(this, other);
   }
@@ -352,5 +364,109 @@ public final class KllFloatsSketch extends KllHeapSketch {
 
   @Override //Used internally
   void setMinFloatValue(final float value) { minFloatValue_ = value; }
+
+  //************************************************************************************************
+  private final int k;    // configured value of K.
+  private final int m;    // configured value of M.
+  private long n_;        // number of items input into this sketch.
+  private int minK_;    // dynamic minK for error estimation after merging with different k.
+  private int numLevels_; // one-based number of current levels.
+  private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
+  private boolean isLevelZeroSorted_;
+
+  @Override
+  public int getK() {
+    return k;
+  }
+
+  @Override
+  public long getN() {
+    return n_;
+  }
+
+  @Override
+  int[] getLevelsArray() {
+    return levels_;
+  }
+
+  @Override
+  int getLevelsArrayAt(final int index) { return levels_[index]; }
+
+  @Override
+  int getM() {
+    return m;
+  }
+
+  @Override
+  int getMinK() {
+    return minK_;
+  }
+
+  @Override
+  int getNumLevels() {
+    return numLevels_;
+  }
+
+  @Override
+  void incN() {
+    n_++;
+  }
+
+  @Override
+  void incNumLevels() {
+    numLevels_++;
+  }
+
+  @Override
+  boolean isLevelZeroSorted() {
+    return isLevelZeroSorted_;
+  }
+
+  @Override
+  void setItemsArrayUpdatable(final WritableMemory itemsMem) { } //dummy
+
+  @Override
+  void setLevelsArray(final int[] levelsArr) {
+    levels_ = levelsArr;
+  }
+
+  @Override
+  void setLevelsArrayAt(final int index, final int value) { levels_[index] = value; }
+
+  @Override
+  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+    levels_[index] -= minusEq;
+  }
+
+  @Override
+  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    levels_[index] += plusEq;
+  }
+
+  @Override
+  void setLevelsArrayUpdatable(final WritableMemory levelsMem) { } //dummy
+
+  @Override
+  void setLevelZeroSorted(final boolean sorted) {
+    this.isLevelZeroSorted_ = sorted;
+  }
+
+  @Override
+  void setMinK(final int minK) {
+    minK_ = minK;
+  }
+
+  @Override
+  void setMinMaxArrayUpdatable(final WritableMemory minMaxMem) { } //dummy
+
+  @Override
+  void setN(final long n) {
+    n_ = n;
+  }
+
+  @Override
+  void setNumLevels(final int numLevels) {
+    numLevels_ = numLevels;
+  }
 
 }
