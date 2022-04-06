@@ -28,6 +28,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import java.util.Random;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -309,6 +310,18 @@ public abstract class KllSketch {
 
   public final boolean isUpdatableMemory() {
     return updatablMemory;
+  }
+
+  /**
+   * Returns true if the backing resource of <i>this</i> is identical with the backing resource
+   * of <i>that</i>. The capacities must be the same.  If <i>this</i> is a region,
+   * the region offset must also be the same.
+   * @param that A different non-null object
+   * @return true if the backing resource of <i>this</i> is the same as the backing resource
+   * of <i>that</i>.
+   */
+  public final boolean isSameResource(final Memory that) {
+    return wmem.isSameResource(that);
   }
 
   /**
