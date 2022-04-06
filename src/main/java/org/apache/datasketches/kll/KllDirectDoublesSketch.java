@@ -26,9 +26,16 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MAS
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFlags;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryM;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
@@ -53,7 +60,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes, Kevin Lang
  */
-public final class KllDirectDoublesSketch extends KllDirectSketch {
+public final class KllDirectDoublesSketch extends KllSketch {
 
   /**
    * The actual constructor.
@@ -63,7 +70,11 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
    */
   private KllDirectDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr,
       final KllMemoryValidate memVal) {
-    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr, memVal);
+    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
+    updatableMemory = memVal.updatableMemory && memReqSvr != null;
+    levelsArrUpdatable = memVal.levelsArrUpdatable;
+    minMaxArrUpdatable = memVal.minMaxArrUpdatable;
+    itemsArrUpdatable = memVal.itemsArrUpdatable;
   }
 
   /**
@@ -391,5 +402,172 @@ public final class KllDirectDoublesSketch extends KllDirectSketch {
 
   @Override
   void setMinFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
+
+  //**********************************************************************************
+  final boolean updatableMemory;
+  WritableMemory levelsArrUpdatable;
+  WritableMemory minMaxArrUpdatable;
+  WritableMemory itemsArrUpdatable;
+
+  @Override
+  public int getK() {
+    return getMemoryK(wmem);
+  }
+
+  @Override
+  public long getN() {
+    return getMemoryN(wmem);
+  }
+
+  @Override
+  public void reset() {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelsArray(new int[] {k, k});
+    setLevelZeroSorted(false);
+    final int newLevelsArrLen = 2 * Integer.BYTES;
+    final int newItemsArrLen = k;
+    KllHelper.memorySpaceMgmt(this, newLevelsArrLen, newItemsArrLen);
+    levelsArrUpdatable.putIntArray(0L, new int[] {k, k}, 0, 2);
+    if (sketchType == SketchType.DOUBLES_SKETCH) {
+      minMaxArrUpdatable.putDoubleArray(0L, new double[] {Double.NaN, Double.NaN}, 0, 2);
+      itemsArrUpdatable.putDoubleArray(0L, new double[k], 0, k);
+    } else {
+      minMaxArrUpdatable.putFloatArray(0L, new float[] {Float.NaN, Float.NaN}, 0, 2);
+      itemsArrUpdatable.putFloatArray(0L, new float[k], 0, k);
+    }
+  }
+
+  @Override
+  public byte[] toUpdatableByteArray() {
+    final int bytes = (int) wmem.getCapacity();
+    final byte[] byteArr = new byte[bytes];
+    wmem.getByteArray(0, byteArr, 0, bytes);
+    return byteArr;
+  }
+
+  int getItemsArrLengthItems() {
+    return getLevelsArray()[getNumLevels()];
+  }
+
+  @Override
+  int[] getLevelsArray() {
+    final int numInts = getNumLevels() + 1;
+    final int[] myLevelsArr = new int[numInts];
+    levelsArrUpdatable.getIntArray(0, myLevelsArr, 0, numInts);
+    return myLevelsArr;
+  }
+
+  @Override
+  int getLevelsArrayAt(final int index) {
+    return levelsArrUpdatable.getInt((long)index * Integer.BYTES);
+  }
+
+  @Override
+  int getM() {
+    return getMemoryM(wmem);
+  }
+
+  @Override
+  int getMinK() {
+    return getMemoryMinK(wmem);
+  }
+
+  @Override
+  int getNumLevels() {
+    return getMemoryNumLevels(wmem);
+  }
+
+  @Override
+  void incN() {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    long n = getMemoryN(wmem);
+    setMemoryN(wmem, ++n);
+  }
+
+  @Override
+  void incNumLevels() {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    int numLevels = getMemoryNumLevels(wmem);
+    setMemoryNumLevels(wmem, ++numLevels);
+  }
+
+  @Override
+  boolean isLevelZeroSorted() {
+    return getMemoryLevelZeroSortedFlag(wmem);
+  }
+
+  @Override
+  void setItemsArrayUpdatable(final WritableMemory itemsMem) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    itemsArrUpdatable = itemsMem;
+  }
+
+  @Override
+  void setLevelsArray(final int[] levelsArr) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    levelsArrUpdatable.putIntArray(0, levelsArr, 0, levelsArr.length);
+  }
+
+  @Override
+  void setLevelsArrayAt(final int index, final int value) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    levelsArrUpdatable.putInt((long)index * Integer.BYTES, value);
+  }
+
+  @Override
+  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    final int offset = index * Integer.BYTES;
+    final int curV = levelsArrUpdatable.getInt(offset);
+    levelsArrUpdatable.putInt(offset, curV - minusEq);
+  }
+
+  @Override
+  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    final int offset = index * Integer.BYTES;
+    final int curV = levelsArrUpdatable.getInt(offset);
+    levelsArrUpdatable.putInt(offset, curV + plusEq);
+  }
+
+  @Override
+  void setLevelsArrayUpdatable(final WritableMemory levelsMem) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    levelsArrUpdatable = levelsMem;
+  }
+
+  @Override
+  void setLevelZeroSorted(final boolean sorted) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    setMemoryLevelZeroSortedFlag(wmem, sorted);
+  }
+
+  @Override
+  void setMinK(final int minK) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    setMemoryMinK(wmem, minK);
+  }
+
+  @Override
+  void setMinMaxArrayUpdatable(final WritableMemory minMaxMem) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    minMaxArrUpdatable = minMaxMem;
+  }
+
+  @Override
+  void setN(final long n) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    setMemoryN(wmem, n);
+  }
+
+  @Override
+  void setNumLevels(final int numLevels) {
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    setMemoryNumLevels(wmem, numLevels);
+  }
 
 }
