@@ -54,7 +54,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    * experimental as they have not been as well characterized.
    */
   KllHeapFloatsSketch(final int k, final int m) {
-    super(SketchType.FLOATS_SKETCH, null, null);
+    super(null, null);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     this.k = k;
@@ -75,7 +75,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    * @param memVal the MemoryCheck object
    */
   KllHeapFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
-    super(SketchType.FLOATS_SKETCH, null, null);
+    super(null, null);
     k = memVal.k;
     m = memVal.m;
     KllHelper.buildHeapKllSketchFromMemory(this, memVal);

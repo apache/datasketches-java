@@ -266,15 +266,14 @@ public class KllDirectFloatsSketchTest {
 
   @Test
   public void mergeMinAndMaxFromOther() {
-    final KllFloatsSketch sketch1 = getDFSketch(8, 0); //was 200
-    final KllFloatsSketch sketch2 = getDFSketch(8, 0); //was 200
-    for (int i = 1; i <= 9; i++) { //was 1_000_000
+    final KllFloatsSketch sketch1 = getDFSketch(200, 0);
+    final KllFloatsSketch sketch2 = getDFSketch(200, 0);
+    for (int i = 1; i <= 1_000_000; i++) {
       sketch1.update(i);
     }
-    //System.out.println(sketch1.toString(true, true));
     sketch2.merge(sketch1);
     assertEquals(sketch2.getMinValue(), 1F);
-    assertEquals(sketch2.getMaxValue(), 9F); //was 1_000_000
+    assertEquals(sketch2.getMaxValue(), 1_000_000F);
   }
 
   @SuppressWarnings("unused")
@@ -587,6 +586,39 @@ public class KllDirectFloatsSketchTest {
     KllFloatsSketch sk2 = KllFloatsSketch.heapify(dstMem);
     assertEquals(sk2.getMinValue(), 1.0);
     assertEquals(sk2.getMaxValue(), 100.0);
+  }
+
+  @Test
+  public void checkMergeKllFloatsSketch() {
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(20, dstMem, memReqSvr);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    KllFloatsSketch sk2 = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++ ) { sk2.update(i + 100); }
+    sk.merge(sk2);
+    assertEquals(sk.getMinValue(), 1.0);
+    assertEquals(sk.getMaxValue(), 121.0);
+  }
+
+  @Test
+  public void checkReverseMergeKllFloatsSketch() {
+    WritableMemory dstMem = WritableMemory.allocate(6000);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(20, dstMem, memReqSvr);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    KllFloatsSketch sk2 = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++ ) { sk2.update(i + 100); }
+    sk2.merge(sk);
+    assertEquals(sk2.getMinValue(), 1.0);
+    assertEquals(sk2.getMaxValue(), 121.0);
+  }
+
+  @Test
+  public void checkWrapCompactForm() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++ ) { sk.update(i); }
+    WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray()); //note: Not updatable
+    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
+    println(sk2.toString(true, true));
   }
 
   private static KllFloatsSketch getDFSketch(final int k, final int n) {

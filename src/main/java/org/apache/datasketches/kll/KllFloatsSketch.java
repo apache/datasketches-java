@@ -31,8 +31,8 @@ import org.apache.datasketches.memory.WritableMemory;
 
 public abstract class KllFloatsSketch extends KllSketch {
 
-  KllFloatsSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(sketchType, wmem, memReqSvr);
+  KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+    super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
   }
 
   /**
@@ -110,7 +110,11 @@ public abstract class KllFloatsSketch extends KllSketch {
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
+    if (memVal.updatableMemory) {
+      return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
+    } else {
+      return heapify(srcMem);
+    }
   }
 
   /**

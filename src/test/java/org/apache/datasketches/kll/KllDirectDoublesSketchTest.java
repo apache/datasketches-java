@@ -31,7 +31,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class KllDirectDoublesSketchTest {
 
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
@@ -377,9 +376,7 @@ public class KllDirectDoublesSketchTest {
   public void serializeDeserializeFullViaCompactHeapify() {
     final KllDoublesSketch sketch1 = getDDSketch(200, 0);
     final int n = 1000;
-    for (int i = 0; i < n; i++) {
-      sketch1.update(i);
-    }
+    for (int i = 0; i < n; i++) { sketch1.update(i); }
     final byte[] bytes = sketch1.toByteArray();
     final KllDoublesSketch sketch2 =  KllDoublesSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
@@ -599,6 +596,8 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk2.update(i + 100); }
     sk.merge(sk2);
+    assertEquals(sk.getMinValue(), 1.0);
+    assertEquals(sk.getMaxValue(), 121.0);
   }
 
   @Test
@@ -609,15 +608,18 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk2.update(i + 100); }
     sk2.merge(sk);
+    assertEquals(sk2.getMinValue(), 1.0);
+    assertEquals(sk2.getMaxValue(), 121.0);
   }
 
-//  @Test
-//  public void checkWrapKllDoubleSketch() {
-//    KllDoublesSketch sk = new KllDoublesSketch(20);
-//    for (int i = 1; i <= 21; i++ ) { sk.update(i); }
-//    Memory srcMem = Memory.wrap(sk.toByteArray());
-//    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
-//  }
+  @Test
+  public void checkWrapCompactForm() {
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++ ) { sk.update(i); }
+    WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray()); //note: Not updatable
+    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
+    println(sk2.toString(true, true));
+  }
 
   private static KllDoublesSketch getDDSketch(final int k, final int n) {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);

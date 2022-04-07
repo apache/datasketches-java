@@ -28,10 +28,8 @@ import java.util.Random;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.kll.KllSketch;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-
 
 /**
  * This is a stochastic streaming sketch that enables near-real time analysis of the
@@ -444,7 +442,6 @@ public abstract class DoublesSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * @see KllSketch
    */
   public static double getNormalizedRankError(final int k, final boolean pmf) {
     return Util.getNormalizedRankError(k, pmf);
@@ -458,7 +455,6 @@ public abstract class DoublesSketch {
    * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
    * @return the value of <i>k</i> given a value of epsilon.
-   * @see KllSketch
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
     return Util.getKFromEpsilon(epsilon, pmf);
@@ -606,7 +602,6 @@ public abstract class DoublesSketch {
     final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
     return metaPreLongs + Util.computeRetainedItems(k, n) << 3;
   }
-
 
   /**
    * Returns the number of bytes this sketch would require to store in native form: compact for

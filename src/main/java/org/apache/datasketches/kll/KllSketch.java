@@ -63,7 +63,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes, Kevin Lang
  */
-public abstract class KllSketch {
+abstract class KllSketch {
 
   public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
@@ -167,7 +167,7 @@ public abstract class KllSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the compact serialized size
-   * @deprecated use {@link #getMaxSerializedSizeBytes(int, long, SketchType, boolean)} instead.
+   * @deprecated use getMaxSerializedSizeBytes(int, long, SketchType, boolean) instead.
    * Version 3.2.0
    */
   @Deprecated
@@ -293,6 +293,23 @@ public abstract class KllSketch {
   }
 
   /**
+   * Returns true if this sketch's data structure is backed by WritableMemory.
+   * @return true if this sketch's data structure is backed by WritableMemory.
+   */
+  public boolean hasMemory() {
+    return wmem != null;
+  }
+
+  /**
+   * Returns true if the backing resource is direct (off-heap) memory.
+   * This is the case for allocated direct memory, memory mapped files.
+   * @return true if the backing resource is direct (off-heap) memory.
+   */
+  public boolean isDirect() {
+    return wmem.isDirect();
+  }
+
+  /**
    * Returns true if this sketch is empty.
    * @return empty flag
    */
@@ -308,6 +325,10 @@ public abstract class KllSketch {
     return getNumLevels() > 1;
   }
 
+  /**
+   * Returns true if the backing WritableMemory is in updatable format.
+   * @return true if the backing WritableMemory is in updatable format.
+   */
   public final boolean isUpdatableMemory() {
     return updatablMemory;
   }

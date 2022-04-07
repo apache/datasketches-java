@@ -31,8 +31,8 @@ import org.apache.datasketches.memory.WritableMemory;
 
 public abstract class KllDoublesSketch extends KllSketch {
 
-  KllDoublesSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(sketchType, wmem, memReqSvr);
+  KllDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
   }
 
   /**
@@ -110,7 +110,11 @@ public abstract class KllDoublesSketch extends KllSketch {
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
+    if (memVal.updatableMemory) {
+      return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
+    } else {
+      return heapify(srcMem);
+    }
   }
 
   /**

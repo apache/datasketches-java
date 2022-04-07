@@ -129,18 +129,19 @@ final class KllFloatsHelper {
   static void mergeFloatImpl(final KllSketch mine, final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = mine.getN() + other.getN();
-    //update this sketch with level0 items from the other sketch
     final float[] otherFloatItemsArr = other.getFloatItemsArray();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
-    for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-      KllFloatsHelper.updateFloat(mine, otherFloatItemsArr[i]);
-    }
-    // after the level 0 update, we capture the key mutable variables
+    //capture my min & max, minK
     final float myMin = mine.getMinFloatValue();
     final float myMax = mine.getMaxFloatValue();
     final int myMinK = mine.getMinK();
 
+    //update this sketch with level0 items from the other sketch
+    for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
+      KllFloatsHelper.updateFloat(mine, otherFloatItemsArr[i]);
+    }
+    // after the level 0 update, we capture the state of levels and items arrays
     final int myCurNumLevels = mine.getNumLevels();
     final int[] myCurLevelsArr = mine.getLevelsArray();
     final float[] myCurFloatItemsArr = mine.getFloatItemsArray();

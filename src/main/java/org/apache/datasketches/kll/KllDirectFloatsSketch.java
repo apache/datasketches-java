@@ -62,14 +62,14 @@ final class KllDirectFloatsSketch extends KllFloatsSketch {
   WritableMemory itemsArrUpdatable;
 
   /**
-   * The actual constructor
+   * The constructor with Memory that can be off-heap.
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object
    */
   KllDirectFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr,
    final KllMemoryValidate memVal) {
-   super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
+   super(wmem, memReqSvr);
    updatableMemory = memVal.updatableMemory && memReqSvr != null;
    levelsArrUpdatable = memVal.levelsArrUpdatable;
    minMaxArrUpdatable = memVal.minMaxArrUpdatable;
