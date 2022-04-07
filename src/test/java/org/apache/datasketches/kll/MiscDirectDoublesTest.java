@@ -35,7 +35,7 @@ public class MiscDirectDoublesTest {
 
   @Test
   public void checkBounds() {
-    final KllDirectDoublesSketch sk = getDDSketch(200, 0);
+    final KllDoublesSketch sk = getDDSketch(200, 0);
     for (int i = 0; i < 1000; i++) {
       sk.update(i);
     }
@@ -52,7 +52,7 @@ public class MiscDirectDoublesTest {
 
   @Test
   public void checkMisc() {
-    final KllDirectDoublesSketch sk = getDDSketch(8, 0);
+    final KllDoublesSketch sk = getDDSketch(8, 0);
     assertTrue(Objects.isNull(sk.getQuantiles(10)));
     //sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
@@ -67,11 +67,11 @@ public class MiscDirectDoublesTest {
 
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
-    final KllDirectDoublesSketch sk = getDDSketch(20, 0);
+    final KllDoublesSketch sk = getDDSketch(20, 0);
     for (int i = 0; i < 10; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
 
-    final KllDirectDoublesSketch sk2 = getDDSketch(20, 0);
+    final KllDoublesSketch sk2 = getDDSketch(20, 0);
     for (int i = 0; i < 400; i++) { sk2.update(i + 1); }
     println("\n" + sk2.toString(true, true));
 
@@ -82,7 +82,7 @@ public class MiscDirectDoublesTest {
 
   //@Test
   public void viewCompactions() {
-    final KllDirectDoublesSketch sk = getDDSketch(20, 0);
+    final KllDoublesSketch sk = getDDSketch(20, 0);
     show(sk, 20);
     show(sk, 21); //compaction 1
     show(sk, 43);
@@ -98,7 +98,7 @@ public class MiscDirectDoublesTest {
     show(sk, 108);
   }
 
-  private static void show(final KllDirectDoublesSketch sk, int limit) {
+  private static void show(final KllDoublesSketch sk, int limit) {
     int i = (int) sk.getN();
     for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
@@ -107,7 +107,7 @@ public class MiscDirectDoublesTest {
   @Test
   public void checkSketchInitializeDoubleHeap() {
     int k = 20; //don't change this
-    KllDirectDoublesSketch sk;
+    KllDoublesSketch sk;
 
     //println("#### CASE: DOUBLE FULL HEAP");
     sk = getDDSketch(k, 0);
@@ -163,8 +163,8 @@ public class MiscDirectDoublesTest {
   @Test
   public void checkSketchInitializeDoubleHeapifyCompactMem() {
     int k = 20; //don't change this
-    KllHeapDoublesSketch sk;
-    KllDirectDoublesSketch sk2;
+    KllDoublesSketch sk;
+    KllDoublesSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
@@ -175,7 +175,7 @@ public class MiscDirectDoublesTest {
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapify(wmem);
+    sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -195,7 +195,7 @@ public class MiscDirectDoublesTest {
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapify(wmem);
+    sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -216,7 +216,7 @@ public class MiscDirectDoublesTest {
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapify(wmem);
+    sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -234,8 +234,8 @@ public class MiscDirectDoublesTest {
   @Test
   public void checkSketchInitializeDoubleHeapifyUpdatableMem() {
     int k = 20; //don't change this
-    KllHeapDoublesSketch sk;
-    KllDirectDoublesSketch sk2;
+    KllDoublesSketch sk;
+    KllDoublesSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
@@ -246,7 +246,7 @@ public class MiscDirectDoublesTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapify(wmem);
+    sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -266,7 +266,7 @@ public class MiscDirectDoublesTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapify(wmem);
+    sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -287,7 +287,7 @@ public class MiscDirectDoublesTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapify(wmem);
+    sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -305,8 +305,8 @@ public class MiscDirectDoublesTest {
   @Test
   public void checkMemoryToStringDoubleUpdatable() {
     int k = 20; //don't change this
-    KllDirectDoublesSketch sk;
-    KllDirectDoublesSketch sk2;
+    KllDoublesSketch sk;
+    KllDoublesSketch sk2;
     byte[] upBytes;
     byte[] upBytes2;
     WritableMemory wmem;
@@ -320,7 +320,7 @@ public class MiscDirectDoublesTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -335,7 +335,7 @@ public class MiscDirectDoublesTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -351,7 +351,7 @@ public class MiscDirectDoublesTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -365,8 +365,8 @@ public class MiscDirectDoublesTest {
     int k = 20;
     int n1 = 21;
     int n2 = 21;
-    KllDirectDoublesSketch sk1 = getDDSketch(k, 0);
-    KllDirectDoublesSketch sk2 = getDDSketch(k, 0);
+    KllDoublesSketch sk1 = getDDSketch(k, 0);
+    KllDoublesSketch sk2 = getDDSketch(k, 0);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
@@ -383,7 +383,7 @@ public class MiscDirectDoublesTest {
 
   @Test
   public void checkSizes() {
-    KllDirectDoublesSketch sk = getDDSketch(20, 0);
+    KllDoublesSketch sk = getDDSketch(20, 0);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     //println(sk.toString(true, true));
     byte[] byteArr1 = sk.toUpdatableByteArray();
@@ -398,7 +398,7 @@ public class MiscDirectDoublesTest {
   public void checkNewInstance() {
     int k = 200;
     WritableMemory dstMem = WritableMemory.allocate(6000);
-    KllDirectDoublesSketch sk = KllDirectDoublesSketch.newInstance(k, dstMem, memReqSvr);
+    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
     assertEquals(sk.getMinValue(), 1.0);
     assertEquals(sk.getMaxValue(), 10000.0);
@@ -410,18 +410,18 @@ public class MiscDirectDoublesTest {
     int k = 20;
     int m = 4;
     WritableMemory dstMem = WritableMemory.allocate(1000);
-    KllDirectDoublesSketch sk = KllDirectDoublesSketch.newInstance(k, m, dstMem, memReqSvr);
+    KllDoublesSketch sk = KllDirectDoublesSketch.newDirectInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
     assertEquals(sk.getMinValue(), 1.0);
     assertEquals(sk.getMaxValue(), 200.0);
   }
 
-  private static KllDirectDoublesSketch getDDSketch(final int k, final int n) {
-    KllHeapDoublesSketch sk = new KllHeapDoublesSketch(k);
+  private static KllDoublesSketch getDDSketch(final int k, final int n) {
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    KllDirectDoublesSketch ddsk = KllDirectDoublesSketch.writableWrap(wmem, memReqSvr);
+    KllDoublesSketch ddsk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     return ddsk;
   }
 

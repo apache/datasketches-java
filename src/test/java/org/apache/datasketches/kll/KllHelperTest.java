@@ -86,7 +86,7 @@ public class KllHelperTest {
 
   @Test
   public void checkUpdatableSerDe() {
-    KllHeapDoublesSketch sk = new KllHeapDoublesSketch(200);
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(200);
     for (int i = 1; i <= 533; i++) { sk.update(i); }
     int retained = sk.getNumRetained();
     int numLevels = ((KllSketch)sk).getNumLevels();
@@ -102,10 +102,10 @@ public class KllHelperTest {
     println("upBytes1: " + upBytes1);
 
     Memory mem;
-    KllHeapDoublesSketch sk2;
+    KllDoublesSketch sk2;
 
     mem = Memory.wrap(compByteArr1);
-    sk2 = KllHeapDoublesSketch.heapify(mem);
+    sk2 = KllDoublesSketch.heapify(mem);
     byte[] compByteArr2 = sk2.toByteArray();
     int compBytes2 = compByteArr2.length;
     println("compBytes2: " + compBytes2);
@@ -113,7 +113,7 @@ public class KllHelperTest {
     assertEquals(sk2.getNumRetained(), retained);
 
     mem = Memory.wrap(compByteArr2);
-    sk2 = KllHeapDoublesSketch.heapify(mem);
+    sk2 = KllDoublesSketch.heapify(mem);
     byte[] upByteArr2 = sk2.toUpdatableByteArray();
     int upBytes2 = upByteArr2.length;
     println("upBytes2: " + upBytes2);

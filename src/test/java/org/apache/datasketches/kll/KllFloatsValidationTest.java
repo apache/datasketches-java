@@ -212,7 +212,7 @@ public class KllFloatsValidationTest {
       int n = (int) correctResultsWithReset[(7 * testI) + 2];
       int stride = (int) correctResultsWithReset[(7 * testI) + 3];
       int[] inputArray = makeInputArray(n, stride);
-      KllHeapFloatsSketch sketch = new KllHeapFloatsSketch(k);
+      KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance(k);
       for (int i = 0; i < n; i++) {
         sketch.update(inputArray[i]);
       }

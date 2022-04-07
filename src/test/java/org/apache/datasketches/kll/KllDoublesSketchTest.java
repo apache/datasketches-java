@@ -39,7 +39,7 @@ public class KllDoublesSketchTest {
 
   @Test
   public void empty() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(Double.NaN); // this must not change anything
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
@@ -56,21 +56,21 @@ public class KllDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void getQuantileInvalidArg() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(1);
     sketch.getQuantile(-1.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void getQuantilesInvalidArg() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(1);
     sketch.getQuantiles(new double[] {2.0});
   }
 
   @Test
   public void oneItem() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(1);
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 1);
@@ -84,7 +84,7 @@ public class KllDoublesSketchTest {
 
   @Test
   public void manyItemsEstimationMode() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     final int n = 1_000_000;
 
     for (int i = 0; i < n; i++) {
@@ -130,7 +130,7 @@ public class KllDoublesSketchTest {
 
   @Test
   public void getRankGetCdfGetPmfConsistency() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     final int n = 1000;
     final double[] values = new double[n];
     for (int i = 0; i < n; i++) {
@@ -153,8 +153,8 @@ public class KllDoublesSketchTest {
 
   @Test
   public void merge() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch();
-    final KllHeapDoublesSketch sketch2 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
+    final KllDoublesSketch sketch2 = KllDoublesSketch.newHeapInstance();
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i * 1.0);
@@ -178,8 +178,8 @@ public class KllDoublesSketchTest {
 
   @Test
   public void mergeLowerK() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch(256);
-    final KllHeapDoublesSketch sketch2 = new KllHeapDoublesSketch(128);
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance(256);
+    final KllDoublesSketch sketch2 = KllDoublesSketch.newHeapInstance(128);
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
@@ -209,8 +209,8 @@ public class KllDoublesSketchTest {
 
   @Test
   public void mergeEmptyLowerK() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch(256);
-    final KllHeapDoublesSketch sketch2 = new KllHeapDoublesSketch(128);
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance(256);
+    final KllDoublesSketch sketch2 = KllDoublesSketch.newHeapInstance(128);
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
@@ -238,8 +238,8 @@ public class KllDoublesSketchTest {
 
   @Test
   public void mergeExactModeLowerK() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch(256);
-    final KllHeapDoublesSketch sketch2 = new KllHeapDoublesSketch(128);
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance(256);
+    final KllDoublesSketch sketch2 = KllDoublesSketch.newHeapInstance(128);
     final int n = 10000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
@@ -254,8 +254,8 @@ public class KllDoublesSketchTest {
 
   @Test
   public void mergeMinMinValueFromOther() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch();
-    final KllHeapDoublesSketch sketch2 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
+    final KllDoublesSketch sketch2 = KllDoublesSketch.newHeapInstance();
     sketch1.update(1);
     sketch2.update(2);
     sketch2.merge(sketch1);
@@ -264,11 +264,11 @@ public class KllDoublesSketchTest {
 
   @Test
   public void mergeMinAndMaxFromOther() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
     for (int i = 1; i <= 1_000_000; i++) {
       sketch1.update(i);
     }
-    final KllHeapDoublesSketch sketch2 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch2 = KllDoublesSketch.newHeapInstance();
     sketch2.merge(sketch1);
     assertEquals(sketch2.getMinValue(), 1);
     assertEquals(sketch2.getMaxValue(), 1_000_000);
@@ -277,18 +277,18 @@ public class KllDoublesSketchTest {
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    new KllHeapDoublesSketch(KllSketch.DEFAULT_M - 1);
+    KllDoublesSketch.newHeapInstance(KllSketch.DEFAULT_M - 1);
   }
 
   @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    new KllHeapDoublesSketch(KllSketch.MAX_K + 1);
+    KllDoublesSketch.newHeapInstance(KllSketch.MAX_K + 1);
   }
 
   @Test
   public void minK() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch(KllSketch.DEFAULT_M);
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(KllSketch.DEFAULT_M);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
@@ -298,7 +298,7 @@ public class KllDoublesSketchTest {
 
   @Test
   public void maxK() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch(KllSketch.MAX_K);
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(KllSketch.MAX_K);
     for (int i = 0; i < 1000; i++) {
       sketch.update(i);
     }
@@ -308,9 +308,9 @@ public class KllDoublesSketchTest {
 
   @Test
   public void serializeDeserializeEmpty() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
     final byte[] bytes = sketch1.toByteArray();
-    final KllHeapDoublesSketch sketch2 = KllHeapDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertTrue(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -323,10 +323,10 @@ public class KllDoublesSketchTest {
 
   @Test
   public void serializeDeserializeOneItem() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
-    final KllHeapDoublesSketch sketch2 = KllHeapDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
@@ -349,13 +349,13 @@ public class KllDoublesSketchTest {
 
   @Test
   public void serializeDeserialize() {
-    final KllHeapDoublesSketch sketch1 = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
     final int n = 1000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
     }
     final byte[] bytes = sketch1.toByteArray();
-    final KllHeapDoublesSketch sketch2 = KllHeapDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -368,21 +368,21 @@ public class KllDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void outOfOrderSplitPoints() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(0);
     sketch.getCDF(new double[] {1, 0});
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void nanSplitPoint() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(0);
     sketch.getCDF(new double[] {Double.NaN});
   }
 
   @Test
   public void getQuantiles() {
-    final KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
@@ -396,7 +396,7 @@ public class KllDoublesSketchTest {
 
   @Test
   public void checkReset() {
-    KllHeapDoublesSketch sk = new KllHeapDoublesSketch(20);
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
     long n1 = sk.getN();
     double min1 = sk.getMinValue();

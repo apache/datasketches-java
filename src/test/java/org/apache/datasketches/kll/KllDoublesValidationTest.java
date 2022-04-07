@@ -211,7 +211,7 @@ public class KllDoublesValidationTest {
       int n = (int) correctResultsWithReset[(7 * testI) + 2];
       int stride = (int) correctResultsWithReset[(7 * testI) + 3];
       int[] inputArray = makeInputArray(n, stride);
-      KllHeapDoublesSketch sketch = new KllHeapDoublesSketch(k);
+      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(k);
       for (int i = 0; i < n; i++) {
         sketch.update(inputArray[i]);
       }

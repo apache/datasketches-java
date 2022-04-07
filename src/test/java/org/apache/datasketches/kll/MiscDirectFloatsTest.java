@@ -35,7 +35,7 @@ public class MiscDirectFloatsTest {
 
   @Test
   public void checkBounds() {
-    final KllDirectFloatsSketch sk = getDFSketch(200, 0);
+    final KllFloatsSketch sk = getDFSketch(200, 0);
     for (int i = 0; i < 1000; i++) {
       sk.update(i);
     }
@@ -52,7 +52,7 @@ public class MiscDirectFloatsTest {
 
   @Test
   public void checkMisc() {
-    final KllDirectFloatsSketch sk = getDFSketch(8, 0);
+    final KllFloatsSketch sk = getDFSketch(8, 0);
     assertTrue(Objects.isNull(sk.getQuantiles(10)));
     //sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
@@ -67,11 +67,11 @@ public class MiscDirectFloatsTest {
 
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
-    final KllDirectFloatsSketch sk = getDFSketch(20, 0);
+    final KllFloatsSketch sk = getDFSketch(20, 0);
     for (int i = 0; i < 10; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
 
-    final KllDirectFloatsSketch sk2 = getDFSketch(20, 0);
+    final KllFloatsSketch sk2 = getDFSketch(20, 0);
     for (int i = 0; i < 400; i++) { sk2.update(i + 1); }
     println("\n" + sk2.toString(true, true));
 
@@ -82,7 +82,7 @@ public class MiscDirectFloatsTest {
 
   //@Test
   public void viewCompactions() {
-    final KllDirectFloatsSketch sk = getDFSketch(20, 0);
+    final KllFloatsSketch sk = getDFSketch(20, 0);
     show(sk, 20);
     show(sk, 21); //compaction 1
     show(sk, 43);
@@ -98,7 +98,7 @@ public class MiscDirectFloatsTest {
     show(sk, 108);
   }
 
-  private static void show(final KllDirectFloatsSketch sk, int limit) {
+  private static void show(final KllFloatsSketch sk, int limit) {
     int i = (int) sk.getN();
     for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
@@ -107,7 +107,7 @@ public class MiscDirectFloatsTest {
   @Test
   public void checkSketchInitializeFloatHeap() {
     int k = 20; //don't change this
-    KllDirectFloatsSketch sk;
+    KllFloatsSketch sk;
 
     //println("#### CASE: FLOAT FULL HEAP");
     sk = getDFSketch(k, 0);
@@ -163,8 +163,8 @@ public class MiscDirectFloatsTest {
   @Test
   public void checkSketchInitializeFloatHeapifyCompactMem() {
     int k = 20; //don't change this
-    KllHeapFloatsSketch sk;
-    KllDirectFloatsSketch sk2;
+    KllFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
@@ -175,7 +175,7 @@ public class MiscDirectFloatsTest {
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapFloatsSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -195,7 +195,7 @@ public class MiscDirectFloatsTest {
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapFloatsSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -216,7 +216,7 @@ public class MiscDirectFloatsTest {
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapFloatsSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -234,8 +234,8 @@ public class MiscDirectFloatsTest {
   @Test
   public void checkSketchInitializeFloatHeapifyUpdatableMem() {
     int k = 20; //don't change this
-    KllHeapFloatsSketch sk;
-    KllDirectFloatsSketch sk2;
+    KllFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
@@ -246,7 +246,7 @@ public class MiscDirectFloatsTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapFloatsSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -266,7 +266,7 @@ public class MiscDirectFloatsTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapFloatsSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -287,7 +287,7 @@ public class MiscDirectFloatsTest {
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapFloatsSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -305,8 +305,8 @@ public class MiscDirectFloatsTest {
   @Test
   public void checkMemoryToStringFloatUpdatable() {
     int k = 20; //don't change this
-    KllDirectFloatsSketch sk;
-    KllDirectFloatsSketch sk2;
+    KllFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] upBytes;
     byte[] upBytes2;
     WritableMemory wmem;
@@ -320,7 +320,7 @@ public class MiscDirectFloatsTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -335,7 +335,7 @@ public class MiscDirectFloatsTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -351,7 +351,7 @@ public class MiscDirectFloatsTest {
     s = KllPreambleUtil.memoryToString(wmem);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.memoryToString(wmem);
@@ -365,8 +365,8 @@ public class MiscDirectFloatsTest {
     int k = 20;
     int n1 = 21;
     int n2 = 21;
-    KllDirectFloatsSketch sk1 = getDFSketch(k, 0);
-    KllDirectFloatsSketch sk2 = getDFSketch(k, 0);
+    KllFloatsSketch sk1 = getDFSketch(k, 0);
+    KllFloatsSketch sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
@@ -383,7 +383,7 @@ public class MiscDirectFloatsTest {
 
   @Test
   public void checkSizes() {
-    KllDirectFloatsSketch sk = getDFSketch(20, 0);
+    KllFloatsSketch sk = getDFSketch(20, 0);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     //println(sk.toString(true, true));
     byte[] byteArr1 = sk.toUpdatableByteArray();
@@ -398,7 +398,7 @@ public class MiscDirectFloatsTest {
   public void checkNewInstance() {
     int k = 200;
     WritableMemory dstMem = WritableMemory.allocate(3000);
-    KllDirectFloatsSketch sk = KllDirectFloatsSketch.newInstance(k, dstMem, memReqSvr);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
     assertEquals(sk.getMinValue(), 1.0F);
     assertEquals(sk.getMaxValue(), 10000.0F);
@@ -410,18 +410,18 @@ public class MiscDirectFloatsTest {
     int k = 20;
     int m = 4;
     WritableMemory dstMem = WritableMemory.allocate(1000);
-    KllDirectFloatsSketch sk = KllDirectFloatsSketch.newInstance(k, m, dstMem, memReqSvr);
+    KllFloatsSketch sk = KllDirectFloatsSketch.newDirectInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
     assertEquals(sk.getMinValue(), 1.0);
     assertEquals(sk.getMaxValue(), 200.0);
   }
 
-  private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
-    KllHeapFloatsSketch sk = new KllHeapFloatsSketch(k);
+  private static KllFloatsSketch getDFSketch(final int k, final int n) {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    KllDirectFloatsSketch dfsk = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
+    KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }
 

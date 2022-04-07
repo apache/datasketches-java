@@ -26,14 +26,14 @@ public class KllDoublesSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     KllDoublesSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(0);
     KllDoublesSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
@@ -45,7 +45,7 @@ public class KllDoublesSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      KllHeapDoublesSketch sketch = new KllHeapDoublesSketch();
+      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }

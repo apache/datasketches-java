@@ -29,14 +29,14 @@ public class KllDirectFloatsSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
+    final KllFloatsSketch sketch = getDFSketch(200, 0);
     KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
+    final KllFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(0);
     KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
@@ -48,7 +48,7 @@ public class KllDirectFloatsSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      final KllDirectFloatsSketch sketch = getDFSketch(200, 0);
+      final KllFloatsSketch sketch = getDFSketch(200, 0);
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
@@ -64,13 +64,13 @@ public class KllDirectFloatsSketchIteratorTest {
     }
   }
 
-  private static KllDirectFloatsSketch getDFSketch(final int k, final int n) {
-    KllHeapFloatsSketch sk = new KllHeapFloatsSketch(k);
+  private static KllFloatsSketch getDFSketch(final int k, final int n) {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
 
-    KllDirectFloatsSketch dfsk = KllDirectFloatsSketch.writableWrap(wmem, memReqSvr);
+    KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }
 

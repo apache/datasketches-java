@@ -26,14 +26,14 @@ public class KllFloatsSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    KllHeapFloatsSketch sketch = new KllHeapFloatsSketch();
+    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllHeapFloatsSketch sketch = new KllHeapFloatsSketch();
+    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(0);
     KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
@@ -45,7 +45,7 @@ public class KllFloatsSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      KllHeapFloatsSketch sketch = new KllHeapFloatsSketch();
+      KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
