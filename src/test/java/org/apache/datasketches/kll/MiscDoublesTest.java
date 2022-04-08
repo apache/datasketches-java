@@ -510,4 +510,3 @@ public class MiscDoublesTest {
     //System.out.println(s); //disable here
   }
 }
-

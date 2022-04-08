@@ -612,13 +612,13 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk2.getMaxValue(), 121.0);
   }
 
-  @Test
-  public void checkWrapCompactForm() {
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  @SuppressWarnings("unused")
+  public void checkWritableWrapOfCompactForm() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk.update(i); }
     WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray()); //note: Not updatable
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
-    println(sk2.toString(true, true));
   }
 
   private static KllDoublesSketch getDDSketch(final int k, final int n) {

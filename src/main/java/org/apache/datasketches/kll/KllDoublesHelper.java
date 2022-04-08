@@ -129,18 +129,19 @@ final class KllDoublesHelper {
   static void mergeDoubleImpl(final KllSketch mine, final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = mine.getN() + other.getN();
-    //update this sketch with level0 items from the other sketch
     final double[] otherDoubleItemsArr = other.getDoubleItemsArray();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
-    for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-      KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
-    }
-    // after the level 0 update, we capture the key mutable variables
+    //capture my min & max, minK
     final double myMin = mine.getMinDoubleValue();
     final double myMax = mine.getMaxDoubleValue();
     final int myMinK = mine.getMinK();
 
+    //update this sketch with level0 items from the other sketch
+    for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
+      KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
+    }
+    // after the level 0 update, we capture the state of levels and items arrays
     final int myCurNumLevels = mine.getNumLevels();
     final int[] myCurLevelsArr = mine.getLevelsArray();
     final double[] myCurDoubleItemsArr = mine.getDoubleItemsArray();
@@ -260,7 +261,7 @@ final class KllDoublesHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */
+   */ //NOTE Validation Method: Need to modify.
   static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -279,7 +280,7 @@ final class KllDoublesHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */
+   */ //NOTE Validation Method: Need to modify.
   static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -543,14 +544,14 @@ final class KllDoublesHelper {
    * Validation Method.
    * The following must be enabled for use with the KllDoublesValidationTest,
    * which is only enabled for manual testing. In addition, two Validation Methods
-   * above need to be modified as commented.
-   */
-  //  static int nextOffset = 0;
+   * above need to be modified.
+   */ //NOTE Validation Method: Need to uncomment
+  //    static int nextOffset = 0;
   //
-  //  private static int deterministicOffset() {
-  //    final int result = nextOffset;
-  //    nextOffset = 1 - nextOffset;
-  //    return result;
-  //  }
+  //    private static int deterministicOffset() {
+  //      final int result = nextOffset;
+  //      nextOffset = 1 - nextOffset;
+  //      return result;
+  //    }
 
 }

@@ -22,7 +22,9 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_COMPACT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
+import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.Memory;
@@ -112,9 +114,19 @@ public abstract class KllDoublesSketch extends KllSketch {
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
     if (memVal.updatableMemory) {
       return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
-    } else {
-      return heapify(srcMem);
     }
+    KllSketch.Error.kllSketchThrow(TGT_IS_READ_ONLY);
+    return null; //artifact of indirect throw
+  }
+
+  public static KllDoublesSketch wrap(
+      final Memory srcMem) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    if (!memVal.updatableMemory) {
+      return heapify(srcMem); //TODO
+    }
+    KllSketch.Error.kllSketchThrow(SRC_MUST_BE_COMPACT);
+    return null; //artifact of indirect throw
   }
 
   /**
@@ -310,29 +322,28 @@ public abstract class KllDoublesSketch extends KllSketch {
     KllDoublesHelper.updateDouble(this, value);
   }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   float getFloatItemsArrayAt(final int index) { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   float getMaxFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   float getMinFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   void setFloatItemsArray(final float[] floatItems) { kllSketchThrow(MUST_NOT_CALL); }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   void setFloatItemsArrayAt(final int index, final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   void setMaxFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
-  @Override //Dummy
+  @Override //Artifact of inheritance
   void setMinFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
 }
-

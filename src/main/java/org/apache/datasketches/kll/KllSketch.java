@@ -68,7 +68,8 @@ abstract class KllSketch {
   public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   enum Error {
-    TGT_IS_IMMUTABLE("Given sketch Memory is immutable, cannot write."),
+    TGT_IS_READ_ONLY("Given sketch Memory is immutable, cannot write."),
+    SRC_MUST_BE_COMPACT("Given sketch must be in compact form"),
     SRC_MUST_BE_DIRECT("Given sketch must be of type Direct."),
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),

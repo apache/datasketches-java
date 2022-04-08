@@ -25,14 +25,13 @@ import java.util.concurrent.Executors;
 /**
  * Pool of threads to serve <i>all</i> propagation tasks in the system.
  *
- * @author eshcar
+ * @author Eshcar Hillel
  */
 final class ConcurrentPropagationService {
 
   static int NUM_POOL_THREADS = 3; // Default: 3 threads
   private static volatile ConcurrentPropagationService instance = null; // Singleton
   private static ExecutorService[] propagationExecutorService = null;
-
 
   private ConcurrentPropagationService() {
     propagationExecutorService = new ExecutorService[NUM_POOL_THREADS];
@@ -43,7 +42,7 @@ final class ConcurrentPropagationService {
     if (instance == null) {
       synchronized (ConcurrentPropagationService.class) {
         if (instance == null) {
-          instance = new ConcurrentPropagationService();
+          instance = new ConcurrentPropagationService(); //SpotBugs: SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA
         }
       }
     }

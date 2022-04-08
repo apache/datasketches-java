@@ -33,6 +33,11 @@ under the License.
 
   <!-- False positive.  In this case we want to ignore the exceptions -->
   <Match>
+    <Bug pattern="SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA" />
+    <Class name="org.apache.datasketches.theta.ConcurrentPropagationService" />
+    <Method name="getInstance" />
+  </Match>
+  <Match>
     <Bug pattern="DE_MIGHT_IGNORE" />
     <Class name="org.apache.datasketches.theta.SetOpsCornerCasesTest" />
     <Method name="checkSeedHash" />

@@ -202,7 +202,7 @@ public class KllFloatsValidationTest {
    *  See the instructions at the bottom of that class.
    */
 
-  //@Test  //NEED TO ENABLE
+  //@Test  //NEED TO ENABLE HERE AND BELOW FOR VALIDATION
   public void checkTestResults() {
     int numTests = correctResultsWithReset.length / 7;
     for (int testI = 0; testI < numTests; testI++) {

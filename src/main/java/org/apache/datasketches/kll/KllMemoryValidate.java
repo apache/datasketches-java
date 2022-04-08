@@ -153,14 +153,14 @@ final class KllMemoryValidate {
         itemsRetained = capacityItems - myLevelsArr[0];
         if (doublesSketch) {
           final double[] myItemsArr = new double[capacityItems];
-          srcMem.getDoubleArray(offset, myItemsArr, myLevelsArr[0], itemsRetained);
+          srcMem.getDoubleArray(itemsArrStart, myItemsArr, myLevelsArr[0], itemsRetained);
           itemsArrCompact = Memory.wrap(myItemsArr);
         } else {
           final float[] myItemsArr = new float[capacityItems];
-          srcMem.getFloatArray(offset, myItemsArr, myLevelsArr[0], itemsRetained);
+          srcMem.getFloatArray(itemsArrStart, myItemsArr, myLevelsArr[0], itemsRetained);
           itemsArrCompact = Memory.wrap(myItemsArr);
         }
-        sketchBytes = offset + itemsRetained * typeBytes;
+        sketchBytes = itemsArrStart + itemsRetained * typeBytes;
         break;
       }
       case 1: { //EMPTY_COMPACT

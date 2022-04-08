@@ -612,13 +612,13 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk2.getMaxValue(), 121.0);
   }
 
-  @Test
-  public void checkWrapCompactForm() {
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  @SuppressWarnings("unused")
+  public void checkWritableWrapOfCompactForm() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk.update(i); }
     WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray()); //note: Not updatable
     KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
-    println(sk2.toString(true, true));
   }
 
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
@@ -626,7 +626,6 @@ public class KllDirectFloatsSketchTest {
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = sk.toUpdatableByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-
     KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }

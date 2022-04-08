@@ -410,40 +410,39 @@ final class KllHelper {
       final long n,
       final SketchType sketchType,
       final boolean printGrowthScheme) {
-    int numLevels = 0;
+
     LevelStats lvlStats;
     final GrowthStats gStats = new GrowthStats();
+    gStats.numLevels = 0;
     gStats.k = k;
     gStats.m = m;
     gStats.givenN = n;
     gStats.sketchType = sketchType;
     if (printGrowthScheme) {
       println("GROWTH SCHEME:");
-      println("Given SketchType: " + sketchType.toString());
-      println("Given K         : " + k);
-      println("Given M         : " + m);
-      println("Given N         : " + n);
+      println("Given SketchType: " + gStats.sketchType.toString());
+      println("Given K         : " + gStats.k);
+      println("Given M         : " + gStats.m);
+      println("Given N         : " + gStats.givenN);
       printf("%10s %10s %20s %13s %15s\n", "NumLevels", "MaxItems", "MaxN", "CompactBytes", "UpdatableBytes");
     }
-    int compactBytes;
-    int updatableBytes;
     final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     do {
-      numLevels++;
-      lvlStats = getFinalSketchStatsAtNumLevels(k, m, numLevels, false);
-      final int maxItems = lvlStats.items;
-      final long maxN = lvlStats.n;
-      compactBytes = maxItems * typeBytes + numLevels * Integer.BYTES + 2 * typeBytes + DATA_START_ADR;
-      updatableBytes = compactBytes + Integer.BYTES;
+      gStats.numLevels++; //
+      lvlStats = getFinalSketchStatsAtNumLevels(gStats.k, gStats.m, gStats.numLevels, false);
+      gStats.maxItems = lvlStats.items; //
+      gStats.maxN = lvlStats.n; //
+      gStats.compactBytes =
+          gStats.maxItems * typeBytes + gStats.numLevels * Integer.BYTES + 2 * typeBytes + DATA_START_ADR;
+      gStats.updatableBytes = gStats.compactBytes + Integer.BYTES;
       if (printGrowthScheme) {
-        printf("%10d %,10d %,20d %,13d %,15d\n", numLevels, maxItems, maxN, compactBytes, updatableBytes);
+        printf("%10d %,10d %,20d %,13d %,15d\n",
+            gStats.numLevels, gStats.maxItems, gStats.maxN, gStats.compactBytes, gStats.updatableBytes);
       }
     } while (lvlStats.n < n);
-    gStats.maxN = lvlStats.n;
-    gStats.numLevels = lvlStats.numLevels;
-    gStats.maxItems = lvlStats.items;
-    gStats.compactBytes = compactBytes;
-    gStats.updatableBytes = updatableBytes;
+
+    //gStats.numLevels = lvlStats.numLevels; //
+    //gStats.maxItems = lvlStats.items; //
     return gStats;
   }
 

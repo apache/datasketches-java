@@ -261,7 +261,7 @@ final class KllFloatsHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */
+   */ //NOTE Validation Method: Need to modify.
   static void randomlyHalveDownFloats(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -280,7 +280,7 @@ final class KllFloatsHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */
+   */ //NOTE Validation Method: Need to modify
   static void randomlyHalveUpFloats(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -523,7 +523,6 @@ final class KllFloatsHelper {
   }
 
   /**
-   * Validation Method.
    * Checks the sequential validity of the given array of float values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of values
@@ -544,14 +543,14 @@ final class KllFloatsHelper {
    * Validation Method.
    * The following must be enabled for use with the KllFloatsValidationTest,
    * which is only enabled for manual testing. In addition, two methods
-   * above need to be modified as commented.
-   */
-  //  static int nextOffset = 0;
+   * above need to be modified.
+   */ //NOTE Validation Method: Need to uncomment
+  //    static int nextOffset = 0;
   //
-  //  private static int deterministicOffset() {
-  //    final int result = nextOffset;
-  //    nextOffset = 1 - nextOffset;
-  //    return result;
-  //  }
+  //    private static int deterministicOffset() {
+  //      final int result = nextOffset;
+  //      nextOffset = 1 - nextOffset;
+  //      return result;
+  //    }
 
 }

@@ -395,21 +395,6 @@ public class KllFloatsSketchTest {
     assertEquals(quantiles1[2], 3f);
   }
 
-  @SuppressWarnings("deprecation")
-  @Test
-  public void checkDeprecatedMethods() {
-    final int k = 200;
-    final int n = 200;
-    int bytes = KllSketch.getMaxSerializedSizeBytes(k, n); //assumed float before
-    assertEquals(bytes, 832);
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    for (int i = 1; i <= n; i++) { sk.update(i); }
-    final byte[] byteArr = sk.toByteArray();
-    assertEquals(byteArr.length, 832);
-    bytes = sk.getSerializedSizeBytes();
-    assertEquals(bytes, 832);
-  }
-
   @Test
   public void checkReset() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
@@ -425,6 +410,21 @@ public class KllFloatsSketchTest {
     assertEquals(n2, n1);
     assertEquals(min2, min1);
     assertEquals(max2, max1);
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkDeprecatedMethods() { //Doubles does not need this test
+    final int k = 200;
+    final int n = 200;
+    int bytes = KllSketch.getMaxSerializedSizeBytes(k, n); //assumed float before
+    assertEquals(bytes, 832);
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    final byte[] byteArr = sk.toByteArray();
+    assertEquals(byteArr.length, 832);
+    bytes = sk.getSerializedSizeBytes();
+    assertEquals(bytes, 832);
   }
 
 }

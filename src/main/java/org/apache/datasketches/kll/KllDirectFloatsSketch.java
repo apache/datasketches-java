@@ -39,7 +39,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
-import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_IMMUTABLE;
+import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.Family;
@@ -117,7 +117,7 @@ final class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   public void reset() {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int k = getK();
     setN(0);
     setMinK(k);
@@ -202,14 +202,14 @@ final class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void incN() {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     long n = getMemoryN(wmem);
     setMemoryN(wmem, ++n);
   }
 
   @Override
   void incNumLevels() {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     int numLevels = getMemoryNumLevels(wmem);
     setMemoryNumLevels(wmem, ++numLevels);
   }
@@ -221,37 +221,37 @@ final class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setFloatItemsArray(final float[] floatItems) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     itemsArrUpdatable.putFloatArray(0, floatItems, 0, floatItems.length);
   }
 
   @Override
   void setFloatItemsArrayAt(final int index, final float value) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     itemsArrUpdatable.putFloat((long)index * Float.BYTES, value);
   }
 
   @Override
   void setItemsArrayUpdatable(final WritableMemory itemsMem) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     itemsArrUpdatable = itemsMem;
   }
 
   @Override
   void setLevelsArray(final int[] levelsArr) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     levelsArrUpdatable.putIntArray(0, levelsArr, 0, levelsArr.length);
   }
 
   @Override
   void setLevelsArrayAt(final int index, final int value) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     levelsArrUpdatable.putInt((long)index * Integer.BYTES, value);
   }
 
   @Override
   void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = index * Integer.BYTES;
     final int curV = levelsArrUpdatable.getInt(offset);
     levelsArrUpdatable.putInt(offset, curV - minusEq);
@@ -259,7 +259,7 @@ final class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = index * Integer.BYTES;
     final int curV = levelsArrUpdatable.getInt(offset);
     levelsArrUpdatable.putInt(offset, curV + plusEq);
@@ -267,49 +267,49 @@ final class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setLevelsArrayUpdatable(final WritableMemory levelsMem) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     levelsArrUpdatable = levelsMem;
   }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryLevelZeroSortedFlag(wmem, sorted);
   }
 
   @Override
   void setMaxFloatValue(final float value) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     minMaxArrUpdatable.putFloat(Float.BYTES, value);
   }
 
   @Override
   void setMinFloatValue(final float value) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     minMaxArrUpdatable.putFloat(0, value);
   }
 
   @Override
   void setMinK(final int minK) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryMinK(wmem, minK);
   }
 
   @Override
   void setMinMaxArrayUpdatable(final WritableMemory minMaxMem) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     minMaxArrUpdatable = minMaxMem;
   }
 
   @Override
   void setN(final long n) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryN(wmem, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
-    if (!updatableMemory) { kllSketchThrow(TGT_IS_IMMUTABLE); }
+    if (!updatableMemory) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryNumLevels(wmem, numLevels);
   }
 

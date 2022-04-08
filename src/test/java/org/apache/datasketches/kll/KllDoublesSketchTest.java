@@ -338,6 +338,7 @@ public class KllDoublesSketchTest {
   }
 
   //@Test //not implemented from C++ yet
+  //
   //public void deserializeOneItemV1() throws Exception {
   //  final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
   //  final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
