@@ -159,11 +159,6 @@ final class KllPreambleUtil {
   static final int DOUBLES_SKETCH_BIT_MASK    = 8;
   static final int UPDATABLE_BIT_MASK         = 16;
 
-  enum Layout {
-    FLOAT_FULL_COMPACT,       FLOAT_EMPTY_COMPACT,      FLOAT_SINGLE_COMPACT,
-    DOUBLE_FULL_COMPACT,      DOUBLE_EMPTY_COMPACT,     DOUBLE_SINGLE_COMPACT,
-    FLOAT_UPDATABLE,  DOUBLE_UPDATABLE }
-
   /**
    * Returns a human readable string summary of the internal state of the given byte array.
    * Used primarily in testing.
@@ -184,59 +179,139 @@ final class KllPreambleUtil {
    * @return the summary string.
    */
   static String toString(final Memory mem) {
-    return memoryToString(mem);
+    return memoryToString(mem, false);
   }
 
-  static String memoryToString(final Memory mem) {
-    final KllMemoryValidate memChk = new KllMemoryValidate(mem);
-    final int flags = memChk.flags & 0XFF;
+  static String memoryToString(final Memory mem, final boolean includeData) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(mem);
+    final int flags = memVal.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
-    final int preInts = memChk.preInts;
+    final int preInts = memVal.preInts;
+    final boolean doublesSketch = memVal.doublesSketch;
+    final boolean updatableMemFormat = memVal.updatableMemFormat;
+    final boolean empty = memVal.empty;
+    final boolean singleItem = memVal.singleItem;
+    final int sketchBytes = memVal.sketchBytes;
+    final int typeBytes = memVal.typeBytes;
+
     final StringBuilder sb = new StringBuilder();
     sb.append(Util.LS).append("### KLL SKETCH MEMORY SUMMARY:").append(LS);
     sb.append("Byte   0   : Preamble Ints      : ").append(preInts).append(LS);
-    sb.append("Byte   1   : SerVer             : ").append(memChk.serVer).append(LS);
-    sb.append("Byte   2   : FamilyID           : ").append(memChk.familyID).append(LS);
-    sb.append("             FamilyName         : ").append(memChk.famName).append(LS);
+    sb.append("Byte   1   : SerVer             : ").append(memVal.serVer).append(LS);
+    sb.append("Byte   2   : FamilyID           : ").append(memVal.familyID).append(LS);
+    sb.append("             FamilyName         : ").append(memVal.famName).append(LS);
     sb.append("Byte   3   : Flags Field        : ").append(flagsStr).append(LS);
     sb.append("         Bit Flag Name").append(LS);
-    sb.append("           0 EMPTY COMPACT      : ").append(memChk.empty).append(LS);
-    sb.append("           1 LEVEL_ZERO_SORTED  : ").append(memChk.level0Sorted).append(LS);
-    sb.append("           2 SINGLE_ITEM COMPACT: ").append(memChk.singleItem).append(LS);
-    sb.append("           3 DOUBLES_SKETCH     : ").append(memChk.doublesSketch).append(LS);
-    sb.append("           4 UPDATABLE          : ").append(memChk.updatableMemory).append(LS);
-    sb.append("Bytes  4-5 : K                  : ").append(memChk.k).append(LS);
-    sb.append("Byte   6   : Min Level Cap, M   : ").append(memChk.m).append(LS);
+    sb.append("           0 EMPTY COMPACT      : ").append(empty).append(LS);
+    sb.append("           1 LEVEL_ZERO_SORTED  : ").append(memVal.level0Sorted).append(LS);
+    sb.append("           2 SINGLE_ITEM COMPACT: ").append(singleItem).append(LS);
+    sb.append("           3 DOUBLES_SKETCH     : ").append(doublesSketch).append(LS);
+    sb.append("           4 UPDATABLE          : ").append(updatableMemFormat).append(LS);
+    sb.append("Bytes  4-5 : K                  : ").append(memVal.k).append(LS);
+    sb.append("Byte   6   : Min Level Cap, M   : ").append(memVal.m).append(LS);
     sb.append("Byte   7   : (Reserved)         : ").append(LS);
 
-    switch (memChk.layout) {
-      case DOUBLE_FULL_COMPACT:
-      case FLOAT_FULL_COMPACT:
-      case FLOAT_UPDATABLE:
-      case DOUBLE_UPDATABLE:
-      {
-        sb.append("Bytes  8-15: N                  : ").append(memChk.n).append(LS);
-        sb.append("Bytes 16-17: MinK               : ").append(memChk.minK).append(LS);
-        sb.append("Byte  18   : NumLevels          : ").append(memChk.numLevels).append(LS);
-        break;
-      }
-      case FLOAT_EMPTY_COMPACT:
-      case FLOAT_SINGLE_COMPACT:
-      case DOUBLE_EMPTY_COMPACT:
-      case DOUBLE_SINGLE_COMPACT:
-      {
-        sb.append("Assumed    : N                  : ").append(memChk.n).append(LS);
-        sb.append("Assumed    : MinK               : ").append(memChk.minK).append(LS);
-        sb.append("Assumed    : NumLevels          : ").append(memChk.numLevels).append(LS);
-        break;
-      }
-      default: break; //can never happen
+    final long n = memVal.n;
+    final int minK = memVal.minK;
+    final int numLevels = memVal.numLevels;
+    if (updatableMemFormat | (!updatableMemFormat && !empty && !singleItem)) {
+        sb.append("Bytes  8-15: N                  : ").append(n).append(LS);
+        sb.append("Bytes 16-17: MinK               : ").append(minK).append(LS);
+        sb.append("Byte  18   : NumLevels          : ").append(numLevels).append(LS);
+    }
+    else {
+        sb.append("Assumed    : N                  : ").append(n).append(LS);
+        sb.append("Assumed    : MinK               : ").append(minK).append(LS);
+        sb.append("Assumed    : NumLevels          : ").append(numLevels).append(LS);
     }
     sb.append("PreambleBytes                   : ").append(preInts * 4).append(LS);
-    sb.append("Sketch Bytes                    : ").append(memChk.sketchBytes).append(LS);
+    sb.append("Sketch Bytes                    : ").append(sketchBytes).append(LS);
     sb.append("Memory Capacity Bytes           : ").append(mem.getCapacity()).append(LS);
     sb.append("### END KLL Sketch Memory Summary").append(LS);
+
+    if (includeData) {
+      sb.append(LS);
+      sb.append("### START KLL DATA:").append(LS);
+      int offsetBytes = 0;
+
+      if (updatableMemFormat) {
+        sb.append("LEVELS ARR:").append(LS);
+        offsetBytes = DATA_START_ADR;
+        for (int i = 0; i < numLevels + 1; i++) {
+          sb.append(i + ", " + mem.getInt(offsetBytes)).append(LS);
+          offsetBytes += Integer.BYTES;
+        }
+        sb.append("MIN/MAX:").append(LS);
+        if (doublesSketch) {
+          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+        } else { //floats
+          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+        }
+        sb.append("ITEMS DATA").append(LS);
+        final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
+        if (doublesSketch) {
+          for (int i = 0; i < itemSpace; i++) {
+            sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
+            offsetBytes += typeBytes;
+          }
+        } else { //floats
+          for (int i = 0; i < itemSpace; i++) {
+            sb.append(mem.getFloat(offsetBytes)).append(LS);
+            offsetBytes += typeBytes;
+          }
+        }
+
+      } else if (!empty && !singleItem) { //compact full
+        sb.append("LEVELS ARR:").append(LS);
+        offsetBytes = DATA_START_ADR;
+        for (int i = 0; i < numLevels; i++) {
+          sb.append(i + ", " + mem.getInt(offsetBytes)).append(LS);
+          offsetBytes += Integer.BYTES;
+        }
+        sb.append("(top level of Levels arr is absent)").append(LS);
+        sb.append("MIN/MAX:").append(LS);
+        if (doublesSketch) {
+          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+          sb.append(mem.getDouble(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+        } else { //floats
+          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+          sb.append(mem.getFloat(offsetBytes)).append(LS);
+          offsetBytes += typeBytes;
+        }
+        sb.append("ITEMS DATA").append(LS);
+        final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
+        if (doublesSketch) {
+          for (int i = 0; i < itemSpace; i++) {
+            sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
+            offsetBytes += typeBytes;
+          }
+        } else { //floats
+          for (int i = 0; i < itemSpace; i++) {
+            sb.append(i + ", " + mem.getFloat(offsetBytes)).append(LS);
+            offsetBytes += typeBytes;
+          }
+        }
+
+      } else { //single item
+        if (singleItem) {
+          sb.append("SINGLE ITEM DATA").append(LS);
+          sb.append(doublesSketch
+              ? mem.getDouble(DATA_START_ADR_SINGLE_ITEM)
+              : mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+        }
+      }
+      sb.append("### END KLL DATA:").append(LS);
+    }
     return sb.toString();
   }
 
@@ -272,7 +347,7 @@ final class KllPreambleUtil {
     return (getMemoryFlags(mem) & DOUBLES_SKETCH_BIT_MASK) != 0;
   }
 
-  static boolean getMemoryUpdatableFlag(final Memory mem) {
+  static boolean getMemoryUpdatableFormatFlag(final Memory mem) {
     return (getMemoryFlags(mem) & UPDATABLE_BIT_MASK) != 0;
   }
 

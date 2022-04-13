@@ -22,10 +22,11 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_COMPACT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+
+import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -45,9 +46,9 @@ public abstract class KllDoublesSketch extends KllSketch {
    * @return a heap-based sketch based on the given Memory.
    */
   public static KllDoublesSketch heapify(final Memory mem) {
-    final KllMemoryValidate memChk = new KllMemoryValidate(mem);
-    if (!memChk.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_DOUBLE); }
-    return new KllHeapDoublesSketch(mem, memChk);
+    final KllMemoryValidate memVal = new KllMemoryValidate(mem);
+    if (!memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_DOUBLE); }
+    return new KllHeapDoublesSketch(mem, memVal);
   }
 
   /**
@@ -111,22 +112,25 @@ public abstract class KllDoublesSketch extends KllSketch {
   public static KllDoublesSketch writableWrap(
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
+    Objects.nonNull(srcMem);
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (memVal.updatableMemory) {
+    if (memVal.updatableMemFormat) {
+      Objects.nonNull(memReqSvr);
       return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
     }
     KllSketch.Error.kllSketchThrow(TGT_IS_READ_ONLY);
     return null; //artifact of indirect throw
   }
 
-  public static KllDoublesSketch wrap(
-      final Memory srcMem) {
+  public static KllDoublesSketch wrap(final Memory srcMem) {
+    Objects.nonNull(srcMem);
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (!memVal.updatableMemory) {
-      return heapify(srcMem); //TODO
+
+    if (!memVal.updatableMemFormat) {
+      return heapify(srcMem);
+    } else {
+      return new KllDirectDoublesSketch((WritableMemory) srcMem, null, memVal);
     }
-    KllSketch.Error.kllSketchThrow(SRC_MUST_BE_COMPACT);
-    return null; //artifact of indirect throw
   }
 
   /**
@@ -305,20 +309,12 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
-   * Merges another sketch into this one.
-   * @param other sketch to merge into this one
-   */
-  public void merge(final KllSketch other) {
-    if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
-    KllDoublesHelper.mergeDoubleImpl(this, other);
-  }
-
-  /**
    * Updates this sketch with the given data item.
    *
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final double value) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     KllDoublesHelper.updateDouble(this, value);
   }
 

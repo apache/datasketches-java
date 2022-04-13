@@ -542,7 +542,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch.getK(), 200);
     assertEquals(sketch.getN(), 200);
     assertFalse(sketch.isEmpty());
-    assertTrue(sketch.isUpdatableMemory());
+    assertTrue(sketch.isMemoryUpdatableFormat());
     assertFalse(sketch.isEstimationMode());
     assertTrue(sketch.isFloatsSketch());
     assertFalse(sketch.isLevelZeroSorted());
@@ -553,7 +553,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getK(), 200);
     assertEquals(sk.getN(), 200);
     assertFalse(sk.isEmpty());
-    assertFalse(sk.isUpdatableMemory());
+    assertFalse(sk.isMemoryUpdatableFormat());
     assertFalse(sk.isEstimationMode());
     assertTrue(sk.isFloatsSketch());
     assertFalse(sk.isLevelZeroSorted());

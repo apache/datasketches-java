@@ -27,6 +27,7 @@ import java.util.Objects;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -374,13 +375,13 @@ public class MiscFloatsTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -389,13 +390,13 @@ public class MiscFloatsTest {
     sk = KllFloatsSketch.newHeapInstance(k);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -405,13 +406,13 @@ public class MiscFloatsTest {
     sk.update(1);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -432,28 +433,31 @@ public class MiscFloatsTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
-    println(s);
-    assertEquals(upBytes, upBytes2);
+    println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
+    assertEquals(sk.getN(), sk2.getN());
+    assertEquals(sk.getMinValue(), sk2.getMinValue());
+    assertEquals(sk.getMaxValue(), sk2.getMaxValue());
+    assertEquals(sk.getNumRetained(), sk2.getNumRetained());
 
     println("#### CASE: FLOAT EMPTY UPDATABLE");
     sk = KllFloatsSketch.newHeapInstance(k);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -463,13 +467,13 @@ public class MiscFloatsTest {
     sk.update(1);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -496,6 +500,18 @@ public class MiscFloatsTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
+  }
+
+  @Test
+  public void checkRODirect() {
+    int k = 20;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
+    byte[] byteArr = sk.toUpdatableByteArray();
+    Memory srcMem = Memory.wrap(byteArr);
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
+    float min = sk2.getMinValue();
+    println("Min: " + min);
   }
 
   @Test

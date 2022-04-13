@@ -22,6 +22,12 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
+import static org.apache.datasketches.kll.KllSketch.Error.MEMORY_NOT_UPDATABLE_FORMAT;
+import static org.apache.datasketches.kll.KllSketch.Error.MEMREQSVR_MUST_NOT_BE_NULL;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
+import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
+import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
@@ -74,6 +80,8 @@ abstract class KllSketch {
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     SRC_CANNOT_BE_DIRECT("Given sketch cannot be of type Direct."),
+    MEMREQSVR_MUST_NOT_BE_NULL("Memory Request Server must not be null."),
+    MEMORY_NOT_UPDATABLE_FORMAT("Memory must be in updatableFormat"),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called.");
 
     private String msg;
@@ -108,40 +116,68 @@ abstract class KllSketch {
    * Choosing smaller values of <i>m</i> less than 8 will make the sketch slower.
    */
   static final int DEFAULT_M = 8;
-
-  /**
-   * The maximum value of M.
-   * @see #DEFAULT_M
-   */
-  static final int MAX_M = 8;
-
-  /**
-   * The minimum value of M.
-   * @see #DEFAULT_M
-   */
-  static final int MIN_M = 2;
-
+  static final int MAX_M = 8; //The maximum value of M
+  static final int MIN_M = 2; //The minimum value of M
   static final Random random = new Random();
   final SketchType sketchType;
+  final boolean updatableMemFormat;
   final MemoryRequestServer memReqSvr;
-  final boolean updatablMemory;
+  final boolean readOnly;
+  int[] levelsArr;
   WritableMemory wmem;
 
   /**
-   * Constructor
+   * Constructor for writable updatable memory and for the Heap.
+   * If both wmem and memReqSvr are null, this is a heap constructor.
+   * If wmem != null and wmem is not readOnly, then memReqSvr must be != null.
+   * If wmem was derived from an original Memory instance via assignment, it will be readOnly.
    * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
    * @param wmem  the current WritableMemory or null
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @param memReqSvr the given MemoryRequestServer or null
    */
   KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
    this.sketchType = sketchType;
    this.wmem = wmem;
    if (wmem != null) {
-     this.updatablMemory = memReqSvr != null;
-     this.memReqSvr = memReqSvr;
-   } else {
-     this.updatablMemory = false;
-     this.memReqSvr = null;
+     this.updatableMemFormat = KllPreambleUtil.getMemoryUpdatableFormatFlag(wmem);
+     this.readOnly = wmem.isReadOnly() || !updatableMemFormat;
+     //this.memReqSvr = memReqSvr;
+     final int sw = (readOnly ? 1 : 0)
+         | (updatableMemFormat ? 2 : 0)
+         | ((memReqSvr != null) ? 4 : 0);
+     switch (sw) {
+       case 0:   //no MemReqSvr, compact, writable -> Throw
+       case 2: { //no MemReqSvr, updatable, writable -> Throw
+         this.memReqSvr = memReqSvr;
+         kllSketchThrow(MEMREQSVR_MUST_NOT_BE_NULL);
+         break;
+       }
+       case 4: { //MemReqSvr, compact, writable -> Throw
+         this.memReqSvr = memReqSvr;
+         kllSketchThrow(MEMORY_NOT_UPDATABLE_FORMAT);
+         break;
+       }
+       case 1:   //no MemReqSvr, compact, readOnly -> ReadOnly Compact
+       case 5:   //MemReqSvr, compact, readOnly -> ReadOnly Compact, ignore MemReqSvr
+       case 3:   //no MemReqSvr, updatable, readOnly -> ReadOnly Updatable
+       case 7: { //MemReqSvr, updatable, readOnly -> ReadOnly Updatable, ignore MemReqSvr
+         this.memReqSvr = null;
+         break;
+       }
+       case 6: { //MemReqSvr, updatable, writable -> Normal Direct
+         this.memReqSvr = memReqSvr;
+         break;
+       }
+       default: { //not possible
+         this.memReqSvr = null;
+         break;
+       }
+     }
+
+   } else { //wmem is null, heap case
+     this.updatableMemFormat = false;
+     this.memReqSvr = null; //no matter what
+     this.readOnly = false; //heap sketch
    }
   }
 
@@ -183,14 +219,14 @@ abstract class KllSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @param sketchType either DOUBLES_SKETCH or FLOATS_SKETCH
-   * @param updatableMemory true if updatableMemory form, otherwise the standard compact form.
+   * @param updatableMemFormat true if updatable Memory format, otherwise the standard compact format.
    * @return upper bound on the serialized size of a KllSketch.
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
-      final SketchType sketchType, final boolean updatableMemory) {
+      final SketchType sketchType, final boolean updatableMemFormat) {
     final KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, sketchType, false);
-    return updatableMemory ? gStats.updatableBytes : gStats.compactBytes;
+    return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
   }
 
   /**
@@ -208,10 +244,10 @@ abstract class KllSketch {
 
   //numItems can be either numRetained, or current max capacity at given K and numLevels.
   static int getCurrentSerializedSizeBytes(final int numLevels, final int numItems,
-      final SketchType sketchType, final boolean updatableMemory) {
+      final SketchType sketchType, final boolean updatableMemFormat) {
     final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     int levelsBytes = 0;
-    if (updatableMemory) {
+    if (updatableMemFormat) {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     } else {
       if (numItems == 0) { return N_LONG_ADR; }
@@ -230,8 +266,8 @@ abstract class KllSketch {
   }
 
   /**
-   * Returns the current updatableMemory number of bytes this sketch would require to store.
-   * @return the current updatableMemory number of bytes this sketch would require to store.
+   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
    */
   public final int getCurrentUpdatableSerializedSizeBytes() {
     final int itemCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
@@ -271,6 +307,10 @@ abstract class KllSketch {
    * @return the number of retained items (samples) in the sketch
    */
   public final int getNumRetained() {
+    System.out.println("numLevels: " + getNumLevels());
+    System.out.println("Level[0]: " + getLevelsArray()[0]);
+    System.out.println("Level[1]: " + getLevelsArray()[1]);
+    System.out.println("Level[2]: " + getLevelsArray()[2]);
     return getLevelsArray()[getNumLevels()] - getLevelsArray()[0];
   }
 
@@ -279,7 +319,7 @@ abstract class KllSketch {
    * @return the number of bytes this sketch would require if serialized.
    */
   public int getSerializedSizeBytes() {
-    return (updatablMemory)
+    return (updatableMemFormat)
         ? getCurrentUpdatableSerializedSizeBytes()
         : getCurrentCompactSerializedSizeBytes();
   }
@@ -298,12 +338,13 @@ abstract class KllSketch {
    * @return true if this sketch's data structure is backed by WritableMemory.
    */
   public boolean hasMemory() {
-    return wmem != null;
+    return (wmem != null);
   }
 
   /**
    * Returns true if the backing resource is direct (off-heap) memory.
    * This is the case for allocated direct memory, memory mapped files.
+   * This backing resource could be either Memory(read-only) or WritableMemory
    * @return true if the backing resource is direct (off-heap) memory.
    */
   public boolean isDirect() {
@@ -330,8 +371,16 @@ abstract class KllSketch {
    * Returns true if the backing WritableMemory is in updatable format.
    * @return true if the backing WritableMemory is in updatable format.
    */
-  public final boolean isUpdatableMemory() {
-    return updatablMemory;
+  public final boolean isMemoryUpdatableFormat() {
+    return hasMemory() && updatableMemFormat;
+  }
+
+  /**
+   * Returns true if this sketch is read only.
+   * @return true if this sketch is read only.
+   */
+  public final boolean isReadOnly() {
+    return readOnly;
   }
 
   /**
@@ -343,7 +392,23 @@ abstract class KllSketch {
    * of <i>that</i>.
    */
   public final boolean isSameResource(final Memory that) {
-    return wmem.isSameResource(that);
+    return (wmem != null) && wmem.isSameResource(that);
+  }
+
+  /**
+   * Merges another sketch into this one.
+   * @param other sketch to merge into this one
+   */
+  public final void merge(final KllSketch other) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (sketchType == DOUBLES_SKETCH) {
+      if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
+      KllDoublesHelper.mergeDoubleImpl(this, other);
+    } else {
+      if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
+      KllFloatsHelper.mergeFloatImpl(this, other);
+    }
+
   }
 
   /**
@@ -351,7 +416,24 @@ abstract class KllSketch {
    * It retains key parameters such as <i>k</i> and
    * <i>SketchType (double or float)</i>.
    */
-  public abstract void reset();
+  public final void reset() {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelZeroSorted(false);
+    setLevelsArray(new int[] {k, k});
+    if (sketchType == DOUBLES_SKETCH) {
+      setMinDoubleValue(Double.NaN);
+      setMaxDoubleValue(Double.NaN);
+      setDoubleItemsArray(new double[k]);
+    } else {
+      setMinFloatValue(Float.NaN);
+      setMaxFloatValue(Float.NaN);
+      setFloatItemsArray(new float[k]);
+    }
+  }
 
   /**
    * Returns serialized sketch in a compact byte array form.
@@ -377,8 +459,8 @@ abstract class KllSketch {
   }
 
   /**
-   * Returns serialized sketch in an updatableMemory byte array form.
-   * @return serialized sketch in an updatableMemory byte array form.
+   * Returns serialized sketch in an updatable Memory byte array format.
+   * @return serialized sketch in an updatable Memory byte array format.
    */
   public byte[] toUpdatableByteArray() {
     return KllHelper.toUpdatableByteArrayImpl(this);
@@ -398,9 +480,13 @@ abstract class KllSketch {
 
   abstract float getFloatItemsArrayAt(int index);
 
-  abstract int[] getLevelsArray();
+  final int[] getLevelsArray() {
+    return levelsArr;
+  }
 
-  abstract int getLevelsArrayAt(int index);
+  final int getLevelsArrayAt(final int index) {
+    return levelsArr[index];
+  }
 
   /**
    * Returns the configured parameter <i>m</i>, which is the minimum level size in number of items.
@@ -446,17 +532,42 @@ abstract class KllSketch {
 
   abstract void setFloatItemsArrayAt(int index, float value);
 
-  abstract void setItemsArrayUpdatable(WritableMemory itemsMem);
+  final void setLevelsArray(final int[] levelsArr) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    this.levelsArr = levelsArr;
+    if (wmem != null) {
+      wmem.putIntArray(DATA_START_ADR, this.levelsArr, 0, levelsArr.length);
+    }
+  }
 
-  abstract void setLevelsArray(int[] levelsArr);
+  final void setLevelsArrayAt(final int index, final int value) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    this.levelsArr[index] = value;
+    if (wmem != null) {
+      final int offset = DATA_START_ADR + index * Integer.BYTES;
+      wmem.putInt(offset, value);
+    }
+  }
 
-  abstract void setLevelsArrayAt(int index, int value);
+  final void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    this.levelsArr[index] -= minusEq;
+    if (wmem != null) {
+      final int offset = DATA_START_ADR + index * Integer.BYTES;
+      final int v = wmem.getInt(offset) - minusEq;
+      wmem.putInt(offset, v);
+    }
+  }
 
-  abstract void setLevelsArrayAtMinusEq(int index, int minusEq);
-
-  abstract void setLevelsArrayAtPlusEq(int index, int plusEq);
-
-  abstract void setLevelsArrayUpdatable(WritableMemory levelsMem);
+  final void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    this.levelsArr[index] += plusEq;
+    if (wmem != null) {
+      final int offset = DATA_START_ADR + index * Integer.BYTES;
+      final int v = wmem.getInt(offset) + plusEq;
+      wmem.putInt(offset, v);
+    }
+  }
 
   abstract void setLevelZeroSorted(boolean sorted);
 
@@ -469,8 +580,6 @@ abstract class KllSketch {
   abstract void setMinFloatValue(float value);
 
   abstract void setMinK(int minK);
-
-  abstract void setMinMaxArrayUpdatable(WritableMemory minMaxMem);
 
   abstract void setN(long n);
 

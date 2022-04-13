@@ -22,10 +22,11 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_COMPACT;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+
+import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -111,22 +112,24 @@ public abstract class KllFloatsSketch extends KllSketch {
   public static KllFloatsSketch writableWrap(
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
+    Objects.nonNull(srcMem);
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (memVal.updatableMemory) {
+    if (memVal.updatableMemFormat && !memVal.readOnly) {
+      Objects.nonNull(memReqSvr);
       return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
     }
     KllSketch.Error.kllSketchThrow(TGT_IS_READ_ONLY);
     return null; //artifact of indirect throw
   }
 
-  public static KllFloatsSketch wrap(
-      final Memory srcMem) {
+  public static KllFloatsSketch wrap(final Memory srcMem) {
+    Objects.nonNull(srcMem);
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (!memVal.updatableMemory) {
-      return heapify(srcMem); //TODO
+    if (!memVal.updatableMemFormat) {
+      return heapify(srcMem);
+    } else {
+      return new KllDirectFloatsSketch((WritableMemory) srcMem, null, memVal);
     }
-    KllSketch.Error.kllSketchThrow(SRC_MUST_BE_COMPACT);
-    return null; //artifact of indirect throw
   }
 
   /**
@@ -305,20 +308,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Merges another sketch into this one.
-   * @param other sketch to merge into this one
-   */
-  public void merge(final KllSketch other) {
-    if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
-    KllFloatsHelper.mergeFloatImpl(this, other);
-  }
-
-  /**
    * Updates this sketch with the given data item.
    *
    * @param value an item from a stream of items. NaNs are ignored.
    */
   public void update(final float value) {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     KllFloatsHelper.updateFloat(this, value);
   }
 

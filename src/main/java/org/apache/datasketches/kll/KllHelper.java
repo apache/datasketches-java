@@ -108,53 +108,6 @@ final class KllHelper {
   847288609443L, 2541865828329L, 7625597484987L, 22876792454961L, 68630377364883L,
   205891132094649L};
 
-  static void buildHeapKllSketchFromMemory(final KllSketch mine, final KllMemoryValidate memVal) {
-    final boolean doubleType = (mine.sketchType == DOUBLES_SKETCH);
-    mine.setLevelZeroSorted(memVal.level0Sorted);
-    mine.setN(memVal.n);
-    mine.setMinK(memVal.minK);
-    mine.setNumLevels(memVal.numLevels);
-    final int[] myLevelsArr = new int[mine.getNumLevels() + 1];
-
-    if (memVal.updatableMemory) {
-      memVal.levelsArrUpdatable.getIntArray(0, myLevelsArr, 0, mine.getNumLevels() + 1);
-      mine.setLevelsArray(myLevelsArr);
-      if (doubleType) {
-        mine.setMinDoubleValue(memVal.minMaxArrUpdatable.getDouble(0));
-        mine.setMaxDoubleValue(memVal.minMaxArrUpdatable.getDouble(Double.BYTES));
-        final int itemsCap = (int)memVal.itemsArrUpdatable.getCapacity() / Double.BYTES;
-        final double[] myItemsArr = new double[itemsCap];
-        memVal.itemsArrUpdatable.getDoubleArray(0, myItemsArr, 0, itemsCap);
-        mine.setDoubleItemsArray(myItemsArr);
-      } else { //float
-        mine.setMinFloatValue(memVal.minMaxArrUpdatable.getFloat(0));
-        mine.setMaxFloatValue(memVal.minMaxArrUpdatable.getFloat(Float.BYTES));
-        final int itemsCap = (int)memVal.itemsArrUpdatable.getCapacity() / Float.BYTES;
-        final float[] myItemsArr = new float[itemsCap];
-        memVal.itemsArrUpdatable.getFloatArray(0, myItemsArr, 0, itemsCap);
-        mine.setFloatItemsArray(myItemsArr);
-      }
-    } else { //compact
-      memVal.levelsArrCompact.getIntArray(0, myLevelsArr, 0, mine.getNumLevels() + 1);
-      mine.setLevelsArray(myLevelsArr);
-      if (doubleType) {
-        mine.setMinDoubleValue(memVal.minMaxArrCompact.getDouble(0));
-        mine.setMaxDoubleValue(memVal.minMaxArrCompact.getDouble(Double.BYTES));
-        final int itemsCap = (int)memVal.itemsArrCompact.getCapacity() / Double.BYTES;
-        final double[] myItemsArr = new double[itemsCap];
-        memVal.itemsArrCompact.getDoubleArray(0, myItemsArr, 0, itemsCap);
-        mine.setDoubleItemsArray(myItemsArr);
-      } else { //float
-        mine.setMinFloatValue(memVal.minMaxArrCompact.getFloat(0));
-        mine.setMaxFloatValue(memVal.minMaxArrCompact.getFloat(Float.BYTES));
-        final int itemsCap = (int)memVal.itemsArrCompact.getCapacity() / Float.BYTES;
-        final float[] myItemsArr = new float[itemsCap];
-        memVal.itemsArrCompact.getFloatArray(0, myItemsArr, 0, itemsCap);
-        mine.setFloatItemsArray(myItemsArr);
-      }
-    }
-  }
-
   /**
    * Checks the validity of the given value k
    * @param k must be greater than 7 and less than 65536.
@@ -208,7 +161,7 @@ final class KllHelper {
       myFloatItemsArr = null;
       myDoubleItemsArr = mine.getDoubleItemsArray();
       if (level == 0) {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myDoubleItemsArr = mine.getDoubleItemsArray();
           Arrays.sort(myDoubleItemsArr, adjBeg, adjBeg + adjPop);
           mine.setDoubleItemsArray(myDoubleItemsArr);
@@ -217,7 +170,7 @@ final class KllHelper {
         }
       }
       if (popAbove == 0) {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myDoubleItemsArr = mine.getDoubleItemsArray();
           KllDoublesHelper.randomlyHalveUpDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
           mine.setDoubleItemsArray(myDoubleItemsArr);
@@ -225,14 +178,14 @@ final class KllHelper {
           KllDoublesHelper.randomlyHalveUpDoubles(mine.getDoubleItemsArray(), adjBeg, adjPop, KllSketch.random);
         }
       } else {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myDoubleItemsArr = mine.getDoubleItemsArray();
           KllDoublesHelper.randomlyHalveDownDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
           mine.setDoubleItemsArray(myDoubleItemsArr);
         } else {
           KllDoublesHelper.randomlyHalveDownDoubles(mine.getDoubleItemsArray(), adjBeg, adjPop, KllSketch.random);
         }
-        if (mine.updatablMemory ) {
+        if (mine.updatableMemFormat ) {
           myDoubleItemsArr = mine.getDoubleItemsArray();
           KllDoublesHelper.mergeSortedDoubleArrays(
               myDoubleItemsArr, adjBeg, halfAdjPop,
@@ -251,7 +204,7 @@ final class KllHelper {
       myFloatItemsArr = mine.getFloatItemsArray();
       myDoubleItemsArr = null;
       if (level == 0) {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myFloatItemsArr = mine.getFloatItemsArray();
           Arrays.sort(myFloatItemsArr, adjBeg, adjBeg + adjPop);
           mine.setFloatItemsArray(myFloatItemsArr);
@@ -260,7 +213,7 @@ final class KllHelper {
         }
       }
       if (popAbove == 0) {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myFloatItemsArr = mine.getFloatItemsArray();
           KllFloatsHelper.randomlyHalveUpFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
           mine.setFloatItemsArray(myFloatItemsArr);
@@ -268,14 +221,14 @@ final class KllHelper {
           KllFloatsHelper.randomlyHalveUpFloats(mine.getFloatItemsArray(), adjBeg, adjPop, KllSketch.random);
         }
       } else {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myFloatItemsArr = mine.getFloatItemsArray();
           KllFloatsHelper.randomlyHalveDownFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
           mine.setFloatItemsArray(myFloatItemsArr);
         } else {
           KllFloatsHelper.randomlyHalveDownFloats(mine.getFloatItemsArray(), adjBeg, adjPop, KllSketch.random);
         }
-        if (mine.updatablMemory ) {
+        if (mine.updatableMemFormat ) {
           myFloatItemsArr = mine.getFloatItemsArray();
           KllFloatsHelper.mergeSortedFloatArrays(
               myFloatItemsArr, adjBeg, halfAdjPop,
@@ -315,7 +268,7 @@ final class KllHelper {
     if (level > 0) {
       final int amount = rawBeg - mine.getLevelsArrayAt(0);
       if (mine.sketchType == DOUBLES_SKETCH) {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myDoubleItemsArr = mine.getDoubleItemsArray();
           System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
           mine.setDoubleItemsArray(myDoubleItemsArr);
@@ -323,7 +276,7 @@ final class KllHelper {
           System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
         }
       } else {
-        if (mine.updatablMemory) {
+        if (mine.updatableMemFormat) {
           myFloatItemsArr = mine.getFloatItemsArray();
           System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);
           mine.setFloatItemsArray(myFloatItemsArr);
@@ -525,10 +478,9 @@ final class KllHelper {
    * If so, it will stretch the positioning of the arrays to fit. Otherwise:
    * <li>Allocates a new WritableMemory of the required size</li>
    * <li>Copies over the preamble as is (20 bytes)</li>
-   * <li>Creates new memory regions for Levels Array, Min/Max Array, Items Array, but
-   * does not fill them. They may contain garbage.</li>
+   * <li>The caller is responsible for filling the remainder and updating the preamble.</li>
    * </ul>
-   * The caller is responsible for filling these regions and updating the preamble.
+   *
    * @param sketch The current sketch that needs to be expanded.
    * @param newLevelsArrLen the element length of the new Levels array.
    * @param newItemsArrLen the element length of the new Items array.
@@ -540,35 +492,21 @@ final class KllHelper {
       final int newItemsArrLen) {
     final KllSketch.SketchType sketchType = sketch.sketchType;
     final WritableMemory oldWmem = sketch.wmem;
-    final int startAdr = DATA_START_ADR;
     final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
 
-    int requiredSketchBytes = startAdr;
-    requiredSketchBytes += newLevelsArrLen * Integer.BYTES;
-    requiredSketchBytes += 2 * typeBytes;
-    requiredSketchBytes += newItemsArrLen * typeBytes;
+    final int requiredSketchBytes =  DATA_START_ADR
+      + newLevelsArrLen * Integer.BYTES
+      + 2 * typeBytes
+      + newItemsArrLen * typeBytes;
     final WritableMemory newWmem;
 
     if (requiredSketchBytes > oldWmem.getCapacity()) { //Acquire new WritableMemory
       newWmem = sketch.memReqSvr.request(oldWmem, requiredSketchBytes);
-      oldWmem.copyTo(0, newWmem, 0, startAdr); //copy preamble
+      oldWmem.copyTo(0, newWmem, 0, DATA_START_ADR); //copy preamble (first 20 bytes)
     }
     else { //Expand or contract in current memory
       newWmem = oldWmem;
     }
-
-    int offset = startAdr;
-    //LEVELS ARR
-    int lengthBytes = newLevelsArrLen * Integer.BYTES;
-    sketch.setLevelsArrayUpdatable(newWmem.writableRegion(offset, lengthBytes)); //
-    offset += lengthBytes;
-    //MIN MAX ARR
-    lengthBytes = 2 * typeBytes;
-    sketch.setMinMaxArrayUpdatable(newWmem.writableRegion(offset, lengthBytes));
-    offset += lengthBytes;
-    //ITEMS ARR
-    lengthBytes = newItemsArrLen * typeBytes;
-    sketch.setItemsArrayUpdatable(newWmem.writableRegion(offset, lengthBytes));
     assert requiredSketchBytes <= newWmem.getCapacity();
     return newWmem;
   }
@@ -707,7 +645,7 @@ final class KllHelper {
     final String epsPct = String.format("%.3f%%", mine.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", mine.getNormalizedRankError(true) * 100);
     final StringBuilder sb = new StringBuilder();
-    final String skType = (mine.updatablMemory ? "Direct" : "") + (doubleType ? "Doubles" : "Floats");
+    final String skType = (mine.updatableMemFormat ? "Direct" : "") + (doubleType ? "Doubles" : "Floats");
     sb.append(Util.LS).append("### Kll").append(skType).append("Sketch Summary:").append(Util.LS);
     sb.append("   K                      : ").append(k).append(Util.LS);
     sb.append("   Dynamic min K          : ").append(mine.getMinK()).append(Util.LS);
@@ -722,7 +660,7 @@ final class KllHelper {
     final int cap = (doubleType) ? mine.getDoubleItemsArray().length : mine.getFloatItemsArray().length;
     sb.append("   Capacity Items         : ").append(cap).append(Util.LS);
     sb.append("   Retained Items         : ").append(mine.getNumRetained()).append(Util.LS);
-    if (mine.updatablMemory) {
+    if (mine.updatableMemFormat) {
       sb.append("   Updatable Storage Bytes: ").append(mine.getCurrentUpdatableSerializedSizeBytes()).append(Util.LS);
     } else {
       sb.append("   Compact Storage Bytes  : ").append(mine.getCurrentCompactSerializedSizeBytes()).append(Util.LS);
@@ -877,7 +815,7 @@ final class KllHelper {
     }
 
     //MEMORY SPACE MANAGEMENT
-    if (mine.updatablMemory) {
+    if (mine.updatableMemFormat) {
       mine.wmem = memorySpaceMgmt(mine, myNewLevelsArr.length, myNewTotalItemsCapacity);
     }
     //update our sketch with new expanded spaces
@@ -946,17 +884,17 @@ final class KllHelper {
   }
 
   private static void loadFirst8Bytes(final KllSketch sk, final WritableMemory wmem,
-      final boolean updatable) {
+      final boolean updatableFormat) {
     final boolean empty = sk.getN() == 0;
     final boolean lvlZeroSorted = sk.isLevelZeroSorted();
     final boolean singleItem = sk.getN() == 1;
     final boolean doubleType = (sk.sketchType == DOUBLES_SKETCH);
-    final int preInts = updatable
+    final int preInts = updatableFormat
         ? PREAMBLE_INTS_FULL
         : (empty || singleItem) ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FULL;
     //load the preamble
     setMemoryPreInts(wmem, preInts);
-    final int server = updatable ? SERIAL_VERSION_UPDATABLE
+    final int server = updatableFormat ? SERIAL_VERSION_UPDATABLE
         : (singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL);
     setMemorySerVer(wmem, server);
     setMemoryFamilyID(wmem, Family.KLL.getID());
@@ -964,7 +902,7 @@ final class KllHelper {
     setMemoryLevelZeroSortedFlag(wmem, lvlZeroSorted);
     setMemorySingleItemFlag(wmem, singleItem);
     setMemoryDoubleSketchFlag(wmem, doubleType);
-    setMemoryUpdatableFlag(wmem, updatable);
+    setMemoryUpdatableFlag(wmem, updatableFormat);
     setMemoryK(wmem, sk.getK());
     setMemoryM(wmem, sk.getM());
   }

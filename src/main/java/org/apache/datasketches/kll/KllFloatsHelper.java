@@ -195,7 +195,7 @@ final class KllFloatsHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mine.updatablMemory) {
+      if (mine.updatableMemFormat) {
         mine.wmem = KllHelper.memorySpaceMgmt(mine, myNewLevelsArr.length, myNewFloatItemsArr.length);
       }
 
@@ -295,13 +295,10 @@ final class KllFloatsHelper {
 
   static void updateFloat(final KllSketch mine, final float value) {
     if (Float.isNaN(value)) { return; }
-    if (mine.isEmpty()) {
-      mine.setMinFloatValue(value);
-      mine.setMaxFloatValue(value);
-    } else {
-      if (value < mine.getMinFloatValue()) { mine.setMinFloatValue(value); }
-      if (value > mine.getMaxFloatValue()) { mine.setMaxFloatValue(value); }
-    }
+    final float prevMin = mine.getMinFloatValue();
+    final float prevMax = mine.getMaxFloatValue();
+    mine.setMinFloatValue(resolveFloatMinValue(prevMin, value));
+    mine.setMaxFloatValue(resolveFloatMaxValue(prevMax, value));
     if (mine.getLevelsArrayAt(0) == 0) { KllHelper.compressWhileUpdatingSketch(mine); }
     mine.incN();
     mine.setLevelZeroSorted(false);

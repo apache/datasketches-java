@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Static methods to support KllDoublesSketch
@@ -195,7 +196,7 @@ final class KllDoublesHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mine.updatablMemory) {
+      if (mine.updatableMemFormat) {
         mine.wmem = KllHelper.memorySpaceMgmt(mine, myNewLevelsArr.length, myNewDoubleItemsArr.length);
       }
 
@@ -216,11 +217,17 @@ final class KllDoublesHelper {
     final double otherMax = other.getMaxDoubleValue();
     mine.setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
     mine.setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
+    //System.out.println(mine.toString(true, true));
 
     //Update numLevels, levelsArray, items
     mine.setNumLevels(myNewNumLevels);
+    //final WritableMemory mymem = mine.getWritableMemory();
+    //System.out.println(KllPreambleUtil.memoryToString(mymem, true));
+    System.out.println(mine.toString(true, true));
     mine.setLevelsArray(myNewLevelsArr);
+    System.out.println(mine.toString(true, true));
     mine.setDoubleItemsArray(myNewDoubleItemsArr);
+    System.out.println(mine.toString(true, true));
     assert KllHelper.sumTheSampleWeights(mine.getNumLevels(), mine.getLevelsArray()) == mine.getN();
   }
 
@@ -295,13 +302,10 @@ final class KllDoublesHelper {
 
   static void updateDouble(final KllSketch mine, final double value) {
     if (Double.isNaN(value)) { return; }
-    if (mine.isEmpty()) {
-      mine.setMinDoubleValue(value);
-      mine.setMaxDoubleValue(value);
-    } else {
-      if (value < mine.getMinDoubleValue()) { mine.setMinDoubleValue(value); }
-      if (value > mine.getMaxDoubleValue()) { mine.setMaxDoubleValue(value); }
-    }
+    final double prevMin = mine.getMinDoubleValue();
+    final double prevMax = mine.getMaxDoubleValue();
+    mine.setMinDoubleValue(resolveDoubleMinValue(prevMin, value));
+    mine.setMaxDoubleValue(resolveDoubleMaxValue(prevMax, value));
     if (mine.getLevelsArrayAt(0) == 0) { KllHelper.compressWhileUpdatingSketch(mine); }
     mine.incN();
     mine.setLevelZeroSorted(false);
@@ -523,7 +527,6 @@ final class KllDoublesHelper {
   }
 
   /**
-   * Validation Method.
    * Checks the sequential validity of the given array of double values.
    * They must be unique, monotonically increasing and not NaN.
    * @param values the given array of values

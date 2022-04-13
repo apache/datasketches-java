@@ -374,13 +374,13 @@ public class MiscDoublesTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -389,13 +389,13 @@ public class MiscDoublesTest {
     sk = KllDoublesSketch.newHeapInstance(20);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -405,13 +405,13 @@ public class MiscDoublesTest {
     sk.update(1);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -432,28 +432,32 @@ public class MiscDoublesTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
-    assertEquals(upBytes, upBytes2);
+    println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
+    assertEquals(sk.getN(), sk2.getN());
+    assertEquals(sk.getMinValue(), sk2.getMinValue());
+    assertEquals(sk.getMaxValue(), sk2.getMaxValue());
+    assertEquals(sk.getNumRetained(), sk2.getNumRetained());
 
     println("#### CASE: DOUBLE EMPTY UPDATABLE");
     sk = KllDoublesSketch.newHeapInstance(k);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -463,13 +467,13 @@ public class MiscDoublesTest {
     sk.update(1);
     upBytes = sk.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     upBytes2 = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.memoryToString(wmem);
+    s = KllPreambleUtil.memoryToString(wmem, false);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -478,22 +482,25 @@ public class MiscDoublesTest {
   @Test
   public void checkSimpleMerge() {
     int k = 20;
-    int m = 4;
+    //int m = 4;
     int n1 = 21;
     int n2 = 43;
-    WritableMemory wmem = WritableMemory.allocate(3000);
-    WritableMemory wmem2 = WritableMemory.allocate(3000);
-    MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
-    KllDoublesSketch sk1 = KllDirectDoublesSketch.newDirectInstance(k, m, wmem, memReqSvr);
-    KllDoublesSketch sk2 = KllDirectDoublesSketch.newDirectInstance(k, m, wmem2, memReqSvr);
+    //WritableMemory wmem = WritableMemory.allocate(3000);
+    //WritableMemory wmem2 = WritableMemory.allocate(3000);
+    //MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
+    KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance(k);
+    KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(k);
+
+    //KllDoublesSketch sk1 = KllDirectDoublesSketch.newDirectInstance(k, m, wmem, memReqSvr);
+    //KllDoublesSketch sk2 = KllDirectDoublesSketch.newDirectInstance(k, m, wmem2, memReqSvr);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
     for (int i = 1; i <= n2; i++) {
       sk2.update(i + 100);
     }
-    println(sk1.toString(true, true));
-    println(sk2.toString(true, true));
+    //println(sk1.toString(true, true));
+    //println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
   }
@@ -507,6 +514,6 @@ public class MiscDoublesTest {
    * @param s value to print
    */
   static void println(final String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 }

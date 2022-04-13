@@ -19,8 +19,10 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap floats KllSketch.
@@ -31,19 +33,18 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 final class KllHeapFloatsSketch extends KllFloatsSketch {
-  private final int k;    // configured value of K.
-  private final int m;    // configured value of M.
+  private final int k_;    // configured value of K.
+  private final int m_;    // configured value of M.
   private long n_;        // number of items input into this sketch.
   private int minK_;    // dynamic minK for error estimation after merging with different k.
   private int numLevels_; // one-based number of current levels.
-  private int[] levels_;  // array of index offsets into the items[]. Size = numLevels + 1.
   private boolean isLevelZeroSorted_;
-  private float[] floatItems_;
   private float minFloatValue_;
   private float maxFloatValue_;
+  private float[] floatItems_;
 
   /**
-   * Heap constructor with a given parameters <em>k</em> and <em>m</em>.
+   * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
    *
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * <em>k</em> can be any value between <em>m</em> and 65535, inclusive.
@@ -57,51 +58,75 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     super(null, null);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    this.k = k;
-    this.m = m;
+    this.k_ = k;
+    this.m_ = m;
     n_ = 0;
     minK_ = k;
     numLevels_ = 1;
-    levels_ = new int[] {k, k};
     isLevelZeroSorted_ = false;
-    floatItems_ = new float[k];
+    levelsArr = new int[] {k, k};
     minFloatValue_ = Float.NaN;
     maxFloatValue_ = Float.NaN;
+    floatItems_ = new float[k];
   }
 
   /**
    * Heapify constructor.
-   * @param mem Memory object that contains data serialized by this sketch.
+   * @param srcMem Memory object that contains data serialized by this sketch.
    * @param memVal the MemoryCheck object
    */
-  KllHeapFloatsSketch(final Memory mem, final KllMemoryValidate memVal) {
+  KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
     super(null, null);
-    k = memVal.k;
-    m = memVal.m;
-    KllHelper.buildHeapKllSketchFromMemory(this, memVal);
+    k_ = memVal.k;
+    m_ = memVal.m;
+    n_ = memVal.n;
+    minK_ = memVal.minK;
+    numLevels_ = memVal.numLevels;
+    isLevelZeroSorted_ = memVal.level0Sorted;
+    final boolean updatableMemFormat = memVal.updatableMemFormat;
+
+    if (memVal.empty && !updatableMemFormat) {
+      levelsArr = memVal.levelsArr;
+      minFloatValue_ = Float.NaN;
+      maxFloatValue_ = Float.NaN;
+      floatItems_ = new float[k_];
+    }
+    else if (memVal.singleItem && !updatableMemFormat) {
+      levelsArr = memVal.levelsArr;
+      final float value = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+      minFloatValue_ = maxFloatValue_ = value;
+      floatItems_ = new float[k_];
+      floatItems_[k_ - 1] = value;
+    }
+    else { //Full or updatableMemFormat
+      int offsetBytes = DATA_START_ADR;
+      levelsArr = memVal.levelsArr;
+      offsetBytes += (updatableMemFormat ? levelsArr.length * Integer.BYTES : (levelsArr.length - 1) * Integer.BYTES);
+      minFloatValue_ = srcMem.getFloat(offsetBytes);
+      offsetBytes += Float.BYTES;
+      maxFloatValue_ = srcMem.getFloat(offsetBytes);
+      offsetBytes += Float.BYTES;
+      final int capacityItems = levelsArr[numLevels_];
+      final int retainedItems = capacityItems - levelsArr[0];
+      floatItems_ = new float[capacityItems];
+      final int shift = levelsArr[0];
+      if (updatableMemFormat) {
+        offsetBytes += shift * Float.BYTES;
+        srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
+      } else {
+        srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
+      }
+    }
   }
 
   @Override
   public int getK() {
-    return k;
+    return k_;
   }
 
   @Override
   public long getN() {
     return n_;
-  }
-
-  @Override
-  public void reset() {
-    final int k = getK();
-    setN(0);
-    setMinK(k);
-    setNumLevels(1);
-    setLevelsArray(new int[] {k, k});
-    setLevelZeroSorted(false);
-    floatItems_ = new float[k];
-    minFloatValue_ = Float.NaN;
-    maxFloatValue_ = Float.NaN;
   }
 
   @Override
@@ -111,16 +136,8 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   float getFloatItemsArrayAt(final int index) { return floatItems_[index]; }
 
   @Override
-  int[] getLevelsArray() {
-    return levels_;
-  }
-
-  @Override
-  int getLevelsArrayAt(final int index) { return levels_[index]; }
-
-  @Override
   int getM() {
-    return m;
+    return m_;
   }
 
   @Override
@@ -161,30 +178,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setFloatItemsArrayAt(final int index, final float value) { floatItems_[index] = value; }
 
   @Override
-  void setItemsArrayUpdatable(final WritableMemory itemsMem) { } //dummy
-
-  @Override
-  void setLevelsArray(final int[] levelsArr) {
-    levels_ = levelsArr;
-  }
-
-  @Override
-  void setLevelsArrayAt(final int index, final int value) { levels_[index] = value; }
-
-  @Override
-  void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-    levels_[index] -= minusEq;
-  }
-
-  @Override
-  void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    levels_[index] += plusEq;
-  }
-
-  @Override
-  void setLevelsArrayUpdatable(final WritableMemory levelsMem) { } //dummy
-
-  @Override
   void setLevelZeroSorted(final boolean sorted) {
     this.isLevelZeroSorted_ = sorted;
   }
@@ -199,9 +192,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setMinK(final int minK) {
     minK_ = minK;
   }
-
-  @Override
-  void setMinMaxArrayUpdatable(final WritableMemory minMaxMem) { } //dummy
 
   @Override
   void setN(final long n) {
