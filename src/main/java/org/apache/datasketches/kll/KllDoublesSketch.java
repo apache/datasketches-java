@@ -41,14 +41,47 @@ public abstract class KllDoublesSketch extends KllSketch {
   /**
    * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
-   * @param mem a Memory image of a sketch serialized by this sketch.
+   * @param srcMem a Memory image of a sketch serialized by this sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
-  public static KllDoublesSketch heapify(final Memory mem) {
-    final KllMemoryValidate memVal = new KllMemoryValidate(mem);
+  public static KllDoublesSketch heapify(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
     if (!memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_DOUBLE); }
-    return new KllHeapDoublesSketch(mem, memVal);
+    return new KllHeapDoublesSketch(srcMem, memVal);
+  }
+
+  /**
+   * Create a new direct instance of this sketch with a given <em>k</em>.
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new direct instance of this sketch
+   */
+  public static KllDoublesSketch newDirectInstance(
+      final int k,
+      final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    Objects.requireNonNull(dstMem, "Parameter 'dstMem' must not be null");
+    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
+    return KllDirectDoublesSketch.newDirectInstance(k, DEFAULT_M, dstMem, memReqSvr);
+  }
+
+  /**
+   * Create a new direct instance of this sketch with the default <em>k</em>.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new direct instance of this sketch
+   */
+  public static KllDoublesSketch newDirectInstance(
+      final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    Objects.requireNonNull(dstMem, "Parameter 'dstMem' must not be null");
+    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
+    return KllDirectDoublesSketch.newDirectInstance(DEFAULT_K, DEFAULT_M, dstMem, memReqSvr);
   }
 
   /**
@@ -75,31 +108,19 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
-   * Create a new direct instance of this sketch with the default <em>k</em>.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param dstMem the given destination WritableMemory object for use by the sketch
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return a new direct instance of this sketch
+   * Wrap a sketch around the given read only source Memory containing sketch data
+   * that originated from this sketch.
+   * @param srcMem the read only source Memory
+   * @return instance of this sketch
    */
-  public static KllDoublesSketch newDirectInstance(
-      final WritableMemory dstMem,
-      final MemoryRequestServer memReqSvr) {
-    return KllDirectDoublesSketch.newDirectInstance(DEFAULT_K, DEFAULT_M, dstMem, memReqSvr);
-  }
-
-  /**
-   * Create a new direct instance of this sketch with a given <em>k</em>.
-   * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * @param dstMem the given destination WritableMemory object for use by the sketch
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return a new direct instance of this sketch
-   */
-  public static KllDoublesSketch newDirectInstance(
-      final int k,
-      final WritableMemory dstMem,
-      final MemoryRequestServer memReqSvr) {
-    return KllDirectDoublesSketch.newDirectInstance(k, DEFAULT_M, dstMem, memReqSvr);
+  public static KllDoublesSketch wrap(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    if (memVal.updatableMemFormat) {
+      return new KllDirectDoublesSketch((WritableMemory) srcMem, null, memVal);
+    } else {
+      return new KllDirectCompactDoublesSketch(srcMem, memVal);
+    }
   }
 
   /**
@@ -112,24 +133,15 @@ public abstract class KllDoublesSketch extends KllSketch {
   public static KllDoublesSketch writableWrap(
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
-    Objects.nonNull(srcMem);
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
     if (memVal.updatableMemFormat) {
-      Objects.nonNull(memReqSvr);
+      if (!memVal.readOnly) {
+        Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
+      }
       return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
-    }
-    KllSketch.Error.kllSketchThrow(TGT_IS_READ_ONLY);
-    return null; //artifact of indirect throw
-  }
-
-  public static KllDoublesSketch wrap(final Memory srcMem) {
-    Objects.nonNull(srcMem);
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-
-    if (!memVal.updatableMemFormat) {
-      return heapify(srcMem);
     } else {
-      return new KllDirectDoublesSketch((WritableMemory) srcMem, null, memVal);
+      return new KllDirectCompactDoublesSketch(srcMem, memVal);
     }
   }
 
@@ -156,6 +168,17 @@ public abstract class KllDoublesSketch extends KllSketch {
    */
   public double[] getCDF(final double[] splitPoints) {
     return KllDoublesHelper.getDoublesPmfOrCdf(this, splitPoints, true);
+  }
+
+  /**
+   * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
+   * @return upper bound on the serialized size of a KllSketch.
+   */
+  public int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
+    return getMaxSerializedSizeBytes(k, n, SketchType.DOUBLES_SKETCH, updatableMemoryFormat);
   }
 
   /**

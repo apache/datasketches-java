@@ -657,7 +657,7 @@ final class KllHelper {
     sb.append("   Estimation Mode        : ").append(mine.isEstimationMode()).append(Util.LS);
     sb.append("   Levels                 : ").append(mine.getNumLevels()).append(Util.LS);
     sb.append("   Level 0 Sorted         : ").append(mine.isLevelZeroSorted()).append(Util.LS);
-    final int cap = (doubleType) ? mine.getDoubleItemsArray().length : mine.getFloatItemsArray().length;
+    final int cap = (doubleType) ? mine.getDoubleItemsArray().length : mine.getFloatItemsArray().length; //TODO FIX
     sb.append("   Capacity Items         : ").append(cap).append(Util.LS);
     sb.append("   Retained Items         : ").append(mine.getNumRetained()).append(Util.LS);
     if (mine.updatableMemFormat) {

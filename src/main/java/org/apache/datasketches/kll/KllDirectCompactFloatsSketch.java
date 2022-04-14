@@ -1,0 +1,112 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
+package org.apache.datasketches.kll;
+
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
+import static org.apache.datasketches.kll.KllSketch.Error.EMPTY_NO_DATA;
+import static org.apache.datasketches.kll.KllSketch.Error.SINGLE_ITEM_IMPROPER_CALL;
+import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+
+class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
+  final boolean empty;
+  final boolean singleItem;
+
+  KllDirectCompactFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
+    super((WritableMemory) srcMem, null, memVal);
+    this.empty = getMemoryEmptyFlag(srcMem);
+    this.singleItem = getMemorySingleItemFlag(srcMem);
+  }
+
+  @Override
+  public long getN() {
+    if (empty) { return 0; }
+    if (singleItem ) { return 1; }
+    return getMemoryN(wmem);
+  }
+
+  @Override
+  public byte[] toByteArray() {
+    final int bytes = (int) wmem.getCapacity();
+    final byte[] byteArr = new byte[bytes];
+    wmem.getByteArray(0, byteArr, 0, bytes);
+    return byteArr;
+  }
+
+  @Override //returns expanded array including empty space at bottom
+  float[] getFloatItemsArray() {
+    final int k = getK();
+    if (empty) { return new float[k]; }
+    final float[] itemsArr;
+    if (singleItem) {
+      itemsArr = new float[k];
+      itemsArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+      return itemsArr;
+    }
+    final int numLevels = getNumLevels();
+    final int levelsBytes = numLevels * Integer.BYTES; //compact format!
+    final int allItems =  levelsArr[numLevels];
+    itemsArr = new float[allItems];
+    final int shift = levelsArr[0];
+    final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
+    wmem.getFloatArray(offset, itemsArr, shift, allItems - shift);
+    return itemsArr;
+  }
+
+  @Override
+  float getFloatItemsArrayAt(final int index) {
+    if (empty) { kllSketchThrow(EMPTY_NO_DATA); }
+    if (singleItem) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    final int offset =
+        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + (index + 2) * Float.BYTES;
+    return wmem.getFloat(offset);
+  }
+
+  @Override
+  float getFloatSingleItem() {
+    if (!singleItem) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+  }
+
+  @Override
+  float getMaxFloatValue() {
+    if (empty) { return Float.NaN; }
+    if (singleItem) { return getFloatSingleItem(); }
+    final int offset =
+        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Float.BYTES;
+    return wmem.getFloat(offset);
+  }
+
+  @Override
+  float getMinFloatValue() {
+    if (empty) { return Float.NaN; }
+    if (singleItem) { return getFloatSingleItem(); }
+    final int offset =
+        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
+    return wmem.getFloat(offset);
+  }
+
+}

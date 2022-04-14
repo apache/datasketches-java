@@ -51,8 +51,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 
-import java.util.Objects;
-
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -93,7 +91,6 @@ final class KllMemoryValidate {
   int[] levelsArr; //adjusted to include top index
 
   KllMemoryValidate(final Memory srcMem) {
-    Objects.nonNull(srcMem);
     readOnly = srcMem.isReadOnly();
     preInts = getMemoryPreInts(srcMem);
     serVer = getMemorySerVer(srcMem);

@@ -138,8 +138,12 @@ final class KllFloatsHelper {
     final int myMinK = mine.getMinK();
 
     //update this sketch with level0 items from the other sketch
-    for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-      KllFloatsHelper.updateFloat(mine, otherFloatItemsArr[i]);
+    if (other.isCompactSingleItem()) {
+      updateFloat(mine, other.getFloatSingleItem());
+    } else {
+      for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
+       updateFloat(mine, otherFloatItemsArr[i]);
+      }
     }
     // after the level 0 update, we capture the state of levels and items arrays
     final int myCurNumLevels = mine.getNumLevels();
@@ -211,16 +215,16 @@ final class KllFloatsHelper {
       mine.setMinK(min(myMinK, other.getMinK()));
     }
 
+    //Update numLevels, levelsArray, items
+    mine.setNumLevels(myNewNumLevels);
+    mine.setLevelsArray(myNewLevelsArr);
+    mine.setFloatItemsArray(myNewFloatItemsArr);
+
     //Update min, max values
     final float otherMin = other.getMinFloatValue();
     final float otherMax = other.getMaxFloatValue();
     mine.setMinFloatValue(resolveFloatMinValue(myMin, otherMin));
     mine.setMaxFloatValue(resolveFloatMaxValue(myMax, otherMax));
-
-    //Update numLevels, levelsArray, items
-    mine.setNumLevels(myNewNumLevels);
-    mine.setLevelsArray(myNewLevelsArr);
-    mine.setFloatItemsArray(myNewFloatItemsArr);
     assert KllHelper.sumTheSampleWeights(mine.getNumLevels(), mine.getLevelsArray()) == mine.getN();
   }
 
@@ -261,7 +265,7 @@ final class KllFloatsHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */ //NOTE Validation Method: Need to modify.
+   */ //NOTE Validation Method: Need to modify to run.
   static void randomlyHalveDownFloats(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -280,7 +284,7 @@ final class KllFloatsHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */ //NOTE Validation Method: Need to modify
+   */ //NOTE Validation Method: Need to modify to run.
   static void randomlyHalveUpFloats(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;

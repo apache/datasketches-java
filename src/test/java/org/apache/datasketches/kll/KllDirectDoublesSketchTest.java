@@ -479,7 +479,7 @@ public class KllDirectDoublesSketchTest {
     //println(sk2.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
+    println(KllPreambleUtil.toString(compBytes, true));
     sk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -499,7 +499,7 @@ public class KllDirectDoublesSketchTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
+    println(KllPreambleUtil.toString(compBytes, true));
     sk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -520,7 +520,7 @@ public class KllDirectDoublesSketchTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
+    println(KllPreambleUtil.toString(compBytes, true));
     sk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -612,13 +612,15 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk2.getMaxValue(), 121.0);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   @SuppressWarnings("unused")
   public void checkWritableWrapOfCompactForm() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk.update(i); }
-    WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray()); //note: Not updatable
+    WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
+    assertEquals(sk2.getMinValue(), 1.0);
+    assertEquals(sk2.getMaxValue(), 21.0);
   }
 
   private static KllDoublesSketch getDDSketch(final int k, final int n) {

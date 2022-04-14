@@ -160,15 +160,16 @@ final class KllPreambleUtil {
   static final int UPDATABLE_BIT_MASK         = 16;
 
   /**
-   * Returns a human readable string summary of the internal state of the given byte array.
+   * Returns a human readable string summary of the internal state of the given sketch byte array.
    * Used primarily in testing.
    *
-   * @param byteArr the given byte array.
+   * @param byteArr the given sketch byte array.
+   * @param includeData if true, includes detail of retained data.
    * @return the summary string.
    */
-  static String toString(final byte[] byteArr) {
+  static String toString(final byte[] byteArr, final boolean includeData) {
     final Memory mem = Memory.wrap(byteArr);
-    return toString(mem);
+    return toString(mem, includeData);
   }
 
   /**
@@ -176,13 +177,10 @@ final class KllPreambleUtil {
    * Used primarily in testing.
    *
    * @param mem the given Memory
+   * @param includeData if true, includes detail of retained data.
    * @return the summary string.
    */
-  static String toString(final Memory mem) {
-    return memoryToString(mem, false);
-  }
-
-  static String memoryToString(final Memory mem, final boolean includeData) {
+  static String toString(final Memory mem, final boolean includeData) {
     final KllMemoryValidate memVal = new KllMemoryValidate(mem);
     final int flags = memVal.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
@@ -215,7 +213,7 @@ final class KllPreambleUtil {
     final long n = memVal.n;
     final int minK = memVal.minK;
     final int numLevels = memVal.numLevels;
-    if (updatableMemFormat | (!updatableMemFormat && !empty && !singleItem)) {
+    if (updatableMemFormat || (!updatableMemFormat && !empty && !singleItem)) {
         sb.append("Bytes  8-15: N                  : ").append(n).append(LS);
         sb.append("Bytes 16-17: MinK               : ").append(minK).append(LS);
         sb.append("Byte  18   : NumLevels          : ").append(numLevels).append(LS);

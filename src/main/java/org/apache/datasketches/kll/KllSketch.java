@@ -22,8 +22,6 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
-import static org.apache.datasketches.kll.KllSketch.Error.MEMORY_NOT_UPDATABLE_FORMAT;
-import static org.apache.datasketches.kll.KllSketch.Error.MEMREQSVR_MUST_NOT_BE_NULL;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
@@ -80,9 +78,11 @@ abstract class KllSketch {
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     SRC_CANNOT_BE_DIRECT("Given sketch cannot be of type Direct."),
-    MEMREQSVR_MUST_NOT_BE_NULL("Memory Request Server must not be null."),
     MEMORY_NOT_UPDATABLE_FORMAT("Memory must be in updatableFormat"),
-    MUST_NOT_CALL("This is an artifact of inheritance and should never be called.");
+    MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
+    EMPTY_NO_DATA("Improper request for data from an empty sketch."),
+    SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
+    ERROR_UNKNOWN("Possible sketch corruption: Unknown error.");
 
     private String msg;
 
@@ -141,22 +141,10 @@ abstract class KllSketch {
    if (wmem != null) {
      this.updatableMemFormat = KllPreambleUtil.getMemoryUpdatableFormatFlag(wmem);
      this.readOnly = wmem.isReadOnly() || !updatableMemFormat;
-     //this.memReqSvr = memReqSvr;
      final int sw = (readOnly ? 1 : 0)
          | (updatableMemFormat ? 2 : 0)
          | ((memReqSvr != null) ? 4 : 0);
      switch (sw) {
-       case 0:   //no MemReqSvr, compact, writable -> Throw
-       case 2: { //no MemReqSvr, updatable, writable -> Throw
-         this.memReqSvr = memReqSvr;
-         kllSketchThrow(MEMREQSVR_MUST_NOT_BE_NULL);
-         break;
-       }
-       case 4: { //MemReqSvr, compact, writable -> Throw
-         this.memReqSvr = memReqSvr;
-         kllSketchThrow(MEMORY_NOT_UPDATABLE_FORMAT);
-         break;
-       }
        case 1:   //no MemReqSvr, compact, readOnly -> ReadOnly Compact
        case 5:   //MemReqSvr, compact, readOnly -> ReadOnly Compact, ignore MemReqSvr
        case 3:   //no MemReqSvr, updatable, readOnly -> ReadOnly Updatable
@@ -168,12 +156,12 @@ abstract class KllSketch {
          this.memReqSvr = memReqSvr;
          break;
        }
-       default: { //not possible
+       default: { //unlikely
          this.memReqSvr = null;
+         kllSketchThrow(Error.ERROR_UNKNOWN);
          break;
        }
      }
-
    } else { //wmem is null, heap case
      this.updatableMemFormat = false;
      this.memReqSvr = null; //no matter what
@@ -258,8 +246,8 @@ abstract class KllSketch {
   }
 
   /**
-   * Returns the current compact number of bytes this sketch would require to store.
-   * @return the current compact number of bytes this sketch would require to store.
+   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
    */
   public final int getCurrentCompactSerializedSizeBytes() {
     return KllSketch.getCurrentSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
@@ -307,11 +295,7 @@ abstract class KllSketch {
    * @return the number of retained items (samples) in the sketch
    */
   public final int getNumRetained() {
-    System.out.println("numLevels: " + getNumLevels());
-    System.out.println("Level[0]: " + getLevelsArray()[0]);
-    System.out.println("Level[1]: " + getLevelsArray()[1]);
-    System.out.println("Level[2]: " + getLevelsArray()[2]);
-    return getLevelsArray()[getNumLevels()] - getLevelsArray()[0];
+    return levelsArr[getNumLevels()] - levelsArr[0];
   }
 
   /**
@@ -408,7 +392,6 @@ abstract class KllSketch {
       if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
       KllFloatsHelper.mergeFloatImpl(this, other);
     }
-
   }
 
   /**
@@ -473,12 +456,16 @@ abstract class KllSketch {
 
   abstract double getDoubleItemsArrayAt(int index);
 
+  abstract double getDoubleSingleItem();
+
   /**
    * @return full size of internal items array including garbage.
    */
   abstract float[] getFloatItemsArray();
 
   abstract float getFloatItemsArrayAt(int index);
+
+  abstract float getFloatSingleItem();
 
   final int[] getLevelsArray() {
     return levelsArr;
@@ -512,11 +499,17 @@ abstract class KllSketch {
    */
   abstract int getMinK();
 
-  abstract int getNumLevels();
+  final int getNumLevels() {
+    return levelsArr.length - 1;
+  }
 
   abstract void incN();
 
   abstract void incNumLevels();
+
+  final boolean isCompactSingleItem() {
+    return hasMemory() && !updatableMemFormat && (getN() == 1);
+  }
 
   boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }
 

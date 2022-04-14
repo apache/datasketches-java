@@ -28,7 +28,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Static methods to support KllDoublesSketch
@@ -139,8 +138,12 @@ final class KllDoublesHelper {
     final int myMinK = mine.getMinK();
 
     //update this sketch with level0 items from the other sketch
-    for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-      KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
+    if (other.isCompactSingleItem()) {
+      updateDouble(mine, other.getFloatSingleItem());
+    } else {
+      for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
+        KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
+      }
     }
     // after the level 0 update, we capture the state of levels and items arrays
     final int myCurNumLevels = mine.getNumLevels();
@@ -212,22 +215,16 @@ final class KllDoublesHelper {
       mine.setMinK(min(myMinK, other.getMinK()));
     }
 
+    //Update numLevels, levelsArray, items
+    mine.setNumLevels(myNewNumLevels);
+    mine.setLevelsArray(myNewLevelsArr);
+    mine.setDoubleItemsArray(myNewDoubleItemsArr);
+
     //Update min, max values
     final double otherMin = other.getMinDoubleValue();
     final double otherMax = other.getMaxDoubleValue();
     mine.setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
     mine.setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
-    //System.out.println(mine.toString(true, true));
-
-    //Update numLevels, levelsArray, items
-    mine.setNumLevels(myNewNumLevels);
-    //final WritableMemory mymem = mine.getWritableMemory();
-    //System.out.println(KllPreambleUtil.memoryToString(mymem, true));
-    System.out.println(mine.toString(true, true));
-    mine.setLevelsArray(myNewLevelsArr);
-    System.out.println(mine.toString(true, true));
-    mine.setDoubleItemsArray(myNewDoubleItemsArr);
-    System.out.println(mine.toString(true, true));
     assert KllHelper.sumTheSampleWeights(mine.getNumLevels(), mine.getLevelsArray()) == mine.getN();
   }
 

@@ -40,6 +40,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -122,10 +123,14 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
+  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
+
+  @Override //returns entire array including empty space at bottom
   float[] getFloatItemsArray() {
-    final int items = getItemsArrLengthItems();
+    final int items = levelsArr[getNumLevels()];
     final float[] itemsArr = new float[items];
-    final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Float.BYTES;
+    final int levelsBytes = levelsArr.length * Integer.BYTES;
+    final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
     wmem.getFloatArray(offset, itemsArr, 0, items);
     return itemsArr;
   }
@@ -133,13 +138,12 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   float getFloatItemsArrayAt(final int index) {
     final int offset =
-        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Float.BYTES + index * Float.BYTES;
+        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + (index + 2) * Float.BYTES;
     return wmem.getFloat(offset);
   }
 
-  int getItemsArrLengthItems() {
-    return getLevelsArray()[getNumLevels()];
-  }
+  @Override
+  float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override
   int getM() {
@@ -161,11 +165,6 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   int getMinK() {
     return getMemoryMinK(wmem);
-  }
-
-  @Override
-  int getNumLevels() {
-    return getMemoryNumLevels(wmem);
   }
 
   @Override
@@ -198,7 +197,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   void setFloatItemsArrayAt(final int index, final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset =
-        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Float.BYTES + index * Float.BYTES;
+        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + (index + 2) * Float.BYTES;
     wmem.putFloat(offset, value);
   }
 

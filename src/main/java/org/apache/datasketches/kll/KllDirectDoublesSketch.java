@@ -41,6 +41,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -56,7 +57,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes, Kevin Lang
  */
-final class KllDirectDoublesSketch extends KllDoublesSketch {
+class KllDirectDoublesSketch extends KllDoublesSketch {
 
   /**
    * The constructor with Memory that can be off-heap.
@@ -121,11 +122,12 @@ final class KllDirectDoublesSketch extends KllDoublesSketch {
     return byteArr;
   }
 
-  @Override
+  @Override //returns entire array including empty space at bottom
   double[] getDoubleItemsArray() {
-    final int items = getItemsArrLengthItems();
+    final int items = levelsArr[getNumLevels()];
     final double[] itemsArr = new double[items];
-    final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Double.BYTES;
+    final int levelsBytes = levelsArr.length * Integer.BYTES;
+    final int offset = DATA_START_ADR + levelsBytes + 2 * Double.BYTES;
     wmem.getDoubleArray(offset, itemsArr, 0, items);
     return itemsArr;
   }
@@ -137,9 +139,11 @@ final class KllDirectDoublesSketch extends KllDoublesSketch {
     return wmem.getDouble(offset);
   }
 
-  int getItemsArrLengthItems() {
-    return getLevelsArray()[getNumLevels()];
-  }
+  @Override
+  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
+
+  @Override
+  float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override
   int getM() {
@@ -161,11 +165,6 @@ final class KllDirectDoublesSketch extends KllDoublesSketch {
   @Override
   int getMinK() {
     return getMemoryMinK(wmem);
-  }
-
-  @Override
-  int getNumLevels() {
-    return getMemoryNumLevels(wmem);
   }
 
   @Override

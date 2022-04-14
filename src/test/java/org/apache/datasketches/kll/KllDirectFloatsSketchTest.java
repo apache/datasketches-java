@@ -479,7 +479,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk2.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
+    println(KllPreambleUtil.toString(compBytes, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -499,7 +499,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
+    println(KllPreambleUtil.toString(compBytes, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -520,7 +520,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toUpdatableByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem));
+    println(KllPreambleUtil.toString(compBytes, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -612,13 +612,15 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk2.getMaxValue(), 121.0);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test
   @SuppressWarnings("unused")
   public void checkWritableWrapOfCompactForm() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk.update(i); }
     WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray()); //note: Not updatable
     KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
+    assertEquals(sk2.getMinValue(), 1.0F);
+    assertEquals(sk2.getMaxValue(), 21.0F);
   }
 
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
