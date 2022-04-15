@@ -39,6 +39,17 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
+   * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
+   * @return upper bound on the serialized size of a KllSketch.
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
+    return getMaxSerializedSizeBytes(k, n, SketchType.DOUBLES_SKETCH, updatableMemoryFormat);
+  }
+
+  /**
    * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
    * @param srcMem a Memory image of a sketch serialized by this sketch.
@@ -168,17 +179,6 @@ public abstract class KllDoublesSketch extends KllSketch {
    */
   public double[] getCDF(final double[] splitPoints) {
     return KllDoublesHelper.getDoublesPmfOrCdf(this, splitPoints, true);
-  }
-
-  /**
-   * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
-   * @return upper bound on the serialized size of a KllSketch.
-   */
-  public int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
-    return getMaxSerializedSizeBytes(k, n, SketchType.DOUBLES_SKETCH, updatableMemoryFormat);
   }
 
   /**

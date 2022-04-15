@@ -192,7 +192,7 @@ abstract class KllSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the compact serialized size
-   * @deprecated use getMaxSerializedSizeBytes(int, long, SketchType, boolean) instead.
+   * @deprecated use getMaxSerializedSizeBytes(int, long, boolean) instead.
    * Version 3.2.0
    */
   @Deprecated
