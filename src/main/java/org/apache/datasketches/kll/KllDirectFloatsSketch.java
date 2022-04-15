@@ -136,13 +136,6 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  float getFloatItemsArrayAt(final int index) {
-    final int offset =
-        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + (index + 2) * Float.BYTES;
-    return wmem.getFloat(offset);
-  }
-
-  @Override
   float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override

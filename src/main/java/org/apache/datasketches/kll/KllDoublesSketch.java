@@ -345,9 +345,6 @@ public abstract class KllDoublesSketch extends KllSketch {
   float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
   @Override //Artifact of inheritance
-  float getFloatItemsArrayAt(final int index) { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
-
-  @Override //Artifact of inheritance
   float getMaxFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override //Artifact of inheritance

@@ -133,13 +133,6 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  double getDoubleItemsArrayAt(final int index) {
-    final int offset =
-        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Double.BYTES + index * Double.BYTES;
-    return wmem.getDouble(offset);
-  }
-
-  @Override
   double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override

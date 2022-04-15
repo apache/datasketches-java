@@ -129,9 +129,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   float[] getFloatItemsArray() { return floatItems_; }
 
   @Override
-  float getFloatItemsArrayAt(final int index) { return floatItems_[index]; }
-
-  @Override
   float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override

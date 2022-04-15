@@ -24,7 +24,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
-import static org.apache.datasketches.kll.KllSketch.Error.EMPTY_NO_DATA;
 import static org.apache.datasketches.kll.KllSketch.Error.SINGLE_ITEM_IMPROPER_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -73,19 +72,8 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   }
 
   @Override
-  float getFloatItemsArrayAt(final int index) {
-    if (isEmpty()) { kllSketchThrow(EMPTY_NO_DATA); }
-    if (isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
-    final int offset =
-        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + (index + 2) * Float.BYTES;
-    return wmem.getFloat(offset);
-  }
-
-  @Override
   float getFloatSingleItem() {
-    if (!isSingleItem()) {
-      kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL);
-    }
+    if (!isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
     return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
   }
 

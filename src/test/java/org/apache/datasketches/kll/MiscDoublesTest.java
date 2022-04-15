@@ -530,15 +530,72 @@ public class MiscDoublesTest {
   }
 
   @Test
+  public void checkDirectCompactSingleItem() {
+    int k = 20;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k); //Heap
+    sk.update(1);
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertEquals(sk2.getDoubleSingleItem(), 1.0);
+    sk.update(2);
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertEquals(sk2.getN(), 2);
+    try {
+      sk2.getDoubleSingleItem();
+    } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkDirectCompactGetFloatItemsArray() {
+    int k = 20;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    double[] itemsArr = sk2.getDoubleItemsArray();
+    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
+
+    sk.update(1);
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    itemsArr = sk2.getDoubleItemsArray();
+    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
+    assertEquals(itemsArr[19], 1F);
+
+    for (int i = 2; i <= 21; i++) { sk.update(i); }
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    itemsArr = sk2.getDoubleItemsArray();
+    assertEquals(itemsArr.length, 33);
+    assertEquals(itemsArr[22], 21);
+    //for (int i = 0; i < itemsArr.length; i++) {
+    //  println(i + ": " + itemsArr[i]);
+    //}
+  }
+
+  @Test
+  public void checkMinAndMax() {
+    int k = 20;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertTrue(Double.isNaN(sk2.getMaxValue()));
+    assertTrue(Double.isNaN(sk2.getMinValue()));
+    sk.update(1);
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertEquals(sk2.getMaxValue(),1.0F);
+    assertEquals(sk2.getMinValue(),1.0F);
+    for (int i = 2; i <= 21; i++) { sk.update(i); }
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertEquals(sk2.getMaxValue(),21.0F);
+    assertEquals(sk2.getMinValue(),1.0F);
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(final String s) {
-    //System.out.println(s); //disable here
+  static void println(final Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }

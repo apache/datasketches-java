@@ -126,9 +126,6 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   double[] getDoubleItemsArray() { return doubleItems_; }
 
   @Override
-  double getDoubleItemsArrayAt(final int index) { return doubleItems_[index]; }
-
-  @Override
   double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override

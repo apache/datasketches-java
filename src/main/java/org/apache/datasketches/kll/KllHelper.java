@@ -250,10 +250,10 @@ final class KllHelper {
       mine.setLevelsArrayAt(level, mine.getLevelsArrayAt(level + 1) - 1); // the current level now contains one item
       if (mine.sketchType == DOUBLES_SKETCH) {
         mine.setDoubleItemsArrayAt(
-            mine.getLevelsArrayAt(level), mine.getDoubleItemsArrayAt(rawBeg)); // namely this leftover guy
+            mine.getLevelsArrayAt(level), mine.getDoubleItemsArray()[rawBeg]); // namely this leftover guy
       } else {
         mine.setFloatItemsArrayAt(
-            mine.getLevelsArrayAt(level), mine.getFloatItemsArrayAt(rawBeg)); // namely this leftover guy
+            mine.getLevelsArrayAt(level), mine.getFloatItemsArray()[rawBeg]); // namely this leftover guy
       }
 
     } else {

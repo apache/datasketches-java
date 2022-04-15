@@ -463,16 +463,12 @@ public abstract class KllSketch {
    */
   abstract double[] getDoubleItemsArray();
 
-  abstract double getDoubleItemsArrayAt(int index);
-
   abstract double getDoubleSingleItem();
 
   /**
    * @return full size of internal items array including garbage.
    */
   abstract float[] getFloatItemsArray();
-
-  abstract float getFloatItemsArrayAt(int index);
 
   abstract float getFloatSingleItem();
 
@@ -526,9 +522,11 @@ public abstract class KllSketch {
 
   abstract boolean isLevelZeroSorted();
 
-  boolean isSingleItem() {
-    return getN() == 1;
-  }
+  /**
+   * First determine that this is a singleItem sketch before calling this.
+   * @return the value of the single item
+   */
+  boolean isSingleItem() { return getN() == 1; }
 
   abstract void setDoubleItemsArray(double[] floatItems);
 

@@ -24,7 +24,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
-import static org.apache.datasketches.kll.KllSketch.Error.EMPTY_NO_DATA;
 import static org.apache.datasketches.kll.KllSketch.Error.SINGLE_ITEM_IMPROPER_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -70,15 +69,6 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
     final int offset = DATA_START_ADR + levelsBytes + 2 * Double.BYTES;
     wmem.getDoubleArray(offset, itemsArr, shift, allItems - shift);
     return itemsArr;
-  }
-
-  @Override
-  double getDoubleItemsArrayAt(final int index) {
-    if (isEmpty()) { kllSketchThrow(EMPTY_NO_DATA); }
-    if (isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
-    final int offset =
-        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + (index + 2) * Double.BYTES;
-    return wmem.getDouble(offset);
   }
 
   @Override
