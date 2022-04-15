@@ -72,7 +72,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   /**
    * Heapify constructor.
-   * @param mem Memory object that contains data serialized by this sketch.
+   * @param srcMem Memory object that contains data serialized by this sketch.
    * @param memVal the MemoryCheck object
    */
   KllHeapDoublesSketch(final Memory srcMem, final KllMemoryValidate memVal) {
