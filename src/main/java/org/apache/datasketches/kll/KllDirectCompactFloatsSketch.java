@@ -32,19 +32,15 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
-  final boolean empty;
-  final boolean singleItem;
 
   KllDirectCompactFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
     super((WritableMemory) srcMem, null, memVal);
-    this.empty = getMemoryEmptyFlag(srcMem);
-    this.singleItem = getMemorySingleItemFlag(srcMem);
   }
 
   @Override
   public long getN() {
-    if (empty) { return 0; }
-    if (singleItem ) { return 1; }
+    if (getMemoryEmptyFlag(wmem)) { return 0; }
+    if (getMemorySingleItemFlag(wmem)) { return 1; }
     return getMemoryN(wmem);
   }
 
@@ -59,9 +55,9 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   @Override //returns expanded array including empty space at bottom
   float[] getFloatItemsArray() {
     final int k = getK();
-    if (empty) { return new float[k]; }
+    if (isEmpty()) { return new float[k]; }
     final float[] itemsArr;
-    if (singleItem) {
+    if (isSingleItem()) {
       itemsArr = new float[k];
       itemsArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
       return itemsArr;
@@ -78,8 +74,8 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
 
   @Override
   float getFloatItemsArrayAt(final int index) {
-    if (empty) { kllSketchThrow(EMPTY_NO_DATA); }
-    if (singleItem) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (isEmpty()) { kllSketchThrow(EMPTY_NO_DATA); }
+    if (isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + (index + 2) * Float.BYTES;
     return wmem.getFloat(offset);
@@ -87,14 +83,16 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
 
   @Override
   float getFloatSingleItem() {
-    if (!singleItem) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (!isSingleItem()) {
+      kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL);
+    }
     return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
   }
 
   @Override
   float getMaxFloatValue() {
-    if (empty) { return Float.NaN; }
-    if (singleItem) { return getFloatSingleItem(); }
+    if (isEmpty()) { return Float.NaN; }
+    if (isSingleItem()) { return getFloatSingleItem(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Float.BYTES;
     return wmem.getFloat(offset);
@@ -102,8 +100,8 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
 
   @Override
   float getMinFloatValue() {
-    if (empty) { return Float.NaN; }
-    if (singleItem) { return getFloatSingleItem(); }
+    if (isEmpty()) { return Float.NaN; }
+    if (isSingleItem()) { return getFloatSingleItem(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
     return wmem.getFloat(offset);

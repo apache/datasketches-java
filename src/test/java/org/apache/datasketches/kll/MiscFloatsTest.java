@@ -516,14 +516,31 @@ public class MiscFloatsTest {
   @Test
   public void checkRODirectCompact() {
     int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k); //Heap
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = sk.toByteArray();
-    Memory srcMem = Memory.wrap(byteArr);
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem); //case 1
+    Memory srcMem = Memory.wrap(sk.toByteArray());
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem); //case 1 compact readOnly no memReqSvr
     println(sk2.toString(true, true));
     assertEquals(sk2.getMinValue(), 1.0F);
     assertEquals(sk2.getMaxValue(), 21.0F);
+    Memory srcMem2 = Memory.wrap(sk2.toByteArray());
+    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null); //case 1
+    assertEquals(sk3.getMinValue(), 1.0F);
+    assertEquals(sk3.getMaxValue(), 21.0F);
+  }
+
+  @Test
+  public void checkDirectCompactSingleItem() {
+    int k = 20;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k); //Heap
+    sk.update(1);
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertEquals(sk2.getFloatSingleItem(), 1.0F);
+    sk.update(2);
+    try {
+      sk2.getFloatSingleItem();
+    } catch (SketchesArgumentException e) { }
+
   }
 
   @Test
@@ -535,7 +552,7 @@ public class MiscFloatsTest {
    * @param s value to print
    */
   static void println(final String s) {
-    //System.out.println(s); //disable here
+    System.out.println(s); //disable here
   }
 
 }

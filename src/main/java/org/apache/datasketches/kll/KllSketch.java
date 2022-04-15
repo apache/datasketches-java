@@ -60,15 +60,18 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * This class is the root of the KLL sketch class hierarchy. It includes the public API that is independent
  * of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
- * heap or Direct (off-heap.
+ * heap or Direct (off-heap).
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
  *
  * @author Lee Rhodes, Kevin Lang
  */
-abstract class KllSketch {
+public abstract class KllSketch {
 
+  /**
+   * Used to define the variable type of the current instance of this class.
+   */
   public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   enum Error {
@@ -129,8 +132,8 @@ abstract class KllSketch {
   /**
    * Constructor for writable updatable memory and for the Heap.
    * If both wmem and memReqSvr are null, this is a heap constructor.
-   * If wmem != null and wmem is not readOnly, then memReqSvr must be != null.
-   * If wmem was derived from an original Memory instance via assignment, it will be readOnly.
+   * If wmem != null and wmem is not readOnly, then memReqSvr must not be null.
+   * If wmem was derived from an original Memory instance via a cast, it will be readOnly.
    * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
    * @param wmem  the current WritableMemory or null
    * @param memReqSvr the given MemoryRequestServer or null
@@ -192,13 +195,15 @@ abstract class KllSketch {
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
    * @return upper bound on the compact serialized size
-   * @deprecated use getMaxSerializedSizeBytes(int, long, boolean) instead.
+   * @deprecated Instead use getMaxSerializedSizeBytes(int, long, boolean)
+   * from the descendants of this class, or
+   * getMaxSerializedSizeBytes(int, long, SketchType, boolean) from this class.
    * Version 3.2.0
    */
   @Deprecated
   public static int getMaxSerializedSizeBytes(final int k, final long n) {
     final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, FLOATS_SKETCH, false);
+        KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, FLOATS_SKETCH, false);
     return gStats.compactBytes;
   }
 
@@ -213,7 +218,7 @@ abstract class KllSketch {
   public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatableMemFormat) {
     final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, sketchType, false);
+        KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
     return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
   }
 
@@ -250,7 +255,7 @@ abstract class KllSketch {
    * @return the current number of bytes this sketch would require to store in the compact Memory Format.
    */
   public final int getCurrentCompactSerializedSizeBytes() {
-    return KllSketch.getCurrentSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
+    return getCurrentSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
   }
 
   /**
@@ -259,7 +264,7 @@ abstract class KllSketch {
    */
   public final int getCurrentUpdatableSerializedSizeBytes() {
     final int itemCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
-    return KllSketch.getCurrentSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
+    return getCurrentSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
   }
 
   /**
@@ -318,18 +323,20 @@ abstract class KllSketch {
   }
 
   /**
-   * Returns true if this sketch's data structure is backed by WritableMemory.
-   * @return true if this sketch's data structure is backed by WritableMemory.
+   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
+   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
    */
   public boolean hasMemory() {
     return (wmem != null);
   }
 
   /**
-   * Returns true if the backing resource is direct (off-heap) memory.
-   * This is the case for allocated direct memory, memory mapped files.
-   * This backing resource could be either Memory(read-only) or WritableMemory
-   * @return true if the backing resource is direct (off-heap) memory.
+   * Returns true if the backing resource is direct, i.e., actually allocated in off-heap memory.
+   * This is the case for off-heap memory and memory mapped files.
+   * This backing resource could be either Memory(read-only) or WritableMemory.
+   * However, if the backing Memory or WritabelMemory resource is allocated on-heap,
+   * this will return false.
+   * @return true if the backing resource is off-heap memory.
    */
   public boolean isDirect() {
     return wmem.isDirect();
@@ -381,6 +388,8 @@ abstract class KllSketch {
 
   /**
    * Merges another sketch into this one.
+   * Attempting to merge a KllDoublesSketch with a KllFloatsSketch will
+   * throw an exception.
    * @param other sketch to merge into this one
    */
   public final void merge(final KllSketch other) {
@@ -516,6 +525,10 @@ abstract class KllSketch {
   boolean isFloatsSketch() { return sketchType == FLOATS_SKETCH; }
 
   abstract boolean isLevelZeroSorted();
+
+  boolean isSingleItem() {
+    return getN() == 1;
+  }
 
   abstract void setDoubleItemsArray(double[] floatItems);
 

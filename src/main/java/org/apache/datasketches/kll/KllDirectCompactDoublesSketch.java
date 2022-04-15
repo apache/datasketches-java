@@ -32,19 +32,15 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
-  final boolean empty;
-  final boolean singleItem;
 
   KllDirectCompactDoublesSketch(final Memory srcMem, final KllMemoryValidate memVal) {
     super((WritableMemory) srcMem, null, memVal);
-    this.empty = getMemoryEmptyFlag(srcMem);
-    this.singleItem = getMemorySingleItemFlag(srcMem);
   }
 
   @Override
   public long getN() {
-    if (empty) { return 0; }
-    if (singleItem ) { return 1; }
+    if (getMemoryEmptyFlag(wmem)) { return 0; }
+    if (getMemorySingleItemFlag(wmem)) { return 1; }
     return getMemoryN(wmem);
   }
 
@@ -59,9 +55,9 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   @Override //returns expanded array including empty space at bottom
   double[] getDoubleItemsArray() {
     final int k = getK();
-    if (empty) { return new double[k]; }
+    if (isEmpty()) { return new double[k]; }
     final double[] itemsArr;
-    if (singleItem) {
+    if (isSingleItem()) {
       itemsArr = new double[k];
       itemsArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
       return itemsArr;
@@ -78,8 +74,8 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
   @Override
   double getDoubleItemsArrayAt(final int index) {
-    if (empty) { kllSketchThrow(EMPTY_NO_DATA); }
-    if (singleItem) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (isEmpty()) { kllSketchThrow(EMPTY_NO_DATA); }
+    if (isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + (index + 2) * Double.BYTES;
     return wmem.getDouble(offset);
@@ -87,14 +83,14 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
   @Override
   double getDoubleSingleItem() {
-    if (!singleItem) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (!isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
     return wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
   }
 
   @Override
   double getMaxDoubleValue() {
-    if (empty) { return Double.NaN; }
-    if (singleItem) { return getDoubleSingleItem(); }
+    if (isEmpty()) { return Double.NaN; }
+    if (isSingleItem()) { return getDoubleSingleItem(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Double.BYTES;
     return wmem.getDouble(offset);
@@ -102,8 +98,8 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
   @Override
   double getMinDoubleValue() {
-    if (empty) { return Double.NaN; }
-    if (singleItem) { return getDoubleSingleItem(); }
+    if (isEmpty()) { return Double.NaN; }
+    if (isSingleItem()) { return getDoubleSingleItem(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
     return wmem.getDouble(offset);

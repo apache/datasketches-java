@@ -441,7 +441,6 @@ public class MiscDoublesTest {
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
-    println(s);
     println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
     assertEquals(sk.getN(), sk2.getN());
     assertEquals(sk.getMinValue(), sk2.getMinValue());
@@ -517,13 +516,17 @@ public class MiscDoublesTest {
   @Test
   public void checkRODirectCompact() {
     int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k); //Heap
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = sk.toByteArray();
-    Memory srcMem = Memory.wrap(byteArr);
+    Memory srcMem = Memory.wrap(sk.toByteArray()); //case 1 compact readOnly no memReqSvr
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
+    println(sk2.toString(true, true));
     assertEquals(sk2.getMinValue(), 1.0);
     assertEquals(sk2.getMaxValue(), 21.0);
+    Memory srcMem2 = Memory.wrap(sk2.toByteArray());
+    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null); //case 1
+    assertEquals(sk3.getMinValue(), 1.0F);
+    assertEquals(sk3.getMaxValue(), 21.0F);
   }
 
   @Test
