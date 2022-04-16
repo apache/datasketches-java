@@ -135,7 +135,7 @@ public class KllDirectCompactDoublesSketchTest {
    * @param o value to print
    */
   static void println(final Object o) {
-    System.out.println(o.toString()); //disable here
+    //System.out.println(o.toString()); //disable here
   }
 
 }

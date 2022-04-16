@@ -73,7 +73,7 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
 
   @Override
   float getFloatSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (updatableMemFormat || !isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
     return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
   }
 

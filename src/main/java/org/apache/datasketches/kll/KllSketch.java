@@ -318,7 +318,7 @@ public abstract class KllSketch {
    * otherwise returns null.
    * @return the WritableMemory for Direct type sketches, otherwise null.
    */
-  public WritableMemory getWritableMemory() {
+  WritableMemory getWritableMemory() {
     return wmem;
   }
 

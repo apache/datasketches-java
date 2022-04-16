@@ -24,18 +24,21 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class KllDoublesSketchTest {
-
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
   private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
+  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void empty() {
@@ -410,6 +413,42 @@ public class KllDoublesSketchTest {
     assertEquals(n2, n1);
     assertEquals(min2, min1);
     assertEquals(max2, max1);
+  }
+
+  @Test
+  public void coverInheritanceArtifacts() {
+    float[] dblArr = new float[0];
+    float dblV = 1.0f;
+    int idx = 1;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
+    try { sk.getFloatItemsArray();           fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMaxFloatValue();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMinFloatValue();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatItemsArray(dblArr);     fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatItemsArrayAt(idx,dblV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setMaxFloatValue(dblV);         fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setMinFloatValue(dblV);         fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkReadOnlyUpdate() {
+    KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance(20);
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(mem);
+    try { sk2.update(1); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkNewDirectInstanceAndSize() {
+    WritableMemory wmem = WritableMemory.allocate(3000);
+    KllDoublesSketch.newDirectInstance(wmem, memReqSvr);
+    try { KllDoublesSketch.newDirectInstance(null, memReqSvr); }
+    catch (NullPointerException e) { }
+    try { KllFloatsSketch.newDirectInstance(wmem, null); }
+    catch (NullPointerException e) { }
+    int updateSize = KllDoublesSketch.getMaxSerializedSizeBytes(200, 0, true);
+    int compactSize = KllDoublesSketch.getMaxSerializedSizeBytes(200, 0, false);
+    assertTrue(compactSize < updateSize);
   }
 
 }

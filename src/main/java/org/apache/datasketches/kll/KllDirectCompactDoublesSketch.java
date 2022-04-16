@@ -73,7 +73,7 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
   @Override
   double getDoubleSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (updatableMemFormat || !isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
     return wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
   }
 

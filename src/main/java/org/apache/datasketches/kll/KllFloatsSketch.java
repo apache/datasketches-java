@@ -58,9 +58,9 @@ public abstract class KllFloatsSketch extends KllSketch {
    */
   public static KllFloatsSketch heapify(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memChk = new KllMemoryValidate(srcMem);
-    if (memChk.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
-    return new KllHeapFloatsSketch(srcMem, memChk);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    if (memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
+    return new KllHeapFloatsSketch(srcMem, memVal);
   }
 
   /**

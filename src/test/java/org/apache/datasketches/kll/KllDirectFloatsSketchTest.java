@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
@@ -621,6 +622,29 @@ public class KllDirectFloatsSketchTest {
     KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
     assertEquals(sk2.getMinValue(), 1.0F);
     assertEquals(sk2.getMaxValue(), 21.0F);
+  }
+
+  @Test
+  public void chickReadOnlyExceptions() {
+    int k = 20;
+    float[] fltArr = new float[0];
+    float fltV = 1.0f;
+    int idx = 1;
+    boolean bool = true;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
+    try { sk2.incN();                          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incNumLevels();                  fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setFloatItemsArray(fltArr);      fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setFloatItemsArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setLevelZeroSorted(bool);        fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxFloatValue(fltV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinFloatValue(fltV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getDoubleSingleItem();           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getFloatSingleItem();            fail(); } catch (SketchesArgumentException e) { }
   }
 
   private static KllFloatsSketch getDFSketch(final int k, final int n) {

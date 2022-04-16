@@ -24,6 +24,7 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
@@ -621,6 +622,29 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
     assertEquals(sk2.getMinValue(), 1.0);
     assertEquals(sk2.getMaxValue(), 21.0);
+  }
+
+  @Test
+  public void chickReadOnlyExceptions() {
+    int k = 20;
+    double[] dblArr = new double[0];
+    double dblV = 1.0f;
+    int idx = 1;
+    boolean bool = true;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    try { sk2.incN();                           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incNumLevels();                   fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setLevelZeroSorted(bool);         fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxDoubleValue(dblV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinDoubleValue(dblV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinK(idx);                     fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setN(idx);                        fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setNumLevels(idx);                fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getDoubleSingleItem();            fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getFloatSingleItem();             fail(); } catch (SketchesArgumentException e) { }
   }
 
   private static KllDoublesSketch getDDSketch(final int k, final int n) {
