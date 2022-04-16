@@ -141,7 +141,7 @@ final class KllHelper {
       //and grows the levels array and increments numLevels_.
       KllHelper.addEmptyTopLevelToCompletelyFullSketch(mine);
     }
-
+    //after this point, the levelsArray will not be expanded, only modified.
     final int[] myLevelsArr = mine.getLevelsArray();
     final int rawBeg = myLevelsArr[level];
     final int rawEnd = myLevelsArr[level + 1];
@@ -244,29 +244,30 @@ final class KllHelper {
         }
       }
     }
-    mine.setLevelsArrayAtMinusEq(level + 1, halfAdjPop); // adjust boundaries of the level above
+    int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
+    mine.setLevelsArrayAt(level + 1, newIndex);
 
     if (oddPop) {
-      mine.setLevelsArrayAt(level, mine.getLevelsArrayAt(level + 1) - 1); // the current level now contains one item
+      mine.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
       if (mine.sketchType == DOUBLES_SKETCH) {
         mine.setDoubleItemsArrayAt(
-            mine.getLevelsArrayAt(level), mine.getDoubleItemsArray()[rawBeg]); // namely this leftover guy
+            myLevelsArr[level], mine.getDoubleItemsArray()[rawBeg]); // namely this leftover guy
       } else {
         mine.setFloatItemsArrayAt(
-            mine.getLevelsArrayAt(level), mine.getFloatItemsArray()[rawBeg]); // namely this leftover guy
+            myLevelsArr[level], mine.getFloatItemsArray()[rawBeg]); // namely this leftover guy
       }
 
     } else {
-      mine.setLevelsArrayAt(level, mine.getLevelsArrayAt(level + 1)); // the current level is now empty
+      mine.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
     }
 
     // verify that we freed up halfAdjPop array slots just below the current level
-    assert mine.getLevelsArrayAt(level) == rawBeg + halfAdjPop;
+    assert myLevelsArr[level] == rawBeg + halfAdjPop;
 
     // finally, we need to shift up the data in the levels below
     // so that the freed-up space can be used by level zero
     if (level > 0) {
-      final int amount = rawBeg - mine.getLevelsArrayAt(0);
+      final int amount = rawBeg - myLevelsArr[0];
       if (mine.sketchType == DOUBLES_SKETCH) {
         if (mine.updatableMemFormat) {
           myDoubleItemsArr = mine.getDoubleItemsArray();
@@ -285,7 +286,8 @@ final class KllHelper {
         }
       }
       for (int lvl = 0; lvl < level; lvl++) {
-        mine.setLevelsArrayAtPlusEq(lvl, halfAdjPop);
+        newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
+        mine.setLevelsArrayAt(lvl, newIndex);
       }
     }
   }
@@ -912,7 +914,7 @@ final class KllHelper {
    * @param args arguments
    */
   private static void printf(final String fmt, final Object ... args) {
-    System.out.printf(fmt, args); //Disable
+    //System.out.printf(fmt, args); //Disable
   }
 
   /**
@@ -920,7 +922,7 @@ final class KllHelper {
    * @param o object to print
    */
   private static void println(final Object o) {
-    System.out.println(o.toString());
+    //System.out.println(o.toString()); //Disable
   }
 
 }

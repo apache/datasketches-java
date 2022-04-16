@@ -435,16 +435,16 @@ public class KllFloatsSketchTest {
     KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
     Memory mem = Memory.wrap(sk1.toByteArray());
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
-    try { sk2.update(1); } catch (SketchesArgumentException e) { }
+    try { sk2.update(1); fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test
   public void checkNewDirectInstanceAndSize() {
     WritableMemory wmem = WritableMemory.allocate(3000);
     KllFloatsSketch.newDirectInstance(wmem, memReqSvr);
-    try { KllFloatsSketch.newDirectInstance(null, memReqSvr); }
+    try { KllFloatsSketch.newDirectInstance(null, memReqSvr); fail(); }
     catch (NullPointerException e) { }
-    try { KllFloatsSketch.newDirectInstance(wmem, null); }
+    try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
     catch (NullPointerException e) { }
     int updateSize = KllFloatsSketch.getMaxSerializedSizeBytes(200, 0, true);
     int compactSize = KllFloatsSketch.getMaxSerializedSizeBytes(200, 0, false);

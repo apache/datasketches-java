@@ -303,11 +303,12 @@ final class KllDoublesHelper {
     final double prevMax = mine.getMaxDoubleValue();
     mine.setMinDoubleValue(resolveDoubleMinValue(prevMin, value));
     mine.setMaxDoubleValue(resolveDoubleMaxValue(prevMax, value));
-    if (mine.getLevelsArrayAt(0) == 0) { KllHelper.compressWhileUpdatingSketch(mine); }
+    if (mine.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(mine); }
+    final int myLevelsArrAtZero = mine.getLevelsArray()[0]; //LevelsArr could be expanded
     mine.incN();
     mine.setLevelZeroSorted(false);
-    final int nextPos = mine.getLevelsArrayAt(0) - 1;
-    assert mine.getLevelsArrayAt(0) >= 0;
+    final int nextPos = myLevelsArrAtZero - 1;
+    assert myLevelsArrAtZero >= 0;
     mine.setLevelsArrayAt(0, nextPos);
     mine.setDoubleItemsArrayAt(nextPos, value);
   }
@@ -438,6 +439,7 @@ final class KllDoublesHelper {
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
+      if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
     }
     return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
   }

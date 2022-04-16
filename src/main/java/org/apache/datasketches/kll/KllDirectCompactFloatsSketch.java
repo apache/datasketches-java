@@ -55,19 +55,17 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   float[] getFloatItemsArray() {
     final int k = getK();
     if (isEmpty()) { return new float[k]; }
-    final float[] itemsArr;
     if (isSingleItem()) {
-      itemsArr = new float[k];
+      final float[] itemsArr = new float[k];
       itemsArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
       return itemsArr;
     }
-    final int numLevels = getNumLevels();
-    final int levelsBytes = numLevels * Integer.BYTES; //compact format!
-    final int allItems =  levelsArr[numLevels];
-    itemsArr = new float[allItems];
-    final int shift = levelsArr[0];
+    final int capacityItems =  levelsArr[getNumLevels()];
+    final float[] itemsArr = new float[capacityItems];
+    final int levelsBytes = (levelsArr.length - 1) * Integer.BYTES; //compact format!
     final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
-    wmem.getFloatArray(offset, itemsArr, shift, allItems - shift);
+    final int shift = levelsArr[0];
+    wmem.getFloatArray(offset, itemsArr, shift, capacityItems - shift);
     return itemsArr;
   }
 

@@ -21,6 +21,7 @@ package org.apache.datasketches.kll;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -69,6 +70,7 @@ public class KllDirectCompactFloatsSketchTest {
     assertEquals(sk2.getN(), 2);
     try {
       sk2.getFloatSingleItem();
+      fail();
     } catch (SketchesArgumentException e) {  }
   }
 

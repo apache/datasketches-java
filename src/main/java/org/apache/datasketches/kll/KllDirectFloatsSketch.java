@@ -127,11 +127,11 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override //returns entire array including empty space at bottom
   float[] getFloatItemsArray() {
-    final int items = levelsArr[getNumLevels()];
-    final float[] itemsArr = new float[items];
-    final int levelsBytes = levelsArr.length * Integer.BYTES;
+    final int capacityItems = levelsArr[getNumLevels()];
+    final float[] itemsArr = new float[capacityItems];
+    final int levelsBytes = levelsArr.length * Integer.BYTES; //updatable format
     final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
-    wmem.getFloatArray(offset, itemsArr, 0, items);
+    wmem.getFloatArray(offset, itemsArr, 0, capacityItems);
     return itemsArr;
   }
 

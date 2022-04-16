@@ -124,11 +124,11 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
 
   @Override //returns entire array including empty space at bottom
   double[] getDoubleItemsArray() {
-    final int items = levelsArr[getNumLevels()];
-    final double[] itemsArr = new double[items];
-    final int levelsBytes = levelsArr.length * Integer.BYTES;
+    final int capacityItems = levelsArr[getNumLevels()];
+    final double[] itemsArr = new double[capacityItems];
+    final int levelsBytes = levelsArr.length * Integer.BYTES; //updatable format
     final int offset = DATA_START_ADR + levelsBytes + 2 * Double.BYTES;
-    wmem.getDoubleArray(offset, itemsArr, 0, items);
+    wmem.getDoubleArray(offset, itemsArr, 0, capacityItems);
     return itemsArr;
   }
 

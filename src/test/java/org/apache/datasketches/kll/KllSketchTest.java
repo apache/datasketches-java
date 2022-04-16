@@ -122,8 +122,6 @@ public class KllSketchTest {
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
     try { sk2.setLevelsArray(intArr);              fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelsArrayAt(idx,intV);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setLevelsArrayAtMinusEq(intV, intV); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setLevelsArrayAtPlusEq(intV, intV);  fail(); } catch (SketchesArgumentException e) { }
   }
 
   @SuppressWarnings("unused")

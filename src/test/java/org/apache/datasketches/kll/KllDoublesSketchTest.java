@@ -435,16 +435,16 @@ public class KllDoublesSketchTest {
     KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance(20);
     Memory mem = Memory.wrap(sk1.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(mem);
-    try { sk2.update(1); } catch (SketchesArgumentException e) { }
+    try { sk2.update(1); fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test
   public void checkNewDirectInstanceAndSize() {
     WritableMemory wmem = WritableMemory.allocate(3000);
     KllDoublesSketch.newDirectInstance(wmem, memReqSvr);
-    try { KllDoublesSketch.newDirectInstance(null, memReqSvr); }
+    try { KllDoublesSketch.newDirectInstance(null, memReqSvr); fail(); }
     catch (NullPointerException e) { }
-    try { KllFloatsSketch.newDirectInstance(wmem, null); }
+    try { KllFloatsSketch.newDirectInstance(wmem, null); fail(); }
     catch (NullPointerException e) { }
     int updateSize = KllDoublesSketch.getMaxSerializedSizeBytes(200, 0, true);
     int compactSize = KllDoublesSketch.getMaxSerializedSizeBytes(200, 0, false);

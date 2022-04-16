@@ -647,6 +647,22 @@ public class KllDirectDoublesSketchTest {
     try { sk2.getFloatSingleItem();             fail(); } catch (SketchesArgumentException e) { }
   }
 
+  @Test(expectedExceptions = SketchesArgumentException.class)
+  public void checkMergeExceptions() {
+    KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance(20);
+    WritableMemory srcMem1 = WritableMemory.writableWrap(sk1.toByteArray());
+    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem1, memReqSvr);
+    sk2.merge(sk1);
+  }
+
+  @Test
+  public void checkMergeExceptionsWrongType() {
+    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
+    KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
+    try { sk1.merge(sk2); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.merge(sk1); fail(); } catch (SketchesArgumentException e) { }
+  }
+
   private static KllDoublesSketch getDDSketch(final int k, final int n) {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }

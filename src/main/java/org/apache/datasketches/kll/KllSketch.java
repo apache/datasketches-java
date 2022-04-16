@@ -76,14 +76,9 @@ public abstract class KllSketch {
 
   enum Error {
     TGT_IS_READ_ONLY("Given sketch Memory is immutable, cannot write."),
-    SRC_MUST_BE_COMPACT("Given sketch must be in compact form"),
-    SRC_MUST_BE_DIRECT("Given sketch must be of type Direct."),
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
-    SRC_CANNOT_BE_DIRECT("Given sketch cannot be of type Direct."),
-    MEMORY_NOT_UPDATABLE_FORMAT("Memory must be in updatableFormat"),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
-    EMPTY_NO_DATA("Improper request for data from an empty sketch."),
     SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
     ERROR_UNKNOWN("Possible sketch corruption: Unknown error.");
 
@@ -476,10 +471,6 @@ public abstract class KllSketch {
     return levelsArr;
   }
 
-  final int getLevelsArrayAt(final int index) {
-    return levelsArr[index];
-  }
-
   /**
    * Returns the configured parameter <i>m</i>, which is the minimum level size in number of items.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
@@ -550,26 +541,6 @@ public abstract class KllSketch {
     if (wmem != null) {
       final int offset = DATA_START_ADR + index * Integer.BYTES;
       wmem.putInt(offset, value);
-    }
-  }
-
-  final void setLevelsArrayAtMinusEq(final int index, final int minusEq) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    this.levelsArr[index] -= minusEq;
-    if (wmem != null) {
-      final int offset = DATA_START_ADR + index * Integer.BYTES;
-      final int v = wmem.getInt(offset) - minusEq;
-      wmem.putInt(offset, v);
-    }
-  }
-
-  final void setLevelsArrayAtPlusEq(final int index, final int plusEq) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    this.levelsArr[index] += plusEq;
-    if (wmem != null) {
-      final int offset = DATA_START_ADR + index * Integer.BYTES;
-      final int v = wmem.getInt(offset) + plusEq;
-      wmem.putInt(offset, v);
     }
   }
 

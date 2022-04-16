@@ -55,19 +55,17 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   double[] getDoubleItemsArray() {
     final int k = getK();
     if (isEmpty()) { return new double[k]; }
-    final double[] itemsArr;
     if (isSingleItem()) {
-      itemsArr = new double[k];
+      final double[] itemsArr = new double[k];
       itemsArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
       return itemsArr;
     }
-    final int numLevels = getNumLevels();
-    final int levelsBytes = numLevels * Integer.BYTES; //compact format!
-    final int allItems =  levelsArr[numLevels];
-    itemsArr = new double[allItems];
-    final int shift = levelsArr[0];
+    final int capacityItems =  levelsArr[getNumLevels()];
+    final double[] itemsArr = new double[capacityItems];
+    final int levelsBytes = (levelsArr.length - 1) * Integer.BYTES; //compact format!
     final int offset = DATA_START_ADR + levelsBytes + 2 * Double.BYTES;
-    wmem.getDoubleArray(offset, itemsArr, shift, allItems - shift);
+    final int shift = levelsArr[0];
+    wmem.getDoubleArray(offset, itemsArr, shift, capacityItems - shift);
     return itemsArr;
   }
 
