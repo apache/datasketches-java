@@ -438,7 +438,6 @@ final class KllFloatsHelper {
     final float[] myFloatItemsArr = mine.getFloatItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myFloatItemsArr, myLevelsArr[0], myLevelsArr[1]);
-      mine.setLevelZeroSorted(true);
     }
     return new KllFloatsQuantileCalculator(myFloatItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
   }

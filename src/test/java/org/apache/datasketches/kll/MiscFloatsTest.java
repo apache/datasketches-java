@@ -27,7 +27,6 @@ import java.util.Objects;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -500,105 +499,6 @@ public class MiscFloatsTest {
     assertEquals(sk1.getMinValue(), 1.0);
     assertEquals(sk1.getMaxValue(), 143.0);
   }
-
-  @Test
-  public void checkRODirectUpdatable() {
-    int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
-    Memory srcMem = Memory.wrap(byteArr);
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
-    assertEquals(sk2.getMinValue(), 1.0F);
-    assertEquals(sk2.getMaxValue(), 21.0F);
-  }
-
-  @Test
-  public void checkRODirectCompact() {
-    int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k); //Heap
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    Memory srcMem = Memory.wrap(sk.toByteArray());
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem); //case 1 compact readOnly no memReqSvr
-    println(sk2.toString(true, true));
-    assertEquals(sk2.getMinValue(), 1.0F);
-    assertEquals(sk2.getMaxValue(), 21.0F);
-    Memory srcMem2 = Memory.wrap(sk2.toByteArray());
-    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null); //case 1
-    assertEquals(sk3.getMinValue(), 1.0F);
-    assertEquals(sk3.getMaxValue(), 21.0F);
-  }
-
-  @Test
-  public void checkDirectCompactSingleItem() {
-    int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    sk.update(1);
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getFloatSingleItem(), 1.0F);
-    sk.update(2);
-    sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getN(), 2);
-    try {
-      sk2.getFloatSingleItem();
-    } catch (SketchesArgumentException e) {  }
-  }
-
-  @Test
-  public void checkDirectCompactGetFloatItemsArray() {
-    int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    float[] itemsArr = sk2.getFloatItemsArray();
-    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
-
-    sk.update(1);
-    sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getFloatItemsArray();
-    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
-    assertEquals(itemsArr[19], 1F);
-
-    for (int i = 2; i <= 21; i++) { sk.update(i); }
-    sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getFloatItemsArray();
-    assertEquals(itemsArr.length, 33);
-    assertEquals(itemsArr[22], 21);
-    //for (int i = 0; i < itemsArr.length; i++) {
-    //  println(i + ": " + itemsArr[i]);
-    //}
-  }
-
-  @Test
-  public void checkMinAndMax() {
-    int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertTrue(Float.isNaN(sk2.getMaxValue()));
-    assertTrue(Float.isNaN(sk2.getMinValue()));
-    sk.update(1);
-    sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),1.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
-    for (int i = 2; i <= 21; i++) { sk.update(i); }
-    sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),21.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
-  }
-
-  @Test
-  public void checkQuantile() {
-    int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    for (int i = 1; i <= 100; i++) { sk.update(i); }
-    float med1 = sk.getQuantile(0.5);
-    println(med1);
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    float med2 = sk2.getQuantile(0.5);
-    println(med2);
-
-  }
-
 
   @Test
   public void printlnTest() {

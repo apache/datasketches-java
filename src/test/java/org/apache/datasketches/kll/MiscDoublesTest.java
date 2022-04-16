@@ -26,7 +26,6 @@ import static org.testng.Assert.assertTrue;
 import java.util.Objects;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.SketchesArgumentException;
@@ -499,91 +498,6 @@ public class MiscDoublesTest {
     sk1.merge(sk2);
     assertEquals(sk1.getMinValue(), 1.0);
     assertEquals(sk1.getMaxValue(), 143.0);
-  }
-
-  @Test
-  public void checkRODirectUpdatable() {
-    int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
-    Memory srcMem = Memory.wrap(byteArr);
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 21.0);
-  }
-
-  @Test
-  public void checkRODirectCompact() {
-    int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k); //Heap
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    Memory srcMem = Memory.wrap(sk.toByteArray()); //case 1 compact readOnly no memReqSvr
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
-    println(sk2.toString(true, true));
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 21.0);
-    Memory srcMem2 = Memory.wrap(sk2.toByteArray());
-    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null); //case 1
-    assertEquals(sk3.getMinValue(), 1.0F);
-    assertEquals(sk3.getMaxValue(), 21.0F);
-  }
-
-  @Test
-  public void checkDirectCompactSingleItem() {
-    int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k); //Heap
-    sk.update(1);
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getDoubleSingleItem(), 1.0);
-    sk.update(2);
-    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getN(), 2);
-    try {
-      sk2.getDoubleSingleItem();
-    } catch (SketchesArgumentException e) { }
-  }
-
-  @Test
-  public void checkDirectCompactGetFloatItemsArray() {
-    int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
-
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    double[] itemsArr = sk2.getDoubleItemsArray();
-    for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
-
-    sk.update(1);
-    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getDoubleItemsArray();
-    for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
-    assertEquals(itemsArr[19], 1F);
-
-    for (int i = 2; i <= 21; i++) { sk.update(i); }
-    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getDoubleItemsArray();
-    assertEquals(itemsArr.length, 33);
-    assertEquals(itemsArr[22], 21);
-    //for (int i = 0; i < itemsArr.length; i++) {
-    //  println(i + ": " + itemsArr[i]);
-    //}
-  }
-
-  @Test
-  public void checkMinAndMax() {
-    int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertTrue(Double.isNaN(sk2.getMaxValue()));
-    assertTrue(Double.isNaN(sk2.getMinValue()));
-    sk.update(1);
-    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),1.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
-    for (int i = 2; i <= 21; i++) { sk.update(i); }
-    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),21.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
   }
 
   @Test

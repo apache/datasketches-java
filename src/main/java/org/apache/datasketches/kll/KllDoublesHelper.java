@@ -437,8 +437,7 @@ final class KllDoublesHelper {
     final int[] myLevelsArr = mine.getLevelsArray();
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     if (!mine.isLevelZeroSorted()) {
-      Arrays.sort(mine.getDoubleItemsArray(), myLevelsArr[0], myLevelsArr[1]);
-      mine.setLevelZeroSorted(true);
+      Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
     }
     return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
   }
