@@ -133,16 +133,19 @@ public class KllDirectCompactDoublesSketchTest {
   @Test
   public void checkCompactSingleItemMerge() {
     int k = 20;
-    KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance(k);
-    sk1.update(1);
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk1.toByteArray()));
-    KllDoublesSketch sk3 =  KllDoublesSketch.newHeapInstance(k);
-    sk3.merge(sk2);
-    assertEquals(sk3.getN(), 1);
-    WritableMemory wmem = WritableMemory.allocate(500);
-    KllDoublesSketch sk4 = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);
-    sk4.merge(sk2);
-    assertEquals(sk4.getN(), 1);
+    KllDoublesSketch skH1 = KllDoublesSketch.newHeapInstance(k); //Heap with 1 (single)
+    skH1.update(21);
+    KllDoublesSketch skDC1 = KllDoublesSketch.wrap(Memory.wrap(skH1.toByteArray())); //Direct Compact with 1 (single)
+    KllDoublesSketch skH20 =  KllDoublesSketch.newHeapInstance(k); //Heap with 20
+    for (int i = 1; i <= 20; i++) { skH20.update(i); }
+    skH20.merge(skDC1);
+    assertEquals(skH20.getN(), 21);
+
+    WritableMemory wmem = WritableMemory.allocate(1000);
+    KllDoublesSketch skDU20 = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);//Direct Updatable with 21
+    for (int i = 1; i <= 20; i++) { skDU20.update(i); }
+    skDU20.merge(skDC1);
+    assertEquals(skDU20.getN(), 21);
   }
 
   @Test
