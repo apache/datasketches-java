@@ -129,9 +129,9 @@ final class KllDoublesHelper {
   static void mergeDoubleImpl(final KllSketch mine, final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = mine.getN() + other.getN();
-    final double[] otherDoubleItemsArr = other.getDoubleItemsArray();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
+    final double[] otherDoubleItemsArr;
     //capture my min & max, minK
     final double myMin = mine.getMinDoubleValue();
     final double myMax = mine.getMaxDoubleValue();
@@ -139,8 +139,10 @@ final class KllDoublesHelper {
 
     //update this sketch with level0 items from the other sketch
     if (other.isCompactSingleItem()) {
-      updateDouble(mine, other.getFloatSingleItem());
+      updateDouble(mine, other.getDoubleSingleItem());
+      otherDoubleItemsArr = new double[0];
     } else {
+      otherDoubleItemsArr = other.getDoubleItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
         KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
       }
@@ -150,11 +152,11 @@ final class KllDoublesHelper {
     final int[] myCurLevelsArr = mine.getLevelsArray();
     final double[] myCurDoubleItemsArr = mine.getDoubleItemsArray();
 
-    final int myNewNumLevels;
-    final int[] myNewLevelsArr;
-    final double[] myNewDoubleItemsArr;
+    int myNewNumLevels = myCurNumLevels;
+    int[] myNewLevelsArr = myCurLevelsArr;
+    double[] myNewDoubleItemsArr = myCurDoubleItemsArr;
 
-    if (otherNumLevels > 1) { //now merge other levels if they exist
+    if (otherNumLevels > 1 && !other.isCompactSingleItem()) { //now merge other levels if they exist
       final int tmpSpaceNeeded = mine.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final double[] workbuf = new double[tmpSpaceNeeded];
@@ -164,7 +166,9 @@ final class KllDoublesHelper {
 
       final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
 
-      populateDoubleWorkArrays(mine, other, workbuf, worklevels, provisionalNumLevels);
+      populateDoubleWorkArrays(workbuf, worklevels, provisionalNumLevels,
+          myCurNumLevels, myCurLevelsArr, myCurDoubleItemsArr,
+          otherNumLevels, otherLevelsArr, otherDoubleItemsArr);
 
       // notice that workbuf is being used as both the input and output
       final int[] result = generalDoublesCompress(mine.getK(), mine.getM(), provisionalNumLevels,
@@ -202,11 +206,6 @@ final class KllDoublesHelper {
       if (mine.updatableMemFormat) {
         mine.wmem = KllHelper.memorySpaceMgmt(mine, myNewLevelsArr.length, myNewDoubleItemsArr.length);
       }
-
-    } else {
-      myNewNumLevels = myCurNumLevels;
-      myNewLevelsArr = myCurLevelsArr;
-      myNewDoubleItemsArr = myCurDoubleItemsArr;
     }
 
     //Update Preamble:
@@ -481,30 +480,28 @@ final class KllDoublesHelper {
     }
   }
 
-  private static void populateDoubleWorkArrays(final KllSketch mine, final KllSketch other, final double[] workbuf,
-      final int[] worklevels, final int provisionalNumLevels) {
+  private static void populateDoubleWorkArrays(
+      final double[] workbuf, final int[] worklevels, final int provisionalNumLevels,
+      final int myCurNumLevels, final int[] myCurLevelsArr, final double[] myCurDoubleItemsArr,
+      final int otherNumLevels, final int[] otherLevelsArr, final double[] otherDoubleItemsArr) {
     worklevels[0] = 0;
-    final int[] myLevelsArr = mine.getLevelsArray();
-    final int[] otherLevelsArr = other.getLevelsArray();
-    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
-    final double[] otherDoubleItemsArr = other.getDoubleItemsArray();
 
     // Note: the level zero data from "other" was already inserted into "self"
-    final int selfPopZero = KllHelper.currentLevelSize(0, mine.getNumLevels(),myLevelsArr);
-    System.arraycopy(myDoubleItemsArr, myLevelsArr[0], workbuf, worklevels[0], selfPopZero);
+    final int selfPopZero = KllHelper.currentLevelSize(0, myCurNumLevels,myCurLevelsArr);
+    System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
 
     for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
-      final int selfPop = KllHelper.currentLevelSize(lvl, mine.getNumLevels(), myLevelsArr);
-      final int otherPop = KllHelper.currentLevelSize(lvl, other.getNumLevels(), otherLevelsArr);
+      final int selfPop = KllHelper.currentLevelSize(lvl, myCurNumLevels, myCurLevelsArr);
+      final int otherPop = KllHelper.currentLevelSize(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
 
       if (selfPop > 0 && otherPop == 0) {
-        System.arraycopy(myDoubleItemsArr, myLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
+        System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
       } else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
       } else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedDoubleArrays(myDoubleItemsArr, myLevelsArr[lvl], selfPop, otherDoubleItemsArr,
+        mergeSortedDoubleArrays(myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop, otherDoubleItemsArr,
             otherLevelsArr[lvl], otherPop, workbuf, worklevels[lvl]);
       }
     }

@@ -80,7 +80,7 @@ public abstract class KllSketch {
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
     SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
-    ERROR_UNKNOWN("Possible sketch corruption: Unknown error.");
+    MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null.");
 
     private String msg;
 
@@ -125,7 +125,7 @@ public abstract class KllSketch {
   WritableMemory wmem;
 
   /**
-   * Constructor for writable updatable memory and for the Heap.
+   * Constructor for on-heap and off-heap.
    * If both wmem and memReqSvr are null, this is a heap constructor.
    * If wmem != null and wmem is not readOnly, then memReqSvr must not be null.
    * If wmem was derived from an original Memory instance via a cast, it will be readOnly.
@@ -139,31 +139,16 @@ public abstract class KllSketch {
    if (wmem != null) {
      this.updatableMemFormat = KllPreambleUtil.getMemoryUpdatableFormatFlag(wmem);
      this.readOnly = wmem.isReadOnly() || !updatableMemFormat;
-     final int sw = (readOnly ? 1 : 0)
-         | (updatableMemFormat ? 2 : 0)
-         | ((memReqSvr != null) ? 4 : 0);
-     switch (sw) {
-       case 1:   //no MemReqSvr, compact, readOnly -> ReadOnly Compact
-       case 5:   //MemReqSvr, compact, readOnly -> ReadOnly Compact, ignore MemReqSvr
-       case 3:   //no MemReqSvr, updatable, readOnly -> ReadOnly Updatable
-       case 7: { //MemReqSvr, updatable, readOnly -> ReadOnly Updatable, ignore MemReqSvr
-         this.memReqSvr = null;
-         break;
-       }
-       case 6: { //MemReqSvr, updatable, writable -> Normal Direct
-         this.memReqSvr = memReqSvr;
-         break;
-       }
-       default: { //unlikely
-         this.memReqSvr = null;
-         kllSketchThrow(Error.ERROR_UNKNOWN);
-         break;
-       }
+     if (readOnly) {
+       this.memReqSvr = null;
+     } else {
+       if (memReqSvr == null) { kllSketchThrow(Error.MRS_MUST_NOT_BE_NULL); }
+       this.memReqSvr = memReqSvr;
      }
    } else { //wmem is null, heap case
      this.updatableMemFormat = false;
-     this.memReqSvr = null; //no matter what
-     this.readOnly = false; //heap sketch
+     this.memReqSvr = null;
+     this.readOnly = false;
    }
   }
 

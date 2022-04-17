@@ -82,7 +82,7 @@ public class KllSketchTest {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr); //KllSketch case5
+    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     assertFalse(wmem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
@@ -94,7 +94,7 @@ public class KllSketchTest {
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     Memory mem = Memory.wrap(sk.toUpdatableByteArray());
     WritableMemory wmem = (WritableMemory) mem;
-    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, null); //KllSketch case3
+    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, null);
     assertTrue(wmem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
@@ -106,7 +106,7 @@ public class KllSketchTest {
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     Memory mem = Memory.wrap(sk.toUpdatableByteArray());
     WritableMemory wmem = (WritableMemory) mem;
-    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr); //KllSketch case7
+    KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     assertTrue(wmem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());

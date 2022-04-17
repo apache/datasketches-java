@@ -152,16 +152,16 @@
  *
  * <ul>
  * <li><b>KllFloatsSketch</b>: This operates on the Java heap and uses the java <i>float</i> primitive for the
- * smallest possible size. It can be serialized to a compact, immutable format or to an updatable format suitable for
- * use by the Kll Direct sketches.</li>
+ * smallest possible size. It can be serialized to a compact, immutable format or to an updatable format, which can
+ * be modified off-heap. </li>
  * <li><b>KllDoublesSketch</b>: This operates on the Java heap and uses the java <i>double</i> primitive for a much
  * larger range of numeric values, and is larger as a result. It can be serialized to a compact, immutable format or
- * to an updatable format suitable for use by the Kll Direct sketches.</li>
- * <li><b>KllDirectFloatsSketch</b>: This is intended to operate off-heap and performs all of its operations in one
- * contiguous chunk of memory. It uses the java <i>float</i> primitive for the smallest possible size off-heap.</li>
- * <li><b>KllDirectDoublesSketch</b>:   This is intended to operate off-heap and performs all of its operations in one
- * contiguous chunk of memory. It uses the java <i>double</i> primitive for a much larger range of numeric values,
- * and is larger as a result.</li>
+ * to an updatable format, which can be modified off-heap.</li>
+ * <li><b>KllFloatsSketchIterator</b>: Iterates over the retained values and weights of the KllFloatsSketch.</li>
+ * <li><b>KllDoublesSketchIterator</b>: : Iterates over the retained values and weights of the KllDoublesSketch.</li>
+ * <li><b>KllSketch</b>: The root of the Kll Sketch hierarchy and home of all methods that are in common with both
+ * the KllFloatsSketch and the KllDoublesSketch.
+ * </li>
  * </ul>
  *
  * <p>Please visit our website: <a href="https://datasketches.apache.org">DataSketches Home Page</a> for more

@@ -24,11 +24,13 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class KllDirectCompactDoublesSketchTest {
+  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkRODirectUpdatable() {
@@ -45,15 +47,15 @@ public class KllDirectCompactDoublesSketchTest {
   @Test
   public void checkRODirectCompact() {
     int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k); //Heap
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    Memory srcMem = Memory.wrap(sk.toByteArray()); //case 1 compact readOnly no memReqSvr
+    Memory srcMem = Memory.wrap(sk.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
     println(sk2.toString(true, true));
     assertEquals(sk2.getMinValue(), 1.0);
     assertEquals(sk2.getMaxValue(), 21.0);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
-    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null); //case 1
+    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null);
     assertEquals(sk3.getMinValue(), 1.0F);
     assertEquals(sk3.getMaxValue(), 21.0F);
   }
@@ -61,7 +63,7 @@ public class KllDirectCompactDoublesSketchTest {
   @Test
   public void checkDirectCompactSingleItem() {
     int k = 20;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k); //Heap
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     sk.update(1);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getDoubleSingleItem(), 1.0);
@@ -126,6 +128,21 @@ public class KllDirectCompactDoublesSketchTest {
     assertEquals(med1, med2);
     println("Med1: " + med1);
     println("Med2: " + med2);
+  }
+
+  @Test
+  public void checkCompactSingleItemMerge() {
+    int k = 20;
+    KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance(k);
+    sk1.update(1);
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk1.toByteArray()));
+    KllDoublesSketch sk3 =  KllDoublesSketch.newHeapInstance(k);
+    sk3.merge(sk2);
+    assertEquals(sk3.getN(), 1);
+    WritableMemory wmem = WritableMemory.allocate(500);
+    KllDoublesSketch sk4 = KllDoublesSketch.newDirectInstance(k, wmem, memReqSvr);
+    sk4.merge(sk2);
+    assertEquals(sk4.getN(), 1);
   }
 
   @Test

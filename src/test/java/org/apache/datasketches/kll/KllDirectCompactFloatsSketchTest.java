@@ -24,11 +24,13 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
 public class KllDirectCompactFloatsSketchTest {
+  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkRODirectUpdatable() {
@@ -45,15 +47,15 @@ public class KllDirectCompactFloatsSketchTest {
   @Test
   public void checkRODirectCompact() {
     int k = 20;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k); //Heap
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     Memory srcMem = Memory.wrap(sk.toByteArray());
-    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem); //case 1 compact readOnly no memReqSvr
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
     println(sk2.toString(true, true));
     assertEquals(sk2.getMinValue(), 1.0F);
     assertEquals(sk2.getMaxValue(), 21.0F);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
-    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null); //case 1
+    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null);
     assertEquals(sk3.getMinValue(), 1.0F);
     assertEquals(sk3.getMaxValue(), 21.0F);
   }
@@ -126,6 +128,24 @@ public class KllDirectCompactFloatsSketchTest {
     assertEquals(med1, med2);
     println("Med1: " + med1);
     println("Med2: " + med2);
+  }
+
+  @Test
+  public void checkCompactSingleItemMerge() {
+    int k = 20;
+    KllFloatsSketch skH1 = KllFloatsSketch.newHeapInstance(k); //Heap with 1 (single)
+    skH1.update(21);
+    KllFloatsSketch skDC1 = KllFloatsSketch.wrap(Memory.wrap(skH1.toByteArray())); //Direct Compact with 1 (single)
+    KllFloatsSketch skH20 =  KllFloatsSketch.newHeapInstance(k); //Heap with 20
+    for (int i = 1; i <= 20; i++) { skH20.update(i); }
+    skH20.merge(skDC1);
+    assertEquals(skH20.getN(), 21);
+
+    WritableMemory wmem = WritableMemory.allocate(1000);
+    KllFloatsSketch skDU20 = KllFloatsSketch.newDirectInstance(k, wmem, memReqSvr);//Direct Updatable with 21
+    for (int i = 1; i <= 20; i++) { skDU20.update(i); }
+    skDU20.merge(skDC1);
+    assertEquals(skDU20.getN(), 21);
   }
 
   @Test

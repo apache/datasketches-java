@@ -129,9 +129,9 @@ final class KllFloatsHelper {
   static void mergeFloatImpl(final KllSketch mine, final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = mine.getN() + other.getN();
-    final float[] otherFloatItemsArr = other.getFloatItemsArray();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
+    final float[] otherFloatItemsArr;
     //capture my min & max, minK
     final float myMin = mine.getMinFloatValue();
     final float myMax = mine.getMaxFloatValue();
@@ -140,7 +140,9 @@ final class KllFloatsHelper {
     //update this sketch with level0 items from the other sketch
     if (other.isCompactSingleItem()) {
       updateFloat(mine, other.getFloatSingleItem());
+      otherFloatItemsArr = new float[0];
     } else {
+      otherFloatItemsArr = other.getFloatItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
        updateFloat(mine, otherFloatItemsArr[i]);
       }
@@ -150,11 +152,11 @@ final class KllFloatsHelper {
     final int[] myCurLevelsArr = mine.getLevelsArray();
     final float[] myCurFloatItemsArr = mine.getFloatItemsArray();
 
-    final int myNewNumLevels;
-    final int[] myNewLevelsArr;
-    final float[] myNewFloatItemsArr;
+    int myNewNumLevels = myCurNumLevels;
+    int[] myNewLevelsArr = myCurLevelsArr;
+    float[] myNewFloatItemsArr = myCurFloatItemsArr;
 
-    if (otherNumLevels > 1) { //now merge higher levels if they exist
+    if (otherNumLevels > 1  && !other.isCompactSingleItem()) { //now merge higher levels if they exist
       final int tmpSpaceNeeded = mine.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final float[] workbuf = new float[tmpSpaceNeeded];
@@ -164,7 +166,9 @@ final class KllFloatsHelper {
 
       final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
 
-      populateFloatWorkArrays(mine, other, workbuf, worklevels, provisionalNumLevels);
+      populateFloatWorkArrays(workbuf, worklevels, provisionalNumLevels,
+          myCurNumLevels, myCurLevelsArr, myCurFloatItemsArr,
+          otherNumLevels, otherLevelsArr, otherFloatItemsArr);
 
       // notice that workbuf is being used as both the input and output
       final int[] result = generalFloatsCompress(mine.getK(), mine.getM(), provisionalNumLevels,
@@ -202,11 +206,6 @@ final class KllFloatsHelper {
       if (mine.updatableMemFormat) {
         mine.wmem = KllHelper.memorySpaceMgmt(mine, myNewLevelsArr.length, myNewFloatItemsArr.length);
       }
-
-    } else {
-      myNewNumLevels = myCurNumLevels;
-      myNewLevelsArr = myCurLevelsArr;
-      myNewFloatItemsArr = myCurFloatItemsArr;
     }
 
     //Update Preamble:
@@ -481,30 +480,28 @@ final class KllFloatsHelper {
     }
   }
 
-  private static void populateFloatWorkArrays(final KllSketch mine, final KllSketch other, final float[] workbuf,
-      final int[] worklevels, final int provisionalNumLevels) {
+  private static void populateFloatWorkArrays(
+      final float[] workbuf, final int[] worklevels, final int provisionalNumLevels,
+      final int myCurNumLevels, final int[] myCurLevelsArr, final float[] myCurFloatItemsArr,
+      final int otherNumLevels, final int[] otherLevelsArr, final float[] otherFloatItemsArr) {
     worklevels[0] = 0;
-    final int[] myLevelsArr = mine.getLevelsArray();
-    final int[] otherLevelsArr = other.getLevelsArray();
-    final float[] myFloatItemsArr = mine.getFloatItemsArray();
-    final float[] otherFloatItemsArr = other.getFloatItemsArray();
 
     // Note: the level zero data from "other" was already inserted into "self"
-    final int selfPopZero = KllHelper.currentLevelSize(0, mine.getNumLevels(), myLevelsArr);
-    System.arraycopy( myFloatItemsArr, myLevelsArr[0], workbuf, worklevels[0], selfPopZero);
+    final int selfPopZero = KllHelper.currentLevelSize(0, myCurNumLevels, myCurLevelsArr);
+    System.arraycopy( myCurFloatItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
 
     for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
-      final int selfPop = KllHelper.currentLevelSize(lvl, mine.getNumLevels(), myLevelsArr);
-      final int otherPop = KllHelper.currentLevelSize(lvl, other.getNumLevels(), otherLevelsArr);
+      final int selfPop = KllHelper.currentLevelSize(lvl, myCurNumLevels, myCurLevelsArr);
+      final int otherPop = KllHelper.currentLevelSize(lvl, otherNumLevels, otherLevelsArr);
       worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
 
       if (selfPop > 0 && otherPop == 0) {
-        System.arraycopy( myFloatItemsArr, myLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
+        System.arraycopy(myCurFloatItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
       } else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherFloatItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
       } else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedFloatArrays( myFloatItemsArr, myLevelsArr[lvl], selfPop, otherFloatItemsArr,
+        mergeSortedFloatArrays( myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop, otherFloatItemsArr,
             otherLevelsArr[lvl], otherPop, workbuf, worklevels[lvl]);
       }
     }
