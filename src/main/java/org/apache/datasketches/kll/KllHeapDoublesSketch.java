@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.Memory;
@@ -126,7 +127,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   double[] getDoubleItemsArray() { return doubleItems_; }
 
   @Override
-  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
+  double getDoubleSingleItem() {
+    if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_ITEM); return Double.NaN; }
+    return doubleItems_[k_ - 1];
+  }
 
   @Override
   float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }

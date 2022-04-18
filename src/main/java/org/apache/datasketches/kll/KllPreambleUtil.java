@@ -146,11 +146,12 @@ final class KllPreambleUtil {
   static final int DATA_START_ADR             = 20; // Full Sketch, not single item
 
   // Other static values
-  static final byte SERIAL_VERSION_EMPTY_FULL = 1; // Empty or full preamble, NOT single item format
-  static final byte SERIAL_VERSION_SINGLE     = 2; // only single-item format
-  static final byte SERIAL_VERSION_UPDATABLE  = 3; //
-  static final int PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
-  static final int PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item
+  static final byte SERIAL_VERSION_EMPTY_FULL  = 1; // Empty or full preamble, NOT single item format
+  static final byte SERIAL_VERSION_SINGLE      = 2; // only single-item format
+  static final byte SERIAL_VERSION_UPDATABLE   = 3; //
+  static final byte PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
+  static final byte PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item
+  static final byte KLL_FAMILY                 = 15;
 
   // Flag bit masks
   static final int EMPTY_BIT_MASK             = 1;

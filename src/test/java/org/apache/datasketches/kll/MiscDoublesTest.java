@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Objects;
 
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.SketchesArgumentException;
@@ -37,6 +38,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class MiscDoublesTest {
   static final String LS = System.getProperty("line.separator");
+  private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkBounds() {
@@ -486,7 +488,7 @@ public class MiscDoublesTest {
     int n2 = 43;
     WritableMemory wmem = WritableMemory.allocate(3000);
     WritableMemory wmem2 = WritableMemory.allocate(3000);
-    MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
+
     KllDoublesSketch sk1 = KllDirectDoublesSketch.newDirectInstance(k, m, wmem, memReqSvr);
     KllDoublesSketch sk2 = KllDirectDoublesSketch.newDirectInstance(k, m, wmem2, memReqSvr);
     for (int i = 1; i <= n1; i++) {
@@ -498,6 +500,25 @@ public class MiscDoublesTest {
     sk1.merge(sk2);
     assertEquals(sk1.getMinValue(), 1.0);
     assertEquals(sk1.getMaxValue(), 143.0);
+  }
+
+  @Test
+  public void checkGetSingleItem() {
+    int k = 20;
+    KllDoublesSketch skHeap = KllDoublesSketch.newHeapInstance(k);
+    skHeap.update(1);
+    assertTrue(skHeap instanceof KllHeapDoublesSketch);
+    assertEquals(skHeap.getDoubleSingleItem(), 1.0);
+
+    WritableMemory srcMem = WritableMemory.writableWrap(skHeap.toUpdatableByteArray());
+    KllDoublesSketch skDirect = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
+    assertTrue(skDirect instanceof KllDirectDoublesSketch);
+    assertEquals(skDirect.getDoubleSingleItem(), 1.0);
+
+    Memory srcMem2 = Memory.wrap(skHeap.toByteArray());
+    KllDoublesSketch skCompact = KllDoublesSketch.wrap(srcMem2);
+    assertTrue(skCompact instanceof KllDirectCompactDoublesSketch);
+    assertEquals(skCompact.getDoubleSingleItem(), 1.0);
   }
 
   @Test

@@ -27,6 +27,7 @@ import java.util.Objects;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
@@ -37,6 +38,7 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class MiscFloatsTest {
   static final String LS = System.getProperty("line.separator");
+  private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkBounds() {
@@ -486,7 +488,6 @@ public class MiscFloatsTest {
     int n2 = 43;
     WritableMemory wmem = WritableMemory.allocate(3000);
     WritableMemory wmem2 = WritableMemory.allocate(3000);
-    MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
     KllFloatsSketch sk1 = KllDirectFloatsSketch.newDirectInstance(k, m, wmem, memReqSvr);
     KllFloatsSketch sk2 = KllDirectFloatsSketch.newDirectInstance(k, m, wmem2, memReqSvr);
     for (int i = 1; i <= n1; i++) {
@@ -498,6 +499,25 @@ public class MiscFloatsTest {
     sk1.merge(sk2);
     assertEquals(sk1.getMinValue(), 1.0);
     assertEquals(sk1.getMaxValue(), 143.0);
+  }
+
+  @Test
+  public void checkGetSingleItem() {
+    int k = 20;
+    KllFloatsSketch skHeap = KllFloatsSketch.newHeapInstance(k);
+    skHeap.update(1);
+    assertTrue(skHeap instanceof KllHeapFloatsSketch);
+    assertEquals(skHeap.getFloatSingleItem(), 1.0F);
+
+    WritableMemory srcMem = WritableMemory.writableWrap(skHeap.toUpdatableByteArray());
+    KllFloatsSketch skDirect = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
+    assertTrue(skDirect instanceof KllDirectFloatsSketch);
+    assertEquals(skDirect.getFloatSingleItem(), 1.0F);
+
+    Memory srcMem2 = Memory.wrap(skHeap.toByteArray());
+    KllFloatsSketch skCompact = KllFloatsSketch.wrap(srcMem2);
+    assertTrue(skCompact instanceof KllDirectCompactFloatsSketch);
+    assertEquals(skCompact.getFloatSingleItem(), 1.0F);
   }
 
   @Test

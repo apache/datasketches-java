@@ -57,7 +57,7 @@ public class KllDirectFloatsSketchIteratorTest {
       int weight = 0;
       while (it.next()) {
         count++;
-        weight += it.getWeight();
+        weight += (int)it.getWeight();
       }
       Assert.assertEquals(count, sketch.getNumRetained());
       Assert.assertEquals(weight, n);

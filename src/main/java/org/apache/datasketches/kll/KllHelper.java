@@ -31,11 +31,16 @@ import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.Util.isOdd;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.KLL_FAMILY;
+import static org.apache.datasketches.kll.KllPreambleUtil.K_SHORT_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryDoubleSketchFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
@@ -53,6 +58,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.ByteArrayUtil;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
@@ -594,6 +600,8 @@ final class KllHelper {
   }
 
   static byte[] toCompactByteArrayImpl(final KllSketch mine) {
+    if (mine.isEmpty()) { return fastEmptyCompactByteArray(mine); }
+    if (mine.isSingleItem()) { return fastSingleItemCompactByteArray(mine); }
     final byte[] byteArr = new byte[mine.getCurrentCompactSerializedSizeBytes()];
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     loadFirst8Bytes(mine, wmem, false);
@@ -635,6 +643,36 @@ final class KllHelper {
         offset += Float.BYTES;
         wmem.putFloatArray(offset, mine.getFloatItemsArray(), myLevelsArr[0], mine.getNumRetained());
       }
+    }
+    return byteArr;
+  }
+
+  static byte[] fastEmptyCompactByteArray(final KllSketch mine) {
+    final int doubleFlagBit = (mine.sketchType == DOUBLES_SKETCH) ? DOUBLES_SKETCH_BIT_MASK : 0;
+    final byte[] byteArr = new byte[8];
+    byteArr[0] = PREAMBLE_INTS_EMPTY_SINGLE; //2
+    byteArr[1] = SERIAL_VERSION_EMPTY_FULL;  //1
+    byteArr[2] = KLL_FAMILY; //15
+    byteArr[3] = (byte) (EMPTY_BIT_MASK | doubleFlagBit);
+    ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)mine.getK());
+    byteArr[6] = (byte)mine.getM();
+    return byteArr;
+  }
+
+  static byte[] fastSingleItemCompactByteArray(final KllSketch mine) {
+    final boolean doubleSketch = mine.sketchType == DOUBLES_SKETCH;
+    final int doubleFlagBit = doubleSketch ? DOUBLES_SKETCH_BIT_MASK : 0;
+    final byte[] byteArr = new byte[8 + (doubleSketch ? Double.BYTES : Float.BYTES)];
+    byteArr[0] = PREAMBLE_INTS_EMPTY_SINGLE; //2
+    byteArr[1] = SERIAL_VERSION_SINGLE;      //2
+    byteArr[2] = KLL_FAMILY; //15
+    byteArr[3] = (byte) (SINGLE_ITEM_BIT_MASK | doubleFlagBit);
+    ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)mine.getK());
+    byteArr[6] = (byte)mine.getM();
+    if (doubleSketch) {
+      ByteArrayUtil.putDoubleLE(byteArr, DATA_START_ADR_SINGLE_ITEM, mine.getDoubleSingleItem());
+    } else {
+      ByteArrayUtil.putFloatLE(byteArr, DATA_START_ADR_SINGLE_ITEM, mine.getFloatSingleItem());
     }
     return byteArr;
   }

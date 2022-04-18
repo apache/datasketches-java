@@ -159,9 +159,6 @@
  * to an updatable format, which can be modified off-heap.</li>
  * <li><b>KllFloatsSketchIterator</b>: Iterates over the retained values and weights of the KllFloatsSketch.</li>
  * <li><b>KllDoublesSketchIterator</b>: : Iterates over the retained values and weights of the KllDoublesSketch.</li>
- * <li><b>KllSketch</b>: The root of the Kll Sketch hierarchy and home of all methods that are in common with both
- * the KllFloatsSketch and the KllDoublesSketch.
- * </li>
  * </ul>
  *
  * <p>Please visit our website: <a href="https://datasketches.apache.org">DataSketches Home Page</a> for more

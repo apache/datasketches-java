@@ -24,7 +24,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
-import static org.apache.datasketches.kll.KllSketch.Error.SINGLE_ITEM_IMPROPER_CALL;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.Memory;
@@ -71,7 +71,7 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
 
   @Override
   float getFloatSingleItem() {
-    if (updatableMemFormat || !isSingleItem()) { kllSketchThrow(SINGLE_ITEM_IMPROPER_CALL); }
+    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); }
     return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
   }
 
