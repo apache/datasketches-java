@@ -202,7 +202,7 @@ public class KllFloatsValidationTest {
    *  See the instructions at the bottom of that class.
    */
 
-  //@Test  //NEED TO ENABLE
+  //@Test  //NEED TO ENABLE HERE AND BELOW FOR VALIDATION
   public void checkTestResults() {
     int numTests = correctResultsWithReset.length / 7;
     for (int testI = 0; testI < numTests; testI++) {
@@ -212,14 +212,14 @@ public class KllFloatsValidationTest {
       int n = (int) correctResultsWithReset[(7 * testI) + 2];
       int stride = (int) correctResultsWithReset[(7 * testI) + 3];
       int[] inputArray = makeInputArray(n, stride);
-      KllFloatsSketch sketch = new KllFloatsSketch(k);
+      KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance(k);
       for (int i = 0; i < n; i++) {
         sketch.update(inputArray[i]);
       }
       int numLevels = sketch.getNumLevels();
       int numSamples = sketch.getNumRetained();
-      int[] levels = sketch.getLevels();
-      long hashedSamples = simpleHashOfSubArray(sketch.getItems(), levels[0], numSamples);
+      int[] levels = sketch.getLevelsArray();
+      long hashedSamples = simpleHashOfSubArray(sketch.getFloatItemsArray(), levels[0], numSamples);
       System.out.print(testI);
       assert correctResultsWithReset[(7 * testI) + 4] == numLevels;
       assert correctResultsWithReset[(7 * testI) + 5] == numSamples;

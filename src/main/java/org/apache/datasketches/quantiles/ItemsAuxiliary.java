@@ -79,13 +79,13 @@ final class ItemsAuxiliary<T> {
 
   /**
    * Get the estimated quantile given a fractional rank.
-   * @param fRank the fractional rank where: 0 &le; fRank &le; 1.0.
+   * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
    * @return the estimated quantile
    */
-  T getQuantile(final double fRank) {
-    checkFractionalRankBounds(fRank);
+  T getQuantile(final double rank) {
+    checkFractionalRankBounds(rank);
     if (auxN_ <= 0) { return null; }
-    final long pos = QuantilesHelper.posOfPhi(fRank, auxN_);
+    final long pos = QuantilesHelper.posOfRank(rank, auxN_);
     return approximatelyAnswerPositionalQuery(pos);
   }
 

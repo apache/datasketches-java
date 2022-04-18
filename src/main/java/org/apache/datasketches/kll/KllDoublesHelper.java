@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
 import static org.apache.datasketches.Util.isEven;
 import static org.apache.datasketches.Util.isOdd;
 
@@ -32,23 +34,197 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-class KllDoublesHelper {
+final class KllDoublesHelper {
 
-  /**
-   * Checks the sequential validity of the given array of double values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of values
-   */
-  static void validateDoubleValues(final double[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Double.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
+  static double getDoubleRank(final KllSketch mine, final double value) {
+    if (mine.isEmpty()) { return Double.NaN; }
+    int level = 0;
+    int weight = 1;
+    long total = 0;
+    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+    final int[] myLevelsArr = mine.getLevelsArray();
+    while (level < mine.getNumLevels()) {
+      final int fromIndex = myLevelsArr[level];
+      final int toIndex = myLevelsArr[level + 1]; // exclusive
+      for (int i = fromIndex; i < toIndex; i++) {
+        if (myDoubleItemsArr[i] < value) {
+          total += weight;
+        } else if (level > 0 || mine.isLevelZeroSorted()) {
+          break; // levels above 0 are sorted, no point comparing further
+        }
       }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
+      level++;
+      weight *= 2;
+    }
+    return (double) total / mine.getN();
+  }
+
+  static double[] getDoublesPmfOrCdf(final KllSketch mine, final double[] splitPoints, final boolean isCdf) {
+    if (mine.isEmpty()) { return null; }
+    validateDoubleValues(splitPoints);
+    final double[] buckets = new double[splitPoints.length + 1];
+    final int myNumLevels = mine.getNumLevels();
+    final int[] myLevelsArr = mine.getLevelsArray();
+    int level = 0;
+    int weight = 1;
+    while (level < myNumLevels) {
+      final int fromIndex = myLevelsArr[level];
+      final int toIndex = myLevelsArr[level + 1]; // exclusive
+      if (level == 0 && !mine.isLevelZeroSorted()) {
+        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+      } else {
+        KllDoublesHelper.incrementDoublesBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+      }
+      level++;
+      weight *= 2;
+    }
+    // normalize and, if CDF, convert to cumulative
+    if (isCdf) {
+      double subtotal = 0;
+      for (int i = 0; i < buckets.length; i++) {
+        subtotal += buckets[i];
+        buckets[i] = subtotal / mine.getN();
+      }
+    } else {
+      for (int i = 0; i < buckets.length; i++) {
+        buckets[i] /= mine.getN();
       }
     }
+    return buckets;
+  }
+
+  static double getDoublesQuantile(final KllSketch mine, final double fraction) {
+    if (mine.isEmpty()) { return Double.NaN; }
+    if (fraction < 0.0 || fraction > 1.0) {
+      throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
+    }
+    //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
+    if (fraction == 0.0) { return mine.getMinDoubleValue(); }
+    if (fraction == 1.0) { return mine.getMaxDoubleValue(); }
+    final KllDoublesQuantileCalculator quant = KllDoublesHelper.getDoublesQuantileCalculator(mine);
+    return quant.getQuantile(fraction);
+  }
+
+  static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions) {
+    if (mine.isEmpty()) { return null; }
+    KllDoublesQuantileCalculator quant = null;
+    final double[] quantiles = new double[fractions.length];
+    for (int i = 0; i < fractions.length; i++) {
+      final double fraction = fractions[i];
+      if (fraction < 0.0 || fraction > 1.0) {
+        throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
+      }
+      if      (fraction == 0.0) { quantiles[i] = mine.getMinDoubleValue(); }
+      else if (fraction == 1.0) { quantiles[i] = mine.getMaxDoubleValue(); }
+      else {
+        if (quant == null) {
+          quant = KllDoublesHelper.getDoublesQuantileCalculator(mine);
+        }
+        quantiles[i] = quant.getQuantile(fraction);
+      }
+    }
+    return quantiles;
+  }
+
+  static void mergeDoubleImpl(final KllSketch mine, final KllSketch other) {
+    if (other.isEmpty()) { return; }
+    final long finalN = mine.getN() + other.getN();
+    final int otherNumLevels = other.getNumLevels();
+    final int[] otherLevelsArr = other.getLevelsArray();
+    final double[] otherDoubleItemsArr;
+    //capture my min & max, minK
+    final double myMin = mine.getMinDoubleValue();
+    final double myMax = mine.getMaxDoubleValue();
+    final int myMinK = mine.getMinK();
+
+    //update this sketch with level0 items from the other sketch
+    if (other.isCompactSingleItem()) {
+      updateDouble(mine, other.getDoubleSingleItem());
+      otherDoubleItemsArr = new double[0];
+    } else {
+      otherDoubleItemsArr = other.getDoubleItemsArray();
+      for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
+        KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
+      }
+    }
+    // after the level 0 update, we capture the state of levels and items arrays
+    final int myCurNumLevels = mine.getNumLevels();
+    final int[] myCurLevelsArr = mine.getLevelsArray();
+    final double[] myCurDoubleItemsArr = mine.getDoubleItemsArray();
+
+    int myNewNumLevels = myCurNumLevels;
+    int[] myNewLevelsArr = myCurLevelsArr;
+    double[] myNewDoubleItemsArr = myCurDoubleItemsArr;
+
+    if (otherNumLevels > 1 && !other.isCompactSingleItem()) { //now merge other levels if they exist
+      final int tmpSpaceNeeded = mine.getNumRetained()
+          + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
+      final double[] workbuf = new double[tmpSpaceNeeded];
+      final int ub = KllHelper.ubOnNumLevels(finalN);
+      final int[] worklevels = new int[ub + 2]; // ub+1 does not work
+      final int[] outlevels  = new int[ub + 2];
+
+      final int provisionalNumLevels = max(myCurNumLevels, otherNumLevels);
+
+      populateDoubleWorkArrays(workbuf, worklevels, provisionalNumLevels,
+          myCurNumLevels, myCurLevelsArr, myCurDoubleItemsArr,
+          otherNumLevels, otherLevelsArr, otherDoubleItemsArr);
+
+      // notice that workbuf is being used as both the input and output
+      final int[] result = generalDoublesCompress(mine.getK(), mine.getM(), provisionalNumLevels,
+          workbuf, worklevels, workbuf, outlevels, mine.isLevelZeroSorted(), KllSketch.random);
+      final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
+      final int curItemCount = result[2]; //was finalPop
+
+      // now we need to finalize the results for the "self" sketch
+
+      //THE NEW NUM LEVELS
+      myNewNumLevels = result[0]; //was finalNumLevels
+      assert myNewNumLevels <= ub; // ub may be much bigger
+
+      // THE NEW ITEMS ARRAY (was newbuf)
+      myNewDoubleItemsArr = (targetItemCount == myCurDoubleItemsArr.length)
+          ? myCurDoubleItemsArr
+          : new double[targetItemCount];
+      final int freeSpaceAtBottom = targetItemCount - curItemCount;
+      //shift the new items array
+      System.arraycopy(workbuf, outlevels[0], myNewDoubleItemsArr, freeSpaceAtBottom, curItemCount);
+      final int theShift = freeSpaceAtBottom - outlevels[0];
+
+      //calculate the new levels array length
+      final int finalLevelsArrLen;
+      if (myCurLevelsArr.length < myNewNumLevels + 1) { finalLevelsArrLen = myNewNumLevels + 1; }
+      else { finalLevelsArrLen = myCurLevelsArr.length; }
+
+      //THE NEW LEVELS ARRAY
+      myNewLevelsArr = new int[finalLevelsArrLen];
+      for (int lvl = 0; lvl < myNewNumLevels + 1; lvl++) { // includes the "extra" index
+        myNewLevelsArr[lvl] = outlevels[lvl] + theShift;
+      }
+
+      //MEMORY SPACE MANAGEMENT
+      if (mine.updatableMemFormat) {
+        mine.wmem = KllHelper.memorySpaceMgmt(mine, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+      }
+    }
+
+    //Update Preamble:
+    mine.setN(finalN);
+    if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
+      mine.setMinK(min(myMinK, other.getMinK()));
+    }
+
+    //Update numLevels, levelsArray, items
+    mine.setNumLevels(myNewNumLevels);
+    mine.setLevelsArray(myNewLevelsArr);
+    mine.setDoubleItemsArray(myNewDoubleItemsArr);
+
+    //Update min, max values
+    final double otherMin = other.getMinDoubleValue();
+    final double otherMax = other.getMaxDoubleValue();
+    mine.setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
+    mine.setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
+    assert KllHelper.sumTheSampleWeights(mine.getNumLevels(), mine.getLevelsArray()) == mine.getN();
   }
 
   static void mergeSortedDoubleArrays(
@@ -83,6 +259,60 @@ class KllDoublesHelper {
   }
 
   /**
+   * Validation Method. This must be modified to test validation
+   * @param buf the items array
+   * @param start data start
+   * @param length items length
+   * @param random instance of Random
+   */ //NOTE Validation Method: Need to modify.
+  static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length, final Random random) {
+    assert isEven(length);
+    final int half_length = length / 2;
+    final int offset = random.nextInt(2);       // disable for validation
+    //final int offset = deterministicOffset(); // enable for validation
+    int j = start + offset;
+    for (int i = start; i < (start + half_length); i++) {
+      buf[i] = buf[j];
+      j += 2;
+    }
+  }
+
+  /**
+   * Validation Method. This must be modified to test validation
+   * @param buf the items array
+   * @param start data start
+   * @param length items length
+   * @param random instance of Random
+   */ //NOTE Validation Method: Need to modify.
+  static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length, final Random random) {
+    assert isEven(length);
+    final int half_length = length / 2;
+    final int offset = random.nextInt(2);       // disable for validation
+    //final int offset = deterministicOffset(); // enable for validation
+    int j = (start + length) - 1 - offset;
+    for (int i = (start + length) - 1; i >= (start + half_length); i--) {
+      buf[i] = buf[j];
+      j -= 2;
+    }
+  }
+
+  static void updateDouble(final KllSketch mine, final double value) {
+    if (Double.isNaN(value)) { return; }
+    final double prevMin = mine.getMinDoubleValue();
+    final double prevMax = mine.getMaxDoubleValue();
+    mine.setMinDoubleValue(resolveDoubleMinValue(prevMin, value));
+    mine.setMaxDoubleValue(resolveDoubleMaxValue(prevMax, value));
+    if (mine.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(mine); }
+    final int myLevelsArrAtZero = mine.getLevelsArray()[0]; //LevelsArr could be expanded
+    mine.incN();
+    mine.setLevelZeroSorted(false);
+    final int nextPos = myLevelsArrAtZero - 1;
+    assert myLevelsArrAtZero >= 0;
+    mine.setLevelsArrayAt(0, nextPos);
+    mine.setDoubleItemsArrayAt(nextPos, value);
+  }
+
+  /**
    * Compression algorithm used to merge higher levels.
    * <p>Here is what we do for each level:</p>
    * <ul><li>If it does not need to be compacted, then simply copy it over.</li>
@@ -112,9 +342,10 @@ class KllDoublesHelper {
    * @param outBuf the same array as inBuf
    * @param outLevels the same size as inLevels
    * @param isLevelZeroSorted true if this.level 0 is sorted
+   * @param random instance of java.util.Random
    * @return int array of: {numLevels, targetItemCount, currentItemCount)
    */
-  static int[] generalDoublesCompress(
+  private static int[] generalDoublesCompress(
       final int k,
       final int m,
       final int numLevelsIn,
@@ -192,59 +423,133 @@ class KllDoublesHelper {
           numLevels++;
           targetItemCount += KllHelper.levelCapacity(k, numLevels, 0, m);
         }
-
       } // end of code for compacting a level
 
       // determine whether we have processed all levels yet (including any new levels that we created)
-
       if (curLevel == (numLevels - 1)) { doneYet = true; }
-
     } // end of loop over levels
 
     assert (outLevels[numLevels] - outLevels[0]) == currentItemCount;
-
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  //This must be modified for validation
-  static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length, final Random random) {
-    assert isEven(length);
-    final int half_length = length / 2;
-    final int offset = random.nextInt(2);       // disable for validation
-    //final int offset = deterministicOffset(); // enable for validation
-    int j = start + offset;
-    for (int i = start; i < (start + half_length); i++) {
-      buf[i] = buf[j];
-      j += 2;
+  private static KllDoublesQuantileCalculator getDoublesQuantileCalculator(final KllSketch mine) {
+    final int[] myLevelsArr = mine.getLevelsArray();
+    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+    if (!mine.isLevelZeroSorted()) {
+      Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
+      if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
+    }
+    return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
+  }
+
+  private static void incrementDoublesBucketsSortedLevel(
+      final KllSketch mine, final int fromIndex, final int toIndex,
+      final int weight, final double[] splitPoints, final double[] buckets) {
+    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+    int i = fromIndex;
+    int j = 0;
+    while (i <  toIndex && j < splitPoints.length) {
+      if (myDoubleItemsArr[i] < splitPoints[j]) {
+        buckets[j] += weight; // this sample goes into this bucket
+        i++; // move on to next sample and see whether it also goes into this bucket
+      } else {
+        j++; // no more samples for this bucket
+      }
+    }
+    // now either i == toIndex (we are out of samples), or
+    // j == numSplitPoints (we are out of buckets, but there are more samples remaining)
+    // we only need to do something in the latter case
+    if (j == splitPoints.length) {
+      buckets[j] += weight * (toIndex - i);
     }
   }
 
-  //This must be modified for validation
-  static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length, final Random random) {
-    assert isEven(length);
-    final int half_length = length / 2;
-    final int offset = random.nextInt(2);       // disable for validation
-    //final int offset = deterministicOffset(); // enable for validation
-    int j = (start + length) - 1 - offset;
-    for (int i = (start + length) - 1; i >= (start + half_length); i--) {
-      buf[i] = buf[j];
-      j -= 2;
+  private static void incrementDoublesBucketsUnsortedLevel(
+      final KllSketch mine, final int fromIndex, final int toIndex,
+      final int weight, final double[] splitPoints, final double[] buckets) {
+    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+    for (int i = fromIndex; i < toIndex; i++) {
+      int j;
+      for (j = 0; j < splitPoints.length; j++) {
+        if (myDoubleItemsArr[i] < splitPoints[j]) {
+          break;
+        }
+      }
+      buckets[j] += weight;
+    }
+  }
+
+  private static void populateDoubleWorkArrays(
+      final double[] workbuf, final int[] worklevels, final int provisionalNumLevels,
+      final int myCurNumLevels, final int[] myCurLevelsArr, final double[] myCurDoubleItemsArr,
+      final int otherNumLevels, final int[] otherLevelsArr, final double[] otherDoubleItemsArr) {
+    worklevels[0] = 0;
+
+    // Note: the level zero data from "other" was already inserted into "self"
+    final int selfPopZero = KllHelper.currentLevelSize(0, myCurNumLevels,myCurLevelsArr);
+    System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
+    worklevels[1] = worklevels[0] + selfPopZero;
+
+    for (int lvl = 1; lvl < provisionalNumLevels; lvl++) {
+      final int selfPop = KllHelper.currentLevelSize(lvl, myCurNumLevels, myCurLevelsArr);
+      final int otherPop = KllHelper.currentLevelSize(lvl, otherNumLevels, otherLevelsArr);
+      worklevels[lvl + 1] = worklevels[lvl] + selfPop + otherPop;
+
+      if (selfPop > 0 && otherPop == 0) {
+        System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[lvl], workbuf, worklevels[lvl], selfPop);
+      } else if (selfPop == 0 && otherPop > 0) {
+        System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
+      } else if (selfPop > 0 && otherPop > 0) {
+        mergeSortedDoubleArrays(myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop, otherDoubleItemsArr,
+            otherLevelsArr[lvl], otherPop, workbuf, worklevels[lvl]);
+      }
+    }
+  }
+
+  private static double resolveDoubleMaxValue(final double myMax, final double otherMax) {
+    if (Double.isNaN(myMax) && Double.isNaN(otherMax)) { return Double.NaN; }
+    if (Double.isNaN(myMax)) { return otherMax; }
+    if (Double.isNaN(otherMax)) { return myMax; }
+    return max(myMax, otherMax);
+  }
+
+  private static double resolveDoubleMinValue(final double myMin, final double otherMin) {
+    if (Double.isNaN(myMin) && Double.isNaN(otherMin)) { return Double.NaN; }
+    if (Double.isNaN(myMin)) { return otherMin; }
+    if (Double.isNaN(otherMin)) { return myMin; }
+    return min(myMin, otherMin);
+  }
+
+  /**
+   * Checks the sequential validity of the given array of double values.
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of values
+   */
+  private static void validateDoubleValues(final double[] values) {
+    for (int i = 0; i < values.length; i++) {
+      if (!Double.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
     }
   }
 
   /*
+   * Validation Method.
    * The following must be enabled for use with the KllDoublesValidationTest,
-   * which is only enabled for manual testing. In addition, the two methods
-   * above need to be modified as commented.
-   */
-
-  //  static int nextOffset = 0;
+   * which is only enabled for manual testing. In addition, two Validation Methods
+   * above need to be modified.
+   */ //NOTE Validation Method: Need to uncomment
+  //    static int nextOffset = 0;
   //
-  //  private static int deterministicOffset() {
-  //    final int result = nextOffset;
-  //    nextOffset = 1 - nextOffset;
-  //    return result;
-  //  }
+  //    private static int deterministicOffset() {
+  //      final int result = nextOffset;
+  //      nextOffset = 1 - nextOffset;
+  //      return result;
+  //    }
 
 }
-

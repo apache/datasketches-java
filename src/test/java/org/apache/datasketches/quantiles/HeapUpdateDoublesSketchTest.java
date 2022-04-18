@@ -855,9 +855,9 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   @Test
-  public void checkAuxPosOfPhi() throws Exception {
+  public void checkAuxPosOfRank() throws Exception {
     long n = 10;
-    long returnValue = QuantilesHelper.posOfPhi(1.0, 10);
+    long returnValue = QuantilesHelper.posOfRank(1.0, 10);
     //println("" + returnValue);
     assertEquals(returnValue, n-1);
   }

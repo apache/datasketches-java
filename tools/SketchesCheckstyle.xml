@@ -173,7 +173,7 @@ under the License.
     
     <module name="CustomImportOrder">
       <property name="specialImportsRegExp" value="org"/>
-      <property name="sortImportsInGroupAlphabetically" value="true"/>
+      <property name="sortImportsInGroupAlphabetically" value="false"/>
       <property name="separateLineBetweenGroups" value="true"/>
       <!-- Google: "STATIC###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE###STANDARD_JAVA_PACKAGE" -->
       <property name="customImportOrderRules" value="STATIC###STANDARD_JAVA_PACKAGE###SPECIAL_IMPORTS###THIRD_PARTY_PACKAGE"/>
@@ -352,6 +352,7 @@ under the License.
     <!-- Whitespace -->
     <module name="EmptyLineSeparator">
       <property name="allowNoEmptyLineBetweenFields" value="true"/>
+      <property name="allowMultipleEmptyLines" value="false"/>
     </module>
     
     <module name="GenericWhitespace">

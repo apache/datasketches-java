@@ -35,16 +35,17 @@
  *
  * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific value is defined as its
  * <i>absolute rank</i> divided by <i>N</i>.
- * Thus, the <i>normalized rank</i> is a value between zero and one.
+ * Thus, the <i>normalized rank</i> is a value in the interval [0.0, 1.0).
  * In the documentation and Javadocs for this sketch <i>absolute rank</i> is never used so any
  * reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.
  *
  * <p>This sketch is configured with a parameter <i>k</i>, which affects the size of the sketch
  * and its estimation error.
  *
- * <p>The estimation error is commonly called <i>epsilon</i> (or <i>eps</i>) and is a fraction
- * between zero and one. Larger values of <i>k</i> result in smaller values of epsilon.
- * Epsilon is always with respect to the rank and cannot be applied to the
+ * <p>In the research literature, the estimation error is commonly called <i>epsilon</i>
+ * (or <i>eps</i>) and is a fraction between zero and one.
+ * Larger values of <i>k</i> result in smaller values of epsilon.
+ * The epsilon error is always with respect to the rank and cannot be applied to the
  * corresponding values.
  *
  * <p>The relationship between the normalized rank and the corresponding values can be viewed
@@ -146,6 +147,22 @@
  * <li>Let <i>v<sub>hi</sub></i> = estimated quantile value of rank <i>(r + eps)</i>.</li>
  * <li>Then <i>v<sub>lo</sub> &le; v &le; v<sub>hi</sub></i>, with 99% confidence.</li>
  * </ul>
+ *
+ * <p>The current implementations of the KLL sketch in the DataSketches Java library component include:</p>
+ *
+ * <ul>
+ * <li><b>KllFloatsSketch</b>: This operates on the Java heap and uses the java <i>float</i> primitive for the
+ * smallest possible size. It can be serialized to a compact, immutable format or to an updatable format, which can
+ * be modified off-heap. </li>
+ * <li><b>KllDoublesSketch</b>: This operates on the Java heap and uses the java <i>double</i> primitive for a much
+ * larger range of numeric values, and is larger as a result. It can be serialized to a compact, immutable format or
+ * to an updatable format, which can be modified off-heap.</li>
+ * <li><b>KllFloatsSketchIterator</b>: Iterates over the retained values and weights of the KllFloatsSketch.</li>
+ * <li><b>KllDoublesSketchIterator</b>: : Iterates over the retained values and weights of the KllDoublesSketch.</li>
+ * </ul>
+ *
+ * <p>Please visit our website: <a href="https://datasketches.apache.org">DataSketches Home Page</a> for more
+ * information.</p>
  *
  * @author Kevin Lang
  * @author Alexander Saydakov

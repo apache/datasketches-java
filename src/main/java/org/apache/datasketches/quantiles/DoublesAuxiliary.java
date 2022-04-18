@@ -70,12 +70,12 @@ final class DoublesAuxiliary {
 
   /**
    * Get the estimated quantile given a fractional rank.
-   * @param fRank the fractional rank where: 0 &le; fRank &le; 1.0.
+   * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
    * @return the estimated quantile
    */
-  double getQuantile(final double fRank) {
-    checkFractionalRankBounds(fRank);
-    final long pos = QuantilesHelper.posOfPhi(fRank, auxN_);
+  double getQuantile(final double rank) {
+    checkFractionalRankBounds(rank);
+    final long pos = QuantilesHelper.posOfRank(rank, auxN_);
     return approximatelyAnswerPositionalQuery(pos);
   }
 

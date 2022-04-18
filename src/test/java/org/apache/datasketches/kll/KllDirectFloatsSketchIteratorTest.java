@@ -19,23 +19,26 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class KllDoublesSketchIteratorTest {
+public class KllDirectFloatsSketchIteratorTest {
+  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void emptySketch() {
-    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-    KllDoublesSketchIterator it = sketch.iterator();
+    final KllFloatsSketch sketch = getDFSketch(200, 0);
+    KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+    final KllFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(0);
-    KllDoublesSketchIterator it = sketch.iterator();
+    KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getValue(), 0f);
     Assert.assertEquals(it.getWeight(), 1);
@@ -45,11 +48,11 @@ public class KllDoublesSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+      final KllFloatsSketch sketch = getDFSketch(200, 0);
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      KllDoublesSketchIterator it = sketch.iterator();
+      KllFloatsSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {
@@ -61,4 +64,15 @@ public class KllDoublesSketchIteratorTest {
     }
   }
 
+  private static KllFloatsSketch getDFSketch(final int k, final int n) {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    byte[] byteArr = sk.toUpdatableByteArray();
+    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
+
+    KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    return dfsk;
+  }
+
 }
+

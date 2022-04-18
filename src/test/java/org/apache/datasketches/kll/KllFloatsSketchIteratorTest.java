@@ -22,19 +22,18 @@ package org.apache.datasketches.kll;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class KllFloatsSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    KllFloatsSketch sketch = new KllFloatsSketch();
+    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllFloatsSketch sketch = new KllFloatsSketch();
+    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(0);
     KllFloatsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
@@ -46,7 +45,7 @@ public class KllFloatsSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      KllFloatsSketch sketch = new KllFloatsSketch();
+      KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
@@ -55,7 +54,7 @@ public class KllFloatsSketchIteratorTest {
       int weight = 0;
       while (it.next()) {
         count++;
-        weight += it.getWeight();
+        weight += (int)it.getWeight();
       }
       Assert.assertEquals(count, sketch.getNumRetained());
       Assert.assertEquals(weight, n);

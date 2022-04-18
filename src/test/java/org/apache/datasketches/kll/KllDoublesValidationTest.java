@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.Util.isOdd;
 
 import org.testng.Assert;
+import org.testng.annotations.Test;
 
 /* A test record contains:
    0. testIndex
@@ -201,7 +202,7 @@ public class KllDoublesValidationTest {
    *  See the instructions at the bottom of that class.
    */
 
-  //@Test  //NEED TO ENABLE
+  //@Test  //NEED TO ENABLE HERE AND BELOW FOR VALIDATION
   public void checkTestResults() {
     int numTests = correctResultsWithReset.length / 7;
     for (int testI = 0; testI < numTests; testI++) {
@@ -211,14 +212,14 @@ public class KllDoublesValidationTest {
       int n = (int) correctResultsWithReset[(7 * testI) + 2];
       int stride = (int) correctResultsWithReset[(7 * testI) + 3];
       int[] inputArray = makeInputArray(n, stride);
-      KllDoublesSketch sketch = new KllDoublesSketch(k);
+      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance(k);
       for (int i = 0; i < n; i++) {
         sketch.update(inputArray[i]);
       }
       int numLevels = sketch.getNumLevels();
       int numSamples = sketch.getNumRetained();
-      int[] levels = sketch.getLevels();
-      long hashedSamples = simpleHashOfSubArray(sketch.getItems(), levels[0], numSamples);
+      int[] levels = sketch.getLevelsArray();
+      long hashedSamples = simpleHashOfSubArray(sketch.getDoubleItemsArray(), levels[0], numSamples);
       System.out.print(testI);
       assert correctResultsWithReset[(7 * testI) + 4] == numLevels;
       assert correctResultsWithReset[(7 * testI) + 5] == numSamples;

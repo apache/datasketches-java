@@ -19,21 +19,24 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class KllDoublesSketchIteratorTest {
+public class KllDirectDoublesSketchIteratorTest {
+  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void emptySketch() {
-    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+    final KllDoublesSketch sketch = getDDSketch(200, 0);
     KllDoublesSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+    final KllDoublesSketch sketch = getDDSketch(200, 0);
     sketch.update(0);
     KllDoublesSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
@@ -45,7 +48,7 @@ public class KllDoublesSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+      final KllDoublesSketch sketch = getDDSketch(200, 0);
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
@@ -61,4 +64,15 @@ public class KllDoublesSketchIteratorTest {
     }
   }
 
+  private static KllDoublesSketch getDDSketch(final int k, final int n) {
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    byte[] byteArr = sk.toUpdatableByteArray();
+    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
+
+    KllDoublesSketch ddsk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+    return ddsk;
+  }
+
 }
+

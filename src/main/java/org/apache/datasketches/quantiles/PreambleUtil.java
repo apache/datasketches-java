@@ -31,23 +31,23 @@ import org.apache.datasketches.memory.WritableMemory;
 //@formatter:off
 
 /**
- * This class defines the preamble data structure and provides basic utilities for some of the key
- * fields.
+ * This class defines the serialized data structure and provides access methods for the key fields.
+ *
  * <p>The intent of the design of this class was to isolate the detailed knowledge of the bit and
- * byte layout of the serialized form of the sketches derived from the Sketch class into one place.
+ * byte layout of the serialized form of the sketches derived from the base sketch classes into one place.
  * This allows the possibility of the introduction of different serialization
  * schemes with minimal impact on the rest of the library.</p>
  *
  * <p>
- * MAP: Low significance bytes of this <i>long</i> data structure are on the right. However, the
- * multi-byte integers (<i>int</i> and <i>long</i>) are stored in native byte order. The
- * <i>byte</i> values are treated as unsigned.</p>
+ * LAYOUT: The low significance bytes of this <i>long</i> based data structure are on the right.
+ * The multi-byte primitives are stored in native byte order.
+ * The single byte fields are treated as unsigned.</p>
  *
  * <p>An empty ItemsSketch, on-heap DoublesSketch or compact off-heap DoublesSketch only require 8
- * bytes. An off-heap UpdateDoublesSketch and all non-empty skethces require at least 16 bytes of
+ * bytes. An off-heap UpdateDoublesSketch and all non-empty sketches require at least 16 bytes of
  * preamble.</p>
  *
- * <pre>
+ * <pre>{@code
  * Long || Start Byte Adr: Common for both DoublesSketch and ItemsSketch
  * Adr:
  *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
@@ -66,7 +66,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  *      ||   39   |   38   |   37   |   36   |   35   |   34   |   33   |    32          |
  *  4   ||---------------------------START OF COMBINED BUfFER----------------------------|
- *  </pre>
+ *  }</pre>
  *
  *  @author Lee Rhodes
  */
