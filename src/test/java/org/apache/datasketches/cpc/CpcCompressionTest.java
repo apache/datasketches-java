@@ -73,7 +73,7 @@ public class CpcCompressionTest {
 
     // Pad the bitstream so that the decompressor's 12-bit peek can't overrun its input.
     final long padding = 7;
-    bufBits += padding;
+    bufBits += (int)padding;
     //MAYBE_FLUSH_BITBUF(compressedWords, nextWordIndex);
     if (bufBits >= 32) {
       compressedWords[nextWordIndex++] = (int) bitBuf;
