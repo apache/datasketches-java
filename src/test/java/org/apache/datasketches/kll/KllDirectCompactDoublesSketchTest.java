@@ -37,7 +37,7 @@ public class KllDirectCompactDoublesSketchTest {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
+    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     Memory srcMem = Memory.wrap(byteArr);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
     assertEquals(sk2.getMinValue(), 1.0);

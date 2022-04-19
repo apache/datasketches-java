@@ -67,7 +67,7 @@ public class KllDirectDoublesSketchIteratorTest {
   private static KllDoublesSketch getDDSketch(final int k, final int n) {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
+    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
 
     KllDoublesSketch ddsk = KllDoublesSketch.writableWrap(wmem, memReqSvr);

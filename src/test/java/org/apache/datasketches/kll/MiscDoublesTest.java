@@ -302,7 +302,7 @@ public class MiscDoublesTest {
     sk2 = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
     sk = KllDoublesSketch.heapify(wmem);
@@ -322,7 +322,7 @@ public class MiscDoublesTest {
     println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = KllDoublesSketch.newHeapInstance(k);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
     sk = KllDoublesSketch.heapify(wmem);
@@ -343,7 +343,7 @@ public class MiscDoublesTest {
     sk2 = KllDoublesSketch.newHeapInstance(k);
     sk2.update(1);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
     sk = KllDoublesSketch.heapify(wmem);
@@ -432,13 +432,13 @@ public class MiscDoublesTest {
     println("#### CASE: DOUBLE FULL UPDATABLE");
     sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    upBytes = sk.toUpdatableByteArray();
+    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
-    upBytes2 = sk2.toUpdatableByteArray();
+    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -450,13 +450,13 @@ public class MiscDoublesTest {
 
     println("#### CASE: DOUBLE EMPTY UPDATABLE");
     sk = KllDoublesSketch.newHeapInstance(k);
-    upBytes = sk.toUpdatableByteArray();
+    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
-    upBytes2 = sk2.toUpdatableByteArray();
+    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -466,13 +466,13 @@ public class MiscDoublesTest {
     println("#### CASE: DOUBLE SINGLE UPDATABL");
     sk = KllDoublesSketch.newHeapInstance(k);
     sk.update(1);
-    upBytes = sk.toUpdatableByteArray();
+    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
-    upBytes2 = sk2.toUpdatableByteArray();
+    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -510,7 +510,7 @@ public class MiscDoublesTest {
     assertTrue(skHeap instanceof KllHeapDoublesSketch);
     assertEquals(skHeap.getDoubleSingleItem(), 1.0);
 
-    WritableMemory srcMem = WritableMemory.writableWrap(skHeap.toUpdatableByteArray());
+    WritableMemory srcMem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(skHeap));
     KllDoublesSketch skDirect = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
     assertTrue(skDirect instanceof KllDirectDoublesSketch);
     assertEquals(skDirect.getDoubleSingleItem(), 1.0);

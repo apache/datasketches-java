@@ -101,7 +101,7 @@ public class KllHelperTest {
     int compBytes1 = compByteArr1.length;
     println("compBytes1: " + compBytes1);
 
-    byte[] upByteArr1 = sk.toUpdatableByteArray();
+    byte[] upByteArr1 = KllHelper.toUpdatableByteArrayImpl(sk);
     int upBytes1 = upByteArr1.length;
     println("upBytes1: " + upBytes1);
 
@@ -118,7 +118,7 @@ public class KllHelperTest {
 
     mem = Memory.wrap(compByteArr2);
     sk2 = KllDoublesSketch.heapify(mem);
-    byte[] upByteArr2 = sk2.toUpdatableByteArray();
+    byte[] upByteArr2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     int upBytes2 = upByteArr2.length;
     println("upBytes2: " + upBytes2);
     assertEquals(upBytes1, upBytes2);

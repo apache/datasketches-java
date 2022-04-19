@@ -33,6 +33,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.FLAGS_BYTE_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.KLL_FAMILY;
 import static org.apache.datasketches.kll.KllPreambleUtil.K_SHORT_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
@@ -41,6 +42,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_F
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryDoubleSketchFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
@@ -682,6 +684,8 @@ final class KllHelper {
     final boolean doubleType = (mine.sketchType == DOUBLES_SKETCH);
     final int k = mine.getK();
     final int m = mine.getM();
+    final int numLevels = mine.getNumLevels();
+    final int[] levelsArr = mine.getLevelsArray();
     final String epsPct = String.format("%.3f%%", mine.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", mine.getNormalizedRankError(true) * 100);
     final StringBuilder sb = new StringBuilder();
@@ -695,10 +699,9 @@ final class KllHelper {
     sb.append("   Epsison PMF            : ").append(epsPMFPct).append(Util.LS);
     sb.append("   Empty                  : ").append(mine.isEmpty()).append(Util.LS);
     sb.append("   Estimation Mode        : ").append(mine.isEstimationMode()).append(Util.LS);
-    sb.append("   Levels                 : ").append(mine.getNumLevels()).append(Util.LS);
+    sb.append("   Levels                 : ").append(numLevels).append(Util.LS);
     sb.append("   Level 0 Sorted         : ").append(mine.isLevelZeroSorted()).append(Util.LS);
-    final int cap = (doubleType) ? mine.getDoubleItemsArray().length : mine.getFloatItemsArray().length; //TODO FIX
-    sb.append("   Capacity Items         : ").append(cap).append(Util.LS);
+    sb.append("   Capacity Items         : ").append(levelsArr[numLevels]).append(Util.LS);
     sb.append("   Retained Items         : ").append(mine.getNumRetained()).append(Util.LS);
     if (mine.updatableMemFormat) {
       sb.append("   Updatable Storage Bytes: ").append(mine.getCurrentUpdatableSerializedSizeBytes()).append(Util.LS);
@@ -715,8 +718,6 @@ final class KllHelper {
     }
     sb.append("### End sketch summary").append(Util.LS);
 
-    final int myNumLevels = mine.getNumLevels();
-    final int[] myLevelsArr = mine.getLevelsArray();
     double[] myDoubleItemsArr = null;
     float[] myFloatItemsArr = null;
     if (doubleType) {
@@ -725,15 +726,46 @@ final class KllHelper {
       myFloatItemsArr = mine.getFloatItemsArray();
     }
     if (withLevels) {
-      sb.append(outputLevels(k, m, myNumLevels, myLevelsArr));
+      sb.append(outputLevels(k, m, numLevels, levelsArr));
     }
     if (withData) {
-      sb.append(outputData(doubleType, myNumLevels, myLevelsArr, myFloatItemsArr, myDoubleItemsArr));
+      sb.append(outputData(doubleType, numLevels, levelsArr, myFloatItemsArr, myDoubleItemsArr));
     }
     return sb.toString();
   }
 
+  /**
+   * This method exists for testing purposes only.  The resulting byteArray
+   * structure is an internal format and not supported for general transport
+   * or compatibility between systems and may be subject to change in the future.
+   * @param mine the current sketch to be serialized.
+   * @return a byte array in an updatable form.
+   */
+  private static byte[] toUpdatableByteArrayFromUpdatableMemory(final KllSketch mine) {
+    final boolean doubleType = (mine.sketchType == SketchType.DOUBLES_SKETCH);
+    final int curBytes = mine.getCurrentUpdatableSerializedSizeBytes();
+    final long n = mine.getN();
+    final byte flags = (byte) (UPDATABLE_BIT_MASK
+        | ((n == 0) ? EMPTY_BIT_MASK : 0)
+        | ((n == 1) ? SINGLE_ITEM_BIT_MASK : 0)
+        | (doubleType ? DOUBLES_SKETCH_BIT_MASK : 0));
+    final byte[] byteArr = new byte[curBytes];
+    mine.wmem.getByteArray(0, byteArr, 0, curBytes);
+    byteArr[FLAGS_BYTE_ADR] = flags;
+    return byteArr;
+  }
+
+  /**
+   * This method exists for testing purposes only.  The resulting byteArray
+   * structure is an internal format and not supported for general transport
+   * or compatibility between systems and may be subject to change in the future.
+   * @param mine the current sketch to be serialized.
+   * @return a byte array in an updatable form.
+   */
   static byte[] toUpdatableByteArrayImpl(final KllSketch mine) {
+    if (mine.hasMemory() && mine.updatableMemFormat) {
+      return toUpdatableByteArrayFromUpdatableMemory(mine);
+    }
     final byte[] byteArr = new byte[mine.getCurrentUpdatableSerializedSizeBytes()];
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     loadFirst8Bytes(mine, wmem, true);

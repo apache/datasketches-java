@@ -327,7 +327,7 @@ public class KllDirectDoublesSketchTest {
   @Test
   public void serializeDeserializeEmptyViaUpdatableWritableWrap() {
     final KllDoublesSketch sketch1 = getDDSketch(200, 0);
-    final byte[] bytes = sketch1.toUpdatableByteArray();
+    final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
     final KllDoublesSketch sketch2 =
         KllDoublesSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
@@ -360,7 +360,7 @@ public class KllDirectDoublesSketchTest {
   public void serializeDeserializeOneItemViaUpdatableWritableWrap() {
     final KllDoublesSketch sketch1 = getDDSketch(200, 0);
     sketch1.update(1);
-    final byte[] bytes = sketch1.toUpdatableByteArray();
+    final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
     final KllDoublesSketch sketch2 =
         KllDoublesSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
@@ -397,7 +397,7 @@ public class KllDirectDoublesSketchTest {
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
     }
-    final byte[] bytes = sketch1.toUpdatableByteArray();
+    final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
     final KllDoublesSketch sketch2 =
         KllDoublesSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
@@ -455,8 +455,8 @@ public class KllDirectDoublesSketchTest {
     println(sk1.toString(true, true));
     println("SK2:");
     println(sk2.toString(true, true));
-    WritableMemory wmem1 = WritableMemory.writableWrap(sk1.toUpdatableByteArray());
-    WritableMemory wmem2 = WritableMemory.writableWrap(sk2.toUpdatableByteArray());
+    WritableMemory wmem1 = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk1));
+    WritableMemory wmem2 = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk2));
     KllDoublesSketch dsk1 = KllDoublesSketch.writableWrap(wmem1, memReqSvr);
     KllDoublesSketch dsk2 = KllDoublesSketch.writableWrap(wmem2, memReqSvr);
     println("BEFORE MERGE");
@@ -478,7 +478,7 @@ public class KllDirectDoublesSketchTest {
     sk2 = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(compBytes, true));
     sk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
@@ -498,7 +498,7 @@ public class KllDirectDoublesSketchTest {
     println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = KllDoublesSketch.newHeapInstance(k);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(compBytes, true));
     sk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
@@ -519,7 +519,7 @@ public class KllDirectDoublesSketchTest {
     sk2 = KllDoublesSketch.newHeapInstance(k);
     sk2.update(1);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(compBytes, true));
     sk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
@@ -665,7 +665,7 @@ public class KllDirectDoublesSketchTest {
   private static KllDoublesSketch getDDSketch(final int k, final int n) {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
+    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     KllDoublesSketch ddsk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     return ddsk;

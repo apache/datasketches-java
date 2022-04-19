@@ -59,7 +59,7 @@ public class KllSketchTest {
   public void checkWritableWrapCase6And2Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
-    WritableMemory wmem = WritableMemory.writableWrap(sk.toUpdatableByteArray());
+    WritableMemory wmem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk));
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr); //KllSketch case6
     assertFalse(wmem.isReadOnly());
     assertFalse(sk2.isReadOnly());
@@ -70,7 +70,7 @@ public class KllSketchTest {
   public void checkWritableWrapFloats() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
-    WritableMemory wmem = WritableMemory.writableWrap(sk.toUpdatableByteArray());
+    WritableMemory wmem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk));
     KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertFalse(wmem.isReadOnly());
     assertFalse(sk2.isReadOnly());
@@ -92,7 +92,7 @@ public class KllSketchTest {
   public void checkKllSketchCase3Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
-    Memory mem = Memory.wrap(sk.toUpdatableByteArray());
+    Memory mem = Memory.wrap(KllHelper.toUpdatableByteArrayImpl(sk));
     WritableMemory wmem = (WritableMemory) mem;
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, null);
     assertTrue(wmem.isReadOnly());
@@ -104,7 +104,7 @@ public class KllSketchTest {
   public void checkKllSketchCase7Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
-    Memory mem = Memory.wrap(sk.toUpdatableByteArray());
+    Memory mem = Memory.wrap(KllHelper.toUpdatableByteArrayImpl(sk));
     WritableMemory wmem = (WritableMemory) mem;
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
     assertTrue(wmem.isReadOnly());

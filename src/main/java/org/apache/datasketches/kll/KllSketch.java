@@ -432,14 +432,6 @@ abstract class KllSketch {
   }
 
   /**
-   * Returns serialized sketch in an updatable Memory byte array format.
-   * @return serialized sketch in an updatable Memory byte array format.
-   */
-  public byte[] toUpdatableByteArray() {
-    return KllHelper.toUpdatableByteArrayImpl(this);
-  }
-
-  /**
    * @return full size of internal items array including garbage.
    */
   abstract double[] getDoubleItemsArray();

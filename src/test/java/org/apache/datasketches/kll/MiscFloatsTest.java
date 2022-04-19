@@ -302,7 +302,7 @@ public class MiscFloatsTest {
     sk2 = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
     sk = KllFloatsSketch.heapify(wmem);
@@ -322,7 +322,7 @@ public class MiscFloatsTest {
     println("#### CASE: FLOAT EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = KllFloatsSketch.newHeapInstance(k);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
     sk = KllFloatsSketch.heapify(wmem);
@@ -343,7 +343,7 @@ public class MiscFloatsTest {
     sk2 = KllFloatsSketch.newHeapInstance(k);
     sk2.update(1);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
     sk = KllFloatsSketch.heapify(wmem);
@@ -432,13 +432,13 @@ public class MiscFloatsTest {
     println("#### CASE: FLOAT FULL UPDATABLE");
     sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    upBytes = sk.toUpdatableByteArray();
+    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
-    upBytes2 = sk2.toUpdatableByteArray();
+    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -450,13 +450,13 @@ public class MiscFloatsTest {
 
     println("#### CASE: FLOAT EMPTY UPDATABLE");
     sk = KllFloatsSketch.newHeapInstance(k);
-    upBytes = sk.toUpdatableByteArray();
+    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
-    upBytes2 = sk2.toUpdatableByteArray();
+    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -466,13 +466,13 @@ public class MiscFloatsTest {
     println("#### CASE: FLOAT SINGLE UPDATABLE");
     sk = KllFloatsSketch.newHeapInstance(k);
     sk.update(1);
-    upBytes = sk.toUpdatableByteArray();
+    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.heapify(wmem);
-    upBytes2 = sk2.toUpdatableByteArray();
+    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -509,7 +509,7 @@ public class MiscFloatsTest {
     assertTrue(skHeap instanceof KllHeapFloatsSketch);
     assertEquals(skHeap.getFloatSingleItem(), 1.0F);
 
-    WritableMemory srcMem = WritableMemory.writableWrap(skHeap.toUpdatableByteArray());
+    WritableMemory srcMem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(skHeap));
     KllFloatsSketch skDirect = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
     assertTrue(skDirect instanceof KllDirectFloatsSketch);
     assertEquals(skDirect.getFloatSingleItem(), 1.0F);

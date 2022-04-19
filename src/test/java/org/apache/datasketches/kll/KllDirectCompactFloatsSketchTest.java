@@ -37,7 +37,7 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
+    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     Memory srcMem = Memory.wrap(byteArr);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
     assertEquals(sk2.getMinValue(), 1.0F);

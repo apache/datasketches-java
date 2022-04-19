@@ -21,7 +21,6 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.FLAGS_BYTE_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
@@ -109,18 +108,6 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   @Override
   public long getN() {
     return getMemoryN(wmem);
-  }
-
-  @Override
-  public byte[] toUpdatableByteArray() {
-    final int bytes = getCurrentUpdatableSerializedSizeBytes();
-    final long n = getN();
-    final byte flags = (byte)(UPDATABLE_BIT_MASK | DOUBLES_SKETCH_BIT_MASK
-        | ((n == 0) ? 1 : 0) | ((n == 1) ? 4 : 0));
-    final byte[] byteArr = new byte[bytes];
-    wmem.getByteArray(0, byteArr, 0, bytes);
-    byteArr[FLAGS_BYTE_ADR] = flags;
-    return byteArr;
   }
 
   @Override //returns entire array including empty space at bottom

@@ -327,7 +327,7 @@ public class KllDirectFloatsSketchTest {
   @Test
   public void serializeDeserializeEmptyViaUpdatableWritableWrap() {
     final KllFloatsSketch sketch1 = getDFSketch(200, 0);
-    final byte[] bytes = sketch1.toUpdatableByteArray();
+    final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
     final KllFloatsSketch sketch2 =
         KllFloatsSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
@@ -360,7 +360,7 @@ public class KllDirectFloatsSketchTest {
   public void serializeDeserializeOneItemViaUpdatableWritableWrap() {
     final KllFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
-    final byte[] bytes = sketch1.toUpdatableByteArray();
+    final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
     final KllFloatsSketch sketch2 =
         KllFloatsSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
@@ -397,7 +397,7 @@ public class KllDirectFloatsSketchTest {
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
     }
-    final byte[] bytes = sketch1.toUpdatableByteArray();
+    final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
     final KllFloatsSketch sketch2 =
         KllFloatsSketch.writableWrap(WritableMemory.writableWrap(bytes),memReqSvr);
     assertEquals(bytes.length, sketch1.getCurrentUpdatableSerializedSizeBytes());
@@ -455,8 +455,8 @@ public class KllDirectFloatsSketchTest {
     println(sk1.toString(true, true));
     println("SK2:");
     println(sk2.toString(true, true));
-    WritableMemory wmem1 = WritableMemory.writableWrap(sk1.toUpdatableByteArray());
-    WritableMemory wmem2 = WritableMemory.writableWrap(sk2.toUpdatableByteArray());
+    WritableMemory wmem1 = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk1));
+    WritableMemory wmem2 = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk2));
     KllFloatsSketch dsk1 = KllFloatsSketch.writableWrap(wmem1, memReqSvr);
     KllFloatsSketch dsk2 = KllFloatsSketch.writableWrap(wmem2, memReqSvr);
     println("BEFORE MERGE");
@@ -478,7 +478,7 @@ public class KllDirectFloatsSketchTest {
     sk2 = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(compBytes, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
@@ -498,7 +498,7 @@ public class KllDirectFloatsSketchTest {
     println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = KllFloatsSketch.newHeapInstance(k);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(compBytes, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
@@ -519,7 +519,7 @@ public class KllDirectFloatsSketchTest {
     sk2 = KllFloatsSketch.newHeapInstance(k);
     sk2.update(1);
     //println(sk.toString(true, true));
-    compBytes = sk2.toUpdatableByteArray();
+    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(compBytes, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
@@ -665,7 +665,7 @@ public class KllDirectFloatsSketchTest {
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = sk.toUpdatableByteArray();
+    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
