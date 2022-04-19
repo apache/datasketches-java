@@ -37,7 +37,6 @@ final class SamplingUtil {
    */
   private static final double DEFAULT_KAPPA = 2.0;
 
-
   private SamplingUtil() {}
 
   /**

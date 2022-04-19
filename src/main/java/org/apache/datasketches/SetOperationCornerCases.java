@@ -100,7 +100,6 @@ public class SetOperationCornerCases {
     }
   }
 
-
   public enum CornerCase {
     Empty_Empty(055, "A{ 1.0, 0, T} ; B{ 1.0, 0, T}",
         IntersectAction.EMPTY_1_0_T, AnotbAction.EMPTY_1_0_T, UnionAction.EMPTY_1_0_T),

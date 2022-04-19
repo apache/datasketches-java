@@ -649,7 +649,6 @@ public final class CpcSketch {
     }
   }
 
-
   //also used in test
   static CpcSketch uncompress(final CompressedState source, final long seed) {
     checkSeedHashes(computeSeedHash(seed), source.seedHash);

@@ -34,7 +34,6 @@ import org.apache.datasketches.memory.Memory;
  */
 class Hll6Array extends HllArray {
 
-
   /**
    * Standard constructor for new instance
    * @param lgConfigK the configured Lg K
@@ -133,8 +132,6 @@ class Hll6Array extends HllArray {
     final int byteIdx = (startBit >>> 3) + offsetBytes;
     return (byte) ((getShortLE(arr, byteIdx) >>> shift) & 0X3F);
   }
-
-
 
   //ITERATOR
 

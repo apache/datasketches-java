@@ -668,7 +668,6 @@ public final class Util {
     return prev;
   }
 
-
   /**
    * The log base 2 of the value
    * @param value the given value

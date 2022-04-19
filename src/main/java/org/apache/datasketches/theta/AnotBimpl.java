@@ -135,7 +135,6 @@ final class AnotBimpl extends AnotB {
     final long[] hashArrA = getHashArrA(skA);
     final int countA = hashArrA.length;
 
-
     //process B
     final long[] hashArrOut = getResultHashArr(minThetaLong, countA, hashArrA, skB); //out is clone
     final int countOut = hashArrOut.length;

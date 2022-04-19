@@ -26,7 +26,6 @@ import java.util.List;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
-
 /**
  * This Relative Error Quantiles Sketch is the Java implementation based on the paper
  * "Relative Error Streaming Quantiles", https://arxiv.org/abs/2004.01668, and loosely derived from

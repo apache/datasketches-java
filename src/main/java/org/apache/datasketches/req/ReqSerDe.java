@@ -31,9 +31,8 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 
-
 /**
- * This class handles serialization and desserialization.
+ * This class handles serialization and deserialization.
  *
  * <p>ReqSketch SERIALIZATION FORMAT.</p>
  *

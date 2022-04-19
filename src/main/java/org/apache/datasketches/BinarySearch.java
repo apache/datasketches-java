@@ -26,7 +26,6 @@ package org.apache.datasketches;
  */
 public final class BinarySearch {
 
-
   /**
    * Binary Search for the index of the exact float value in the given search range.
    * If -1 is returned there are no values in the search range that equals the given value.

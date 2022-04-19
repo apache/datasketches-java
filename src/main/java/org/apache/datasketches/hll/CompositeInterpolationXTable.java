@@ -32,7 +32,6 @@ final class CompositeInterpolationXTable {
   static final int[] yStrides =
     {1, 2, 3, 5, 10, 20, 40, 80, 160, 320, 640, 1280, 2560, 5120, 10240, 20480, 40960, 81920 };
 
-
   static final double xArrs[][] = {
   // log K = 4
   {

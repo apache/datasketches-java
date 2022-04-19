@@ -31,7 +31,6 @@ import org.apache.datasketches.memory.WritableMemory;
  */
 public abstract class Union extends SetOperation {
 
-
   /**
    * Returns the number of storage bytes required for this union in its current state.
    *
@@ -112,7 +111,6 @@ public abstract class Union extends SetOperation {
    */
   public abstract CompactSketch union(Sketch sketchA, Sketch sketchB, boolean dstOrdered,
       WritableMemory dstMem);
-
 
   /**
    * Perform a Union operation with <i>this</i> union and the given on-heap sketch of the Theta Family.

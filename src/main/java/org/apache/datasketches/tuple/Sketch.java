@@ -23,7 +23,6 @@ import static org.apache.datasketches.Util.LS;
 
 import org.apache.datasketches.BinomialBoundsN;
 
-
 /**
  * This is an equivalent to org.apache.datasketches.theta.Sketch with
  * addition of a user-defined Summary object associated with every unique entry

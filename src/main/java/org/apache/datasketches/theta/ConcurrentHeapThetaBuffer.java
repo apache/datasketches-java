@@ -220,5 +220,4 @@ final class ConcurrentHeapThetaBuffer extends HeapQuickSelectSketch {
     return state;
   }
 
-
 }

@@ -90,7 +90,6 @@ final class SingleItemSketch extends CompactSketch {
     throw new SketchesArgumentException("Input Memory is not a SingleItemSketch.");
   }
 
-
   @Override
   public CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem) {
     if (dstMem == null) { return this; }

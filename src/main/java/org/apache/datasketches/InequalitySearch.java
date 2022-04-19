@@ -524,7 +524,6 @@ public enum InequalitySearch {
    */
   abstract int compare(long[] arr, int a, int b, long v);
 
-
   /**
    * If the compare operation returns 0, which means "found", this returns the index of the
    * found value that satisfies the selected criteria.
@@ -557,7 +556,6 @@ public enum InequalitySearch {
    * @return the index of the found value that satisfies the selected criteria.
    */
   abstract int getIndex(long[] arr, int a, int b, long v);
-
 
   /**
    * Called to resolve what to do if not found. In the search algorithm this occurs when the

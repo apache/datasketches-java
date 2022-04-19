@@ -114,7 +114,6 @@ class DoublesPmfCdfImpl {
     }
   }
 
-
   /**
    * This one does a linear time simultaneous walk of the samples and splitPoints. Because this
    * internal procedure is called multiple times, we require the caller to ensure these 3 properties:

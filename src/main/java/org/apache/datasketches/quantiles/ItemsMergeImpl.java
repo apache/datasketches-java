@@ -306,7 +306,6 @@ final class ItemsMergeImpl {
                 arrStart1, comparator); // which will be arrStart3
   }
 
-
   /**
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.

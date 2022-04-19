@@ -269,8 +269,6 @@ public class HllSketch extends BaseHllSketch {
     return directSketch;
   }
 
-
-
   /**
    * Return a copy of this sketch onto the Java heap.
    * @return a copy of this sketch onto the Java heap.

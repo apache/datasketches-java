@@ -47,7 +47,6 @@ import org.apache.datasketches.memory.WritableMemory;
 public abstract class Sketch {
   static final int DEFAULT_LG_RESIZE_FACTOR = 3;   //Unique to Heap
 
-
   Sketch() {}
 
   //public static factory constructor-type methods
