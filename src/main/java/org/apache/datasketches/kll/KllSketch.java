@@ -81,7 +81,8 @@ abstract class KllSketch {
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
     SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is not single item.");
+    NOT_SINGLE_ITEM("Sketch is not single item."),
+    MUST_NOT_BE_UPDATABLE_FORMAT("Given Memory object must not be in updatableFormat.");
 
     private String msg;
 

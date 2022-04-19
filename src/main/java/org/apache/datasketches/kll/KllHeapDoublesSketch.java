@@ -23,7 +23,10 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+
+import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
 
@@ -74,9 +77,9 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryCheck object
+   * @param memVal the MemoryVaidate object
    */
-  KllHeapDoublesSketch(final Memory srcMem, final KllMemoryValidate memVal) {
+  private KllHeapDoublesSketch(final Memory srcMem, final KllMemoryValidate memVal) {
     super(null, null );
     k_ = memVal.k;
     m_ = memVal.m;
@@ -115,6 +118,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
         srcMem.getDoubleArray(offsetBytes, doubleItems_, shift, retainedItems);
       }
     }
+  }
+
+  static KllHeapDoublesSketch heapifyImpl(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    if (!memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_DOUBLE); }
+    return new KllHeapDoublesSketch(srcMem, memVal);
   }
 
   @Override

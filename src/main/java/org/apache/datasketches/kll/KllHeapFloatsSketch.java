@@ -23,7 +23,10 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+
+import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
 
@@ -74,9 +77,9 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryCheck object
+   * @param memVal the MemoryValidate object
    */
-  KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
+  private KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
     super(null, null);
     k_ = memVal.k;
     m_ = memVal.m;
@@ -115,6 +118,13 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
         srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
       }
     }
+  }
+
+  static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    if (memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
+    return new KllHeapFloatsSketch(srcMem, memVal);
   }
 
   @Override

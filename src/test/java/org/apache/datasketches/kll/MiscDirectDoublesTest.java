@@ -245,7 +245,7 @@ public class MiscDirectDoublesTest {
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    sk = KllDoublesSketch.heapify(wmem);
+    sk = KllHeapDoublesSketch.heapifyImpl(wmem);
     println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -266,7 +266,7 @@ public class MiscDirectDoublesTest {
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllDoublesSketch.heapify(wmem);
+    sk = KllHeapDoublesSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -287,7 +287,7 @@ public class MiscDirectDoublesTest {
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.memoryToString(wmem, true));
-    sk = KllDoublesSketch.heapify(wmem);
+    sk = KllHeapDoublesSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);

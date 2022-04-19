@@ -550,7 +550,7 @@ public class KllDirectFloatsSketchTest {
     assertFalse(sketch.isDoublesSketch());
 
     final WritableMemory wmem = sketch.getWritableMemory();
-    final KllFloatsSketch sk = KllFloatsSketch.heapify(wmem);
+    final KllFloatsSketch sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), 200);
     assertEquals(sk.getN(), 200);
     assertFalse(sk.isEmpty());
@@ -584,7 +584,7 @@ public class KllDirectFloatsSketchTest {
     WritableMemory dstMem = WritableMemory.allocate(6000);
     KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(20, dstMem, memReqSvr);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
-    KllFloatsSketch sk2 = KllFloatsSketch.heapify(dstMem);
+    KllFloatsSketch sk2 = KllHeapFloatsSketch.heapifyImpl(dstMem);
     assertEquals(sk2.getMinValue(), 1.0);
     assertEquals(sk2.getMaxValue(), 100.0);
   }
