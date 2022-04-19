@@ -134,7 +134,6 @@ public class QuickMergingValidation {
         updA_mS, updB_mS, mrgA_mS, mrgB_mS, rslt_mS);
   }
 
-
   private void printf(final String format, final Object ... args) {
     if (printStream != null) { printStream.printf(format, args); }
     if (printWriter != null) { printWriter.printf(format, args); }

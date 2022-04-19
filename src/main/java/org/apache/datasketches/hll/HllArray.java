@@ -253,7 +253,6 @@ abstract class HllArray extends AbstractHllArray {
     return ToByteArrayImpl.toHllByteArray(this, false);
   }
 
-
   //used by heapify by all Heap HLL
   static final void extractCommonHll(final Memory srcMem, final HllArray hllArray) {
     hllArray.putOutOfOrder(extractOooFlag(srcMem));

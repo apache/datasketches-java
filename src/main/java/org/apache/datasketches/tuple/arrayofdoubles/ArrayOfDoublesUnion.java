@@ -181,7 +181,6 @@ public abstract class ArrayOfDoublesUnion {
     setUnionThetaLong(gadget_.getThetaLong());
   }
 
-
   // Layout of first 16 bytes:
   // Long || Start Byte Adr:
   // Adr:

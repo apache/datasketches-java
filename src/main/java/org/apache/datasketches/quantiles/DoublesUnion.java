@@ -106,7 +106,6 @@ public abstract class DoublesUnion {
    */
   public abstract int getEffectiveK();
 
-
   /**
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given sketch into this union object.

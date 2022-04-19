@@ -104,8 +104,6 @@ public class SetOperationBuilder {
     return bLgNomLongs;
   }
 
-
-
   /**
    * Sets the long seed value that is require by the hashing function.
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
@@ -285,7 +283,6 @@ public class SetOperationBuilder {
   public AnotB buildANotB() {
     return (AnotB) build(Family.A_NOT_B);
   }
-
 
   @Override
   public String toString() {

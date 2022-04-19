@@ -379,7 +379,6 @@ public final class ReservoirLongsUnion {
       } // end of inlined weight update
     } // end of loop over source samples
 
-
     // targetTotal was fractional but should now be an integer again. Could validate with
     // low tolerance, but for now just round to check.
     final long checkN = (long) Math.floor(0.5 + targetTotal);

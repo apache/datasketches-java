@@ -832,7 +832,6 @@ final class CpcCompression {
     }
   }
 
-
   private static long divideBy32RoundingUp(final long x) {
     final long tmp = x >>> 5;
     return ((tmp << 5) == x) ? tmp : tmp + 1;

@@ -50,7 +50,6 @@ public class StreamingValidation {
   private PrintStream printStream;
   private PrintWriter printWriter;
 
-
   //sketches
   private CpcSketch sketch = null;
   private BitMatrix matrix = null;

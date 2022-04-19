@@ -67,7 +67,6 @@ public class CompressionCharacterization {
   private CompressedState[] compressedStates2;
   private CpcSketch[] unCompressedSketches;
 
-
   public CompressionCharacterization(
       final int lgMinK,
       final int lgMaxK,

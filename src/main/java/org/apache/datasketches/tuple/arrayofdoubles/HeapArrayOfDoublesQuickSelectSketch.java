@@ -34,7 +34,6 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
 
-
 /**
  * The on-heap implementation of the tuple QuickSelect sketch of type ArrayOfDoubles.
  */

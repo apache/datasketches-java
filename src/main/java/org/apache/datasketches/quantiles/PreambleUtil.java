@@ -105,7 +105,6 @@ final class PreambleUtil {
 
   // ###### TO HERE.
 
-
   // STRINGS
   /**
    * Returns a human readable string summary of the internal state of the given byte array.

@@ -400,6 +400,4 @@ abstract class BaseHllSketch {
     return (value << KEY_BITS_26) | addr26;
   }
 
-
-
 }

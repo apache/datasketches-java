@@ -37,7 +37,6 @@ import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.Util;
 
-
 /**
  * Computes a set difference, A-AND-NOT-B, of two ArrayOfDoublesSketches.
  *
@@ -192,7 +191,6 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
     final DataArrays daR = new DataArrays(tmpHashArrA, tmpValuesArrA, nonMatches);
     return daR;
   }
-
 
   private static class DataArrays {
     long[] hashArr;

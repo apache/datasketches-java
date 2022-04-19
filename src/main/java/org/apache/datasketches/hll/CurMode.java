@@ -38,5 +38,4 @@ enum CurMode { LIST, SET, HLL; //do not change the order.
     return values[ordinal];
   }
 
-
 }

@@ -56,7 +56,6 @@ import org.apache.datasketches.memory.WritableMemory;
 final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   MemoryRequestServer memReqSvr = null;
 
-
   private DirectUpdateDoublesSketch(final int k) {
     super(k); //Checks k
   }

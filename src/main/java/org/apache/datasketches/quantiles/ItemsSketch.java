@@ -612,7 +612,6 @@ public final class ItemsSketch<T> {
     return PreambleUtil.toString(mem, false);
   }
 
-
   /**
    * From an existing sketch, this creates a new sketch that can have a smaller value of K.
    * The original sketch is not modified.

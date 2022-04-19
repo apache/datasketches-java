@@ -190,7 +190,6 @@ public final class MurmurHash3 implements Serializable {
     return hashState.finalMix128(k1, k2, lengthInts << 2); //convert to bytes
   }
 
-
   //--Hash of char[]-------------------------------------------------------
   /**
    * Hash the given char[] array.
@@ -218,7 +217,6 @@ public final class MurmurHash3 implements Serializable {
     checkPositive(arrLen);
     Util.checkBounds(offsetChars, lengthChars, arrLen);
     final HashState hashState = new HashState(seed, seed);
-
 
     // Number of full 128-bit blocks of 8 chars.
     // Possible exclusion of a remainder of up to 7 chars.

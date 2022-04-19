@@ -89,7 +89,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
     return dqssr;
   }
 
-
   /**
    * Fast-wrap a sketch around the given source Memory containing sketch data that originated from
    * this sketch.  This does NO validity checking of the given Memory.
@@ -238,8 +237,6 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   WritableMemory getMemory() {
     return wmem_;
   }
-
-
 
   @Override
   short getSeedHash() {

@@ -31,7 +31,6 @@ import java.lang.reflect.Array;
 
 import org.apache.datasketches.SketchesArgumentException;
 
-
 /**
  * Common utility functions for Tuples
  */
@@ -161,6 +160,5 @@ public final class Util {
     final S[] tmpSummaryArr = (S[]) Array.newInstance(summaryType, length);
     return tmpSummaryArr;
   }
-
 
 }
