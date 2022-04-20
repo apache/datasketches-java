@@ -305,7 +305,7 @@ public class MiscFloatsTest {
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -325,7 +325,7 @@ public class MiscFloatsTest {
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -346,7 +346,7 @@ public class MiscFloatsTest {
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, true));
-    sk = KllFloatsSketch.heapify(wmem);
+    sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -437,7 +437,7 @@ public class MiscFloatsTest {
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapifyImpl(wmem);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
@@ -455,7 +455,7 @@ public class MiscFloatsTest {
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapifyImpl(wmem);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
@@ -471,7 +471,7 @@ public class MiscFloatsTest {
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllFloatsSketch.heapify(wmem);
+    sk2 = KllHeapFloatsSketch.heapifyImpl(wmem);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
