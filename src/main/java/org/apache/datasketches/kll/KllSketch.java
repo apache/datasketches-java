@@ -67,7 +67,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes, Kevin Lang
  */
-abstract class KllSketch {
+public abstract class KllSketch {
 
   /**
    * Used to define the variable type of the current instance of this class.
