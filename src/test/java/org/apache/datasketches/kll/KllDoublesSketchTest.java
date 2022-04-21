@@ -417,17 +417,17 @@ public class KllDoublesSketchTest {
 
   @Test
   public void coverInheritanceArtifacts() {
-    float[] dblArr = new float[0];
-    float dblV = 1.0f;
+    float[] fltArr = new float[0];
+    float fltV = 1.0f;
     int idx = 1;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     try { sk.getFloatItemsArray();           fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMaxFloatValue();             fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinFloatValue();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatItemsArray(dblArr);     fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatItemsArrayAt(idx,dblV); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMaxFloatValue(dblV);         fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMinFloatValue(dblV);         fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatItemsArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatItemsArrayAt(idx,fltV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setMaxFloatValue(fltV);         fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setMinFloatValue(fltV);         fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test

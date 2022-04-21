@@ -173,6 +173,11 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setFloatItemsArrayAt(final int index, final float value) { floatItems_[index] = value; }
 
   @Override
+  void setFloatItemsArraySubrange(final float[] srcArr, final int srcIndex, final int tgtIndex, final int numItems) {
+    System.arraycopy(srcArr, srcIndex, floatItems_, tgtIndex, numItems);
+  }
+
+  @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }
 
   @Override

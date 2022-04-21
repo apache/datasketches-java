@@ -357,6 +357,11 @@ public abstract class KllDoublesSketch extends KllSketch {
   void setFloatItemsArrayAt(final int index, final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
+  void setFloatItemsArraySubrange(final float[] srcArr, final int srcIndex, final int tgtIndex, final int numItems) {
+    kllSketchThrow(MUST_NOT_CALL);
+  }
+
+  @Override //Artifact of inheritance
   void setMaxFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance

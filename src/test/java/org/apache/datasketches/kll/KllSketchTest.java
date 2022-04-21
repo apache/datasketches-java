@@ -69,7 +69,8 @@ public class KllSketchTest {
   @Test
   public void checkWritableWrapFloats() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
-    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    for (int i = 1; i <= 20; i++) { sk.update(i); }
+    sk.update(21);
     WritableMemory wmem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(sk));
     KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertFalse(wmem.isReadOnly());

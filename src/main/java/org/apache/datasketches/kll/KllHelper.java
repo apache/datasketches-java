@@ -161,142 +161,85 @@ final class KllHelper {
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
     final int halfAdjPop = adjPop / 2;
 
-    // level zero might not be sorted, so we must sort it if we wish to compact it
-    float[] myFloatItemsArr;
-    double[] myDoubleItemsArr;
-
     if (mine.sketchType == DOUBLES_SKETCH) {
-      myFloatItemsArr = null;
-      myDoubleItemsArr = mine.getDoubleItemsArray();
-      if (level == 0) {
-        if (mine.updatableMemFormat) {
-          myDoubleItemsArr = mine.getDoubleItemsArray();
-          Arrays.sort(myDoubleItemsArr, adjBeg, adjBeg + adjPop);
-          mine.setDoubleItemsArray(myDoubleItemsArr);
-        } else {
-          Arrays.sort(mine.getDoubleItemsArray(), adjBeg, adjBeg + adjPop);
-        }
+      final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+      if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
+        Arrays.sort(myDoubleItemsArr, adjBeg, adjBeg + adjPop);
       }
       if (popAbove == 0) {
-        if (mine.updatableMemFormat) {
-          myDoubleItemsArr = mine.getDoubleItemsArray();
-          KllDoublesHelper.randomlyHalveUpDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
-          mine.setDoubleItemsArray(myDoubleItemsArr);
-        } else {
-          KllDoublesHelper.randomlyHalveUpDoubles(mine.getDoubleItemsArray(), adjBeg, adjPop, KllSketch.random);
-        }
+        KllDoublesHelper.randomlyHalveUpDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
       } else {
-        if (mine.updatableMemFormat) {
-          myDoubleItemsArr = mine.getDoubleItemsArray();
-          KllDoublesHelper.randomlyHalveDownDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
-          mine.setDoubleItemsArray(myDoubleItemsArr);
-        } else {
-          KllDoublesHelper.randomlyHalveDownDoubles(mine.getDoubleItemsArray(), adjBeg, adjPop, KllSketch.random);
-        }
-        if (mine.updatableMemFormat ) {
-          myDoubleItemsArr = mine.getDoubleItemsArray();
-          KllDoublesHelper.mergeSortedDoubleArrays(
-              myDoubleItemsArr, adjBeg, halfAdjPop,
-              myDoubleItemsArr, rawEnd, popAbove,
-              myDoubleItemsArr, adjBeg + halfAdjPop);
-          mine.setDoubleItemsArray(myDoubleItemsArr);
-        } else {
-          myDoubleItemsArr = mine.getDoubleItemsArray();
-          KllDoublesHelper.mergeSortedDoubleArrays(
-              myDoubleItemsArr, adjBeg, halfAdjPop,
-              myDoubleItemsArr, rawEnd, popAbove,
-              myDoubleItemsArr, adjBeg + halfAdjPop);
-        }
-      }
-    } else { //Float sketch
-      myFloatItemsArr = mine.getFloatItemsArray();
-      myDoubleItemsArr = null;
-      if (level == 0) {
-        if (mine.updatableMemFormat) {
-          myFloatItemsArr = mine.getFloatItemsArray();
-          Arrays.sort(myFloatItemsArr, adjBeg, adjBeg + adjPop);
-          mine.setFloatItemsArray(myFloatItemsArr);
-        } else {
-          Arrays.sort(mine.getFloatItemsArray(), adjBeg, adjBeg + adjPop);
-        }
-      }
-      if (popAbove == 0) {
-        if (mine.updatableMemFormat) {
-          myFloatItemsArr = mine.getFloatItemsArray();
-          KllFloatsHelper.randomlyHalveUpFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
-          mine.setFloatItemsArray(myFloatItemsArr);
-        } else {
-          KllFloatsHelper.randomlyHalveUpFloats(mine.getFloatItemsArray(), adjBeg, adjPop, KllSketch.random);
-        }
-      } else {
-        if (mine.updatableMemFormat) {
-          myFloatItemsArr = mine.getFloatItemsArray();
-          KllFloatsHelper.randomlyHalveDownFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
-          mine.setFloatItemsArray(myFloatItemsArr);
-        } else {
-          KllFloatsHelper.randomlyHalveDownFloats(mine.getFloatItemsArray(), adjBeg, adjPop, KllSketch.random);
-        }
-        if (mine.updatableMemFormat ) {
-          myFloatItemsArr = mine.getFloatItemsArray();
-          KllFloatsHelper.mergeSortedFloatArrays(
-              myFloatItemsArr, adjBeg, halfAdjPop,
-              myFloatItemsArr, rawEnd, popAbove,
-              myFloatItemsArr, adjBeg + halfAdjPop);
-          mine.setFloatItemsArray(myFloatItemsArr);
-        } else {
-          myFloatItemsArr = mine.getFloatItemsArray();
-          KllFloatsHelper.mergeSortedFloatArrays(
-              myFloatItemsArr, adjBeg, halfAdjPop,
-              myFloatItemsArr, rawEnd, popAbove,
-              myFloatItemsArr, adjBeg + halfAdjPop);
-        }
-      }
-    }
-    int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
-    mine.setLevelsArrayAt(level + 1, newIndex);
-
-    if (oddPop) {
-      mine.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
-      if (mine.sketchType == DOUBLES_SKETCH) {
-        mine.setDoubleItemsArrayAt(
-            myLevelsArr[level], mine.getDoubleItemsArray()[rawBeg]); // namely this leftover guy
-      } else {
-        mine.setFloatItemsArrayAt(
-            myLevelsArr[level], mine.getFloatItemsArray()[rawBeg]); // namely this leftover guy
+        KllDoublesHelper.randomlyHalveDownDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
+        KllDoublesHelper.mergeSortedDoubleArrays(
+            myDoubleItemsArr, adjBeg, halfAdjPop,
+            myDoubleItemsArr, rawEnd, popAbove,
+            myDoubleItemsArr, adjBeg + halfAdjPop);
       }
 
-    } else {
-      mine.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
-    }
+      int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
+      mine.setLevelsArrayAt(level + 1, newIndex);
 
-    // verify that we freed up halfAdjPop array slots just below the current level
-    assert myLevelsArr[level] == rawBeg + halfAdjPop;
-
-    // finally, we need to shift up the data in the levels below
-    // so that the freed-up space can be used by level zero
-    if (level > 0) {
-      final int amount = rawBeg - myLevelsArr[0];
-      if (mine.sketchType == DOUBLES_SKETCH) {
-        if (mine.updatableMemFormat) {
-          myDoubleItemsArr = mine.getDoubleItemsArray();
-          System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
-          mine.setDoubleItemsArray(myDoubleItemsArr);
-        } else {
-          System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
-        }
+      if (oddPop) {
+        mine.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
+        myDoubleItemsArr[myLevelsArr[level]] = myDoubleItemsArr[rawBeg];  // namely this leftover guy
       } else {
-        if (mine.updatableMemFormat) {
-          myFloatItemsArr = mine.getFloatItemsArray();
-          System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);
-          mine.setFloatItemsArray(myFloatItemsArr);
-        } else {
-          System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);
-        }
+        mine.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
+      }
+
+      // verify that we freed up halfAdjPop array slots just below the current level
+      assert myLevelsArr[level] == rawBeg + halfAdjPop;
+
+   // finally, we need to shift up the data in the levels below
+      // so that the freed-up space can be used by level zero
+      if (level > 0) {
+        final int amount = rawBeg - myLevelsArr[0];
+        System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
       }
       for (int lvl = 0; lvl < level; lvl++) {
         newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
         mine.setLevelsArrayAt(lvl, newIndex);
       }
+      mine.setDoubleItemsArray(myDoubleItemsArr);
+    }
+    else { //Float sketch
+      final float[] myFloatItemsArr = mine.getFloatItemsArray();
+      if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
+        Arrays.sort(myFloatItemsArr, adjBeg, adjBeg + adjPop);
+      }
+      if (popAbove == 0) {
+        KllFloatsHelper.randomlyHalveUpFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
+      } else {
+        KllFloatsHelper.randomlyHalveDownFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
+        KllFloatsHelper.mergeSortedFloatArrays(
+            myFloatItemsArr, adjBeg, halfAdjPop,
+            myFloatItemsArr, rawEnd, popAbove,
+            myFloatItemsArr, adjBeg + halfAdjPop);
+      }
+
+      int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
+      mine.setLevelsArrayAt(level + 1, newIndex);
+
+      if (oddPop) {
+        mine.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
+        myFloatItemsArr[myLevelsArr[level]] = myFloatItemsArr[rawBeg];  // namely this leftover guy
+      } else {
+        mine.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
+      }
+
+      // verify that we freed up halfAdjPop array slots just below the current level
+      assert myLevelsArr[level] == rawBeg + halfAdjPop;
+
+      // finally, we need to shift up the data in the levels below
+      // so that the freed-up space can be used by level zero
+      if (level > 0) {
+        final int amount = rawBeg - myLevelsArr[0];
+        System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);
+      }
+      for (int lvl = 0; lvl < level; lvl++) {
+        newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
+        mine.setLevelsArrayAt(lvl, newIndex);
+      }
+      mine.setFloatItemsArray(myFloatItemsArr);
     }
   }
 
