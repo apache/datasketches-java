@@ -614,7 +614,6 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  @SuppressWarnings("unused")
   public void checkWritableWrapOfCompactForm() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk.update(i); }

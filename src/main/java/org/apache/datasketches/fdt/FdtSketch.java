@@ -93,7 +93,6 @@ public class FdtSketch extends ArrayOfStringsSketch {
   /**
    * @return a deep copy of this sketch
    */
-  @SuppressWarnings("unchecked")
   @Override
   public FdtSketch copy() {
     return new FdtSketch(this);
