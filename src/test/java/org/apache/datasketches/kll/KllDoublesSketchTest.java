@@ -32,7 +32,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class KllDoublesSketchTest {
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
@@ -277,13 +276,11 @@ public class KllDoublesSketchTest {
     assertEquals(sketch2.getMaxValue(), 1_000_000);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
     KllDoublesSketch.newHeapInstance(KllSketch.DEFAULT_M - 1);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
     KllDoublesSketch.newHeapInstance(KllSketch.MAX_K + 1);

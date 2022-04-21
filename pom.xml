@@ -88,7 +88,7 @@ under the License.
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
     <!-- Test -->
-    <testng.version>7.4.0</testng.version>
+    <testng.version>7.5</testng.version>
 
     <!-- System-wide properties -->
     <maven.version>3.5.0</maven.version>

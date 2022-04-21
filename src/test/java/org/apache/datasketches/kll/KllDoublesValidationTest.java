@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
 //These results are for the version that delays the roll up until the next value comes in.
 //The @Test annotations have to be enabled to use this class and a section in KllDoublesHelper also
 //needs to be enabled.
-@SuppressWarnings({ "javadoc", "unused" })
+@SuppressWarnings("unused")
 public class KllDoublesValidationTest {
 
   //Used only with manual running of checkTestResults(..)

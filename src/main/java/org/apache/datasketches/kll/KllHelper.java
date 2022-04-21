@@ -622,7 +622,6 @@ final class KllHelper {
     return byteArr;
   }
 
-  @SuppressWarnings("null")
   static String toStringImpl(final KllSketch mine, final boolean withLevels, final boolean withData) {
     final boolean doubleType = (mine.sketchType == DOUBLES_SKETCH);
     final int k = mine.getK();
@@ -760,7 +759,6 @@ final class KllHelper {
    * at the bottom.  Only numLevels, the levels array and the items array are affected.
    * @param mine the current sketch
    */
-  @SuppressWarnings("null")
   private static void addEmptyTopLevelToCompletelyFullSketch(final KllSketch mine) {
     final int[] myCurLevelsArr = mine.getLevelsArray();
     final int myCurNumLevels = mine.getNumLevels();
