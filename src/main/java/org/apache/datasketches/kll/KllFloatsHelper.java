@@ -259,7 +259,7 @@ final class KllFloatsHelper {
   }
 
   /**
-   * Validation Method. This must be modified to test validation
+   * Validation Method. This must be modified to use the validation test
    * @param buf the items array
    * @param start data start
    * @param length items length
@@ -278,7 +278,7 @@ final class KllFloatsHelper {
   }
 
   /**
-   * Validation Method. This must be modified to test validation
+   * Validation Method. This must be modified to use the validation test
    * @param buf the items array
    * @param start data start
    * @param length items length

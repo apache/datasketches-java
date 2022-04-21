@@ -74,7 +74,7 @@ final class KllMemoryValidate {
   boolean singleItem;
   final boolean level0Sorted;
   final boolean doublesSketch;
-  final boolean updatableMemFormat;
+  boolean updatableMemFormat = false;
   final boolean readOnly;
   final int k;
   final int m;
