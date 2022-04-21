@@ -188,14 +188,6 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setFloatItemsArraySubrange(final float[] srcArr, final int srcIndex, final int tgtIndex, final int numItems) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    final int offset =
-        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + (tgtIndex + 2) * Float.BYTES;
-    wmem.putFloatArray(offset, srcArr, srcIndex, numItems);
-  }
-
-  @Override
   void setLevelZeroSorted(final boolean sorted) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryLevelZeroSortedFlag(wmem, sorted);

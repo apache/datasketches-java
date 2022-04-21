@@ -506,8 +506,6 @@ public abstract class KllSketch {
 
   abstract void setFloatItemsArrayAt(int index, float value);
 
-  abstract void setFloatItemsArraySubrange(float[] srcArr, int srcIndex, int tgtIndex, int numItems);
-
   final void setLevelsArray(final int[] levelsArr) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     this.levelsArr = levelsArr;
