@@ -258,7 +258,6 @@ public final class VarOptItemsSketch<T> {
     return sketch;
   }
 
-
   /**
    * Returns a sketch instance of this class from the given srcMem,
    * which must be a Memory representation of this sketch class.

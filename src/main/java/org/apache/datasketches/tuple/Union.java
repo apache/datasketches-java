@@ -135,7 +135,6 @@ public class Union<S extends Summary> {
     unionThetaLong_ = min(unionThetaLong_, qsk_.thetaLong_);
   }
 
-
   /**
    * Gets the result of a sequence of stateful <i>union</i> operations as an unordered CompactSketch
    * @return result of the stateful unions so far. The state of this operation is not reset after the
