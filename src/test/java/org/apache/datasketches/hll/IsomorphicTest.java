@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc", "unused"})
+@SuppressWarnings("unused")
 public class IsomorphicTest {
   long v = 0;
 

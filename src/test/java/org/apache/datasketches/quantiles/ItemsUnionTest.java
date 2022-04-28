@@ -31,7 +31,6 @@ import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
 
-@SuppressWarnings("javadoc")
 public class ItemsUnionTest {
 
   @Test

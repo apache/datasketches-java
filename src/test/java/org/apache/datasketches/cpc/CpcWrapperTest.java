@@ -32,7 +32,6 @@ import org.apache.datasketches.Family;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class CpcWrapperTest {
   static PrintStream ps = System.out;
 

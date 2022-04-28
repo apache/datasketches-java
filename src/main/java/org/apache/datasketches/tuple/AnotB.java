@@ -109,7 +109,6 @@ public final class AnotB<S extends Summary> {
    *
    * @param skA The incoming sketch for the first argument, <i>A</i>.
    */
-  @SuppressWarnings("unchecked")
   public void setA(final Sketch<S> skA) {
     if (skA == null) {
       reset();
@@ -141,7 +140,6 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Tuple sketch for the second (or following) argument <i>B</i>.
    */
-  @SuppressWarnings("unchecked")
   public void notB(final Sketch<S> skB) {
     if (skB == null) { return; } //ignore
 
@@ -214,7 +212,6 @@ public final class AnotB<S extends Summary> {
    *
    * @param skB The incoming Theta sketch for the second (or following) argument <i>B</i>.
    */
-  @SuppressWarnings("unchecked")
   public void notB(final org.apache.datasketches.theta.Sketch skB) {
     if (skB == null) { return; } //ignore
 
@@ -311,7 +308,6 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as an unordered {@link CompactSketch}
    */
-  @SuppressWarnings("unchecked")
   public static <S extends Summary> CompactSketch<S> aNotB(
       final Sketch<S> skA,
       final Sketch<S> skB) {
@@ -403,7 +399,6 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as an unordered {@link CompactSketch}
    */
-  @SuppressWarnings("unchecked")
   public static <S extends Summary> CompactSketch<S> aNotB(
       final Sketch<S> skA,
       final org.apache.datasketches.theta.Sketch skB) {
@@ -480,7 +475,6 @@ public final class AnotB<S extends Summary> {
     S[] summaryArr;
   }
 
-  @SuppressWarnings("unchecked")
   private static <S extends Summary> DataArrays<S> getCopyOfDataArraysTuple(
       final Sketch<S> sk) {
     final CompactSketch<S> csk;

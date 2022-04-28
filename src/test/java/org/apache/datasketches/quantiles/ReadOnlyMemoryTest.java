@@ -28,7 +28,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesReadOnlyException;
 
-@SuppressWarnings("javadoc")
 public class ReadOnlyMemoryTest {
 
   @Test

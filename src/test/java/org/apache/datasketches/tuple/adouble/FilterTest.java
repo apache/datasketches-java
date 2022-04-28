@@ -30,7 +30,6 @@ import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class FilterTest {
     private static final int numberOfElements = 100;
     private static final Random random = new Random(1);//deterministic for this class

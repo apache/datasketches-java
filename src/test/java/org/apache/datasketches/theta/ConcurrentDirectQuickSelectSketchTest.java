@@ -39,7 +39,6 @@ import org.testng.annotations.Test;
 /**
  * @author eshcar
  */
-@SuppressWarnings("javadoc")
 public class ConcurrentDirectQuickSelectSketchTest {
   private static final long SEED = DEFAULT_UPDATE_SEED;
 
@@ -535,7 +534,6 @@ public class ConcurrentDirectQuickSelectSketchTest {
     for (int i = 0; i < u; i++) { local.update(i); }
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkConstructorKtooSmall() {
     int lgK = 3;

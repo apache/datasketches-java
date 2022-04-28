@@ -44,7 +44,6 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 
 // Tests mostly focus on Long since other types are already tested in ReservoirItemsSketchTest.
-@SuppressWarnings("javadoc")
 public class ReservoirItemsUnionTest {
   @Test
   public void checkEmptyUnion() {

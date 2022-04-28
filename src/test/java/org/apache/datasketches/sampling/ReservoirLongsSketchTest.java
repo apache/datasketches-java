@@ -42,7 +42,6 @@ import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesException;
 import org.apache.datasketches.SketchesStateException;
 
-@SuppressWarnings("javadoc")
 public class ReservoirLongsSketchTest {
   private static final double EPS = 1e-8;
 

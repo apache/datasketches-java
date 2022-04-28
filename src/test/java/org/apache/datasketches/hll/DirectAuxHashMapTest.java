@@ -41,7 +41,6 @@ import org.apache.datasketches.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class DirectAuxHashMapTest {
 
   @Test

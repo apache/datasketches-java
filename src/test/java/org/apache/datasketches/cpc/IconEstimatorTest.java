@@ -30,7 +30,6 @@ import org.apache.datasketches.SketchesStateException;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class IconEstimatorTest {
 
   //SLOW EXACT VERSION, Eventually move to characterization

@@ -28,7 +28,6 @@ import org.apache.datasketches.theta.Sketches;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class BoundsOnRatiosInThetaSketchedSetsTest {
 
   @Test

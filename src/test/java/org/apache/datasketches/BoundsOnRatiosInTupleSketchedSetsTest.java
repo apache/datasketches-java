@@ -37,7 +37,6 @@ import static org.testng.Assert.assertTrue;
  * @author Lee Rhodes
  * @author David Cromberge
  */
-@SuppressWarnings("javadoc")
 public class BoundsOnRatiosInTupleSketchedSetsTest {
 
   private final DoubleSummary.Mode umode = DoubleSummary.Mode.Sum;

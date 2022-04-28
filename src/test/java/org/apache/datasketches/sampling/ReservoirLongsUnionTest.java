@@ -37,7 +37,6 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 
-@SuppressWarnings("javadoc")
 public class ReservoirLongsUnionTest {
   @Test
   public void checkEmptyUnion() {

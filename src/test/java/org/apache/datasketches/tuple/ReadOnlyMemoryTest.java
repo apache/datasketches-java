@@ -30,7 +30,6 @@ import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesUpdatableSketc
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class ReadOnlyMemoryTest {
 
   @Test

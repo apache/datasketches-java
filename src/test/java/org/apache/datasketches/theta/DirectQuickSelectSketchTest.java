@@ -54,7 +54,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class DirectQuickSelectSketchTest {
 
   @Test//(expectedExceptions = SketchesArgumentException.class)
@@ -426,7 +425,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk3.getClass().getSimpleName(), "DirectCompactSketch");
     } catch (final Exception e) {
       //if (e instanceof SketchesArgumentException) {}
-      throw new RuntimeException(e); 
+      throw new RuntimeException(e);
     }
   }
 

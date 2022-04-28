@@ -39,7 +39,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class AdoubleIntersectionTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
 

@@ -64,7 +64,6 @@ import org.apache.datasketches.cpc.PreambleUtil.HiField;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class PreambleUtilTest {
   static final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED) ;
 

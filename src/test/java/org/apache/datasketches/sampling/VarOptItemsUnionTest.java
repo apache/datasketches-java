@@ -39,7 +39,6 @@ import org.apache.datasketches.SketchesArgumentException;
 /**
  * @author Jon Malkin
  */
-@SuppressWarnings("javadoc")
 public class VarOptItemsUnionTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBadSerVer() {

@@ -86,7 +86,6 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
   /**
    * @return a deep copy of this sketch
    */
-  @SuppressWarnings("unchecked")
   @Override
   public UpdatableSketch<U,S> copy() {
     return new UpdatableSketch<U,S>(this);

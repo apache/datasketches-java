@@ -34,7 +34,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.SketchesArgumentException;
 
-@SuppressWarnings("javadoc")
 public class DoublesUnionImplTest {
 
   @Test

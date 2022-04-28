@@ -41,7 +41,6 @@ import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 import org.apache.datasketches.frequencies.LongsSketch.Row;
 
-@SuppressWarnings("javadoc")
 public class LongsSketchTest {
 
   @Test

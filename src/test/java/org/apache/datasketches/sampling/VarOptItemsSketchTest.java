@@ -37,7 +37,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class VarOptItemsSketchTest {
   static final double EPS = 1e-10;
 

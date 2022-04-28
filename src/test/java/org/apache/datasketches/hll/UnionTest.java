@@ -36,7 +36,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class UnionTest {
   static final String LS = System.getProperty("line.separator");
 

@@ -41,7 +41,6 @@ import org.apache.datasketches.ArrayOfUtf16StringsSerDe;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.frequencies.ItemsSketch.Row;
 
-@SuppressWarnings("javadoc")
 public class ItemsSketchTest {
 
   @Test

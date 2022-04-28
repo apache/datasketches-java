@@ -27,7 +27,6 @@ import java.util.Random;
 
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class KolmogorovSmirnovTest {
 
  @Test

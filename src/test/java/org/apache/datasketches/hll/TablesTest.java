@@ -33,7 +33,6 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  *
  */
-@SuppressWarnings("javadoc")
 public class TablesTest {
 
   @Test

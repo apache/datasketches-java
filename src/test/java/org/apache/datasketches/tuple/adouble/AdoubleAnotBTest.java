@@ -39,7 +39,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class AdoubleAnotBTest {
   private static final DoubleSummary.Mode mode = Mode.Sum;
   private final Results results = new Results();

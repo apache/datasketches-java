@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
 /**
  * @author Jon Malkin
  */
-@SuppressWarnings("javadoc")
 public class VarOptItemsSamplesTest {
   @Test
   public void compareIteratorToArrays() {

@@ -71,7 +71,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
    * @param mem Memory object with serialized CompactSketch
    * @param deserializer the SummaryDeserializer
    */
-  @SuppressWarnings({"unchecked"})
   CompactSketch(final Memory mem, final SummaryDeserializer<S> deserializer) {
     int offset = 0;
     final byte preambleLongs = mem.getByte(offset++);
@@ -189,7 +188,6 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   // Adr:
   //      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |     0              |
   //  0   ||    seed hash    |  Flags | unused | SkType | FamID  | SerVer |  Preamble_Longs    |
-  @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
   final int count = getRetainedEntries();

@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class QuickSelectTest {
   private static final String LS = System.getProperty("line.separator");
   private static final Random random = new Random(); // pseudo-random number generator

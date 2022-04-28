@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class BinarySearchTest {
   static Random rand = new Random(1);
   private static final String LS = System.getProperty("line.separator");

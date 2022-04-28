@@ -37,7 +37,6 @@ import static org.testng.Assert.assertTrue;
  * @author Lee Rhodes
  * @author David Cromberge
  */
-@SuppressWarnings("javadoc")
 public class JaccardSimilarityTest {
   private final DoubleSummary.Mode umode = DoubleSummary.Mode.Sum;
   private final DoubleSummarySetOperations dsso = new DoubleSummarySetOperations();

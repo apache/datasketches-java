@@ -43,7 +43,6 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
-@SuppressWarnings("javadoc")
 public class PreambleUtilTest {
 
   @Test

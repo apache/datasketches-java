@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
  * Checks sketch images obtained from C++.
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class CpcCBinariesTest {
   static PrintStream ps = System.out;
   static final String LS = System.getProperty("line.separator");

@@ -29,7 +29,6 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class ArrayOfDoublesUnionTest {
 
   @Test

@@ -39,7 +39,6 @@ import org.testng.annotations.Test;
 /**
  * @author eshcar
  */
-@SuppressWarnings("javadoc")
 public class ConcurrentHeapQuickSelectSketchTest {
 
 
@@ -491,7 +490,6 @@ public class ConcurrentHeapQuickSelectSketchTest {
     println(sl.bldr.toString());
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBuilderSmallNominal() {
     int lgK = 2; //too small

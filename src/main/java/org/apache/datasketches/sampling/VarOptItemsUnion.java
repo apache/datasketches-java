@@ -314,7 +314,7 @@ public final class VarOptItemsUnion<T> {
    * @param clazz A class to which the items are cast before serialization
    * @return a byte array representation of this union
    */
-  @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
+  // gadgetBytes will be null only if gadget_ == null AND empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_.getNumSamples() == 0;

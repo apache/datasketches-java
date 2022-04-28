@@ -269,7 +269,6 @@ public final class VarOptItemsSketch<T> {
    * @param serDe  An instance of ArrayOfItemsSerDe
    * @return a sketch instance of this class
    */
-  @SuppressWarnings("null")
   public static <T> VarOptItemsSketch<T> heapify(final Memory srcMem,
                                                  final ArrayOfItemsSerDe<T> serDe) {
     final int numPreLongs = getAndCheckPreLongs(srcMem);
@@ -566,7 +565,7 @@ public final class VarOptItemsSketch<T> {
    * @param clazz The class represented by &lt;T&gt;
    * @return a byte array representation of this sketch
    */
-  @SuppressWarnings("null") // bytes will be null only if empty == true
+  // bytes will be null only if empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, numMarkBytes, outBytes;
     final boolean empty = (r_ == 0) && (h_ == 0);

@@ -121,7 +121,6 @@ public class Union<S extends Summary> {
    * @param summary the given proxy summary for the theta sketch, which doesn't have one. This may
    * not be null.
    */
-  @SuppressWarnings("unchecked")
   public void union(final org.apache.datasketches.theta.Sketch thetaSketch, final S summary) {
     if (summary == null) {
       throw new SketchesArgumentException("Summary cannot be null."); }
@@ -142,7 +141,6 @@ public class Union<S extends Summary> {
    * @return result of the stateful unions so far. The state of this operation is not reset after the
    * result is returned.
    */
-  @SuppressWarnings("unchecked")
   public CompactSketch<S> getResult() {
     return getResult(false);
   }

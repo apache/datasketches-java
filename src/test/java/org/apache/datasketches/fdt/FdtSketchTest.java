@@ -34,7 +34,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class FdtSketchTest {
   private static final String LS = System.getProperty("line.separator");
   private static final char sep = '|'; //string separator
