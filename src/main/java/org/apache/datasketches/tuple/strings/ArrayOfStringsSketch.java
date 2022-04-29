@@ -84,7 +84,6 @@ public class ArrayOfStringsSketch extends UpdatableSketch<String[], ArrayOfStrin
   /**
    * @return a deep copy of this sketch
    */
-  @SuppressWarnings("unchecked")
   @Override
   public ArrayOfStringsSketch copy() {
     return new ArrayOfStringsSketch(this);

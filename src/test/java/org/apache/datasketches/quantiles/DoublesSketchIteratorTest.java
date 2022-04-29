@@ -22,7 +22,6 @@ package org.apache.datasketches.quantiles;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class DoublesSketchIteratorTest {
 
   @Test

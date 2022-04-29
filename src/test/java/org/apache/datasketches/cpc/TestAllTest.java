@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class TestAllTest {
   // Enable these as desired for all tests.
   private PrintStream ps = null; //System.out; //prints to console

@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc", "unused"})
+@SuppressWarnings("unused")
 public class ReqSketchOtherTest {
   final ReqSketchTest reqSketchTest = new ReqSketchTest();
   static InequalitySearch critLT = LT;

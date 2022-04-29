@@ -145,7 +145,6 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
   }
 
   //@formatter:off
-  @SuppressWarnings("null")
   static UpdateDoublesSketch updateLogic(final int myMaxK, final UpdateDoublesSketch myQS,
                                          final DoublesSketch other) {
     int sw1 = ((myQS  == null) ? 0 :  myQS.isEmpty() ? 4 : 8);

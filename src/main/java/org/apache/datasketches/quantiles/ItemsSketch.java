@@ -532,7 +532,6 @@ public final class ItemsSketch<T> {
   /**
    * @return true if this sketch is off-heap
    */
-  @SuppressWarnings("static-method")
   public boolean isDirect() {
     return false;
   }

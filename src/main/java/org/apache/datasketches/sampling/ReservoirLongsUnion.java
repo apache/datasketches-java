@@ -239,7 +239,7 @@ public final class ReservoirLongsUnion {
    *
    * @return a byte array representation of this union
    */
-  @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
+  // gadgetBytes will be null only if gadget_ == null AND empty == true
   public byte[] toByteArray() {
     final int preLongs, outBytes;
     final boolean empty = gadget_ == null;

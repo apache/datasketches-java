@@ -30,7 +30,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class IntegerSketchTest {
 
   @SuppressWarnings("deprecation")

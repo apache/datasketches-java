@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("javadoc")
 public class TestUtil {
   public static List<Double> asList(final double[] array) {
     final List<Double> list = new ArrayList<>(array.length);

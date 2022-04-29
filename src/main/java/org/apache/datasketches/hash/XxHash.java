@@ -24,14 +24,13 @@ import org.apache.datasketches.memory.Memory;
 /**
  * The XxHash is a fast, non-cryptographic, 64-bit hash function that has
  * excellent avalanche and 2-way bit independence properties.
- *  
- * <p>This class wraps the   
+ *
+ * <p>This class wraps the
  * <a href="https://github.com/apache/datasketches-memory/blob/master/datasketches-memory-java8/src/main/java/org/apache/datasketches/memory/XxHash.java">Memory Component XxHash</a>
  * implementation.
  *
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class XxHash {
 
   /**

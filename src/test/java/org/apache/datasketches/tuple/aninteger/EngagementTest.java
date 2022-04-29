@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class EngagementTest {
   public static final int numStdDev = 2;
 

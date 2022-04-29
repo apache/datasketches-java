@@ -22,7 +22,6 @@ package org.apache.datasketches.frequencies;
 import org.apache.datasketches.hash.MurmurHash3;
 //import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class HashMapStressTest {
 
   //@Test

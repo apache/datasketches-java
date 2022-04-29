@@ -25,7 +25,6 @@ import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class ForwardCompatibilityTest {
   private static final String LS = System.getProperty("line.separator");
 

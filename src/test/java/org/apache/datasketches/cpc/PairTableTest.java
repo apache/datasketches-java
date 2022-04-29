@@ -32,7 +32,6 @@ import org.apache.datasketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class PairTableTest {
   Random rand = new Random();
 

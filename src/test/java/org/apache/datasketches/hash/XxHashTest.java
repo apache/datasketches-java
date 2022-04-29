@@ -28,7 +28,6 @@ import org.apache.datasketches.memory.Memory;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class XxHashTest {
 
   @Test

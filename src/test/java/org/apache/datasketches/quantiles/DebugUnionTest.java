@@ -33,7 +33,6 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class DebugUnionTest {
 
   @Test

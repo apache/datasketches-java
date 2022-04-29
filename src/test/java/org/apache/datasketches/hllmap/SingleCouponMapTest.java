@@ -24,7 +24,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class SingleCouponMapTest {
 
   @Test

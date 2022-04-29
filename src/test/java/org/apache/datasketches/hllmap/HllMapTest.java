@@ -24,7 +24,6 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.Util;
 
-@SuppressWarnings("javadoc")
 public class HllMapTest {
 
   @Test

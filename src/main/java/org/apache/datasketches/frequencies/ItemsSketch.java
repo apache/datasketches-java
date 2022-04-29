@@ -482,7 +482,6 @@ public class ItemsSketch<T> {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return a byte array representation of this sketch
    */
-  @SuppressWarnings("null")
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     final int preLongs;
     final int outBytes;

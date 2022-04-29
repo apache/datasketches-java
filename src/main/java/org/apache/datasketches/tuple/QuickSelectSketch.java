@@ -349,7 +349,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * Serializing a CompactSketch is not deprecated.
    */
   @Deprecated
-  @SuppressWarnings("null")
   @Override
   public byte[] toByteArray() {
     byte[][] summariesBytes = null;
@@ -507,7 +506,6 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     thetaLong_ = QuickSelect.select(hashArr, 0, count_ - 1, nomEntries_);
   }
 
-  @SuppressWarnings({"unchecked"})
   private void resize(final int newSize) {
     final long[] oldHashTable = hashTable_;
     final S[] oldSummaryTable = summaryTable_;

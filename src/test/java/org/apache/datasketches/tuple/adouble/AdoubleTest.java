@@ -33,7 +33,6 @@ import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class AdoubleTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
 

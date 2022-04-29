@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 /**
  * @author Kevin Lang
  */
-@SuppressWarnings("javadoc")
 public class BinomialBoundsNTest {
 
   public static double[] runTestAux(final long max_numSamplesI, final int ci, final double min_p) {

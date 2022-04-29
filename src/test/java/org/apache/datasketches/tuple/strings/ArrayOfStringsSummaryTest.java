@@ -32,7 +32,6 @@ import org.apache.datasketches.tuple.DeserializeResult;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class ArrayOfStringsSummaryTest {
 
   @Test

@@ -24,7 +24,6 @@ import java.util.Comparator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class ItemsSketchIteratorTest {
 
   @Test

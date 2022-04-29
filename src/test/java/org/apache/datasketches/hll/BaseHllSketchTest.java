@@ -32,7 +32,6 @@ import java.nio.ByteBuffer;
  * @author Lee Rhodes
  *
  */
-@SuppressWarnings("javadoc")
 public class BaseHllSketchTest {
 
   @Test

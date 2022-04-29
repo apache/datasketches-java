@@ -26,7 +26,6 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.WritableMemory;
 
-@SuppressWarnings("javadoc")
 public class DoublesSketchBuilderTest {
 
   @Test

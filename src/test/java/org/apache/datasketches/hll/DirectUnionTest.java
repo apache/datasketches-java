@@ -37,7 +37,6 @@ import org.apache.datasketches.SketchesArgumentException;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class DirectUnionTest {
   static final String LS = System.getProperty("line.separator");
 

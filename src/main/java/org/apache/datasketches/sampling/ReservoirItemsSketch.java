@@ -460,7 +460,7 @@ public final class ReservoirItemsSketch<T> {
    * @param clazz The class represented by &lt;T&gt;
    * @return a byte array representation of this sketch
    */
-  @SuppressWarnings("null") // bytes will be null only if empty == true
+  // bytes will be null only if empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<? super T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = itemsSeen_ == 0;

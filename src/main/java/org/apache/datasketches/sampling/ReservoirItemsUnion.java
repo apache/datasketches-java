@@ -286,7 +286,7 @@ public final class ReservoirItemsUnion<T> {
    * @param clazz A class to which the items are cast before serialization
    * @return a byte array representation of this union
    */
-  @SuppressWarnings("null") // gadgetBytes will be null only if gadget_ == null AND empty == true
+  // gadgetBytes will be null only if gadget_ == null AND empty == true
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe, final Class<?> clazz) {
     final int preLongs, outBytes;
     final boolean empty = gadget_ == null;
@@ -326,7 +326,7 @@ public final class ReservoirItemsUnion<T> {
     if ((sketchIn.getK() < maxK_) && (sketchIn.getN() <= sketchIn.getK())) {
       // incoming sketch is in exact mode with sketch's k < maxK,
       // so we can create a gadget at size maxK and keep everything
-      // NOTE: assumes twoWayMergeInternal first checks if sketchIn is in exact mode
+      //Assumes twoWayMergeInternal first checks if sketchIn is in exact mode
       gadget_ = ReservoirItemsSketch.newInstance(maxK_);
       twoWayMergeInternal(sketchIn, isModifiable); // isModifiable could be fixed to false here
     } else {

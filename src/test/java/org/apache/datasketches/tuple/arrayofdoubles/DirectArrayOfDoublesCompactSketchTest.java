@@ -27,7 +27,6 @@ import org.apache.datasketches.tuple.Util;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class DirectArrayOfDoublesCompactSketchTest {
 
   @Test

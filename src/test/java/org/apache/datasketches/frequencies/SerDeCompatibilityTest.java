@@ -25,7 +25,6 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class SerDeCompatibilityTest {
 
   static final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();

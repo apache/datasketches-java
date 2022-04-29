@@ -38,7 +38,6 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class HashOperationsTest {
 
   //Not otherwise already covered

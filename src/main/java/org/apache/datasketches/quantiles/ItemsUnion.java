@@ -254,7 +254,7 @@ public final class ItemsUnion<T> {
   }
 
   //@formatter:off
-  @SuppressWarnings({"null", "unchecked"})
+  @SuppressWarnings("unchecked")
   static <T> ItemsSketch<T> updateLogic(final int myMaxK, final Comparator<? super T> comparator,
       final ItemsSketch<T> myQS, final ItemsSketch<T> other) {
     int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);

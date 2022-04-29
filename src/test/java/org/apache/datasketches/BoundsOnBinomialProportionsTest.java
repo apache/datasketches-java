@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
 /**
  * @author Kevin Lang
  */
-@SuppressWarnings("javadoc")
 public class BoundsOnBinomialProportionsTest {
 
   @Test

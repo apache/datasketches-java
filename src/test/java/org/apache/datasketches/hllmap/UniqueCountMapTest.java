@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.Util;
 
-@SuppressWarnings("javadoc")
 public class UniqueCountMapTest {
   private final static int INIT_ENTRIES = 211;
   @Test

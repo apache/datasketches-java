@@ -44,7 +44,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class SketchesTest {
 
   private static Memory getCompactSketchMemory(final int k, final int from, final int to) {

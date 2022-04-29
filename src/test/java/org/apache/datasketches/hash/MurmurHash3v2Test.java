@@ -34,7 +34,6 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class MurmurHash3v2Test {
   private Random rand = new Random();
   private static final int trials = 1 << 20;

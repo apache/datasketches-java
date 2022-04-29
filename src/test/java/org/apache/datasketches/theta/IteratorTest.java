@@ -29,7 +29,6 @@ import org.apache.datasketches.Family;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class IteratorTest {
 
   @Test

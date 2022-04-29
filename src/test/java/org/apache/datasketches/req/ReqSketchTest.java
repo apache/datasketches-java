@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"javadoc", "unused"})
+@SuppressWarnings("unused")
 public class ReqSketchTest {
   private static final String LS = System.getProperty("line.separator");
 

@@ -49,7 +49,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class HeapAlphaSketchTest {
   private Family fam_ = ALPHA;
 

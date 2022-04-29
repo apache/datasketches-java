@@ -40,7 +40,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class DirectIntersectionTest {
   private static final int PREBYTES = CONST_PREAMBLE_LONGS << 3; //24
 

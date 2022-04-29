@@ -25,7 +25,6 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.SketchesArgumentException;
 
-@SuppressWarnings("javadoc")
 public class ReversePurgeLongHashMapTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)

@@ -33,7 +33,6 @@ import org.testng.annotations.Test;
  * Tests for Version 2.0.0
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class TupleExamplesTest {
   private final IntegerSummary.Mode umode = Mode.Sum;
   private final IntegerSummary.Mode imode = Mode.AlwaysOne;

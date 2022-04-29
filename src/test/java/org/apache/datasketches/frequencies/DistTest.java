@@ -22,7 +22,6 @@ package org.apache.datasketches.frequencies;
 import org.testng.Assert;
 //import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class DistTest {
 
   /**

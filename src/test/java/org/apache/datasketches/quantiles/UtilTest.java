@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.SketchesArgumentException;
 
-@SuppressWarnings("javadoc")
 public class UtilTest {
 
   @Test

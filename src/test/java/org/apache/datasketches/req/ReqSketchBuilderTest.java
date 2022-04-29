@@ -27,7 +27,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class ReqSketchBuilderTest {
 
   @Test
@@ -44,7 +43,9 @@ public class ReqSketchBuilderTest {
     println(bldr.toString());
   }
 
-  @SuppressWarnings("unused")
+  /**
+   * @param o object to be printed
+   */
   static void println(final Object o) {
     //System.out.println(o.toString());
   }

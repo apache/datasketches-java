@@ -25,7 +25,6 @@ import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class SerialVersion3Test {
 
   @Test

@@ -30,7 +30,6 @@ import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class CompactSketchWithDoubleSummaryTest {
   private final DoubleSummary.Mode mode = Mode.Sum;
 
