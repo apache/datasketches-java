@@ -21,7 +21,7 @@ package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.isPowerOf2;
-import static org.apache.datasketches.Util.toLog2;
+import static org.apache.datasketches.Util.exactLog2;
 import static org.apache.datasketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER;
 import static org.apache.datasketches.frequencies.PreambleUtil.extractActiveItems;
@@ -185,7 +185,7 @@ public class LongsSketch {
    * function of maxMapSize.
    */
   public LongsSketch(final int maxMapSize) {
-    this(toLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
+    this(exactLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
 
   /**

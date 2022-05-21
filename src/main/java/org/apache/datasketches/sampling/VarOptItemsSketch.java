@@ -136,7 +136,7 @@ public final class VarOptItemsSketch<T> {
     totalWtR_ = 0;
     numMarksInH_ = 0;
 
-    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k_), "VarOptItemsSketch");
+    final int ceilingLgK = Util.exactLog2(Util.ceilingPowerOf2(k_), "VarOptItemsSketch");
     final int initialLgSize =
             SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
 
@@ -347,8 +347,8 @@ public final class VarOptItemsSketch<T> {
 
     if (rCount == 0) {
       // Not in sampling mode, so determine size to allocate, using ceilingLog2(hCount) as minimum
-      final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k), "heapify");
-      final int minLgSize = Util.toLog2(Util.ceilingPowerOf2(hCount), "heapify");
+      final int ceilingLgK = Util.exactLog2(Util.ceilingPowerOf2(k), "heapify");
+      final int minLgSize = Util.exactLog2(Util.ceilingPowerOf2(hCount), "heapify");
       final int initialLgSize = SamplingUtil.startingSubMultiple(ceilingLgK, rf.lg(),
               Math.max(minLgSize, MIN_LG_ARR_ITEMS));
 
@@ -474,7 +474,7 @@ public final class VarOptItemsSketch<T> {
    * Resets this sketch to the empty state, but retains the original value of k.
    */
   public void reset() {
-    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k_), "VarOptItemsSketch");
+    final int ceilingLgK = Util.exactLog2(Util.ceilingPowerOf2(k_), "VarOptItemsSketch");
     final int initialLgSize =
             SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_ITEMS);
 

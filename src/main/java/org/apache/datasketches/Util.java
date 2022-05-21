@@ -421,41 +421,38 @@ public final class Util {
    * Checks the given parameter to make sure it is positive, an integer-power of 2 and greater than
    * zero.
    *
-   * @param v The input argument.
+   * @param powerOf2 The input argument must be a power of 2 and greater than zero.
    * @param argName Used in the thrown exception.
    */
-  public static void checkIfPowerOf2(final int v, final String argName) {
-    if (v > 0 && (v & v - 1) == 0) {
-      return;
-    }
+  public static void checkIfPowerOf2(final int powerOf2, final String argName) {
+    if (powerOf2 > 0 && (powerOf2 & powerOf2 - 1) == 0) { return; }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
-        + "\" must be a positive integer-power of 2" + " and greater than 0: " + v);
+        + "\" must be a positive integer-power of 2" + " and greater than 0: " + powerOf2);
   }
 
   /**
    * Checks the given value if it is a power of 2. If not, it throws an exception.
    * Otherwise, returns the log-base2 of the given value.
-   * @param value must be a power of 2 and greater than zero.
+   * @param powerOf2 must be a power of 2 and greater than zero.
    * @param argName the argument name used in the exception if thrown.
    * @return the log-base2 of the given value
    */
-  public static int toLog2(final int value, final String argName) {
-    checkIfPowerOf2(value, argName);
-    return Integer.numberOfTrailingZeros(value);
+  public static int exactLog2(final int powerOf2, final String argName) {
+    checkIfPowerOf2(powerOf2, argName);
+    return Integer.numberOfTrailingZeros(powerOf2);
   }
 
   /**
    * Gives the log2 of a long that is known to be a power of 2.
    *
-   * @param x number that is greater than zero
+   * @param powerOf2 must be a power of 2 and greater than zero.
    * @return the log2 of a long that is known to be a power of 2.
    */
-  public static int simpleLog2OfLong(final long x) {
-    final int exp = Long.numberOfTrailingZeros(x);
-    if (x != 1L << exp) {
-      throw new SketchesArgumentException("Argument x must be a positive power of 2.");
+  public static int exactLog2OfLong(final long powerOf2) {
+    if (powerOf2 <= 0 || (powerOf2 & (powerOf2 - 1L)) != 0) {
+      throw new SketchesArgumentException("Argument 'powerOf2' must be a positive power of 2.");
     }
-    return exp;
+    return Long.numberOfTrailingZeros(powerOf2);
   }
 
   /**

@@ -32,6 +32,7 @@ import static org.apache.datasketches.Util.checkProbability;
 import static org.apache.datasketches.Util.evenlyLogSpaced;
 import static org.apache.datasketches.Util.evenlySpaced;
 import static org.apache.datasketches.Util.evenlySpacedFloats;
+import static org.apache.datasketches.Util.exactLog2OfLong;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.Util.floorPowerOfBdouble;
 import static org.apache.datasketches.Util.getResourceBytes;
@@ -47,7 +48,6 @@ import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.Util.pwr2LawNext;
 import static org.apache.datasketches.Util.pwr2LawPrev;
 import static org.apache.datasketches.Util.pwrLawNextDouble;
-import static org.apache.datasketches.Util.simpleLog2OfLong;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -377,11 +377,11 @@ public class UtilTest {
 
   @Test
   public void checkSimpleLog2OfLong() {
-    Assert.assertEquals(simpleLog2OfLong(2), 1);
-    Assert.assertEquals(simpleLog2OfLong(1), 0);
-    Assert.assertEquals(simpleLog2OfLong(1L << 62), 62);
+    Assert.assertEquals(exactLog2OfLong(2), 1);
+    Assert.assertEquals(exactLog2OfLong(1), 0);
+    Assert.assertEquals(exactLog2OfLong(1L << 62), 62);
     try {
-      simpleLog2OfLong(0);
+      exactLog2OfLong(0);
       fail();
     } catch (final SketchesArgumentException e) { }
   }

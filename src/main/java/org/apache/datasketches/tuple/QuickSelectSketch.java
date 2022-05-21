@@ -23,7 +23,7 @@ import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
 import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.Util.simpleLog2OfLong;
+import static org.apache.datasketches.Util.exactLog2OfLong;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
@@ -261,7 +261,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
    * @return log_base2 of Nominal Entries
    */
   public int getLgK() {
-    return simpleLog2OfLong(nomEntries_);
+    return exactLog2OfLong(nomEntries_);
   }
 
   /**

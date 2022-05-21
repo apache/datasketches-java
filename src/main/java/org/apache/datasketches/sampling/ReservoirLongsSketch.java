@@ -92,7 +92,7 @@ public final class ReservoirLongsSketch {
 
     itemsSeen_ = 0;
 
-    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
+    final int ceilingLgK = Util.exactLog2(Util.ceilingPowerOf2(reservoirSize_), "ReservoirLongsSketch");
     final int initialLgSize =
             SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_LONGS);
 
@@ -229,8 +229,8 @@ public final class ReservoirLongsSketch {
     if (itemsSeen < k) {
       // under-full so determine size to allocate, using ceilingLog2(totalSeen) as minimum
       // casts to int are safe since under-full
-      final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(k), "heapify");
-      final int minLgSize = Util.toLog2(Util.ceilingPowerOf2((int) itemsSeen), "heapify");
+      final int ceilingLgK = Util.exactLog2(Util.ceilingPowerOf2(k), "heapify");
+      final int minLgSize = Util.exactLog2(Util.ceilingPowerOf2((int) itemsSeen), "heapify");
       final int initialLgSize = SamplingUtil.startingSubMultiple(ceilingLgK, rf.lg(),
               Math.max(minLgSize, MIN_LG_ARR_LONGS));
 
@@ -334,7 +334,7 @@ public final class ReservoirLongsSketch {
    * Resets this sketch to the empty state, but retains the original value of k.
    */
   public void reset() {
-    final int ceilingLgK = Util.toLog2(Util.ceilingPowerOf2(reservoirSize_),
+    final int ceilingLgK = Util.exactLog2(Util.ceilingPowerOf2(reservoirSize_),
             "ReservoirLongsSketch");
     final int initialLgSize =
             SamplingUtil.startingSubMultiple(ceilingLgK, rf_.lg(), MIN_LG_ARR_LONGS);
