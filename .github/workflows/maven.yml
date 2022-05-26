@@ -52,14 +52,12 @@ jobs:
               mvn clean test
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
-              --toolchains .github/workflows/.toolchains.xml
 
         - name: Install Dependencies
           run: >
               mvn clean install -B -V -q
               -DskipTests=true
               -Dgpg.skip=true
-              --toolchains .github/workflows/.toolchains.xml
 
         - name: Report
           if: ${{ matrix.jdk == 8 && success() }}
@@ -68,4 +66,3 @@ jobs:
               -Dcoveralls-repo-token=${repo_token}
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
-              --toolchains .github/workflows/.toolchains.xml
