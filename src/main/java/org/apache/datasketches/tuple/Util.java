@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.memory.XxHash.hashCharArr;
@@ -98,7 +98,7 @@ public final class Util {
   public static int getStartingCapacity(final int nomEntries, final int lgResizeFactor) {
     return 1 << startingSubMultiple(
       // target table size is twice the number of nominal entries
-      Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries) * 2),
+      Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries) * 2),
       lgResizeFactor,
       MIN_LG_ARR_LONGS
     );

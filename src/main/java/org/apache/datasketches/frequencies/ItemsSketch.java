@@ -20,8 +20,8 @@
 package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.isPowerOf2;
-import static org.apache.datasketches.Util.exactLog2;
+import static org.apache.datasketches.Util.isIntPowerOf2;
+import static org.apache.datasketches.Util.exactLog2OfInt;
 import static org.apache.datasketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER;
 import static org.apache.datasketches.frequencies.PreambleUtil.extractActiveItems;
@@ -188,7 +188,7 @@ public class ItemsSketch<T> {
    * functions of maxMapSize.
    */
   public ItemsSketch(final int maxMapSize) {
-    this(exactLog2(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
+    this(exactLog2OfInt(maxMapSize, "maxMapSize"), LG_MIN_MAP_SIZE);
   }
 
   /**
@@ -312,7 +312,7 @@ public class ItemsSketch<T> {
    * @return epsilon used to compute <i>a priori</i> error.
    */
   public static double getEpsilon(final int maxMapSize) {
-    if (!isPowerOf2(maxMapSize)) {
+    if (!isIntPowerOf2(maxMapSize)) {
       throw new SketchesArgumentException("maxMapSize is not a power of 2.");
     }
     return 3.5 / maxMapSize;

@@ -20,7 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.Util.iGoldenU64;
-import static org.apache.datasketches.Util.pwrLawNextDouble;
+import static org.apache.datasketches.Util.pwr2SeriesNextDouble;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.io.PrintStream;
@@ -80,7 +80,7 @@ public class StreamingValidation {
     final long maxN = 64L * (1L << lgK); //1200
     while (n < maxN) {
       doTrialsAtLgKAtN(lgK, n);
-      n = Math.round(pwrLawNextDouble(ppoN, n, true, 2.0));
+      n = Math.round(pwr2SeriesNextDouble(ppoN, n, true, 2.0));
     }
   }
 

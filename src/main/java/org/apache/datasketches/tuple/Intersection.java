@@ -23,7 +23,7 @@ import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
@@ -247,7 +247,7 @@ public class Intersection<S extends Summary> {
   }
 
   static int getLgTableSize(final int count) {
-    final int tableSize = max(ceilingPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
+    final int tableSize = max(ceilingIntPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
   }
 

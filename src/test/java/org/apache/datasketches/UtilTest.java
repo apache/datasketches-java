@@ -23,33 +23,42 @@ import static java.lang.Math.pow;
 import static org.apache.datasketches.Util.bytesToInt;
 import static org.apache.datasketches.Util.bytesToLong;
 import static org.apache.datasketches.Util.bytesToString;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.Util.ceilingPowerOfBdouble;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.Util.ceilingLongPowerOf2;
+import static org.apache.datasketches.Util.ceilingPowerBaseOfDouble;
 import static org.apache.datasketches.Util.characterPad;
 import static org.apache.datasketches.Util.checkIfMultipleOf8AndGT0;
-import static org.apache.datasketches.Util.checkIfPowerOf2;
+import static org.apache.datasketches.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.Util.checkIfLongPowerOf2;
 import static org.apache.datasketches.Util.checkProbability;
 import static org.apache.datasketches.Util.evenlyLogSpaced;
 import static org.apache.datasketches.Util.evenlySpaced;
 import static org.apache.datasketches.Util.evenlySpacedFloats;
+import static org.apache.datasketches.Util.exactLog2OfInt;
 import static org.apache.datasketches.Util.exactLog2OfLong;
 import static org.apache.datasketches.Util.floorPowerOf2;
-import static org.apache.datasketches.Util.floorPowerOfBdouble;
+import static org.apache.datasketches.Util.floorPowerBaseOfDouble;
 import static org.apache.datasketches.Util.getResourceBytes;
 import static org.apache.datasketches.Util.getResourceFile;
 import static org.apache.datasketches.Util.intToBytes;
+import static org.apache.datasketches.Util.invPow2;
+import static org.apache.datasketches.Util.isEven;
+import static org.apache.datasketches.Util.isOdd;
 import static org.apache.datasketches.Util.isLessThanUnsigned;
 import static org.apache.datasketches.Util.isMultipleOf8AndGT0;
-import static org.apache.datasketches.Util.isPowerOf2;
+import static org.apache.datasketches.Util.isIntPowerOf2;
+import static org.apache.datasketches.Util.isLongPowerOf2;
 import static org.apache.datasketches.Util.milliSecToString;
 import static org.apache.datasketches.Util.nanoSecToString;
 import static org.apache.datasketches.Util.numberOfLeadingOnes;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
-import static org.apache.datasketches.Util.pwr2LawNext;
-import static org.apache.datasketches.Util.pwr2LawPrev;
-import static org.apache.datasketches.Util.pwrLawNextDouble;
+import static org.apache.datasketches.Util.pwr2SeriesNext;
+import static org.apache.datasketches.Util.pwr2SeriesPrev;
+import static org.apache.datasketches.Util.pwr2SeriesNextDouble;
+import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -63,11 +72,6 @@ import org.testng.annotations.Test;
  */
 public class UtilTest {
   private static final String LS = System.getProperty("line.separator");
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkPowerOf2() {
-    checkIfPowerOf2(31, "31");
-  }
 
   @Test
   public void numTrailingOnes() {
@@ -90,23 +94,36 @@ public class UtilTest {
   }
 
   @Test
-  public void checkIsPowerOf2() {
-    Assert.assertEquals(isPowerOf2(0), false);
-    Assert.assertEquals(isPowerOf2(1), true);
-    Assert.assertEquals(isPowerOf2(2), true);
-    Assert.assertEquals(isPowerOf2(4), true);
-    Assert.assertEquals(isPowerOf2(8), true);
-    Assert.assertEquals(isPowerOf2(1 << 30), true);
-    Assert.assertEquals(isPowerOf2(3), false);
-    Assert.assertEquals(isPowerOf2(5), false);
-    Assert.assertEquals(isPowerOf2( -1), false);
+  public void checkIsIntPowerOf2() {
+    Assert.assertEquals(isIntPowerOf2(0), false);
+    Assert.assertEquals(isIntPowerOf2(1), true);
+    Assert.assertEquals(isIntPowerOf2(2), true);
+    Assert.assertEquals(isIntPowerOf2(4), true);
+    Assert.assertEquals(isIntPowerOf2(8), true);
+    Assert.assertEquals(isIntPowerOf2(1 << 30), true);
+    Assert.assertEquals(isIntPowerOf2(3), false);
+    Assert.assertEquals(isIntPowerOf2(5), false);
+    Assert.assertEquals(isIntPowerOf2( -1), false);
   }
 
   @Test
-  public void checkCheckIfPowerOf2() {
-    checkIfPowerOf2(8, "Test 8");
+  public void checkIsLongPowerOf2() {
+    Assert.assertEquals(isLongPowerOf2(0), false);
+    Assert.assertEquals(isLongPowerOf2(1), true);
+    Assert.assertEquals(isLongPowerOf2(2), true);
+    Assert.assertEquals(isLongPowerOf2(4), true);
+    Assert.assertEquals(isLongPowerOf2(8), true);
+    Assert.assertEquals(isLongPowerOf2(1L << 62), true);
+    Assert.assertEquals(isLongPowerOf2(3), false);
+    Assert.assertEquals(isLongPowerOf2(5), false);
+    Assert.assertEquals(isLongPowerOf2( -1), false);
+  }
+
+  @Test
+  public void checkCheckIfIntPowerOf2() {
+    checkIfIntPowerOf2(8, "Test 8");
     try {
-      checkIfPowerOf2(7, "Test 7");
+      checkIfIntPowerOf2(7, "Test 7");
       Assert.fail("Expected SketchesArgumentException");
     }
     catch (final SketchesArgumentException e) {
@@ -115,23 +132,46 @@ public class UtilTest {
   }
 
   @Test
-  public void checkCeilingPowerOf2() {
-    Assert.assertEquals(ceilingPowerOf2(Integer.MAX_VALUE), 1 << 30);
-    Assert.assertEquals(ceilingPowerOf2(1 << 30), 1 << 30);
-    Assert.assertEquals(ceilingPowerOf2(64), 64);
-    Assert.assertEquals(ceilingPowerOf2(65), 128);
-    Assert.assertEquals(ceilingPowerOf2(0), 1);
-    Assert.assertEquals(ceilingPowerOf2( -1), 1);
+  public void checkCheckIfLongPowerOf2() {
+    checkIfLongPowerOf2(8L, "Test 8");
+    try {
+      checkIfLongPowerOf2(7L, "Test 7");
+      Assert.fail("Expected SketchesArgumentException");
+    }
+    catch (final SketchesArgumentException e) {
+      //pass
+    }
   }
 
   @Test
+  public void checkCeilingIntPowerOf2() {
+    Assert.assertEquals(ceilingIntPowerOf2(Integer.MAX_VALUE), 1 << 30);
+    Assert.assertEquals(ceilingIntPowerOf2(1 << 30), 1 << 30);
+    Assert.assertEquals(ceilingIntPowerOf2(64), 64);
+    Assert.assertEquals(ceilingIntPowerOf2(65), 128);
+    Assert.assertEquals(ceilingIntPowerOf2(0), 1);
+    Assert.assertEquals(ceilingIntPowerOf2( -1), 1);
+  }
+
+  @Test
+  public void checkCeilingLongPowerOf2() {
+    Assert.assertEquals(ceilingLongPowerOf2(Long.MAX_VALUE), 1L << 62);
+    Assert.assertEquals(ceilingLongPowerOf2(1L << 62), 1L << 62);
+    Assert.assertEquals(ceilingLongPowerOf2(64), 64);
+    Assert.assertEquals(ceilingLongPowerOf2(65), 128);
+    Assert.assertEquals(ceilingLongPowerOf2(0), 1L);
+    Assert.assertEquals(ceilingLongPowerOf2( -1L), 1L);
+  }
+
+
+  @Test
   public void checkCeilingPowerOf2double() {
-    Assert.assertEquals(ceilingPowerOfBdouble(2.0, Integer.MAX_VALUE), pow(2.0, 31));
-    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 1 << 30), pow(2.0, 30));
-    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 64.0), 64.0);
-    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 65.0), 128.0);
-    Assert.assertEquals(ceilingPowerOfBdouble(2.0, 0.0), 1.0);
-    Assert.assertEquals(ceilingPowerOfBdouble(2.0, -1.0), 1.0);
+    Assert.assertEquals(ceilingPowerBaseOfDouble(2.0, Integer.MAX_VALUE), pow(2.0, 31));
+    Assert.assertEquals(ceilingPowerBaseOfDouble(2.0, 1 << 30), pow(2.0, 30));
+    Assert.assertEquals(ceilingPowerBaseOfDouble(2.0, 64.0), 64.0);
+    Assert.assertEquals(ceilingPowerBaseOfDouble(2.0, 65.0), 128.0);
+    Assert.assertEquals(ceilingPowerBaseOfDouble(2.0, 0.0), 1.0);
+    Assert.assertEquals(ceilingPowerBaseOfDouble(2.0, -1.0), 1.0);
   }
 
   @Test
@@ -162,36 +202,44 @@ public class UtilTest {
   }
   @Test
   public void checkFloorPowerOf2double() {
-    Assert.assertEquals(floorPowerOfBdouble(2.0, -1.0), 1.0);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 0.0), 1.0);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 1.0), 1.0);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 2.0), 2.0);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 3.0), 2.0);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 4.0), 4.0);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, -1.0), 1.0);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, 0.0), 1.0);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, 1.0), 1.0);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, 2.0), 2.0);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, 3.0), 2.0);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, 4.0), 4.0);
 
-    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) - 1.0), 1 << 29);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, 1 << 30), 1 << 30);
-    Assert.assertEquals(floorPowerOfBdouble(2.0, (1 << 30) + 1.0), 1L << 30);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, (1 << 30) - 1.0), 1 << 29);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, 1 << 30), 1 << 30);
+    Assert.assertEquals(floorPowerBaseOfDouble(2.0, (1 << 30) + 1.0), 1L << 30);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkIfMultipleOf8AndGTzero() {
-    checkIfMultipleOf8AndGT0(8, "test");
-    checkIfMultipleOf8AndGT0(7, "test");
+  @Test
+  public void checkCheckIfMultipleOf8AndGT0() {
+    checkIfMultipleOf8AndGT0(8, "test 8");
+    try { checkIfMultipleOf8AndGT0( 7, "test 7"); fail(); } catch (final SketchesArgumentException e) { }
+    try { checkIfMultipleOf8AndGT0(-8, "test -8"); fail(); } catch (final SketchesArgumentException e) { }
+    try { checkIfMultipleOf8AndGT0(-1, "test -1"); fail(); } catch (final SketchesArgumentException e) { }
   }
 
   @Test
   public void checkIsMultipleOf8AndGT0() {
     Assert.assertTrue(isMultipleOf8AndGT0(8));
     Assert.assertFalse(isMultipleOf8AndGT0(7));
+    Assert.assertFalse(isMultipleOf8AndGT0(-8));
     Assert.assertFalse(isMultipleOf8AndGT0(-1));
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkIfMultipleOf8AndGTzero2() {
-    checkIfMultipleOf8AndGT0(8, "test");
-    checkIfMultipleOf8AndGT0(-1, "test");
+  @Test
+  public void checkInvPow2() {
+    Assert.assertEquals(invPow2(1), 0.5);
+    Assert.assertEquals(invPow2(0), 1.0);
+    try { invPow2(-1); failIAE(); } catch (final AssertionError e) {}
+    try {invPow2(1024); failIAE(); } catch (final AssertionError e) {}
+    try {invPow2(Integer.MIN_VALUE); failIAE(); } catch (final AssertionError e) {}
   }
+
+  private static void failIAE() { throw new IllegalArgumentException("Test should have failed!"); }
 
   @Test
   public void checkIsLessThanUnsigned() {
@@ -259,6 +307,10 @@ public class UtilTest {
     assertEquals(arr[0], 3.0f);
     assertEquals(arr[1], 5.0f);
     assertEquals(arr[2], 7.0f);
+    arr = evenlySpacedFloats(0f, 1.0f, 2);
+    assertEquals(arr[0], 0f);
+    assertEquals(arr[1], 1f);
+    try { evenlySpacedFloats(0f, 1f, 1); fail(); } catch (SketchesArgumentException e) {}
   }
 
   @Test
@@ -268,21 +320,18 @@ public class UtilTest {
     assertEquals(arr[1], 2.0);
     assertEquals(arr[2], 4.0);
     assertEquals(arr[3], 8.0);
+    try { evenlyLogSpaced(-1.0, 1.0, 2); fail(); } catch (SketchesArgumentException e) {}
+    try { evenlyLogSpaced(1.0, -1.0, 2); fail(); } catch (SketchesArgumentException e) {}
+    try { evenlyLogSpaced(-1.0, -1.0, 2); fail(); } catch (SketchesArgumentException e) {}
+    try { evenlyLogSpaced(1.0, 1.0, 1); fail(); } catch (SketchesArgumentException e) {}
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkEvenlySpacedExcep() {
-    evenlySpaced(1, 2, 1);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkEvenlyLogSpacedExcep1() {
-    evenlyLogSpaced(1, 2, 1);
-  }
-
-  @Test(expectedExceptions = SketchesArgumentException.class)
-  public void checkEvenlyLogSpacedExcep2() {
-    evenlyLogSpaced(-1, 2, 2);
+  @Test
+  public void checkEvenOdd() {
+    assertTrue(isEven(0));
+    assertFalse(isOdd(0));
+    assertTrue(isOdd(-1));
+    assertFalse(isEven(-1));
   }
 
   @Test
@@ -337,46 +386,46 @@ public class UtilTest {
 
   @Test
   public void checkPwr2LawNext() {
-    int next = pwr2LawNext(2, 1);
+    int next = pwr2SeriesNext(2, 1);
     Assert.assertEquals(next, 2);
-    next = pwr2LawNext(2, 0);
+    next = pwr2SeriesNext(2, 0);
     Assert.assertEquals(next, 1);
   }
 
   @Test
   public void checkPwr2LawNextDouble() {
-    double next = pwrLawNextDouble(2, 1.0, true, 2.0);
+    double next = pwr2SeriesNextDouble(2, 1.0, true, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-    next = pwrLawNextDouble(2, 1.0, false, 2.0);
+    next = pwr2SeriesNextDouble(2, 1.0, false, 2.0);
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
-    next = pwrLawNextDouble(2, 0.5, true, 2.0);
+    next = pwr2SeriesNextDouble(2, 0.5, true, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-    next = pwrLawNextDouble(2, 0.5, false, 2.0);
+    next = pwr2SeriesNextDouble(2, 0.5, false, 2.0);
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
-    next = pwrLawNextDouble(2, next, false, 2.0);
+    next = pwr2SeriesNextDouble(2, next, false, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
 
   }
 
   @Test
-  public void checkPwr2LawExamples() {
+  public void checkPwr2SeriesExamples() {
     final int maxP = 32;
     final int minP = 1;
     final int ppo = 4;
 
-    for (int p = minP; p <= maxP; p = pwr2LawNext(ppo, p)) {
+    for (int p = minP; p <= maxP; p = pwr2SeriesNext(ppo, p)) {
       print(p + " ");
     }
     println("");
 
-    for (int p = maxP; p >= minP; p = pwr2LawPrev(ppo, p)) {
+    for (int p = maxP; p >= minP; p = pwr2SeriesPrev(ppo, p)) {
       print(p + " ");
     }
     println("");
   }
 
   @Test
-  public void checkSimpleLog2OfLong() {
+  public void checkExactLog2OfLong() {
     Assert.assertEquals(exactLog2OfLong(2), 1);
     Assert.assertEquals(exactLog2OfLong(1), 0);
     Assert.assertEquals(exactLog2OfLong(1L << 62), 62);
@@ -385,6 +434,49 @@ public class UtilTest {
       fail();
     } catch (final SketchesArgumentException e) { }
   }
+
+  @Test
+  public void checkExactLog2OfInt() {
+    Assert.assertEquals(exactLog2OfInt(2), 1);
+    Assert.assertEquals(exactLog2OfInt(1), 0);
+    Assert.assertEquals(exactLog2OfInt(1 << 30), 30);
+    try {
+      exactLog2OfInt(0);
+      fail();
+    } catch (final SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkExactLog2OfLongWithArg() {
+    Assert.assertEquals(exactLog2OfLong(2, "2"), 1);
+    Assert.assertEquals(exactLog2OfLong(1, "1"), 0);
+    Assert.assertEquals(exactLog2OfLong(1L << 62,"1L<<62"), 62);
+    try {
+      exactLog2OfLong(0,"0");
+      fail();
+    } catch (final SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkExactLog2OfIntWithArg() {
+    Assert.assertEquals(exactLog2OfInt(2,"2"), 1);
+    Assert.assertEquals(exactLog2OfInt(1,"1"), 0);
+    Assert.assertEquals(exactLog2OfInt(1 << 30,"1<<30"), 30);
+    try {
+      exactLog2OfInt(0,"0");
+      fail();
+    } catch (final SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkStartingSubMultiple() {
+    Assert.assertEquals(startingSubMultiple(8, 3, 4), 5);
+    Assert.assertEquals(startingSubMultiple(7, 3, 4), 4);
+    Assert.assertEquals(startingSubMultiple(6, 3, 4), 6);
+  }
+
+//  @Test
+//  public void checkNomLongs
 
   //Resources
 

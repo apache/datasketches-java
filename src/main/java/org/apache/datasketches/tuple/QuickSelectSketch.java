@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple;
 import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.Util.exactLog2OfLong;
 
 import java.lang.reflect.Array;
@@ -123,7 +123,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       final float samplingProbability,
       final SummaryFactory<S> summaryFactory,
       final int startingSize) {
-    nomEntries_ = ceilingPowerOf2(nomEntries);
+    nomEntries_ = ceilingIntPowerOf2(nomEntries);
     lgResizeFactor_ = lgResizeFactor;
     samplingProbability_ = samplingProbability;
     summaryFactory_ = summaryFactory; //super

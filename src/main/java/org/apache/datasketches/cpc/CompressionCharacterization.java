@@ -20,10 +20,10 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.Util.iGoldenU64;
 import static org.apache.datasketches.Util.log2;
-import static org.apache.datasketches.Util.pwrLawNextDouble;
+import static org.apache.datasketches.Util.pwr2SeriesNextDouble;
 import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
@@ -107,9 +107,9 @@ public class CompressionCharacterization {
 
     while (n <= maxN) {
       final double lgT = (slope * log2(n)) + lgMaxT;
-      final int totTrials = Math.max(ceilingPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
+      final int totTrials = Math.max(ceilingIntPowerOf2((int) Math.pow(2.0, lgT)), (1 << lgMinT));
       doTrialsAtLgKAtN(lgK, n, totTrials);
-      n = Math.round(pwrLawNextDouble(uPPO, n, true, 2.0));
+      n = Math.round(pwr2SeriesNextDouble(uPPO, n, true, 2.0));
     }
   }
 

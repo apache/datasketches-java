@@ -25,7 +25,7 @@ import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.TAB;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.Family;
@@ -74,7 +74,7 @@ public class SetOperationBuilder {
    * @return this SetOperationBuilder
    */
   public SetOperationBuilder setNominalEntries(final int nomEntries) {
-    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomEntries));
+    bLgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries));
     if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomEntries);
