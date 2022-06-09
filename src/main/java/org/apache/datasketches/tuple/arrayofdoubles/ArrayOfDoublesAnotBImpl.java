@@ -25,7 +25,7 @@ import static org.apache.datasketches.HashOperations.convertToHashTable;
 import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.simpleLog2OfLong;
+import static org.apache.datasketches.Util.exactLog2OfLong;
 
 import java.util.Arrays;
 
@@ -174,7 +174,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
     double[] tmpValuesArrA = new double[countA * numValues];
 
     //search for non matches and build temp arrays
-    final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
+    final int lgHTBLen = exactLog2OfLong(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];

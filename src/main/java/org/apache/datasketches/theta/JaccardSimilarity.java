@@ -26,7 +26,7 @@ import static org.apache.datasketches.BoundsOnRatiosInThetaSketchedSets.getLower
 import static org.apache.datasketches.BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA;
 import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 
 /**
  * Jaccard similarity of two Theta Sketches.
@@ -65,7 +65,7 @@ public final class JaccardSimilarity {
     //Create the Union
     final int minK = 1 << MIN_LG_NOM_LONGS;
     final int maxK = 1 << MAX_LG_NOM_LONGS;
-    final int newK = max(min(ceilingPowerOf2(countA + countB), maxK), minK);
+    final int newK = max(min(ceilingIntPowerOf2(countA + countB), maxK), minK);
     final Union union =
         SetOperation.builder().setNominalEntries(newK).buildUnion();
     union.union(sketchA);
@@ -115,7 +115,7 @@ public final class JaccardSimilarity {
 
     //Create the Union
     final Union union =
-        SetOperation.builder().setNominalEntries(ceilingPowerOf2(countA + countB)).buildUnion();
+        SetOperation.builder().setNominalEntries(ceilingIntPowerOf2(countA + countB)).buildUnion();
     union.union(sketchA);
     union.union(sketchB);
     final Sketch unionAB = union.getResult();

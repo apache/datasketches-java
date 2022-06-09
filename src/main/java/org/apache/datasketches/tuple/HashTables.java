@@ -25,7 +25,7 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.HashOperations.hashInsertOnly;
 import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 
 import java.lang.reflect.Array;
 
@@ -161,7 +161,7 @@ class HashTables<S extends Summary> {
   }
 
   static int getLgTableSize(final int count) {
-    final int tableSize = max(ceilingPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
+    final int tableSize = max(ceilingIntPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
   }
 

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.checkIfPowerOf2;
+import static org.apache.datasketches.Util.checkIfIntPowerOf2;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
@@ -151,7 +151,7 @@ final class DoublesMergeImpl {
     }
 
     final int downFactor = srcK / tgtK;
-    checkIfPowerOf2(downFactor, "source.getK()/target.getK() ratio");
+    checkIfIntPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
     if (src.isEmpty()) { return; }

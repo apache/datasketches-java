@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -204,7 +204,7 @@ public class DirectUpdateDoublesSketchTest {
     int n2 = (int)qs.getN();
     assertEquals(n2, n);
     combBuf = qs.getCombinedBuffer();
-    assertEquals(combBuf.length, ceilingPowerOf2(n)); // since n < k
+    assertEquals(combBuf.length, ceilingIntPowerOf2(n)); // since n < k
     println(qs.toString(true, true));
     qs.reset();
     assertEquals(qs.getN(), 0);

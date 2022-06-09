@@ -21,7 +21,7 @@ package org.apache.datasketches;
 
 import static java.lang.Math.max;
 import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -350,7 +350,7 @@ public final class HashOperations {
    */
   public static int minLgHashTableSize(final int count, final double rebuild_threshold) {
     final int upperCount = (int) Math.ceil(count / rebuild_threshold);
-    final int arrLongs = max(ceilingPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
+    final int arrLongs = max(ceilingIntPowerOf2(upperCount), 1 << MIN_LG_ARR_LONGS);
     final int newLgArrLongs = Integer.numberOfTrailingZeros(arrLongs);
     return newLgArrLongs;
   }

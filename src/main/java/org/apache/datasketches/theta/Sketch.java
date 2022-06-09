@@ -24,7 +24,7 @@ import static org.apache.datasketches.HashOperations.count;
 import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -306,7 +306,7 @@ public abstract class Sketch {
    * nomEntries
    */
   public static int getMaxUpdateSketchBytes(final int nomEntries) {
-    final int nomEnt = ceilingPowerOf2(nomEntries);
+    final int nomEnt = ceilingIntPowerOf2(nomEntries);
     return (nomEnt << 4) + (Family.QUICKSELECT.getMaxPreLongs() << 3);
   }
 

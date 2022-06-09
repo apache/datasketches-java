@@ -20,7 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.Util.iGoldenU64;
-import static org.apache.datasketches.Util.pwrLawNextDouble;
+import static org.apache.datasketches.Util.pwr2SeriesNextDouble;
 import static org.apache.datasketches.cpc.IconEstimator.getIconEstimate;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
@@ -93,9 +93,9 @@ public class MergingValidation {
       long nB = 0;
       while (nB <= limB) {
         testMerging(lgKm, lgKa, lgKb, nA, nB);
-        nB = Math.round(pwrLawNextDouble(uPPO, nB, true, 2.0));
+        nB = Math.round(pwr2SeriesNextDouble(uPPO, nB, true, 2.0));
       }
-      nA = Math.round(pwrLawNextDouble(uPPO, nA, true, 2.0));
+      nA = Math.round(pwr2SeriesNextDouble(uPPO, nA, true, 2.0));
     }
   }
 

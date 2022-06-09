@@ -27,8 +27,8 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
-import static org.apache.datasketches.Util.ceilingPowerOf2;
-import static org.apache.datasketches.Util.isPowerOf2;
+import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.Util.isIntPowerOf2;
 import static org.apache.datasketches.quantiles.DoublesSketch.MAX_K;
 import static org.apache.datasketches.quantiles.DoublesSketch.MIN_K;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
@@ -110,7 +110,7 @@ final class Util {
    * @param k must be greater than 1 and less than 65536 and a power of 2.
    */
   static void checkK(final int k) {
-    if ((k < MIN_K) || (k > MAX_K) || !isPowerOf2(k)) {
+    if ((k < MIN_K) || (k > MAX_K) || !isIntPowerOf2(k)) {
       throw new SketchesArgumentException(
           "K must be >= " + MIN_K + " and <= " + MAX_K + " and a power of 2: " + k);
     }
@@ -238,7 +238,7 @@ final class Util {
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (totLevels == 0) {
       final int bbItems = computeBaseBufferItems(k, n);
-      return Math.max(2 * DoublesSketch.MIN_K, ceilingPowerOf2(bbItems));
+      return Math.max(2 * DoublesSketch.MIN_K, ceilingIntPowerOf2(bbItems));
     }
     return (2 + totLevels) * k;
   }

@@ -20,7 +20,7 @@
 package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.toLog2;
+import static org.apache.datasketches.Util.exactLog2OfInt;
 import static org.apache.datasketches.frequencies.Util.hash;
 
 import java.lang.reflect.Array;
@@ -59,7 +59,7 @@ class ReversePurgeItemHashMap<T> {
    * The hash table will be expected to store LOAD_FACTOR * mapSize (key, value) pairs.
    */
   ReversePurgeItemHashMap(final int mapSize) {
-    lgLength = toLog2(mapSize, "mapSize");
+    lgLength = exactLog2OfInt(mapSize, "mapSize");
     this.loadThreshold = (int) (mapSize * LOAD_FACTOR);
     this.keys = new Object[mapSize];
     this.values = new long[mapSize];

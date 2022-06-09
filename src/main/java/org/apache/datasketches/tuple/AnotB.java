@@ -23,7 +23,7 @@ import static java.lang.Math.min;
 import static org.apache.datasketches.HashOperations.convertToHashTable;
 import static org.apache.datasketches.HashOperations.hashSearch;
 import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.simpleLog2OfLong;
+import static org.apache.datasketches.Util.exactLog2OfLong;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -522,7 +522,7 @@ public final class AnotB<S extends Summary> {
     final S[] tmpSummaryArrA = Util.newSummaryArray(summaryArrA, countA);
 
     //search for non matches and build temp arrays
-    final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
+    final int lgHTBLen = exactLog2OfLong(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];
@@ -568,7 +568,7 @@ public final class AnotB<S extends Summary> {
     final S[] tmpSummaryArrA = Util.newSummaryArray(summaryArrA, countA);
 
     //search for non matches and build temp arrays
-    final int lgHTBLen = simpleLog2OfLong(hashTableB.length);
+    final int lgHTBLen = exactLog2OfLong(hashTableB.length);
     int nonMatches = 0;
     for (int i = 0; i < countA; i++) {
       final long hash = hashArrA[i];

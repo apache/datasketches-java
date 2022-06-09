@@ -238,9 +238,9 @@ public final class Util {
   }
 
   /**
-   * Returns the given time in nanoseconds formatted as Sec.mSec uSec nSec
+   * Returns the given time in nanoseconds formatted as Sec.mSec_uSec_nSec
    * @param nS the given nanoseconds
-   * @return the given time in nanoseconds formatted as Sec.mSec uSec nSec
+   * @return the given time in nanoseconds formatted as Sec.mSec_uSec_nSec
    */
   public static String nanoSecToString(final long nS) {
     final long rem_nS = (long)(nS % 1000.0);
@@ -379,176 +379,94 @@ public final class Util {
     return (v & 0X7L) == 0L && v > 0L;
   }
 
-  //Powers of 2 related
+  //Powers of 2 or powers of base related
 
   /**
-   * Returns the number of one bits following the lowest-order ("rightmost") zero-bit in the
-   * two's complement binary representation of the specified long value, or 64 if the value is equal
-   * to minus one.
-   * @param v the value whose number of trailing ones is to be computed.
-   * @return the number of one bits following the lowest-order ("rightmost") zero-bit in the
-   * two's complement binary representation of the specified long value, or 64 if the value is equal
-   * to minus one.
-   */
-  public static int numberOfTrailingOnes(final long v) {
-    return Long.numberOfTrailingZeros(~v);
-  }
-
-  /**
-   * Returns the number of one bits preceding the highest-order ("leftmost") zero-bit in the
-   * two's complement binary representation of the specified long value, or 64 if the value is equal
-   * to minus one.
-   * @param v the value whose number of leading ones is to be computed.
-   * @return the number of one bits preceding the lowest-order ("rightmost") zero-bit in the
-   * two's complement binary representation of the specified long value, or 64 if the value is equal
-   * to minus one.
-   */
-  public static int numberOfLeadingOnes(final long v) {
-    return Long.numberOfLeadingZeros(~v);
-  }
-
-  /**
-   * Returns true if argument is exactly a positive power of 2 and greater than zero.
+   * Returns true if given int argument is exactly a positive power of 2 and greater than zero.
    *
-   * @param v The input argument.
+   * @param powerOf2 The input argument.
    * @return true if argument is exactly a positive power of 2 and greater than zero.
    */
-  public static boolean isPowerOf2(final int v) {
-    return v > 0 && (v & v - 1) == 0; //or (v > 0) && ((v & -v) == v)
+  public static boolean isIntPowerOf2(final int powerOf2) {
+    return powerOf2 > 0 && (powerOf2 & powerOf2 - 1) == 0; //or (v > 0) && ((v & -v) == v)
   }
 
   /**
-   * Checks the given parameter to make sure it is positive, an integer-power of 2 and greater than
-   * zero.
+   * Returns true if given long argument is exactly a positive power of 2 and greater than zero.
    *
-   * @param v The input argument.
+   * @param powerOf2 The input argument.
+   * @return true if argument is exactly a positive power of 2 and greater than zero.
+   */
+  public static boolean isLongPowerOf2(final long powerOf2) {
+    return powerOf2 > 0 && (powerOf2 & powerOf2 - 1L) == 0; //or (v > 0) && ((v & -v) == v)
+  }
+
+  /**
+   * Checks the given int argument to make sure it is a positive power of 2 and greater than zero.
+   * If not it throws an exception with the user supplied local argument name.
+   * @param powerOf2 The input int argument must be a power of 2 and greater than zero.
    * @param argName Used in the thrown exception.
+   * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
    */
-  public static void checkIfPowerOf2(final int v, final String argName) {
-    if (v > 0 && (v & v - 1) == 0) {
-      return;
-    }
-    throw new SketchesArgumentException("The value of the parameter \"" + argName
-        + "\" must be a positive integer-power of 2" + " and greater than 0: " + v);
+  public static void checkIfIntPowerOf2(final int powerOf2, final String argName) {
+    if (isIntPowerOf2(powerOf2)) { return; }
+    throw new SketchesArgumentException("The value of the int argument \"" + argName + "\""
+        + " must be a positive integer-power of 2" + " and greater than 0: " + powerOf2);
   }
 
   /**
-   * Checks the given value if it is a power of 2. If not, it throws an exception.
-   * Otherwise, returns the log-base2 of the given value.
-   * @param value must be a power of 2 and greater than zero.
-   * @param argName the argument name used in the exception if thrown.
-   * @return the log-base2 of the given value
+   * Checks the given long argument to make sure it is a positive power of 2 and greater than zero.
+   * If not, it throws an exception with the user supplied local argument name.
+   * @param powerOf2 The input long argument must be a power of 2 and greater than zero.
+   * @param argName Used in the thrown exception.
+   * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
    */
-  public static int toLog2(final int value, final String argName) {
-    checkIfPowerOf2(value, argName);
-    return Integer.numberOfTrailingZeros(value);
+  public static void checkIfLongPowerOf2(final long powerOf2, final String argName) {
+    if (isLongPowerOf2(powerOf2)) { return; }
+    throw new SketchesArgumentException("The value of the int argument \"" + argName + "\""
+        + " must be a positive integer-power of 2" + " and greater than 0: " + powerOf2);
   }
 
   /**
-   * Gives the log2 of a long that is known to be a power of 2.
-   *
-   * @param x number that is greater than zero
-   * @return the log2 of a long that is known to be a power of 2.
-   */
-  public static int simpleLog2OfLong(final long x) {
-    final int exp = Long.numberOfTrailingZeros(x);
-    if (x != 1L << exp) {
-      throw new SketchesArgumentException("Argument x must be a positive power of 2.");
-    }
-    return exp;
-  }
-
-  /**
-   * Computes the ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
+   * Computes the int ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
    * of 2 that is equal to or greater than the given n and a mathematical integer.
    *
    * <p>For:
    * <ul>
    * <li>n &le; 1: returns 1</li>
    * <li>2^30 &le; n &le; 2^31 -1 : returns 2^30</li>
-   * <li>n == a power of 2 : returns n</li>
-   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a mathematical
-   * integer</li>
+   * <li>n == an exact power of 2 : returns n</li>
+   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a mathematical integer</li>
    * </ul>
    *
-   * @param n The input argument.
+   * @param n The input int argument.
    * @return the ceiling power of 2.
    */
-  public static int ceilingPowerOf2(final int n) {
+  public static int ceilingIntPowerOf2(final int n) {
     if (n <= 1) { return 1; }
-    final int topPwrOf2 = 1 << 30;
-    return n >= topPwrOf2 ? topPwrOf2 : Integer.highestOneBit(n - 1 << 1);
+    final int topIntPwrOf2 = 1 << 30;
+    return n >= topIntPwrOf2 ? topIntPwrOf2 : Integer.highestOneBit(n - 1 << 1);
   }
 
   /**
-   * Returns a double array of evenly spaced values between value1 and value2 inclusive.
-   * If value2 &gt; value1, the resulting sequence will be increasing.
-   * If value2 &lt; value1, the resulting sequence will be decreasing.
-   * @param value1 will be in index 0 of the returned array
-   * @param value2 will be in the highest index of the returned array
-   * @param num the total number of values including value1 and value2. Must be 2 or greater.
-   * @return a double array of evenly spaced values between value1 and value2 inclusive.
+   * Computes the long ceiling power of 2 within the range [1, 2^30]. This is the smallest positive power
+   * of 2 that is equal to or greater than the given n and a mathematical integer.
+   *
+   * <p>For:
+   * <ul>
+   * <li>n &le; 1: returns 1</li>
+   * <li>2^62 &le; n &le; 2^63 -1 : returns 2^62</li>
+   * <li>n == an exact power of 2 : returns n</li>
+   * <li>otherwise returns the smallest power of 2 &ge; n and equal to a mathematical integer</li>
+   * </ul>
+   *
+   * @param n The input long argument.
+   * @return the ceiling power of 2.
    */
-  public static double[] evenlySpaced(final double value1, final double value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
-    }
-    final double[] out = new double[num];
-    out[0] = value1;
-    out[num - 1] = value2;
-    if (num == 2) { return out; }
-
-    final double delta = (value2 - value1) / (num - 1);
-
-    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
-    return out;
-  }
-
-  /**
-   * Returns a float array of evenly spaced values between value1 and value2 inclusive.
-   * If value2 &gt; value1, the resulting sequence will be increasing.
-   * If value2 &lt; value1, the resulting sequence will be decreasing.
-   * @param value1 will be in index 0 of the returned array
-   * @param value2 will be in the highest index of the returned array
-   * @param num the total number of values including value1 and value2. Must be 2 or greater.
-   * @return a float array of evenly spaced values between value1 and value2 inclusive.
-   */
-  public static float[] evenlySpacedFloats(final float value1, final float value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
-    }
-    final float[] out = new float[num];
-    out[0] = value1;
-    out[num - 1] = value2;
-    if (num == 2) { return out; }
-
-    final float delta = (value2 - value1) / (num - 1);
-
-    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
-    return out;
-  }
-
-  /**
-   * Returns a double array of values between min and max inclusive where the log of the
-   * returned values are evenly spaced.
-   * If value2 &gt; value1, the resulting sequence will be increasing.
-   * If value2 &lt; value1, the resulting sequence will be decreasing.
-   * @param value1 will be in index 0 of the returned array, and must be greater than zero.
-   * @param value2 will be in the highest index of the returned array, and must be greater than zero.
-   * @param num the total number of values including value1 and value2. Must be 2 or greater
-   * @return a double array of exponentially spaced values between value1 and value2 inclusive.
-   */
-  public static double[] evenlyLogSpaced(final double value1, final double value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
-    }
-    if (value1 <= 0 || value2 <= 0) {
-      throw new SketchesArgumentException("value1 and value2 must be > 0.");
-    }
-
-    final double[] arr = evenlySpaced(log(value1) / LOG2, log(value2) / LOG2, num);
-    for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
-    return arr;
+  public static long ceilingLongPowerOf2(final long n) {
+    if (n <= 1L) { return 1L; }
+    final long topIntPwrOf2 = 1L << 62;
+    return n >= topIntPwrOf2 ? topIntPwrOf2 : Long.highestOneBit(n - 1L << 1);
   }
 
   /**
@@ -626,7 +544,7 @@ public final class Util {
    * @param curPoint the current point of the series. Must be &ge; 1.
    * @return the next point in the power series.
    */
-  public static int pwr2LawNext(final int ppo, final int curPoint) {
+  public static int pwr2SeriesNext(final int ppo, final int curPoint) {
     final int cur = curPoint < 1 ? 1 : curPoint;
     int gi = (int)round(log2(cur) * ppo); //current generating index
     int next;
@@ -658,7 +576,7 @@ public final class Util {
    * @return the previous, smaller point in the power series.
    * A returned value of zero terminates the series.
    */
-  public static int pwr2LawPrev(final int ppo, final int curPoint) {
+  public static int pwr2SeriesPrev(final int ppo, final int curPoint) {
     if (curPoint <= 1) { return 0; }
     int gi = (int)round(log2(curPoint) * ppo); //current generating index
     int prev;
@@ -666,72 +584,6 @@ public final class Util {
       prev = (int)round(pow(2.0, (double) --gi / ppo));
     } while (prev >= curPoint);
     return prev;
-  }
-
-  /**
-   * The log base 2 of the value
-   * @param value the given value
-   * @return The log base 2 of the value
-   */
-  public static double log2(final double value) {
-    return log(value) / LOG2;
-  }
-
-  /**
-   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
-   * one or more resize factors.
-   *
-   * @param lgTarget Log2 of the target size
-   * @param lgRF Log_base2 of Resize Factor.
-   * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param lgMin Log2 of the minimum allowed starting size
-   * @return The Log2 of the starting size
-   */
-  public static int startingSubMultiple(final int lgTarget, final int lgRF,
-      final int lgMin) {
-    return lgTarget <= lgMin ? lgMin : lgRF == 0 ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
-  }
-
-  //log_base or power_base related
-
-  /**
-   * Computes the ceiling power of B as a double. This is the smallest positive power
-   * of B that equal to or greater than the given n and equal to a mathematical integer.
-   * The result of this function is consistent with {@link #ceilingPowerOf2(int)} for values
-   * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
-   *
-   * @param b The base in the expression &#8968;b<sup>n</sup>&#8969;.
-   * @param n The input argument.
-   * @return the ceiling power of B as a double and equal to a mathematical integer.
-   */
-  public static double ceilingPowerOfBdouble(final double b, final double n) {
-    final double x = n < 1.0 ? 1.0 : n;
-    return pow(b, ceil(logB(b, x)));
-  }
-
-  /**
-   * Computes the floor power of B as a double. This is the largest positive power
-   * of B that equal to or less than the given n and equal to a mathematical integer.
-   * The result of this function is consistent with {@link #floorPowerOf2(int)} for values
-   * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
-   *
-   * @param b The base in the expression &#8970;b<sup>n</sup>&#8971;.
-   * @param n The input argument.
-   * @return the floor power of 2 and equal to a mathematical integer.
-   */
-  public static double floorPowerOfBdouble(final double b, final double n) {
-    final double x = n < 1.0 ? 1.0 : n;
-    return pow(b, floor(logB(b, x)));
-  }
-
-  /**
-   * Returns the logarithm_logBase of x. Example: logB(2.0, x) = log(x) / log(2.0).
-   * @param logBase the base of the logarithm used
-   * @param x the given value
-   * @return the logarithm_logBase of x: Example: logB(2.0, x) = log(x) / log(2.0).
-   */
-  public static double logB(final double logBase, final double x) {
-    return log(x) / log(logBase);
   }
 
   /**
@@ -758,16 +610,235 @@ public final class Util {
    * @param logBase the desired base of the logarithms
    * @return the next point in the power series.
    */
-  public static double pwrLawNextDouble(final int ppo, final double curPoint,
+  public static double pwr2SeriesNextDouble(final int ppo, final double curPoint,
       final boolean roundToInt, final double logBase) {
     final double cur = curPoint < 1.0 ? 1.0 : curPoint;
-    double gi = round(logB(logBase, cur) * ppo ); //current generating index
+    double gi = round(logBaseOfX(logBase, cur) * ppo ); //current generating index
     double next;
     do {
       final double n = pow(logBase, ++gi / ppo);
       next = roundToInt ? round(n) : n;
     } while (next <= cur);
     return next;
+  }
+
+  /**
+   * Computes the ceiling power of given <i>base</i> and <i>n</i> as doubles.
+   * This is the smallest positive power
+   * of <i>base</i> that equal to or greater than the given <i>n</i> and equal to a mathematical integer.
+   * The result of this function is consistent with {@link #ceilingIntPowerOf2(int)} for values
+   * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
+   *
+   * @param base The base in the expression &#8968;base<sup>n</sup>&#8969;.
+   * @param n The input argument.
+   * @return the ceiling power of <i>base</i> as a double and equal to a mathematical integer.
+   */
+  public static double ceilingPowerBaseOfDouble(final double base, final double n) {
+    final double x = n < 1.0 ? 1.0 : n;
+    return pow(base, ceil(logBaseOfX(base, x)));
+  }
+
+  /**
+   * Computes the floor power of given <i>base</i> and <i>n</i> as doubles.
+   * This is the largest positive power
+   * of <i>base</i> that equal to or less than the given n and equal to a mathematical integer.
+   * The result of this function is consistent with {@link #floorPowerOf2(int)} for values
+   * less than one. I.e., if <i>n &lt; 1,</i> the result is 1.
+   *
+   * @param base The base in the expression &#8970;base<sup>n</sup>&#8971;.
+   * @param n The input argument.
+   * @return the floor power of 2 and equal to a mathematical integer.
+   */
+  public static double floorPowerBaseOfDouble(final double base, final double n) {
+    final double x = n < 1.0 ? 1.0 : n;
+    return pow(base, floor(logBaseOfX(base, x)));
+  }
+
+  // Logrithm related
+
+  /**
+   * The log base 2 of the value
+   * @param value the given value
+   * @return The log base 2 of the value
+   */
+  public static double log2(final double value) {
+    return log(value) / LOG2;
+  }
+
+  /**
+   * Returns the logarithm_logBase of x. Example: logB(2.0, x) = log(x) / log(2.0).
+   * @param logBase the base of the logarithm used
+   * @param x the given value
+   * @return the logarithm_logBase of x: Example: logB(2.0, x) = log(x) / log(2.0).
+   */
+  public static double logBaseOfX(final double logBase, final double x) {
+    return log(x) / log(logBase);
+  }
+
+  /**
+   * Returns the number of one bits following the lowest-order ("rightmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   * @param v the value whose number of trailing ones is to be computed.
+   * @return the number of one bits following the lowest-order ("rightmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   */
+  public static int numberOfTrailingOnes(final long v) {
+    return Long.numberOfTrailingZeros(~v);
+  }
+
+  /**
+   * Returns the number of one bits preceding the highest-order ("leftmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   * @param v the value whose number of leading ones is to be computed.
+   * @return the number of one bits preceding the lowest-order ("rightmost") zero-bit in the
+   * two's complement binary representation of the specified long value, or 64 if the value is equal
+   * to minus one.
+   */
+  public static int numberOfLeadingOnes(final long v) {
+    return Long.numberOfLeadingZeros(~v);
+  }
+
+  /**
+   * Returns the log2 of the given int value if it is an exact power of 2 and greater than zero.
+   * If not, it throws an exception with the user supplied local argument name.
+   * @param powerOf2 must be a power of 2 and greater than zero.
+   * @param argName the argument name used in the exception if thrown.
+   * @return the log2 of the given value if it is an exact power of 2 and greater than zero.
+   * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
+   */
+  public static int exactLog2OfInt(final int powerOf2, final String argName) {
+    checkIfIntPowerOf2(powerOf2, argName);
+    return Integer.numberOfTrailingZeros(powerOf2);
+  }
+
+  /**
+   * Returns the log2 of the given long value if it is an exact power of 2 and greater than zero.
+   * If not, it throws an exception with the user supplied local argument name.
+   * @param powerOf2 must be a power of 2 and greater than zero.
+   * @param argName the argument name used in the exception if thrown.
+   * @return the log2 of the given value if it is an exact power of 2 and greater than zero.
+   * @throws SketchesArgumentException if not a power of 2 nor greater than zero.
+   */
+  public static int exactLog2OfLong(final long powerOf2, final String argName) {
+    checkIfLongPowerOf2(powerOf2, argName);
+    return Long.numberOfTrailingZeros(powerOf2);
+  }
+
+  /**
+   * Returns the log2 of the given int value if it is an exact power of 2 and greater than zero.
+   * If not, it throws an exception.
+   * @param powerOf2 must be a power of 2 and greater than zero.
+   * @return the log2 of the given int value if it is an exact power of 2 and greater than zero.
+   */
+  public static int exactLog2OfInt(final int powerOf2) {
+    if (!isIntPowerOf2(powerOf2)) {
+      throw new SketchesArgumentException("Argument 'powerOf2' must be a positive power of 2.");
+    }
+    return Long.numberOfTrailingZeros(powerOf2);
+  }
+
+  /**
+   * Returns the log2 of the given long value if it is an exact power of 2 and greater than zero.
+   * If not, it throws an exception.
+   * @param powerOf2 must be a power of 2 and greater than zero.
+   * @return the log2 of the given long value if it is an exact power of 2 and greater than zero.
+   */
+  public static int exactLog2OfLong(final long powerOf2) {
+    if (!isLongPowerOf2(powerOf2)) {
+      throw new SketchesArgumentException("Argument 'powerOf2' must be a positive power of 2.");
+    }
+    return Long.numberOfTrailingZeros(powerOf2);
+  }
+
+  /**
+   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
+   * one or more resize factors.
+   *
+   * @param lgTarget Log2 of the target size
+   * @param lgRF Log_base2 of Resize Factor.
+   * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
+   * @param lgMin Log2 of the minimum allowed starting size
+   * @return The Log2 of the starting size
+   */
+  public static int startingSubMultiple(final int lgTarget, final int lgRF,
+      final int lgMin) {
+    return lgTarget <= lgMin ? lgMin : lgRF == 0 ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
+  }
+
+  //Equal spaced sets
+
+  /**
+   * Returns a double array of evenly spaced values between value1 and value2 inclusive.
+   * If value2 &gt; value1, the resulting sequence will be increasing.
+   * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * @param value1 will be in index 0 of the returned array
+   * @param value2 will be in the highest index of the returned array
+   * @param num the total number of values including value1 and value2. Must be 2 or greater.
+   * @return a double array of evenly spaced values between value1 and value2 inclusive.
+   */
+  public static double[] evenlySpaced(final double value1, final double value2, final int num) {
+    if (num < 2) {
+      throw new SketchesArgumentException("num must be >= 2");
+    }
+    final double[] out = new double[num];
+    out[0] = value1;
+    out[num - 1] = value2;
+    if (num == 2) { return out; }
+
+    final double delta = (value2 - value1) / (num - 1);
+
+    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
+    return out;
+  }
+
+  /**
+   * Returns a float array of evenly spaced values between value1 and value2 inclusive.
+   * If value2 &gt; value1, the resulting sequence will be increasing.
+   * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * @param value1 will be in index 0 of the returned array
+   * @param value2 will be in the highest index of the returned array
+   * @param num the total number of values including value1 and value2. Must be 2 or greater.
+   * @return a float array of evenly spaced values between value1 and value2 inclusive.
+   */
+  public static float[] evenlySpacedFloats(final float value1, final float value2, final int num) {
+    if (num < 2) {
+      throw new SketchesArgumentException("num must be >= 2");
+    }
+    final float[] out = new float[num];
+    out[0] = value1;
+    out[num - 1] = value2;
+    if (num == 2) { return out; }
+
+    final float delta = (value2 - value1) / (num - 1);
+
+    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
+    return out;
+  }
+
+  /**
+   * Returns a double array of values between min and max inclusive where the log of the
+   * returned values are evenly spaced.
+   * If value2 &gt; value1, the resulting sequence will be increasing.
+   * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * @param value1 will be in index 0 of the returned array, and must be greater than zero.
+   * @param value2 will be in the highest index of the returned array, and must be greater than zero.
+   * @param num the total number of values including value1 and value2. Must be 2 or greater
+   * @return a double array of exponentially spaced values between value1 and value2 inclusive.
+   */
+  public static double[] evenlyLogSpaced(final double value1, final double value2, final int num) {
+    if (num < 2) {
+      throw new SketchesArgumentException("num must be >= 2");
+    }
+    if (value1 <= 0 || value2 <= 0) {
+      throw new SketchesArgumentException("value1 and value2 must be > 0.");
+    }
+
+    final double[] arr = evenlySpaced(log(value1) / LOG2, log(value2) / LOG2, num);
+    for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
+    return arr;
   }
 
   //Checks that throw
@@ -796,7 +867,7 @@ public final class Util {
    * @return The Log2 of the ceiling power of 2 of the given nomLongs.
    */
   public static int checkNomLongs(final int nomLongs) {
-    final int lgNomLongs = Integer.numberOfTrailingZeros(ceilingPowerOf2(nomLongs));
+    final int lgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomLongs));
     if (lgNomLongs > MAX_LG_NOM_LONGS || lgNomLongs < MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomLongs);
@@ -849,7 +920,8 @@ public final class Util {
   public static boolean isOdd(final long n) {
     return (n & 1L) == 1L;
   }
-  //Resources
+
+  //Get Resources
 
   /**
    * Gets the absolute path of the given resource file's shortName.
