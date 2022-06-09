@@ -59,8 +59,6 @@ import org.apache.datasketches.memory.WritableMemory;
 class DirectCouponList extends AbstractCoupons {
   WritableMemory wmem;
   Memory mem;
-  Object memObj;
-  long memAdd;
   final boolean compact;
 
   //called from newInstance, writableWrap and DirectCouponHashSet
@@ -69,8 +67,6 @@ class DirectCouponList extends AbstractCoupons {
     super(lgConfigK, tgtHllType, curMode);
     this.wmem = wmem;
     mem = wmem;
-    memObj = wmem.getArray();
-    memAdd = wmem.getCumulativeOffset(0L);
     compact = extractCompactFlag(wmem);
     assert !compact;
   }
@@ -81,8 +77,6 @@ class DirectCouponList extends AbstractCoupons {
     super(lgConfigK, tgtHllType, curMode);
     wmem = null;
     this.mem = mem;
-    memObj = ((WritableMemory) mem).getArray();
-    memAdd = mem.getCumulativeOffset(0L);
     compact = extractCompactFlag(mem);
   }
 
