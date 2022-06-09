@@ -33,7 +33,7 @@ under the License.
 
   <groupId>org.apache.datasketches</groupId>
   <artifactId>datasketches-java</artifactId>
-  <version>4.0.0-SNAPSHOT</version>
+  <version>3.4.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
@@ -84,7 +84,7 @@ under the License.
 
   <properties>
     <!-- UNIQUE FOR THIS JAVA COMPONENT -->
-    <datasketches-memory.version>2.0.0</datasketches-memory.version>
+    <datasketches-memory.version>2.1.0</datasketches-memory.version>
     <!-- END:UNIQUE FOR THIS JAVA COMPONENT -->
 
     <!-- Test -->
@@ -118,7 +118,6 @@ under the License.
     <maven-remote-resources-plugin.version>[1.7.0,)</maven-remote-resources-plugin.version> <!-- overrides parent -->
     <maven-source-plugin.version>3.2.1</maven-source-plugin.version> <!-- overrides parent -->
     <maven-surefire-plugin.version>3.0.0-M5</maven-surefire-plugin.version> <!-- overrides parent -->
-    <maven-toolchains-plugin.version>3.0.0</maven-toolchains-plugin.version>
     <!-- Apache Plugins -->
     <apache-rat-plugin.version>0.13</apache-rat-plugin.version> <!-- overrides parent -->
     <!-- org.jacoco Maven Plugins -->
@@ -227,7 +226,7 @@ under the License.
               <configuration>
                 <rules>
                   <requireJavaVersion>
-                    <version>[1.8,1.9),[8,14)</version>
+                    <version>[1.8,1.9),[8],[11,14)</version>
                   </requireJavaVersion>
                   <requireMavenVersion>
                     <version>[${maven.version},)</version>
@@ -659,9 +658,9 @@ under the License.
     </profile>
 
     <profile>
-      <id>java9plus</id>
+      <id>java11plus</id>
       <activation>
-        <jdk>[9,14)</jdk>
+        <jdk>[11,14)</jdk>
       </activation>
       <build>
         <pluginManagement>
