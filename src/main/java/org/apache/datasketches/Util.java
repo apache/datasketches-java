@@ -588,7 +588,7 @@ public final class Util {
 
   /**
    * Computes the next larger double in the power series
-   * <i>point = logBase<sup>( i / ppo )</sup></i> given the current point in the series.
+   * <i>point = logBase<sup>( i / ppb )</sup></i> given the current point in the series.
    * For illustration, this can be used in a loop as follows:
    *
    * <pre>{@code
@@ -604,19 +604,19 @@ public final class Util {
    *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024
    * }</pre>
    *
-   * @param ppo Points-Per-Octave, or the number of points per integer powers of 2 in the series.
+   * @param ppb Points-Per-Base, or the number of points per integer powers of base in the series.
    * @param curPoint the current point of the series. Must be &ge; 1.0.
    * @param roundToInt if true the output will be rounded to the nearest integer.
    * @param logBase the desired base of the logarithms
    * @return the next point in the power series.
    */
-  public static double powerSeriesNextDouble(final int ppo, final double curPoint,
+  public static double powerSeriesNextDouble(final int ppb, final double curPoint,
       final boolean roundToInt, final double logBase) {
     final double cur = curPoint < 1.0 ? 1.0 : curPoint;
-    double gi = round(logBaseOfX(logBase, cur) * ppo ); //current generating index
+    double gi = round(logBaseOfX(logBase, cur) * ppb ); //current generating index
     double next;
     do {
-      final double n = pow(logBase, ++gi / ppo);
+      final double n = pow(logBase, ++gi / ppb);
       next = roundToInt ? round(n) : n;
     } while (next <= cur);
     return next;
