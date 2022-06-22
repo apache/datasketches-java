@@ -610,7 +610,7 @@ public final class Util {
    * @param logBase the desired base of the logarithms
    * @return the next point in the power series.
    */
-  public static double pwr2SeriesNextDouble(final int ppo, final double curPoint,
+  public static double powerSeriesNextDouble(final int ppo, final double curPoint,
       final boolean roundToInt, final double logBase) {
     final double cur = curPoint < 1.0 ? 1.0 : curPoint;
     double gi = round(logBaseOfX(logBase, cur) * ppo ); //current generating index

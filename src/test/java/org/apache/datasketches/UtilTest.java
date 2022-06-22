@@ -54,7 +54,7 @@ import static org.apache.datasketches.Util.numberOfLeadingOnes;
 import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.Util.pwr2SeriesNext;
 import static org.apache.datasketches.Util.pwr2SeriesPrev;
-import static org.apache.datasketches.Util.pwr2SeriesNextDouble;
+import static org.apache.datasketches.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.testng.Assert.assertEquals;
@@ -388,21 +388,31 @@ public class UtilTest {
   public void checkPwr2LawNext() {
     int next = pwr2SeriesNext(2, 1);
     Assert.assertEquals(next, 2);
+    next = pwr2SeriesNext(2, 2);
+    Assert.assertEquals(next, 3);
+    next = pwr2SeriesNext(2, 3);
+    Assert.assertEquals(next, 4);
+
     next = pwr2SeriesNext(2, 0);
     Assert.assertEquals(next, 1);
   }
 
   @Test
   public void checkPwr2LawNextDouble() {
-    double next = pwr2SeriesNextDouble(2, 1.0, true, 2.0);
+    double next = powerSeriesNextDouble(2, 1.0, true, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-    next = pwr2SeriesNextDouble(2, 1.0, false, 2.0);
+    next = powerSeriesNextDouble(2, 2.0, true, 2.0);
+    Assert.assertEquals(next, 3.0, 0.0);
+    next = powerSeriesNextDouble(2, 3, true, 2.0);
+    Assert.assertEquals(next, 4.0, 0.0);
+
+    next = powerSeriesNextDouble(2, 1, false, 2.0);
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
-    next = pwr2SeriesNextDouble(2, 0.5, true, 2.0);
+    next = powerSeriesNextDouble(2, 0.5, true, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-    next = pwr2SeriesNextDouble(2, 0.5, false, 2.0);
+    next = powerSeriesNextDouble(2, 0.5, false, 2.0);
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
-    next = pwr2SeriesNextDouble(2, next, false, 2.0);
+    next = powerSeriesNextDouble(2, next, false, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
 
   }
