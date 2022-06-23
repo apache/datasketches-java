@@ -36,7 +36,7 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 final class KllDoublesHelper {
 
-  static double getDoubleRank(final KllSketch mine, final double value) {
+  static double getDoubleRank(final KllSketch mine, final double value, final boolean inclusive) {
     if (mine.isEmpty()) { return Double.NaN; }
     int level = 0;
     int weight = 1;
@@ -47,7 +47,7 @@ final class KllDoublesHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       for (int i = fromIndex; i < toIndex; i++) {
-        if (myDoubleItemsArr[i] < value) {
+        if (inclusive ? value >= myDoubleItemsArr[i] : myDoubleItemsArr[i] < value) {
           total += weight;
         } else if (level > 0 || mine.isLevelZeroSorted()) {
           break; // levels above 0 are sorted, no point comparing further

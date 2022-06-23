@@ -36,7 +36,7 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 final class KllFloatsHelper {
 
-  static double getFloatRank(final KllSketch mine, final float value) {
+  static double getFloatRank(final KllSketch mine, final float value, final boolean inclusive) {
     if (mine.isEmpty()) { return Double.NaN; }
     int level = 0;
     int weight = 1;
@@ -47,7 +47,7 @@ final class KllFloatsHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       for (int i = fromIndex; i < toIndex; i++) {
-        if (myFloatItemsArr[i] < value) {
+        if (inclusive ? value >= myFloatItemsArr[i] : myFloatItemsArr[i] < value) {
           total += weight;
         } else if (level > 0 || mine.isLevelZeroSorted()) {
           break; // levels above 0 are sorted, no point comparing further

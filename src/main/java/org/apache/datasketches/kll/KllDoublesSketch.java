@@ -321,7 +321,25 @@ public abstract class KllDoublesSketch extends KllSketch {
    * @return an approximate rank of the given value
    */
   public double getRank(final double value) {
-    return KllDoublesHelper.getDoubleRank(this, value);
+    return KllDoublesHelper.getDoubleRank(this, value, false);
+  }
+
+  /**
+   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1,
+   * inclusive.
+   *
+   * <p>The resulting approximation has a probabilistic guarantee that can be obtained from the
+   * getNormalizedRankError(false) function.
+   *
+   * <p>If the sketch is empty this returns NaN.</p>
+   *
+   * @param value to be ranked
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * Otherwise the rank equals the sum of the weights of all values that are less than the given value
+   * @return an approximate rank of the given value
+   */
+  public double getRank(final double value, final boolean inclusive) {
+    return KllDoublesHelper.getDoubleRank(this, value, inclusive);
   }
 
   /**

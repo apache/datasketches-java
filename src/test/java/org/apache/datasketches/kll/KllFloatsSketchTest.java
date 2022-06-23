@@ -80,6 +80,10 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getNumRetained(), 1);
     assertEquals(sketch.getRank(1), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
+    assertEquals(sketch.getRank(1, false), 0.0);
+    assertEquals(sketch.getRank(2, false), 1.0);
+    assertEquals(sketch.getRank(0, true), 0.0);
+    assertEquals(sketch.getRank(1, true), 1.0);
     assertEquals(sketch.getMinValue(), 1f);
     assertEquals(sketch.getMaxValue(), 1f);
     assertEquals(sketch.getQuantile(0.5), 1f);
