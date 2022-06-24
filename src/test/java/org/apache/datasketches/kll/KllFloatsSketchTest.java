@@ -90,6 +90,62 @@ public class KllFloatsSketchTest {
   }
 
   @Test
+  public void tenItems() {
+    final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
+    for (int i = 1; i <= 10; i++) { sketch.update(i); }
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getN(), 10);
+    assertEquals(sketch.getNumRetained(), 10);
+    for (int i = 1; i <= 10; i++) {
+      assertEquals(sketch.getRank(i), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, true), (i) / 10.0);
+    }
+    // inclusive = false (default)
+    assertEquals(sketch.getQuantile(0), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1), 2);
+    assertEquals(sketch.getQuantile(0.2), 3);
+    assertEquals(sketch.getQuantile(0.3), 4);
+    assertEquals(sketch.getQuantile(0.4), 5);
+    assertEquals(sketch.getQuantile(0.5), 6);
+    assertEquals(sketch.getQuantile(0.6), 7);
+    assertEquals(sketch.getQuantile(0.7), 8);
+    assertEquals(sketch.getQuantile(0.8), 9);
+    assertEquals(sketch.getQuantile(0.9), 10);
+    assertEquals(sketch.getQuantile(1), 10); // always max value
+    // inclusive = true
+    assertEquals(sketch.getQuantile(0, true), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, true), 1);
+    assertEquals(sketch.getQuantile(0.2, true), 2);
+    assertEquals(sketch.getQuantile(0.3, true), 3);
+    assertEquals(sketch.getQuantile(0.4, true), 4);
+    assertEquals(sketch.getQuantile(0.5, true), 5);
+    assertEquals(sketch.getQuantile(0.6, true), 6);
+    assertEquals(sketch.getQuantile(0.7, true), 7);
+    assertEquals(sketch.getQuantile(0.8, true), 8);
+    assertEquals(sketch.getQuantile(0.9, true), 9);
+    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+
+    // getQuantile() and getQuantiles() equivalence
+    {
+      // inclusive = false (default)
+      final float[] quantiles =
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0), quantiles[i]);
+      }
+    }
+    {
+      // inclusive = true
+      final float[] quantiles =
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+      }
+    }
+  }
+
+  @Test
   public void manyItemsEstimationMode() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     final int n = 1_000_000;

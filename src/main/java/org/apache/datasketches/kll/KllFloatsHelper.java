@@ -93,7 +93,7 @@ final class KllFloatsHelper {
     return buckets;
   }
 
-  static float getFloatsQuantile(final KllSketch mine, final double fraction) {
+  static float getFloatsQuantile(final KllSketch mine, final double fraction, final boolean inclusive) {
     if (mine.isEmpty()) { return Float.NaN; }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
@@ -101,11 +101,11 @@ final class KllFloatsHelper {
     //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
     if (fraction == 0.0) { return mine.getMinFloatValue(); }
     if (fraction == 1.0) { return mine.getMaxFloatValue(); }
-    final KllFloatsQuantileCalculator quant = KllFloatsHelper.getFloatsQuantileCalculator(mine);
+    final KllFloatsQuantileCalculator quant = KllFloatsHelper.getFloatsQuantileCalculator(mine, inclusive);
     return quant.getQuantile(fraction);
   }
 
-  static float[] getFloatsQuantiles(final KllSketch mine, final double[] fractions) {
+  static float[] getFloatsQuantiles(final KllSketch mine, final double[] fractions, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
     KllFloatsQuantileCalculator quant = null;
     final float[] quantiles = new float[fractions.length];
@@ -118,7 +118,7 @@ final class KllFloatsHelper {
       else if (fraction == 1.0) { quantiles[i] = mine.getMaxFloatValue(); }
       else {
         if (quant == null) {
-          quant = KllFloatsHelper.getFloatsQuantileCalculator(mine);
+          quant = KllFloatsHelper.getFloatsQuantileCalculator(mine, inclusive);
         }
         quantiles[i] = quant.getQuantile(fraction);
       }
@@ -433,14 +433,15 @@ final class KllFloatsHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static KllFloatsQuantileCalculator getFloatsQuantileCalculator(final KllSketch mine) {
+  private static KllFloatsQuantileCalculator getFloatsQuantileCalculator(final KllSketch mine,
+      final boolean inclusive) {
     final int[] myLevelsArr = mine.getLevelsArray();
     final float[] myFloatItemsArr = mine.getFloatItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myFloatItemsArr, myLevelsArr[0], myLevelsArr[1]);
       if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
     }
-    return new KllFloatsQuantileCalculator(myFloatItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
+    return new KllFloatsQuantileCalculator(myFloatItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(), inclusive);
   }
 
   private static void incrementFloatBucketsSortedLevel(

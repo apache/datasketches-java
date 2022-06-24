@@ -30,11 +30,11 @@ public class QuantilesHelper {
    * @param array of weights where first element is zero
    * @return total weight
    */ //used by classic Quantiles and KLL
-  public static long convertToPrecedingCummulative(final long[] array) {
+  public static long convertToPrecedingCummulative(final long[] array, final boolean inclusive) {
     long subtotal = 0;
     for (int i = 0; i < array.length; i++) {
       final long newSubtotal = subtotal + array[i];
-      array[i] = subtotal;
+      array[i] = inclusive ? newSubtotal : subtotal;
       subtotal = newSubtotal;
     }
     return subtotal;

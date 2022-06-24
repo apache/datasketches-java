@@ -93,7 +93,7 @@ final class KllDoublesHelper {
     return buckets;
   }
 
-  static double getDoublesQuantile(final KllSketch mine, final double fraction) {
+  static double getDoublesQuantile(final KllSketch mine, final double fraction, final boolean inclusive) {
     if (mine.isEmpty()) { return Double.NaN; }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
@@ -101,11 +101,11 @@ final class KllDoublesHelper {
     //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
     if (fraction == 0.0) { return mine.getMinDoubleValue(); }
     if (fraction == 1.0) { return mine.getMaxDoubleValue(); }
-    final KllDoublesQuantileCalculator quant = KllDoublesHelper.getDoublesQuantileCalculator(mine);
+    final KllDoublesQuantileCalculator quant = KllDoublesHelper.getDoublesQuantileCalculator(mine, inclusive);
     return quant.getQuantile(fraction);
   }
 
-  static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions) {
+  static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
     KllDoublesQuantileCalculator quant = null;
     final double[] quantiles = new double[fractions.length];
@@ -118,7 +118,7 @@ final class KllDoublesHelper {
       else if (fraction == 1.0) { quantiles[i] = mine.getMaxDoubleValue(); }
       else {
         if (quant == null) {
-          quant = KllDoublesHelper.getDoublesQuantileCalculator(mine);
+          quant = KllDoublesHelper.getDoublesQuantileCalculator(mine, inclusive);
         }
         quantiles[i] = quant.getQuantile(fraction);
       }
@@ -433,14 +433,16 @@ final class KllDoublesHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static KllDoublesQuantileCalculator getDoublesQuantileCalculator(final KllSketch mine) {
+  private static KllDoublesQuantileCalculator getDoublesQuantileCalculator(final KllSketch mine,
+      final boolean inclusive) {
     final int[] myLevelsArr = mine.getLevelsArray();
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
       if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
     }
-    return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
+    return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(),
+        inclusive);
   }
 
   private static void incrementDoublesBucketsSortedLevel(

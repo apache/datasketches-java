@@ -60,7 +60,7 @@ final class DoublesAuxiliary {
     //  taking advantage of the already sorted blocks of length k
     blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
-    final long total = QuantilesHelper.convertToPrecedingCummulative(cumWtsArr);
+    final long total = QuantilesHelper.convertToPrecedingCummulative(cumWtsArr, false);
     assert total == n;
 
     auxN_ = n;
