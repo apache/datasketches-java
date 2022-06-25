@@ -59,7 +59,8 @@ final class KllDoublesHelper {
     return (double) total / mine.getN();
   }
 
-  static double[] getDoublesPmfOrCdf(final KllSketch mine, final double[] splitPoints, final boolean isCdf) {
+  static double[] getDoublesPmfOrCdf(final KllSketch mine, final double[] splitPoints,
+      final boolean isCdf, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
     validateDoubleValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
@@ -71,9 +72,11 @@ final class KllDoublesHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       if (level == 0 && !mine.isLevelZeroSorted()) {
-        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+            buckets, inclusive);
       } else {
-        KllDoublesHelper.incrementDoublesBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+        KllDoublesHelper.incrementDoublesBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+            buckets, inclusive);
       }
       level++;
       weight *= 2;
@@ -446,13 +449,13 @@ final class KllDoublesHelper {
   }
 
   private static void incrementDoublesBucketsSortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex,
-      final int weight, final double[] splitPoints, final double[] buckets) {
+      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final double[] splitPoints, final double[] buckets, final boolean inclusive) {
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
-      if (myDoubleItemsArr[i] < splitPoints[j]) {
+      if (inclusive ? splitPoints[j] >= myDoubleItemsArr[i] : myDoubleItemsArr[i] < splitPoints[j]) {
         buckets[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -468,13 +471,13 @@ final class KllDoublesHelper {
   }
 
   private static void incrementDoublesBucketsUnsortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex,
-      final int weight, final double[] splitPoints, final double[] buckets) {
+      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final double[] splitPoints, final double[] buckets, final boolean inclusive) {
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {
-        if (myDoubleItemsArr[i] < splitPoints[j]) {
+        if (inclusive ? splitPoints[j] >= myDoubleItemsArr[i] : myDoubleItemsArr[i] < splitPoints[j]) {
           break;
         }
       }

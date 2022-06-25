@@ -59,7 +59,8 @@ final class KllFloatsHelper {
     return (double) total / mine.getN();
   }
 
-  static double[] getFloatsPmfOrCdf(final KllSketch mine, final float[] splitPoints, final boolean isCdf) {
+  static double[] getFloatsPmfOrCdf(final KllSketch mine, final float[] splitPoints,
+      final boolean isCdf, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
     validateFloatValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
@@ -71,9 +72,11 @@ final class KllFloatsHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       if (level == 0 && !mine.isLevelZeroSorted()) {
-        KllFloatsHelper.incrementFloatBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+        KllFloatsHelper.incrementFloatBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+            buckets, inclusive);
       } else {
-        KllFloatsHelper.incrementFloatBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+        KllFloatsHelper.incrementFloatBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+            buckets, inclusive);
       }
       level++;
       weight *= 2;
@@ -445,13 +448,13 @@ final class KllFloatsHelper {
   }
 
   private static void incrementFloatBucketsSortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex,
-      final int weight, final float[] splitPoints, final double[] buckets) {
+      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final float[] splitPoints, final double[] buckets, final boolean inclusive) {
     final float[] myFloatItemsArr = mine.getFloatItemsArray();
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
-      if (myFloatItemsArr[i] < splitPoints[j]) {
+      if (inclusive ? splitPoints[j] >= myFloatItemsArr[i] : myFloatItemsArr[i] < splitPoints[j]) {
         buckets[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -467,13 +470,13 @@ final class KllFloatsHelper {
   }
 
   private static void incrementFloatBucketsUnsortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex,
-      final int weight, final float[] splitPoints, final double[] buckets) {
+      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final float[] splitPoints, final double[] buckets, final boolean inclusive) {
     final float[] myFloatItemsArr = mine.getFloatItemsArray();
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {
-        if (myFloatItemsArr[i] < splitPoints[j]) {
+        if (inclusive ? splitPoints[j] >= myFloatItemsArr[i] : myFloatItemsArr[i] < splitPoints[j]) {
           break;
         }
       }

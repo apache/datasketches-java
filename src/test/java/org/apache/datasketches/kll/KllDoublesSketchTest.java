@@ -199,18 +199,35 @@ public class KllDoublesSketchTest {
       sketch.update(i);
       values[i] = i;
     }
-    final double[] ranks = sketch.getCDF(values);
-    final double[] pmf = sketch.getPMF(values);
-    double sumPmf = 0;
-    for (int i = 0; i < n; i++) {
-      assertEquals(ranks[i], sketch.getRank(values[i]), NUMERIC_NOISE_TOLERANCE,
-          "rank vs CDF for value " + i);
-      sumPmf += pmf[i];
-      assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
+
+    { // inclusive = false (default)
+      final double[] ranks = sketch.getCDF(values);
+      final double[] pmf = sketch.getPMF(values);
+      double sumPmf = 0;
+      for (int i = 0; i < n; i++) {
+        assertEquals(ranks[i], sketch.getRank(values[i]), NUMERIC_NOISE_TOLERANCE,
+            "rank vs CDF for value " + i);
+        sumPmf += pmf[i];
+        assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
+      }
+      sumPmf += pmf[n];
+      assertEquals(sumPmf, 1.0, NUMERIC_NOISE_TOLERANCE);
+      assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
     }
-    sumPmf += pmf[n];
-    assertEquals(sumPmf, 1.0, NUMERIC_NOISE_TOLERANCE);
-    assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
+    { // inclusive = true
+      final double[] ranks = sketch.getCDF(values, true);
+      final double[] pmf = sketch.getPMF(values, true);
+      double sumPmf = 0;
+      for (int i = 0; i < n; i++) {
+        assertEquals(ranks[i], sketch.getRank(values[i], true), NUMERIC_NOISE_TOLERANCE,
+            "rank vs CDF for value " + i);
+        sumPmf += pmf[i];
+        assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
+      }
+      sumPmf += pmf[n];
+      assertEquals(sumPmf, 1.0, NUMERIC_NOISE_TOLERANCE);
+      assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
+    }
   }
 
   @Test

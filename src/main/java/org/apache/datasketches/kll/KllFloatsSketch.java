@@ -178,7 +178,35 @@ public abstract class KllFloatsSketch extends KllSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true);
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, false);
+  }
+
+  /**
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
+   * getNormalizedRankError(false) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these split points.
+   *
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * Otherwise the rank equals the sum of the weights of all values that are less than the given value
+   *
+   * @return an array of m+1 double values on the interval [0.0, 1.0),
+   * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
+   * The value at array position j of the returned CDF array is the sum of the returned values
+   * in positions 0 through j of the returned PMF array.
+   */
+  public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
   }
 
   /**
@@ -220,7 +248,36 @@ public abstract class KllFloatsSketch extends KllSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final float[] splitPoints) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false);
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false, false);
+  }
+
+  /**
+   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
+   * given a set of splitPoints (values).
+   *
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
+   * getNormalizedRankError(true) function.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
+   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the maximum value.
+   * It is not necessary to include either the min or max values in these split points.
+   *
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * Otherwise the rank equals the sum of the weights of all values that are less than the given value
+   *
+   * @return an array of m+1 doubles on the interval [0.0, 1.0),
+   * each of which is an approximation to the fraction of the total input stream values
+   * (the mass) that fall into one of those intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
+   * splitPoint, with the exception that the last interval will include maximum value.
+   */
+  public double[] getPMF(final float[] splitPoints, final boolean inclusive) {
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false, inclusive);
   }
 
   /**
