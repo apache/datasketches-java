@@ -28,6 +28,7 @@ public class QuantilesHelper {
    * Convert the weights into totals of the weights preceding each item.
    * An array of {1,1,1,0} becomes {0,1,2,3}
    * @param array of weights where first element is zero
+   * @param inclusive for treating rank as including weight of an item
    * @return total weight
    */ //used by classic Quantiles and KLL
   public static long convertToPrecedingCummulative(final long[] array, final boolean inclusive) {

@@ -172,31 +172,6 @@ public abstract class KllFloatsSketch extends KllSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 double values on the interval [0.0, 1.0),
-   * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
-   * The value at array position j of the returned CDF array is the sum of the returned values
-   * in positions 0 through j of the returned PMF array.
-   */
-  public double[] getCDF(final float[] splitPoints) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, false);
-  }
-
-  /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
-   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these split points.
-   *
    * @param inclusive if true the weight of the given value is included into the rank.
    * Otherwise the rank equals the sum of the weights of all values that are less than the given value
    *
@@ -207,6 +182,15 @@ public abstract class KllFloatsSketch extends KllSketch {
    */
   public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
     return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
+  }
+
+  /**
+   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public double[] getCDF(final float[] splitPoints) {
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, false);
   }
 
   /**
@@ -241,32 +225,6 @@ public abstract class KllFloatsSketch extends KllSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @return an array of m+1 doubles on the interval [0.0, 1.0),
-   * each of which is an approximation to the fraction of the total input stream values
-   * (the mass) that fall into one of those intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
-   */
-  public double[] getPMF(final float[] splitPoints) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false, false);
-  }
-
-  /**
-   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * given a set of splitPoints (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(true) function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these split points.
-   *
    * @param inclusive if true the weight of the given value is included into the rank.
    * Otherwise the rank equals the sum of the weights of all values that are less than the given value
    *
@@ -281,25 +239,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Returns an approximation to the value of the data item
-   * that would be preceded by the given fraction of a hypothetical sorted
-   * version of the input stream so far.
-   *
-   * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
-   * so it should not be called multiple times to get different quantiles from the same
-   * sketch. Instead use getQuantiles(), which pays the overhead only once.
-   *
-   * <p>If the sketch is empty this returns NaN.
-   *
-   * @param fraction the specified fractional position in the hypothetical sorted stream.
-   * These are also called normalized ranks or fractional ranks.
-   * If fraction = 0.0, the true minimum value of the stream is returned.
-   * If fraction = 1.0, the true maximum value of the stream is returned.
-   *
-   * @return the approximation to the value at the given fraction
+   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return PMF
    */
-  public float getQuantile(final double fraction) {
-    return KllFloatsHelper.getFloatsQuantile(this, fraction, false);
+  public double[] getPMF(final float[] splitPoints) {
+    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false, false);
   }
 
   /**
@@ -323,6 +268,15 @@ public abstract class KllFloatsSketch extends KllSketch {
    */
   public float getQuantile(final double fraction, final boolean inclusive) {
     return KllFloatsHelper.getFloatsQuantile(this, fraction, inclusive);
+  }
+
+  /**
+   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
+   * @param fraction fractional rank
+   * @return quantile
+   */
+  public float getQuantile(final double fraction) {
+    return KllFloatsHelper.getFloatsQuantile(this, fraction, false);
   }
 
   /**
@@ -351,28 +305,6 @@ public abstract class KllFloatsSketch extends KllSketch {
    * These are also called normalized ranks or fractional ranks.
    * These fractions must be in the interval [0.0, 1.0], inclusive.
    *
-   * @return array of approximations to the given fractions in the same order as given fractions
-   * array.
-   */
-  public float[] getQuantiles(final double[] fractions) {
-    return KllFloatsHelper.getFloatsQuantiles(this, fractions, false);
-  }
-
-  /**
-   * This is a more efficient multiple-query version of getQuantile().
-   *
-   * <p>This returns an array that could have been generated by using getQuantile() with many
-   * different fractional ranks, but would be very inefficient.
-   * This method incurs the internal set-up overhead once and obtains multiple quantile values in
-   * a single query. It is strongly recommend that this method be used instead of multiple calls
-   * to getQuantile().
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param fractions given array of fractional positions in the hypothetical sorted stream.
-   * These are also called normalized ranks or fractional ranks.
-   * These fractions must be in the interval [0.0, 1.0], inclusive.
-   *
    * @param inclusive if true, the given fractions (ranks) are considered inclusive
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
@@ -382,22 +314,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
-   * specify the number of evenly spaced fractional ranks.
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
-   * This must be a positive integer greater than 0. A value of 1 will return the min value.
-   * A value of 2 will return the min and the max value. A value of 3 will return the min,
-   * the median and the max value, etc.
-   *
-   * @return array of approximations to the given fractions in the same order as given fractions
-   * array.
+   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, false)}
+   * @param fractions fractional ranks
+   * @return quantiles
    */
-  public float[] getQuantiles(final int numEvenlySpaced) {
-    if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
+  public float[] getQuantiles(final double[] fractions) {
+    return KllFloatsHelper.getFloatsQuantiles(this, fractions, false);
   }
 
   /**
@@ -421,6 +343,16 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
+   * Same as {@link #getQuantiles(int, boolean) getQuantiles(int numEvenlySpaced, false)}
+   * @param numEvenlySpaced number of evenly spaced fractional ranks
+   * @return quantiles
+   */
+  public float[] getQuantiles(final int numEvenlySpaced) {
+    if (isEmpty()) { return null; }
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
+  }
+
+  /**
    * Gets the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
    * @param fraction the given normalized rank as a fraction
@@ -441,28 +373,21 @@ public abstract class KllFloatsSketch extends KllSketch {
    * <p>If the sketch is empty this returns NaN.</p>
    *
    * @param value to be ranked
-   * @return an approximate rank of the given value
-   */
-  public double getRank(final float value) {
-    return KllFloatsHelper.getFloatRank(this, value, false);
-  }
-
-  /**
-   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1,
-   * inclusive.
-   *
-   * <p>The resulting approximation has a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
-   *
-   * <p>If the sketch is empty this returns NaN.</p>
-   *
-   * @param value to be ranked
    * @param inclusive if true the weight of the given value is included into the rank.
    * Otherwise the rank equals the sum of the weights of all values that are less than the given value
    * @return an approximate rank of the given value
    */
   public double getRank(final float value, final boolean inclusive) {
     return KllFloatsHelper.getFloatRank(this, value, inclusive);
+  }
+
+  /**
+   * Same as {@link #getRank(float, boolean) getRank(float value, false)}
+   * @param value value to be ranked
+   * @return fractional rank
+   */
+  public double getRank(final float value) {
+    return KllFloatsHelper.getFloatRank(this, value, false);
   }
 
   /**
