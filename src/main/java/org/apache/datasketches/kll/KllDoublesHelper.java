@@ -47,7 +47,7 @@ final class KllDoublesHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       for (int i = fromIndex; i < toIndex; i++) {
-        if (inclusive ? value >= myDoubleItemsArr[i] : myDoubleItemsArr[i] < value) {
+        if (inclusive ? myDoubleItemsArr[i] <= value : myDoubleItemsArr[i] < value) {
           total += weight;
         } else if (level > 0 || mine.isLevelZeroSorted()) {
           break; // levels above 0 are sorted, no point comparing further
@@ -455,7 +455,7 @@ final class KllDoublesHelper {
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
-      if (inclusive ? splitPoints[j] >= myDoubleItemsArr[i] : myDoubleItemsArr[i] < splitPoints[j]) {
+      if (inclusive ? myDoubleItemsArr[i] <= splitPoints[j] : myDoubleItemsArr[i] < splitPoints[j]) {
         buckets[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -477,7 +477,7 @@ final class KllDoublesHelper {
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {
-        if (inclusive ? splitPoints[j] >= myDoubleItemsArr[i] : myDoubleItemsArr[i] < splitPoints[j]) {
+        if (inclusive ? myDoubleItemsArr[i] <= splitPoints[j] : myDoubleItemsArr[i] < splitPoints[j]) {
           break;
         }
       }
