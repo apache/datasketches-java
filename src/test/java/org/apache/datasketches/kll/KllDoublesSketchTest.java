@@ -98,7 +98,7 @@ public class KllDoublesSketchTest {
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, true), (i) / 10.0);
+      assertEquals(sketch.getRank(i, true), i / 10.0);
     }
     // inclusive = false (default)
     assertEquals(sketch.getQuantile(0), 1); // always min value
