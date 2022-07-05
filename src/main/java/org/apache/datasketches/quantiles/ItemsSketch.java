@@ -469,7 +469,7 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getPMF(T[], boolean) getPMF(T[] splitPoints, false)}
+   * Same as {@link #getPMF(Object[], boolean) getPMF(T[] splitPoints, false)}
    * @param splitPoints splitPoints
    * @return PMF
    */
@@ -506,7 +506,7 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getCDF(T[], boolean) getCDF(T[] splitPoints, false)}
+   * Same as {@link #getCDF(Object[], boolean) getCDF(T[] splitPoints, false)}
    * @param splitPoints splitPoints
    * @return CDF
    */
