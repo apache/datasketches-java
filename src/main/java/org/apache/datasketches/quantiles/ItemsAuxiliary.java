@@ -42,7 +42,7 @@ final class ItemsAuxiliary<T> {
    * @param qs an ItemsSketch
    */
   @SuppressWarnings("unchecked")
-  ItemsAuxiliary(final ItemsSketch<T> qs) {
+  ItemsAuxiliary(final ItemsSketch<T> qs, final boolean inclusive) {
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();
@@ -64,9 +64,9 @@ final class ItemsAuxiliary<T> {
 
     // convert the item weights into totals of the weights preceding each item
     long subtot = 0;
-    for (int i = 0; i < (numSamples + 1); i++ ) {
+    for (int i = 0; i < (numSamples + 1); i++) {
       final long newSubtot = subtot + cumWtsArr[i];
-      cumWtsArr[i] = subtot;
+      cumWtsArr[i] = inclusive ? newSubtot : subtot;
       subtot = newSubtot;
     }
 

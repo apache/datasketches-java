@@ -34,8 +34,8 @@ final class KolmogorovSmirnov {
    * @return the raw delta area between two quantile sketches
    */
   public static double computeKSDelta(final DoublesSketch sketch1, final DoublesSketch sketch2) {
-    final DoublesAuxiliary p = new DoublesAuxiliary(sketch1);
-    final DoublesAuxiliary q = new DoublesAuxiliary(sketch2);
+    final DoublesAuxiliary p = new DoublesAuxiliary(sketch1, false);
+    final DoublesAuxiliary q = new DoublesAuxiliary(sketch2, false);
 
     final double[] pSamplesArr = p.auxSamplesArr_;
     final double[] qSamplesArr = q.auxSamplesArr_;

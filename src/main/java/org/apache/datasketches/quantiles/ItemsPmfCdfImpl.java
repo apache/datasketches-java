@@ -24,8 +24,9 @@ import java.util.Comparator;
 
 class ItemsPmfCdfImpl {
 
-  static <T> double[] getPMFOrCDF(final ItemsSketch<T> sketch, final T[] splitPoints, final boolean isCDF) {
-    final double[] buckets = internalBuildHistogram(splitPoints, sketch);
+  static <T> double[] getPMFOrCDF(final ItemsSketch<T> sketch, final T[] splitPoints,
+      final boolean isCDF, final boolean inclusive) {
+    final double[] buckets = internalBuildHistogram(splitPoints, sketch, inclusive);
     final long n = sketch.getN();
     if (isCDF) {
       double subtotal = 0;
@@ -51,7 +52,8 @@ class ItemsPmfCdfImpl {
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
   @SuppressWarnings("unchecked")
-  private static <T> double[] internalBuildHistogram(final T[] splitPoints, final ItemsSketch<T> sketch) {
+  private static <T> double[] internalBuildHistogram(final T[] splitPoints, final ItemsSketch<T> sketch,
+      final boolean inclusive) {
     final Object[] samples  = sketch.getCombinedBuffer();
     final int bbCount = sketch.getBaseBufferCount();
     ItemsUtil.validateValues(splitPoints, sketch.getComparator());
@@ -63,14 +65,13 @@ class ItemsPmfCdfImpl {
     long weight = 1;
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
-      ItemsPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
-          (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator());
+      bilinearTimeIncrementHistogramCounters(
+          (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator(), inclusive);
     } else {
       // sort is worth it when many split points
       Arrays.sort((T[]) samples, 0, bbCount, sketch.getComparator());
       linearTimeIncrementHistogramCounters(
-          (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator()
-      );
+          (T[]) samples, 0, bbCount, weight, splitPoints, counters, sketch.getComparator(), inclusive);
     }
 
     long myBitPattern = sketch.getBitPattern();
@@ -81,7 +82,7 @@ class ItemsPmfCdfImpl {
       if ((myBitPattern & 1L) > 0L) { //valid level exists
         // the levels are already sorted so we can use the fast version
         linearTimeIncrementHistogramCounters(
-            (T[]) samples, (2 + lvl) * k, k, weight, splitPoints, counters, sketch.getComparator());
+            (T[]) samples, (2 + lvl) * k, k, weight, splitPoints, counters, sketch.getComparator(), inclusive);
       }
     }
     return counters;
@@ -98,17 +99,18 @@ class ItemsPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
    * @param comparator the comparator for data type T
+   * @param inclusive if true, rank is considered inclusive
    */
   private static <T> void bilinearTimeIncrementHistogramCounters(final T[] samples, final int offset,
       final int numSamples, final long weight, final T[] splitPoints, final double[] counters,
-      final Comparator<? super T> comparator) {
+      final Comparator<? super T> comparator, final boolean inclusive) {
     assert ((splitPoints.length + 1) == counters.length);
     for (int i = 0; i < numSamples; i++) {
       final T sample = samples[i + offset];
       int j = 0;
       for (j = 0; j < splitPoints.length; j++) {
         final T splitpoint = splitPoints[j];
-        if (comparator.compare(sample, splitpoint) < 0) {
+        if (inclusive ? comparator.compare(sample, splitpoint) <= 0 : comparator.compare(sample, splitpoint) < 0) {
           break;
         }
       }
@@ -133,14 +135,17 @@ class ItemsPmfCdfImpl {
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
    * @param comparator the comparator for data type T
+   * @param inclusive if true, rank is considered inclusive
    */
   private static <T> void linearTimeIncrementHistogramCounters(final T[] samples, final int offset,
       final int numSamples, final long weight, final T[] splitPoints, final double[] counters,
-      final Comparator<? super T> comparator) {
+      final Comparator<? super T> comparator, final boolean inclusive) {
     int i = 0;
     int j = 0;
     while ((i < numSamples) && (j < splitPoints.length)) {
-      if (comparator.compare(samples[i + offset], splitPoints[j]) < 0) {
+      final T sample = samples[i + offset];
+      final T value = splitPoints[j];
+      if (inclusive ? comparator.compare(sample, value) <= 0 : comparator.compare(sample, value) < 0) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {

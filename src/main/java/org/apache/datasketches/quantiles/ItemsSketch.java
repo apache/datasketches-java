@@ -271,18 +271,29 @@ public final class ItemsSketch<T> {
    * If fraction = 0.0, the true minimum value of the stream is returned.
    * If fraction = 1.0, the true maximum value of the stream is returned.
    *
+   * @param inclusive if true, the given fraction (rank) is considered inclusive
+   * 
    * @return the approximation to the value at the above fraction
    */
-  public T getQuantile(final double fraction) {
+  public T getQuantile(final double fraction, final boolean inclusive) {
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return minValue_; }
     else if (fraction == 1.0) { return maxValue_; }
     else {
-      final ItemsAuxiliary<T> aux = constructAuxiliary();
+      final ItemsAuxiliary<T> aux = new ItemsAuxiliary<>(this, inclusive);
       return aux.getQuantile(fraction);
     }
+  }
+
+  /**
+   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
+   * @param fraction fractional rank
+   * @return quantile
+   */
+  public T getQuantile(final double fraction) {
+    return getQuantile(fraction, false);
   }
 
   /**
@@ -322,10 +333,12 @@ public final class ItemsSketch<T> {
    * sorted stream of all the input values seen so far.
    * These fRanks must all be in the interval [0.0, 1.0] inclusively.
    *
+   * @param inclusive if true, the given fractional ranks are considered inclusive
+   * 
    * @return array of approximate quantiles of the given fRanks in the same order as in the given
    * fRanks array.
    */
-  public T[] getQuantiles(final double[] fRanks) {
+  public T[] getQuantiles(final double[] fRanks, final boolean inclusive) {
     if (isEmpty()) { return null; }
     ItemsAuxiliary<T> aux = null;
     @SuppressWarnings("unchecked")
@@ -336,7 +349,7 @@ public final class ItemsSketch<T> {
       else if (fRank == 1.0) { quantiles[i] = maxValue_; }
       else {
         if (aux == null) {
-          aux = this.constructAuxiliary();
+          aux = new ItemsAuxiliary<>(this, inclusive);
         }
         quantiles[i] = aux.getQuantile(fRank);
       }
@@ -345,20 +358,40 @@ public final class ItemsSketch<T> {
   }
 
   /**
+   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fRanks, false)}
+   * @param fRanks fractional ranks
+   * @return quantiles
+   */
+  public T[] getQuantiles(final double[] fRanks) {
+    return getQuantiles(fRanks, false);
+  }
+
+  /**
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced fractional ranks.
    *
-   * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
+   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
    * This must be a positive integer greater than 1.
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
    *
+   * @param inclusive if true, fractional ranks are considered inclusive
+   * 
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public T[] getQuantiles(final int evenlySpaced) {
+  public T[] getQuantiles(final int numEvenlySpaced, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, evenlySpaced));
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), inclusive);
+  }
+
+  /**
+   * Same as {@link #getQuantiles(int, boolean) getQuantiles(int numEvenlySpaced, false)}
+   * @param numEvenlySpaced number of evenly spaced fractional ranks
+   * @return quantiles
+   */
+  public T[] getQuantiles(final int numEvenlySpaced) {
+    return getQuantiles(numEvenlySpaced, false);
   }
 
   /**
@@ -371,15 +404,17 @@ public final class ItemsSketch<T> {
    * <p>If the sketch is empty this returns NaN.</p>
    *
    * @param value to be ranked
+   * @param inclusive if true the weight of the given value is included into the rank.
    * @return an approximate rank of the given value
    */
   @SuppressWarnings("unchecked")
-  public double getRank(final T value) {
+  public double getRank(final T value, final boolean inclusive) {
     if (isEmpty()) { return Double.NaN; }
     long total = 0;
     int weight = 1;
     for (int i = 0; i < baseBufferCount_; i++) {
-      if (comparator_.compare((T) combinedBuffer_[i], value) < 0) {
+      final T sample = (T) combinedBuffer_[i];
+      if (inclusive ? comparator_.compare(sample, value) <= 0 : comparator_.compare(sample, value) < 0) {
         total += weight;
       }
     }
@@ -389,7 +424,8 @@ public final class ItemsSketch<T> {
       if ((bitPattern & 1L) > 0) { // level is not empty
         final int offset = (2 + lvl) * k_;
         for (int i = 0; i < k_; i++) {
-          if (comparator_.compare((T) combinedBuffer_[i + offset], value) < 0) {
+          final T sample = (T) combinedBuffer_[i + offset];
+          if (inclusive ? comparator_.compare(sample, value) <= 0 : comparator_.compare(sample, value) < 0) {
             total += weight;
           } else {
             break; // levels are sorted, no point comparing further
@@ -398,6 +434,10 @@ public final class ItemsSketch<T> {
       }
     }
     return (double) total / n_;
+  }
+
+  public double getRank(final T value) {
+    return getRank(value, false);
   }
 
   /**
@@ -416,14 +456,25 @@ public final class ItemsSketch<T> {
    * the maximum value.
    * It is not necessary to include either the min or max values in these splitpoints.
    *
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * 
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
-  public double[] getPMF(final T[] splitPoints) {
+  public double[] getPMF(final T[] splitPoints, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
+    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false, inclusive);
+  }
+
+  /**
+   * Same as {@link #getPMF(T[], boolean) getPMF(T[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return PMF
+   */
+  public double[] getPMF(final T[] splitPoints) {
+    return getPMF(splitPoints, false);
   }
 
   /**
@@ -442,14 +493,25 @@ public final class ItemsSketch<T> {
    * the maximum value.
    * It is not necessary to include either the min or max values in these splitpoints.
    *
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * 
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public double[] getCDF(final T[] splitPoints) {
+  public double[] getCDF(final T[] splitPoints, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
+    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true, inclusive);
+  }
+
+  /**
+   * Same as {@link #getCDF(T[], boolean) getCDF(T[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public double[] getCDF(final T[] splitPoints) {
+    return getCDF(splitPoints, false);
   }
 
   /**
@@ -721,15 +783,6 @@ public final class ItemsSketch<T> {
         }
       }
     }
-  }
-
-  /**
-   * Returns the Auxiliary data structure which is only used for getQuantile() and getQuantiles()
-   * queries.
-   * @return the Auxiliary data structure
-   */
-  private ItemsAuxiliary<T> constructAuxiliary() {
-    return new ItemsAuxiliary<>(this);
   }
 
   private static <T> void growBaseBuffer(final ItemsSketch<T> sketch) {

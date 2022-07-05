@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -106,6 +107,62 @@ public class ItemsSketchTest {
     Assert.assertNull(sketch.getMinValue());
     Assert.assertNull(sketch.getMaxValue());
     Assert.assertNull(sketch.getQuantile(0.5));
+  }
+
+  @Test
+  public void tenItems() {
+    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
+    for (int i = 1; i <= 10; i++) { sketch.update(i); }
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getN(), 10);
+    assertEquals(sketch.getRetainedItems(), 10);
+    for (int i = 1; i <= 10; i++) {
+      assertEquals(sketch.getRank(i), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, true), i / 10.0);
+    }
+    // inclusive = false (default)
+    assertEquals(sketch.getQuantile(0), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1), 2);
+    assertEquals(sketch.getQuantile(0.2), 3);
+    assertEquals(sketch.getQuantile(0.3), 4);
+    assertEquals(sketch.getQuantile(0.4), 5);
+    assertEquals(sketch.getQuantile(0.5), 6);
+    assertEquals(sketch.getQuantile(0.6), 7);
+    assertEquals(sketch.getQuantile(0.7), 8);
+    assertEquals(sketch.getQuantile(0.8), 9);
+    assertEquals(sketch.getQuantile(0.9), 10);
+    assertEquals(sketch.getQuantile(1), 10); // always max value
+    // inclusive = true
+    assertEquals(sketch.getQuantile(0, true), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, true), 1);
+    assertEquals(sketch.getQuantile(0.2, true), 2);
+    assertEquals(sketch.getQuantile(0.3, true), 3);
+    assertEquals(sketch.getQuantile(0.4, true), 4);
+    assertEquals(sketch.getQuantile(0.5, true), 5);
+    assertEquals(sketch.getQuantile(0.6, true), 6);
+    assertEquals(sketch.getQuantile(0.7, true), 7);
+    assertEquals(sketch.getQuantile(0.8, true), 8);
+    assertEquals(sketch.getQuantile(0.9, true), 9);
+    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+
+    // getQuantile() and getQuantiles() equivalence
+    {
+      // inclusive = false (default)
+      final Integer[] quantiles =
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0), quantiles[i]);
+      }
+    }
+    {
+      // inclusive = true
+      final Integer[] quantiles =
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+      }
+    }
   }
 
   @Test
@@ -432,9 +489,17 @@ public class ItemsSketchTest {
       sketch.update(i);
       values[i] = i;
     }
-    final double[] ranks = sketch.getCDF(values);
-    for (int i = 0; i < n; i++) {
-      Assert.assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+    { // inclusive = false (default)
+      final double[] ranks = sketch.getCDF(values);
+      for (int i = 0; i < n; i++) {
+        Assert.assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+      }
+    }
+    { // inclusive = true
+      final double[] ranks = sketch.getCDF(values, true);
+      for (int i = 0; i < n; i++) {
+        Assert.assertEquals(ranks[i], sketch.getRank(values[i], true), 0.00001, "CDF vs rank for value " + i);
+      }
     }
   }
 
