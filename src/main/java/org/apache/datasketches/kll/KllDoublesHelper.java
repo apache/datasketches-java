@@ -36,7 +36,7 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 final class KllDoublesHelper {
 
-  static double getDoubleRank(final KllSketch mine, final double value) {
+  static double getDoubleRank(final KllSketch mine, final double value, final boolean inclusive) {
     if (mine.isEmpty()) { return Double.NaN; }
     int level = 0;
     int weight = 1;
@@ -47,7 +47,7 @@ final class KllDoublesHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       for (int i = fromIndex; i < toIndex; i++) {
-        if (myDoubleItemsArr[i] < value) {
+        if (inclusive ? myDoubleItemsArr[i] <= value : myDoubleItemsArr[i] < value) {
           total += weight;
         } else if (level > 0 || mine.isLevelZeroSorted()) {
           break; // levels above 0 are sorted, no point comparing further
@@ -59,7 +59,8 @@ final class KllDoublesHelper {
     return (double) total / mine.getN();
   }
 
-  static double[] getDoublesPmfOrCdf(final KllSketch mine, final double[] splitPoints, final boolean isCdf) {
+  static double[] getDoublesPmfOrCdf(final KllSketch mine, final double[] splitPoints,
+      final boolean isCdf, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
     validateDoubleValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
@@ -71,9 +72,11 @@ final class KllDoublesHelper {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       if (level == 0 && !mine.isLevelZeroSorted()) {
-        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+            buckets, inclusive);
       } else {
-        KllDoublesHelper.incrementDoublesBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints, buckets);
+        KllDoublesHelper.incrementDoublesBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+            buckets, inclusive);
       }
       level++;
       weight *= 2;
@@ -93,7 +96,7 @@ final class KllDoublesHelper {
     return buckets;
   }
 
-  static double getDoublesQuantile(final KllSketch mine, final double fraction) {
+  static double getDoublesQuantile(final KllSketch mine, final double fraction, final boolean inclusive) {
     if (mine.isEmpty()) { return Double.NaN; }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
@@ -101,11 +104,11 @@ final class KllDoublesHelper {
     //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
     if (fraction == 0.0) { return mine.getMinDoubleValue(); }
     if (fraction == 1.0) { return mine.getMaxDoubleValue(); }
-    final KllDoublesQuantileCalculator quant = KllDoublesHelper.getDoublesQuantileCalculator(mine);
+    final KllDoublesQuantileCalculator quant = KllDoublesHelper.getDoublesQuantileCalculator(mine, inclusive);
     return quant.getQuantile(fraction);
   }
 
-  static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions) {
+  static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
     KllDoublesQuantileCalculator quant = null;
     final double[] quantiles = new double[fractions.length];
@@ -118,7 +121,7 @@ final class KllDoublesHelper {
       else if (fraction == 1.0) { quantiles[i] = mine.getMaxDoubleValue(); }
       else {
         if (quant == null) {
-          quant = KllDoublesHelper.getDoublesQuantileCalculator(mine);
+          quant = KllDoublesHelper.getDoublesQuantileCalculator(mine, inclusive);
         }
         quantiles[i] = quant.getQuantile(fraction);
       }
@@ -433,24 +436,26 @@ final class KllDoublesHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static KllDoublesQuantileCalculator getDoublesQuantileCalculator(final KllSketch mine) {
+  private static KllDoublesQuantileCalculator getDoublesQuantileCalculator(final KllSketch mine,
+      final boolean inclusive) {
     final int[] myLevelsArr = mine.getLevelsArray();
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
       if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
     }
-    return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN());
+    return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(),
+        inclusive);
   }
 
   private static void incrementDoublesBucketsSortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex,
-      final int weight, final double[] splitPoints, final double[] buckets) {
+      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final double[] splitPoints, final double[] buckets, final boolean inclusive) {
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
-      if (myDoubleItemsArr[i] < splitPoints[j]) {
+      if (inclusive ? myDoubleItemsArr[i] <= splitPoints[j] : myDoubleItemsArr[i] < splitPoints[j]) {
         buckets[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -466,13 +471,13 @@ final class KllDoublesHelper {
   }
 
   private static void incrementDoublesBucketsUnsortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex,
-      final int weight, final double[] splitPoints, final double[] buckets) {
+      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final double[] splitPoints, final double[] buckets, final boolean inclusive) {
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {
-        if (myDoubleItemsArr[i] < splitPoints[j]) {
+        if (inclusive ? myDoubleItemsArr[i] <= splitPoints[j] : myDoubleItemsArr[i] < splitPoints[j]) {
           break;
         }
       }

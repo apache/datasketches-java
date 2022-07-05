@@ -79,9 +79,69 @@ public class KllDoublesSketchTest {
     assertEquals(sketch.getNumRetained(), 1);
     assertEquals(sketch.getRank(1), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
+    assertEquals(sketch.getRank(1, false), 0.0);
+    assertEquals(sketch.getRank(2, false), 1.0);
+    assertEquals(sketch.getRank(0, true), 0.0);
+    assertEquals(sketch.getRank(1, true), 1.0);
     assertEquals(sketch.getMinValue(), 1.0);
     assertEquals(sketch.getMaxValue(), 1.0);
     assertEquals(sketch.getQuantile(0.5), 1.0);
+  }
+
+  @Test
+  public void tenItems() {
+    final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+    for (int i = 1; i <= 10; i++) { sketch.update(i); }
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getN(), 10);
+    assertEquals(sketch.getNumRetained(), 10);
+    for (int i = 1; i <= 10; i++) {
+      assertEquals(sketch.getRank(i), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, true), i / 10.0);
+    }
+    // inclusive = false (default)
+    assertEquals(sketch.getQuantile(0), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1), 2);
+    assertEquals(sketch.getQuantile(0.2), 3);
+    assertEquals(sketch.getQuantile(0.3), 4);
+    assertEquals(sketch.getQuantile(0.4), 5);
+    assertEquals(sketch.getQuantile(0.5), 6);
+    assertEquals(sketch.getQuantile(0.6), 7);
+    assertEquals(sketch.getQuantile(0.7), 8);
+    assertEquals(sketch.getQuantile(0.8), 9);
+    assertEquals(sketch.getQuantile(0.9), 10);
+    assertEquals(sketch.getQuantile(1), 10); // always max value
+    // inclusive = true
+    assertEquals(sketch.getQuantile(0, true), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, true), 1);
+    assertEquals(sketch.getQuantile(0.2, true), 2);
+    assertEquals(sketch.getQuantile(0.3, true), 3);
+    assertEquals(sketch.getQuantile(0.4, true), 4);
+    assertEquals(sketch.getQuantile(0.5, true), 5);
+    assertEquals(sketch.getQuantile(0.6, true), 6);
+    assertEquals(sketch.getQuantile(0.7, true), 7);
+    assertEquals(sketch.getQuantile(0.8, true), 8);
+    assertEquals(sketch.getQuantile(0.9, true), 9);
+    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+
+    // getQuantile() and getQuantiles() equivalence
+    {
+      // inclusive = false (default)
+      final double[] quantiles =
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0), quantiles[i]);
+      }
+    }
+    {
+      // inclusive = true
+      final double[] quantiles =
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+      }
+    }
   }
 
   @Test
@@ -139,18 +199,35 @@ public class KllDoublesSketchTest {
       sketch.update(i);
       values[i] = i;
     }
-    final double[] ranks = sketch.getCDF(values);
-    final double[] pmf = sketch.getPMF(values);
-    double sumPmf = 0;
-    for (int i = 0; i < n; i++) {
-      assertEquals(ranks[i], sketch.getRank(values[i]), NUMERIC_NOISE_TOLERANCE,
-          "rank vs CDF for value " + i);
-      sumPmf += pmf[i];
-      assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
+
+    { // inclusive = false (default)
+      final double[] ranks = sketch.getCDF(values);
+      final double[] pmf = sketch.getPMF(values);
+      double sumPmf = 0;
+      for (int i = 0; i < n; i++) {
+        assertEquals(ranks[i], sketch.getRank(values[i]), NUMERIC_NOISE_TOLERANCE,
+            "rank vs CDF for value " + i);
+        sumPmf += pmf[i];
+        assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
+      }
+      sumPmf += pmf[n];
+      assertEquals(sumPmf, 1.0, NUMERIC_NOISE_TOLERANCE);
+      assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
     }
-    sumPmf += pmf[n];
-    assertEquals(sumPmf, 1.0, NUMERIC_NOISE_TOLERANCE);
-    assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
+    { // inclusive = true
+      final double[] ranks = sketch.getCDF(values, true);
+      final double[] pmf = sketch.getPMF(values, true);
+      double sumPmf = 0;
+      for (int i = 0; i < n; i++) {
+        assertEquals(ranks[i], sketch.getRank(values[i], true), NUMERIC_NOISE_TOLERANCE,
+            "rank vs CDF for value " + i);
+        sumPmf += pmf[i];
+        assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
+      }
+      sumPmf += pmf[n];
+      assertEquals(sumPmf, 1.0, NUMERIC_NOISE_TOLERANCE);
+      assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
+    }
   }
 
   @Test
