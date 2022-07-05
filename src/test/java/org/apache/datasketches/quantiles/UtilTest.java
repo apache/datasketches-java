@@ -90,7 +90,7 @@ public class UtilTest {
       final double[] splitPoints = {0.25, 0.4};
       final double[] counters = {0, 0, 0};
       final long[] answers = {200, 100, 200};
-      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters, false);
       for (int j = 0; j < counters.length; j++) {
         assertEquals(counters[j], answers[j], 0.00001);
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -102,7 +102,7 @@ public class UtilTest {
       final double[] splitPoints = {0.01, 0.02};
       final double[] counters = {0, 0, 0};
       final long[] answers = {0, 0, 500};
-      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters, false);
       for (int j = 0; j < counters.length; j++) {
         assertEquals(counters[j], answers[j], 0.00001);
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -114,7 +114,7 @@ public class UtilTest {
       final double[] splitPoints = {0.8, 0.9};
       final double[] counters = {0, 0, 0};
       final long[] answers = {500, 0, 0};
-      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters, false);
       for (int j = 0; j < counters.length; j++) {
         assertEquals(counters[j], answers[j], 0.00001);
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -136,7 +136,7 @@ public class UtilTest {
       final double[] splitPoints = {0.25, 0.4};
       final double[] counters = {0, 0, 0};
       final long[] answers = {200, 100, 200};
-      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters, false);
       for (int j = 0; j < counters.length; j++) {
         assertEquals(counters[j], answers[j], 0.00001);
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -148,7 +148,7 @@ public class UtilTest {
       final double[] splitPoints = {0.01, 0.02};
       final double[] counters = {0, 0, 0};
       final long[] answers = {0, 0, 500};
-      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters, false);
       for (int j = 0; j < counters.length; j++) {
         assertEquals(counters[j], answers[j], 0.00001);
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);
@@ -160,7 +160,7 @@ public class UtilTest {
       final double[] splitPoints = {0.8, 0.9};
       final double[] counters = {0, 0, 0};
       final long[] answers = {500, 0, 0};
-      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters);
+      DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(accessor, 100, splitPoints, counters, false);
       for (int j = 0; j < counters.length; j++) {
         assertEquals(counters[j], answers[j], 0.00001);
         // System.out.printf ("counter[%d] = %d%n", j, counters[j]);

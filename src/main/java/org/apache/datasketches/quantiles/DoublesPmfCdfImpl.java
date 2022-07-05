@@ -27,8 +27,9 @@ package org.apache.datasketches.quantiles;
  */
 class DoublesPmfCdfImpl {
 
-  static double[] getPMFOrCDF(final DoublesSketch sketch, final double[] splitPoints, final boolean isCDF) {
-    final double[] buckets = internalBuildHistogram(sketch, splitPoints);
+  static double[] getPMFOrCDF(final DoublesSketch sketch, final double[] splitPoints,
+      final boolean isCDF, final boolean inclusive) {
+    final double[] buckets = internalBuildHistogram(sketch, splitPoints, inclusive);
     final long n = sketch.getN();
     if (isCDF) {
       double subtotal = 0;
@@ -52,7 +53,8 @@ class DoublesPmfCdfImpl {
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * @return the unnormalized, accumulated counts of <i>m + 1</i> intervals.
    */
-  private static double[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints) {
+  private static double[] internalBuildHistogram(final DoublesSketch sketch, final double[] splitPoints,
+      final boolean inclusive) {
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
     Util.checkSplitPointsOrder(splitPoints);
 
@@ -65,12 +67,12 @@ class DoublesPmfCdfImpl {
     if (numSplitPoints < 50) { // empirically determined crossover
       // sort not worth it when few split points
       DoublesPmfCdfImpl.bilinearTimeIncrementHistogramCounters(
-              sketchAccessor, weight, splitPoints, counters);
+              sketchAccessor, weight, splitPoints, counters, inclusive);
     } else {
       sketchAccessor.sort();
       // sort is worth it when many split points
       DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(
-              sketchAccessor, weight, splitPoints, counters);
+              sketchAccessor, weight, splitPoints, counters, inclusive);
     }
 
     long myBitPattern = sketch.getBitPattern();
@@ -82,7 +84,7 @@ class DoublesPmfCdfImpl {
         // the levels are already sorted so we can use the fast version
         sketchAccessor.setLevel(lvl);
         DoublesPmfCdfImpl.linearTimeIncrementHistogramCounters(
-                sketchAccessor, weight, splitPoints, counters);
+                sketchAccessor, weight, splitPoints, counters, inclusive);
       }
     }
     return counters;
@@ -96,16 +98,17 @@ class DoublesPmfCdfImpl {
    * @param weight of the samples
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 == counters.length.
    * @param counters array of counters
+   * @param inclusive if true the weight of a value is included into its rank.
    */
   static void bilinearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples, final long weight,
-      final double[] splitPoints, final double[] counters) {
+      final double[] splitPoints, final double[] counters, final boolean inclusive) {
     assert ((splitPoints.length + 1) == counters.length);
     for (int i = 0; i < samples.numItems(); i++) {
       final double sample = samples.get(i);
       int j;
       for (j = 0; j < splitPoints.length; j++) {
         final double splitpoint = splitPoints[j];
-        if (sample < splitpoint) {
+        if (inclusive ? sample <= splitpoint : sample < splitpoint) {
           break;
         }
       }
@@ -126,13 +129,14 @@ class DoublesPmfCdfImpl {
    * @param weight of the samples
    * @param splitPoints must be unique and sorted. Number of splitPoints + 1 = counters.length.
    * @param counters array of counters
+   * @param inclusive if true the weight of a value is included into its rank.
    */
   static void linearTimeIncrementHistogramCounters(final DoublesBufferAccessor samples, final long weight,
-      final double[] splitPoints, final double[] counters) {
+      final double[] splitPoints, final double[] counters, final boolean inclusive) {
     int i = 0;
     int j = 0;
     while ((i < samples.numItems()) && (j < splitPoints.length)) {
-      if (samples.get(i) < splitPoints[j]) {
+      if (inclusive ? samples.get(i) <= splitPoints[j] : samples.get(i) < splitPoints[j]) {
         counters[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {

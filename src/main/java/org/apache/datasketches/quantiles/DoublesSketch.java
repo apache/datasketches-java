@@ -211,17 +211,28 @@ public abstract class DoublesSketch {
    * If fraction = 0.0, the true minimum value of the stream is returned.
    * If fraction = 1.0, the true maximum value of the stream is returned.
    *
+   * @param inclusive if true, the given fraction (rank) is considered inclusive
+   * 
    * @return the approximation to the value at the above fraction
    */
-  public double getQuantile(final double fraction) {
+  public double getQuantile(final double fraction, final boolean inclusive) {
     if (isEmpty()) { return Double.NaN; }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
     }
     if      (fraction == 0.0) { return getMinValue(); }
     if (fraction == 1.0) { return getMaxValue(); }
-    final DoublesAuxiliary aux = new DoublesAuxiliary(this);
+    final DoublesAuxiliary aux = new DoublesAuxiliary(this, inclusive);
     return aux.getQuantile(fraction);
+  }
+
+  /**
+   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
+   * @param fraction fractional rank
+   * @return quantile
+   */
+  public double getQuantile(final double fraction) {
+    return getQuantile(fraction, false);
   }
 
   /**
@@ -261,10 +272,12 @@ public abstract class DoublesSketch {
    * sorted stream of all the input values seen so far.
    * These fRanks must all be in the interval [0.0, 1.0] inclusively.
    *
+   * @param inclusive if true, the given fractional ranks are considered inclusive
+   * 
    * @return array of approximate quantiles of the given fRanks in the same order as in the given
    * fRanks array.
    */
-  public double[] getQuantiles(final double[] fRanks) {
+  public double[] getQuantiles(final double[] fRanks, final boolean inclusive) {
     if (isEmpty()) { return null; }
     DoublesAuxiliary aux = null;
     final double[] quantiles = new double[fRanks.length];
@@ -274,7 +287,7 @@ public abstract class DoublesSketch {
       else if (fRank == 1.0) { quantiles[i] = getMaxValue(); }
       else {
         if (aux == null) {
-          aux = new DoublesAuxiliary(this);
+          aux = new DoublesAuxiliary(this, inclusive);
         }
         quantiles[i] = aux.getQuantile(fRank);
       }
@@ -283,22 +296,42 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fRanks, false)}
+   * @param fRanks fractional ranks
+   * @return quantiles
+   */
+  public double[] getQuantiles(final double[] fRanks) {
+    return getQuantiles(fRanks, false);
+  }
+
+  /**
    * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced fractional ranks.
    *
    * <p>If the sketch is empty this returns null.
    *
-   * @param evenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
+   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
    * This must be a positive integer greater than 1.
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
    *
+   * @param inclusive if true, fractional ranks are considered inclusive
+   * 
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
-  public double[] getQuantiles(final int evenlySpaced) {
+  public double[] getQuantiles(final int numEvenlySpaced, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, evenlySpaced));
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
+  }
+
+  /**
+   * Same as {@link #getQuantiles(int, boolean) getQuantiles(int numEvenlySpaced, false)}
+   * @param numEvenlySpaced number of evenly spaced fractional ranks
+   * @return quantiles
+   */
+  public double[] getQuantiles(final int numEvenlySpaced) {
+    return getQuantiles(numEvenlySpaced, false);
   }
 
   /**
@@ -311,16 +344,17 @@ public abstract class DoublesSketch {
    * <p>If the sketch is empty this returns NaN.</p>
    *
    * @param value to be ranked
+   * @param inclusive if true the weight of the given value is included into the rank.
    * @return an approximate rank of the given value
    */
-  public double getRank(final double value) {
+  public double getRank(final double value, final boolean inclusive) {
     if (isEmpty()) { return Double.NaN; }
     final DoublesSketchAccessor samples = DoublesSketchAccessor.wrap(this);
     long total = 0;
     int weight = 1;
     samples.setLevel(DoublesSketchAccessor.BB_LVL_IDX);
     for (int i = 0; i < samples.numItems(); i++) {
-      if (samples.get(i) < value) {
+      if (inclusive ? samples.get(i) <= value : samples.get(i) < value) {
         total += weight;
       }
     }
@@ -330,7 +364,7 @@ public abstract class DoublesSketch {
       if ((bitPattern & 1L) > 0) { // level is not empty
         samples.setLevel(lvl);
         for (int i = 0; i < samples.numItems(); i++) {
-          if (samples.get(i) < value) {
+          if (inclusive ? samples.get(i) <= value : samples.get(i) < value) {
             total += weight;
           } else {
             break; // levels are sorted, no point comparing further
@@ -339,6 +373,15 @@ public abstract class DoublesSketch {
       }
     }
     return (double) total / getN();
+  }
+
+  /**
+   * Same as {@link #getRank(double, boolean) getRank(double value, false)}
+   * @param value value to be ranked
+   * @return fractional rank
+   */
+  public double getRank(final double value) {
+    return getRank(value, false);
   }
 
   /**
@@ -357,14 +400,25 @@ public abstract class DoublesSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these splitpoints.
    *
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * 
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
-  public double[] getPMF(final double[] splitPoints) {
+  public double[] getPMF(final double[] splitPoints, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false);
+    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false, inclusive);
+  }
+
+  /**
+   * Same as {@link #getPMF(double[], boolean) getPMF(double[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return PMF
+   */
+  public double[] getPMF(final double[] splitPoints) {
+    return getPMF(splitPoints, false);
   }
 
   /**
@@ -383,14 +437,25 @@ public abstract class DoublesSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these splitpoints.
    *
+   * @param inclusive if true the weight of the given value is included into the rank.
+   * 
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public double[] getCDF(final double[] splitPoints) {
+  public double[] getCDF(final double[] splitPoints, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true);
+    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true, inclusive);
+  }
+
+  /**
+   * Same as {@link #getCDF(double[], boolean) getCDF(double[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public double[] getCDF(final double[] splitPoints) {
+    return getCDF(splitPoints, false);
   }
 
   /**

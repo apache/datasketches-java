@@ -41,8 +41,9 @@ final class DoublesAuxiliary {
   /**
    * Constructs the Auxiliary structure from the DoublesSketch
    * @param qs a DoublesSketch
+   * @param inclusive if true, fractional ranks are considered inclusive
    */
-  DoublesAuxiliary(final DoublesSketch qs ) {
+  DoublesAuxiliary(final DoublesSketch qs, final boolean inclusive) {
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();
@@ -60,7 +61,7 @@ final class DoublesAuxiliary {
     //  taking advantage of the already sorted blocks of length k
     blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
-    final long total = QuantilesHelper.convertToPrecedingCummulative(cumWtsArr, false);
+    final long total = QuantilesHelper.convertToPrecedingCummulative(cumWtsArr, inclusive);
     assert total == n;
 
     auxN_ = n;
