@@ -43,12 +43,21 @@ abstract class BaseReqSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
+   * @param inclusive if true the weight of a given value is included into its rank.
+   *
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public abstract double[] getCDF(final float[] splitPoints);
+  public abstract double[] getCDF(float[] splitPoints, boolean inclusive);
+
+  /**
+   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, isLessThanOrEqual())}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public abstract double[] getCDF(float[] splitPoints);
 
   /**
    * If true, the high ranks are prioritized for better accuracy. Otherwise
@@ -105,40 +114,73 @@ abstract class BaseReqSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these splitpoints.
    *
+   * @param inclusive if true the weight of a given value is included into its rank.
+   *
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
-  public abstract double[] getPMF(final float[] splitPoints);
+  public abstract double[] getPMF(float[] splitPoints, boolean inclusive);
+
+  /**
+   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, isLessThanOrEqual())}
+   * @param splitPoints splitPoints
+   * @return PMF
+   */
+  public abstract double[] getPMF(float[] splitPoints);
 
   /**
    * Gets the approximate quantile of the given normalized rank based on the lteq criterion.
    * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
-   * @param normRank the given normalized rank
+   * @param normRank the given normalized rank.
+   * @param inclusive if true, the given rank is considered inclusive.
    * @return the approximate quantile given the normalized rank.
    */
-  public abstract float getQuantile(final double normRank);
+  public abstract float getQuantile(double normRank, boolean inclusive);
+
+  /**
+   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, isLessThanOrEqual())}
+   * @param fraction fractional rank
+   * @return quantile
+   */
+  public abstract float getQuantile(double normRank);
 
   /**
    * Gets an array of quantiles that correspond to the given array of normalized ranks.
    * @param normRanks the given array of normalized ranks.
+   * @param inclusive if true, the given ranks are considered inclusive.
    * @return the array of quantiles that correspond to the given array of normalized ranks.
    * See <i>getQuantile(double)</i>
    */
-  public abstract float[] getQuantiles(final double[] normRanks);
+  public abstract float[] getQuantiles(double[] normRanks, boolean inclusive);
+
+  /**
+   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, isLessThanOrEqual())}
+   * @param fractions normalized ranks
+   * @return quantiles
+   */
+  public abstract float[] getQuantiles(double[] normRanks);
 
   /**
    * Computes the normalized rank of the given value in the stream.
    * The normalized rank is the fraction of values less than the given value;
    * or if lteq is true, the fraction of values less than or equal to the given value.
-   * @param value the given value
+   * @param value the given value.
+   * @param inclusive if true the weight of the given value is included into its rank.
    * @return the normalized rank of the given value in the stream.
    */
-  public abstract double getRank(final float value);
+  public abstract double getRank(float value, boolean inclusive);
 
   /**
-   * returns an approximate lower bound rank of the given noramalized rank.
+   * Same as {@link #getRank(float, boolean) getRank(float value, isLessThanOrEqual())}
+   * @param value value to be ranked
+   * @return normalized rank
+   */
+  public abstract double getRank(float value);
+
+  /**
+   * returns an approximate lower bound rank of the given normalized rank.
    * @param rank the given rank, a value between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate lower bound rank.
@@ -148,10 +190,18 @@ abstract class BaseReqSketch {
   /**
    * Gets an array of normalized ranks that correspond to the given array of values.
    * @param values the given array of values.
-   * @return the  array of normalized ranks that correspond to the given array of values.
+   * @param inclusive if true the weight of the given value is included into its rank.
+   * @return the array of normalized ranks that correspond to the given array of values.
    * See <i>getRank(float)</i>
    */
-  public abstract double[] getRanks(final float[] values);
+  public abstract double[] getRanks(float[] values, boolean inclusive);
+
+  /**
+   * Same as {@link #getRanks(float[], boolean) getRanks(float[] values, isLessThanOrEqual())}
+   * @param values the given array of values to be ranked
+   * @return array of normalized ranks
+   */
+  public abstract double[] getRanks(float[] values);
 
   /**
    * Returns an approximate upper bound rank of the given rank.
