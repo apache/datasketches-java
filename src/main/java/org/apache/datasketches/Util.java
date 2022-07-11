@@ -544,12 +544,12 @@ public final class Util {
    * @param curPoint the current point of the series. Must be &ge; 1.
    * @return the next point in the power series.
    */
-  public static int pwr2SeriesNext(final int ppo, final int curPoint) {
-    final int cur = curPoint < 1 ? 1 : curPoint;
+  public static long pwr2SeriesNext(final int ppo, final long curPoint) {
+    final long cur = curPoint < 1L ? 1L : curPoint;
     int gi = (int)round(log2(cur) * ppo); //current generating index
-    int next;
+    long next;
     do {
-      next = (int)round(pow(2.0, (double) ++gi / ppo));
+      next = round(pow(2.0, (double) ++gi / ppo));
     } while ( next <= curPoint);
     return next;
   }
@@ -606,18 +606,18 @@ public final class Util {
    *
    * @param ppb Points-Per-Base, or the number of points per integer powers of base in the series.
    * @param curPoint the current point of the series. Must be &ge; 1.0.
-   * @param roundToInt if true the output will be rounded to the nearest integer.
+   * @param roundToLong if true the output will be rounded to the nearest long.
    * @param logBase the desired base of the logarithms
    * @return the next point in the power series.
    */
   public static double powerSeriesNextDouble(final int ppb, final double curPoint,
-      final boolean roundToInt, final double logBase) {
+      final boolean roundToLong, final double logBase) {
     final double cur = curPoint < 1.0 ? 1.0 : curPoint;
     double gi = round(logBaseOfX(logBase, cur) * ppb ); //current generating index
     double next;
     do {
       final double n = pow(logBase, ++gi / ppb);
-      next = roundToInt ? round(n) : n;
+      next = roundToLong ? round(n) : n;
     } while (next <= cur);
     return next;
   }
