@@ -141,7 +141,7 @@ abstract class BaseReqSketch {
 
   /**
    * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, isLessThanOrEqual())}
-   * @param fraction fractional rank
+   * @param normRank fractional rank
    * @return quantile
    */
   public abstract float getQuantile(double normRank);
@@ -157,7 +157,7 @@ abstract class BaseReqSketch {
 
   /**
    * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, isLessThanOrEqual())}
-   * @param fractions normalized ranks
+   * @param normRanks normalized ranks
    * @return quantiles
    */
   public abstract float[] getQuantiles(double[] normRanks);
