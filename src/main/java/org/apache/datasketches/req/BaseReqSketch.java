@@ -131,7 +131,7 @@ abstract class BaseReqSketch {
   public abstract double[] getPMF(float[] splitPoints);
 
   /**
-   * Gets the approximate quantile of the given normalized rank based on the lteq criterion.
+   * Gets the approximate quantile of the given normalized rank based on the given criterion.
    * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
    * @param normRank the given normalized rank.
    * @param inclusive if true, the given rank is considered inclusive.
@@ -165,7 +165,7 @@ abstract class BaseReqSketch {
   /**
    * Computes the normalized rank of the given value in the stream.
    * The normalized rank is the fraction of values less than the given value;
-   * or if lteq is true, the fraction of values less than or equal to the given value.
+   * or if inclusive is true, the fraction of values less than or equal to the given value.
    * @param value the given value.
    * @param inclusive if true the weight of the given value is included into its rank.
    * @return the normalized rank of the given value in the stream.
@@ -239,6 +239,7 @@ abstract class BaseReqSketch {
    * Returns the current comparison criterion. If true the value comparison criterion is
    * &le;, otherwise it will be the default, which is &lt;.
    * @return the current comparison criterion
+   * @deprecated
    */
   public abstract boolean isLessThanOrEqual();
 
@@ -265,6 +266,7 @@ abstract class BaseReqSketch {
 
   /**
    * Sets the chosen criterion for value comparison
+   * @deprecated
    *
    * @param ltEq (Less-than-or Equals) If true, the sketch will use the &le; criterion for comparing
    * values.  Otherwise, the criterion is strictly &lt;, the default.

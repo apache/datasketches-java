@@ -246,6 +246,10 @@ public class ReqSketch extends BaseReqSketch {
     return cumNnrArr;
   }
 
+  /**
+   * @deprecated
+   * @return ltEq flag
+   */
   boolean getLtEq() {
     return ltEq;
   }
