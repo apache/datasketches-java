@@ -197,22 +197,27 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getCDF(final float[] splitPoints) {
+  public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
     if (isEmpty()) { return null; }
     final int numBkts = splitPoints.length + 1;
     final double[] outArr = new double[numBkts];
-    final long[] buckets = getPMForCDF(splitPoints);
+    final long[] buckets = getPMForCDF(splitPoints, inclusive);
     for (int j = 0; j < numBkts; j++) {
       outArr[j] = (double)buckets[j] / getN();
     }
     return outArr;
   }
 
+  @Override
+  public double[] getCDF(final float[] splitPoints) {
+    return getCDF(splitPoints, ltEq);
+  }
+
   List<ReqCompactor> getCompactors() {
     return compactors;
   }
 
-  private long getCount(final float value) {
+  private long getCount(final float value, final boolean inclusive) {
     if (isEmpty()) { return 0; }
     final int numComp = compactors.size();
     long cumNnr = 0;
@@ -220,12 +225,12 @@ public class ReqSketch extends BaseReqSketch {
       final ReqCompactor c = compactors.get(i);
       final long wt = 1L << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
-      cumNnr += buf.getCountWithCriterion(value, ltEq) * wt;
+      cumNnr += buf.getCountWithCriterion(value, inclusive) * wt;
     }
     return cumNnr;
   }
 
-  private long[] getCounts(final float[] values) {
+  private long[] getCounts(final float[] values, final boolean inclusive) {
     final int numValues = values.length;
     final int numComp = compactors.size();
     final long[] cumNnrArr = new long[numValues];
@@ -235,12 +240,16 @@ public class ReqSketch extends BaseReqSketch {
       final long wt = 1L << c.getLgWeight();
       final FloatBuffer buf = c.getBuffer();
       for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] += buf.getCountWithCriterion(values[j], ltEq) * wt;
+        cumNnrArr[j] += buf.getCountWithCriterion(values[j], inclusive) * wt;
       }
     }
     return cumNnrArr;
   }
 
+  /**
+   * @deprecated
+   * @return ltEq flag
+   */
   boolean getLtEq() {
     return ltEq;
   }
@@ -282,11 +291,11 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getPMF(final float[] splitPoints) {
+  public double[] getPMF(final float[] splitPoints, final boolean inclusive) {
     if (isEmpty()) { return null; }
     final int numBkts = splitPoints.length + 1;
     final double[] outArr = new double[numBkts];
-    final long[] buckets = getPMForCDF(splitPoints);
+    final long[] buckets = getPMForCDF(splitPoints, inclusive);
     outArr[0] = (double)buckets[0] / getN();
     for (int j = 1; j < numBkts; j++) {
       outArr[j] = (double)(buckets[j] - buckets[j - 1]) / getN();
@@ -294,15 +303,21 @@ public class ReqSketch extends BaseReqSketch {
     return outArr;
   }
 
+  @Override
+  public double[] getPMF(final float[] splitPoints) {
+    return getPMF(splitPoints, ltEq);
+  }
+
   /**
    * Gets a CDF in raw counts, which can be easily converted into a CDF or PMF.
    * @param splits the splitPoints array
+   * @param inclusive if true the weight of a given value is included into its rank
    * @return a CDF in raw counts
    */
-  private long[] getPMForCDF(final float[] splits) {
+  private long[] getPMForCDF(final float[] splits, final boolean inclusive) {
     validateSplits(splits);
     final int numSplits = splits.length;
-    final long[] splitCounts = getCounts(splits);
+    final long[] splitCounts = getCounts(splits, inclusive);
     final int numBkts = numSplits + 1;
     final long[] bkts = Arrays.copyOf(splitCounts, numBkts);
     bkts[numBkts - 1] = getN();
@@ -310,7 +325,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public float getQuantile(final double normRank) {
+  public float getQuantile(final double normRank, final boolean inclusive) {
     if (isEmpty()) { return Float.NaN; }
     if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
@@ -319,37 +334,57 @@ public class ReqSketch extends BaseReqSketch {
     if (aux == null) {
       aux = new ReqAuxiliary(this);
     }
-    return aux.getQuantile(normRank, ltEq);
+    return aux.getQuantile(normRank, inclusive);
   }
 
   @Override
-  public float[] getQuantiles(final double[] normRanks) {
+  public float getQuantile(final double normRank) {
+    return getQuantile(normRank, ltEq);
+  }
+
+  @Override
+  public float[] getQuantiles(final double[] normRanks, final boolean inclusive) {
     if (isEmpty()) { return null; }
     final int len = normRanks.length;
     final float[] qArr = new float[len];
     for (int i = 0; i < len; i++) {
-      qArr[i] = getQuantile(normRanks[i]);
+      qArr[i] = getQuantile(normRanks[i], inclusive);
     }
     return qArr;
   }
 
   @Override
-  public double getRank(final float value) {
+  public float[] getQuantiles(final double[] normRanks) {
+    return getQuantiles(normRanks, ltEq);
+  }
+
+  @Override
+  public double getRank(final float value, final boolean inclusive) {
     if (isEmpty()) { return Double.NaN; }
-    final long nnCount = getCount(value);
+    final long nnCount = getCount(value, inclusive);
     return (double)nnCount / totalN;
   }
 
   @Override
-  public double[] getRanks(final float[] values) {
+  public double getRank(final float value) {
+    return getRank(value, ltEq);
+  }
+
+  @Override
+  public double[] getRanks(final float[] values, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    final long[] cumNnrArr = getCounts(values);
+    final long[] cumNnrArr = getCounts(values, inclusive);
     final int numValues = values.length;
     final double[] rArr = new double[numValues];
     for (int i = 0; i < numValues; i++) {
       rArr[i] = (double)cumNnrArr[i] / totalN;
     }
     return rArr;
+  }
+
+  @Override
+  public double[] getRanks(final float[] values) {
+    return getRanks(values, ltEq);
   }
 
   private static double getRankLB(final int k, final int levels, final double rank,
