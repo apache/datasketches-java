@@ -386,14 +386,14 @@ public class UtilTest {
 
   @Test
   public void checkPwr2LawNext() {
-    int next = pwr2SeriesNext(2, 1);
+    int next = (int)pwr2SeriesNext(2, 1);
     Assert.assertEquals(next, 2);
-    next = pwr2SeriesNext(2, 2);
+    next = (int)pwr2SeriesNext(2, 2);
     Assert.assertEquals(next, 3);
-    next = pwr2SeriesNext(2, 3);
+    next = (int)pwr2SeriesNext(2, 3);
     Assert.assertEquals(next, 4);
 
-    next = pwr2SeriesNext(2, 0);
+    next = (int)pwr2SeriesNext(2, 0);
     Assert.assertEquals(next, 1);
   }
 
@@ -423,7 +423,7 @@ public class UtilTest {
     final int minP = 1;
     final int ppo = 4;
 
-    for (int p = minP; p <= maxP; p = pwr2SeriesNext(ppo, p)) {
+    for (int p = minP; p <= maxP; p = (int)pwr2SeriesNext(ppo, p)) {
       print(p + " ");
     }
     println("");
