@@ -104,13 +104,13 @@ final class KllFloatsHelper {
     //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
     if (fraction == 0.0) { return mine.getMinFloatValue(); }
     if (fraction == 1.0) { return mine.getMaxFloatValue(); }
-    final KllFloatsQuantileCalculator quant = KllFloatsHelper.getFloatsQuantileCalculator(mine, inclusive);
+    final KllFloatsSketchSortedView quant = KllFloatsHelper.getFloatsSortedView(mine, true, inclusive);
     return quant.getQuantile(fraction);
   }
 
   static float[] getFloatsQuantiles(final KllSketch mine, final double[] fractions, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
-    KllFloatsQuantileCalculator quant = null;
+    KllFloatsSketchSortedView quant = null;
     final float[] quantiles = new float[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
@@ -121,7 +121,7 @@ final class KllFloatsHelper {
       else if (fraction == 1.0) { quantiles[i] = mine.getMaxFloatValue(); }
       else {
         if (quant == null) {
-          quant = KllFloatsHelper.getFloatsQuantileCalculator(mine, inclusive);
+          quant = KllFloatsHelper.getFloatsSortedView(mine, true, inclusive);
         }
         quantiles[i] = quant.getQuantile(fraction);
       }
@@ -436,15 +436,16 @@ final class KllFloatsHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static KllFloatsQuantileCalculator getFloatsQuantileCalculator(final KllSketch mine,
-      final boolean inclusive) {
+  static KllFloatsSketchSortedView getFloatsSortedView(final KllSketch mine,
+      final boolean cumulative, final boolean inclusive) {
     final int[] myLevelsArr = mine.getLevelsArray();
     final float[] myFloatItemsArr = mine.getFloatItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myFloatItemsArr, myLevelsArr[0], myLevelsArr[1]);
       if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
     }
-    return new KllFloatsQuantileCalculator(myFloatItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(), inclusive);
+    return new KllFloatsSketchSortedView(myFloatItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(),
+        cumulative, inclusive);
   }
 
   private static void incrementFloatBucketsSortedLevel(

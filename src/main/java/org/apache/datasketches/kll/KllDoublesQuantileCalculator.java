@@ -46,7 +46,7 @@ final class KllDoublesQuantileCalculator {
     levels_ = new int[numLevels + 1];
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    QuantilesHelper.convertToPrecedingCummulative(weights_, inclusive);
+    QuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
   }
 
   //For testing only. Allows testing of getQuantile without a sketch.
