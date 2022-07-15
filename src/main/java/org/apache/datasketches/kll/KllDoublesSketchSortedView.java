@@ -22,13 +22,14 @@ package org.apache.datasketches.kll;
 import java.util.Arrays;
 
 import org.apache.datasketches.QuantilesHelper;
+import org.apache.datasketches.SketchesStateException;
 
 /**
  * Data structure for answering quantile queries based on the samples from KllSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-final class KllDoublesQuantileCalculator {
+public final class KllDoublesSketchSortedView {
 
   private final long n_;
   private final double[] items_;
@@ -37,8 +38,8 @@ final class KllDoublesQuantileCalculator {
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
-  KllDoublesQuantileCalculator(final double[] items, final int[] levels, final int numLevels,
-      final long n, final boolean inclusive) {
+  KllDoublesSketchSortedView(final double[] items, final int[] levels, final int numLevels,
+      final long n, final boolean cumulative, final boolean inclusive) {
     n_ = n;
     final int numItems = levels[numLevels] - levels[0];
     items_ = new double[numItems];
@@ -46,16 +47,30 @@ final class KllDoublesQuantileCalculator {
     levels_ = new int[numLevels + 1];
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    QuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
+    if (cumulative) {
+      QuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
+    }
   }
 
   //For testing only. Allows testing of getQuantile without a sketch.
-  KllDoublesQuantileCalculator(final double[] items, final long[] weights, final long n) {
+  KllDoublesSketchSortedView(final double[] items, final long[] weights, final long n) {
     n_ = n;
     items_ = items;
     weights_ = weights; //must be size of items + 1
     levels_ = null;  //not used by test
     numLevels_ = 0;  //not used by test
+  }
+
+  public double getQuantile(final double rank) {
+    if (weights_[items_.length] != n_) {
+      throw new SketchesStateException("getQuantile must be used with cumulative view only");
+    }
+    final long pos = QuantilesHelper.posOfRank(rank, n_);
+    return approximatelyAnswerPositonalQuery(pos);
+  }
+
+  public KllDoublesSketchSortedViewIterator iterator() {
+    return new KllDoublesSketchSortedViewIterator(items_, weights_);
   }
 
   private static void blockyTandemMergeSort(final double[] items, final long[] weights,
@@ -130,11 +145,6 @@ final class KllDoublesQuantileCalculator {
       System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
-  }
-
-  double getQuantile(final double rank) {
-    final long pos = QuantilesHelper.posOfRank(rank, n_);
-    return approximatelyAnswerPositonalQuery(pos);
   }
 
   private double approximatelyAnswerPositonalQuery(final long pos) {

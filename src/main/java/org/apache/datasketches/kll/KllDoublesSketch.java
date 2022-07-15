@@ -408,6 +408,17 @@ public abstract class KllDoublesSketch extends KllSketch {
     KllDoublesHelper.updateDouble(this, value);
   }
 
+  /**
+   * Sorted view of the sketch.
+   * Complexity: linear merge of sorted levels plus sorting of the level 0.
+   * @param cumulative if true weights are cumulative
+   * @param inclusive if true cumulative weight of an item includes its own weight
+   * @return sorted view object
+   */
+  public KllDoublesSketchSortedView getSortedView(final boolean cumulative, final boolean inclusive) {
+    return KllDoublesHelper.getDoublesSortedView(this, cumulative, inclusive);
+  }
+
   @Override //Artifact of inheritance
   float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
