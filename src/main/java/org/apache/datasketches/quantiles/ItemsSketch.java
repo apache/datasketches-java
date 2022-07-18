@@ -282,7 +282,7 @@ public final class ItemsSketch<T> {
     if      (fraction == 0.0) { return minValue_; }
     else if (fraction == 1.0) { return maxValue_; }
     else {
-      final ItemsAuxiliary<T> aux = new ItemsAuxiliary<>(this, inclusive);
+      final ItemsSketchSortedView<T> aux = new ItemsSketchSortedView<>(this, true, inclusive);
       return aux.getQuantile(fraction);
     }
   }
@@ -340,7 +340,7 @@ public final class ItemsSketch<T> {
    */
   public T[] getQuantiles(final double[] fRanks, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    ItemsAuxiliary<T> aux = null;
+    ItemsSketchSortedView<T> aux = null;
     @SuppressWarnings("unchecked")
     final T[] quantiles = (T[]) Array.newInstance(minValue_.getClass(), fRanks.length);
     for (int i = 0; i < fRanks.length; i++) {
@@ -349,7 +349,7 @@ public final class ItemsSketch<T> {
       else if (fRank == 1.0) { quantiles[i] = maxValue_; }
       else {
         if (aux == null) {
-          aux = new ItemsAuxiliary<>(this, inclusive);
+          aux = new ItemsSketchSortedView<>(this, true, inclusive);
         }
         quantiles[i] = aux.getQuantile(fRank);
       }
@@ -717,6 +717,17 @@ public final class ItemsSketch<T> {
    */
   public ItemsSketchIterator<T> iterator() {
     return new ItemsSketchIterator<>(this, bitPattern_);
+  }
+
+  /**
+   * Sorted view of the sketch.
+   * Complexity: linear merge of sorted levels plus sorting of the level 0.
+   * @param cumulative if true weights are cumulative
+   * @param inclusive if true cumulative weight of an item includes its own weight
+   * @return sorted view object
+   */
+  public ItemsSketchSortedView<T> getSortedView(final boolean cumulative, final boolean inclusive) {
+    return new ItemsSketchSortedView<>(this, cumulative, inclusive);
   }
 
   // Restricted
