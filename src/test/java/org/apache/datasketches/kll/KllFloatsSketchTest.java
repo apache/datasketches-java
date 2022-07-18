@@ -542,13 +542,13 @@ public class KllFloatsSketchTest {
 
   @Test
   public void sortedView() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(3);
     sk.update(1);
     sk.update(2);
     { // non-cumulative (inclusive does not matter in this case)
-      KllFloatsSketchSortedView view = sk.getSortedView(false, false);
-      KllFloatsSketchSortedViewIterator it = view.iterator();
+      final KllFloatsSketchSortedView view = sk.getSortedView(false, false);
+      final KllFloatsSketchSortedViewIterator it = view.iterator();
       assertEquals(it.next(), true);
       assertEquals(it.getValue(), 1);
       assertEquals(it.getWeight(), 1);
@@ -565,8 +565,8 @@ public class KllFloatsSketchTest {
       } catch(SketchesStateException e) {}
     }
     { // cumulative, non-inclusive
-      KllFloatsSketchSortedView view = sk.getSortedView(true, false);
-      KllFloatsSketchSortedViewIterator it = view.iterator();
+      final KllFloatsSketchSortedView view = sk.getSortedView(true, false);
+      final KllFloatsSketchSortedViewIterator it = view.iterator();
       assertEquals(it.next(), true);
       assertEquals(it.getValue(), 1);
       assertEquals(it.getWeight(), 0);
@@ -579,8 +579,8 @@ public class KllFloatsSketchTest {
       assertEquals(it.next(), false);
     }
     { // cumulative, inclusive
-      KllFloatsSketchSortedView view = sk.getSortedView(true, true);
-      KllFloatsSketchSortedViewIterator it = view.iterator();
+      final KllFloatsSketchSortedView view = sk.getSortedView(true, true);
+      final KllFloatsSketchSortedViewIterator it = view.iterator();
       assertEquals(it.next(), true);
       assertEquals(it.getValue(), 1);
       assertEquals(it.getWeight(), 1);
