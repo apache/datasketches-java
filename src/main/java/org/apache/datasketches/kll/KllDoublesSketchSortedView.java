@@ -62,7 +62,7 @@ public final class KllDoublesSketchSortedView {
   }
 
   public double getQuantile(final double rank) {
-    if (weights_[items_.length] != n_) {
+    if (weights_[weights_.length - 1] < n_) {
       throw new SketchesStateException("getQuantile must be used with cumulative view only");
     }
     final long pos = QuantilesHelper.posOfRank(rank, n_);
