@@ -182,6 +182,56 @@ public class DoublesSketchTest {
   }
 
   @Test
+  public void sortedView() {
+    final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+    sketch.update(3);
+    sketch.update(1);
+    sketch.update(2);
+    { // non-cumulative (inclusive does not matter in this case)
+      final DoublesSketchSortedView view = sketch.getSortedView(false, false);
+      final DoublesSketchSortedViewIterator it = view.iterator();
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), false);
+    }
+    { // cumulative non-inclusive
+      final DoublesSketchSortedView view = sketch.getSortedView(true, false);
+      final DoublesSketchSortedViewIterator it = view.iterator();
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getWeight(), 0);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getWeight(), 2);
+      Assert.assertEquals(it.next(), false);
+    }
+    { // cumulative inclusive
+      final DoublesSketchSortedView view = sketch.getSortedView(true, true);
+      final DoublesSketchSortedViewIterator it = view.iterator();
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getWeight(), 2);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getWeight(), 3);
+      Assert.assertEquals(it.next(), false);
+    }
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }

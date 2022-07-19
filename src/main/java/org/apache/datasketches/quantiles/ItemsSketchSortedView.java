@@ -29,6 +29,7 @@ import org.apache.datasketches.SketchesStateException;
 
 /**
  * Auxiliary data structure for answering generic quantile queries
+ * @param <T> type of item
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
@@ -85,7 +86,7 @@ public final class ItemsSketchSortedView<T> {
    * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
    * @return the estimated quantile
    */
-  T getQuantile(final double rank) {
+  public T getQuantile(final double rank) {
     checkFractionalRankBounds(rank);
     if (auxN_ <= 0) { return null; }
     if (auxCumWtsArr_[auxCumWtsArr_.length - 1] < auxN_) {
