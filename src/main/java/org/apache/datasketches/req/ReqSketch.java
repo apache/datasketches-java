@@ -247,9 +247,10 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   /**
-   * @deprecated
    * @return ltEq flag
+   * @deprecated
    */
+  @Deprecated
   boolean getLtEq() {
     return ltEq;
   }

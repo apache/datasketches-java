@@ -38,17 +38,17 @@ public class ReqAuxiliaryTest {
 
   private static void checkMergeSortInImpl(final boolean hra) {
     final FloatBuffer buf1 = new FloatBuffer(25, 0, hra);
-    for (int i = 1; i < 12; i += 2) { buf1.append(i); } //6 items
+    for (int i = 1; i < 12; i += 2) { buf1.append(i); } //6 odd items
     final FloatBuffer buf2 = new FloatBuffer(25, 0, hra);
-    for (int i = 2; i <= 12; i += 2) { buf2.append(i); } //6 items
-    final long N = 12;
+    for (int i = 2; i <= 12; i += 2) { buf2.append(i); } //6 even items
+    final long N = 18;
 
     final float[] items = new float[25];
     final long[] weights = new long[25];
 
     final ReqAuxiliary aux = new ReqAuxiliary(items, weights, hra, N);
     aux.mergeSortIn(buf1, 1, 0);
-    aux.mergeSortIn(buf2, 2, 6);
+    aux.mergeSortIn(buf2, 2, 6); //at weight of 2
     println(aux.toString(3, 12));
     Row row = aux.getRow(0);
     for (int i = 1; i < 12; i++) {
@@ -58,11 +58,13 @@ public class ReqAuxiliaryTest {
     }
   }
 
+  private final static boolean enablePrinting = true;
+
   /**
-   * output
-   * @param o object
+   * @param o the Object to println
    */
   static final void println(final Object o) {
-    //System.out.println(o.toString());
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
+
 }

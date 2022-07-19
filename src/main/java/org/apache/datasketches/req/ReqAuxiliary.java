@@ -41,7 +41,14 @@ class ReqAuxiliary {
     buildAuxTable(sk);
   }
 
-  //Testing only! Allows testing of support methods without a sketch.
+  /**
+   * Testing only! Allows testing of mergeSortIn without a sketch.
+   * Arrays must be appropriately sized.
+   * @param items given items
+   * @param weights given weights
+   * @param hra hra vs lra
+   * @param N total stream size in items.
+   */
   ReqAuxiliary(final float[] items, final long[] weights, final boolean hra, final long N) {
     this.hra = hra;
     this.N = N;
@@ -94,7 +101,7 @@ class ReqAuxiliary {
         i++;
         continue;
       } else {
-        itemsB[bidx] = items[hidup]; //lgtm [java/index-out-of-bounds]
+        itemsB[bidx] = items[hidup];
         wtsB[bidx++] = weights[hidup];
         i = j;
         continue;
@@ -104,9 +111,16 @@ class ReqAuxiliary {
     weights = Arrays.copyOf(wtsB, bidx);
   }
 
-  //Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
-  // the ultimate array size has already been set.  However, this must simultaneously deal with
-  // sorting the weights as well.  Also used in test.
+
+  /**
+   * Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
+   * the ultimate array size has already been set.  However, this must simultaneously deal with
+   * sorting the weights as well.  Also used in test.
+   *
+   * @param bufIn given FloatBuffer. If not sorted it will be sorted here.
+   * @param weight associated weight of bufIn
+   * @param auxCount tracks number of items inserted into the aux arrays
+   */
   void mergeSortIn(final FloatBuffer bufIn, final long weight, final int auxCount) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
     final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
@@ -140,8 +154,8 @@ class ReqAuxiliary {
    * Gets the quantile based on the given normalized rank,
    * which must be in the range [0.0, 1.0], inclusive.
    * @param normRank the given normalized rank
-   * @param ltEq determines the search method used.
-   * @return the quantile based on given normalized rank and ltEq.
+   * @param ltEq determines the search criterion used.
+   * @return the quantile
    */
   float getQuantile(final double normRank, final boolean ltEq) {
     final int len = weights.length;
@@ -150,12 +164,30 @@ class ReqAuxiliary {
     final InequalitySearch crit = ltEq ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(weights, 0, len - 1, rank, crit);
     if (index == -1) {
-      return items[len - 1]; //resolves high end (GE & GT) -1 only!
+      //System.out.println(crit.desc(weights, 0, len - 1, rank, -1));
+      return items[len - 1]; //GT: normRank >= 1.0; GE: normRank > 1.0
     }
     return items[index];
   }
 
   //used for testing
+
+  /**
+   * Gets the normalized rank based on the given value.
+   * @param value the given value
+   * @param ltEq determines the search criterion used.
+   * @return the normalized rank
+   */
+  double getRank(final float value, final boolean ltEq) {
+    final int len = items.length;
+    final InequalitySearch crit = ltEq ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(items,  0, len - 1, value, crit);
+    if (index == -1) {
+      //System.out.println(crit.desc(items, 0, len - 1, value, -1));
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)weights[index] / N;
+  }
 
   Row getRow(final int index) {
     return new Row(items[index], weights[index]);
@@ -174,14 +206,14 @@ class ReqAuxiliary {
   String toString(final int precision, final int fieldSize) {
     final StringBuilder sb = new StringBuilder();
     final int p = precision;
-    final int z = fieldSize;
+    final int z = Math.max(fieldSize, 6);
     final String ff = "%" + z + "." + p + "f";
     final String sf = "%" + z + "s";
     final String df = "%"  + z + "d";
     final String dfmt = ff + df + LS;
     final String sfmt = sf + sf + LS;
     sb.append("Aux Detail").append(LS);
-    sb.append(String.format(sfmt, "Item", "Weight"));
+    sb.append(String.format(sfmt, "Item", "CumWt"));
     final int totalCount = items.length;
     for (int i = 0; i < totalCount; i++) {
       final Row row = getRow(i);

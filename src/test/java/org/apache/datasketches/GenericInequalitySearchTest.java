@@ -67,17 +67,6 @@ public class GenericInequalitySearchTest {
     }
   }
 
-  private static String listFltArray(final Float[] arr, final int low, final int high) {
-    final StringBuilder sb = new StringBuilder();
-    sb.append(LS);
-    sb.append("arr: ");
-    for (int i = 0; i < arr.length; i++) {
-      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
-      else { sb.append(String.format("%.0f ", arr[i])); }
-    }
-    return sb.toString();
-  }
-
   @Test
   public void checkBinSearchFltLimits() {
     for (int len = 10; len <= 13; len++) {
@@ -87,6 +76,19 @@ public class GenericInequalitySearchTest {
       println(listFltArray(tarr, low, high));
       checkBinarySearchFloatLimits(tarr, low, high);
     }
+  }
+
+  private static String listFltArray(final Float[] arr, final int low, final int high) {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(LS);
+    sb.append("The values in parentheses are the low and high values of the sub-array to search");
+    sb.append(LS);
+    sb.append("arr: ");
+    for (int i = 0; i < arr.length; i++) {
+      if (i == low || i == high) { sb.append(String.format("(%.0f) ", arr[i])); }
+      else { sb.append(String.format("%.0f ", arr[i])); }
+    }
+    return sb.toString();
   }
 
   private void checkBinarySearchFloatLimits(final Float[] arr, final int low, final int high) {
@@ -287,27 +289,28 @@ public class GenericInequalitySearchTest {
     return "";
   }
 
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format
    * @param args the args
    */
   static final void printf(final String format, final Object ...args) {
-    //System.out.printf(format, args);
+    if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
    * @param o the Object to println
    */
   static final void println(final Object o) {
-    //System.out.println(o.toString());
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
   /**
    * @param o the Object to print
    */
   static final void print(final Object o) {
-    //System.out.print(o.toString());
+    if (enablePrinting) { System.out.print(o.toString()); }
   }
 
 }
