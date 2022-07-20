@@ -28,7 +28,7 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 //import static org.apache.datasketches.req.FloatBuffer.TAB;
-import org.apache.datasketches.req.ReqAuxiliary.Row;
+import org.apache.datasketches.req.ReqSketchSortedView.Row;
 import org.testng.annotations.Test;
 
 /**
@@ -154,22 +154,22 @@ public class ReqSketchTest {
   }
 
   private static void checkAux(final ReqSketch sk, final int iDebug) {
-    final ReqAuxiliary aux = new ReqAuxiliary(sk);
+    final ReqSketchSortedView aux = new ReqSketchSortedView(sk);
     if (iDebug > 0) { println(aux.toString(3,12)); }
 
     final int totalCount = sk.getRetainedItems();
-    float item = 0;
+    float value = 0;
     long wt = 0;
     for (int i = 0; i < totalCount; i++) {
       final Row row = aux.getRow(i);
       if (i == 0) {
-        item = row.item;
-        wt = row.weight;
+        value = row.value;
+        wt = row.cumWeight;
       } else {
-        assertTrue(row.item >= item);
-        assertTrue(row.weight >= wt);
-        item = row.item;
-        wt = row.weight;
+        assertTrue(row.value >= value);
+        assertTrue(row.cumWeight >= wt);
+        value = row.value;
+        wt = row.cumWeight;
       }
     }
   }
@@ -332,7 +332,7 @@ public class ReqSketchTest {
   }
 
   @Test
-  public void tenItems() {
+  public void tenValues() {
     final ReqSketch sketch = ReqSketch.builder().build();
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());

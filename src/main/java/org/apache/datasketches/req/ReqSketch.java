@@ -89,7 +89,7 @@ public class ReqSketch extends BaseReqSketch {
   private int retItems = 0; //number of retained items in the sketch
   private int maxNomSize = 0; //sum of nominal capacities of all compactors
   //Objects
-  private ReqAuxiliary aux = null;
+  private ReqSketchSortedView rssv = null;
   private List<ReqCompactor> compactors = new ArrayList<>();
   private ReqDebug reqDebug = null; //user config, default: null, can be set after construction.
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
@@ -129,12 +129,12 @@ public class ReqSketch extends BaseReqSketch {
     maxValue = other.maxValue;
     ltEq = other.ltEq;
     reqDebug = other.reqDebug;
-    //aux does not need to be copied
+    //rssv does not need to be copied
 
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
     }
-    aux = null;
+    rssv = null;
   }
 
   /**
@@ -188,12 +188,12 @@ public class ReqSketch extends BaseReqSketch {
         //we specifically decided not to do lazy compression.
       }
     }
-    aux = null;
+    rssv = null;
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
   }
 
-  ReqAuxiliary getAux() {
-    return aux;
+  public ReqSketchSortedView getSortedView() {
+    return (rssv != null) ? rssv : new ReqSketchSortedView(this);
   }
 
   @Override
@@ -332,10 +332,10 @@ public class ReqSketch extends BaseReqSketch {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
-    if (aux == null) {
-      aux = new ReqAuxiliary(this);
+    if (rssv == null) {
+      rssv = new ReqSketchSortedView(this);
     }
-    return aux.getQuantile(normRank, inclusive);
+    return rssv.getQuantile(normRank, inclusive);
   }
 
   @Override
@@ -491,7 +491,7 @@ public class ReqSketch extends BaseReqSketch {
       compress();
     }
     assert retItems < maxNomSize;
-    aux = null;
+    rssv = null;
     return this;
   }
 
@@ -502,7 +502,7 @@ public class ReqSketch extends BaseReqSketch {
     maxNomSize = 0;
     minValue = Float.NaN;
     maxValue = Float.NaN;
-    aux = null;
+    rssv = null;
     compactors = new ArrayList<>();
     grow();
     return this;
@@ -537,24 +537,24 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public void update(final float item) {
-    if (Float.isNaN(item)) { return; }
+  public void update(final float value) {
+    if (Float.isNaN(value)) { return; }
     if (isEmpty()) {
-      minValue = item;
-      maxValue = item;
+      minValue = value;
+      maxValue = value;
     } else {
-      if (item < minValue) { minValue = item; }
-      if (item > maxValue) { maxValue = item; }
+      if (value < minValue) { minValue = value; }
+      if (value > maxValue) { maxValue = value; }
     }
     final FloatBuffer buf = compactors.get(0).getBuffer();
-    buf.append(item);
+    buf.append(value);
     retItems++;
     totalN++;
     if (retItems >= maxNomSize) {
       buf.sort();
       compress();
     }
-    aux = null;
+    rssv = null;
   }
 
   /**

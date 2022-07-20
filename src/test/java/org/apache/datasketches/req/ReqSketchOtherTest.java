@@ -104,7 +104,7 @@ public class ReqSketchOtherTest {
     assertEquals(maxNomSize, 240);
     final float v = sk.getQuantile(1.0);
     assertEquals(v, 120.0f);
-    final ReqAuxiliary aux = sk.getAux();
+    final ReqSketchSortedView aux = sk.getSortedView();
     assertNotNull(aux);
     assertTrue(sk.getRSE(sk.getK(), .5, false, 120) > 0);
     assertTrue(sk.getSerializationBytes() > 0);

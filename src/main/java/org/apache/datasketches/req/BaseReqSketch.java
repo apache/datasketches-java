@@ -224,6 +224,12 @@ abstract class BaseReqSketch {
   public abstract int getSerializationBytes();
 
   /**
+   * Gets the sorted view of the current state of this sketch
+   * @return the sorted view of the current state of this sketch
+   */
+  public abstract ReqSketchSortedView getSortedView();
+
+  /**
    * Returns true if this sketch is empty.
    * @return empty flag
    */
