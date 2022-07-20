@@ -66,7 +66,7 @@ public class ReqSketchSortedViewIterator {
    */
   public long getCumulativeWeight(final boolean inclusive) {
     return inclusive ? cumWeights[index]
-        : (index == 0) ? cumWeights[index] : cumWeights[index - 1];
+        : (index == 0) ? 0 : cumWeights[index - 1];
   }
 
   /**
