@@ -21,6 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -31,6 +32,7 @@ import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
@@ -605,6 +607,60 @@ public class ItemsSketchTest {
       final String[] sorted = Arrays.copyOf(quantiles, quantiles.length);
       Arrays.sort(sorted, c);
       Assert.assertEquals(quantiles, sorted, c.toString());
+    }
+  }
+
+  @Test
+  public void sortedView() {
+    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
+    sketch.update(3);
+    sketch.update(1);
+    sketch.update(2);
+    { // non-cumulative (inclusive does not matter in this case)
+      final ItemsSketchSortedView<Integer> view = sketch.getSortedView(false, false);
+      final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), false);
+      try {
+        view.getQuantile(0);
+        fail();
+      } catch(SketchesStateException e) {}
+    }
+    { // cumulative non-inclusive
+      final ItemsSketchSortedView<Integer> view = sketch.getSortedView(true, false);
+      final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getWeight(), 0);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getWeight(), 2);
+      Assert.assertEquals(it.next(), false);
+    }
+    { // cumulative inclusive
+      final ItemsSketchSortedView<Integer> view = sketch.getSortedView(true, true);
+      final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getWeight(), 2);
+      Assert.assertEquals(it.next(), true);
+      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getWeight(), 3);
+      Assert.assertEquals(it.next(), false);
     }
   }
 

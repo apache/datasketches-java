@@ -25,14 +25,16 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import org.apache.datasketches.QuantilesHelper;
+import org.apache.datasketches.SketchesStateException;
 
 /**
  * Auxiliary data structure for answering generic quantile queries
+ * @param <T> type of item
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-final class ItemsAuxiliary<T> {
+public final class ItemsSketchSortedView<T> {
   final long auxN_;
   final Object[] auxSamplesArr_; //array of size samples
   final long[] auxCumWtsArr_;
@@ -42,7 +44,7 @@ final class ItemsAuxiliary<T> {
    * @param qs an ItemsSketch
    */
   @SuppressWarnings("unchecked")
-  ItemsAuxiliary(final ItemsSketch<T> qs, final boolean inclusive) {
+  ItemsSketchSortedView(final ItemsSketch<T> qs, final boolean cumulative, final boolean inclusive) {
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();
@@ -62,15 +64,17 @@ final class ItemsAuxiliary<T> {
     // taking advantage of the already sorted blocks of length k
     ItemsMergeImpl.blockyTandemMergeSort((T[]) itemsArr, cumWtsArr, numSamples, k, qs.getComparator());
 
-    // convert the item weights into totals of the weights preceding each item
-    long subtot = 0;
-    for (int i = 0; i < (numSamples + 1); i++) {
-      final long newSubtot = subtot + cumWtsArr[i];
-      cumWtsArr[i] = inclusive ? newSubtot : subtot;
-      subtot = newSubtot;
+    // convert the item weights into totals of the weights preceding each item or including the item
+    if (cumulative) {
+      long subtot = 0;
+      for (int i = 0; i < (numSamples + 1); i++) {
+        final long newSubtot = subtot + cumWtsArr[i];
+        cumWtsArr[i] = inclusive ? newSubtot : subtot;
+        subtot = newSubtot;
+      }
+  
+      assert subtot == n;
     }
-
-    assert subtot == n;
 
     auxN_ = n;
     auxSamplesArr_ = itemsArr;
@@ -82,9 +86,12 @@ final class ItemsAuxiliary<T> {
    * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
    * @return the estimated quantile
    */
-  T getQuantile(final double rank) {
+  public T getQuantile(final double rank) {
     checkFractionalRankBounds(rank);
     if (auxN_ <= 0) { return null; }
+    if (auxCumWtsArr_[auxCumWtsArr_.length - 1] < auxN_) {
+      throw new SketchesStateException("getQuantile must be used with cumulative view only");
+    }
     final long pos = QuantilesHelper.posOfRank(rank, auxN_);
     return approximatelyAnswerPositionalQuery(pos);
   }
@@ -159,4 +166,7 @@ final class ItemsAuxiliary<T> {
     cumWtsArr[numSamples] = 0;
   }
 
-} // end of class Auxiliary
+  public ItemsSketchSortedViewIterator<T> iterator() {
+    return new ItemsSketchSortedViewIterator<T>(auxSamplesArr_, auxCumWtsArr_);
+  }
+}

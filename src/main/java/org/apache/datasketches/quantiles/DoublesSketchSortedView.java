@@ -33,7 +33,7 @@ import org.apache.datasketches.QuantilesHelper;
  * @author Kevin Lang
  * @author Lee Rhodes
  */
-final class DoublesAuxiliary {
+public final class DoublesSketchSortedView {
   long auxN_;
   double[] auxSamplesArr_; //array of size samples
   long[] auxCumWtsArr_;
@@ -43,7 +43,7 @@ final class DoublesAuxiliary {
    * @param qs a DoublesSketch
    * @param inclusive if true, fractional ranks are considered inclusive
    */
-  DoublesAuxiliary(final DoublesSketch qs, final boolean inclusive) {
+  DoublesSketchSortedView(final DoublesSketch qs, final boolean cumulative, final boolean inclusive) {
     final int k = qs.getK();
     final long n = qs.getN();
     final long bitPattern = qs.getBitPattern();
@@ -61,8 +61,10 @@ final class DoublesAuxiliary {
     //  taking advantage of the already sorted blocks of length k
     blockyTandemMergeSort(itemsArr, cumWtsArr, numSamples, k);
 
-    final long total = QuantilesHelper.convertToPrecedingCummulative(cumWtsArr, inclusive);
-    assert total == n;
+    if (cumulative) {
+      final long total = QuantilesHelper.convertToPrecedingCumulative(cumWtsArr, inclusive);
+      assert total == n;
+    }
 
     auxN_ = n;
     auxSamplesArr_ = itemsArr;
@@ -74,10 +76,14 @@ final class DoublesAuxiliary {
    * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
    * @return the estimated quantile
    */
-  double getQuantile(final double rank) {
+  public double getQuantile(final double rank) {
     checkFractionalRankBounds(rank);
     final long pos = QuantilesHelper.posOfRank(rank, auxN_);
     return approximatelyAnswerPositionalQuery(pos);
+  }
+
+  public DoublesSketchSortedViewIterator iterator() {
+    return new DoublesSketchSortedViewIterator(auxSamplesArr_, auxCumWtsArr_);
   }
 
   /**
