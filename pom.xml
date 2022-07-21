@@ -93,8 +93,11 @@ under the License.
     <!-- System-wide properties -->
     <maven.version>3.5.0</maven.version>
     <java.version>1.8</java.version>
+    <maven.compiler.release>${java.version}</maven.compiler.release>
+    
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
+    
     <argLine>-Xmx4g -Duser.language=en -Duser.country=US -Dfile.encoding=UTF-8</argLine>
     <charset.encoding>UTF-8</charset.encoding>
     <project.build.sourceEncoding>${charset.encoding}</project.build.sourceEncoding>
