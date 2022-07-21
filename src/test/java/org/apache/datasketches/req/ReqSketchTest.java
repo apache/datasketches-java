@@ -288,7 +288,6 @@ public class ReqSketchTest {
     checkSerDeImpl(12, true, 2 * exact);
   }
 
-  @SuppressWarnings("deprecation")
   private static void checkSerDeImpl(final int k, final boolean hra, final int count) {
     final ReqSketch sk1 = ReqSketch.builder().setK(k).setHighRankAccuracy(hra).build();
     for (int i = 1; i <= count; i++) {
