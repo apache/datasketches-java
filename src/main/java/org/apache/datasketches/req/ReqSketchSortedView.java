@@ -35,7 +35,7 @@ public class ReqSketchSortedView {
   private final boolean hra; //used in merge
   private final long N;
 
-  ReqSketchSortedView(final ReqSketch sk) {
+  public ReqSketchSortedView(final ReqSketch sk) {
     hra = sk.getHighRankAccuracy();
     N = sk.getN();
     buildAuxTable(sk);
