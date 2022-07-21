@@ -26,7 +26,7 @@ import org.apache.datasketches.req.ReqSketchBuilder;
 import org.apache.datasketches.req.ReqSketchSortedView;
 import org.testng.annotations.Test;
 
-public class CrossCheckQuantiles {
+public class CrossCheckQuantilesTest {
 
   enum TestQ {REQ, REQSV, REQ_NO_DEDUP }
 
