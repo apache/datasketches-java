@@ -19,8 +19,10 @@
 
 package org.apache.datasketches.req;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.req.ReqSketchSortedView.Row;
 import org.testng.annotations.Test;
 
@@ -61,52 +63,91 @@ public class ReqSketchSortedViewTest {
     }
   }
 
+  enum TestQ {REQ, REQSV, NODEDUP }
+
+  @SuppressWarnings("unused")
   @Test
   public void checkRssvVsSketch() {
     int k = 4;
     boolean hra = false;
     boolean inclusive;
-    boolean useSketch;
-    int numV = 3;
-    int dup = 2;
-    inclusive = false;
-    useSketch = true;
-    checkRSSV(k, hra, inclusive, useSketch, numV, dup);
-    println("-------------------");
-    inclusive = false;
-    useSketch = false;
-    checkRSSV(k, hra, inclusive, useSketch, numV, dup);
-    println("###################");
-    inclusive = true;
-    useSketch = true;
-    checkRSSV(k, hra, inclusive, useSketch, numV, dup);
-    println("-------------------");
-    inclusive = true;
-    useSketch = false;
-    checkRSSV(k, hra, inclusive, useSketch, numV, dup);
-    println("");
-    println("###################");
-    println("");
+    checkQAndR(k, hra, inclusive = false, TestQ.REQ); //must do this first
+    println("\n-------------------\n");
+    checkQAndR(k, hra, inclusive = true, TestQ.REQ);
+    println("\n###################\n");
+    checkQAndR(k, hra, inclusive = false, TestQ.REQSV);
+    println("\n-------------------\n");
+    checkQAndR(k, hra, inclusive = true, TestQ.REQSV);
+    println("\n###################\n");
+    checkQAndR(k, hra, inclusive = false, TestQ.NODEDUP);
+    println("\n-------------------\n");
+    checkQAndR(k, hra, inclusive = true, TestQ.NODEDUP);
+    println("\n###################\n");
   }
 
-  private void checkRSSV(final int k, final boolean hra, final boolean inclusive,
-      final boolean useSketch, final int numV, final int dup) {
+  double[] testRankResults_NI = null;
+  float[] testQuantileResults_NI = null;
+  double[] testRankResults_I = null;
+  float[] testQuantileResults_I = null;
+
+  private void checkQAndR(final int k, final boolean hra, final boolean inclusive,
+      final TestQ testQ) {
     println("");
     println("CHECK ReqSketchSortedView");
-    println("  k: " + k + ", hra: " + hra + ", inclusive: " + inclusive + ", useSketch: " + useSketch);
+    println("  k: " + k + ", hra: " + hra + ", inclusive: " + inclusive + ", TestQ: " + testQ.toString());
     ReqSketchBuilder bldr = ReqSketch.builder();
     bldr.setK(4).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
     ReqSketch sk = bldr.build();
-    int n = numV * dup; //Total values including duplicates
-    println("  numV: " + numV + ", dup: " + dup);
 
-    float[] arr = new float[n];
+    //Example Sketch Input, always use sequential multiples of 10
+    float[] baseVals = {10,20,30,40,50};
+    int[] baseDups   = { 1, 4, 6, 2, 1};
 
-    int h = 0;
-    for (int i = 0; i < numV; i++) {
-      float flt = (i + 1) * 10;
-      for (int j = 1; j <= dup; j++) { arr[h++] = flt; }
+    int N = 0;
+    for (int i : baseDups) { N += i; } //compute N
+    int numV = baseVals.length;        //num of distinct input values
+
+//    int gps = 0;
+//    for (int bd = 0; bd < baseDups.length; bd++) {
+//      gps += Math.ceil(baseDups[bd] / 2.0);
+//    }
+
+    //Create Sketch input values
+    float[] skValues = new float[N];
+    int n = 0;
+    for (int bv = 0; bv < baseVals.length; bv++) {
+      float bvf = baseVals[bv];
+      for (int i = 0; i < baseDups[bv]; i++) {
+        skValues[n++] = bvf;
+      }
     }
+
+    //Create testValues for getRank
+    int numTV = 2 * numV + 1;
+    float[] testValues = new float[numTV];
+    for (int i = 0; i < numTV; i++) {
+      testValues[i] = 5F * (i + 1);
+    }
+
+    //Create testRanks for getQuantile()
+    int numTR = 2 * N + 1;
+    double[] testRanks = new double[numTR];
+    testRanks[0] = 0;
+    for (int i = 1; i < numTR; i++) {
+      testRanks[i] = (double) i / (numTR - 1);
+    }
+
+    if (testRankResults_NI == null) {
+      testRankResults_NI = new double[numTV];
+      testRankResults_I  = new double[numTV];
+      testQuantileResults_NI = new float[numTR];
+      testQuantileResults_I  = new float[numTR];
+    }
+
+    //Create simulated input for RAW tests
+    float[] rawVals =  {10,20,20,30,30, 30, 40, 50};
+    long[] rawCumWts = { 1, 3, 5, 7, 9, 11, 13, 14};
+
     println("");
     println("Example Sketch Input with illustrated weights and ranks:");
     println("  Sketch only keeps individual value weights per level");
@@ -114,16 +155,18 @@ public class ReqSketchSortedViewTest {
     println("  Normalized Ranks are computed on the fly.");
     println("");
     printf("%16s%16s%16s\n", "Value", "CumWeight", "NormalizedRank");
-    for (int i = 0; i < n; i++) {
-      printf("%16.1f%16d%16.3f\n", arr[i], i + 1, (i + 1.0)/n);
-      sk.update(arr[i]);
+    //LOAD THE SKETCHES and PRINT
+    for (int i = 0; i < N; i++) {
+      printf("%16.1f%16d%16.3f\n", skValues[i], i + 1, (i + 1.0)/N);
+      sk.update(skValues[i]);
     }
-
     println("");
 
-    //Sorted View Data:
+    //REQ SORTED VIEW DATA:
     ReqSketchSortedView rssv = new ReqSketchSortedView(sk);
     println(rssv.toString(1, 16));
+
+    /**************************************/
 
     println("GetQuantile(NormalizedRank):");
     println("  CumWeight is for illustration");
@@ -133,14 +176,36 @@ public class ReqSketchSortedViewTest {
     println("    Inclusive     (uses GE): arr[A] <  CW <= arr[B], return B");
     println("  Return Values[B]");
     println("");
-    printf("%16s%16s%16s\n", "NormalizedRank", "CumWeight", "Quantile");
-    int m = 2 * n;
-    for (int i = 0; i <= m; i++) {
-      double fract = (double) i / m;
-      float q = useSketch
-          ? sk.getQuantile(fract, inclusive)
-          : rssv.getQuantile(fract, inclusive); //until aux iterator is created
-      printf("%16.3f%16.3f%16.1f\n", fract, fract * n, q);
+    printf("%16s%16s%16s%16s\n", "NormalizedRank", "CumWeight", "Quantile", "REQ_Quantile");
+    for (int i = 0; i < numTR; i++) {
+      double testRank = testRanks[i];
+      float q; //result
+      switch (testQ) {
+        case REQ: {
+          q = sk.getQuantile(testRank, inclusive);
+          if (inclusive) { testQuantileResults_I[i] = q; }
+          else { testQuantileResults_NI[i] = q; }
+          break;
+        }
+        case REQSV: {
+          q = rssv.getQuantile(testRank, inclusive);
+          if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
+          else { assertEquals(q, testQuantileResults_NI[i]); };
+          break;
+        }
+        case NODEDUP: {
+          q = getQuantile(rawCumWts, rawVals, testRank, inclusive);
+          if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
+          else { assertEquals(q, testQuantileResults_NI[i]); };
+          break;
+        }
+        default: q = 0; break;
+      }
+      if (inclusive) {
+        printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, q, testQuantileResults_I[i]);
+      } else {
+        printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, q, testQuantileResults_NI[i]);
+      }
     }
 
     println("");
@@ -150,15 +215,78 @@ public class ReqSketchSortedViewTest {
     println("    Inclusive     (uses LE): arr[A] <= V <  arr[B], return A");
     println("  Convert CumWeights[A] to NormRank,");
     println("  Return NormRank");
-    printf("%16s%16s\n", "ValueIn", "NormalizedRank");
-    float q = 5.0F;
-    for (int i = 1; i <= numV * 2 + 1; i++) {
-      double r = useSketch
-          ? sk.getRank(q, inclusive)
-          : rssv.getRank(q,  inclusive); //until aux iterator is created
-      printf("%16.1f%16.3f\n", q, r);
-      q += 5.0F;
+    printf("%16s%16s%16s\n", "ValueIn", "NormalizedRank", "REQ-NormRank");
+
+    double r; //result
+    for (int i = 0; i < numTV; i++) {
+      float testValue = testValues[i];
+      switch (testQ) {
+        case REQ: {
+          r = sk.getRank(testValue, inclusive);
+          if (inclusive) { testRankResults_I[i] = r; }
+          else { testRankResults_NI[i] = r; }
+          break;
+        }
+        case REQSV: {
+          r = rssv.getRank(testValue,  inclusive);
+          if (inclusive) { assertEquals(r, testRankResults_I[i]); }
+          else { assertEquals(r, testRankResults_NI[i]); };
+          break;
+        }
+        case NODEDUP: {
+          r = getRank(rawCumWts, rawVals, testValue, inclusive);
+          if (inclusive) { assertEquals(r, testRankResults_I[i]); }
+          else { assertEquals(r, testRankResults_NI[i]); };
+          break;
+        }
+        default: r = 0; break;
+      }
+      if (inclusive) {
+        printf("%16.1f%16.3f%16.3f\n", testValue, r, testRankResults_I[i]);
+      } else {
+        printf("%16.1f%16.3f%16.3f\n", testValue, r, testRankResults_NI[i]);
+      }
     }
+  }
+
+  /**
+   * Gets the quantile based on the given normalized rank,
+   * which must be in the range [0.0, 1.0], inclusive.
+   * @param cumWeights the given cumulative weights
+   * @param values the given values
+   * @param normRank the given normalized rank
+   * @param inclusive determines the search criterion used.
+   * @return the quantile
+   */
+  public float getQuantile(final long[] cumWeights, final float[] values, final double normRank, final boolean inclusive) {
+    final int len = cumWeights.length;
+    final long N = cumWeights[len -1];
+    final long rank = (int)(normRank * N);
+    final InequalitySearch crit = inclusive ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
+    if (index == -1) {
+      return values[len - 1]; //GT: normRank >= 1.0; GE: normRank > 1.0
+    }
+    return values[index];
+  }
+
+  /**
+   * Gets the normalized rank based on the given value.
+   * @param cumWeights the given cumulative weights
+   * @param values the given values
+   * @param value the given value
+   * @param ltEq determines the search criterion used.
+   * @return the normalized rank
+   */
+  public double getRank(final long[] cumWeights, final float[] values, final float value, final boolean ltEq) {
+    final int len = values.length;
+    final long N = cumWeights[len -1];
+    final InequalitySearch crit = ltEq ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / N;
   }
 
   @Test
