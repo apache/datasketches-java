@@ -63,10 +63,10 @@ public class ReqSketchSortedViewTest {
     }
   }
 
-  enum TestQ {REQ, REQSV, NODEDUP }
+  enum TestQ {REQ, REQSV, REQ_NO_DEDUP }
 
   @SuppressWarnings("unused")
-  @Test
+  //@Test
   public void checkRssvVsSketch() {
     int k = 4;
     boolean hra = false;
@@ -79,9 +79,9 @@ public class ReqSketchSortedViewTest {
     println("\n-------------------\n");
     checkQAndR(k, hra, inclusive = true, TestQ.REQSV);
     println("\n###################\n");
-    checkQAndR(k, hra, inclusive = false, TestQ.NODEDUP);
+    checkQAndR(k, hra, inclusive = false, TestQ.REQ_NO_DEDUP);
     println("\n-------------------\n");
-    checkQAndR(k, hra, inclusive = true, TestQ.NODEDUP);
+    checkQAndR(k, hra, inclusive = true, TestQ.REQ_NO_DEDUP);
     println("\n###################\n");
   }
 
@@ -90,14 +90,14 @@ public class ReqSketchSortedViewTest {
   double[] testRankResults_I = null;
   float[] testQuantileResults_I = null;
 
-  private void checkQAndR(final int k, final boolean hra, final boolean inclusive,
-      final TestQ testQ) {
+  private void checkQAndR(final int k, final boolean hra, final boolean inclusive, final TestQ testQ) {
     println("");
-    println("CHECK ReqSketchSortedView");
+    println("CHECK SketchSortedView");
     println("  k: " + k + ", hra: " + hra + ", inclusive: " + inclusive + ", TestQ: " + testQ.toString());
+
     ReqSketchBuilder bldr = ReqSketch.builder();
     bldr.setK(4).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
-    ReqSketch sk = bldr.build();
+    ReqSketch reqSk = bldr.build();
 
     //Example Sketch Input, always use sequential multiples of 10
     float[] baseVals = {10,20,30,40,50};
@@ -158,12 +158,12 @@ public class ReqSketchSortedViewTest {
     //LOAD THE SKETCHES and PRINT
     for (int i = 0; i < N; i++) {
       printf("%16.1f%16d%16.3f\n", skValues[i], i + 1, (i + 1.0)/N);
-      sk.update(skValues[i]);
+      reqSk.update(skValues[i]);
     }
     println("");
 
     //REQ SORTED VIEW DATA:
-    ReqSketchSortedView rssv = new ReqSketchSortedView(sk);
+    ReqSketchSortedView rssv = new ReqSketchSortedView(reqSk);
     println(rssv.toString(1, 16));
 
     /**************************************/
@@ -182,7 +182,7 @@ public class ReqSketchSortedViewTest {
       float q; //result
       switch (testQ) {
         case REQ: {
-          q = sk.getQuantile(testRank, inclusive);
+          q = reqSk.getQuantile(testRank, inclusive);
           if (inclusive) { testQuantileResults_I[i] = q; }
           else { testQuantileResults_NI[i] = q; }
           break;
@@ -193,7 +193,7 @@ public class ReqSketchSortedViewTest {
           else { assertEquals(q, testQuantileResults_NI[i]); };
           break;
         }
-        case NODEDUP: {
+        case REQ_NO_DEDUP: {
           q = getQuantile(rawCumWts, rawVals, testRank, inclusive);
           if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
           else { assertEquals(q, testQuantileResults_NI[i]); };
@@ -222,7 +222,7 @@ public class ReqSketchSortedViewTest {
       float testValue = testValues[i];
       switch (testQ) {
         case REQ: {
-          r = sk.getRank(testValue, inclusive);
+          r = reqSk.getRank(testValue, inclusive);
           if (inclusive) { testRankResults_I[i] = r; }
           else { testRankResults_NI[i] = r; }
           break;
@@ -233,7 +233,7 @@ public class ReqSketchSortedViewTest {
           else { assertEquals(r, testRankResults_NI[i]); };
           break;
         }
-        case NODEDUP: {
+        case REQ_NO_DEDUP: {
           r = getRank(rawCumWts, rawVals, testValue, inclusive);
           if (inclusive) { assertEquals(r, testRankResults_I[i]); }
           else { assertEquals(r, testRankResults_NI[i]); };
