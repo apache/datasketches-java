@@ -31,7 +31,7 @@ public class QuantilesHelper {
    * @param inclusive for treating rank as including weight of an item
    * @return total weight
    */ //used by classic Quantiles and KLL
-  public static long convertToPrecedingCummulative(final long[] array, final boolean inclusive) {
+  public static long convertToPrecedingCumulative(final long[] array, final boolean inclusive) {
     long subtotal = 0;
     for (int i = 0; i < array.length; i++) {
       final long newSubtotal = subtotal + array[i];

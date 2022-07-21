@@ -222,7 +222,7 @@ public abstract class DoublesSketch {
     }
     if      (fraction == 0.0) { return getMinValue(); }
     if (fraction == 1.0) { return getMaxValue(); }
-    final DoublesAuxiliary aux = new DoublesAuxiliary(this, inclusive);
+    final DoublesSketchSortedView aux = new DoublesSketchSortedView(this, true, inclusive);
     return aux.getQuantile(fraction);
   }
 
@@ -279,7 +279,7 @@ public abstract class DoublesSketch {
    */
   public double[] getQuantiles(final double[] fRanks, final boolean inclusive) {
     if (isEmpty()) { return null; }
-    DoublesAuxiliary aux = null;
+    DoublesSketchSortedView aux = null;
     final double[] quantiles = new double[fRanks.length];
     for (int i = 0; i < fRanks.length; i++) {
       final double fRank = fRanks[i];
@@ -287,7 +287,7 @@ public abstract class DoublesSketch {
       else if (fRank == 1.0) { quantiles[i] = getMaxValue(); }
       else {
         if (aux == null) {
-          aux = new DoublesAuxiliary(this, inclusive);
+          aux = new DoublesSketchSortedView(this, true, inclusive);
         }
         quantiles[i] = aux.getQuantile(fRank);
       }
@@ -763,6 +763,17 @@ public abstract class DoublesSketch {
     if (srcSketch.isEmpty()) { return newSketch; }
     DoublesMergeImpl.downSamplingMergeInto(srcSketch, newSketch);
     return newSketch;
+  }
+
+  /**
+   * Sorted view of the sketch.
+   * Complexity: linear merge of sorted levels plus sorting of the level 0.
+   * @param cumulative if true weights are cumulative
+   * @param inclusive if true cumulative weight of an item includes its own weight
+   * @return sorted view object
+   */
+  public DoublesSketchSortedView getSortedView(final boolean cumulative, final boolean inclusive) {
+    return new DoublesSketchSortedView(this, cumulative, inclusive);
   }
 
   //Restricted abstract

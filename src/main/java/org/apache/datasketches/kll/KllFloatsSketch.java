@@ -102,7 +102,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * This will have a rank error of about 1.65%.
    * @return new KllFloatsSketch on the heap.
    */
-  public static KllFloatsSketch  newHeapInstance() {
+  public static KllFloatsSketch newHeapInstance() {
     return new KllHeapFloatsSketch(DEFAULT_K, DEFAULT_M);
   }
 
@@ -405,6 +405,17 @@ public abstract class KllFloatsSketch extends KllSketch {
   public void update(final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     KllFloatsHelper.updateFloat(this, value);
+  }
+
+  /**
+   * Sorted view of the sketch.
+   * Complexity: linear merge of sorted levels plus sorting of the level 0.
+   * @param cumulative if true weights are cumulative
+   * @param inclusive if true cumulative weight of an item includes its own weight
+   * @return sorted view object
+   */
+  public KllFloatsSketchSortedView getSortedView(final boolean cumulative, final boolean inclusive) {
+    return KllFloatsHelper.getFloatsSortedView(this, cumulative, inclusive);
   }
 
   @Override //Artifact of inheritance

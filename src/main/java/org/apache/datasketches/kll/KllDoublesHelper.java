@@ -104,13 +104,13 @@ final class KllDoublesHelper {
     //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
     if (fraction == 0.0) { return mine.getMinDoubleValue(); }
     if (fraction == 1.0) { return mine.getMaxDoubleValue(); }
-    final KllDoublesQuantileCalculator quant = KllDoublesHelper.getDoublesQuantileCalculator(mine, inclusive);
+    final KllDoublesSketchSortedView quant = KllDoublesHelper.getDoublesSortedView(mine, true, inclusive);
     return quant.getQuantile(fraction);
   }
 
   static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions, final boolean inclusive) {
     if (mine.isEmpty()) { return null; }
-    KllDoublesQuantileCalculator quant = null;
+    KllDoublesSketchSortedView quant = null;
     final double[] quantiles = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
       final double fraction = fractions[i];
@@ -121,7 +121,7 @@ final class KllDoublesHelper {
       else if (fraction == 1.0) { quantiles[i] = mine.getMaxDoubleValue(); }
       else {
         if (quant == null) {
-          quant = KllDoublesHelper.getDoublesQuantileCalculator(mine, inclusive);
+          quant = KllDoublesHelper.getDoublesSortedView(mine, true, inclusive);
         }
         quantiles[i] = quant.getQuantile(fraction);
       }
@@ -436,16 +436,16 @@ final class KllDoublesHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  private static KllDoublesQuantileCalculator getDoublesQuantileCalculator(final KllSketch mine,
-      final boolean inclusive) {
+  static KllDoublesSketchSortedView getDoublesSortedView(final KllSketch mine,
+      final boolean cumulative, final boolean inclusive) {
     final int[] myLevelsArr = mine.getLevelsArray();
     final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
     if (!mine.isLevelZeroSorted()) {
       Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
       if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
     }
-    return new KllDoublesQuantileCalculator(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(),
-        inclusive);
+    return new KllDoublesSketchSortedView(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(),
+        cumulative, inclusive);
   }
 
   private static void incrementDoublesBucketsSortedLevel(
