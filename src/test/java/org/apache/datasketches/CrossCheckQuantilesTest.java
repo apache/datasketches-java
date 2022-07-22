@@ -22,6 +22,8 @@ package org.apache.datasketches;
 import static org.testng.Assert.assertEquals;
 
 import org.apache.datasketches.kll.*;
+import org.apache.datasketches.quantiles.DoublesSketch;
+import org.apache.datasketches.quantiles.UpdateDoublesSketch;
 import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSketchBuilder;
 import org.apache.datasketches.req.ReqSketchSortedView;
@@ -29,7 +31,8 @@ import org.testng.annotations.Test;
 
 public class CrossCheckQuantilesTest {
 
-  enum TestQ { REQ, REQSV, REQ_NO_DEDUP, KLL }
+  enum TestQ { REQ, REQSV, REQ_NO_DEDUP, KLL, CLASSIC }
+  boolean aDouble = false;
 
   @SuppressWarnings("unused")
   @Test
@@ -37,68 +40,80 @@ public class CrossCheckQuantilesTest {
     boolean inclusive;
     int k = 32;
     boolean hra = false;
+    aDouble = false;;
     checkQAndR(k, hra, inclusive = false, TestQ.REQ); //must do this first
     println("\n-------------------\n");
     checkQAndR(k, hra, inclusive = true, TestQ.REQ);
-//    println("\n###################\n");
-//    checkQAndR(k, hra, inclusive = false, TestQ.REQSV);
-//    println("\n-------------------\n");
-//    checkQAndR(k, hra, inclusive = true, TestQ.REQSV);
-//    println("\n###################\n");
-//    checkQAndR(k, hra, inclusive = false, TestQ.REQ_NO_DEDUP);
-//    println("\n-------------------\n");
-//    checkQAndR(k, hra, inclusive = true, TestQ.REQ_NO_DEDUP);
+    println("\n###################\n");
+    checkQAndR(k, hra, inclusive = false, TestQ.REQSV);
+    println("\n-------------------\n");
+    checkQAndR(k, hra, inclusive = true, TestQ.REQSV);
+    println("\n###################\n");
+    checkQAndR(k, hra, inclusive = false, TestQ.REQ_NO_DEDUP);
+    println("\n-------------------\n");
+    checkQAndR(k, hra, inclusive = true, TestQ.REQ_NO_DEDUP);
     println("\n###################\n");
     checkQAndR(k, hra, inclusive = false, TestQ.KLL);
     println("\n-------------------\n");
     checkQAndR(k, hra, inclusive = true, TestQ.KLL);
     println("\n###################\n");
+    aDouble = true;
+    checkQAndR(k, hra, inclusive = false, TestQ.CLASSIC);
+    println("\n-------------------\n");
+    checkQAndR(k, hra, inclusive = true, TestQ.CLASSIC);
+    println("\n###################\n");
   }
 
   double[] testRankResults_NI = null;
-  float[] testQuantileResults_NI = null;
   double[] testRankResults_I = null;
-  float[] testQuantileResults_I = null;
+  float[] testQuantileFResults_NI = null;
+  float[] testQuantileFResults_I = null;
+  double[] testQuantileDResults_NI = null;
+  double[] testQuantileDResults_I = null;
 
   private void checkQAndR(final int k, final boolean hra, final boolean inclusive, final TestQ testQ) {
     println("");
     println("CHECK SketchSortedView");
     println("  k: " + k + ", hra: " + hra + ", inclusive: " + inclusive + ", TestQ: " + testQ.toString());
 
-    ReqSketchBuilder bldr = ReqSketch.builder();
-    bldr.setK(4).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
-    ReqSketch reqSk = bldr.build();
+    ReqSketchBuilder reqBldr = ReqSketch.builder();
+    reqBldr.setK(4).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
+    ReqSketch reqSk = reqBldr.build();
 
     KllFloatsSketch kllSk = KllFloatsSketch.newHeapInstance(k);
 
+    UpdateDoublesSketch udSk = DoublesSketch.builder().setK(k).build();
+
     //Example Sketch Input, always use sequential multiples of 10
-    float[] baseVals = {10,20,30,40,50};
+    float[] baseFVals = {10,20,30,40,50};
+    double[] baseDVals = {10,20,30,40,50};
     int[] baseDups   = { 1, 4, 6, 2, 1};
 
     int N = 0;
     for (int i : baseDups) { N += i; } //compute N
-    int numV = baseVals.length;        //num of distinct input values
-
-//    int gps = 0;
-//    for (int bd = 0; bd < baseDups.length; bd++) {
-//      gps += Math.ceil(baseDups[bd] / 2.0);
-//    }
+    int numV = baseFVals.length;        //num of distinct input values
 
     //Create Sketch input values
-    float[] skValues = new float[N];
+    float[] skFValues = new float[N];
+    double[] skDValues = new double[N];
     int n = 0;
-    for (int bv = 0; bv < baseVals.length; bv++) {
-      float bvf = baseVals[bv];
+    for (int bv = 0; bv < baseFVals.length; bv++) {
+      float bvF = baseFVals[bv];
+      double bvD = baseDVals[bv];
       for (int i = 0; i < baseDups[bv]; i++) {
-        skValues[n++] = bvf;
+        skFValues[n] = bvF;
+        skDValues[n] = bvD;
+        n++;
       }
     }
 
     //Create testValues for getRank
     int numTV = 2 * numV + 1;
-    float[] testValues = new float[numTV];
+    float[] testFValues = new float[numTV];
+    double[] testDValues = new double[numTV];
     for (int i = 0; i < numTV; i++) {
-      testValues[i] = 5F * (i + 1);
+      testFValues[i] = 5F * (i + 1);
+      testDValues[i] = 5.0 * (i + 1);
     }
 
     //Create testRanks for getQuantile()
@@ -112,12 +127,14 @@ public class CrossCheckQuantilesTest {
     if (testRankResults_NI == null) {
       testRankResults_NI = new double[numTV];
       testRankResults_I  = new double[numTV];
-      testQuantileResults_NI = new float[numTR];
-      testQuantileResults_I  = new float[numTR];
+      testQuantileFResults_NI = new float[numTR];
+      testQuantileFResults_I  = new float[numTR];
+      testQuantileDResults_NI = new double[numTR];
+      testQuantileDResults_I  = new double[numTR];
     }
 
     //Create simulated input for RAW tests
-    float[] rawVals =  {10,20,20,30,30, 30, 40, 50};
+    float[] rawFVals =  {10,20,20,30,30, 30, 40, 50};
     long[] rawCumWts = { 1, 3, 5, 7, 9, 11, 13, 14};
 
     println("");
@@ -130,9 +147,10 @@ public class CrossCheckQuantilesTest {
 
     //LOAD THE SKETCHES and PRINT
     for (int i = 0; i < N; i++) {
-      printf("%16.1f%16d%16.3f\n", skValues[i], i + 1, (i + 1.0)/N);
-      reqSk.update(skValues[i]);
-      kllSk.update(skValues[i]);
+      printf("%16.1f%16d%16.3f\n", skFValues[i], i + 1, (i + 1.0)/N);
+      reqSk.update(skFValues[i]);
+      kllSk.update(skFValues[i]);
+      udSk.update((skDValues[i]));
     }
     println("");
 
@@ -153,38 +171,64 @@ public class CrossCheckQuantilesTest {
     printf("%16s%16s%16s%16s\n", "NormalizedRank", "CumWeight", "Quantile", "True_Quantile");
     for (int i = 0; i < numTR; i++) {
       double testRank = testRanks[i];
-      float q; //result
+      float qF; //float result
+      double qD;//double result
       switch (testQ) {
         case REQ: {
-          q = reqSk.getQuantile(testRank, inclusive);
-          if (inclusive) { testQuantileResults_I[i] = q; }
-          else { testQuantileResults_NI[i] = q; }
+          qF = reqSk.getQuantile(testRank, inclusive);
+          qD = qF;
+          if (inclusive) {
+            testQuantileFResults_I[i] = qF;
+            testQuantileDResults_I[i] = qD;
+          }
+          else {
+            testQuantileFResults_NI[i] = qF;
+            testQuantileDResults_NI[i] = qD;
+          }
           break;
         }
         case REQSV: {
-          q = rssv.getQuantile(testRank, inclusive);
-          if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
-          else { assertEquals(q, testQuantileResults_NI[i]); };
+          qF = rssv.getQuantile(testRank, inclusive);
+          qD = 0;
+          if (inclusive) { assertEquals(qF, testQuantileFResults_I[i]); }
+          else { assertEquals(qF, testQuantileFResults_NI[i]); };
           break;
         }
         case REQ_NO_DEDUP: {
-          q = this.getQuantile(rawCumWts, rawVals, testRank, inclusive);
-          if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
-          else { assertEquals(q, testQuantileResults_NI[i]); };
+          qF = this.getQuantile(rawCumWts, rawFVals, testRank, inclusive);
+          qD = 0;
+          if (inclusive) { assertEquals(qF, testQuantileFResults_I[i]); }
+          else { assertEquals(qF, testQuantileFResults_NI[i]); };
           break;
         }
         case KLL: {
-          q = kllSk.getQuantile(testRank, inclusive);
-          if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
-          else { assertEquals(q, testQuantileResults_NI[i]); };
+          qF = kllSk.getQuantile(testRank, inclusive);
+          qD = 0;
+          if (inclusive) { assertEquals(qF, testQuantileFResults_I[i]); }
+          else { assertEquals(qF, testQuantileFResults_NI[i]); };
           break;
         }
-        default: q = 0; break;
+        case CLASSIC: {
+          qF = 0;
+          qD = kllSk.getQuantile(testRank, inclusive);
+          if (inclusive) { assertEquals(qD, testQuantileDResults_I[i]); }
+          else { assertEquals(qD, testQuantileDResults_NI[i]); };
+          break;
+        }
+        default: qD = qF = 0; break;
       }
       if (inclusive) {
-        printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, q, testQuantileResults_I[i]);
-      } else {
-        printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, q, testQuantileResults_NI[i]);
+        if (aDouble) {
+          printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qD, testQuantileDResults_I[i]);
+        } else { //float
+          printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qF, testQuantileFResults_I[i]);
+        }
+      } else { //else NI
+        if (aDouble) {
+          printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qD, testQuantileDResults_NI[i]);
+        } else { //float
+          printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qF, testQuantileFResults_NI[i]);
+        }
       }
     }
 
@@ -199,7 +243,7 @@ public class CrossCheckQuantilesTest {
 
     double r; //result
     for (int i = 0; i < numTV; i++) {
-      float testValue = testValues[i];
+      float testValue = testFValues[i];
       switch (testQ) {
         case REQ: {
           r = reqSk.getRank(testValue, inclusive);
@@ -214,13 +258,19 @@ public class CrossCheckQuantilesTest {
           break;
         }
         case REQ_NO_DEDUP: {
-          r = getRank(rawCumWts, rawVals, testValue, inclusive);
+          r = getRank(rawCumWts, rawFVals, testValue, inclusive);
           if (inclusive) { assertEquals(r, testRankResults_I[i]); }
           else { assertEquals(r, testRankResults_NI[i]); };
           break;
         }
         case KLL: {
           r = kllSk.getRank(testValue,  inclusive);
+          if (inclusive) { assertEquals(r, testRankResults_I[i]); }
+          else { assertEquals(r, testRankResults_NI[i]); };
+          break;
+        }
+        case CLASSIC: {
+          r = udSk.getRank(testValue,  inclusive);
           if (inclusive) { assertEquals(r, testRankResults_I[i]); }
           else { assertEquals(r, testRankResults_NI[i]); };
           break;
