@@ -103,7 +103,7 @@ public class ReqSketchSortedView {
     final String df = "%"  + z + "d";
     final String dfmt = ff + df + LS;
     final String sfmt = sf + sf + LS;
-    sb.append("Sorted View Data:").append(LS + LS);
+    sb.append("REQ Sorted View Data:").append(LS + LS);
     sb.append(String.format(sfmt, "Value", "CumWeight"));
     final int totalCount = values.length;
     for (int i = 0; i < totalCount; i++) {
