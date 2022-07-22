@@ -27,7 +27,6 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-//import static org.apache.datasketches.req.FloatBuffer.TAB;
 import org.apache.datasketches.req.ReqSketchSortedView.Row;
 import org.testng.annotations.Test;
 
@@ -60,7 +59,7 @@ public class ReqSketchTest {
     }
     final ReqSketch sk = loadSketch(k, min, max, up, hra, ltEq, skDebug);
     checkToString(sk, iDebug);
-    checkAux(sk, iDebug);
+    checkSortedView(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
     checkGetRanks(sk, max, iDebug);
     checkGetQuantiles(sk, iDebug);
@@ -153,15 +152,15 @@ public class ReqSketchTest {
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkAux(final ReqSketch sk, final int iDebug) {
-    final ReqSketchSortedView aux = new ReqSketchSortedView(sk);
-    if (iDebug > 0) { println(aux.toString(3,12)); }
+  private static void checkSortedView(final ReqSketch sk, final int iDebug) {
+    final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
+    if (iDebug > 0) { println(sv.toString(3,12)); }
 
     final int totalCount = sk.getRetainedItems();
     float value = 0;
     long wt = 0;
     for (int i = 0; i < totalCount; i++) {
-      final Row row = aux.getRow(i);
+      final Row row = sv.getRow(i);
       if (i == 0) {
         value = row.value;
         wt = row.cumWeight;
@@ -214,7 +213,7 @@ public class ReqSketchTest {
   }
 
   private static void checkIterator(final ReqSketch sk, final int iDebug) {
-    if (iDebug > 0) { println("iterator() Test"); }
+    if (iDebug > 0) { println("Sketch iterator() Test"); }
     final ReqIterator itr = sk.iterator();
     while (itr.next()) {
       final float v = itr.getValue();
@@ -387,7 +386,8 @@ public class ReqSketchTest {
     }
   }
 
-  private static void outputCompactorDetail(final ReqSketch sk, final String fmt, final boolean allData, final String text) {
+  private static void outputCompactorDetail(final ReqSketch sk, final String fmt, final boolean allData,
+      final String text) {
     println(text);
     println(sk.viewCompactorDetail(fmt, allData));
   }

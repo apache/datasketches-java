@@ -34,26 +34,29 @@ public class ReqSketchSortedView {
   private long[] cumWeights;
   private final boolean hra; //used in merge
   private final long N;
+  private final boolean dedup;
 
+  /**
+   * Construct this sorted view with the given sketch.
+   * The number of values in this sorted view will be the same as the number of retained values in the sketch.
+   * @param sk the given sketch
+   */
   public ReqSketchSortedView(final ReqSketch sk) {
-    hra = sk.getHighRankAccuracy();
-    N = sk.getN();
-    buildAuxTable(sk);
+    this(sk, false);
   }
 
   /**
-   * Testing only! Allows testing of mergeSortIn without a sketch.
-   * Arrays must be appropriately sized.
-   * @param values given values
-   * @param natRanks currently not used for the test.
-   * @param hra hra vs lra
-   * @param N total stream size in number of values presented to the sketch.
+   * Construct this sorted view with the given sketch and option to deduplicate the values.
+   * The weights will be combined for the duplicate values.
+   * The getQuantile() and getRank() methods will work properly.
+   * @param sk the given sketch
+   * @param dedup if true, duplicate values will be combined into a single value with the combined weights.
    */
-  ReqSketchSortedView(final float[] values, final long[] natRanks, final boolean hra, final long N) {
-    this.hra = hra;
-    this.N = N;
-    this.values = values;
-    this.cumWeights = natRanks;
+  public ReqSketchSortedView(final ReqSketch sk, final boolean dedup) {
+    hra = sk.getHighRankAccuracy();
+    N = sk.getN();
+    this.dedup = dedup;
+    buildAuxTable(sk);
   }
 
   /**
@@ -77,12 +80,12 @@ public class ReqSketchSortedView {
   /**
    * Gets the normalized rank based on the given value.
    * @param value the given value
-   * @param ltEq determines the search criterion used.
+   * @param inclusive determines the search criterion used.
    * @return the normalized rank
    */
-  public double getRank(final float value, final boolean ltEq) {
+  public double getRank(final float value, final boolean inclusive) {
     final int len = values.length;
-    final InequalitySearch crit = ltEq ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = inclusive ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
@@ -103,7 +106,7 @@ public class ReqSketchSortedView {
     final String df = "%"  + z + "d";
     final String dfmt = ff + df + LS;
     final String sfmt = sf + sf + LS;
-    sb.append("REQ Sorted View Data:").append(LS + LS);
+    sb.append("REQ toString(): Sorted View Data:").append(LS + LS);
     sb.append(String.format(sfmt, "Value", "CumWeight"));
     final int totalCount = values.length;
     for (int i = 0; i < totalCount; i++) {
@@ -112,6 +115,8 @@ public class ReqSketchSortedView {
     }
     return sb.toString();
   }
+
+  //restricted methods
 
   private void buildAuxTable(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
@@ -129,7 +134,45 @@ public class ReqSketchSortedView {
       count += bufInLen;
     }
     createCumulativeNativeRanks();
-    dedup();
+    if (dedup) { dedup(); }
+  }
+
+  /**
+   * Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
+   * the ultimate array size has already been set.  However, this must simultaneously deal with
+   * sorting the base FloatBuffer as well.
+   *
+   * @param bufIn given FloatBuffer. If not sorted it will be sorted here.
+   * @param bufWeight associated weight of input FloatBuffer
+   * @param count tracks number of values inserted into the class arrays
+   */
+  private void mergeSortIn(final FloatBuffer bufIn, final long bufWeight, final int count) {
+    if (!bufIn.isSorted()) { bufIn.sort(); }
+    final float[] arrIn = bufIn.getArray(); //may be larger than its value count.
+    final int bufInLen = bufIn.getCount();
+    final int totLen = count + bufInLen;
+    int i = count - 1;
+    int j = bufInLen - 1;
+    int h = hra ? bufIn.getCapacity() - 1 : bufInLen - 1;
+    for (int k = totLen; k-- > 0; ) {
+      if (i >= 0 && j >= 0) { //both valid
+        if (values[i] >= arrIn[h]) {
+          values[k] = values[i];
+          cumWeights[k] = cumWeights[i--]; //not yet natRanks, just individual wts
+        } else {
+          values[k] = arrIn[h--]; j--;
+          cumWeights[k] = bufWeight;
+        }
+      } else if (i >= 0) { //i is valid
+        values[k] = values[i];
+        cumWeights[k] = cumWeights[i--];
+      } else if (j >= 0) { //j is valid
+        values[k] = arrIn[h--]; j--;
+        cumWeights[k] = bufWeight;
+      } else {
+        break;
+      }
+    }
   }
 
   private void createCumulativeNativeRanks() {
@@ -169,45 +212,8 @@ public class ReqSketchSortedView {
   }
 
 
-  /**
-   * Specially modified version of FloatBuffer.mergeSortIn(). Here spaceAtBottom is always false and
-   * the ultimate array size has already been set.  However, this must simultaneously deal with
-   * sorting the base FloatBuffer as well.  Also used in test.
-   *
-   * @param bufIn given FloatBuffer. If not sorted it will be sorted here.
-   * @param bufWeight associated weight of input FloatBuffer
-   * @param count tracks number of values inserted into the class arrays
-   */
-  void mergeSortIn(final FloatBuffer bufIn, final long bufWeight, final int count) {
-    if (!bufIn.isSorted()) { bufIn.sort(); }
-    final float[] arrIn = bufIn.getArray(); //may be larger than its value count.
-    final int bufInLen = bufIn.getCount();
-    final int totLen = count + bufInLen;
-    int i = count - 1;
-    int j = bufInLen - 1;
-    int h = hra ? bufIn.getCapacity() - 1 : bufInLen - 1;
-    for (int k = totLen; k-- > 0; ) {
-      if (i >= 0 && j >= 0) { //both valid
-        if (values[i] >= arrIn[h]) {
-          values[k] = values[i];
-          cumWeights[k] = cumWeights[i--]; //not yet natRanks, just individual wts
-        } else {
-          values[k] = arrIn[h--]; j--;
-          cumWeights[k] = bufWeight;
-        }
-      } else if (i >= 0) { //i is valid
-        values[k] = values[i];
-        cumWeights[k] = cumWeights[i--];
-      } else if (j >= 0) { //j is valid
-        values[k] = arrIn[h--]; j--;
-        cumWeights[k] = bufWeight;
-      } else {
-        break;
-      }
-    }
-  }
 
-  //used for testing
+  //used for testing and for public SortedView toString
 
   Row getRow(final int index) {
     return new Row(values[index], cumWeights[index]);

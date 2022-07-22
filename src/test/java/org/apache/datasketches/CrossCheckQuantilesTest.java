@@ -304,7 +304,8 @@ public class CrossCheckQuantilesTest {
    * @param inclusive determines the search criterion used.
    * @return the quantile
    */
-  public float getQuantile(final long[] cumWeights, final float[] values, final double normRank, final boolean inclusive) {
+  public float getQuantile(final long[] cumWeights, final float[] values, final double normRank,
+      final boolean inclusive) {
     final int len = cumWeights.length;
     final long N = cumWeights[len -1];
     final long rank = (int)(normRank * N);
@@ -335,20 +336,20 @@ public class CrossCheckQuantilesTest {
     return (double)cumWeights[index] / N;
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format
    * @param args the args
    */
-  static final void printf(final String format, final Object ...args) {
+  private static final void printf(final String format, final Object ...args) {
     if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
    * @param o the Object to println
    */
-  static final void println(final Object o) {
+  private static final void println(final Object o) {
     if (enablePrinting) { System.out.println(o.toString()); }
   }
 
