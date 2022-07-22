@@ -21,6 +21,7 @@ package org.apache.datasketches;
 
 import static org.testng.Assert.assertEquals;
 
+import org.apache.datasketches.kll.*;
 import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSketchBuilder;
 import org.apache.datasketches.req.ReqSketchSortedView;
@@ -28,25 +29,29 @@ import org.testng.annotations.Test;
 
 public class CrossCheckQuantilesTest {
 
-  enum TestQ {REQ, REQSV, REQ_NO_DEDUP }
+  enum TestQ { REQ, REQSV, REQ_NO_DEDUP, KLL }
 
   @SuppressWarnings("unused")
   @Test
-  public void checkRssvVsSketch() {
-    int k = 4;
-    boolean hra = false;
+  public void checkQuantileSketches() {
     boolean inclusive;
+    int k = 32;
+    boolean hra = false;
     checkQAndR(k, hra, inclusive = false, TestQ.REQ); //must do this first
     println("\n-------------------\n");
     checkQAndR(k, hra, inclusive = true, TestQ.REQ);
+//    println("\n###################\n");
+//    checkQAndR(k, hra, inclusive = false, TestQ.REQSV);
+//    println("\n-------------------\n");
+//    checkQAndR(k, hra, inclusive = true, TestQ.REQSV);
+//    println("\n###################\n");
+//    checkQAndR(k, hra, inclusive = false, TestQ.REQ_NO_DEDUP);
+//    println("\n-------------------\n");
+//    checkQAndR(k, hra, inclusive = true, TestQ.REQ_NO_DEDUP);
     println("\n###################\n");
-    checkQAndR(k, hra, inclusive = false, TestQ.REQSV);
+    checkQAndR(k, hra, inclusive = false, TestQ.KLL);
     println("\n-------------------\n");
-    checkQAndR(k, hra, inclusive = true, TestQ.REQSV);
-    println("\n###################\n");
-    checkQAndR(k, hra, inclusive = false, TestQ.REQ_NO_DEDUP);
-    println("\n-------------------\n");
-    checkQAndR(k, hra, inclusive = true, TestQ.REQ_NO_DEDUP);
+    checkQAndR(k, hra, inclusive = true, TestQ.KLL);
     println("\n###################\n");
   }
 
@@ -63,6 +68,8 @@ public class CrossCheckQuantilesTest {
     ReqSketchBuilder bldr = ReqSketch.builder();
     bldr.setK(4).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
     ReqSketch reqSk = bldr.build();
+
+    KllFloatsSketch kllSk = KllFloatsSketch.newHeapInstance(k);
 
     //Example Sketch Input, always use sequential multiples of 10
     float[] baseVals = {10,20,30,40,50};
@@ -120,10 +127,12 @@ public class CrossCheckQuantilesTest {
     println("  Normalized Ranks are computed on the fly.");
     println("");
     printf("%16s%16s%16s\n", "Value", "CumWeight", "NormalizedRank");
+
     //LOAD THE SKETCHES and PRINT
     for (int i = 0; i < N; i++) {
       printf("%16.1f%16d%16.3f\n", skValues[i], i + 1, (i + 1.0)/N);
       reqSk.update(skValues[i]);
+      kllSk.update(skValues[i]);
     }
     println("");
 
@@ -141,7 +150,7 @@ public class CrossCheckQuantilesTest {
     println("    Inclusive     (uses GE): arr[A] <  CW <= arr[B], return B");
     println("  Return Values[B]");
     println("");
-    printf("%16s%16s%16s%16s\n", "NormalizedRank", "CumWeight", "Quantile", "REQ_Quantile");
+    printf("%16s%16s%16s%16s\n", "NormalizedRank", "CumWeight", "Quantile", "True_Quantile");
     for (int i = 0; i < numTR; i++) {
       double testRank = testRanks[i];
       float q; //result
@@ -159,7 +168,13 @@ public class CrossCheckQuantilesTest {
           break;
         }
         case REQ_NO_DEDUP: {
-          q = getQuantile(rawCumWts, rawVals, testRank, inclusive);
+          q = this.getQuantile(rawCumWts, rawVals, testRank, inclusive);
+          if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
+          else { assertEquals(q, testQuantileResults_NI[i]); };
+          break;
+        }
+        case KLL: {
+          q = kllSk.getQuantile(testRank, inclusive);
           if (inclusive) { assertEquals(q, testQuantileResults_I[i]); }
           else { assertEquals(q, testQuantileResults_NI[i]); };
           break;
@@ -180,7 +195,7 @@ public class CrossCheckQuantilesTest {
     println("    Inclusive     (uses LE): arr[A] <= V <  arr[B], return A");
     println("  Convert CumWeights[A] to NormRank,");
     println("  Return NormRank");
-    printf("%16s%16s%16s\n", "ValueIn", "NormalizedRank", "REQ-NormRank");
+    printf("%16s%16s%16s\n", "ValueIn", "NormalizedRank", "True-NormRank");
 
     double r; //result
     for (int i = 0; i < numTV; i++) {
@@ -200,6 +215,12 @@ public class CrossCheckQuantilesTest {
         }
         case REQ_NO_DEDUP: {
           r = getRank(rawCumWts, rawVals, testValue, inclusive);
+          if (inclusive) { assertEquals(r, testRankResults_I[i]); }
+          else { assertEquals(r, testRankResults_NI[i]); };
+          break;
+        }
+        case KLL: {
+          r = kllSk.getRank(testValue,  inclusive);
           if (inclusive) { assertEquals(r, testRankResults_I[i]); }
           else { assertEquals(r, testRankResults_NI[i]); };
           break;

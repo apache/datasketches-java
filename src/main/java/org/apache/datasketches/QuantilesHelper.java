@@ -83,7 +83,7 @@ public class QuantilesHelper {
     // the following three asserts should probably be retained since they ensure
     // that the necessary invariants hold at the beginning of the search
     assert l < r;
-    assert wtArr[l] <= pos;
+    assert wtArr[l] <= pos; //TODO BUG?
     assert pos < wtArr[r];
     return searchForChunkContainingPos(wtArr, pos, l, r);
   }
@@ -104,7 +104,7 @@ public class QuantilesHelper {
     // the following three asserts can probably go away eventually, since it is fairly clear
     // that if these invariants hold at the beginning of the search, they will be maintained
     assert l < r;
-    assert arr[l] <= pos;
+    assert arr[l] <= pos; //TODO BUG?
     assert pos < arr[r];
     if (l + 1 == r) {
       return l;
