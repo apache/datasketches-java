@@ -52,7 +52,7 @@ public final class KllFloatsSketchSortedView {
     }
   }
 
-  //For testing only. Allows testing of getQuantile without a sketch.
+  //For testing only. Allows testing of getQuantile without a sketch. NOT USED
   KllFloatsSketchSortedView(final float[] items, final long[] weights, final long n) {
     n_ = n;
     items_ = items;
