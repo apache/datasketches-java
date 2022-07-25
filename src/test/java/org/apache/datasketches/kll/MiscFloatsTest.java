@@ -147,9 +147,29 @@ public class MiscFloatsTest {
     show(sk, 108);
   }
 
+  @Test
+  public void viewCompactionAndSortedView() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    boolean cumulative = false;
+    boolean inclusive = false;
+    show(sk, 20);
+    KllFloatsSketchSortedView sv = sk.getSortedView(cumulative, inclusive);
+    KllFloatsSketchSortedViewIterator itr = sv.iterator();
+    if (cumulative) {
+      printf("%12s%12s\n", "Value", "CumWeight");
+    } else {
+      printf("%12s%12s\n", "Value", "Weight");
+    }
+    while (itr.next()) {
+      float v = itr.getValue();
+      long wt = itr.getWeight();
+      printf("%12.1f%12d\n", v, wt);
+    }
+  }
+
   private static void show(final KllFloatsSketch sk, int limit) {
     int i = (int) sk.getN();
-    for ( ; i < limit; i++) { sk.update(i + 1); } //incremental update
+    for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
   }
 
@@ -521,14 +541,26 @@ public class MiscFloatsTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
+    println("PRINTING: println in " + this.getClass().getName());
+    String s = "PRINTING:  printf in " + this.getClass().getName();
+    printf("%s\n", s);
+  }
+
+  private final static boolean enablePrinting = true;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  private static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
-   * @param o value to print
+   * @param o the Object to println
    */
-  static void println(final Object o) {
-    System.out.println(o.toString()); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }
