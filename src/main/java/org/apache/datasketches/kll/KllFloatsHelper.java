@@ -101,8 +101,8 @@ final class KllFloatsHelper {
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
     }
-    final KllFloatsSketchSortedView quant = KllFloatsHelper.getFloatsSortedView(sketch, true, inclusive);
-    return quant.getQuantile(fraction);
+    final KllFloatsSketchSortedView kllFSV = KllFloatsHelper.getFloatsSortedView(sketch, true, inclusive);
+    return kllFSV.getQuantile(fraction);
   }
 
   static float[] getFloatsQuantiles(final KllSketch sketch, final double[] fractions, final boolean inclusive) {

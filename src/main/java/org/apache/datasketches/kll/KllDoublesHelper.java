@@ -36,46 +36,46 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 final class KllDoublesHelper {
 
-  static double getDoubleRank(final KllSketch mine, final double value, final boolean inclusive) {
-    if (mine.isEmpty()) { return Double.NaN; }
+  static double getDoubleRank(final KllSketch sketch, final double value, final boolean inclusive) {
+    if (sketch.isEmpty()) { return Double.NaN; }
     int level = 0;
     int weight = 1;
     long total = 0;
-    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
-    final int[] myLevelsArr = mine.getLevelsArray();
-    while (level < mine.getNumLevels()) {
+    final double[] myDoubleItemsArr = sketch.getDoubleItemsArray();
+    final int[] myLevelsArr = sketch.getLevelsArray();
+    while (level < sketch.getNumLevels()) {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
       for (int i = fromIndex; i < toIndex; i++) {
         if (inclusive ? myDoubleItemsArr[i] <= value : myDoubleItemsArr[i] < value) {
           total += weight;
-        } else if (level > 0 || mine.isLevelZeroSorted()) {
+        } else if (level > 0 || sketch.isLevelZeroSorted()) {
           break; // levels above 0 are sorted, no point comparing further
         }
       }
       level++;
       weight *= 2;
     }
-    return (double) total / mine.getN();
+    return (double) total / sketch.getN();
   }
 
-  static double[] getDoublesPmfOrCdf(final KllSketch mine, final double[] splitPoints,
+  static double[] getDoublesPmfOrCdf(final KllSketch sketch, final double[] splitPoints,
       final boolean isCdf, final boolean inclusive) {
-    if (mine.isEmpty()) { return null; }
+    if (sketch.isEmpty()) { return null; }
     validateDoubleValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
-    final int myNumLevels = mine.getNumLevels();
-    final int[] myLevelsArr = mine.getLevelsArray();
+    final int myNumLevels = sketch.getNumLevels();
+    final int[] myLevelsArr = sketch.getLevelsArray();
     int level = 0;
     int weight = 1;
     while (level < myNumLevels) {
       final int fromIndex = myLevelsArr[level];
       final int toIndex = myLevelsArr[level + 1]; // exclusive
-      if (level == 0 && !mine.isLevelZeroSorted()) {
-        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+      if (level == 0 && !sketch.isLevelZeroSorted()) {
+        KllDoublesHelper.incrementDoublesBucketsUnsortedLevel(sketch, fromIndex, toIndex, weight, splitPoints,
             buckets, inclusive);
       } else {
-        KllDoublesHelper.incrementDoublesBucketsSortedLevel(mine, fromIndex, toIndex, weight, splitPoints,
+        KllDoublesHelper.incrementDoublesBucketsSortedLevel(sketch, fromIndex, toIndex, weight, splitPoints,
             buckets, inclusive);
       }
       level++;
@@ -86,30 +86,30 @@ final class KllDoublesHelper {
       double subtotal = 0;
       for (int i = 0; i < buckets.length; i++) {
         subtotal += buckets[i];
-        buckets[i] = subtotal / mine.getN();
+        buckets[i] = subtotal / sketch.getN();
       }
     } else {
       for (int i = 0; i < buckets.length; i++) {
-        buckets[i] /= mine.getN();
+        buckets[i] /= sketch.getN();
       }
     }
     return buckets;
   }
 
-  static double getDoublesQuantile(final KllSketch mine, final double fraction, final boolean inclusive) {
-    if (mine.isEmpty()) { return Double.NaN; }
+  static double getDoublesQuantile(final KllSketch sketch, final double fraction, final boolean inclusive) {
+    if (sketch.isEmpty()) { return Double.NaN; }
     if (fraction < 0.0 || fraction > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
     }
     //These two assumptions make KLL compatible with the previous classic Quantiles Sketch
-    if (fraction == 0.0) { return mine.getMinDoubleValue(); }
-    if (fraction == 1.0) { return mine.getMaxDoubleValue(); }
-    final KllDoublesSketchSortedView quant = KllDoublesHelper.getDoublesSortedView(mine, true, inclusive);
+    if (fraction == 0.0) { return sketch.getMinDoubleValue(); }
+    if (fraction == 1.0) { return sketch.getMaxDoubleValue(); }
+    final KllDoublesSketchSortedView quant = KllDoublesHelper.getDoublesSortedView(sketch, true, inclusive);
     return quant.getQuantile(fraction);
   }
 
-  static double[] getDoublesQuantiles(final KllSketch mine, final double[] fractions, final boolean inclusive) {
-    if (mine.isEmpty()) { return null; }
+  static double[] getDoublesQuantiles(final KllSketch sketch, final double[] fractions, final boolean inclusive) {
+    if (sketch.isEmpty()) { return null; }
     KllDoublesSketchSortedView quant = null;
     final double[] quantiles = new double[fractions.length];
     for (int i = 0; i < fractions.length; i++) {
@@ -117,11 +117,11 @@ final class KllDoublesHelper {
       if (fraction < 0.0 || fraction > 1.0) {
         throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
       }
-      if      (fraction == 0.0) { quantiles[i] = mine.getMinDoubleValue(); }
-      else if (fraction == 1.0) { quantiles[i] = mine.getMaxDoubleValue(); }
+      if      (fraction == 0.0) { quantiles[i] = sketch.getMinDoubleValue(); }
+      else if (fraction == 1.0) { quantiles[i] = sketch.getMaxDoubleValue(); }
       else {
         if (quant == null) {
-          quant = KllDoublesHelper.getDoublesSortedView(mine, true, inclusive);
+          quant = KllDoublesHelper.getDoublesSortedView(sketch, true, inclusive);
         }
         quantiles[i] = quant.getQuantile(fraction);
       }
@@ -129,38 +129,38 @@ final class KllDoublesHelper {
     return quantiles;
   }
 
-  static void mergeDoubleImpl(final KllSketch mine, final KllSketch other) {
+  static void mergeDoubleImpl(final KllSketch sketch, final KllSketch other) {
     if (other.isEmpty()) { return; }
-    final long finalN = mine.getN() + other.getN();
+    final long finalN = sketch.getN() + other.getN();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
     final double[] otherDoubleItemsArr;
     //capture my min & max, minK
-    final double myMin = mine.getMinDoubleValue();
-    final double myMax = mine.getMaxDoubleValue();
-    final int myMinK = mine.getMinK();
+    final double myMin = sketch.getMinDoubleValue();
+    final double myMax = sketch.getMaxDoubleValue();
+    final int myMinK = sketch.getMinK();
 
     //update this sketch with level0 items from the other sketch
     if (other.isCompactSingleItem()) {
-      updateDouble(mine, other.getDoubleSingleItem());
+      updateDouble(sketch, other.getDoubleSingleItem());
       otherDoubleItemsArr = new double[0];
     } else {
       otherDoubleItemsArr = other.getDoubleItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-        KllDoublesHelper.updateDouble(mine, otherDoubleItemsArr[i]);
+        KllDoublesHelper.updateDouble(sketch, otherDoubleItemsArr[i]);
       }
     }
     // after the level 0 update, we capture the state of levels and items arrays
-    final int myCurNumLevels = mine.getNumLevels();
-    final int[] myCurLevelsArr = mine.getLevelsArray();
-    final double[] myCurDoubleItemsArr = mine.getDoubleItemsArray();
+    final int myCurNumLevels = sketch.getNumLevels();
+    final int[] myCurLevelsArr = sketch.getLevelsArray();
+    final double[] myCurDoubleItemsArr = sketch.getDoubleItemsArray();
 
     int myNewNumLevels = myCurNumLevels;
     int[] myNewLevelsArr = myCurLevelsArr;
     double[] myNewDoubleItemsArr = myCurDoubleItemsArr;
 
     if (otherNumLevels > 1 && !other.isCompactSingleItem()) { //now merge other levels if they exist
-      final int tmpSpaceNeeded = mine.getNumRetained()
+      final int tmpSpaceNeeded = sketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final double[] workbuf = new double[tmpSpaceNeeded];
       final int ub = KllHelper.ubOnNumLevels(finalN);
@@ -174,8 +174,8 @@ final class KllDoublesHelper {
           otherNumLevels, otherLevelsArr, otherDoubleItemsArr);
 
       // notice that workbuf is being used as both the input and output
-      final int[] result = generalDoublesCompress(mine.getK(), mine.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, mine.isLevelZeroSorted(), KllSketch.random);
+      final int[] result = generalDoublesCompress(sketch.getK(), sketch.getM(), provisionalNumLevels,
+          workbuf, worklevels, workbuf, outlevels, sketch.isLevelZeroSorted(), KllSketch.random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
@@ -206,28 +206,28 @@ final class KllDoublesHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mine.updatableMemFormat) {
-        mine.wmem = KllHelper.memorySpaceMgmt(mine, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+      if (sketch.updatableMemFormat) {
+        sketch.wmem = KllHelper.memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
       }
     }
 
     //Update Preamble:
-    mine.setN(finalN);
+    sketch.setN(finalN);
     if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      mine.setMinK(min(myMinK, other.getMinK()));
+      sketch.setMinK(min(myMinK, other.getMinK()));
     }
 
     //Update numLevels, levelsArray, items
-    mine.setNumLevels(myNewNumLevels);
-    mine.setLevelsArray(myNewLevelsArr);
-    mine.setDoubleItemsArray(myNewDoubleItemsArr);
+    sketch.setNumLevels(myNewNumLevels);
+    sketch.setLevelsArray(myNewLevelsArr);
+    sketch.setDoubleItemsArray(myNewDoubleItemsArr);
 
     //Update min, max values
     final double otherMin = other.getMinDoubleValue();
     final double otherMax = other.getMaxDoubleValue();
-    mine.setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
-    mine.setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
-    assert KllHelper.sumTheSampleWeights(mine.getNumLevels(), mine.getLevelsArray()) == mine.getN();
+    sketch.setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
+    sketch.setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
+    assert KllHelper.sumTheSampleWeights(sketch.getNumLevels(), sketch.getLevelsArray()) == sketch.getN();
   }
 
   static void mergeSortedDoubleArrays(
@@ -299,20 +299,20 @@ final class KllDoublesHelper {
     }
   }
 
-  static void updateDouble(final KllSketch mine, final double value) {
+  static void updateDouble(final KllSketch sketch, final double value) {
     if (Double.isNaN(value)) { return; }
-    final double prevMin = mine.getMinDoubleValue();
-    final double prevMax = mine.getMaxDoubleValue();
-    mine.setMinDoubleValue(resolveDoubleMinValue(prevMin, value));
-    mine.setMaxDoubleValue(resolveDoubleMaxValue(prevMax, value));
-    if (mine.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(mine); }
-    final int myLevelsArrAtZero = mine.getLevelsArray()[0]; //LevelsArr could be expanded
-    mine.incN();
-    mine.setLevelZeroSorted(false);
+    final double prevMin = sketch.getMinDoubleValue();
+    final double prevMax = sketch.getMaxDoubleValue();
+    sketch.setMinDoubleValue(resolveDoubleMinValue(prevMin, value));
+    sketch.setMaxDoubleValue(resolveDoubleMaxValue(prevMax, value));
+    if (sketch.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(sketch); }
+    final int myLevelsArrAtZero = sketch.getLevelsArray()[0]; //LevelsArr could be expanded
+    sketch.incN();
+    sketch.setLevelZeroSorted(false);
     final int nextPos = myLevelsArrAtZero - 1;
     assert myLevelsArrAtZero >= 0;
-    mine.setLevelsArrayAt(0, nextPos);
-    mine.setDoubleItemsArrayAt(nextPos, value);
+    sketch.setLevelsArrayAt(0, nextPos);
+    sketch.setDoubleItemsArrayAt(nextPos, value);
   }
 
   /**
@@ -436,22 +436,22 @@ final class KllDoublesHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  static KllDoublesSketchSortedView getDoublesSortedView(final KllSketch mine,
+  static KllDoublesSketchSortedView getDoublesSortedView(final KllSketch sketch,
       final boolean cumulative, final boolean inclusive) {
-    final int[] myLevelsArr = mine.getLevelsArray();
-    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
-    if (!mine.isLevelZeroSorted()) {
+    final int[] myLevelsArr = sketch.getLevelsArray();
+    final double[] myDoubleItemsArr = sketch.getDoubleItemsArray();
+    if (!sketch.isLevelZeroSorted()) {
       Arrays.sort(myDoubleItemsArr,  myLevelsArr[0], myLevelsArr[1]);
-      if (!mine.hasMemory()) { mine.setLevelZeroSorted(true); }
+      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
     }
-    return new KllDoublesSketchSortedView(myDoubleItemsArr, myLevelsArr, mine.getNumLevels(), mine.getN(),
+    return new KllDoublesSketchSortedView(myDoubleItemsArr, myLevelsArr, sketch.getNumLevels(), sketch.getN(),
         cumulative, inclusive);
   }
 
   private static void incrementDoublesBucketsSortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
       final double[] splitPoints, final double[] buckets, final boolean inclusive) {
-    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+    final double[] myDoubleItemsArr = sketch.getDoubleItemsArray();
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
@@ -471,9 +471,9 @@ final class KllDoublesHelper {
   }
 
   private static void incrementDoublesBucketsUnsortedLevel(
-      final KllSketch mine, final int fromIndex, final int toIndex, final int weight,
+      final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
       final double[] splitPoints, final double[] buckets, final boolean inclusive) {
-    final double[] myDoubleItemsArr = mine.getDoubleItemsArray();
+    final double[] myDoubleItemsArr = sketch.getDoubleItemsArray();
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {

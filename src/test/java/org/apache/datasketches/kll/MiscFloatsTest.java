@@ -149,7 +149,7 @@ public class MiscFloatsTest {
 
   private static void show(final KllFloatsSketch sk, int limit) {
     int i = (int) sk.getN();
-    for ( ; i < limit; i++) { sk.update(i + 1); }
+    for ( ; i < limit; i++) { sk.update(i + 1); } //incremental update
     println(sk.toString(true, true));
   }
 
@@ -528,7 +528,7 @@ public class MiscFloatsTest {
    * @param o value to print
    */
   static void println(final Object o) {
-    //System.out.println(o.toString()); //disable here
+    System.out.println(o.toString()); //disable here
   }
 
 }
