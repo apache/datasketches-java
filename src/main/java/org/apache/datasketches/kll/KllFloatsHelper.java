@@ -27,8 +27,6 @@ import static org.apache.datasketches.Util.isOdd;
 import java.util.Arrays;
 import java.util.Random;
 
-import org.apache.datasketches.SketchesArgumentException;
-
 /**
  * Static methods to support KllFloatsSketch
  * @author Kevin Lang
@@ -36,92 +34,8 @@ import org.apache.datasketches.SketchesArgumentException;
  */
 final class KllFloatsHelper {
 
-  static double getFloatRank(final KllSketch sketch, final float value, final boolean inclusive) {
-    if (sketch.isEmpty()) { return Double.NaN; }
-    int level = 0;
-    int weight = 1;
-    long total = 0;
-    final float[] myFloatItemsArr = sketch.getFloatItemsArray();
-    final int[] myLevelsArr = sketch.getLevelsArray();
-    while (level < sketch.getNumLevels()) {
-      final int fromIndex = myLevelsArr[level];
-      final int toIndex = myLevelsArr[level + 1]; // exclusive
-      for (int i = fromIndex; i < toIndex; i++) {
-        if (inclusive ? myFloatItemsArr[i] <= value : myFloatItemsArr[i] < value) {
-          total += weight;
-        } else if (level > 0 || sketch.isLevelZeroSorted()) {
-          break; // levels above 0 are sorted, no point comparing further
-        }
-      }
-      level++;
-      weight *= 2;
-    }
-    return (double) total / sketch.getN();
-  }
 
-  static double[] getFloatsPmfOrCdf(final KllSketch sketch, final float[] splitPoints,
-      final boolean isCdf, final boolean inclusive) {
-    if (sketch.isEmpty()) { return null; }
-    validateFloatValues(splitPoints);
-    final double[] buckets = new double[splitPoints.length + 1];
-    final int myNumLevels = sketch.getNumLevels();
-    final int[] myLevelsArr = sketch.getLevelsArray();
-    int level = 0;
-    int weight = 1;
-    while (level < myNumLevels) {
-      final int fromIndex = myLevelsArr[level];
-      final int toIndex = myLevelsArr[level + 1]; // exclusive
-      if (level == 0 && !sketch.isLevelZeroSorted()) {
-        KllFloatsHelper.incrementFloatBucketsUnsortedLevel(sketch, fromIndex, toIndex, weight, splitPoints,
-            buckets, inclusive);
-      } else {
-        KllFloatsHelper.incrementFloatBucketsSortedLevel(sketch, fromIndex, toIndex, weight, splitPoints,
-            buckets, inclusive);
-      }
-      level++;
-      weight *= 2;
-    }
-    // normalize and, if CDF, convert to cumulative
-    if (isCdf) {
-      double subtotal = 0;
-      for (int i = 0; i < buckets.length; i++) {
-        subtotal += buckets[i];
-        buckets[i] = subtotal / sketch.getN();
-      }
-    } else {
-      for (int i = 0; i < buckets.length; i++) {
-        buckets[i] /= sketch.getN();
-      }
-    }
-    return buckets;
-  }
-
-  static float getFloatsQuantile(final KllSketch sketch, final double fraction, final boolean inclusive) {
-    if (sketch.isEmpty()) { return Float.NaN; }
-    if (fraction < 0.0 || fraction > 1.0) {
-      throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
-    }
-    final KllFloatsSketchSortedView kllFSV = KllFloatsHelper.getFloatsSortedView(sketch, true, inclusive);
-    return kllFSV.getQuantile(fraction);
-  }
-
-  static float[] getFloatsQuantiles(final KllSketch sketch, final double[] fractions, final boolean inclusive) {
-    if (sketch.isEmpty()) { return null; }
-    KllFloatsSketchSortedView kllFSV = null;
-    final float[] quantiles = new float[fractions.length];
-    for (int i = 0; i < fractions.length; i++) { //check if fraction are in [0, 1]
-      final double fraction = fractions[i];
-      if (fraction < 0.0 || fraction > 1.0) {
-        throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
-      }
-      if (kllFSV == null) {
-        kllFSV = KllFloatsHelper.getFloatsSortedView(sketch, true, inclusive);
-      }
-      quantiles[i] = kllFSV.getQuantile(fraction);
-    }
-    return quantiles;
-  }
-
+  //Called from KllSketch
   static void mergeFloatImpl(final KllSketch sketch, final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = sketch.getN() + other.getN();
@@ -223,6 +137,7 @@ final class KllFloatsHelper {
     assert KllHelper.sumTheSampleWeights(sketch.getNumLevels(), sketch.getLevelsArray()) == sketch.getN();
   }
 
+  //Called from KllHelper and this.generalFloatsCompress(...), this.populateFloatWorkArrays(...)
   static void mergeSortedFloatArrays(
       final float[] bufA, final int startA, final int lenA,
       final float[] bufB, final int startB, final int lenB,
@@ -260,7 +175,9 @@ final class KllFloatsHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */ //NOTE Validation Method: Need to modify to run.
+   */
+  //NOTE: Validation Method: Need to modify to run.
+  //Called from KllHelper, this.generalFloatsCompress(...)
   static void randomlyHalveDownFloats(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -279,7 +196,9 @@ final class KllFloatsHelper {
    * @param start data start
    * @param length items length
    * @param random instance of Random
-   */ //NOTE Validation Method: Need to modify to run.
+   */
+  //NOTE Validation Method: Need to modify to run.
+  //Called from KllHelper, this.generalFloatsCompress(...)
   static void randomlyHalveUpFloats(final float[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
@@ -292,6 +211,7 @@ final class KllFloatsHelper {
     }
   }
 
+  //Called from KllFloatsSketch, this.mergeFloatImpl(...
   static void updateFloat(final KllSketch sketch, final float value) {
     if (Float.isNaN(value)) { return; }
     final float prevMin = sketch.getMinFloatValue();
@@ -429,55 +349,6 @@ final class KllFloatsHelper {
     return new int[] {numLevels, targetItemCount, currentItemCount};
   }
 
-  static KllFloatsSketchSortedView getFloatsSortedView(final KllSketch sketch,
-      final boolean cumulative, final boolean inclusive) {
-    final int[] skLevelsArr = sketch.getLevelsArray();
-    final float[] skFloatItemsArr = sketch.getFloatItemsArray();
-    if (!sketch.isLevelZeroSorted()) {
-      Arrays.sort(skFloatItemsArr, skLevelsArr[0], skLevelsArr[1]);
-      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
-    }
-    return new KllFloatsSketchSortedView(skFloatItemsArr, skLevelsArr, sketch.getNumLevels(), sketch.getN(),
-        cumulative, inclusive);
-  }
-
-  private static void incrementFloatBucketsSortedLevel(
-      final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
-      final float[] splitPoints, final double[] buckets, final boolean inclusive) {
-    final float[] myFloatItemsArr = sketch.getFloatItemsArray();
-    int i = fromIndex;
-    int j = 0;
-    while (i <  toIndex && j < splitPoints.length) {
-      if (inclusive ? myFloatItemsArr[i] <= splitPoints[j]: myFloatItemsArr[i] < splitPoints[j]) {
-        buckets[j] += weight; // this sample goes into this bucket
-        i++; // move on to next sample and see whether it also goes into this bucket
-      } else {
-        j++; // no more samples for this bucket
-      }
-    }
-    // now either i == toIndex (we are out of samples), or
-    // j == numSplitPoints (we are out of buckets, but there are more samples remaining)
-    // we only need to do something in the latter case
-    if (j == splitPoints.length) {
-      buckets[j] += weight * (toIndex - i);
-    }
-  }
-
-  private static void incrementFloatBucketsUnsortedLevel(
-      final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
-      final float[] splitPoints, final double[] buckets, final boolean inclusive) {
-    final float[] myFloatItemsArr = sketch.getFloatItemsArray();
-    for (int i = fromIndex; i < toIndex; i++) {
-      int j;
-      for (j = 0; j < splitPoints.length; j++) {
-        if (inclusive ? myFloatItemsArr[i] <= splitPoints[j] : myFloatItemsArr[i] < splitPoints[j]) {
-          break;
-        }
-      }
-      buckets[j] += weight;
-    }
-  }
-
   private static void populateFloatWorkArrays(
       final float[] workbuf, final int[] worklevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final float[] myCurFloatItemsArr,
@@ -517,23 +388,6 @@ final class KllFloatsHelper {
     if (Float.isNaN(myMin)) { return otherMin; }
     if (Float.isNaN(otherMin)) { return myMin; }
     return min(myMin, otherMin);
-  }
-
-  /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of values
-   */
-  private static void validateFloatValues(final float[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
-    }
   }
 
   /*

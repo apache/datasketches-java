@@ -181,7 +181,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
   }
 
   /**
@@ -190,7 +190,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return CDF
    */
   public double[] getCDF(final float[] splitPoints) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, true, false);
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, false);
   }
 
   /**
@@ -235,7 +235,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final float[] splitPoints, final boolean inclusive) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false, inclusive);
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, inclusive);
   }
 
   /**
@@ -244,7 +244,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return PMF
    */
   public double[] getPMF(final float[] splitPoints) {
-    return KllFloatsHelper.getFloatsPmfOrCdf(this, splitPoints, false, false);
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, false);
   }
 
   /**
@@ -267,7 +267,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return the approximation to the value at the given fraction
    */
   public float getQuantile(final double fraction, final boolean inclusive) {
-    return KllFloatsHelper.getFloatsQuantile(this, fraction, inclusive);
+    return KllFloatsSketchSortedView.getFloatsQuantile(this, fraction, inclusive);
   }
 
   /**
@@ -276,7 +276,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return quantile
    */
   public float getQuantile(final double fraction) {
-    return KllFloatsHelper.getFloatsQuantile(this, fraction, false);
+    return KllFloatsSketchSortedView.getFloatsQuantile(this, fraction, false);
   }
 
   /**
@@ -310,7 +310,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * array.
    */
   public float[] getQuantiles(final double[] fractions, final boolean inclusive) {
-    return KllFloatsHelper.getFloatsQuantiles(this, fractions, inclusive);
+    return KllFloatsSketchSortedView.getFloatsQuantiles(this, fractions, inclusive);
   }
 
   /**
@@ -319,7 +319,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return quantiles
    */
   public float[] getQuantiles(final double[] fractions) {
-    return KllFloatsHelper.getFloatsQuantiles(this, fractions, false);
+    return KllFloatsSketchSortedView.getFloatsQuantiles(this, fractions, false);
   }
 
   /**
@@ -378,7 +378,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return an approximate rank of the given value
    */
   public double getRank(final float value, final boolean inclusive) {
-    return KllFloatsHelper.getFloatRank(this, value, inclusive);
+    return KllFloatsSketchSortedView.getFloatRank(this, value, inclusive);
   }
 
   /**
@@ -387,7 +387,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return fractional rank
    */
   public double getRank(final float value) {
-    return KllFloatsHelper.getFloatRank(this, value, false);
+    return KllFloatsSketchSortedView.getFloatRank(this, value, false);
   }
 
   /**
@@ -409,13 +409,13 @@ public abstract class KllFloatsSketch extends KllSketch {
 
   /**
    * Sorted view of the sketch.
-   * Complexity: linear merge of sorted levels plus sorting of the level 0.
+   * Complexity: linear, single-pass merge of sorted levels plus sorting of the level 0.
    * @param cumulative if true weights are cumulative
    * @param inclusive if true cumulative weight of an item includes its own weight
    * @return sorted view object
    */
   public KllFloatsSketchSortedView getSortedView(final boolean cumulative, final boolean inclusive) {
-    return KllFloatsHelper.getFloatsSortedView(this, cumulative, inclusive);
+    return KllFloatsSketchSortedView.getFloatsSortedView(this, cumulative, inclusive);
   }
 
   @Override //Artifact of inheritance

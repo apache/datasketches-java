@@ -94,6 +94,7 @@ public class KllFloatsSketchTest {
   public void tenItems() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
+    System.out.println(sketch.toString(true, true)); //TODO
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
     assertEquals(sketch.getNumRetained(), 10);
