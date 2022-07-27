@@ -45,7 +45,6 @@ import org.apache.datasketches.SketchesStateException;
  * @author Alexander Saydakov
  */
 public final class KllFloatsSketchSortedView {
-
   private final long n_;
   private final float[] items_;
   private final long[] weights_; //comes in as weights, converted to cumulative weights
@@ -53,19 +52,26 @@ public final class KllFloatsSketchSortedView {
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
-  @SuppressWarnings("deprecation")
-  KllFloatsSketchSortedView(final float[] items, final int[] levels, final int numLevels,
-      final long n, final boolean cumulative, final boolean inclusive) {
+  KllFloatsSketchSortedView(final float[] items, final int[] levels, final int numLevels, final long n) {
     n_ = n;
     final int numItems = levels[numLevels] - levels[0];
     items_ = new float[numItems];
-    weights_ = new long[numItems + 1]; // one more is intentional
+    weights_ = new long[numItems];
     levels_ = new int[numLevels + 1];
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    if (cumulative) {
-      KllQuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
+    KllHelper.convertToCumulative(weights_);
+  }
+
+  static KllFloatsSketchSortedView getFloatsSortedView(final KllSketch sketch) {
+    final float[] skFloatItemsArr = sketch.getFloatItemsArray();
+    final int[] skLevelsArr = sketch.getLevelsArray();
+
+    if (!sketch.isLevelZeroSorted()) {
+      Arrays.sort(skFloatItemsArr, skLevelsArr[0], skLevelsArr[1]);
+      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
     }
+    return new KllFloatsSketchSortedView(skFloatItemsArr, skLevelsArr, sketch.getNumLevels(), sketch.getN());
   }
 
   private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
@@ -91,18 +97,6 @@ public final class KllFloatsSketchSortedView {
     numLevels_ = dstLevel;
   }
 
-  static KllFloatsSketchSortedView getFloatsSortedView(final KllSketch sketch,
-      final boolean cumulative, final boolean inclusive) {
-    final float[] skFloatItemsArr = sketch.getFloatItemsArray();
-    final int[] skLevelsArr = sketch.getLevelsArray();
-
-    if (!sketch.isLevelZeroSorted()) {
-      Arrays.sort(skFloatItemsArr, skLevelsArr[0], skLevelsArr[1]);
-      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
-    }
-    return new KllFloatsSketchSortedView(skFloatItemsArr, skLevelsArr, sketch.getNumLevels(), sketch.getN(),
-        cumulative, inclusive);
-  }
 
   //For testing only. Allows testing of getQuantile without a sketch. NOT USED
   KllFloatsSketchSortedView(final float[] items, final long[] weights, final long n) {
@@ -151,7 +145,7 @@ public final class KllFloatsSketchSortedView {
     return (double) total / sketch.getN();
   }
 
-  //Called only from KllFloatsSketch
+  //Called only from KllFloatsSketch TODO rewrite using sorted view and new getRanks
   static double[] getFloatsPmfOrCdf(final KllSketch sketch, final float[] splitPoints,
       final boolean isCdf, final boolean inclusive) {
     if (sketch.isEmpty()) { return null; }
@@ -242,13 +236,13 @@ public final class KllFloatsSketchSortedView {
   }
 
   //Called only from KllFloatsSketch
-  static float getFloatsQuantile(final KllSketch sketch, final double fraction, final boolean inclusive) {
+  static float getFloatsQuantile(final KllSketch sketch, final double rank, final boolean inclusive) {
     if (sketch.isEmpty()) { return Float.NaN; }
-    if (fraction < 0.0 || fraction > 1.0) {
+    if (rank < 0.0 || rank > 1.0) {
       throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
     }
-    final KllFloatsSketchSortedView kllFSV = KllFloatsSketchSortedView.getFloatsSortedView(sketch, true, inclusive);
-    return kllFSV.getQuantile(fraction);
+    final KllFloatsSketchSortedView kllFSV = KllFloatsSketchSortedView.getFloatsSortedView(sketch);
+    return kllFSV.getQuantile(rank);
   }
 
   //Called only from KllFloatsSketch
@@ -262,7 +256,7 @@ public final class KllFloatsSketchSortedView {
         throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
       }
       if (kllFSV == null) {
-        kllFSV = KllFloatsSketchSortedView.getFloatsSortedView(sketch, true, inclusive);
+        kllFSV = getFloatsSortedView(sketch);
       }
       quantiles[i] = kllFSV.getQuantile(fraction);
     }

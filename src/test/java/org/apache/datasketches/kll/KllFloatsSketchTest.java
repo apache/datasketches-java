@@ -28,7 +28,6 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -547,40 +546,8 @@ public class KllFloatsSketchTest {
     sk.update(3);
     sk.update(1);
     sk.update(2);
-    { // non-cumulative (inclusive does not matter in this case)
-      final KllFloatsSketchSortedView view = sk.getSortedView(false, false);
-      final KllFloatsSketchSortedViewIterator it = view.iterator();
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 1);
-      assertEquals(it.getWeight(), 1);
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 2);
-      assertEquals(it.getWeight(), 1);
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 3);
-      assertEquals(it.getWeight(), 1);
-      assertEquals(it.next(), false);
-      try {
-        view.getQuantile(0);
-        fail();
-      } catch(SketchesStateException e) {}
-    }
-    { // cumulative, non-inclusive
-      final KllFloatsSketchSortedView view = sk.getSortedView(true, false);
-      final KllFloatsSketchSortedViewIterator it = view.iterator();
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 1);
-      assertEquals(it.getWeight(), 0);
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 2);
-      assertEquals(it.getWeight(), 1);
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 3);
-      assertEquals(it.getWeight(), 2);
-      assertEquals(it.next(), false);
-    }
-    { // cumulative, inclusive
-      final KllFloatsSketchSortedView view = sk.getSortedView(true, true);
+    {
+      final KllFloatsSketchSortedView view = sk.getSortedView();
       final KllFloatsSketchSortedViewIterator it = view.iterator();
       assertEquals(it.next(), true);
       assertEquals(it.getValue(), 1);

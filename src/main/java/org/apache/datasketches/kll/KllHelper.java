@@ -260,6 +260,21 @@ final class KllHelper {
     return (int) total;
   }
 
+  /**
+   * Convert the individual weights into cumulative weights.
+   * An array of {1,1,1,1} becomes {1,2,3,4}
+   * @param array of actual weights from the sketch, where first element is not zero.
+   * @return total weight
+   */
+  public static long convertToCumulative(final long[] array) {
+    long subtotal = 0;
+    for (int i = 0; i < array.length; i++) {
+      final long newSubtotal = subtotal + array[i];
+      subtotal = array[i] = newSubtotal;
+    }
+    return subtotal;
+  }
+
   static int currentLevelSize(final int level, final int numLevels, final int[] levels) {
     if (level >= numLevels) { return 0; }
     return levels[level + 1] - levels[level];

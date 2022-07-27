@@ -26,22 +26,6 @@ package org.apache.datasketches.kll;
  */
 @Deprecated
 public class KllQuantilesHelper {
-  /**
-   * Convert the weights into totals of the weights preceding each item.
-   * An array of {1,1,1,0} becomes {0,1,2,3}
-   * @param array of weights where first element is zero
-   * @param inclusive for treating rank as including weight of an item
-   * @return total weight
-   */ //used by classic Quantiles and KLL
-  public static long convertToPrecedingCumulative(final long[] array, final boolean inclusive) {
-    long subtotal = 0;
-    for (int i = 0; i < array.length; i++) {
-      final long newSubtotal = subtotal + array[i];
-      array[i] = inclusive ? newSubtotal : subtotal;
-      subtotal = newSubtotal;
-    }
-    return subtotal;
-  }
 
   /**
    * Returns the linear zero-based index (position) of a value in the hypothetical sorted stream of
@@ -50,6 +34,7 @@ public class KllQuantilesHelper {
    * @param n the size of the stream
    * @return the index, a value between 0 and n-1.
    */ //used by classic Quantiles and KLL
+  @Deprecated
   public static long posOfRank(final double rank, final long n) {
     final long pos = (long) Math.floor(rank * n);
     return pos == n ? n - 1 : pos; //avoids ArrayIndexOutOfBoundException
@@ -74,6 +59,7 @@ public class KllQuantilesHelper {
    * @param pos the position
    * @return the index of the chunk containing the position
    */ //also used by KLL
+  @Deprecated
   public static int chunkContainingPos(final long[] wtArr, final long pos) {
     final int nominalLength = wtArr.length - 1; /* remember, wtArr contains an "extra" position */
     assert nominalLength > 0;
@@ -102,6 +88,7 @@ public class KllQuantilesHelper {
   //
   // A) and B) provide the invariants for our binary search.
   // Observe that they are satisfied by the initial conditions:  l = 0 and r = len.
+  @Deprecated
   private static int searchForChunkContainingPos(final long[] arr, final long pos, final int l, final int r) {
     // the following three asserts can probably go away eventually, since it is fairly clear
     // that if these invariants hold at the beginning of the search, they will be maintained

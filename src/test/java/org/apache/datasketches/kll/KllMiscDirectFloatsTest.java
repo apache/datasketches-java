@@ -29,20 +29,20 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-public class MiscDirectDoublesTest {
+public class KllMiscDirectFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkBounds() {
-    final KllDoublesSketch sk = getDDSketch(200, 0);
+    final KllFloatsSketch sk = getDFSketch(200, 0);
     for (int i = 0; i < 1000; i++) {
       sk.update(i);
     }
     final double eps = sk.getNormalizedRankError(false);
-    final double est = sk.getQuantile(0.5);
-    final double ub = sk.getQuantileUpperBound(0.5);
-    final double lb = sk.getQuantileLowerBound(0.5);
+    final float est = sk.getQuantile(0.5);
+    final float ub = sk.getQuantileUpperBound(0.5);
+    final float lb = sk.getQuantileLowerBound(0.5);
     assertEquals(ub, sk.getQuantile(.5 + eps));
     assertEquals(lb, sk.getQuantile(0.5 - eps));
     println("Ext     : " + est);
@@ -52,13 +52,13 @@ public class MiscDirectDoublesTest {
 
   @Test
   public void checkMisc() {
-    final KllDoublesSketch sk = getDDSketch(8, 0);
+    final KllFloatsSketch sk = getDFSketch(8, 0);
     assertTrue(Objects.isNull(sk.getQuantiles(10)));
     //sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
     //sk.toString(true, true);
     //sk.toByteArray();
-    final double[] items = sk.getDoubleItemsArray();
+    final float[] items = sk.getFloatItemsArray();
     assertEquals(items.length, 16);
     final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
@@ -67,11 +67,11 @@ public class MiscDirectDoublesTest {
 
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
-    final KllDoublesSketch sk = getDDSketch(20, 0);
+    final KllFloatsSketch sk = getDFSketch(20, 0);
     for (int i = 0; i < 10; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
 
-    final KllDoublesSketch sk2 = getDDSketch(20, 0);
+    final KllFloatsSketch sk2 = getDFSketch(20, 0);
     for (int i = 0; i < 400; i++) { sk2.update(i + 1); }
     println("\n" + sk2.toString(true, true));
 
@@ -82,7 +82,7 @@ public class MiscDirectDoublesTest {
 
   //@Test
   public void viewCompactions() {
-    final KllDoublesSketch sk = getDDSketch(20, 0);
+    final KllFloatsSketch sk = getDFSketch(20, 0);
     show(sk, 20);
     show(sk, 21); //compaction 1
     show(sk, 43);
@@ -98,19 +98,19 @@ public class MiscDirectDoublesTest {
     show(sk, 108);
   }
 
-  private static void show(final KllDoublesSketch sk, int limit) {
+  private static void show(final KllFloatsSketch sk, int limit) {
     int i = (int) sk.getN();
     for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
   }
 
   @Test
-  public void checkSketchInitializeDoubleHeap() {
+  public void checkSketchInitializeFloatHeap() {
     int k = 20; //don't change this
-    KllDoublesSketch sk;
+    KllFloatsSketch sk;
 
-    //println("#### CASE: DOUBLE FULL HEAP");
-    sk = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT FULL HEAP");
+    sk = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -119,15 +119,15 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
+    assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 21.0F);
+    assertEquals(sk.getMinFloatValue(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE HEAP EMPTY");
-    sk = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT HEAP EMPTY");
+    sk = getDFSketch(k, 0);
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -135,15 +135,15 @@ public class MiscDirectDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
+    assertEquals(sk.getMaxFloatValue(), Float.NaN);
+    assertEquals(sk.getMinFloatValue(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE HEAP SINGLE");
-    sk = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT HEAP SINGLE");
+    sk = getDFSketch(k, 0);
     sk.update(1);
     //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
@@ -152,175 +152,175 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 1.0F);
+    assertEquals(sk.getMinFloatValue(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
 
   @Test
-  public void checkSketchInitializeDoubleHeapifyCompactMem() {
+  public void checkSketchInitializeFloatHeapifyCompactMem() {
     int k = 20; //don't change this
-    KllDoublesSketch sk;
-    KllDoublesSketch sk2;
+    KllFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
-    //println("#### CASE: DOUBLE FULL HEAPIFIED FROM COMPACT");
-    sk2 = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT FULL HEAPIFIED FROM COMPACT");
+    sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllDoublesSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
+    assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 21.0F);
+    assertEquals(sk.getMinFloatValue(), 1.0f);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM COMPACT");
-    sk2 = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT EMPTY HEAPIFIED FROM COMPACT");
+    sk2 = getDFSketch(k, 0);
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllDoublesSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
+    assertEquals(sk.getMaxFloatValue(), Float.NaN);
+    assertEquals(sk.getMinFloatValue(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM COMPACT");
-    sk2 = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT SINGLE HEAPIFIED FROM COMPACT");
+    sk2 = getDFSketch(k, 0);
     sk2.update(1);
     //println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllDoublesSketch.heapify(wmem);
+    sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 1.0F);
+    assertEquals(sk.getMinFloatValue(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
 
   @Test
-  public void checkSketchInitializeDoubleHeapifyUpdatableMem() {
+  public void checkSketchInitializeFloatHeapifyUpdatableMem() {
     int k = 20; //don't change this
-    KllDoublesSketch sk;
-    KllDoublesSketch sk2;
+    KllFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
-    //println("#### CASE: DOUBLE FULL HEAPIFIED FROM UPDATABLE");
-    sk2 = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT FULL HEAPIFIED FROM UPDATABLE");
+    sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    sk = KllHeapDoublesSketch.heapifyImpl(wmem);
-    println(sk.toString(true, true));
+    //println(KllPreambleUtil.toString(wmem));
+    sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
+    assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 21.0F);
+    assertEquals(sk.getMinFloatValue(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-   // println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
-    sk2 = getDDSketch(k, 0);
+   // println("#### CASE: FLOAT EMPTY HEAPIFIED FROM UPDATABLE");
+    sk2 = getDFSketch(k, 0);
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
-    sk = KllHeapDoublesSketch.heapifyImpl(wmem);
+    sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
+    assertEquals(sk.getMaxFloatValue(), Float.NaN);
+    assertEquals(sk.getMinFloatValue(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    //println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM UPDATABLE");
-    sk2 = getDDSketch(k, 0);
+    //println("#### CASE: FLOAT SINGLE HEAPIFIED FROM UPDATABLE");
+    sk2 = getDFSketch(k, 0);
     sk2.update(1);
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.memoryToString(wmem, true));
-    sk = KllHeapDoublesSketch.heapifyImpl(wmem);
+    //println(KllPreambleUtil.toString(wmem));
+    sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxFloatValue(), 1.0F);
+    assertEquals(sk.getMinFloatValue(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
 
   @Test
-  public void checkMemoryToStringDoubleUpdatable() {
+  public void checkMemoryToStringFloatUpdatable() {
     int k = 20; //don't change this
-    KllDoublesSketch sk;
-    KllDoublesSketch sk2;
+    KllFloatsSketch sk;
+    KllFloatsSketch sk2;
     byte[] upBytes;
     byte[] upBytes2;
     WritableMemory wmem;
     String s;
 
-    println("#### CASE: DOUBLE FULL UPDATABLE");
-    sk = getDDSketch(k, 0);
+    println("#### CASE: FLOAT FULL UPDATABLE");
+    sk = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
@@ -328,14 +328,14 @@ public class MiscDirectDoublesTest {
     println(s);
     assertEquals(upBytes, upBytes2);
 
-    println("#### CASE: DOUBLE EMPTY UPDATABLE");
-    sk = getDDSketch(k, 0);
+    println("#### CASE: FLOAT EMPTY UPDATABLE");
+    sk = getDFSketch(k, 0);
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
@@ -343,15 +343,15 @@ public class MiscDirectDoublesTest {
     println(s);
     assertEquals(upBytes, upBytes2);
 
-    println("#### CASE: DOUBLE SINGLE UPDATABL");
-    sk = getDDSketch(k, 0);
+    println("#### CASE: FLOAT SINGLE UPDATABL");
+    sk = getDFSketch(k, 0);
     sk.update(1);
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
-    sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+    sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, true);
@@ -365,8 +365,8 @@ public class MiscDirectDoublesTest {
     int k = 20;
     int n1 = 21;
     int n2 = 21;
-    KllDoublesSketch sk1 = getDDSketch(k, 0);
-    KllDoublesSketch sk2 = getDDSketch(k, 0);
+    KllFloatsSketch sk1 = getDFSketch(k, 0);
+    KllFloatsSketch sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
     }
@@ -377,13 +377,13 @@ public class MiscDirectDoublesTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
-    assertEquals(sk1.getMaxValue(), 121.0);
-    assertEquals(sk1.getMinValue(), 1.0);
+    assertEquals(sk1.getMaxValue(), 121.0F);
+    assertEquals(sk1.getMinValue(), 1.0F);
   }
 
   @Test
   public void checkSizes() {
-    KllDoublesSketch sk = getDDSketch(20, 0);
+    KllFloatsSketch sk = getDFSketch(20, 0);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     //println(sk.toString(true, true));
     byte[] byteArr1 = KllHelper.toUpdatableByteArrayImpl(sk);
@@ -397,11 +397,11 @@ public class MiscDirectDoublesTest {
   @Test
   public void checkNewInstance() {
     int k = 200;
-    WritableMemory dstMem = WritableMemory.allocate(6000);
-    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, dstMem, memReqSvr);
+    WritableMemory dstMem = WritableMemory.allocate(3000);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
-    assertEquals(sk.getMinValue(), 1.0);
-    assertEquals(sk.getMaxValue(), 10000.0);
+    assertEquals(sk.getMinValue(), 1.0F);
+    assertEquals(sk.getMaxValue(), 10000.0F);
     //println(sk.toString(true, true));
   }
 
@@ -410,19 +410,19 @@ public class MiscDirectDoublesTest {
     int k = 20;
     int m = 4;
     WritableMemory dstMem = WritableMemory.allocate(1000);
-    KllDoublesSketch sk = KllDirectDoublesSketch.newDirectInstance(k, m, dstMem, memReqSvr);
+    KllFloatsSketch sk = KllDirectFloatsSketch.newDirectInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
     assertEquals(sk.getMinValue(), 1.0);
     assertEquals(sk.getMaxValue(), 200.0);
   }
 
-  private static KllDoublesSketch getDDSketch(final int k, final int n) {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+  private static KllFloatsSketch getDFSketch(final int k, final int n) {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    KllDoublesSketch ddsk = KllDoublesSketch.writableWrap(wmem, memReqSvr);
-    return ddsk;
+    KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    return dfsk;
   }
 
   @Test

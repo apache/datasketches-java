@@ -52,7 +52,6 @@ public final class KllDoublesSketchSortedView {
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
-  @SuppressWarnings("deprecation")
   KllDoublesSketchSortedView(final double[] items, final int[] levels, final int numLevels,
       final long n, final boolean cumulative, final boolean inclusive) {
     n_ = n;
@@ -63,7 +62,7 @@ public final class KllDoublesSketchSortedView {
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
     if (cumulative) {
-      KllQuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
+      KllHelper.convertToCumulative(weights_);
     }
   }
 

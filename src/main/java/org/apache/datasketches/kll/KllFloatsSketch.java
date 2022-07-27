@@ -34,6 +34,7 @@ import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 public abstract class KllFloatsSketch extends KllSketch {
+  KllFloatsSketchSortedView sortedView = null;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
     super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
@@ -157,6 +158,16 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
+   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public double[] getCDF(final float[] splitPoints) {
+    //TDO add check for sorted view eventually
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, false);
+  }
+
+  /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
    * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
    *
@@ -173,7 +184,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * It is not necessary to include either the min or max values in these split points.
    *
    * @param inclusive if true the weight of the given value is included into the rank.
-   * Otherwise the rank equals the sum of the weights of all values that are less than the given value
+   * Otherwise, the rank equals the sum of the weights of all values that are less than the given value
    *
    * @return an array of m+1 double values on the interval [0.0, 1.0),
    * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
@@ -181,16 +192,8 @@ public abstract class KllFloatsSketch extends KllSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
+    //TODO add check for sorted view eventually
     return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
-  }
-
-  /**
-   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, false)}
-   * @param splitPoints splitPoints
-   * @return CDF
-   */
-  public double[] getCDF(final float[] splitPoints) {
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, false);
   }
 
   /**
@@ -208,6 +211,15 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return the min value of the stream
    */
   public float getMinValue() { return getMinFloatValue(); }
+
+  /**
+   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return PMF
+   */
+  public double[] getPMF(final float[] splitPoints) {
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, false);
+  }
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
@@ -235,16 +247,17 @@ public abstract class KllFloatsSketch extends KllSketch {
    * splitPoint, with the exception that the last interval will include maximum value.
    */
   public double[] getPMF(final float[] splitPoints, final boolean inclusive) {
+    //add check for sorted view eventually
     return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, inclusive);
   }
 
   /**
-   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, false)}
-   * @param splitPoints splitPoints
-   * @return PMF
+   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
+   * @param rank  the given normalized rank, a value in the interval [0.0,1.0].
+   * @return quantile
    */
-  public double[] getPMF(final float[] splitPoints) {
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, false);
+  public float getQuantile(final double rank) {
+    return KllFloatsSketchSortedView.getFloatsQuantile(this, rank, false);
   }
 
   /**
@@ -258,36 +271,26 @@ public abstract class KllFloatsSketch extends KllSketch {
    *
    * <p>If the sketch is empty this returns NaN.
    *
-   * @param fraction the specified fractional position in the hypothetical sorted stream.
-   * These are also called normalized ranks or fractional ranks.
-   * If fraction = 0.0, the true minimum value of the stream is returned.
-   * If fraction = 1.0, the true maximum value of the stream is returned.
+   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
    *
-   * @param inclusive if true, the given fraction (rank) is considered inclusive
+   * @param inclusive if true, the given rank includes all values &le; the value directly
+   * corresponding to the given rank.
    * @return the approximation to the value at the given fraction
    */
-  public float getQuantile(final double fraction, final boolean inclusive) {
-    return KllFloatsSketchSortedView.getFloatsQuantile(this, fraction, inclusive);
-  }
-
-  /**
-   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
-   * @param fraction fractional rank
-   * @return quantile
-   */
-  public float getQuantile(final double fraction) {
-    return KllFloatsSketchSortedView.getFloatsQuantile(this, fraction, false);
+  public float getQuantile(final double rank, final boolean inclusive) {
+    //TODO START HERE
+    return KllFloatsSketchSortedView.getFloatsQuantile(this, rank, inclusive);
   }
 
   /**
    * Gets the lower bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
+   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
    * @return the lower bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public float getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getMinK(), false)));
+  public float getQuantileLowerBound(final double rank) {
+    return getQuantile(max(0, rank - KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
@@ -301,11 +304,8 @@ public abstract class KllFloatsSketch extends KllSketch {
    *
    * <p>If the sketch is empty this returns null.
    *
-   * @param fractions given array of fractional positions in the hypothetical sorted stream.
-   * These are also called normalized ranks or fractional ranks.
-   * These fractions must be in the interval [0.0, 1.0], inclusive.
-   *
-   * @param inclusive if true, the given fractions (ranks) are considered inclusive
+   * @param fractions the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
+   * @param inclusive if true, the given ranks include all values &le; the value directly corresponding to each rank.
    * @return array of approximations to the given fractions in the same order as given fractions
    * array.
    */
@@ -315,11 +315,11 @@ public abstract class KllFloatsSketch extends KllSketch {
 
   /**
    * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, false)}
-   * @param fractions fractional ranks
+   * @param ranks fractional ranks
    * @return quantiles
    */
-  public float[] getQuantiles(final double[] fractions) {
-    return KllFloatsSketchSortedView.getFloatsQuantiles(this, fractions, false);
+  public float[] getQuantiles(final double[] ranks) {
+    return KllFloatsSketchSortedView.getFloatsQuantiles(this, ranks, false);
   }
 
   /**
@@ -410,12 +410,10 @@ public abstract class KllFloatsSketch extends KllSketch {
   /**
    * Sorted view of the sketch.
    * Complexity: linear, single-pass merge of sorted levels plus sorting of the level 0.
-   * @param cumulative if true weights are cumulative
-   * @param inclusive if true cumulative weight of an item includes its own weight
    * @return sorted view object
    */
-  public KllFloatsSketchSortedView getSortedView(final boolean cumulative, final boolean inclusive) {
-    return KllFloatsSketchSortedView.getFloatsSortedView(this, cumulative, inclusive);
+  public KllFloatsSketchSortedView getSortedView() {
+    return KllFloatsSketchSortedView.getFloatsSortedView(this);
   }
 
   @Override //Artifact of inheritance
