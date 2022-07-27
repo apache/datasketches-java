@@ -126,7 +126,7 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getQuantile(0.7, true), 7);
     assertEquals(sketch.getQuantile(0.8, true), 8);
     assertEquals(sketch.getQuantile(0.9, true), 9);
-    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+    assertEquals(sketch.getQuantile(1, true), 10); // always max value TODO
 
     // getQuantile() and getQuantiles() equivalence
     {

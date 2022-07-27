@@ -21,12 +21,26 @@ package org.apache.datasketches.kll;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 
 /**
- * Data structure for answering quantile queries based on the samples from KllSketch
+ * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
+ * One can iterate of the contents of the sketch, but the result is not sorted.
+ * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
+ * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
+ * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
+ * trial & error, try to figure out what the sketch actually has retained.
+ *
+ * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
+ * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
+ * test. One needs this sorted view for the test.</p>
+ *
+ * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
+ * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
+ * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
+ * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.</p>
+ *
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
@@ -39,6 +53,7 @@ public final class KllFloatsSketchSortedView {
   private int numLevels_;
 
   // assumes that all levels are sorted including level 0
+  @SuppressWarnings("deprecation")
   KllFloatsSketchSortedView(final float[] items, final int[] levels, final int numLevels,
       final long n, final boolean cumulative, final boolean inclusive) {
     n_ = n;
@@ -49,7 +64,7 @@ public final class KllFloatsSketchSortedView {
     populateFromSketch(items, levels, numLevels, numItems);
     blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
     if (cumulative) {
-      QuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
+      KllQuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
     }
   }
 
@@ -98,11 +113,12 @@ public final class KllFloatsSketchSortedView {
     numLevels_ = 0;  //not used by test
   }
 
+  @SuppressWarnings("deprecation")
   public float getQuantile(final double rank) {
     if (weights_[weights_.length - 1] < n_) {
       throw new SketchesStateException("getQuantile must be used with cumulative view only");
     }
-    final long pos = QuantilesHelper.posOfRank(rank, n_);
+    final long pos = KllQuantilesHelper.posOfRank(rank, n_);
     return approximatelyAnswerPositonalQuery(pos);
   }
 
@@ -328,10 +344,11 @@ public final class KllFloatsSketchSortedView {
     }
   }
 
+  @SuppressWarnings("deprecation")
   private float approximatelyAnswerPositonalQuery(final long pos) {
     assert pos >= 0;
     assert pos < n_;
-    final int index = QuantilesHelper.chunkContainingPos(weights_, pos);
+    final int index = KllQuantilesHelper.chunkContainingPos(weights_, pos);
     return items_[index];
   }
 
