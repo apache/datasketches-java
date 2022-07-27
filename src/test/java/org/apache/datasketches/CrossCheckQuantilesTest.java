@@ -80,7 +80,7 @@ public class CrossCheckQuantilesTest {
 
     //CREATE EMPTY SKETCHES
     ReqSketchBuilder reqBldr = ReqSketch.builder();
-    reqBldr.setK(4).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
+    reqBldr.setK(k).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive);
     ReqSketch reqSk = reqBldr.build();
 
     KllFloatsSketch kllSk = KllFloatsSketch.newHeapInstance(k);

@@ -287,6 +287,7 @@ public class ReqSketchTest {
     checkSerDeImpl(12, true, 2 * exact);
   }
 
+  @SuppressWarnings("deprecation")
   private static void checkSerDeImpl(final int k, final boolean hra, final int count) {
     final ReqSketch sk1 = ReqSketch.builder().setK(k).setHighRankAccuracy(hra).build();
     for (int i = 1; i <= count; i++) {
@@ -302,7 +303,7 @@ public class ReqSketchTest {
     assertEquals(sk2.getHighRankAccuracy(),sk1.getHighRankAccuracy());
     assertEquals(sk2.getK(), sk1.getK());
     assertEquals(sk2.getMaxNomSize(), sk1.getMaxNomSize());
-    //assertEquals(sk2.getLtEq(), sk1.getLtEq());
+    assertEquals(sk2.getLtEq(), sk1.getLtEq());
     assertEquals(sk2.getNumLevels(), sk1.getNumLevels());
     assertEquals(sk2.getSerializationBytes(), sk1.getSerializationBytes());
   }

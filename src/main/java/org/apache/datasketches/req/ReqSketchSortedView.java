@@ -25,7 +25,21 @@ import java.util.List;
 import org.apache.datasketches.InequalitySearch;
 
 /**
- * Supports searches for quantiles, Ranks, Iterator and Sorted View
+ * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
+ * One can iterate of the contents of the sketch, but the result is not sorted.
+ * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
+ * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
+ * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
+ * trial & error, try to figure out what the sketch actually has retained.
+ *
+ * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
+ * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
+ * test. One needs this sorted view for the test.</p>
+ *
+ * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
+ * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
+ * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
+ * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.<p>
  * @author Lee Rhodes
  */
 public class ReqSketchSortedView {
@@ -37,6 +51,7 @@ public class ReqSketchSortedView {
   private final boolean dedup;
 
   /**
+   *
    * Construct this sorted view with the given sketch.
    * The number of values in this sorted view will be the same as the number of retained values in the sketch.
    * @param sk the given sketch
@@ -48,7 +63,7 @@ public class ReqSketchSortedView {
   /**
    * Construct this sorted view with the given sketch and option to deduplicate the values.
    * The weights will be combined for the duplicate values.
-   * The getQuantile() and getRank() methods will work properly.
+   * The getQuantile() and getRank() methods will work correctly.
    * @param sk the given sketch
    * @param dedup if true, duplicate values will be combined into a single value with the combined weights.
    */

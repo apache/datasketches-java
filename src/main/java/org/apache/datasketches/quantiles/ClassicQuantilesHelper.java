@@ -17,12 +17,15 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.quantiles;
 
 /**
- * Common static methods for classic quantiles and KLL sketches
+ * Common static methods for Classic Quantiles sketches.
+ * @author lrhodes
+ * @deprecated to be removed before next release.
  */
-public class QuantilesHelper {
+@Deprecated
+public class ClassicQuantilesHelper {
 
   /**
    * Convert the weights into totals of the weights preceding each item.
@@ -117,3 +120,4 @@ public class QuantilesHelper {
   }
 
 }
+

@@ -279,7 +279,7 @@ abstract class BaseReqSketch {
    * This can be set anytime prior to a <i>getRank(float)</i> or <i>getQuantile(double)</i> or
    * equivalent query.
    * @return this
-   * @deprecated in the future the ltEq comparison parameter will not be saved at the class level in preference to
+   * @deprecated 4.0.0. In the future the ltEq comparison parameter will not be saved at the class level in preference to
    * the comparison parameter being specified for each API call. This method will be removed.
    */
   @Deprecated

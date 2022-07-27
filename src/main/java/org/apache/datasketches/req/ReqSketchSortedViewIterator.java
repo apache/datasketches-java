@@ -36,11 +36,13 @@ public class ReqSketchSortedViewIterator {
 
   private final float[] values;
   private final long[] cumWeights;
+  private final long totalN;
   private int index;
 
   ReqSketchSortedViewIterator(final float[] values, final long[] cumWeights) {
     this.values = values;
     this.cumWeights = cumWeights;
+    this.totalN = cumWeights[cumWeights.length - 1];
     index = -1;
   }
 
@@ -79,8 +81,7 @@ public class ReqSketchSortedViewIterator {
    * @return normalized rank for the current value or previous value.
    */
   public double getNormalizedRank(final boolean inclusive) {
-    final double N = cumWeights[ cumWeights.length - 1];
-    return getCumulativeWeight(inclusive) / N;
+    return (double) getCumulativeWeight(inclusive) / totalN;
   }
 
   /**
