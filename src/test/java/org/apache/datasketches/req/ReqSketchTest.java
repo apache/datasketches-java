@@ -27,8 +27,7 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-//import static org.apache.datasketches.req.FloatBuffer.TAB;
-import org.apache.datasketches.req.ReqAuxiliary.Row;
+import org.apache.datasketches.req.ReqSketchSortedView.Row;
 import org.testng.annotations.Test;
 
 /**
@@ -60,7 +59,7 @@ public class ReqSketchTest {
     }
     final ReqSketch sk = loadSketch(k, min, max, up, hra, ltEq, skDebug);
     checkToString(sk, iDebug);
-    checkAux(sk, iDebug);
+    checkSortedView(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
     checkGetRanks(sk, max, iDebug);
     checkGetQuantiles(sk, iDebug);
@@ -153,23 +152,23 @@ public class ReqSketchTest {
     if (iDebug > 0) { println(""); }
   }
 
-  private static void checkAux(final ReqSketch sk, final int iDebug) {
-    final ReqAuxiliary aux = new ReqAuxiliary(sk);
-    if (iDebug > 0) { println(aux.toString(3,12)); }
+  private static void checkSortedView(final ReqSketch sk, final int iDebug) {
+    final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
+    if (iDebug > 0) { println(sv.toString(3,12)); }
 
     final int totalCount = sk.getRetainedItems();
-    float item = 0;
+    float value = 0;
     long wt = 0;
     for (int i = 0; i < totalCount; i++) {
-      final Row row = aux.getRow(i);
+      final Row row = sv.getRow(i);
       if (i == 0) {
-        item = row.item;
-        wt = row.weight;
+        value = row.value;
+        wt = row.cumWeight;
       } else {
-        assertTrue(row.item >= item);
-        assertTrue(row.weight >= wt);
-        item = row.item;
-        wt = row.weight;
+        assertTrue(row.value >= value);
+        assertTrue(row.cumWeight >= wt);
+        value = row.value;
+        wt = row.cumWeight;
       }
     }
   }
@@ -214,7 +213,7 @@ public class ReqSketchTest {
   }
 
   private static void checkIterator(final ReqSketch sk, final int iDebug) {
-    if (iDebug > 0) { println("iterator() Test"); }
+    if (iDebug > 0) { println("Sketch iterator() Test"); }
     final ReqIterator itr = sk.iterator();
     while (itr.next()) {
       final float v = itr.getValue();
@@ -288,6 +287,7 @@ public class ReqSketchTest {
     checkSerDeImpl(12, true, 2 * exact);
   }
 
+  @SuppressWarnings("deprecation")
   private static void checkSerDeImpl(final int k, final boolean hra, final int count) {
     final ReqSketch sk1 = ReqSketch.builder().setK(k).setHighRankAccuracy(hra).build();
     for (int i = 1; i <= count; i++) {
@@ -332,7 +332,7 @@ public class ReqSketchTest {
   }
 
   @Test
-  public void tenItems() {
+  public void tenValues() {
     final ReqSketch sketch = ReqSketch.builder().build();
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
@@ -387,7 +387,8 @@ public class ReqSketchTest {
     }
   }
 
-  private static void outputCompactorDetail(final ReqSketch sk, final String fmt, final boolean allData, final String text) {
+  private static void outputCompactorDetail(final ReqSketch sk, final String fmt, final boolean allData,
+      final String text) {
     println(text);
     println(sk.viewCompactorDetail(fmt, allData));
   }

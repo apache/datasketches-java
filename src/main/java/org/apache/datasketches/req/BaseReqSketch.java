@@ -224,6 +224,12 @@ abstract class BaseReqSketch {
   public abstract int getSerializationBytes();
 
   /**
+   * Gets the sorted view of the current state of this sketch
+   * @return the sorted view of the current state of this sketch
+   */
+  public abstract ReqSketchSortedView getSortedView();
+
+  /**
    * Returns true if this sketch is empty.
    * @return empty flag
    */
@@ -239,8 +245,10 @@ abstract class BaseReqSketch {
    * Returns the current comparison criterion. If true the value comparison criterion is
    * &le;, otherwise it will be the default, which is &lt;.
    * @return the current comparison criterion
-   * @deprecated
+   * @deprecated in the future the ltEq comparison parameter will not be saved at the class level in preference to
+   * the comparison parameter being specified for each API call. This method will be removed.
    */
+  @Deprecated
   public abstract boolean isLessThanOrEqual();
 
   /**
@@ -266,14 +274,15 @@ abstract class BaseReqSketch {
 
   /**
    * Sets the chosen criterion for value comparison
-   * @deprecated
-   *
    * @param ltEq (Less-than-or Equals) If true, the sketch will use the &le; criterion for comparing
    * values.  Otherwise, the criterion is strictly &lt;, the default.
    * This can be set anytime prior to a <i>getRank(float)</i> or <i>getQuantile(double)</i> or
    * equivalent query.
    * @return this
+   * @deprecated 4.0.0. In the future the ltEq comparison parameter will not be saved at the class level in preference to
+   * the comparison parameter being specified for each API call. This method will be removed.
    */
+  @Deprecated
   public abstract ReqSketch setLessThanOrEqual(final boolean ltEq);
 
   /**
@@ -301,7 +310,7 @@ abstract class BaseReqSketch {
    * items of the compactor and the current nominal capacity of the compactor.
    * @param fmt the format string for the data items; example: "%4.0f".
    * @param allData all the retained items for the sketch will be output by
-   * compactory level.  Otherwise, just a summary will be output.
+   * compactor level.  Otherwise, just a summary will be output.
    * @return a detailed view of the compactors and their data
    */
   public abstract String viewCompactorDetail(String fmt, boolean allData);

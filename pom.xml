@@ -397,9 +397,9 @@ under the License.
     </plugins>
   </build>
   <profiles>
-    <!-- Ignore nuisance warning from Apache parent plugin: 
+    <!-- Ignore nuisance warning from Apache parent plugin:
          "maven-remote-resources-plugin (goal "process") is ignored by m2e".
-         This profile is only active when the property "m2e.version" is set, 
+         This profile is only active when the property "m2e.version" is set,
          which is the case when building in Eclipse with m2e.
     -->
     <profile>
@@ -467,8 +467,8 @@ under the License.
       </build>
     </profile>
 
-    <!--  This profile is used to release signed jars to the Apache Nexus repository. 
-          This must be executed from a git repository set at the proper Release branch (e.g., 1.1.X) 
+    <!--  This profile is used to release signed jars to the Apache Nexus repository.
+          This must be executed from a git repository set at the proper Release branch (e.g., 1.1.X)
           and at a Release Candidate tag (e.g., 1.1.0-RC1).
           The pom version in the release branch must be properly set to something like: "1.1.0".
           The pom version in the master would be set to something like: "1.2.0-SNAPSHOT".
@@ -611,7 +611,7 @@ under the License.
         </plugins>
       </build>
     </profile>
-    <!-- Disable source release assembly for 'apache-release' profile. 
+    <!-- Disable source release assembly for 'apache-release' profile.
              This is performed from a script outside Maven
     -->
     <profile>
@@ -662,6 +662,9 @@ under the License.
       <activation>
         <jdk>[11,14)</jdk>
       </activation>
+      <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+      </properties>
       <build>
         <pluginManagement>
           <plugins>

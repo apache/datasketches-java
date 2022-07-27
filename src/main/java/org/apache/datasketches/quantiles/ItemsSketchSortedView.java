@@ -24,11 +24,25 @@ import static org.apache.datasketches.quantiles.Util.checkFractionalRankBounds;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesStateException;
 
 /**
- * Auxiliary data structure for answering generic quantile queries
+ * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
+ * One can iterate of the contents of the sketch, but the result is not sorted.
+ * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
+ * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
+ * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
+ * trial &amp; error, try to figure out what the sketch actually has retained.
+ *
+ * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
+ * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
+ * test. One needs this sorted view for the test.</p>
+ *
+ * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
+ * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
+ * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
+ * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.</p>
+ *
  * @param <T> type of item
  *
  * @author Kevin Lang
@@ -72,7 +86,7 @@ public final class ItemsSketchSortedView<T> {
         cumWtsArr[i] = inclusive ? newSubtot : subtot;
         subtot = newSubtot;
       }
-  
+
       assert subtot == n;
     }
 
@@ -86,13 +100,14 @@ public final class ItemsSketchSortedView<T> {
    * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
    * @return the estimated quantile
    */
+  @SuppressWarnings("deprecation")
   public T getQuantile(final double rank) {
     checkFractionalRankBounds(rank);
     if (auxN_ <= 0) { return null; }
     if (auxCumWtsArr_[auxCumWtsArr_.length - 1] < auxN_) {
       throw new SketchesStateException("getQuantile must be used with cumulative view only");
     }
-    final long pos = QuantilesHelper.posOfRank(rank, auxN_);
+    final long pos = ClassicQuantilesHelper.posOfRank(rank, auxN_);
     return approximatelyAnswerPositionalQuery(pos);
   }
 
@@ -108,11 +123,11 @@ public final class ItemsSketchSortedView<T> {
    * @param pos position
    * @return approximate answer
    */
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({ "unchecked", "deprecation" })
   private T approximatelyAnswerPositionalQuery(final long pos) {
     assert 0 <= pos;
     assert pos < auxN_;
-    final int index = QuantilesHelper.chunkContainingPos(auxCumWtsArr_, pos);
+    final int index = ClassicQuantilesHelper.chunkContainingPos(auxCumWtsArr_, pos);
     return (T) this.auxSamplesArr_[index];
   }
 

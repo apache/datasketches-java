@@ -35,7 +35,6 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.QuantilesHelper;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -853,10 +852,11 @@ public class HeapUpdateDoublesSketchTest {
     qs1.putMemory(dstMem);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkAuxPosOfRank() throws Exception {
     long n = 10;
-    long returnValue = QuantilesHelper.posOfRank(1.0, 10);
+    long returnValue = ClassicQuantilesHelper.posOfRank(1.0, 10);
     //println("" + returnValue);
     assertEquals(returnValue, n-1);
   }

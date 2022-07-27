@@ -85,12 +85,11 @@ public enum InequalitySearch {
 
     @Override
     int resolve(final int lo, final int hi, final int low, final int high) {
-      if (lo >= high) { return high; }
-      return -1;
+      return (lo >= high) ? high : -1;
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
+    public String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -104,7 +103,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+    public String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -118,7 +117,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
+    public String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "LT: " + v + " <= arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -176,12 +175,11 @@ public enum InequalitySearch {
 
     @Override
     int resolve(final int lo, final int hi, final int low, final int high) {
-      if (lo >= high) { return high; }
-      return -1;
+      return (lo >= high) ? high : -1;
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
+    public String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -195,7 +193,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+    public String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -209,7 +207,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
+    public String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "LE: " + v + " < arr[" + low + "]=" + arr[low] + "; return -1";
       }
@@ -267,7 +265,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
+    public String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         if (v > arr[high]) {
           return "EQ: " + v + " > arr[" + high + "]; return -1";
@@ -281,7 +279,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+    public String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         if (v > arr[high]) {
           return "EQ: " + v + " > arr[" + high + "]; return -1";
@@ -295,7 +293,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
+    public String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         if (v > arr[high]) {
           return "EQ: " + v + " > arr[" + high + "]; return -1";
@@ -353,12 +351,11 @@ public enum InequalitySearch {
 
     @Override
     int resolve(final int lo, final int hi, final int low, final int high) {
-      if (hi <= low) { return low; }
-      return -1;
+      return (hi <= low) ? low : -1;
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
+    public String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -372,7 +369,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+    public String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -386,7 +383,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
+    public String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "GE: " + v + " > arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -444,12 +441,11 @@ public enum InequalitySearch {
 
     @Override
     int resolve(final int lo, final int hi, final int low, final int high) {
-      if (hi <= low) { return low; }
-      return -1;
+      return (hi <= low) ? low : -1;
     }
 
     @Override
-    String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
+    public String desc(final double[] arr, final int low, final int high, final double v, final int idx) {
       if (idx == -1) {
         return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -463,7 +459,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
+    public String desc(final float[] arr, final int low, final int high, final float v, final int idx) {
       if (idx == -1) {
         return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -477,7 +473,7 @@ public enum InequalitySearch {
     }
 
     @Override
-    String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
+    public String desc(final long[] arr, final int low, final int high, final long v, final int idx) {
       if (idx == -1) {
         return "GT: " + v + " >= arr[" + high + "]=" + arr[high] + "; return -1";
       }
@@ -580,7 +576,7 @@ public enum InequalitySearch {
    * @param idx the resolved index from the search
    * @return the descriptive string.
    */
-  abstract String desc(double[] arr, int low, int high, double v, int idx);
+  public abstract String desc(double[] arr, int low, int high, double v, int idx);
 
   /**
    * Optional call that describes the details of the results of the search.
@@ -592,7 +588,7 @@ public enum InequalitySearch {
    * @param idx the resolved index from the search
    * @return the descriptive string.
    */
-  abstract String desc(float[] arr, int low, int high, float v, int idx);
+  public abstract String desc(float[] arr, int low, int high, float v, int idx);
 
   /**
    * Optional call that describes the details of the results of the search.
@@ -604,7 +600,7 @@ public enum InequalitySearch {
    * @param idx the resolved index from the search
    * @return the descriptive string.
    */
-  abstract String desc(long[] arr, int low, int high, long v, int idx);
+  public abstract String desc(long[] arr, int low, int high, long v, int idx);
 
   /**
    * Binary Search for the index of the double value in the given search range that satisfies

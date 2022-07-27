@@ -149,6 +149,5 @@ In Eclipse, open the project *Properties / Java Build Path / Module Dependencies
     * Select button: *opens*
     * Hit *OK*
 
-
 **NOTE:** If you execute *Maven/Update Project...* from Eclipse with the option *Update project configuration from pom.xml* checked, all of the above will be erased, and you will have to redo it.
 
