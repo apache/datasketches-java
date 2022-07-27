@@ -21,7 +21,7 @@
 package org.apache.datasketches.req;
 
 /**
- * Iterator over KllDoublesSketchSortedView.
+ * Iterator over ReqSketchSortedView.
  *
  * <p>The recommended iteration loop:</p>
  * <pre>{@code
