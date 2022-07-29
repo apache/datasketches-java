@@ -19,10 +19,10 @@
 
 package org.apache.datasketches;
 
-import static org.apache.datasketches.CrossCheckQuantilesTest.PrimType.DOUBLE;
+//import static org.apache.datasketches.CrossCheckQuantilesTest.PrimType.DOUBLE;
 import static org.apache.datasketches.CrossCheckQuantilesTest.PrimType.FLOAT;
-import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.CLASSIC;
-import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.KLL;
+//import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.CLASSIC;
+//import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.KLL;
 import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.REQ;
 import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.REQ_NO_DEDUP;
 import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.REQ_SV;
@@ -31,9 +31,9 @@ import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.kll.KllFloatsSketch;
-import org.apache.datasketches.quantiles.DoublesSketch;
-import org.apache.datasketches.quantiles.UpdateDoublesSketch;
+//import org.apache.datasketches.kll.KllFloatsSketch;
+//import org.apache.datasketches.quantiles.DoublesSketch;
+//import org.apache.datasketches.quantiles.UpdateDoublesSketch;
 import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSketchBuilder;
 import org.apache.datasketches.req.ReqSketchSortedView;
@@ -51,42 +51,54 @@ public class CrossCheckQuantilesTest {
   @Test
   public void checkQuantileSketches() {
     checkQAndR(REQ, FLOAT, NON_INCLUSIVE); //must do REQ first to compute expected results!
+    checkQAndR(REQ, FLOAT, NON_INCLUSIVE_STRICT);
     checkQAndR(REQ, FLOAT, INCLUSIVE);
 
     checkQAndR(REQ_SV, FLOAT, NON_INCLUSIVE);
+    checkQAndR(REQ, FLOAT, NON_INCLUSIVE_STRICT);
     checkQAndR(REQ_SV, FLOAT, INCLUSIVE);
 
     checkQAndR(REQ_NO_DEDUP, FLOAT, NON_INCLUSIVE);
+    checkQAndR(REQ, FLOAT, NON_INCLUSIVE_STRICT);
     checkQAndR(REQ_NO_DEDUP, FLOAT, INCLUSIVE);
 
-    checkQAndR(KLL, FLOAT, NON_INCLUSIVE);
-    checkQAndR(KLL, FLOAT, INCLUSIVE);
-
-    checkQAndR(CLASSIC, DOUBLE, NON_INCLUSIVE);
-    checkQAndR(CLASSIC, DOUBLE, INCLUSIVE);
+//    checkQAndR(KLL, FLOAT, NON_INCLUSIVE);
+//    checkQAndR(KLL, FLOAT, INCLUSIVE);
+//
+//    checkQAndR(CLASSIC, DOUBLE, NON_INCLUSIVE);
+//    checkQAndR(CLASSIC, DOUBLE, INCLUSIVE);
     println("");
   }
 
   double[] testRankResults_NI = null;
   double[] testRankResults_I = null;
   float[] testQuantileFResults_NI = null;
+  float[] testQuantileFResults_NIS = null;
   float[] testQuantileFResults_I = null;
   double[] testQuantileDResults_NI = null;
+  double[] testQuantileDResults_NIS = null;
   double[] testQuantileDResults_I = null;
 
-  private void checkQAndR(final SkType skType, final PrimType type, final QuantileSearchCriteria inclusive) {
+  private void checkQAndR(final SkType skType, final PrimType type, final QuantileSearchCriteria searchCrit) {
     String head = "CHECK " + skType.toString();
-    if (inclusive == INCLUSIVE) { println("\n---------- " + head + " INCLUSIVE ----------\n"); }
-    else { println("\n########## " + head + " NON-INCLUSIVE ##########\n"); }
+    if (searchCrit == INCLUSIVE) {
+      println("\n---------- " + head + " INCLUSIVE ----------\n");
+    }
+    else if (searchCrit == NON_INCLUSIVE_STRICT) {
+      println("\n---------- " + head + " NON_INCLUSIVE_STRICT ----------\n");
+    }
+    else {
+      println("\n########## " + head + " NON_INCLUSIVE ##########\n");
+    }
 
     //CREATE EMPTY SKETCHES
     ReqSketchBuilder reqBldr = ReqSketch.builder();
-    reqBldr.setK(k).setHighRankAccuracy(hra).setLessThanOrEqual(inclusive == INCLUSIVE ? true : false);
+    reqBldr.setK(k).setHighRankAccuracy(hra).setLessThanOrEqual(searchCrit == INCLUSIVE ? true : false);
     ReqSketch reqSk = reqBldr.build();
 
-    KllFloatsSketch kllSk = KllFloatsSketch.newHeapInstance(k);
-
-    UpdateDoublesSketch udSk = DoublesSketch.builder().setK(k).build();
+//    KllFloatsSketch kllSk = KllFloatsSketch.newHeapInstance(k);
+//
+//    UpdateDoublesSketch udSk = DoublesSketch.builder().setK(k).build();
 
     //SKETCH INPUT.
     float[] baseFVals  = {10,20,30,40,50};
@@ -135,13 +147,15 @@ public class CrossCheckQuantilesTest {
       testRanks[i] = (double) i / (numTR - 1);
     }
 
-    //TEST RESULT ARRAYS, NI = non inclusive, I = inclusive
+    //TEST RESULT ARRAYS, NI = non inclusive, NIS = non inclusive strict, I = inclusive
     if (testRankResults_NI == null) {
       testRankResults_NI = new double[numTV];
       testRankResults_I  = new double[numTV];
       testQuantileFResults_NI = new float[numTR];
+      testQuantileFResults_NIS = new float[numTR];
       testQuantileFResults_I  = new float[numTR];
       testQuantileDResults_NI = new double[numTR];
+      testQuantileDResults_NIS = new double[numTR];
       testQuantileDResults_I  = new double[numTR];
     }
 
@@ -156,8 +170,8 @@ public class CrossCheckQuantilesTest {
     for (int i = 0; i < N; i++) {
       printf("%16.1f%16d%16.3f\n", skFValues[i], i + 1, (i + 1.0)/N);
       reqSk.update(skFValues[i]);
-      kllSk.update(skFValues[i]);
-      udSk.update((skDValues[i]));
+//      kllSk.update(skFValues[i]);
+//      udSk.update((skDValues[i]));
     }
     println("");
 
@@ -170,7 +184,7 @@ public class CrossCheckQuantilesTest {
 
     /**************************************/
 
-    println(skType.toString() + " GetQuantile(NormalizedRank), INCLUSIVE = " + inclusive.toString());
+    println(skType.toString() + " GetQuantile(NormalizedRank), Search Criterion = " + searchCrit.toString());
     println("  CumWeight is for illustration");
     println("  Convert NormalizedRank to CumWeight (CW).");
     println("  Search RSSV CumWeights[] array:");
@@ -185,29 +199,33 @@ public class CrossCheckQuantilesTest {
       double qD;//double result
       switch (skType) {
         case REQ: { //this case creates the expected values for all the others
-          qF = reqSk.getQuantile(testRank, inclusive);
+          qF = reqSk.getQuantile(testRank, searchCrit);
           qD = qF;
-          if (inclusive == INCLUSIVE) {
+          if (searchCrit == INCLUSIVE) {
             testQuantileFResults_I[i] = qF;
             testQuantileDResults_I[i] = qD;
           }
-          else if (inclusive == NON_INCLUSIVE){
+          else if (searchCrit == NON_INCLUSIVE){
             testQuantileFResults_NI[i] = qF;
             testQuantileDResults_NI[i] = qD;
+          } else { //NON_INCLUSIVE_STRICT
+            testQuantileFResults_NIS[i] = qF;
+            testQuantileDResults_NIS[i] = qD;
           }
           break;
         }
         case REQ_SV: {
-          qF = rssv.getQuantile(testRank, inclusive);
+          qF = rssv.getQuantile(testRank, searchCrit);
           qD = 0;
-          if (inclusive == INCLUSIVE) { assertEquals(qF, testQuantileFResults_I[i]); }
-          else { assertEquals(qF, testQuantileFResults_NI[i]); };
+          if (searchCrit == INCLUSIVE) { assertEquals(qF, testQuantileFResults_I[i]); }
+          else if (searchCrit == NON_INCLUSIVE) { assertEquals(qF, testQuantileFResults_NI[i]); }
+          else { assertEquals(qF, testQuantileFResults_NIS[i]); };
           break;
         }
         case REQ_NO_DEDUP: {
-          qF = this.getQuantile(rawCumWts, rawFVals, testRank, inclusive);
+          qF = this.getQuantile(rawCumWts, rawFVals, testRank, searchCrit);
           qD = 0;
-          if (inclusive == INCLUSIVE) { assertEquals(qF, testQuantileFResults_I[i]); }
+          if (searchCrit == INCLUSIVE) { assertEquals(qF, testQuantileFResults_I[i]); }
           else { assertEquals(qF, testQuantileFResults_NI[i]); };
           break;
         }
@@ -227,24 +245,30 @@ public class CrossCheckQuantilesTest {
 //        }
         default: qD = qF = 0; break;
       }
-      if (inclusive == INCLUSIVE) {
+      if (searchCrit == INCLUSIVE) {
         if (type == PrimType.DOUBLE) {
           printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qD, testQuantileDResults_I[i]);
         } else { //float
           printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qF, testQuantileFResults_I[i]);
         }
-      } else if (inclusive == NON_INCLUSIVE){
+      } else if (searchCrit == NON_INCLUSIVE) {
         if (type == PrimType.DOUBLE) {
           printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qD, testQuantileDResults_NI[i]);
         } else { //float
           printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qF, testQuantileFResults_NI[i]);
+        }
+      } else { //NON_INCLUSIVE_STRICT
+        if (type == PrimType.DOUBLE) {
+          printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qD, testQuantileDResults_NIS[i]);
+        } else { //float
+          printf("%16.3f%16.3f%16.1f%16.1f\n", testRank, testRank * N, qF, testQuantileFResults_NIS[i]);
         }
       }
     }
 
     //GET RANK
     println("");
-    println(skType.toString() + " GetRank(Value), INCLUSIVE = " + inclusive);
+    println(skType.toString() + " GetRank(Value), Search Criterion = " + searchCrit);
     println("  Search RSSV Values[] array:");
     println("    Non Inclusive (uses LT): arr[A] <  V <= arr[B], return A");
     println("    Inclusive     (uses LE): arr[A] <= V <  arr[B], return A");
@@ -257,40 +281,40 @@ public class CrossCheckQuantilesTest {
       float testValue = testFValues[i];
       switch (skType) {
         case REQ: {
-          r = reqSk.getRank(testValue, inclusive);
-          if (inclusive == INCLUSIVE) { testRankResults_I[i] = r; }
-          else if (inclusive == NON_INCLUSIVE) { testRankResults_NI[i] = r; }
+          r = reqSk.getRank(testValue, searchCrit);
+          if (searchCrit == INCLUSIVE) { testRankResults_I[i] = r; }
+          else { testRankResults_NI[i] = r; }
           break;
         }
         case REQ_SV: {
-          r = rssv.getRank(testValue,  inclusive);
-          if (inclusive == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
-          else if (inclusive == NON_INCLUSIVE) { assertEquals(r, testRankResults_NI[i]); };
+          r = rssv.getRank(testValue,  searchCrit);
+          if (searchCrit == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
+          else { assertEquals(r, testRankResults_NI[i]); };
           break;
         }
         case REQ_NO_DEDUP: {
-          r = getRank(rawCumWts, rawFVals, testValue, inclusive);
-          if (inclusive == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
-          else if (inclusive == NON_INCLUSIVE) { assertEquals(r, testRankResults_NI[i]); };
+          r = getRank(rawCumWts, rawFVals, testValue, searchCrit);
+          if (searchCrit == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
+          else { assertEquals(r, testRankResults_NI[i]); };
           break;
         }
 //        case KLL: {
 //          r = kllSk.getRank(testValue,  inclusive);
 //          if (inclusive == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
-//          else if (inclusive == NON_INCLUSIVE) { assertEquals(r, testRankResults_NI[i]); };
+//          else { assertEquals(r, testRankResults_NI[i]); };
 //          break;
 //        }
 //        case CLASSIC: {
 //          r = udSk.getRank(testValue,  inclusive);
 //          if (inclusive == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
-//          else if (inclusive == NON_INCLUSIVE) { assertEquals(r, testRankResults_NI[i]); };
+//          else { assertEquals(r, testRankResults_NI[i]); };
 //          break;
 //        }
         default: r = 0; break;
       }
-      if (inclusive == INCLUSIVE) {
+      if (searchCrit == INCLUSIVE) {
         printf("%16.1f%16.3f%16.3f\n", testValue, r, testRankResults_I[i]);
-      } else if (inclusive == NON_INCLUSIVE) {
+      } else {
         printf("%16.1f%16.3f%16.3f\n", testValue, r, testRankResults_NI[i]);
       }
     }
@@ -302,19 +326,21 @@ public class CrossCheckQuantilesTest {
    * @param cumWeights the given cumulative weights
    * @param values the given values
    * @param normRank the given normalized rank
-   * @param inclusive determines the search criterion used.
+   * @param srchCrit determines the search criterion used.
    * @return the quantile
    */
   public float getQuantile(final long[] cumWeights, final float[] values, final double normRank,
-      final QuantileSearchCriteria inclusive) {
+      final QuantileSearchCriteria srchCrit) {
     final int len = cumWeights.length;
     final long N = cumWeights[len -1];
     final long rank = (int)(normRank * N); //denormalize
-    final InequalitySearch crit = inclusive == INCLUSIVE ? InequalitySearch.GE : InequalitySearch.GT;
+    final InequalitySearch crit = srchCrit == INCLUSIVE
+        ? InequalitySearch.GE
+        : InequalitySearch.GT; //includes both NON_INCLUSIVE and NON_INCLUSIVE_STRICT
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
-      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
+      if (srchCrit == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (srchCrit == NON_INCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }
@@ -324,14 +350,14 @@ public class CrossCheckQuantilesTest {
    * @param cumWeights the given cumulative weights
    * @param values the given values
    * @param value the given value
-   * @param inclusive determines the search criterion used.
+   * @param srchCrit determines the search criterion used.
    * @return the normalized rank
    */
   public double getRank(final long[] cumWeights, final float[] values, final float value,
-      final QuantileSearchCriteria inclusive) {
+      final QuantileSearchCriteria srchCrit) {
     final int len = values.length;
     final long N = cumWeights[len -1];
-    final InequalitySearch crit = inclusive == INCLUSIVE ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = srchCrit == INCLUSIVE ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
@@ -339,7 +365,7 @@ public class CrossCheckQuantilesTest {
     return (double)cumWeights[index] / N; //normalize
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format

@@ -62,7 +62,7 @@ public enum QuantileSearchCriteria {
    * there is no quantile that satisfies this criterion, however,
    * the method will return the largest quantile value retained by the sketch as a convenience.</p>
    *
-   * <p>This is not strictly mathematically correct, but very convenient as it most often what we expect.</p>
+   * <p>This is not strictly mathematically correct, but very convenient as it is most often what we expect.</p>
    */
   NON_INCLUSIVE,
 
