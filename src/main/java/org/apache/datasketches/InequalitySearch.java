@@ -37,6 +37,8 @@ import java.util.Objects;
  * <p>Given a sorted array of values <i>arr[]</i> and the search key value <i>v</i>, the algorithms for
  * the searching criteria are given with each enum criterion.</p>
  *
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks Tutorial</a>
  * @author Lee Rhodes
  */
 public enum InequalitySearch {

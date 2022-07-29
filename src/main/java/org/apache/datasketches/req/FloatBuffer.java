@@ -21,6 +21,10 @@ package org.apache.datasketches.req;
 
 import java.util.Arrays;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+
+import org.apache.datasketches.QuantileSearchCriteria;
+
 import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableBuffer;
@@ -202,10 +206,10 @@ class FloatBuffer {
    * Returns the count of items based on the given criteria.
    * Also used in test.
    * @param value the given value
-   * @param ltEq the chosen criterion: LT or LE
+   * @param inclusive the chosen criterion: LT, LT Strict, or LE
    * @return count of items based on the given criterion.
    */
-  int getCountWithCriterion(final float value, final boolean ltEq) {
+  int getCountWithCriterion(final float value, final QuantileSearchCriteria inclusive) {
     assert !Float.isNaN(value) : "Float values must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
     int low = 0;    //Initialized to space at top
@@ -214,7 +218,7 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final InequalitySearch crit = ltEq ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(arr_, low, high, value, crit);
     return index == -1 ? 0 : index - low + 1;
   }

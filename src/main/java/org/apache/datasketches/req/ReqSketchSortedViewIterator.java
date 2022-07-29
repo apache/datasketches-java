@@ -20,6 +20,8 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import org.apache.datasketches.QuantileSearchCriteria;
 /**
  * Iterator over KllDoublesSketchSortedView.
  *
@@ -66,9 +68,9 @@ public class ReqSketchSortedViewIterator {
    * Otherwise, returns the cumulative weightof the previous value.
    * @return cumulative weight for the current value.
    */
-  public long getCumulativeWeight(final boolean inclusive) {
-    return inclusive ? cumWeights[index]
-        : (index == 0) ? 0 : cumWeights[index - 1];
+  public long getCumulativeWeight(final QuantileSearchCriteria inclusive) {
+    if (inclusive == INCLUSIVE) { return cumWeights[index]; }
+    return (index == 0) ? 0 : cumWeights[index - 1];
   }
 
   /**
@@ -80,7 +82,7 @@ public class ReqSketchSortedViewIterator {
    * Otherwise, returns the normalized rank of the previous value.
    * @return normalized rank for the current value or previous value.
    */
-  public double getNormalizedRank(final boolean inclusive) {
+  public double getNormalizedRank(final QuantileSearchCriteria inclusive) {
     return (double) getCumulativeWeight(inclusive) / totalN;
   }
 

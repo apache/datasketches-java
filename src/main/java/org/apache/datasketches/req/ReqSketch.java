@@ -19,10 +19,14 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
@@ -230,11 +234,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getCDF(final float[] splitPoints) {
-    return getCDF(splitPoints, ltEq);
+    return getCDF(splitPoints, QuantileSearchCriteria.NON_INCLUSIVE);
   }
 
   @Override
-  public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
+  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return null; }
     final int numBkts = splitPoints.length + 1;
     final double[] outArr = new double[numBkts];
@@ -267,11 +271,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getPMF(final float[] splitPoints) {
-    return getPMF(splitPoints, ltEq);
+    return getPMF(splitPoints, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
   }
 
   @Override
-  public double[] getPMF(final float[] splitPoints, final boolean inclusive) {
+  public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return null; }
     final int numBkts = splitPoints.length + 1;
     final double[] outArr = new double[numBkts];
@@ -285,11 +289,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getQuantile(final double normRank) {
-    return getQuantile(normRank, ltEq);
+    return getQuantile(normRank, ltEq == true ? INCLUSIVE : NON_INCLUSIVE );
   }
 
   @Override
-  public float getQuantile(final double normRank, final boolean inclusive) {
+  public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return Float.NaN; }
     if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
@@ -303,11 +307,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float[] getQuantiles(final double[] normRanks) {
-    return getQuantiles(normRanks, ltEq);
+    return getQuantiles(normRanks, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
   }
 
   @Override
-  public float[] getQuantiles(final double[] normRanks, final boolean inclusive) {
+  public float[] getQuantiles(final double[] normRanks, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return null; }
     final int len = normRanks.length;
     final float[] qArr = new float[len];
@@ -319,11 +323,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double getRank(final float value) {
-    return getRank(value, ltEq);
+    return getRank(value, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
   }
 
   @Override
-  public double getRank(final float value, final boolean inclusive) {
+  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return Double.NaN; }
     final long nnCount = getCount(value, inclusive);
     return (double)nnCount / totalN;
@@ -336,11 +340,11 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getRanks(final float[] values) {
-    return getRanks(values, ltEq);
+    return getRanks(values, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
   }
 
   @Override
-  public double[] getRanks(final float[] values, final boolean inclusive) {
+  public double[] getRanks(final float[] values, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return null; }
     final int numValues = values.length;
     final double[] retArr = new double[numValues];
@@ -586,7 +590,7 @@ public class ReqSketch extends BaseReqSketch {
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
   }
 
-  private long getCount(final float value, final boolean inclusive) {
+  private long getCount(final float value, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return 0; }
     final int numComp = compactors.size();
     long cumNnr = 0;
@@ -599,7 +603,7 @@ public class ReqSketch extends BaseReqSketch {
     return cumNnr;
   }
 
-  private long[] getCounts(final float[] values, final boolean inclusive) {
+  private long[] getCounts(final float[] values, final QuantileSearchCriteria inclusive) {
     final int numValues = values.length;
     final int numComp = compactors.size();
     final long[] cumNnrArr = new long[numValues];
@@ -621,7 +625,7 @@ public class ReqSketch extends BaseReqSketch {
    * @param inclusive if true the weight of a given value is included into its rank
    * @return a CDF in raw counts
    */
-  private long[] getPMForCDF(final float[] splits, final boolean inclusive) {
+  private long[] getPMForCDF(final float[] splits, final QuantileSearchCriteria inclusive) {
     validateSplits(splits);
     final int numSplits = splits.length;
     final long[] splitCounts = getCounts(splits, inclusive);

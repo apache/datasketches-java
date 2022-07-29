@@ -19,13 +19,25 @@
 
 package org.apache.datasketches.req;
 
+import org.apache.datasketches.QuantileSearchCriteria;
+
 /**
  * This abstract class provides a single place to define and document the public API
  * for the Relative Error Quantiles Sketch.
  *
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks Tutorial</a>
+ *
  * @author Lee Rhodes
  */
 abstract class BaseReqSketch {
+
+  /**
+   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(float[] splitPoints, QuantileSearchCriteria)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public abstract double[] getCDF(float[] splitPoints);
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
@@ -40,24 +52,17 @@ abstract class BaseReqSketch {
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
+   * the largest value retained by the sketch.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param inclusive if true the weight of a given value is included into its rank.
+   * @param inclusive if true, the weight of a given value is included into its rank.
    *
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public abstract double[] getCDF(float[] splitPoints, boolean inclusive);
-
-  /**
-   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, isLessThanOrEqual())}
-   * @param splitPoints splitPoints
-   * @return CDF
-   */
-  public abstract double[] getCDF(float[] splitPoints);
+  public abstract double[] getCDF(float[] splitPoints, QuantileSearchCriteria inclusive);
 
   /**
    * If true, the high ranks are prioritized for better accuracy. Otherwise
@@ -119,12 +124,12 @@ abstract class BaseReqSketch {
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
+   * splitPoint, with the exception that the last interval will include the largest value retained by the sketch.
    */
-  public abstract double[] getPMF(float[] splitPoints, boolean inclusive);
+  public abstract double[] getPMF(float[] splitPoints, QuantileSearchCriteria inclusive);
 
   /**
-   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, isLessThanOrEqual())}
+   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(float[] splitPoints, QuantileSearchCriteria)}
    * @param splitPoints splitPoints
    * @return PMF
    */
@@ -137,10 +142,10 @@ abstract class BaseReqSketch {
    * @param inclusive if true, the given rank is considered inclusive.
    * @return the approximate quantile given the normalized rank.
    */
-  public abstract float getQuantile(double normRank, boolean inclusive);
+  public abstract float getQuantile(double normRank, QuantileSearchCriteria inclusive);
 
   /**
-   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, isLessThanOrEqual())}
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(double fraction, QuantileSearchCriteria)}
    * @param normRank fractional rank
    * @return quantile
    */
@@ -153,10 +158,11 @@ abstract class BaseReqSketch {
    * @return the array of quantiles that correspond to the given array of normalized ranks.
    * See <i>getQuantile(double)</i>
    */
-  public abstract float[] getQuantiles(double[] normRanks, boolean inclusive);
+  public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria inclusive);
 
   /**
-   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, isLessThanOrEqual())}
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria)
+   * getQuantiles(double[] fractions, QuantileSearchCriteria)}
    * @param normRanks normalized ranks
    * @return quantiles
    */
@@ -170,10 +176,10 @@ abstract class BaseReqSketch {
    * @param inclusive if true the weight of the given value is included into its rank.
    * @return the normalized rank of the given value in the stream.
    */
-  public abstract double getRank(float value, boolean inclusive);
+  public abstract double getRank(float value, QuantileSearchCriteria inclusive);
 
   /**
-   * Same as {@link #getRank(float, boolean) getRank(float value, isLessThanOrEqual())}
+   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(float value, QuantileSearchCriteria)}
    * @param value value to be ranked
    * @return normalized rank
    */
@@ -194,10 +200,10 @@ abstract class BaseReqSketch {
    * @return the array of normalized ranks that correspond to the given array of values.
    * See <i>getRank(float)</i>
    */
-  public abstract double[] getRanks(float[] values, boolean inclusive);
+  public abstract double[] getRanks(float[] values, QuantileSearchCriteria inclusive);
 
   /**
-   * Same as {@link #getRanks(float[], boolean) getRanks(float[] values, isLessThanOrEqual())}
+   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(float[] values, QuantileSearchCriteria)}
    * @param values the given array of values to be ranked
    * @return array of normalized ranks
    */

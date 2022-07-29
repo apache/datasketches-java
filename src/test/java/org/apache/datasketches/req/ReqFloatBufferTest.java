@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -30,7 +32,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-public class FloatBufferTest {
+public class ReqFloatBufferTest {
 
   @Test
   public void checkTrimCount() {
@@ -125,9 +127,9 @@ public class FloatBufferTest {
     final FloatBuffer buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
     final FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountWithCriterion(4, false), 3);
+    assertEquals(buf2.getCountWithCriterion(4, NON_INCLUSIVE), 3);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountWithCriterion(4, false), 6);
+    assertEquals(buf2.getCountWithCriterion(4, NON_INCLUSIVE), 6);
     assertEquals(buf2.getCount(), 14);
     buf2.trimCount(12);
     assertEquals(buf2.getCount(), 12);
@@ -153,17 +155,17 @@ public class FloatBufferTest {
   //@Test
   public void checkCount() {
     final FloatBuffer buf = createSortedFloatBuffer(120, 0, true, 100);
-    println("LT: " + buf.getCountWithCriterion(100, false));
-    println("LE: " + buf.getCountWithCriterion(100, true));
+    println("LT: " + buf.getCountWithCriterion(100, NON_INCLUSIVE));
+    println("LE: " + buf.getCountWithCriterion(100, INCLUSIVE));
   }
 
   private static void checkCountWithCriteria(final FloatBuffer buf, final float v) {
     int count;
     final int len = buf.getCount();
     final int iv = (int) v;
-    count = buf.getCountWithCriterion(v, false);
+    count = buf.getCountWithCriterion(v, NON_INCLUSIVE);
     assertEquals(count, v > len ? len : v <= 1 ? 0 : iv == v? iv - 1 : iv);
-    count = buf.getCountWithCriterion(v, true);
+    count = buf.getCountWithCriterion(v, INCLUSIVE);
     assertEquals(count, v >= len ? len : v < 1 ? 0 : iv);
   }
 
@@ -230,7 +232,7 @@ public class FloatBufferTest {
     buf.append(3); buf.append(2); buf.append(1);
     buf.trimCount(4);
     assertEquals(buf.getCount(), 3);
-    final int cnt = buf.getCountWithCriterion(3.0f, true);
+    final int cnt = buf.getCountWithCriterion(3.0f, INCLUSIVE);
     assertEquals(cnt, 3);
     assertEquals(buf.getItemFromIndex(2), 3.0f);
     try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (final SketchesArgumentException e) {}

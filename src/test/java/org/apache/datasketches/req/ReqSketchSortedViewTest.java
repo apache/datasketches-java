@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+
 import org.testng.annotations.Test;
 
 /**
@@ -79,10 +82,10 @@ public class ReqSketchSortedViewTest {
     while (itr.next()) {
       float v = itr.getValue();
       long wt = itr.getWeight();
-      long cumWtNotInc   = itr.getCumulativeWeight(false);
-      double nRankNotInc = itr.getNormalizedRank(false);
-      long cumWtInc      = itr.getCumulativeWeight(true);
-      double nRankInc    = itr.getNormalizedRank(true);
+      long cumWtNotInc   = itr.getCumulativeWeight(NON_INCLUSIVE);
+      double nRankNotInc = itr.getNormalizedRank(NON_INCLUSIVE);
+      long cumWtInc      = itr.getCumulativeWeight(INCLUSIVE);
+      double nRankInc    = itr.getNormalizedRank(INCLUSIVE);
       printf(fmt, v, wt, cumWtNotInc, nRankNotInc, cumWtInc, nRankInc);
     }
   }

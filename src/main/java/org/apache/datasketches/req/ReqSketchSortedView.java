@@ -19,10 +19,15 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.datasketches.InequalitySearch;
+import org.apache.datasketches.QuantileSearchCriteria;
 
 /**
  * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
@@ -81,13 +86,14 @@ public class ReqSketchSortedView {
    * @param inclusive determines the search criterion used.
    * @return the quantile
    */
-  public float getQuantile(final double normRank, final boolean inclusive) {
+  public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
     final int len = cumWeights.length;
     final long rank = (int)(normRank * N);
-    final InequalitySearch crit = inclusive ? InequalitySearch.GE : InequalitySearch.GT;
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      return values[len - 1]; //GT: normRank >= 1.0; GE: normRank > 1.0
+      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }
@@ -98,9 +104,9 @@ public class ReqSketchSortedView {
    * @param inclusive determines the search criterion used.
    * @return the normalized rank
    */
-  public double getRank(final float value, final boolean inclusive) {
+  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
     final int len = values.length;
-    final InequalitySearch crit = inclusive ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
