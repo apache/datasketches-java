@@ -76,7 +76,8 @@ public class ReqSketchSortedView {
     hra = sk.getHighRankAccuracy();
     N = sk.getN();
     this.dedup = dedup;
-    buildAuxTable(sk);
+    buildSortedViewArrays(sk);
+
   }
 
   /**
@@ -139,7 +140,7 @@ public class ReqSketchSortedView {
 
   //restricted methods
 
-  private void buildAuxTable(final ReqSketch sk) {
+  private void buildSortedViewArrays(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
     final int totalValues = sk.getRetainedItems();

@@ -90,7 +90,7 @@ public class ReqSketch extends BaseReqSketch {
   private final boolean hra; //default is true
   //state variables
   private boolean ltEq = false; //default: LT, can be set after construction
-  private long totalN;
+  private long totalN = 0;
   private float minValue = Float.NaN;
   private float maxValue = Float.NaN;
   //computed from compactors
@@ -131,9 +131,6 @@ public class ReqSketch extends BaseReqSketch {
     checkK(k);
     this.k = k;
     hra = highRankAccuracy;
-    retItems = 0;
-    maxNomSize = 0;
-    totalN = 0;
     this.reqDebug = reqDebug;
     grow();
   }
@@ -145,7 +142,6 @@ public class ReqSketch extends BaseReqSketch {
   ReqSketch(final ReqSketch other) {
     k = other.k;
     hra = other.hra;
-
     totalN = other.totalN;
     retItems = other.retItems;
     maxNomSize = other.maxNomSize;
@@ -153,12 +149,11 @@ public class ReqSketch extends BaseReqSketch {
     maxValue = other.maxValue;
     ltEq = other.ltEq;
     reqDebug = other.reqDebug;
-    //rssv does not need to be copied
+    reqSV = null; //reqSortedView must not copy
 
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
     }
-    reqSV = null;
   }
 
   /**
@@ -299,9 +294,7 @@ public class ReqSketch extends BaseReqSketch {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
-    if (reqSV == null) {
-      reqSV = new ReqSketchSortedView(this);
-    }
+    reqSV = (reqSV == null) ? new ReqSketchSortedView(this) : reqSV;
     return reqSV.getQuantile(normRank, inclusive);
   }
 
@@ -354,6 +347,7 @@ public class ReqSketch extends BaseReqSketch {
       }
       return retArr;
     }
+    //if no reqSV use counts method
     final long[] cumNnrArr = getCounts(values, inclusive);
     for (int i = 0; i < numValues; i++) {
       retArr[i] = (double)cumNnrArr[i] / totalN;
@@ -382,7 +376,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public ReqSketchSortedView getSortedView() {
-    return (reqSV != null) ? reqSV : new ReqSketchSortedView(this);
+    return reqSV = (reqSV == null) ? new ReqSketchSortedView(this) : reqSV;
   }
 
   @Override
