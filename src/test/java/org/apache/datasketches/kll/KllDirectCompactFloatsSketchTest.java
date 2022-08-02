@@ -66,12 +66,12 @@ public class KllDirectCompactFloatsSketchTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     sk.update(1);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getFloatSingleItem(), 1.0F);
+    assertEquals(sk2.getFloatSingleValue(), 1.0F);
     sk.update(2);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getN(), 2);
     try {
-      sk2.getFloatSingleItem();
+      sk2.getFloatSingleValue();
       fail();
     } catch (SketchesArgumentException e) {  }
   }
@@ -82,18 +82,18 @@ public class KllDirectCompactFloatsSketchTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
 
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    float[] itemsArr = sk2.getFloatItemsArray();
+    float[] itemsArr = sk2.getFloatValuesArray();
     for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
 
     sk.update(1);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getFloatItemsArray();
+    itemsArr = sk2.getFloatValuesArray();
     for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
     assertEquals(itemsArr[19], 1F);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getFloatItemsArray();
+    itemsArr = sk2.getFloatValuesArray();
     assertEquals(itemsArr.length, 33);
     assertEquals(itemsArr[22], 21);
     //for (int i = 0; i < itemsArr.length; i++) {

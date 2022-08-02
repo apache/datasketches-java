@@ -52,7 +52,7 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
+    setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_VALUE_BIT_MASK);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 

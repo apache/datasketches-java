@@ -20,11 +20,11 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleValueFlag;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.Memory;
@@ -39,7 +39,7 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   @Override
   public long getN() {
     if (getMemoryEmptyFlag(wmem)) { return 0; }
-    if (getMemorySingleItemFlag(wmem)) { return 1; }
+    if (getMemorySingleValueFlag(wmem)) { return 1; }
     return getMemoryN(wmem);
   }
 
@@ -57,7 +57,7 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
     if (isEmpty()) { return new double[k]; }
     if (isSingleItem()) {
       final double[] itemsArr = new double[k];
-      itemsArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
+      itemsArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_VALUE);
       return itemsArr;
     }
     final int capacityItems =  levelsArr[getNumLevels()];
@@ -71,8 +71,8 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
   @Override
   double getDoubleSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); }
-    return wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
+    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_VALUE); }
+    return wmem.getDouble(DATA_START_ADR_SINGLE_VALUE);
   }
 
   @Override

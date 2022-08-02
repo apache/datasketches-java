@@ -129,7 +129,7 @@ final class KllDoublesHelper {
     return quantiles;
   }
 
-  static void mergeDoubleImpl(final KllSketch sketch, final KllSketch other) {
+  static void mergeDoubleImpl(final KllDoublesSketch sketch, final KllSketch other) {
     if (other.isEmpty()) { return; }
     final long finalN = sketch.getN() + other.getN();
     final int otherNumLevels = other.getNumLevels();
@@ -361,7 +361,7 @@ final class KllDoublesHelper {
     assert numLevelsIn > 0; // things are too weird if zero levels are allowed
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
-    int targetItemCount = KllHelper.computeTotalItemCapacity(k, m, numLevels); // increases if we add levels
+    int targetItemCount = KllHelper.computeTotalValueCapacity(k, m, numLevels); // increases if we add levels
     boolean doneYet = false;
     outLevels[0] = 0;
     int curLevel = -1;

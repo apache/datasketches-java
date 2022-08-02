@@ -20,7 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
@@ -38,23 +38,23 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /*
  * Sampled stream data (floats or doubles) is stored as an array or as part of a Memory object.
- * This array is partitioned into sections called levels and the indices into the array of items
+ * This array is partitioned into sections called levels and the indices into the array of values
  * are tracked by a small integer array called levels or levels array.
  * The data for level i lies in positions levelsArray[i] through levelsArray[i + 1] - 1 inclusive.
  * Hence, the levelsArray must contain (numLevels + 1) indices.
- * The valid portion of items array is completely packed and sorted, except for level 0,
- * which is filled from the top down. Any items below the index levelsArray[0] is garbage and will be
+ * The valid portion of values array is completely packed and sorted, except for level 0,
+ * which is filled from the top down. Any values below the index levelsArray[0] is garbage and will be
  * overwritten by subsequent updates.
  *
  * Invariants:
  * 1) After a compaction, or an update, or a merge, every level is sorted except for level zero.
- * 2) After a compaction, (sum of capacities) - (sum of items) >= 1,
- *  so there is room for least 1 more item in level zero.
+ * 2) After a compaction, (sum of capacities) - (sum of values) >= 1,
+ *  so there is room for least 1 more value in level zero.
  * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
- *  the sketch is exactly filled to capacity and must be compacted or the itemsArray and levelsArray
+ *  the sketch is exactly filled to capacity and must be compacted or the valuesArray and levelsArray
  *  must be expanded to include more levels.
- * 4) Sum of weights of all retained items == N.
- * 5) Current total item capacity = itemsArray.length = levelsArray[numLevels].
+ * 4) Sum of weights of all retained values == N.
+ * 5) Current total value capacity = valuesArray.length = levelsArray[numLevels].
  */
 
 /**
@@ -62,10 +62,17 @@ import org.apache.datasketches.memory.WritableMemory;
  * of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
  * heap or Direct (off-heap).
  *
- * <p>Please refer to the documentation in the package-info:<br>
- * {@link org.apache.datasketches.kll}</p>
  *
- * @author Lee Rhodes, Kevin Lang
+ * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
+ * @see <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+ * KLL package summary</a>
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks, Tutorial</a>
+ * @see org.apache.datasketches.QuantileSearchCriteria
+ *
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ * @author Alexander Saydakov
  */
 public abstract class KllSketch {
 
@@ -79,9 +86,9 @@ public abstract class KllSketch {
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
-    SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
+    SINGLE_VALUE_IMPROPER_CALL("Improper method use for single-value sketch"),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is not single item."),
+    NOT_SINGLE_VALUE("Sketch is not single value."),
     MUST_NOT_BE_UPDATABLE_FORMAT("Given Memory object must not be in updatableFormat.");
 
     private String msg;
@@ -110,7 +117,7 @@ public abstract class KllSketch {
   public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   /**
-   * The default value of M. The parameter <i>m</i> is the minimum level size in number of items.
+   * The default value of M. The parameter <i>m</i> is the minimum level size in number of values.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
    * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
    * Choosing smaller values of <i>m</i> less than 8 will make the sketch slower.
@@ -217,19 +224,19 @@ public abstract class KllSketch {
     return KllHelper.getNormalizedRankError(k, pmf);
   }
 
-  //numItems can be either numRetained, or current max capacity at given K and numLevels.
-  static int getCurrentSerializedSizeBytes(final int numLevels, final int numItems,
+  //numValues can be either numRetained, or current max capacity at given K and numLevels.
+  static int getCurrentSerializedSizeBytes(final int numLevels, final int numValues,
       final SketchType sketchType, final boolean updatableMemFormat) {
     final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     int levelsBytes = 0;
     if (updatableMemFormat) {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     } else {
-      if (numItems == 0) { return N_LONG_ADR; }
-      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + typeBytes; }
+      if (numValues == 0) { return N_LONG_ADR; }
+      if (numValues == 1) { return DATA_START_ADR_SINGLE_VALUE + typeBytes; }
       levelsBytes = numLevels * Integer.BYTES;
     }
-    return DATA_START_ADR + levelsBytes + (numItems + 2) * typeBytes; //+2 is for min & max
+    return DATA_START_ADR + levelsBytes + (numValues + 2) * typeBytes; //+2 is for min & max
   }
 
   /**
@@ -245,8 +252,8 @@ public abstract class KllSketch {
    * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
    */
   public final int getCurrentUpdatableSerializedSizeBytes() {
-    final int itemCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
-    return getCurrentSerializedSizeBytes(getNumLevels(), itemCap, sketchType, true);
+    final int valuesCap = KllHelper.computeTotalValueCapacity(getK(), getM(), getNumLevels());
+    return getCurrentSerializedSizeBytes(getNumLevels(), valuesCap, sketchType, true);
   }
 
   /**
@@ -256,7 +263,7 @@ public abstract class KllSketch {
   public abstract int getK();
 
   /**
-   * Returns the length of the input stream in items.
+   * Returns the length of the input stream in values.
    * @return stream length
    */
   public abstract long getN();
@@ -278,8 +285,8 @@ public abstract class KllSketch {
   }
 
   /**
-   * Returns the number of retained items (samples) in the sketch.
-   * @return the number of retained items (samples) in the sketch
+   * Returns the number of retained values (samples) in the sketch.
+   * @return the number of retained values (samples) in the sketch
    */
   public final int getNumRetained() {
     return levelsArr[getNumLevels()] - levelsArr[0];
@@ -378,10 +385,10 @@ public abstract class KllSketch {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     if (sketchType == DOUBLES_SKETCH) {
       if (!other.isDoublesSketch()) { kllSketchThrow(SRC_MUST_BE_DOUBLE); }
-      KllDoublesHelper.mergeDoubleImpl(this, other);
+      KllDoublesHelper.mergeDoubleImpl((KllDoublesSketch)this, other);
     } else {
       if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
-      KllFloatsHelper.mergeFloatImpl(this, other);
+      KllFloatsHelper.mergeFloatImpl((KllFloatsSketch)this, other);
     }
   }
 
@@ -442,9 +449,9 @@ public abstract class KllSketch {
   /**
    * @return full size of internal items array including garbage.
    */
-  abstract float[] getFloatItemsArray();
+  abstract float[] getFloatValuesArray();
 
-  abstract float getFloatSingleItem();
+  abstract float getFloatSingleValue();
 
   final int[] getLevelsArray() {
     return levelsArr;

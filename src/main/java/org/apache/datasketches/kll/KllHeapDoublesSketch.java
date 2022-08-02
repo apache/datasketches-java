@@ -20,9 +20,9 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -94,8 +94,8 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       maxDoubleValue_ = Double.NaN;
       doubleItems_ = new double[k_];
     }
-    else if (memVal.singleItem && !updatableMemFormat) {
-      final double value = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
+    else if (memVal.singleValue && !updatableMemFormat) {
+      final double value = srcMem.getDouble(DATA_START_ADR_SINGLE_VALUE);
       minDoubleValue_ = maxDoubleValue_ = value;
       doubleItems_ = new double[k_];
       doubleItems_[k_ - 1] = value;
@@ -138,12 +138,12 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   double getDoubleSingleItem() {
-    if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_ITEM); return Double.NaN; }
+    if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_VALUE); return Double.NaN; }
     return doubleItems_[k_ - 1];
   }
 
   @Override
-  float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getFloatSingleValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override
   int getM() { return m_; }

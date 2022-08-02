@@ -496,7 +496,7 @@ public class KllDoublesSketchTest {
     float fltV = 1.0f;
     int idx = 1;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    try { sk.getFloatItemsArray();           fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getFloatValuesArray();           fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMaxFloatValue();             fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinFloatValue();             fail(); } catch (SketchesArgumentException e) { }
     try { sk.setFloatItemsArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }

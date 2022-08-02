@@ -36,8 +36,9 @@ final class KllFloatsHelper {
 
 
   //Called from KllSketch
-  static void mergeFloatImpl(final KllSketch sketch, final KllSketch other) {
+  static void mergeFloatImpl(final KllFloatsSketch sketch, final KllSketch other) {
     if (other.isEmpty()) { return; }
+    sketch.kllFloatsSV = null;
     final long finalN = sketch.getN() + other.getN();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();
@@ -49,10 +50,10 @@ final class KllFloatsHelper {
 
     //update this sketch with level0 items from the other sketch
     if (other.isCompactSingleItem()) {
-      updateFloat(sketch, other.getFloatSingleItem());
+      updateFloat(sketch, other.getFloatSingleValue());
       otherFloatItemsArr = new float[0];
     } else {
-      otherFloatItemsArr = other.getFloatItemsArray();
+      otherFloatItemsArr = other.getFloatValuesArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
        updateFloat(sketch, otherFloatItemsArr[i]);
       }
@@ -60,7 +61,7 @@ final class KllFloatsHelper {
     // after the level 0 update, we capture the state of levels and items arrays
     final int myCurNumLevels = sketch.getNumLevels();
     final int[] myCurLevelsArr = sketch.getLevelsArray();
-    final float[] myCurFloatItemsArr = sketch.getFloatItemsArray();
+    final float[] myCurFloatItemsArr = sketch.getFloatValuesArray();
 
     int myNewNumLevels = myCurNumLevels;
     int[] myNewLevelsArr = myCurLevelsArr;
@@ -274,7 +275,7 @@ final class KllFloatsHelper {
     assert numLevelsIn > 0; // things are too weird if zero levels are allowed
     int numLevels = numLevelsIn;
     int currentItemCount = inLevels[numLevels] - inLevels[0]; // decreases with each compaction
-    int targetItemCount = KllHelper.computeTotalItemCapacity(k, m, numLevels); // increases if we add levels
+    int targetItemCount = KllHelper.computeTotalValueCapacity(k, m, numLevels); // increases if we add levels
     boolean doneYet = false;
     outLevels[0] = 0;
     int curLevel = -1;

@@ -642,7 +642,7 @@ public class KllDirectDoublesSketchTest {
     try { sk2.setMinK(idx);                     fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                        fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);                fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.getFloatSingleItem();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getFloatSingleValue();             fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

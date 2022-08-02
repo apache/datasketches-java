@@ -20,7 +20,7 @@
 package org.apache.datasketches;
 
 /**
- * These criteria are used by all the quantiles algorithms in the library.
+ * These search criteria are used by all the quantiles algorithms in the DataSketches library.
  * <ul>
  * <li><b>Definition of Non Inclusive <i>getRank(q)</i> search:</b><br>
  * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is strictly less than <i>q</i>.

@@ -30,7 +30,7 @@ import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SRC
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.UPDATABLEBIT_AND_SER_VER;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.memoryValidateThrow;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
@@ -48,7 +48,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleValueFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 
 import org.apache.datasketches.Family;
@@ -71,7 +71,7 @@ final class KllMemoryValidate {
   final String famName;
   final int flags;
   boolean empty;
-  boolean singleItem;
+  boolean singleValue;
   final boolean level0Sorted;
   final boolean doublesSketch;
   boolean updatableMemFormat = false;
@@ -101,7 +101,7 @@ final class KllMemoryValidate {
     flags = getMemoryFlags(srcMem);
     updatableMemFormat = getMemoryUpdatableFormatFlag(srcMem);
     empty = getMemoryEmptyFlag(srcMem);
-    singleItem = getMemorySingleItemFlag(srcMem);
+    singleValue = getMemorySingleValueFlag(srcMem);
     level0Sorted  = getMemoryLevelZeroSortedFlag(srcMem);
     doublesSketch = getMemoryDoubleSketchFlag(srcMem);
     k = getMemoryK(srcMem);
@@ -116,8 +116,8 @@ final class KllMemoryValidate {
   }
 
   void compactMemoryValidate(final Memory srcMem) { //FOR HEAPIFY
-    if (empty && singleItem) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, flags); }
-    final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0);
+    if (empty && singleValue) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, flags); }
+    final int sw = (empty ? 1 : 0) | (singleValue ? 4 : 0);
     switch (sw) {
       case 0: { //FULL_COMPACT
         if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
@@ -129,7 +129,7 @@ final class KllMemoryValidate {
         // Create Levels Arr
         levelsArr = new int[numLevels + 1];
         srcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels); //copies all except the last one
-        final int capacityItems = KllHelper.computeTotalItemCapacity(k, m, numLevels);
+        final int capacityItems = KllHelper.computeTotalValueCapacity(k, m, numLevels);
         levelsArr[numLevels] = capacityItems; //load the last one
 
         final int retainedItems = (levelsArr[numLevels] - levelsArr[0]);
@@ -143,7 +143,7 @@ final class KllMemoryValidate {
         minK = k;        //assumed
         numLevels = 1;   //assumed
         levelsArr = new int[] {k, k};
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM;
+        sketchBytes = DATA_START_ADR_SINGLE_VALUE;
         break;
       }
       case 4: { //SINGLE_COMPACT
@@ -153,7 +153,7 @@ final class KllMemoryValidate {
         minK = k;        //assumed
         numLevels = 1;   //assumed
         levelsArr = new int[] {k - 1, k};
-        sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
+        sketchBytes = DATA_START_ADR_SINGLE_VALUE + typeBytes;
         break;
       }
       default: //can not happen
@@ -164,7 +164,7 @@ final class KllMemoryValidate {
     if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
     n = getMemoryN(wSrcMem);
     empty = n == 0;       //empty & singleItem are set for convenience
-    singleItem = n == 1;  // there is no error checking on these bits
+    singleValue = n == 1;  // there is no error checking on these bits
     minK = getMemoryMinK(wSrcMem);
     numLevels = getMemoryNumLevels(wSrcMem);
 

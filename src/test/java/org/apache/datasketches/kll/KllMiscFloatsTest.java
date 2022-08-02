@@ -118,7 +118,7 @@ public class KllMiscFloatsTest {
     for (int i = 0; i < 20; i++) { sk.update(i); }
     sk.toString(true, true);
     sk.toByteArray();
-    final float[] items = sk.getFloatItemsArray();
+    final float[] items = sk.getFloatValuesArray();
     assertEquals(items.length, 16);
     final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
@@ -184,7 +184,7 @@ public class KllMiscFloatsTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     assertEquals(sk.getNumLevels(), 2);
-    assertEquals(sk.getFloatItemsArray().length, 33);
+    assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray()[2], 33);
   }
 
@@ -203,7 +203,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 33);
+    assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -219,7 +219,7 @@ public class KllMiscFloatsTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
     assertEquals(sk.getMinFloatValue(), Float.NaN);
@@ -236,7 +236,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -266,7 +266,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 33);
+    assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -286,7 +286,7 @@ public class KllMiscFloatsTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
     assertEquals(sk.getMinFloatValue(), Float.NaN);
@@ -307,7 +307,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -337,7 +337,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 33);
+    assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -357,7 +357,7 @@ public class KllMiscFloatsTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Float.NaN);
     assertEquals(sk.getMinFloatValue(), Float.NaN);
@@ -378,7 +378,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0F);
     assertEquals(sk.getMinFloatValue(), 1.0F);
@@ -532,17 +532,17 @@ public class KllMiscFloatsTest {
     KllFloatsSketch skHeap = KllFloatsSketch.newHeapInstance(k);
     skHeap.update(1);
     assertTrue(skHeap instanceof KllHeapFloatsSketch);
-    assertEquals(skHeap.getFloatSingleItem(), 1.0F);
+    assertEquals(skHeap.getFloatSingleValue(), 1.0F);
 
     WritableMemory srcMem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(skHeap));
     KllFloatsSketch skDirect = KllFloatsSketch.writableWrap(srcMem, memReqSvr);
     assertTrue(skDirect instanceof KllDirectFloatsSketch);
-    assertEquals(skDirect.getFloatSingleItem(), 1.0F);
+    assertEquals(skDirect.getFloatSingleValue(), 1.0F);
 
     Memory srcMem2 = Memory.wrap(skHeap.toByteArray());
     KllFloatsSketch skCompact = KllFloatsSketch.wrap(srcMem2);
     assertTrue(skCompact instanceof KllDirectCompactFloatsSketch);
-    assertEquals(skCompact.getFloatSingleItem(), 1.0F);
+    assertEquals(skCompact.getFloatSingleValue(), 1.0F);
   }
 
   @Test
@@ -552,7 +552,7 @@ public class KllMiscFloatsTest {
     printf("%s\n", s);
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format

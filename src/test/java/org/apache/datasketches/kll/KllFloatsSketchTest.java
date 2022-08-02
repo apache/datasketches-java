@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.*;
 import static org.apache.datasketches.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -80,10 +81,10 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getNumRetained(), 1);
     assertEquals(sketch.getRank(1), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
-    assertEquals(sketch.getRank(1, false), 0.0);
-    assertEquals(sketch.getRank(2, false), 1.0);
-    assertEquals(sketch.getRank(0, true), 0.0);
-    assertEquals(sketch.getRank(1, true), 1.0);
+    assertEquals(sketch.getRank(1, NON_INCLUSIVE), 0.0);
+    assertEquals(sketch.getRank(2, NON_INCLUSIVE), 1.0);
+    assertEquals(sketch.getRank(0, INCLUSIVE), 0.0);
+    assertEquals(sketch.getRank(1, INCLUSIVE), 1.0);
     assertEquals(sketch.getMinValue(), 1f);
     assertEquals(sketch.getMaxValue(), 1f);
     assertEquals(sketch.getQuantile(0.5), 1f);
@@ -93,14 +94,13 @@ public class KllFloatsSketchTest {
   public void tenItems() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
-    System.out.println(sketch.toString(true, true)); //TODO
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
     assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, true), (i) / 10.0);
+      assertEquals(sketch.getRank(i, NON_INCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
     }
     // inclusive = false (default)
     assertEquals(sketch.getQuantile(0), 1); // always min value
@@ -115,17 +115,17 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getQuantile(0.9), 10);
     assertEquals(sketch.getQuantile(1), 10); // always max value
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, true), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1, true), 1);
-    assertEquals(sketch.getQuantile(0.2, true), 2);
-    assertEquals(sketch.getQuantile(0.3, true), 3);
-    assertEquals(sketch.getQuantile(0.4, true), 4);
-    assertEquals(sketch.getQuantile(0.5, true), 5);
-    assertEquals(sketch.getQuantile(0.6, true), 6);
-    assertEquals(sketch.getQuantile(0.7, true), 7);
-    assertEquals(sketch.getQuantile(0.8, true), 8);
-    assertEquals(sketch.getQuantile(0.9, true), 9);
-    assertEquals(sketch.getQuantile(1, true), 10); // always max value TODO
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.4, INCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.6, INCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10); // always max value TODO
 
     // getQuantile() and getQuantiles() equivalence
     {
@@ -139,9 +139,9 @@ public class KllFloatsSketchTest {
     {
       // inclusive = true
       final float[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+        assertEquals(sketch.getQuantile(i / 10.0, INCLUSIVE), quantiles[i]);
       }
     }
   }
@@ -168,10 +168,8 @@ public class KllFloatsSketchTest {
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
 
-    assertEquals(sketch.getMinValue(), 0f); // min value is exact
-    assertEquals(sketch.getQuantile(0), 0f); // min value is exact
-    assertEquals(sketch.getMaxValue(), n - 1f); // max value is exact
-    assertEquals(sketch.getQuantile(1), n - 1f); // max value is exact
+    assertEquals(sketch.getMinValue(), 0f);
+    assertEquals(sketch.getMaxValue(), n - 1f);
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
@@ -216,11 +214,11 @@ public class KllFloatsSketchTest {
       assertEquals(ranks[n], 1.0, NUMERIC_NOISE_TOLERANCE);
     }
     { // inclusive = false (default)
-      final double[] ranks = sketch.getCDF(values, true);
-      final double[] pmf = sketch.getPMF(values, true);
+      final double[] ranks = sketch.getCDF(values, INCLUSIVE);
+      final double[] pmf = sketch.getPMF(values, INCLUSIVE);
       double sumPmf = 0;
       for (int i = 0; i < n; i++) {
-        assertEquals(ranks[i], sketch.getRank(values[i], true), NUMERIC_NOISE_TOLERANCE,
+        assertEquals(ranks[i], sketch.getRank(values[i], INCLUSIVE), NUMERIC_NOISE_TOLERANCE,
             "rank vs CDF for value " + i);
         sumPmf += pmf[i];
         assertEquals(ranks[i], sumPmf, NUMERIC_NOISE_TOLERANCE, "CDF vs PMF for value " + i);
@@ -371,7 +369,8 @@ public class KllFloatsSketchTest {
       sketch.update(i);
     }
     assertEquals(sketch.getK(), KllSketch.DEFAULT_M);
-    assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
+    float q = sketch.getQuantile(.5);
+    assertEquals(q, 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test

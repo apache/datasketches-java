@@ -33,7 +33,22 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * This variation of the KllSketch implements primitive doubles for the quantile values.
+ *
+ * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
+ * @see org.apache.datasketches.kll.KllSketch
+ * @see <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+ * KLL package summary</a>
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks, Tutorial</a>
+ * @see org.apache.datasketches.QuantileSearchCriteria
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ * @author Alexander Saydakov
+ */
 public abstract class KllDoublesSketch extends KllSketch {
+  KllDoublesSketchSortedView kllDoublesSV = null;
 
   KllDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
     super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
@@ -406,6 +421,7 @@ public abstract class KllDoublesSketch extends KllSketch {
   public void update(final double value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     KllDoublesHelper.updateDouble(this, value);
+    kllDoublesSV = null;
   }
 
   /**
@@ -420,7 +436,7 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   @Override //Artifact of inheritance
-  float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
+  float[] getFloatValuesArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
   @Override //Artifact of inheritance
   float getMaxFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }

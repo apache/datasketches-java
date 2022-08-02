@@ -19,10 +19,15 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+
 import java.util.Arrays;
 
+import org.apache.datasketches.InequalitySearch;
+import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
 
 /**
  * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
@@ -45,95 +50,111 @@ import org.apache.datasketches.SketchesStateException;
  * @author Alexander Saydakov
  */
 public final class KllFloatsSketchSortedView {
-  private final long n_;
-  private final float[] items_;
-  private final long[] weights_; //comes in as weights, converted to cumulative weights
-  private final int[] levels_;
-  private int numLevels_;
+  private final long N;
+  private final float[] values;
+  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
 
-  // assumes that all levels are sorted including level 0
-  KllFloatsSketchSortedView(final float[] items, final int[] levels, final int numLevels, final long n) {
-    n_ = n;
-    final int numItems = levels[numLevels] - levels[0];
-    items_ = new float[numItems];
-    weights_ = new long[numItems];
-    levels_ = new int[numLevels + 1];
-    populateFromSketch(items, levels, numLevels, numItems);
-    blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    KllHelper.convertToCumulative(weights_);
-  }
+  public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
+    this.N = sk.getN();
+    final float[] srcValues = sk.getFloatValuesArray();
+    final int[] srcLevels = sk.getLevelsArray();
+    final int srcNumLevels = sk.getNumLevels();
 
-  static KllFloatsSketchSortedView getFloatsSortedView(final KllSketch sketch) {
-    final float[] skFloatItemsArr = sketch.getFloatItemsArray();
-    final int[] skLevelsArr = sketch.getLevelsArray();
-
-    if (!sketch.isLevelZeroSorted()) {
-      Arrays.sort(skFloatItemsArr, skLevelsArr[0], skLevelsArr[1]);
-      if (!sketch.hasMemory()) { sketch.setLevelZeroSorted(true); }
+    if (!sk.isLevelZeroSorted()) {
+      Arrays.sort(srcValues, srcLevels[0], srcLevels[1]);
+      if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
     }
-    return new KllFloatsSketchSortedView(skFloatItemsArr, skLevelsArr, sketch.getNumLevels(), sketch.getN());
+
+    final int numItems = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
+    values = new float[numItems];
+    cumWeights = new long[numItems];
+    populateFromSketch(srcValues, srcLevels, srcNumLevels, numItems);
+    sk.kllFloatsSV = this;
   }
 
+  //populates values, cumWeights, levels, numLevels
   private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
-      final int numLevels, final int numItems) {
+    final int srcNumLevels, final int numItems) {
+    final int[] myLevels = new int[srcNumLevels + 1];
     final int offset = srcLevels[0];
-    System.arraycopy(srcItems, offset, items_, 0, numItems);
+    System.arraycopy(srcItems, offset, values, 0, numItems);
     int srcLevel = 0;
     int dstLevel = 0;
     long weight = 1;
-    while (srcLevel < numLevels) {
+    while (srcLevel < srcNumLevels) {
       final int fromIndex = srcLevels[srcLevel] - offset;
       final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
       if (fromIndex < toIndex) { // if equal, skip empty level
-        Arrays.fill(weights_, fromIndex, toIndex, weight);
-        levels_[dstLevel] = fromIndex;
-        levels_[dstLevel + 1] = toIndex;
+        Arrays.fill(cumWeights, fromIndex, toIndex, weight);
+        myLevels[dstLevel] = fromIndex;
+        myLevels[dstLevel + 1] = toIndex;
         dstLevel++;
       }
       srcLevel++;
       weight *= 2;
     }
-    weights_[numItems] = 0;
-    numLevels_ = dstLevel;
+    final int numLevels = dstLevel;
+    blockyTandemMergeSort(values, cumWeights, myLevels, numLevels); //create unit weights
+    KllHelper.convertToCumulative(cumWeights);
   }
 
-
-  //For testing only. Allows testing of getQuantile without a sketch. NOT USED
-  KllFloatsSketchSortedView(final float[] items, final long[] weights, final long n) {
-    n_ = n;
-    items_ = items;
-    weights_ = weights; //must be size of items + 1
-    levels_ = null;  //not used by test
-    numLevels_ = 0;  //not used by test
-  }
-
-  @SuppressWarnings("deprecation")
-  public float getQuantile(final double rank) {
-    if (weights_[weights_.length - 1] < n_) {
-      throw new SketchesStateException("getQuantile must be used with cumulative view only");
+  /**
+   * Gets the quantile based on the given normalized rank,
+   * which must be in the range [0.0, 1.0], inclusive.
+   * @param normRank the given normalized rank
+   * @param inclusive determines the search criterion used.
+   * @return the quantile
+   */
+  public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
+    final int len = cumWeights.length;
+    final long rank = (int)(normRank * N);
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
+    if (index == -1) {
+      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
     }
-    final long pos = KllQuantilesHelper.posOfRank(rank, n_);
-    return approximatelyAnswerPositonalQuery(pos);
+    return values[index];
   }
 
+  /**
+   * Gets the normalized rank based on the given value.
+   * @param value the given value
+   * @param inclusive determines the search criterion used.
+   * @return the normalized rank
+   */
+  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
+    final int len = values.length;
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / N;
+  }
+
+  /**
+   * Returns an iterator for this sorted view
+   * @return an iterator for this sorted view
+   */
   public KllFloatsSketchSortedViewIterator iterator() {
-    return new KllFloatsSketchSortedViewIterator(items_, weights_);
+    return new KllFloatsSketchSortedViewIterator(values, cumWeights);
   }
 
 
-  //Called only from KllFloatsSketch
-  static double getFloatRank(final KllSketch sketch, final float value, final boolean inclusive) {
+  //Called only from KllFloatsSketch - original search for rank
+  static double getFloatRank(final KllSketch sketch, final float value, final QuantileSearchCriteria inclusive) {
     if (sketch.isEmpty()) { return Double.NaN; }
     int level = 0;
     int weight = 1;
     long total = 0;
-    final float[] floatItemsArr = sketch.getFloatItemsArray();
+    final float[] floatItemsArr = sketch.getFloatValuesArray();
     final int[] levelsArr = sketch.getLevelsArray();
     while (level < sketch.getNumLevels()) {
       final int fromIndex = levelsArr[level];
       final int toIndex = levelsArr[level + 1]; // exclusive
       for (int i = fromIndex; i < toIndex; i++) {
-        if (inclusive ? floatItemsArr[i] <= value : floatItemsArr[i] < value) {
+        if (inclusive == INCLUSIVE ? floatItemsArr[i] <= value : floatItemsArr[i] < value) {
           total += weight;
         } else if (level > 0 || sketch.isLevelZeroSorted()) {
           break; // levels above 0 are sorted, no point comparing further
@@ -147,7 +168,7 @@ public final class KllFloatsSketchSortedView {
 
   //Called only from KllFloatsSketch TODO rewrite using sorted view and new getRanks
   static double[] getFloatsPmfOrCdf(final KllSketch sketch, final float[] splitPoints,
-      final boolean isCdf, final boolean inclusive) {
+      final boolean isCdf, final QuantileSearchCriteria inclusive) {
     if (sketch.isEmpty()) { return null; }
     validateFloatValues(splitPoints);
     final double[] buckets = new double[splitPoints.length + 1];
@@ -184,6 +205,7 @@ public final class KllFloatsSketchSortedView {
   /**
    * Checks the sequential validity of the given array of float values.
    * They must be unique, monotonically increasing and not NaN.
+   * Only used for getPmfOrCdf().
    * @param values the given array of values
    */
   private static void validateFloatValues(final float[] values) {
@@ -198,14 +220,15 @@ public final class KllFloatsSketchSortedView {
     }
   }
 
+  //Only used for getPmfOrCdf
   private static void incrementFloatBucketsSortedLevel(
       final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
-      final float[] splitPoints, final double[] buckets, final boolean inclusive) {
-    final float[] floatItemsArr = sketch.getFloatItemsArray();
+      final float[] splitPoints, final double[] buckets, final QuantileSearchCriteria inclusive) {
+    final float[] floatItemsArr = sketch.getFloatValuesArray();
     int i = fromIndex;
     int j = 0;
     while (i <  toIndex && j < splitPoints.length) {
-      if (inclusive ? floatItemsArr[i] <= splitPoints[j]: floatItemsArr[i] < splitPoints[j]) {
+      if (inclusive == INCLUSIVE ? floatItemsArr[i] <= splitPoints[j]: floatItemsArr[i] < splitPoints[j]) {
         buckets[j] += weight; // this sample goes into this bucket
         i++; // move on to next sample and see whether it also goes into this bucket
       } else {
@@ -220,49 +243,21 @@ public final class KllFloatsSketchSortedView {
     }
   }
 
+  //Only used for getPmfOrCdf
   private static void incrementFloatBucketsUnsortedLevel(
       final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
-      final float[] splitPoints, final double[] buckets, final boolean inclusive) {
-    final float[] floatItemsArr = sketch.getFloatItemsArray();
+      final float[] splitPoints, final double[] buckets, final QuantileSearchCriteria inclusive) {
+    final float[] floatItemsArr = sketch.getFloatValuesArray();
     for (int i = fromIndex; i < toIndex; i++) {
       int j;
       for (j = 0; j < splitPoints.length; j++) {
-        if (inclusive ? floatItemsArr[i] <= splitPoints[j] : floatItemsArr[i] < splitPoints[j]) {
+        if (inclusive == INCLUSIVE ? floatItemsArr[i] <= splitPoints[j] : floatItemsArr[i] < splitPoints[j]) {
           break;
         }
       }
       buckets[j] += weight;
     }
   }
-
-  //Called only from KllFloatsSketch
-  static float getFloatsQuantile(final KllSketch sketch, final double rank, final boolean inclusive) {
-    if (sketch.isEmpty()) { return Float.NaN; }
-    if (rank < 0.0 || rank > 1.0) {
-      throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
-    }
-    final KllFloatsSketchSortedView kllFSV = KllFloatsSketchSortedView.getFloatsSortedView(sketch);
-    return kllFSV.getQuantile(rank);
-  }
-
-  //Called only from KllFloatsSketch
-  static float[] getFloatsQuantiles(final KllSketch sketch, final double[] fractions, final boolean inclusive) {
-    if (sketch.isEmpty()) { return null; }
-    KllFloatsSketchSortedView kllFSV = null;
-    final float[] quantiles = new float[fractions.length];
-    for (int i = 0; i < fractions.length; i++) { //check if fraction are in [0, 1]
-      final double fraction = fractions[i];
-      if (fraction < 0.0 || fraction > 1.0) {
-        throw new SketchesArgumentException("Fraction cannot be less than zero nor greater than 1.0");
-      }
-      if (kllFSV == null) {
-        kllFSV = getFloatsSortedView(sketch);
-      }
-      quantiles[i] = kllFSV.getQuantile(fraction);
-    }
-    return quantiles;
-  }
-
 
   private static void blockyTandemMergeSort(final float[] items, final long[] weights,
       final int[] levels, final int numLevels) {
@@ -279,6 +274,7 @@ public final class KllFloatsSketchSortedView {
       final float[] itemsSrc, final long[] weightsSrc,
       final float[] itemsDst, final long[] weightsDst,
       final int[] levels, final int startingLevel, final int numLevels) {
+    //printAll(itemsSrc, weightsSrc, itemsDst, weightsDst, levels, startingLevel, numLevels);
     if (numLevels == 1) { return; }
     final int numLevels1 = numLevels / 2;
     final int numLevels2 = numLevels - numLevels1;
@@ -338,12 +334,57 @@ public final class KllFloatsSketchSortedView {
     }
   }
 
-  @SuppressWarnings("deprecation")
-  private float approximatelyAnswerPositonalQuery(final long pos) {
-    assert pos >= 0;
-    assert pos < n_;
-    final int index = KllQuantilesHelper.chunkContainingPos(weights_, pos);
-    return items_[index];
+//  @SuppressWarnings("deprecation")
+//  private float approximatelyAnswerPositonalQuery(final long pos) {
+//    assert pos >= 0;
+//    assert pos < N;
+//    final int index = KllQuantilesHelper.chunkContainingPos(cumWeights, pos);
+//    return values[index];
+//  }
+
+  static void printLevels(int[] levels, int numLevels) {
+    for (int i = 0; i < levels.length; i++) { print(levels[i] + ", "); }
+    println("numLevels: " + numLevels);
+  }
+
+  static void printAll(
+      float[] values, long[] cumWeights,
+      float[] itemsDst, long[] weightsDst,
+      int[] levels, int startingLevel, int numLevels) {
+    //StringBuilder sb = new StringBuilder();
+    println("itemSrc[] len: " + values.length);
+    println("weightsSrc[] len: " + cumWeights.length);
+    println("itemsDst[] len: " + itemsDst.length);
+    println("weightsDst[] len: " + weightsDst.length);
+    println("levels[] len: " + levels.length);
+    for (int i = 0; i < levels.length; i++) { print(levels[i] + ", "); } println("");
+    println("startingLevel: " + startingLevel);
+    println("numLevels: " + numLevels);
+    println("");
+  }
+
+  private final static boolean enablePrinting = true;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
+  }
+
+  /**
+   * @param o the Object to println
+   */
+  static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
+  }
+
+  /**
+   * @param o the Object to print
+   */
+  static final void print(final Object o) {
+    if (enablePrinting) { System.out.print(o.toString()); }
   }
 
 }

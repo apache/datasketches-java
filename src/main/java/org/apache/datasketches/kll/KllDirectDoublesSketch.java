@@ -41,7 +41,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_VALUE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -122,14 +122,14 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
 
   @Override
   double getDoubleSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); return Double.NaN; }
+    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_VALUE); return Double.NaN; }
     final int k = getK();
     final int offset = DATA_START_ADR + 2 * Integer.BYTES + (2 + k - 1) * Double.BYTES;
     return wmem.getDouble(offset);
   }
 
   @Override
-  float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getFloatSingleValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override
   int getM() {

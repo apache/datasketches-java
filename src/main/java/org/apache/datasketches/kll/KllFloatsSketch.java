@@ -26,15 +26,32 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.QuantileSearchCriteria.*;
 
 import java.util.Objects;
 
+import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
+/**
+ * This variation of the KllSketch implements primitive floats for the quantile values.
+ *
+ * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
+ * @see org.apache.datasketches.kll.KllSketch
+ * @see <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+ * KLL package summary</a>
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks, Tutorial</a>
+ * @see org.apache.datasketches.QuantileSearchCriteria
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ * @author Alexander Saydakov
+ */
 public abstract class KllFloatsSketch extends KllSketch {
-  KllFloatsSketchSortedView sortedView = null;
+  KllFloatsSketchSortedView kllFloatsSV = null;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
     super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
@@ -158,14 +175,30 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, false)}
+   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(splitPoints, NON_INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return CDF
    */
   public double[] getCDF(final float[] splitPoints) {
     //TDO add check for sorted view eventually
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, false);
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, NON_INCLUSIVE);
   }
+
+  /**
+   * Returns the max value of the stream.
+   * If the sketch is empty this returns NaN.
+   *
+   * @return the max value of the stream
+   */
+  public float getMaxValue() { return getMaxFloatValue(); }
+
+  /**
+   * Returns the min value of the stream.
+   * If the sketch is empty this returns NaN.
+   *
+   * @return the min value of the stream
+   */
+  public float getMinValue() { return getMinFloatValue(); }
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
@@ -191,34 +224,19 @@ public abstract class KllFloatsSketch extends KllSketch {
    * The value at array position j of the returned CDF array is the sum of the returned values
    * in positions 0 through j of the returned PMF array.
    */
-  public double[] getCDF(final float[] splitPoints, final boolean inclusive) {
+  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
     //TODO add check for sorted view eventually
     return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
   }
 
   /**
-   * Returns the max value of the stream.
-   * If the sketch is empty this returns NaN.
-   *
-   * @return the max value of the stream
-   */
-  public float getMaxValue() { return getMaxFloatValue(); }
-
-  /**
-   * Returns the min value of the stream.
-   * If the sketch is empty this returns NaN.
-   *
-   * @return the min value of the stream
-   */
-  public float getMinValue() { return getMinFloatValue(); }
-
-  /**
-   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, false)}
+   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(splitPoints, NON_INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return PMF
    */
   public double[] getPMF(final float[] splitPoints) {
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, false);
+    //TODO add check for sorted view eventually
+    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, NON_INCLUSIVE);
   }
 
   /**
@@ -241,45 +259,111 @@ public abstract class KllFloatsSketch extends KllSketch {
    * Otherwise the rank equals the sum of the weights of all values that are less than the given value
    *
    * @return an array of m+1 doubles on the interval [0.0, 1.0),
-   * each of which is an approximation to the fraction of the total input stream values
-   * (the mass) that fall into one of those intervals.
+   * each of which is an approximation to the fraction, or mass, of the total input stream values
+   * that fall into one of those intervals.
+   * //TODO is this correct?
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
    * splitPoint, with the exception that the last interval will include maximum value.
    */
-  public double[] getPMF(final float[] splitPoints, final boolean inclusive) {
+  public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
     //add check for sorted view eventually
     return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, inclusive);
   }
 
   /**
-   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, NON_INCLUSIVE)}
    * @param rank  the given normalized rank, a value in the interval [0.0,1.0].
    * @return quantile
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public float getQuantile(final double rank) {
-    return KllFloatsSketchSortedView.getFloatsQuantile(this, rank, false);
+    return getQuantile(rank, NON_INCLUSIVE);
   }
 
   /**
-   * Returns an approximation to the value of the data item
-   * that would be preceded by the given fraction of a hypothetical sorted
-   * version of the input stream so far.
+   * Returns the quantile associated with the given rank.
    *
-   * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
-   * so it should not be called multiple times to get different quantiles from the same
-   * sketch. Instead use getQuantiles(), which pays the overhead only once.
+   * <p>We note that this method has an overhead (microseconds instead of nanoseconds) when called for the first time
+   * after an update or sketch merge.  Use getQuantiles() if there is a requirement to obtain multiple quantiles.
    *
    * <p>If the sketch is empty this returns NaN.
    *
    * @param rank the given normalized rank, a value in the interval [0.0,1.0].
-   *
-   * @param inclusive if true, the given rank includes all values &le; the value directly
+   * @param inclusive is INCLUSIVE, the given rank includes all values &le; the value directly
    * corresponding to the given rank.
-   * @return the approximation to the value at the given fraction
+   * @return the quantile associated with the given rank.
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
-  public float getQuantile(final double rank, final boolean inclusive) {
-    //TODO START HERE
-    return KllFloatsSketchSortedView.getFloatsQuantile(this, rank, inclusive);
+  public float getQuantile(final double rank, final QuantileSearchCriteria inclusive) {
+    if (this.isEmpty()) { return Float.NaN; }
+    checkRank(rank);
+    refreshSortedView();
+    return kllFloatsSV.getQuantile(rank, inclusive);
+  }
+
+  /**
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, NON_INCLUSIVE)}
+   * @param ranks normalied ranks on the interval [0.0, 1.0].
+   * @return quantiles
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   */
+  public float[] getQuantiles(final double[] ranks) {
+    return getQuantiles(ranks, NON_INCLUSIVE);
+  }
+
+  /**
+   * This is a more efficient multiple-query version of getQuantile().
+   *
+   * <p>Returns an array of quantiles from the given array of normalized ranks.
+   *
+   * <p>If the sketch is empty this returns null.
+   *
+   * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
+   * @param inclusive if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
+   * @return array of quantiles
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   */
+  public float[] getQuantiles(final double[] ranks, final QuantileSearchCriteria inclusive) {
+    if (this.isEmpty()) { return null; }
+    checkRanks(ranks);
+    refreshSortedView();
+    final int len = ranks.length;
+    final float[] quantiles = new float[len];
+    for (int i = 0; i < len; i++) {
+      quantiles[i] = kllFloatsSV.getQuantile(ranks[i], inclusive);
+    }
+    return quantiles;
+  }
+
+  /**
+   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, NON_INCLUSIVE)}
+   * @param numEvenlySpaced number of evenly spaced normalied ranks
+   * @return array of quantiles.
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   */
+  public float[] getQuantiles(final int numEvenlySpaced) {
+    if (isEmpty()) { return null; }
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), NON_INCLUSIVE);
+  }
+
+  /**
+   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
+   * specify the number of evenly spaced normalized ranks.
+   *
+   * <p>If the sketch is empty this returns null.
+   *
+   * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
+   * This must be a positive integer greater than 0. A value of 1 will return the min value.
+   * A value of 2 will return the min and the max value. A value of 3 will return the min,
+   * the median and the max value, etc.
+   *
+   * @param inclusive if true, the normalized ranks are considered inclusive
+   * @return array of quantiles.
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   */
+  public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria inclusive) {
+    if (isEmpty()) { return null; }
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), inclusive);
   }
 
   /**
@@ -294,78 +378,18 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * This is a more efficient multiple-query version of getQuantile().
-   *
-   * <p>This returns an array that could have been generated by using getQuantile() with many
-   * different fractional ranks, but would be very inefficient.
-   * This method incurs the internal set-up overhead once and obtains multiple quantile values in
-   * a single query. It is strongly recommend that this method be used instead of multiple calls
-   * to getQuantile().
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param fractions the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
-   * @param inclusive if true, the given ranks include all values &le; the value directly corresponding to each rank.
-   * @return array of approximations to the given fractions in the same order as given fractions
-   * array.
-   */
-  public float[] getQuantiles(final double[] fractions, final boolean inclusive) {
-    return KllFloatsSketchSortedView.getFloatsQuantiles(this, fractions, inclusive);
-  }
-
-  /**
-   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, false)}
-   * @param ranks fractional ranks
-   * @return quantiles
-   */
-  public float[] getQuantiles(final double[] ranks) {
-    return KllFloatsSketchSortedView.getFloatsQuantiles(this, ranks, false);
-  }
-
-  /**
-   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
-   * specify the number of evenly spaced fractional ranks.
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
-   * This must be a positive integer greater than 0. A value of 1 will return the min value.
-   * A value of 2 will return the min and the max value. A value of 3 will return the min,
-   * the median and the max value, etc.
-   *
-   * @param inclusive if true, the fractional ranks are considered inclusive
-   * @return array of approximations to the given fractions in the same order as given fractions
-   * array.
-   */
-  public float[] getQuantiles(final int numEvenlySpaced, final boolean inclusive) {
-    if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), inclusive);
-  }
-
-  /**
-   * Same as {@link #getQuantiles(int, boolean) getQuantiles(int numEvenlySpaced, false)}
-   * @param numEvenlySpaced number of evenly spaced fractional ranks
-   * @return quantiles
-   */
-  public float[] getQuantiles(final int numEvenlySpaced) {
-    if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
-  }
-
-  /**
    * Gets the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
+   * @param rank the given normalized rank
    * @return the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public float getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getMinK(), false)));
+  public float getQuantileUpperBound(final double rank) {
+    return getQuantile(min(1.0, rank + KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
-   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1,
-   * inclusive.
+   * Returns a normalized rank given a quantile value.
    *
    * <p>The resulting approximation has a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(false) function.
@@ -373,28 +397,27 @@ public abstract class KllFloatsSketch extends KllSketch {
    * <p>If the sketch is empty this returns NaN.</p>
    *
    * @param value to be ranked
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * Otherwise the rank equals the sum of the weights of all values that are less than the given value
+   * @param inclusive if INCLUSIVE the weight of the given quantile value is included into the rank.
    * @return an approximate rank of the given value
    */
-  public double getRank(final float value, final boolean inclusive) {
+  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
     return KllFloatsSketchSortedView.getFloatRank(this, value, inclusive);
   }
 
   /**
-   * Same as {@link #getRank(float, boolean) getRank(float value, false)}
+   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(value, NON_INCLUSIVE)}
    * @param value value to be ranked
-   * @return fractional rank
+   * @return normalized rank
    */
   public double getRank(final float value) {
-    return KllFloatsSketchSortedView.getFloatRank(this, value, false);
+    return KllFloatsSketchSortedView.getFloatRank(this, value, NON_INCLUSIVE);
   }
 
   /**
    * @return the iterator for this class
    */
   public KllFloatsSketchIterator iterator() {
-    return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
+    return new KllFloatsSketchIterator(getFloatValuesArray(), getLevelsArray(), getNumLevels());
   }
 
   /**
@@ -405,6 +428,7 @@ public abstract class KllFloatsSketch extends KllSketch {
   public void update(final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     KllFloatsHelper.updateFloat(this, value);
+    kllFloatsSV = null;
   }
 
   /**
@@ -413,7 +437,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return sorted view object
    */
   public KllFloatsSketchSortedView getSortedView() {
-    return KllFloatsSketchSortedView.getFloatsSortedView(this);
+    return kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
   }
 
   @Override //Artifact of inheritance
@@ -436,5 +460,23 @@ public abstract class KllFloatsSketch extends KllSketch {
 
   @Override //Artifact of inheritance
   void setMinDoubleValue(final double value) { kllSketchThrow(MUST_NOT_CALL); }
+
+  private static final void checkRank(final double rank) {
+    if (rank < 0.0 || rank > 1.0) {
+      throw new SketchesArgumentException("Rank cannot be less than zero nor greater than 1.0");
+    }
+  }
+
+  private static final void checkRanks(final double[] ranks) {
+    for (int i = 0; i < ranks.length; i++) {
+      if ((ranks[i] < 0.0) || (ranks[i] > 1.0)) {
+        throw new SketchesArgumentException("Rank " + ranks[i] + " cannot be less than 0.0 nor greater than 1.0");
+      }
+    }
+  }
+
+  private final void refreshSortedView() {
+    kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
+  }
 
 }

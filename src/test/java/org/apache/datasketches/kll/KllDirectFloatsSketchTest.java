@@ -106,11 +106,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(pmf.length, 2);
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
-
     assertEquals(sketch.getMinValue(), 0f); // min value is exact
-    assertEquals(sketch.getQuantile(0), 0f); // min value is exact
     assertEquals(sketch.getMaxValue(), n - 1f); // max value is exact
-    assertEquals(sketch.getQuantile(1), n - 1f); // max value is exact
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
@@ -488,7 +485,7 @@ public class KllDirectFloatsSketchTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 33);
+    assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxFloatValue(), 21.0);
     assertEquals(sk.getMinFloatValue(), 1.0);
@@ -508,7 +505,7 @@ public class KllDirectFloatsSketchTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), Double.NaN);
     assertEquals(sk.getMinFloatValue(), Double.NaN);
@@ -529,7 +526,7 @@ public class KllDirectFloatsSketchTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatItemsArray().length, 20);
+    assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxFloatValue(), 1.0);
     assertEquals(sk.getMinFloatValue(), 1.0);
