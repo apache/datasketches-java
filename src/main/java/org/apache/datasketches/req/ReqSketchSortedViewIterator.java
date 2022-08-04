@@ -53,6 +53,7 @@ public class ReqSketchSortedViewIterator {
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next(). </p>
+   *
    * @return the current value
    */
   public float getValue() {
@@ -64,6 +65,7 @@ public class ReqSketchSortedViewIterator {
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
+   *
    * @param inclusive If true, includes the weight of the current value.
    * Otherwise, returns the cumulative weightof the previous value.
    * @return cumulative weight for the current value.
@@ -78,6 +80,7 @@ public class ReqSketchSortedViewIterator {
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
+   *
    * @param inclusive if true, returns the normalized rank of the current value.
    * Otherwise, returns the normalized rank of the previous value.
    * @return normalized rank for the current value or previous value.
@@ -91,7 +94,8 @@ public class ReqSketchSortedViewIterator {
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
-   * @return item weight of the current value.
+   *
+   * @return weight of the current value.
    */
   public long getWeight() {
     if (index == 0) { return cumWeights[0]; }

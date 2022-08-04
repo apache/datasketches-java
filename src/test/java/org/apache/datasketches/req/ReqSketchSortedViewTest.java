@@ -21,13 +21,15 @@ package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
-
 public class ReqSketchSortedViewTest {
   private final int k = 32;
   private final boolean hra = false;
@@ -36,6 +38,39 @@ public class ReqSketchSortedViewTest {
   private final int n = numV * dup;
 
   @Test
+  public void emptySketch() {
+    ReqSketch sketch = ReqSketch.builder().build();
+    ReqSketchSortedViewIterator itr =  sketch.getSortedView().iterator();
+    Assert.assertFalse(itr.next());
+  }
+
+  @Test
+  public void twoValueSketch() {
+    ReqSketch sketch = ReqSketch.builder().build();
+    sketch.update(1f);
+    sketch.update(2f);
+    ReqSketchSortedViewIterator itr =  sketch.getSortedView().iterator();
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0);
+    assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0.5);
+    assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
+  }
+
+  //@Test //visual only
   public void checkIterator() {
     println("");
     println("CHECK ReqSketchSortedViewIterator");
