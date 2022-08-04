@@ -79,7 +79,7 @@ public class KllFloatsSketchTest {
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getRank(1), 0.0);
+    assertEquals(sketch.getRank(1f), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
     assertEquals(sketch.getRank(1, NON_INCLUSIVE), 0.0);
     assertEquals(sketch.getRank(2, NON_INCLUSIVE), 1.0);

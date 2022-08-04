@@ -239,7 +239,7 @@ final class KllHelper {
         newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
         sketch.setLevelsArrayAt(lvl, newIndex);
       }
-      sketch.setFloatItemsArray(myFloatItemsArr);
+      sketch.setFloatValuesArray(myFloatItemsArr);
     }
   }
 
@@ -856,7 +856,7 @@ final class KllHelper {
     } else { //Float sketch
       sketch.setMinFloatValue(minFloat);
       sketch.setMaxFloatValue(maxFloat);
-      sketch.setFloatItemsArray(myNewFloatItemsArr);
+      sketch.setFloatValuesArray(myNewFloatItemsArr);
     }
   }
 

@@ -172,8 +172,6 @@ public class GenericInequalitySearchTest {
     assertEquals(res, -1);
   }
 
-
-
   @Test // visual only
   public void exerciseFltBinSearch() {
     checkFindFloat(LT);

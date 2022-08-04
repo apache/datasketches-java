@@ -499,7 +499,7 @@ public class KllDoublesSketchTest {
     try { sk.getFloatValuesArray();           fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMaxFloatValue();             fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinFloatValue();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatItemsArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatValuesArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }
     try { sk.setFloatItemsArrayAt(idx,fltV); fail(); } catch (SketchesArgumentException e) { }
     try { sk.setMaxFloatValue(fltV);         fail(); } catch (SketchesArgumentException e) { }
     try { sk.setMinFloatValue(fltV);         fail(); } catch (SketchesArgumentException e) { }

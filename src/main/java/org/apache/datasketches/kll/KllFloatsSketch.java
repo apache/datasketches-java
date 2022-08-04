@@ -31,7 +31,6 @@ import static org.apache.datasketches.QuantileSearchCriteria.*;
 import java.util.Objects;
 
 import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -175,16 +174,6 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(splitPoints, NON_INCLUSIVE)}
-   * @param splitPoints splitPoints
-   * @return CDF
-   */
-  public double[] getCDF(final float[] splitPoints) {
-    //TDO add check for sorted view eventually
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, NON_INCLUSIVE);
-  }
-
-  /**
    * Returns the max value of the stream.
    * If the sketch is empty this returns NaN.
    *
@@ -199,6 +188,15 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return the min value of the stream
    */
   public float getMinValue() { return getMinFloatValue(); }
+
+  /**
+   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(splitPoints, NON_INCLUSIVE)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public double[] getCDF(final float[] splitPoints) {
+    return getCDF(splitPoints, NON_INCLUSIVE);
+  }
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
@@ -225,8 +223,9 @@ public abstract class KllFloatsSketch extends KllSketch {
    * in positions 0 through j of the returned PMF array.
    */
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
-    //TODO add check for sorted view eventually
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, true, inclusive);
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    return kllFloatsSV.getPmfOrCdf(splitPoints, true, inclusive);
   }
 
   /**
@@ -235,8 +234,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return PMF
    */
   public double[] getPMF(final float[] splitPoints) {
-    //TODO add check for sorted view eventually
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, NON_INCLUSIVE);
+    return getPMF(splitPoints, NON_INCLUSIVE);
   }
 
   /**
@@ -249,25 +247,24 @@ public abstract class KllFloatsSketch extends KllSketch {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing float values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
+   * that divide the real number line into <i>m+1</i> consecutive non overlapping intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * Otherwise the rank equals the sum of the weights of all values that are less than the given value
+   * @param inclusive  if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * the top value retained by the sketch.
    *
    * @return an array of m+1 doubles on the interval [0.0, 1.0),
    * each of which is an approximation to the fraction, or mass, of the total input stream values
-   * that fall into one of those intervals.
-   * //TODO is this correct?
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
+   * that fall into that interval.
    */
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
-    //add check for sorted view eventually
-    return KllFloatsSketchSortedView.getFloatsPmfOrCdf(this, splitPoints, false, inclusive);
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    return kllFloatsSV.getPmfOrCdf(splitPoints, false, inclusive);
   }
 
   /**
@@ -292,11 +289,13 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @param inclusive is INCLUSIVE, the given rank includes all values &le; the value directly
    * corresponding to the given rank.
    * @return the quantile associated with the given rank.
-   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   * @see
+   * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+   * KLL package summary</a>
+   * @see org.apache.datasketches.QuantileSearchCriteria
    */
   public float getQuantile(final double rank, final QuantileSearchCriteria inclusive) {
     if (this.isEmpty()) { return Float.NaN; }
-    checkRank(rank);
     refreshSortedView();
     return kllFloatsSV.getQuantile(rank, inclusive);
   }
@@ -321,11 +320,13 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
    * @param inclusive if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
    * @return array of quantiles
-   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   * @see
+   * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+   * KLL package summary</a>
+   * @see org.apache.datasketches.QuantileSearchCriteria
    */
   public float[] getQuantiles(final double[] ranks, final QuantileSearchCriteria inclusive) {
     if (this.isEmpty()) { return null; }
-    checkRanks(ranks);
     refreshSortedView();
     final int len = ranks.length;
     final float[] quantiles = new float[len];
@@ -359,7 +360,10 @@ public abstract class KllFloatsSketch extends KllSketch {
    *
    * @param inclusive if true, the normalized ranks are considered inclusive
    * @return array of quantiles.
-   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   * @see
+   * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+   * KLL package summary</a>
+   * @see org.apache.datasketches.QuantileSearchCriteria
    */
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria inclusive) {
     if (isEmpty()) { return null; }
@@ -389,28 +393,65 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Returns a normalized rank given a quantile value.
-   *
-   * <p>The resulting approximation has a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
-   *
-   * <p>If the sketch is empty this returns NaN.</p>
-   *
-   * @param value to be ranked
-   * @param inclusive if INCLUSIVE the weight of the given quantile value is included into the rank.
-   * @return an approximate rank of the given value
-   */
-  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
-    return KllFloatsSketchSortedView.getFloatRank(this, value, inclusive);
-  }
-
-  /**
    * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(value, NON_INCLUSIVE)}
    * @param value value to be ranked
    * @return normalized rank
    */
   public double getRank(final float value) {
-    return KllFloatsSketchSortedView.getFloatRank(this, value, NON_INCLUSIVE);
+    return getRank(value, NON_INCLUSIVE);
+  }
+
+  /**
+   * Returns a normalized rank given a quantile value.
+   *
+   * <p>If the sketch is empty this returns NaN.</p>
+   *
+   * @param value to be ranked
+   * @param inclusive if INCLUSIVE the given quantile value is included into the rank.
+   * @return an approximate rank of the given value
+   * @see
+   * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+   * KLL package summary</a>
+   * @see org.apache.datasketches.QuantileSearchCriteria
+   */
+  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
+    if (this.isEmpty()) { return Double.NaN; }
+    refreshSortedView();
+    return kllFloatsSV.getRank(value, inclusive);
+  }
+
+  /**
+   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(values, NON_INCLUSIVE)}
+   * @param values array of values to be ranked.
+   * @return the array of normalized ranks.
+   */
+  public double[] getRanks(final float[] values) {
+    return getRanks(values, NON_INCLUSIVE);
+  }
+
+  /**
+   * Returns an array of normalized ranks corresponding to the given array of quantile values and the given
+   * search criterion.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param values the given quantile values from which to obtain their corresponding ranks.
+   * @param inclusive
+   * @return an array of normalized ranks corresponding to the given array of quantile values.
+   * @see
+   * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+   * KLL package summary</a>
+   * @see org.apache.datasketches.QuantileSearchCriteria
+   */
+  public double[] getRanks(final float[] values, final QuantileSearchCriteria inclusive) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    final int len = values.length;
+    final double[] ranks = new double[len];
+    for (int i = 0; i < len; i++) {
+      ranks[i] = kllFloatsSV.getRank(values[i], inclusive);
+    }
+    return ranks;
   }
 
   /**
@@ -460,20 +501,6 @@ public abstract class KllFloatsSketch extends KllSketch {
 
   @Override //Artifact of inheritance
   void setMinDoubleValue(final double value) { kllSketchThrow(MUST_NOT_CALL); }
-
-  private static final void checkRank(final double rank) {
-    if (rank < 0.0 || rank > 1.0) {
-      throw new SketchesArgumentException("Rank cannot be less than zero nor greater than 1.0");
-    }
-  }
-
-  private static final void checkRanks(final double[] ranks) {
-    for (int i = 0; i < ranks.length; i++) {
-      if ((ranks[i] < 0.0) || (ranks[i] > 1.0)) {
-        throw new SketchesArgumentException("Rank " + ranks[i] + " cannot be less than 0.0 nor greater than 1.0");
-      }
-    }
-  }
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;

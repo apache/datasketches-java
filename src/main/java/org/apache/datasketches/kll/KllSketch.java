@@ -412,7 +412,7 @@ public abstract class KllSketch {
     } else {
       setMinFloatValue(Float.NaN);
       setMaxFloatValue(Float.NaN);
-      setFloatItemsArray(new float[k]);
+      setFloatValuesArray(new float[k]);
     }
   }
 
@@ -509,7 +509,7 @@ public abstract class KllSketch {
 
   abstract void setDoubleItemsArrayAt(int index, double value);
 
-  abstract void setFloatItemsArray(float[] floatItems);
+  abstract void setFloatValuesArray(float[] floatValues);
 
   abstract void setFloatItemsArrayAt(int index, float value);
 

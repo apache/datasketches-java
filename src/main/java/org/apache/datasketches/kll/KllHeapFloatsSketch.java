@@ -167,7 +167,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   boolean isLevelZeroSorted() { return isLevelZeroSorted_; }
 
   @Override
-  void setFloatItemsArray(final float[] floatItems) { floatItems_ = floatItems; }
+  void setFloatValuesArray(final float[] floatValues) { floatItems_ = floatValues; }
 
   @Override
   void setFloatItemsArrayAt(final int index, final float value) { floatItems_[index] = value; }

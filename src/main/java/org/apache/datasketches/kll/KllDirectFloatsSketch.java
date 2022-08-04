@@ -173,10 +173,10 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setFloatItemsArray(final float[] floatItems) {
+  void setFloatValuesArray(final float[] floatValues) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Float.BYTES;
-    wmem.putFloatArray(offset, floatItems, 0, floatItems.length);
+    wmem.putFloatArray(offset, floatValues, 0, floatValues.length);
   }
 
   @Override

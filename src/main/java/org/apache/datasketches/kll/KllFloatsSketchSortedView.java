@@ -54,6 +54,10 @@ public final class KllFloatsSketchSortedView {
   private final float[] values;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
 
+  /**
+   * Constructs the Sorted View given the sketch
+   * @param sk the given KllFloatsSketch.
+   */
   public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
     this.N = sk.getN();
     final float[] srcValues = sk.getFloatValuesArray();
@@ -72,7 +76,7 @@ public final class KllFloatsSketchSortedView {
     sk.kllFloatsSV = this;
   }
 
-  //populates values, cumWeights, levels, numLevels
+  //populates values, cumWeights
   private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
     final int srcNumLevels, final int numItems) {
     final int[] myLevels = new int[srcNumLevels + 1];
@@ -106,10 +110,11 @@ public final class KllFloatsSketchSortedView {
    * @return the quantile
    */
   public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
+    checkRank(normRank);
     final int len = cumWeights.length;
-    final long rank = (int)(normRank * N);
+    final long naturalRank = (int)(normRank * N);
     final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
       if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
       if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
@@ -141,122 +146,31 @@ public final class KllFloatsSketchSortedView {
     return new KllFloatsSketchSortedViewIterator(values, cumWeights);
   }
 
-
-  //Called only from KllFloatsSketch - original search for rank
-  static double getFloatRank(final KllSketch sketch, final float value, final QuantileSearchCriteria inclusive) {
-    if (sketch.isEmpty()) { return Double.NaN; }
-    int level = 0;
-    int weight = 1;
-    long total = 0;
-    final float[] floatItemsArr = sketch.getFloatValuesArray();
-    final int[] levelsArr = sketch.getLevelsArray();
-    while (level < sketch.getNumLevels()) {
-      final int fromIndex = levelsArr[level];
-      final int toIndex = levelsArr[level + 1]; // exclusive
-      for (int i = fromIndex; i < toIndex; i++) {
-        if (inclusive == INCLUSIVE ? floatItemsArr[i] <= value : floatItemsArr[i] < value) {
-          total += weight;
-        } else if (level > 0 || sketch.isLevelZeroSorted()) {
-          break; // levels above 0 are sorted, no point comparing further
-        }
-      }
-      level++;
-      weight *= 2;
-    }
-    return (double) total / sketch.getN();
-  }
-
-  //Called only from KllFloatsSketch TODO rewrite using sorted view and new getRanks
-  static double[] getFloatsPmfOrCdf(final KllSketch sketch, final float[] splitPoints,
-      final boolean isCdf, final QuantileSearchCriteria inclusive) {
-    if (sketch.isEmpty()) { return null; }
+  /**
+   * Returns an array of fractional intervals of the distribution represented by the sketch as a CDF or PMF.
+   * @param splitPoints the given array of splitPoints. These is a sorted, unique, monotonic array of float
+   * values in the range of (minValue, maxValue). This array must not include either the minValue or the maxValue.
+   * The returned array will have one extra interval representing the very top of the distribution.
+   * @param isCdf if true, a CDF will be returned, otherwise, a PMF will be returned.
+   * @param inclusive if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * the top value retained by the sketch.
+   * @return an array of fractional portions of the distribution represented by the sketch as a CDF or PMF.
+   */
+  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf,
+      final QuantileSearchCriteria inclusive) {
     validateFloatValues(splitPoints);
-    final double[] buckets = new double[splitPoints.length + 1];
-    final int numLevels = sketch.getNumLevels();
-    final int[] levelsArr = sketch.getLevelsArray();
-    int level = 0;
-    int weight = 1;
-    while (level < numLevels) {
-      final int fromIndex = levelsArr[level];
-      final int toIndex = levelsArr[level + 1]; // exclusive
-      if (level == 0 && !sketch.isLevelZeroSorted()) {
-        incrementFloatBucketsUnsortedLevel(sketch, fromIndex, toIndex, weight, splitPoints, buckets, inclusive);
-      } else {
-        incrementFloatBucketsSortedLevel(sketch, fromIndex, toIndex, weight, splitPoints, buckets, inclusive);
-      }
-      level++;
-      weight *= 2;
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], inclusive);
     }
-    // normalize and, if CDF, convert to cumulative
-    if (isCdf) {
-      double subtotal = 0;
-      for (int i = 0; i < buckets.length; i++) {
-        subtotal += buckets[i];
-        buckets[i] = subtotal / sketch.getN();
-      }
-    } else {
-      for (int i = 0; i < buckets.length; i++) {
-        buckets[i] /= sketch.getN();
-      }
+    buckets[len - 1] = 1.0;
+    if (isCdf) { return buckets; }
+    for (int i = len; i-- > 1;) {
+      buckets[i] -= buckets[i - 1];
     }
     return buckets;
-  }
-
-  /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * Only used for getPmfOrCdf().
-   * @param values the given array of values
-   */
-  private static void validateFloatValues(final float[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
-    }
-  }
-
-  //Only used for getPmfOrCdf
-  private static void incrementFloatBucketsSortedLevel(
-      final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
-      final float[] splitPoints, final double[] buckets, final QuantileSearchCriteria inclusive) {
-    final float[] floatItemsArr = sketch.getFloatValuesArray();
-    int i = fromIndex;
-    int j = 0;
-    while (i <  toIndex && j < splitPoints.length) {
-      if (inclusive == INCLUSIVE ? floatItemsArr[i] <= splitPoints[j]: floatItemsArr[i] < splitPoints[j]) {
-        buckets[j] += weight; // this sample goes into this bucket
-        i++; // move on to next sample and see whether it also goes into this bucket
-      } else {
-        j++; // no more samples for this bucket
-      }
-    }
-    // now either i == toIndex (we are out of samples), or
-    // j == numSplitPoints (we are out of buckets, but there are more samples remaining)
-    // we only need to do something in the latter case
-    if (j == splitPoints.length) {
-      buckets[j] += weight * (toIndex - i);
-    }
-  }
-
-  //Only used for getPmfOrCdf
-  private static void incrementFloatBucketsUnsortedLevel(
-      final KllSketch sketch, final int fromIndex, final int toIndex, final int weight,
-      final float[] splitPoints, final double[] buckets, final QuantileSearchCriteria inclusive) {
-    final float[] floatItemsArr = sketch.getFloatValuesArray();
-    for (int i = fromIndex; i < toIndex; i++) {
-      int j;
-      for (j = 0; j < splitPoints.length; j++) {
-        if (inclusive == INCLUSIVE ? floatItemsArr[i] <= splitPoints[j] : floatItemsArr[i] < splitPoints[j]) {
-          break;
-        }
-      }
-      buckets[j] += weight;
-    }
   }
 
   private static void blockyTandemMergeSort(final float[] items, final long[] weights,
@@ -334,57 +248,29 @@ public final class KllFloatsSketchSortedView {
     }
   }
 
-//  @SuppressWarnings("deprecation")
-//  private float approximatelyAnswerPositonalQuery(final long pos) {
-//    assert pos >= 0;
-//    assert pos < N;
-//    final int index = KllQuantilesHelper.chunkContainingPos(cumWeights, pos);
-//    return values[index];
-//  }
-
-  static void printLevels(int[] levels, int numLevels) {
-    for (int i = 0; i < levels.length; i++) { print(levels[i] + ", "); }
-    println("numLevels: " + numLevels);
-  }
-
-  static void printAll(
-      float[] values, long[] cumWeights,
-      float[] itemsDst, long[] weightsDst,
-      int[] levels, int startingLevel, int numLevels) {
-    //StringBuilder sb = new StringBuilder();
-    println("itemSrc[] len: " + values.length);
-    println("weightsSrc[] len: " + cumWeights.length);
-    println("itemsDst[] len: " + itemsDst.length);
-    println("weightsDst[] len: " + weightsDst.length);
-    println("levels[] len: " + levels.length);
-    for (int i = 0; i < levels.length; i++) { print(levels[i] + ", "); } println("");
-    println("startingLevel: " + startingLevel);
-    println("numLevels: " + numLevels);
-    println("");
-  }
-
-  private final static boolean enablePrinting = true;
-
-  /**
-   * @param format the format
-   * @param args the args
-   */
-  static final void printf(final String format, final Object ...args) {
-    if (enablePrinting) { System.out.printf(format, args); }
+  private static final void checkRank(final double rank) {
+    if (rank < 0.0 || rank > 1.0) {
+      throw new SketchesArgumentException(
+          "A normalized rank " + rank + " cannot be less than zero nor greater than 1.0");
+    }
   }
 
   /**
-   * @param o the Object to println
+   * Checks the sequential validity of the given array of splitpoints as floats.
+   * They must be unique, monotonically increasing and not NaN.
+   * Only used for getPmfOrCdf().
+   * @param values the given array of values
    */
-  static final void println(final Object o) {
-    if (enablePrinting) { System.out.println(o.toString()); }
-  }
-
-  /**
-   * @param o the Object to print
-   */
-  static final void print(final Object o) {
-    if (enablePrinting) { System.out.print(o.toString()); }
+  private static void validateFloatValues(final float[] values) {
+    for (int i = 0; i < values.length; i++) {
+      if (!Float.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
+    }
   }
 
 }

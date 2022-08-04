@@ -128,7 +128,7 @@ final class KllFloatsHelper {
     //Update numLevels, levelsArray, items
     sketch.setNumLevels(myNewNumLevels);
     sketch.setLevelsArray(myNewLevelsArr);
-    sketch.setFloatItemsArray(myNewFloatItemsArr);
+    sketch.setFloatValuesArray(myNewFloatItemsArr);
 
     //Update min, max values
     final float otherMin = other.getMinFloatValue();
