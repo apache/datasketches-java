@@ -23,7 +23,7 @@ package org.apache.datasketches.req;
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import org.apache.datasketches.QuantileSearchCriteria;
 /**
- * Iterator over KllDoublesSketchSortedView.
+ * Iterator over ReqSketchSortedView.
  *
  * <p>The recommended iteration loop:</p>
  * <pre>{@code

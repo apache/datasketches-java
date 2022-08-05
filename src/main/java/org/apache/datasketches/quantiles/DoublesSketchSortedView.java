@@ -31,7 +31,7 @@ import java.util.Arrays;
  * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
  * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
  * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
- * trial & error, try to figure out what the sketch actually has retained.
+ * trial &amp; error, try to figure out what the sketch actually has retained.
  *
  * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
  * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
