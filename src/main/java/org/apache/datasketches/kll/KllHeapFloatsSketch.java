@@ -41,12 +41,12 @@ import org.apache.datasketches.memory.Memory;
 final class KllHeapFloatsSketch extends KllFloatsSketch {
   private final int k_;    // configured value of K.
   private final int m_;    // configured value of M.
-  private long n_;        // number of items input into this sketch.
+  private long n_;        // number of values input into this sketch.
   private int minK_;    // dynamic minK for error estimation after merging with different k.
   private boolean isLevelZeroSorted_;
   private float minFloatValue_;
   private float maxFloatValue_;
-  private float[] floatItems_;
+  private float[] floatValues_;
 
   /**
    * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
@@ -55,7 +55,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    * <em>k</em> can be any value between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
    * Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param m parameter that controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * @param m parameter that controls the minimum level width in values. It can be 2, 4, 6 or 8.
    * The DEFAULT_M, which is 8 is recommended. Other values of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
    */
@@ -71,7 +71,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     levelsArr = new int[] {k, k};
     minFloatValue_ = Float.NaN;
     maxFloatValue_ = Float.NaN;
-    floatItems_ = new float[k];
+    floatValues_ = new float[k];
   }
 
   /**
@@ -92,13 +92,13 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     if (memVal.empty && !updatableMemFormat) {
       minFloatValue_ = Float.NaN;
       maxFloatValue_ = Float.NaN;
-      floatItems_ = new float[k_];
+      floatValues_ = new float[k_];
     }
     else if (memVal.singleValue && !updatableMemFormat) {
       final float value = srcMem.getFloat(DATA_START_ADR_SINGLE_VALUE);
       minFloatValue_ = maxFloatValue_ = value;
-      floatItems_ = new float[k_];
-      floatItems_[k_ - 1] = value;
+      floatValues_ = new float[k_];
+      floatValues_[k_ - 1] = value;
     }
     else { //Full or updatableMemFormat
       int offsetBytes = DATA_START_ADR;
@@ -107,15 +107,15 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
       offsetBytes += Float.BYTES;
       maxFloatValue_ = srcMem.getFloat(offsetBytes);
       offsetBytes += Float.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      final int retainedItems = capacityItems - levelsArr[0];
-      floatItems_ = new float[capacityItems];
+      final int capacityValues = levelsArr[getNumLevels()];
+      final int retainedValues = capacityValues - levelsArr[0];
+      floatValues_ = new float[capacityValues];
       final int shift = levelsArr[0];
       if (updatableMemFormat) {
         offsetBytes += shift * Float.BYTES;
-        srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
+        srcMem.getFloatArray(offsetBytes, floatValues_, shift, retainedValues);
       } else {
-        srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
+        srcMem.getFloatArray(offsetBytes, floatValues_, shift, retainedValues);
       }
     }
   }
@@ -134,15 +134,15 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   public long getN() { return n_; }
 
   @Override
-  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
+  double getDoubleSingleValue() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override
-  float[] getFloatValuesArray() { return floatItems_; }
+  float[] getFloatValuesArray() { return floatValues_; }
 
   @Override
   float getFloatSingleValue() {
     if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_VALUE); return Float.NaN; }
-    return floatItems_[k_ - 1];
+    return floatValues_[k_ - 1];
   }
 
   @Override
@@ -167,10 +167,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   boolean isLevelZeroSorted() { return isLevelZeroSorted_; }
 
   @Override
-  void setFloatValuesArray(final float[] floatValues) { floatItems_ = floatValues; }
+  void setFloatValuesArray(final float[] floatValues) { floatValues_ = floatValues; }
 
   @Override
-  void setFloatItemsArrayAt(final int index, final float value) { floatItems_[index] = value; }
+  void setFloatValuesArrayAt(final int index, final float value) { floatValues_[index] = value; }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }

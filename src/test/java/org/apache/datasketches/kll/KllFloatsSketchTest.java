@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.QuantileSearchCriteria.*;
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
 import static org.apache.datasketches.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -73,7 +74,7 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void oneItem() {
+  public void oneValue() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
     assertFalse(sketch.isEmpty());
@@ -91,7 +92,7 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void tenItems() {
+  public void tenValues() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
@@ -103,7 +104,7 @@ public class KllFloatsSketchTest {
       assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
     }
     // inclusive = false (default)
-    assertEquals(sketch.getQuantile(0), 1); // always min value
+    assertEquals(sketch.getQuantile(0), 1);
     assertEquals(sketch.getQuantile(0.1), 2);
     assertEquals(sketch.getQuantile(0.2), 3);
     assertEquals(sketch.getQuantile(0.3), 4);
@@ -113,9 +114,9 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getQuantile(0.7), 8);
     assertEquals(sketch.getQuantile(0.8), 9);
     assertEquals(sketch.getQuantile(0.9), 10);
-    assertEquals(sketch.getQuantile(1), 10); // always max value
+    assertEquals(sketch.getQuantile(1), 10);
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1); // always min value
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
     assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
@@ -125,7 +126,7 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
     assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
     assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
-    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10); // always max value TODO
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10);
 
     // getQuantile() and getQuantiles() equivalence
     {
@@ -147,7 +148,7 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void manyItemsEstimationMode() {
+  public void manyValuesEstimationMode() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     final int n = 1_000_000;
 
@@ -399,7 +400,7 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeOneItem() {
+  public void serializeDeserializeOneValue() {
     final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
@@ -415,7 +416,7 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void deserializeOneItemV1() throws Exception {
+  public void deserializeOneValueV1() throws Exception {
     final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
     final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
     assertFalse(sketch.isEmpty());
@@ -494,11 +495,11 @@ public class KllFloatsSketchTest {
     double dblV = 1.0;
     int idx = 1;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
-    try { sk.getDoubleItemsArray();           fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getDoubleValuesArray();           fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMaxDoubleValue();             fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinDoubleValue();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setDoubleItemsArray(dblArr);     fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setDoubleItemsArrayAt(idx,dblV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setDoubleValuesArray(dblArr);     fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setDoubleValuesArrayAt(idx,dblV); fail(); } catch (SketchesArgumentException e) { }
     try { sk.setMaxDoubleValue(dblV);         fail(); } catch (SketchesArgumentException e) { }
     try { sk.setMinDoubleValue(dblV);         fail(); } catch (SketchesArgumentException e) { }
   }
@@ -524,6 +525,34 @@ public class KllFloatsSketchTest {
     assertTrue(compactSize < updateSize);
   }
 
+  @Test
+  public void sortedView() {
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
+    sk.update(3);
+    sk.update(1);
+    sk.update(2);
+    {
+      final KllFloatsSketchSortedView view = sk.getSortedView();
+      final KllFloatsSketchSortedViewIterator itr = view.iterator();
+      assertEquals(itr.next(), true);
+      assertEquals(itr.getValue(), 1);
+      assertEquals(itr.getWeight(), 1);
+      assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+      assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+      assertEquals(itr.next(), true);
+      assertEquals(itr.getValue(), 2);
+      assertEquals(itr.getWeight(), 1);
+      assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+      assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+      assertEquals(itr.next(), true);
+      assertEquals(itr.getValue(), 3);
+      assertEquals(itr.getWeight(), 1);
+      assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 2);
+      assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
+      assertEquals(itr.next(), false);
+    }
+  }
+
   @SuppressWarnings("deprecation")
   @Test
   public void checkDeprecatedMethods() { //Floats requires this for historical reasons
@@ -537,27 +566,5 @@ public class KllFloatsSketchTest {
     assertEquals(byteArr.length, 832);
     bytes = sk.getSerializedSizeBytes();
     assertEquals(bytes, 832);
-  }
-
-  @Test
-  public void sortedView() {
-    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
-    sk.update(3);
-    sk.update(1);
-    sk.update(2);
-    {
-      final KllFloatsSketchSortedView view = sk.getSortedView();
-      final KllFloatsSketchSortedViewIterator it = view.iterator();
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 1);
-      assertEquals(it.getWeight(), 1);
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 2);
-      assertEquals(it.getWeight(), 2);
-      assertEquals(it.next(), true);
-      assertEquals(it.getValue(), 3);
-      assertEquals(it.getWeight(), 3);
-      assertEquals(it.next(), false);
-    }
   }
 }

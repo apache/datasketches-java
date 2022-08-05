@@ -55,30 +55,30 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   float[] getFloatValuesArray() {
     final int k = getK();
     if (isEmpty()) { return new float[k]; }
-    if (isSingleItem()) {
-      final float[] itemsArr = new float[k];
-      itemsArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_VALUE);
-      return itemsArr;
+    if (isSingleValue()) {
+      final float[] valuesArr = new float[k];
+      valuesArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_VALUE);
+      return valuesArr;
     }
-    final int capacityItems =  levelsArr[getNumLevels()];
-    final float[] itemsArr = new float[capacityItems];
+    final int capacityValues =  levelsArr[getNumLevels()];
+    final float[] valuesArr = new float[capacityValues];
     final int levelsBytes = (levelsArr.length - 1) * Integer.BYTES; //compact format!
     final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
     final int shift = levelsArr[0];
-    wmem.getFloatArray(offset, itemsArr, shift, capacityItems - shift);
-    return itemsArr;
+    wmem.getFloatArray(offset, valuesArr, shift, capacityValues - shift);
+    return valuesArr;
   }
 
   @Override
   float getFloatSingleValue() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_VALUE); }
+    if (!isSingleValue()) { kllSketchThrow(NOT_SINGLE_VALUE); }
     return wmem.getFloat(DATA_START_ADR_SINGLE_VALUE);
   }
 
   @Override
   float getMaxFloatValue() {
     if (isEmpty()) { return Float.NaN; }
-    if (isSingleItem()) { return getFloatSingleValue(); }
+    if (isSingleValue()) { return getFloatSingleValue(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Float.BYTES;
     return wmem.getFloat(offset);
@@ -87,7 +87,7 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   @Override
   float getMinFloatValue() {
     if (isEmpty()) { return Float.NaN; }
-    if (isSingleItem()) { return getFloatSingleValue(); }
+    if (isSingleValue()) { return getFloatSingleValue(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
     return wmem.getFloat(offset);

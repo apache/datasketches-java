@@ -408,7 +408,7 @@ public abstract class KllSketch {
     if (sketchType == DOUBLES_SKETCH) {
       setMinDoubleValue(Double.NaN);
       setMaxDoubleValue(Double.NaN);
-      setDoubleItemsArray(new double[k]);
+      setDoubleValuesArray(new double[k]);
     } else {
       setMinFloatValue(Float.NaN);
       setMaxFloatValue(Float.NaN);
@@ -440,14 +440,14 @@ public abstract class KllSketch {
   }
 
   /**
-   * @return full size of internal items array including garbage.
+   * @return full size of internal values array including garbage.
    */
-  abstract double[] getDoubleItemsArray();
+  abstract double[] getDoubleValuesArray();
 
-  abstract double getDoubleSingleItem();
+  abstract double getDoubleSingleValue();
 
   /**
-   * @return full size of internal items array including garbage.
+   * @return full size of internal values array including garbage.
    */
   abstract float[] getFloatValuesArray();
 
@@ -458,7 +458,7 @@ public abstract class KllSketch {
   }
 
   /**
-   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of items.
+   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of values.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
    * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
    * Choosing smaller values of <i>m</i> will make the sketch much slower.
@@ -489,7 +489,7 @@ public abstract class KllSketch {
 
   abstract void incNumLevels();
 
-  final boolean isCompactSingleItem() {
+  final boolean isCompactSingleValue() {
     return hasMemory() && !updatableMemFormat && (getN() == 1);
   }
 
@@ -500,18 +500,18 @@ public abstract class KllSketch {
   abstract boolean isLevelZeroSorted();
 
   /**
-   * First determine that this is a singleItem sketch before calling this.
-   * @return the value of the single item
+   * First determine that this is a singleValue sketch before calling this.
+   * @return the value of the single value
    */
-  boolean isSingleItem() { return getN() == 1; }
+  boolean isSingleValue() { return getN() == 1; }
 
-  abstract void setDoubleItemsArray(double[] floatItems);
+  abstract void setDoubleValuesArray(double[] floatValues);
 
-  abstract void setDoubleItemsArrayAt(int index, double value);
+  abstract void setDoubleValuesArrayAt(int index, double value);
 
   abstract void setFloatValuesArray(float[] floatValues);
 
-  abstract void setFloatItemsArrayAt(int index, float value);
+  abstract void setFloatValuesArrayAt(int index, float value);
 
   final void setLevelsArray(final int[] levelsArr) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }

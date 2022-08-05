@@ -72,7 +72,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void oneItem() {
+  public void oneValue() {
     final KllFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(1);
     assertFalse(sketch.isEmpty());
@@ -86,7 +86,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void manyItemsEstimationMode() {
+  public void manyValuesEstimationMode() {
     final KllFloatsSketch sketch = getDFSketch(200, 0);
     final int n = 1_000_000;
 
@@ -338,7 +338,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeOneItemViaCompactHeapify() {
+  public void serializeDeserializeOneValueViaCompactHeapify() {
     final KllFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
@@ -354,7 +354,7 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeOneItemViaUpdatableWritableWrap() {
+  public void serializeDeserializeOneValueViaUpdatableWritableWrap() {
     final KllFloatsSketch sketch1 = getDFSketch(200, 0);
     sketch1.update(1);
     final byte[] bytes = KllHelper.toUpdatableByteArrayImpl(sketch1);
@@ -632,14 +632,14 @@ public class KllDirectFloatsSketchTest {
     try { sk2.incN();                          fail(); } catch (SketchesArgumentException e) { }
     try { sk2.incNumLevels();                  fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setFloatValuesArray(fltArr);      fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setFloatItemsArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setFloatValuesArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);        fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMaxFloatValue(fltV);          fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinFloatValue(fltV);          fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.getDoubleSingleItem();           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getDoubleSingleValue();           fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

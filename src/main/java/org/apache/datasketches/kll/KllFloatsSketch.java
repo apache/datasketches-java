@@ -21,12 +21,12 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
-import static org.apache.datasketches.QuantileSearchCriteria.*;
 
 import java.util.Objects;
 
@@ -214,7 +214,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param inclusive if true the weight of the given value is included into the rank.
+   * @param inclusive if INCLUSIVE, the weight of the given values are included into each rank.
    * Otherwise, the rank equals the sum of the weights of all values that are less than the given value
    *
    * @return an array of m+1 double values on the interval [0.0, 1.0),
@@ -254,7 +254,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * It is not necessary to include either the min or max values in these split points.
    *
    * @param inclusive  if INCLUSIVE, each interval within the distribution will include its top value and exclude its
-   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top interval will always include
    * the top value retained by the sketch.
    *
    * @return an array of m+1 doubles on the interval [0.0, 1.0),
@@ -280,7 +280,7 @@ public abstract class KllFloatsSketch extends KllSketch {
   /**
    * Returns the quantile associated with the given rank.
    *
-   * <p>We note that this method has an overhead (microseconds instead of nanoseconds) when called for the first time
+   * <p>We note that this method has some overhead when called for the first time
    * after an update or sketch merge.  Use getQuantiles() if there is a requirement to obtain multiple quantiles.
    *
    * <p>If the sketch is empty this returns NaN.
@@ -313,9 +313,9 @@ public abstract class KllFloatsSketch extends KllSketch {
   /**
    * This is a more efficient multiple-query version of getQuantile().
    *
-   * <p>Returns an array of quantiles from the given array of normalized ranks.
+   * <p>Returns an array of quantiles from the given array of normalized ranks.</p>
    *
-   * <p>If the sketch is empty this returns null.
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
    * @param inclusive if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
@@ -358,7 +358,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
    *
-   * @param inclusive if true, the normalized ranks are considered inclusive
+   * @param inclusive if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
    * @return array of quantiles.
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
@@ -436,7 +436,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param values the given quantile values from which to obtain their corresponding ranks.
-   * @param inclusive
+   * @param inclusive if INCLUSIVE the given quantile values are included into the returned ranks.
    * @return an array of normalized ranks corresponding to the given array of quantile values.
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
@@ -482,7 +482,7 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   @Override //Artifact of inheritance
-  double[] getDoubleItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
+  double[] getDoubleValuesArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
   @Override //Artifact of inheritance
   double getMaxDoubleValue() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
@@ -491,10 +491,10 @@ public abstract class KllFloatsSketch extends KllSketch {
   double getMinDoubleValue() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override //Artifact of inheritance
-  void setDoubleItemsArray(final double[] doubleItems) { kllSketchThrow(MUST_NOT_CALL); }
+  void setDoubleValuesArray(final double[] doubleValues) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
-  void setDoubleItemsArrayAt(final int index, final double value) { kllSketchThrow(MUST_NOT_CALL); }
+  void setDoubleValuesArrayAt(final int index, final double value) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
   void setMaxDoubleValue(final double value) { kllSketchThrow(MUST_NOT_CALL); }

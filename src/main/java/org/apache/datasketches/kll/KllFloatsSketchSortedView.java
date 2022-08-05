@@ -48,18 +48,32 @@ import org.apache.datasketches.SketchesArgumentException;
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
+ * @author Lee Rhodes
  */
 public final class KllFloatsSketchSortedView {
-  private final long N;
+
   private final float[] values;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
+  private final long totalN;
+
+  /**
+   * Construct from elements for testing.
+   * @param values sorted array of values
+   * @param cumWeights sorted, monotonically increasing cumulative weights.
+   * @param totalN the total number of values presented to the sketch.
+   */
+  KllFloatsSketchSortedView(final float[] values, final long[] cumWeights, final long totalN) {
+    this.values = values;
+    this.cumWeights  = cumWeights;
+    this.totalN = totalN;
+  }
 
   /**
    * Constructs the Sorted View given the sketch
    * @param sk the given KllFloatsSketch.
    */
   public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
-    this.N = sk.getN();
+    this.totalN = sk.getN();
     final float[] srcValues = sk.getFloatValuesArray();
     final int[] srcLevels = sk.getLevelsArray();
     final int srcNumLevels = sk.getNumLevels();
@@ -112,7 +126,7 @@ public final class KllFloatsSketchSortedView {
   public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
     checkRank(normRank);
     final int len = cumWeights.length;
-    final long naturalRank = (int)(normRank * N);
+    final long naturalRank = (int)(normRank * totalN);
     final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
@@ -135,7 +149,7 @@ public final class KllFloatsSketchSortedView {
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
     }
-    return (double)cumWeights[index] / N;
+    return (double)cumWeights[index] / totalN;
   }
 
   /**
@@ -157,8 +171,7 @@ public final class KllFloatsSketchSortedView {
    * the top value retained by the sketch.
    * @return an array of fractional portions of the distribution represented by the sketch as a CDF or PMF.
    */
-  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf,
-      final QuantileSearchCriteria inclusive) {
+  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf, final QuantileSearchCriteria inclusive) {
     validateFloatValues(splitPoints);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -173,22 +186,21 @@ public final class KllFloatsSketchSortedView {
     return buckets;
   }
 
-  private static void blockyTandemMergeSort(final float[] items, final long[] weights,
+  private static void blockyTandemMergeSort(final float[] values, final long[] weights,
       final int[] levels, final int numLevels) {
     if (numLevels == 1) { return; }
 
     // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
-    final float[] itemsTmp = Arrays.copyOf(items, items.length);
-    final long[] weightsTmp = Arrays.copyOf(weights, items.length); // don't need the extra one here
+    final float[] valuesTmp = Arrays.copyOf(values, values.length);
+    final long[] weightsTmp = Arrays.copyOf(weights, values.length); // don't need the extra one here
 
-    blockyTandemMergeSortRecursion(itemsTmp, weightsTmp, items, weights, levels, 0, numLevels);
+    blockyTandemMergeSortRecursion(valuesTmp, weightsTmp, values, weights, levels, 0, numLevels);
   }
 
   private static void blockyTandemMergeSortRecursion(
-      final float[] itemsSrc, final long[] weightsSrc,
-      final float[] itemsDst, final long[] weightsDst,
+      final float[] valuesSrc, final long[] weightsSrc,
+      final float[] valuesDst, final long[] weightsDst,
       final int[] levels, final int startingLevel, final int numLevels) {
-    //printAll(itemsSrc, weightsSrc, itemsDst, weightsDst, levels, startingLevel, numLevels);
     if (numLevels == 1) { return; }
     final int numLevels1 = numLevels / 2;
     final int numLevels2 = numLevels - numLevels1;
@@ -198,24 +210,24 @@ public final class KllFloatsSketchSortedView {
     final int startingLevel2 = startingLevel + numLevels1;
     // swap roles of src and dst
     blockyTandemMergeSortRecursion(
-        itemsDst, weightsDst,
-        itemsSrc, weightsSrc,
+        valuesDst, weightsDst,
+        valuesSrc, weightsSrc,
         levels, startingLevel1, numLevels1);
     blockyTandemMergeSortRecursion(
-        itemsDst, weightsDst,
-        itemsSrc, weightsSrc,
+        valuesDst, weightsDst,
+        valuesSrc, weightsSrc,
         levels, startingLevel2, numLevels2);
     tandemMerge(
-        itemsSrc, weightsSrc,
-        itemsDst, weightsDst,
+        valuesSrc, weightsSrc,
+        valuesDst, weightsDst,
         levels,
         startingLevel1, numLevels1,
         startingLevel2, numLevels2);
   }
 
   private static void tandemMerge(
-      final float[] itemsSrc, final long[] weightsSrc,
-      final float[] itemsDst, final long[] weightsDst,
+      final float[] valuesSrc, final long[] weightsSrc,
+      final float[] valuesDst, final long[] weightsDst,
       final int[] levelStarts,
       final int startingLevel1, final int numLevels1,
       final int startingLevel2, final int numLevels2) {
@@ -228,22 +240,22 @@ public final class KllFloatsSketchSortedView {
     int iDst = fromIndex1;
 
     while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
-      if (itemsSrc[iSrc1] < itemsSrc[iSrc2]) {
-        itemsDst[iDst] = itemsSrc[iSrc1];
+      if (valuesSrc[iSrc1] < valuesSrc[iSrc2]) {
+        valuesDst[iDst] = valuesSrc[iSrc1];
         weightsDst[iDst] = weightsSrc[iSrc1];
         iSrc1++;
       } else {
-        itemsDst[iDst] = itemsSrc[iSrc2];
+        valuesDst[iDst] = valuesSrc[iSrc2];
         weightsDst[iDst] = weightsSrc[iSrc2];
         iSrc2++;
       }
       iDst++;
     }
     if (iSrc1 < toIndex1) {
-      System.arraycopy(itemsSrc, iSrc1, itemsDst, iDst, toIndex1 - iSrc1);
+      System.arraycopy(valuesSrc, iSrc1, valuesDst, iDst, toIndex1 - iSrc1);
       System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
     } else if (iSrc2 < toIndex2) {
-      System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc2);
+      System.arraycopy(valuesSrc, iSrc2, valuesDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }

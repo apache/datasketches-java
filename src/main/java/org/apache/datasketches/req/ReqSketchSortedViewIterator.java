@@ -44,7 +44,7 @@ public class ReqSketchSortedViewIterator {
   ReqSketchSortedViewIterator(final float[] values, final long[] cumWeights) {
     this.values = values;
     this.cumWeights = cumWeights;
-    this.totalN = cumWeights[cumWeights.length - 1];
+    this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
     index = -1;
   }
 

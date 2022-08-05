@@ -52,33 +52,33 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   }
 
   @Override //returns expanded array including empty space at bottom
-  double[] getDoubleItemsArray() {
+  double[] getDoubleValuesArray() {
     final int k = getK();
     if (isEmpty()) { return new double[k]; }
-    if (isSingleItem()) {
-      final double[] itemsArr = new double[k];
-      itemsArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_VALUE);
-      return itemsArr;
+    if (isSingleValue()) {
+      final double[] valuesArr = new double[k];
+      valuesArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_VALUE);
+      return valuesArr;
     }
-    final int capacityItems =  levelsArr[getNumLevels()];
-    final double[] itemsArr = new double[capacityItems];
+    final int capacityValues =  levelsArr[getNumLevels()];
+    final double[] valuesArr = new double[capacityValues];
     final int levelsBytes = (levelsArr.length - 1) * Integer.BYTES; //compact format!
     final int offset = DATA_START_ADR + levelsBytes + 2 * Double.BYTES;
     final int shift = levelsArr[0];
-    wmem.getDoubleArray(offset, itemsArr, shift, capacityItems - shift);
-    return itemsArr;
+    wmem.getDoubleArray(offset, valuesArr, shift, capacityValues - shift);
+    return valuesArr;
   }
 
   @Override
-  double getDoubleSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_VALUE); }
+  double getDoubleSingleValue() {
+    if (!isSingleValue()) { kllSketchThrow(NOT_SINGLE_VALUE); }
     return wmem.getDouble(DATA_START_ADR_SINGLE_VALUE);
   }
 
   @Override
   double getMaxDoubleValue() {
     if (isEmpty()) { return Double.NaN; }
-    if (isSingleItem()) { return getDoubleSingleItem(); }
+    if (isSingleValue()) { return getDoubleSingleValue(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Double.BYTES;
     return wmem.getDouble(offset);
@@ -87,7 +87,7 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   @Override
   double getMinDoubleValue() {
     if (isEmpty()) { return Double.NaN; }
-    if (isSingleItem()) { return getDoubleSingleItem(); }
+    if (isSingleValue()) { return getDoubleSingleValue(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
     return wmem.getDouble(offset);

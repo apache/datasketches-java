@@ -74,7 +74,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   /**
    * Create a new instance of this sketch.
    * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param m parameter that controls the minimum level width in items.
+   * @param m parameter that controls the minimum level width in values.
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new instance of this sketch
@@ -111,21 +111,21 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
+  double getDoubleSingleValue() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override //returns entire array including empty space at bottom
   float[] getFloatValuesArray() {
-    final int capacityItems = levelsArr[getNumLevels()];
-    final float[] itemsArr = new float[capacityItems];
+    final int capacityValues = levelsArr[getNumLevels()];
+    final float[] valuesArr = new float[capacityValues];
     final int levelsBytes = levelsArr.length * Integer.BYTES; //updatable format
     final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
-    wmem.getFloatArray(offset, itemsArr, 0, capacityItems);
-    return itemsArr;
+    wmem.getFloatArray(offset, valuesArr, 0, capacityValues);
+    return valuesArr;
   }
 
   @Override
   float getFloatSingleValue() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_VALUE); return Float.NaN; }
+    if (!isSingleValue()) { kllSketchThrow(NOT_SINGLE_VALUE); return Float.NaN; }
     final int k = getK();
     final int offset = DATA_START_ADR + 2 * Integer.BYTES + (2 + k - 1) * Float.BYTES;
     return wmem.getFloat(offset);
@@ -180,7 +180,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setFloatItemsArrayAt(final int index, final float value) {
+  void setFloatValuesArrayAt(final int index, final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset =
         DATA_START_ADR + getLevelsArray().length * Integer.BYTES + (index + 2) * Float.BYTES;

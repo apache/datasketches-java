@@ -19,9 +19,15 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.InequalitySearch;
+import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
@@ -42,66 +48,158 @@ import org.apache.datasketches.SketchesStateException;
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
+ * @author Lee Rhodes
  */
 public final class KllDoublesSketchSortedView {
 
-  private final long n_;
-  private final double[] items_;
-  private final long[] weights_; //comes in as weights, converted to cumulative weights
-  private final int[] levels_;
-  private int numLevels_;
+  private final double[] values;
+  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
+  private final long totalN;
 
-  // assumes that all levels are sorted including level 0
-  KllDoublesSketchSortedView(final double[] items, final int[] levels, final int numLevels,
-      final long n, final boolean cumulative, final boolean inclusive) {
-    n_ = n;
-    final int numItems = levels[numLevels] - levels[0];
-    items_ = new double[numItems];
-    weights_ = new long[numItems + 1]; // one more is intentional
-    levels_ = new int[numLevels + 1];
-    populateFromSketch(items, levels, numLevels, numItems);
-    blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    if (cumulative) {
-      KllHelper.convertToCumulative(weights_);
+  /**
+   * Construct from elements for testing.
+   * @param values sorted array of values
+   * @param cumWeights sorted, monotonically increasing cumulative weights.
+   * @param totalN the total number of values presented to the sketch.
+   */
+  KllDoublesSketchSortedView(final double[] values, final long[] cumWeights, final long totalN) {
+    this.values = values;
+    this.cumWeights  = cumWeights;
+    this.totalN = totalN;
+  }
+
+  /**
+   * Constructs the Sorted View given the sketch
+   * @param sk the given KllFloatsSketch.
+   */
+  public KllDoublesSketchSortedView(final KllDoublesSketch sk) {
+    this.totalN = sk.getN();
+    final double[] srcValues = sk.getDoubleValuesArray();
+    final int[] srcLevels = sk.getLevelsArray();
+    final int srcNumLevels = sk.getNumLevels();
+
+    if (!sk.isLevelZeroSorted()) {
+      Arrays.sort(srcValues, srcLevels[0], srcLevels[1]);
+      if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
     }
+
+    final int numItems = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
+    values = new double[numItems];
+    cumWeights = new long[numItems];
+    populateFromSketch(srcValues, srcLevels, srcNumLevels, numItems);
+    sk.kllDoublesSV = this;
   }
 
-  //For testing only. Allows testing of getQuantile without a sketch.
-  KllDoublesSketchSortedView(final double[] items, final long[] weights, final long n) {
-    n_ = n;
-    items_ = items;
-    weights_ = weights; //must be size of items + 1
-    levels_ = null;  //not used by test
-    numLevels_ = 0;  //not used by test
-  }
-
-  @SuppressWarnings("deprecation")
-  public double getQuantile(final double rank) {
-    if (weights_[weights_.length - 1] < n_) {
-      throw new SketchesStateException("getQuantile must be used with cumulative view only");
+  //populates values, cumWeights
+  private void populateFromSketch(final double[] srcItems, final int[] srcLevels,
+    final int srcNumLevels, final int numItems) {
+    final int[] myLevels = new int[srcNumLevels + 1];
+    final int offset = srcLevels[0];
+    System.arraycopy(srcItems, offset, values, 0, numItems);
+    int srcLevel = 0;
+    int dstLevel = 0;
+    long weight = 1;
+    while (srcLevel < srcNumLevels) {
+      final int fromIndex = srcLevels[srcLevel] - offset;
+      final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+      if (fromIndex < toIndex) { // if equal, skip empty level
+        Arrays.fill(cumWeights, fromIndex, toIndex, weight);
+        myLevels[dstLevel] = fromIndex;
+        myLevels[dstLevel + 1] = toIndex;
+        dstLevel++;
+      }
+      srcLevel++;
+      weight *= 2;
     }
-    final long pos = KllQuantilesHelper.posOfRank(rank, n_);
-    return approximatelyAnswerPositonalQuery(pos);
+    final int numLevels = dstLevel;
+    blockyTandemMergeSort(values, cumWeights, myLevels, numLevels); //create unit weights
+    KllHelper.convertToCumulative(cumWeights);
   }
 
+  /**
+   * Gets the quantile based on the given normalized rank,
+   * which must be in the range [0.0, 1.0], inclusive.
+   * @param normRank the given normalized rank
+   * @param inclusive determines the search criterion used.
+   * @return the quantile
+   */
+  public double getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
+    checkRank(normRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (int)(normRank * totalN);
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
+    }
+    return values[index];
+  }
+
+  /**
+   * Gets the normalized rank based on the given value.
+   * @param value the given value
+   * @param inclusive determines the search criterion used.
+   * @return the normalized rank
+   */
+  public double getRank(final double value, final QuantileSearchCriteria inclusive) {
+    final int len = values.length;
+    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / totalN;
+  }
+
+  /**
+   * Returns an iterator for this sorted view
+   * @return an iterator for this sorted view
+   */
   public KllDoublesSketchSortedViewIterator iterator() {
-    return new KllDoublesSketchSortedViewIterator(items_, weights_);
+    return new KllDoublesSketchSortedViewIterator(values, cumWeights);
   }
 
-  private static void blockyTandemMergeSort(final double[] items, final long[] weights,
+  /**
+   * Returns an array of fractional intervals of the distribution represented by the sketch as a CDF or PMF.
+   * @param splitPoints the given array of splitPoints. These is a sorted, unique, monotonic array of float
+   * values in the range of (minValue, maxValue). This array must not include either the minValue or the maxValue.
+   * The returned array will have one extra interval representing the very top of the distribution.
+   * @param isCdf if true, a CDF will be returned, otherwise, a PMF will be returned.
+   * @param inclusive if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * the top value retained by the sketch.
+   * @return an array of fractional portions of the distribution represented by the sketch as a CDF or PMF.
+   */
+  public double[] getPmfOrCdf(final double[] splitPoints, final boolean isCdf, final QuantileSearchCriteria inclusive) {
+    validateDoubleValues(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], inclusive);
+    }
+    buckets[len - 1] = 1.0;
+    if (isCdf) { return buckets; }
+    for (int i = len; i-- > 1;) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
+  private static void blockyTandemMergeSort(final double[] values, final long[] weights,
       final int[] levels, final int numLevels) {
     if (numLevels == 1) { return; }
 
     // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
-    final double[] itemsTmp = Arrays.copyOf(items, items.length);
-    final long[] weightsTmp = Arrays.copyOf(weights, items.length); // don't need the extra one here
+    final double[] valuesTmp = Arrays.copyOf(values, values.length);
+    final long[] weightsTmp = Arrays.copyOf(weights, values.length); // don't need the extra one here
 
-    blockyTandemMergeSortRecursion(itemsTmp, weightsTmp, items, weights, levels, 0, numLevels);
+    blockyTandemMergeSortRecursion(valuesTmp, weightsTmp, values, weights, levels, 0, numLevels);
   }
 
   private static void blockyTandemMergeSortRecursion(
-      final double[] itemsSrc, final long[] weightsSrc,
-      final double[] itemsDst, final long[] weightsDst,
+      final double[] valuesSrc, final long[] weightsSrc,
+      final double[] valuesDst, final long[] weightsDst,
       final int[] levels, final int startingLevel, final int numLevels) {
     if (numLevels == 1) { return; }
     final int numLevels1 = numLevels / 2;
@@ -112,24 +210,24 @@ public final class KllDoublesSketchSortedView {
     final int startingLevel2 = startingLevel + numLevels1;
     // swap roles of src and dst
     blockyTandemMergeSortRecursion(
-        itemsDst, weightsDst,
-        itemsSrc, weightsSrc,
+        valuesDst, weightsDst,
+        valuesSrc, weightsSrc,
         levels, startingLevel1, numLevels1);
     blockyTandemMergeSortRecursion(
-        itemsDst, weightsDst,
-        itemsSrc, weightsSrc,
+        valuesDst, weightsDst,
+        valuesSrc, weightsSrc,
         levels, startingLevel2, numLevels2);
     tandemMerge(
-        itemsSrc, weightsSrc,
-        itemsDst, weightsDst,
+        valuesSrc, weightsSrc,
+        valuesDst, weightsDst,
         levels,
         startingLevel1, numLevels1,
         startingLevel2, numLevels2);
   }
 
   private static void tandemMerge(
-      final double[] itemsSrc, final long[] weightsSrc,
-      final double[] itemsDst, final long[] weightsDst,
+      final double[] valuesSrc, final long[] weightsSrc,
+      final double[] valuesDst, final long[] weightsDst,
       final int[] levelStarts,
       final int startingLevel1, final int numLevels1,
       final int startingLevel2, final int numLevels2) {
@@ -142,55 +240,49 @@ public final class KllDoublesSketchSortedView {
     int iDst = fromIndex1;
 
     while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
-      if (itemsSrc[iSrc1] < itemsSrc[iSrc2]) {
-        itemsDst[iDst] = itemsSrc[iSrc1];
+      if (valuesSrc[iSrc1] < valuesSrc[iSrc2]) {
+        valuesDst[iDst] = valuesSrc[iSrc1];
         weightsDst[iDst] = weightsSrc[iSrc1];
         iSrc1++;
       } else {
-        itemsDst[iDst] = itemsSrc[iSrc2];
+        valuesDst[iDst] = valuesSrc[iSrc2];
         weightsDst[iDst] = weightsSrc[iSrc2];
         iSrc2++;
       }
       iDst++;
     }
     if (iSrc1 < toIndex1) {
-      System.arraycopy(itemsSrc, iSrc1, itemsDst, iDst, toIndex1 - iSrc1);
+      System.arraycopy(valuesSrc, iSrc1, valuesDst, iDst, toIndex1 - iSrc1);
       System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
     } else if (iSrc2 < toIndex2) {
-      System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc2);
+      System.arraycopy(valuesSrc, iSrc2, valuesDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }
 
-  @SuppressWarnings("deprecation")
-  private double approximatelyAnswerPositonalQuery(final long pos) {
-    assert pos >= 0;
-    assert pos < n_;
-    final int index = KllQuantilesHelper.chunkContainingPos(weights_, pos);
-    return items_[index];
+  private static final void checkRank(final double rank) {
+    if (rank < 0.0 || rank > 1.0) {
+      throw new SketchesArgumentException(
+          "A normalized rank " + rank + " cannot be less than zero nor greater than 1.0");
+    }
   }
 
-  private void populateFromSketch(final double[] srcItems, final int[] srcLevels,
-      final int numLevels, final int numItems) {
-    final int offset = srcLevels[0];
-    System.arraycopy(srcItems, offset, items_, 0, numItems);
-    int srcLevel = 0;
-    int dstLevel = 0;
-    long weight = 1;
-    while (srcLevel < numLevels) {
-      final int fromIndex = srcLevels[srcLevel] - offset;
-      final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
-      if (fromIndex < toIndex) { // if equal, skip empty level
-        Arrays.fill(weights_, fromIndex, toIndex, weight);
-        levels_[dstLevel] = fromIndex;
-        levels_[dstLevel + 1] = toIndex;
-        dstLevel++;
+  /**
+   * Checks the sequential validity of the given array of splitpoints as doubles.
+   * They must be unique, monotonically increasing and not NaN.
+   * Only used for getPmfOrCdf().
+   * @param values the given array of values
+   */
+  private static void validateDoubleValues(final double[] values) {
+    for (int i = 0; i < values.length; i++) {
+      if (!Double.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
       }
-      srcLevel++;
-      weight *= 2;
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
     }
-    weights_[numItems] = 0;
-    numLevels_ = dstLevel;
   }
 
 }

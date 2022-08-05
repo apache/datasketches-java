@@ -33,7 +33,7 @@ import java.util.Objects;
  * adjacent values in the array. For all the search criteria, when the algorithm has narrowed the
  * search down to a single value or adjacent pair of values, the <i>resolve()</i> method provides the
  * final result of the search. If there is no valid value in the array that satisfies the search
- * criterion, the algorithm will return -1 to the caller.
+ * criterion, the algorithm will return -1 to the caller.</p>
  *
  * <p>Given a sorted array of values <i>arr[]</i> and a search key value <i>v</i>, the algorithms for
  * the searching criteria are given with each enum criterion.</p>
@@ -707,13 +707,13 @@ public enum InequalitySearch {
    * the given InequalitySearch criterion.
    * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
-   * @param arr the given array that must be sorted.
-   * It must not be null and must not contain any NaN values in the range {low, high} inclusive.
+   * @param arr the given array of comparable values that must be sorted with increasing values.
+   * The array must not be null and the values of the array must not be NaN in the range [low, high].
    * @param low the lowest index of the lowest value in the search range, inclusive.
    * @param high the highest index of the highest value in the search range, inclusive.
    * @param v the value to search for. It must not be NaN.
-   * @param crit one of LT, LE, EQ, GT, GE. It must not be null.
-   * @return the index of the value in the given search range that satisfies the criterion
+   * @param crit one of the InequalitySearch criteria: LT, LE, EQ, GT, GE. It must not be null.
+   * @return the index of the value in the given search range that satisfies the InequalitySearch criterion
    */
   public static int find(final double[] arr, final int low, final int high,
       final double v, final InequalitySearch crit) {

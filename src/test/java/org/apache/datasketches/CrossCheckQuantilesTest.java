@@ -19,18 +19,20 @@
 
 package org.apache.datasketches;
 
+
+import static org.apache.datasketches.ReflectUtility.*;
 //import static org.apache.datasketches.CrossCheckQuantilesTest.PrimType.DOUBLE;
 import static org.apache.datasketches.CrossCheckQuantilesTest.PrimType.FLOAT;
 //import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.CLASSIC;
 //import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.KLL;
 import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.REQ;
-import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.REQ_NO_DEDUP;
 import static org.apache.datasketches.CrossCheckQuantilesTest.SkType.REQ_SV;
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
 import static org.testng.Assert.assertEquals;
 
+import org.apache.datasketches.kll.KllFloatsSketchSortedView;
 //import org.apache.datasketches.kll.KllFloatsSketch;
 //import org.apache.datasketches.quantiles.DoublesSketch;
 //import org.apache.datasketches.quantiles.UpdateDoublesSketch;
@@ -39,9 +41,10 @@ import org.apache.datasketches.req.ReqSketchBuilder;
 import org.apache.datasketches.req.ReqSketchSortedView;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("unused")
 public class CrossCheckQuantilesTest {
 
-  enum SkType { REQ, REQ_SV, REQ_NO_DEDUP, KLL, CLASSIC }
+  enum SkType { REQ, REQ_SV, KLL_FLOATS, CLASSIC }
 
   enum PrimType { DOUBLE, FLOAT }
 
@@ -57,10 +60,6 @@ public class CrossCheckQuantilesTest {
     checkQAndR(REQ_SV, FLOAT, NON_INCLUSIVE);
     checkQAndR(REQ, FLOAT, NON_INCLUSIVE_STRICT);
     checkQAndR(REQ_SV, FLOAT, INCLUSIVE);
-
-    checkQAndR(REQ_NO_DEDUP, FLOAT, NON_INCLUSIVE);
-    checkQAndR(REQ, FLOAT, NON_INCLUSIVE_STRICT);
-    checkQAndR(REQ_NO_DEDUP, FLOAT, INCLUSIVE);
 
 //    checkQAndR(KLL, FLOAT, NON_INCLUSIVE);
 //    checkQAndR(KLL, FLOAT, INCLUSIVE);
@@ -105,7 +104,7 @@ public class CrossCheckQuantilesTest {
     double[] baseDVals = {10,20,30,40,50};
     int[] baseDups     = { 1, 4, 6, 2, 1}; //number of duplicates per base value
 
-    //RAW TEST INPUT. This simulates what the Sorted View might see.
+    //RAW TEST INPUT. This simulates what the Sorted View might see and should produce identical results as above.
     //This checks the search algos without the sketch and created by hand
     float[] rawFVals =  {10,20,20,30,30, 30, 40, 50}; //note grouping by twos
     long[] rawCumWts =  { 1, 3, 5, 7, 9, 11, 13, 14};
@@ -175,11 +174,10 @@ public class CrossCheckQuantilesTest {
     }
     println("");
 
-    //REQ SORTED VIEW DATA:
-    ReqSketchSortedView rssv = null;
+    //REQ SORTED VIEW:
+    ReqSketchSortedView reqSV = null;
     if (skType.toString().startsWith("REQ")) {
-      rssv = new ReqSketchSortedView(reqSk);
-      println(rssv.toString(1, 16));
+      reqSV = new ReqSketchSortedView(reqSk);
     }
 
     /**************************************/
@@ -215,14 +213,12 @@ public class CrossCheckQuantilesTest {
           break;
         }
         case REQ_SV: {
-          qF = rssv.getQuantile(testRank, searchCrit);
+          qF = reqSV.getQuantile(testRank, searchCrit);
           qD = 0;
           if (searchCrit == INCLUSIVE) { assertEquals(qF, testQuantileFResults_I[i]); }
           else if (searchCrit == NON_INCLUSIVE) { assertEquals(qF, testQuantileFResults_NI[i]); }
           else { assertEquals(qF, testQuantileFResults_NIS[i]); };
-          break;
-        }
-        case REQ_NO_DEDUP: {
+
           qF = this.getQuantile(rawCumWts, rawFVals, testRank, searchCrit);
           qD = 0;
           if (searchCrit == INCLUSIVE) { assertEquals(qF, testQuantileFResults_I[i]); }
@@ -287,13 +283,7 @@ public class CrossCheckQuantilesTest {
           break;
         }
         case REQ_SV: {
-          r = rssv.getRank(testValue,  searchCrit);
-          if (searchCrit == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
-          else { assertEquals(r, testRankResults_NI[i]); };
-          break;
-        }
-        case REQ_NO_DEDUP: {
-          r = getRank(rawCumWts, rawFVals, testValue, searchCrit);
+          r = reqSV.getRank(testValue,  searchCrit);
           if (searchCrit == INCLUSIVE) { assertEquals(r, testRankResults_I[i]); }
           else { assertEquals(r, testRankResults_NI[i]); };
           break;
@@ -326,21 +316,21 @@ public class CrossCheckQuantilesTest {
    * @param cumWeights the given cumulative weights
    * @param values the given values
    * @param normRank the given normalized rank
-   * @param srchCrit determines the search criterion used.
+   * @param inclusive determines the search criterion used.
    * @return the quantile
    */
   public float getQuantile(final long[] cumWeights, final float[] values, final double normRank,
-      final QuantileSearchCriteria srchCrit) {
+      final QuantileSearchCriteria inclusive) {
     final int len = cumWeights.length;
     final long N = cumWeights[len -1];
     final long rank = (int)(normRank * N); //denormalize
-    final InequalitySearch crit = srchCrit == INCLUSIVE
+    final InequalitySearch crit = inclusive == INCLUSIVE
         ? InequalitySearch.GE
         : InequalitySearch.GT; //includes both NON_INCLUSIVE and NON_INCLUSIVE_STRICT
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      if (srchCrit == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
-      if (srchCrit == NON_INCLUSIVE) { return values[len - 1]; }
+      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }
@@ -350,14 +340,14 @@ public class CrossCheckQuantilesTest {
    * @param cumWeights the given cumulative weights
    * @param values the given values
    * @param value the given value
-   * @param srchCrit determines the search criterion used.
+   * @param inclusive determines the search criterion used.
    * @return the normalized rank
    */
   public double getRank(final long[] cumWeights, final float[] values, final float value,
-      final QuantileSearchCriteria srchCrit) {
+      final QuantileSearchCriteria inclusive) {
     final int len = values.length;
     final long N = cumWeights[len -1];
-    final InequalitySearch crit = srchCrit == INCLUSIVE ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = inclusive == INCLUSIVE ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
@@ -365,7 +355,17 @@ public class CrossCheckQuantilesTest {
     return (double)cumWeights[index] / N; //normalize
   }
 
-  private final static boolean enablePrinting = true;
+  private final ReqSketchSortedView getRawReqSV(
+      final float[] values, final long[] cumWeights, final long totalN) throws Exception {
+    return (ReqSketchSortedView) REQ_SV_CTOR.newInstance(values, cumWeights, totalN);
+  }
+
+  private final KllFloatsSketchSortedView getRawKllFloatsSV(
+      final float[] values, final long[] cumWeights, final long totalN) throws Exception {
+    return (KllFloatsSketchSortedView) KLL_FLOATS_SV_CTOR.newInstance(values, cumWeights, totalN);
+  }
+
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format

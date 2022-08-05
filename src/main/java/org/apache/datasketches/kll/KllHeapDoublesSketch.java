@@ -41,12 +41,12 @@ import org.apache.datasketches.memory.Memory;
 final class KllHeapDoublesSketch extends KllDoublesSketch {
   private final int k_;    // configured value of K.
   private final int m_;    // configured value of M.
-  private long n_;        // number of items input into this sketch.
+  private long n_;        // number of values input into this sketch.
   private int minK_;    // dynamic minK for error estimation after merging with different k.
   private boolean isLevelZeroSorted_;
   private double minDoubleValue_;
   private double maxDoubleValue_;
-  private double[] doubleItems_;
+  private double[] doubleValues_;
 
   /**
    * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
@@ -55,7 +55,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
    * <em>k</em> can be any value between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
    * Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * @param m parameter controls the minimum level width in values. It can be 2, 4, 6 or 8.
    * The DEFAULT_M, which is 8 is recommended. Other values of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
    */
@@ -71,7 +71,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     levelsArr = new int[] {k, k};
     minDoubleValue_ = Double.NaN;
     maxDoubleValue_ = Double.NaN;
-    doubleItems_ = new double[k];
+    doubleValues_ = new double[k];
   }
 
   /**
@@ -92,13 +92,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     if (memVal.empty && !updatableMemFormat) {
       minDoubleValue_ = Double.NaN;
       maxDoubleValue_ = Double.NaN;
-      doubleItems_ = new double[k_];
+      doubleValues_ = new double[k_];
     }
     else if (memVal.singleValue && !updatableMemFormat) {
       final double value = srcMem.getDouble(DATA_START_ADR_SINGLE_VALUE);
       minDoubleValue_ = maxDoubleValue_ = value;
-      doubleItems_ = new double[k_];
-      doubleItems_[k_ - 1] = value;
+      doubleValues_ = new double[k_];
+      doubleValues_[k_ - 1] = value;
     }
     else { //Full or updatableMemFormat
       int offsetBytes = DATA_START_ADR;
@@ -107,15 +107,15 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       offsetBytes += Double.BYTES;
       maxDoubleValue_ = srcMem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
-      final int capacityItems = levelsArr[getNumLevels()];
-      final int retainedItems = capacityItems - levelsArr[0];
-      doubleItems_ = new double[capacityItems];
+      final int capacityValues = levelsArr[getNumLevels()];
+      final int retainedValues = capacityValues - levelsArr[0];
+      doubleValues_ = new double[capacityValues];
       final int shift = levelsArr[0];
       if (updatableMemFormat) {
         offsetBytes += shift * Double.BYTES;
-        srcMem.getDoubleArray(offsetBytes, doubleItems_, shift, retainedItems);
+        srcMem.getDoubleArray(offsetBytes, doubleValues_, shift, retainedValues);
       } else {
-        srcMem.getDoubleArray(offsetBytes, doubleItems_, shift, retainedItems);
+        srcMem.getDoubleArray(offsetBytes, doubleValues_, shift, retainedValues);
       }
     }
   }
@@ -134,12 +134,12 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   public long getN() { return n_; }
 
   @Override
-  double[] getDoubleItemsArray() { return doubleItems_; }
+  double[] getDoubleValuesArray() { return doubleValues_; }
 
   @Override
-  double getDoubleSingleItem() {
+  double getDoubleSingleValue() {
     if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_VALUE); return Double.NaN; }
-    return doubleItems_[k_ - 1];
+    return doubleValues_[k_ - 1];
   }
 
   @Override
@@ -167,10 +167,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   boolean isLevelZeroSorted() { return isLevelZeroSorted_; }
 
   @Override
-  void setDoubleItemsArray(final double[] doubleItems) { doubleItems_ = doubleItems; }
+  void setDoubleValuesArray(final double[] doubleValues) { doubleValues_ = doubleValues; }
 
   @Override
-  void setDoubleItemsArrayAt(final int index, final double value) { doubleItems_[index] = value; }
+  void setDoubleValuesArrayAt(final int index, final double value) { doubleValues_[index] = value; }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }

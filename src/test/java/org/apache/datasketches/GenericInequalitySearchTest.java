@@ -46,7 +46,7 @@ public class GenericInequalitySearchTest {
 
   private static Float[] buildRandFloatArr(final int len) {
     final Float[] arr = new Float[len];
-    Float v = 1.0f; //lgtm [java/non-null-boxed-variable]
+    Float v = 1.0f;
     for (int i = 0; i < len; i++) {
       arr[i] = v;
       v += randDelta();
@@ -109,7 +109,7 @@ public class GenericInequalitySearchTest {
     v = highV + 1;
     res = find(arr, low, high, v, LT, comparator);
     println(desc(arr, low, high, v, res, LT, comparator));
-    assertEquals(res, high);
+    assertEquals(res, high); //??
 
     v = lowV -1;
     res = find(arr, low, high, v, LE, comparator);

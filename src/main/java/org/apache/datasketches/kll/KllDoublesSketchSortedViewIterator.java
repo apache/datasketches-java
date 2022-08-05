@@ -19,39 +19,88 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+
+import org.apache.datasketches.QuantileSearchCriteria;
+
 /**
- * Iterator over KllDoublesSketchSortedView
+ * Iterator over KllFloatsSketchSortedView
+ *
+ * <p>The recommended iteration loop:</p>
+ * <pre>{@code
+ *   KllDoublesSketchSortedViewIterator itr = sketch.getSortedView().iterator();
+ *   while (itr.next()) {
+ *     double v = itr.getValue();
+ *     ...
+ *   }
+ * }</pre>
  */
 public class KllDoublesSketchSortedViewIterator {
 
-  private final double[] items_;
-  private final long[] weights_;
-  private int i_;
+  private final double[] values;
+  private final long[] cumWeights;
+  private final long totalN;
+  private int index;
 
-  KllDoublesSketchSortedViewIterator(final double[] items, final long[] weights) {
-    items_ = items;
-    weights_ = weights;
-    i_ = -1;
+  KllDoublesSketchSortedViewIterator(final double[] values, final long[] cumWeights) {
+    this.values = values;
+    this.cumWeights = cumWeights;
+    this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
+    index = -1;
   }
 
   /**
-   * Gets a value from the current entry.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
+   * Gets the current value.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @return the current value
    */
   public double getValue() {
-    return items_[i_];
+    return values[index];
   }
 
   /**
-   * Gets a weight for the value from the current entry.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
+   * Gets the cumulative weight for the current value.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @param inclusive If true, includes the weight of the current value.
+   * Otherwise, returns the cumulative weightof the previous value.
+   * @return cumulative weight for the current value.
+   */
+  public long getCumulativeWeight(final QuantileSearchCriteria inclusive) {
+    if (inclusive == INCLUSIVE) { return cumWeights[index]; }
+    return (index == 0) ? 0 : cumWeights[index - 1];
+  }
+
+  /**
+   * Gets the normalized rank for the current value or previous value.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @param inclusive if true, returns the normalized rank of the current value.
+   * Otherwise, returns the normalized rank of the previous value.
+   * @return normalized rank for the current value or previous value.
+   */
+  public double getNormalizedRank(final QuantileSearchCriteria inclusive) {
+    return (double) getCumulativeWeight(inclusive) / totalN;
+  }
+
+  /**
+   * Gets the weight of the current value.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @return weight of the current value.
    */
   public long getWeight() {
-    return weights_[i_];
+    if (index == 0) { return cumWeights[0]; }
+    return cumWeights[index] - cumWeights[index - 1];
   }
 
   /**
@@ -61,8 +110,8 @@ public class KllDoublesSketchSortedViewIterator {
    * @return true if the next element exists
    */
   public boolean next() {
-    i_++;
-    return i_ < items_.length;
+    index++;
+    return index < values.length;
   }
 
 }

@@ -32,7 +32,6 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.req.ReqSketchSortedView.Row;
 import org.testng.annotations.Test;
 import org.apache.datasketches.QuantileSearchCriteria;
 
@@ -160,23 +159,17 @@ public class ReqSketchTest {
 
   private static void checkSortedView(final ReqSketch sk, final int iDebug) {
     final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
-    if (iDebug > 0) { println(sv.toString(3,12)); }
-
-    final int totalCount = sk.getRetainedItems();
-    float value = 0;
-    long wt = 0;
-    for (int i = 0; i < totalCount; i++) {
-      final Row row = sv.getRow(i);
-      if (i == 0) {
-        value = row.value;
-        wt = row.cumWeight;
-      } else {
-        assertTrue(row.value >= value);
-        assertTrue(row.cumWeight >= wt);
-        value = row.value;
-        wt = row.cumWeight;
-      }
+    final ReqSketchSortedViewIterator itr = sv.iterator();
+    final int retainedCount = sk.getRetainedItems();
+    final long totalN = sk.getN();
+    int count = 0;
+    long cumWt = 0;
+    while (itr.next()) {
+      cumWt = itr.getCumulativeWeight(INCLUSIVE);
+      count++;
     }
+    assertEquals(cumWt, totalN);
+    assertEquals(count, retainedCount);
   }
 
   private static void checkGetQuantiles(final ReqSketch sk, final int iDebug) {

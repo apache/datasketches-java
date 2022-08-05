@@ -77,8 +77,7 @@ public class ReqSketchSortedViewTest {
     println("  k: " + k + ", hra: " + hra);
     println("  numV: " + numV + ", dup: " + dup + ", Total n = " + n);
     ReqSketch sketch = buildDataLoadSketch();
-    checkNotDedup(sketch);
-    checkDedup(sketch);
+    checkIterator(sketch);
   }
 
   private ReqSketch buildDataLoadSketch() {
@@ -94,16 +93,9 @@ public class ReqSketchSortedViewTest {
     return sketch;
   }
 
-  private void checkNotDedup(final ReqSketch sketch) {
+  private void checkIterator(final ReqSketch sketch) {
     println("\nNot Deduped:");
     ReqSketchSortedView sv = sketch.getSortedView();
-    ReqSketchSortedViewIterator itr = sv.iterator();
-    printIterator(itr);
-  }
-
-  private void checkDedup(final ReqSketch sketch) {
-    println("\nDeduped:");
-    ReqSketchSortedView sv = new ReqSketchSortedView(sketch, true);
     ReqSketchSortedViewIterator itr = sv.iterator();
     printIterator(itr);
   }

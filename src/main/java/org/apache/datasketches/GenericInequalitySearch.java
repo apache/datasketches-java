@@ -23,17 +23,24 @@ import java.util.Comparator;
 import java.util.Objects;
 
 /**
- * This provides efficient, unique and unambiguous binary searching for inequalities
- * for ordered arrays of increasing values that may include duplicate values. These
- * inequalities include &lt;, &le;, ==, &ge;, &gt;. The same search method can be used for all
- * these inequalities.
+ * This provides efficient, unique and unambiguous binary searching for inequality comparison criteria
+ * for ordered arrays of values that may include duplicate values. The inequality criteria include
+ * &lt;, &le;, ==, &ge;, &gt;. All the inequality criteria use the same search algorithm.
+ * (Although == is not an inequality, it is included for convenience.)
  *
  * <p>In order to make the searching unique and unambiguous, we modified the traditional binary
  * search algorithm to search for adjacent pairs of values <i>{A, B}</i> in the values array
- * instead of just a single value, where <i>A</i> and <i>B</i> are the array indices of two
- * adjacent values in the array. We then define the searching criteria,
- * given an array of values <i>arr[]</i> and the search key value <i>v</i>.</p>
+ * instead of just a single value, where <i>a</i> and <i>b</i> are the array indices of two
+ * adjacent values in the array. For all the search criteria, when the algorithm has narrowed the
+ * search down to a single value or adjacent pair of values, the <i>resolve()</i> method provides the
+ * final result of the search. If there is no valid value in the array that satisfies the search
+ * criterion, the algorithm will return -1 to the caller.</p>
  *
+ * <p>Given a sorted array of values <i>arr[]</i> and a search key value <i>v</i>, the algorithms for
+ * the searching criteria are given with each enum criterion.</p>
+ *
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks Tutorial</a>
  * @author Lee Rhodes
  */
 public class GenericInequalitySearch {
@@ -44,10 +51,11 @@ public class GenericInequalitySearch {
   public enum Inequality {
 
     /**
-     * <b>Less-Than:</b> Find the highest ranked adjacent ordered pair <i>{A, B}</i> such that:<br>
-     * <i>arr[A] &lt; v &le; arr[B]</i> within the given range.<br>
-     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-     * Let <i>high</i> = highest index of the highest value in the range.
+     * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>v</i>,
+     * this criterion instructs the binary search algorithm to find the highest adjacent pair of
+     * values <i>{A,B}</i> such that <i>A &lt; v &le; B</i>.<br>
+     * Let <i>low</i> = index of the lowest value in the range.<br>
+     * Let <i>high</i> = index of the highest value in the range.
      *
      * <p>If <i>v</i> &gt; arr[high], return arr[high].<br>
      * If <i>v</i> &le; arr[low], return -1.<br>
@@ -56,10 +64,11 @@ public class GenericInequalitySearch {
     LT,
 
     /**
-     * <b>Less-Than Or Equals:</b> Find the highest ranked adjacent ordered pair <i>{A, B}</i> such that:<br>
-     * <i>arr[A] &le; v &lt; arr[B]</i>.<br>
-     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-     * Let <i>high</i> = highest index of the highest value in the range.
+     * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+     * this criterion instructs the binary search algorithm to find the highest adjacent pair of
+     * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.<br>
+     * Let <i>low</i> = index of the lowest value in the range.<br>
+     * Let <i>high</i> = index of the highest value in the range.
      *
      * <p>If <i>v</i> &ge; arr[high], return arr[high].<br>
      * If <i>v</i> &lt; arr[low], return -1.<br>
@@ -68,16 +77,20 @@ public class GenericInequalitySearch {
     LE,
 
     /**
-     * <b>Equals:</b> Although not an inequality, it is included for completeness.
-     * An index &ge; 0 is returned unless not found, then -1 is returned.
+     * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+     * this criterion instructs the binary search algorithm to find the adjacent pair of
+     * values <i>{A,B}</i> such that <i>A &le; V &le; B</i>.
+     * The returned value from the binary search algorithm will be the index of <i>A</i> or <i>B</i>,
+     * if one of them is equal to <i>V</i>, or -1 if V is not equal to either one.
      */
     EQ,
 
     /**
-     * <b>Greater-Than Or Equals:</b> Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
-     * <i>arr[A] &lt; v &le; arr[B]</i>.<br>
-     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-     * Let <i>high</i> = highest index of the highest value in the range.
+     * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+     * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
+     * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.<br>
+     * Let <i>low</i> = index of the lowest value in the range.<br>
+     * Let <i>high</i> = index of the highest value in the range.
      *
      * <p>If <i>v</i> &le; arr[low], return arr[low].<br>
      * If <i>v</i> &gt; arr[high], return -1.<br>
@@ -86,10 +99,11 @@ public class GenericInequalitySearch {
     GE,
 
     /**
-     * <b>Greater-Than:</b> Find the lowest ranked adjacent pair <i>{A, B}</i> such that:<br>
-     * <i>arr[A] &le; v &lt; arr[B]</i>.<br>
-     * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-     * Let <i>high</i> = highest index of the highest value in the range.
+     * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
+     * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
+     * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.<br>
+     * Let <i>low</i> = index of the lowest value in the range.<br>
+     * Let <i>high</i> = index of the highest value in the range.
      *
      * <p>If <i>v</i> &lt; arr[low], return arr[low].<br>
      * If <i>v</i> &ge; arr[high], return -1.<br>
@@ -100,51 +114,54 @@ public class GenericInequalitySearch {
 
   /**
    * Binary Search for the index of the generic value in the given search range that satisfies
-   * the given inequality.
+   * the given Inequality criterion.
    * If -1 is returned there are no values in the search range that satisfy the inequality.
    *
-   * @param arr the given array that must be sorted with increasing values, must not be null,
-   * and must not contain null values in the given range {low, high} inclusive.
+   * @param arr the given array of comparable values that must be sorted.
+   * The array must not be null or empty and the values of the array must not be null (or NaN) in the range [low, high].
    * @param low the lowest index of the lowest value in the search range, inclusive.
    * @param high the highest index of the highest value in the search range, inclusive.
-   * @param v the value to search for. It must not be null.
-   * @param inequality one of LT, LE, EQ, GE, GT.  It must not be null.
-   * @param comparator for the type T. It must not be null.
+   * @param v the value to search for. It must not be null (or NaN).
+   * @param crit one of the Inequality criteria: LT, LE, EQ, GE, GT.  It must not be null.
+   * @param comparator for the type T. It must not be null. It must return: -1 if A < B, 0 if A == B, and +1 if A > B.
    * @param <T> The generic type of value to be used in the search process.
-   * @return the index of the value in the given search range that satisfies the inequality.
+   * @return the index of the value in the given search range that satisfies the Inequality criterion.
    */
   public static <T> int find(final T[] arr, final int low, final int high, final T v,
-      final Inequality inequality, final Comparator<T> comparator) {
+      final Inequality crit, final Comparator<T> comparator) {
     Objects.requireNonNull(arr, "Input arr must not be null");
     Objects.requireNonNull(v,"Input v must not be null");
-    Objects.requireNonNull(inequality, "Input inequality must not be null");
+    Objects.requireNonNull(crit, "Input inequality must not be null");
     Objects.requireNonNull(comparator,"Input comparator must not be null");
+    if (arr.length == 0) { throw new SketchesArgumentException("Input array must not be empty."); }
 
     int lo = low;
-    int hi = high - 1;
-    int ret;
+    int hi = high;
     while (lo <= hi) {
-      final int midA = lo + (hi - lo) / 2;
-      ret = compare(arr, midA, midA + 1, v, inequality, comparator);
-      if (ret == -1 ) { hi = midA - 1; }
-      else if (ret == 1) { lo = midA + 1; }
-      else  { return getIndex(arr, midA, midA + 1, v, inequality, comparator); }
+      if (hi - lo <= 1) {
+        return resolve(arr, lo, hi, v, crit, comparator);
+      }
+      final int mid = (lo + hi) / 2;
+      final int ret = compare(arr, mid, mid + 1, v, crit, comparator);
+      if (ret == -1 ) { hi = mid; }
+      else if (ret == 1) { lo = mid + 1; }
+      else  { return getIndex(arr, mid, mid + 1, v, crit, comparator); }
     }
-    return resolve(lo, hi, low, high, inequality);
+    return -1; //should never return here
   }
 
   private static <T> int compare(final T[] arr, final int a, final int b, final T v,
-      final Inequality inequality, final Comparator<T> comparator) {
+      final Inequality crit, final Comparator<T> comparator) {
     int result = 0;
-    switch (inequality) {
+    switch (crit) {
       case GE:
       case LT: {
-        result = comparator.compare(v, arr[a]) < 1 ? -1 : comparator.compare(arr[b], v) < 0 ? 1 : 0;
+        result = comparator.compare(v, arr[a]) <= 0 ? -1 : comparator.compare(arr[b], v) < 0 ? 1 : 0;
         break;
       }
       case GT:
       case LE: {
-        result = comparator.compare(v, arr[a]) < 0 ? -1 : comparator.compare(arr[b], v) < 1 ? 1 : 0;
+        result = comparator.compare(v, arr[a]) < 0 ? -1 : comparator.compare(arr[b], v) <= 0 ? 1 : 0;
         break;
       }
       case EQ: {
@@ -156,9 +173,9 @@ public class GenericInequalitySearch {
   }
 
   private static <T> int getIndex(final T[] arr, final int a, final int b, final T v,
-      final Inequality inequality, final Comparator<T> comparator) {
+      final Inequality crit, final Comparator<T> comparator) {
     int result = 0;
-    switch (inequality) {
+    switch (crit) {
       case LT:
       case LE: {
         result = a; break;
@@ -174,28 +191,48 @@ public class GenericInequalitySearch {
     return result;
   }
 
-  private static int resolve(final int lo, final int hi, final int low, final int high,
-      final Inequality inequality) {
+  private static <T> int resolve(final T[] arr, final int lo, final int hi, final T v,
+      final Inequality crit, final Comparator<T> comparator) {
     int result = 0;
-    switch (inequality) {
+    switch (crit) {
       case LT: {
-        result = lo >= high ? high : -1;
+        result = (lo == hi)
+            ? (comparator.compare(v, arr[lo]) > 0 ? lo : -1)
+            : (comparator.compare(v, arr[hi]) > 0
+                ? hi
+                : (comparator.compare(v, arr[lo]) > 0 ? lo : -1));
         break;
       }
       case LE: {
-        result = lo >= high ? high : -1;
+        result = (lo == hi)
+            ? (comparator.compare(v, arr[lo]) >= 0 ? lo : -1)
+            : (comparator.compare(v, arr[hi]) >= 0
+                ? hi
+                : (comparator.compare(v, arr[lo]) >= 0 ? lo : -1));
         break;
       }
       case EQ: {
-        result = -1;
+        result = (lo == hi)
+            ? (comparator.compare(v, arr[lo]) == 0 ? lo : -1)
+            : (comparator.compare(v, arr[hi]) == 0
+                ? hi
+                : (comparator.compare(v, arr[lo]) == 0 ? lo : -1));
         break;
       }
       case GE: {
-        result = hi <= low ? low : -1;
+        result = (lo == hi)
+            ? (comparator.compare(v, arr[lo]) <= 0 ? lo : -1)
+            : (comparator.compare(v, arr[lo]) <= 0
+                ? lo
+                : (comparator.compare(v, arr[hi]) <= 0 ? hi : -1));
         break;
       }
       case GT: {
-        result = hi <= low ? low : -1;
+        result = (lo == hi)
+            ? (comparator.compare(v, arr[lo]) < 0 ? lo : -1)
+            : (comparator.compare(v, arr[lo]) < 0
+                ? lo
+                : (comparator.compare(v, arr[hi]) < 0 ? hi : -1));
         break;
       }
     }
