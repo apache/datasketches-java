@@ -478,7 +478,8 @@ public abstract class KllDoublesSketch extends KllSketch {
    * @return sorted view object
    */
   public KllDoublesSketchSortedView getSortedView() {
-    return kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
+    refreshSortedView();
+    return kllDoublesSV;
   }
 
   @Override //Artifact of inheritance

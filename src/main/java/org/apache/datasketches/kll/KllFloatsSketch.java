@@ -478,7 +478,8 @@ public abstract class KllFloatsSketch extends KllSketch {
    * @return sorted view object
    */
   public KllFloatsSketchSortedView getSortedView() {
-    return kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
+    refreshSortedView();
+    return kllFloatsSV;
   }
 
   @Override //Artifact of inheritance

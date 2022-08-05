@@ -149,7 +149,7 @@ public class ReqSketch extends BaseReqSketch {
     maxValue = other.maxValue;
     ltEq = other.ltEq;
     reqDebug = other.reqDebug;
-    reqSV = null; //reqSortedView must not copy
+    reqSV = null;
 
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
@@ -294,7 +294,7 @@ public class ReqSketch extends BaseReqSketch {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
-    reqSV = (reqSV == null) ? new ReqSketchSortedView(this) : reqSV;
+    refreshSortedView();
     return reqSV.getQuantile(normRank, inclusive);
   }
 
@@ -376,7 +376,8 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public ReqSketchSortedView getSortedView() {
-    return reqSV = (reqSV == null) ? new ReqSketchSortedView(this) : reqSV;
+    refreshSortedView();
+    return reqSV;
   }
 
   @Override
@@ -635,6 +636,10 @@ public class ReqSketch extends BaseReqSketch {
     compactors.add(new ReqCompactor(lgWeight, hra, k, reqDebug));
     maxNomSize = computeMaxNomSize();
     if (reqDebug != null) { reqDebug.emitNewCompactor(lgWeight); }
+  }
+
+  private final void refreshSortedView() {
+    reqSV = (reqSV == null) ? new ReqSketchSortedView(this) : reqSV;
   }
 
 }
