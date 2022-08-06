@@ -462,9 +462,9 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Updates this sketch with the given data item.
+   * Updates this sketch with the given data value.
    *
-   * @param value an item from a stream of items. NaNs are ignored.
+   * @param value a value from a stream of values. NaNs are ignored.
    */
   public void update(final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }

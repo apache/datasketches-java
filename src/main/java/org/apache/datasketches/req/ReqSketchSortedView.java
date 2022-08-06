@@ -118,7 +118,7 @@ public class ReqSketchSortedView {
   private void buildSortedViewArrays(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
-    final int totalValues = sk.getRetainedItems();
+    final int totalValues = sk.getRetainedValues();
     values = new float[totalValues];
     cumWeights = new long[totalValues];
     int count = 0;

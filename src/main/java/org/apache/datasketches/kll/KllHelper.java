@@ -589,7 +589,7 @@ final class KllHelper {
       wmem.putIntArray(offset, myLevelsArr, 0, len);
       offset += len * Integer.BYTES;
 
-      //LOAD MIN, MAX VALUES FOLLOWED BY ITEMS ARRAY
+      //LOAD MIN, MAX VALUES FOLLOWED BY VALUES ARRAY
       if (doubleType) {
         wmem.putDouble(offset,sketch. getMinDoubleValue());
         offset += Double.BYTES;
@@ -741,7 +741,7 @@ final class KllHelper {
     wmem.putIntArray(offset, myLevelsArr, 0, len);
     offset += len * Integer.BYTES;
 
-    //LOAD MIN, MAX VALUES FOLLOWED BY ITEMS ARRAY
+    //LOAD MIN, MAX VALUES FOLLOWED BY VALUES ARRAY
     if (doubleType) {
       wmem.putDouble(offset, sketch.getMinDoubleValue());
       offset += Double.BYTES;
@@ -831,7 +831,7 @@ final class KllHelper {
     }
     myNewLevelsArr[myNewNumLevels] = myNewTotalValuesCapacity; // initialize the new "extra" index at the top
 
-    // GROW ITEMS ARRAY
+    // GROW VAlUES ARRAY
     if (sketch.sketchType == DOUBLES_SKETCH) {
       myNewDoubleValuesArr = new double[myNewTotalValuesCapacity];
       // copy and shift the current data into the new array

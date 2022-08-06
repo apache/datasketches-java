@@ -83,19 +83,19 @@ public final class KllFloatsSketchSortedView {
       if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
     }
 
-    final int numItems = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
-    values = new float[numItems];
-    cumWeights = new long[numItems];
-    populateFromSketch(srcValues, srcLevels, srcNumLevels, numItems);
+    final int numValues = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
+    values = new float[numValues];
+    cumWeights = new long[numValues];
+    populateFromSketch(srcValues, srcLevels, srcNumLevels, numValues);
     sk.kllFloatsSV = this;
   }
 
   //populates values, cumWeights
-  private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
-    final int srcNumLevels, final int numItems) {
+  private void populateFromSketch(final float[] srcValues, final int[] srcLevels,
+    final int srcNumLevels, final int numValues) {
     final int[] myLevels = new int[srcNumLevels + 1];
     final int offset = srcLevels[0];
-    System.arraycopy(srcItems, offset, values, 0, numItems);
+    System.arraycopy(srcValues, offset, values, 0, numValues);
     int srcLevel = 0;
     int dstLevel = 0;
     long weight = 1;

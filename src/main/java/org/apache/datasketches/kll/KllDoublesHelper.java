@@ -92,7 +92,7 @@ final class KllDoublesHelper {
       myNewNumLevels = result[0]; //was finalNumLevels
       assert myNewNumLevels <= ub; // ub may be much bigger
 
-      // THE NEW ITEMS ARRAY (was newbuf)
+      // THE NEW VALUES ARRAY (was newbuf)
       myNewDoubleValuesArr = (targetValueCount == myCurDoubleValuesArr.length)
           ? myCurDoubleValuesArr
           : new double[targetValueCount];

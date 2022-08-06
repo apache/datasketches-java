@@ -160,7 +160,7 @@ public class ReqSketchTest {
   private static void checkSortedView(final ReqSketch sk, final int iDebug) {
     final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
     final ReqSketchSortedViewIterator itr = sv.iterator();
-    final int retainedCount = sk.getRetainedItems();
+    final int retainedCount = sk.getRetainedValues();
     final long totalN = sk.getN();
     int count = 0;
     long cumWt = 0;
@@ -295,7 +295,7 @@ public class ReqSketchTest {
     final byte[] sk1Arr = sk1.toByteArray();
     final Memory mem = Memory.wrap(sk1Arr);
     final ReqSketch sk2 = ReqSketch.heapify(mem);
-    assertEquals(sk2.getRetainedItems(), sk1.getRetainedItems());
+    assertEquals(sk2.getRetainedValues(), sk1.getRetainedValues());
     assertEquals(sk2.getMinValue(), sk1.getMinValue());
     assertEquals(sk2.getMaxValue(), sk1.getMaxValue());
     assertEquals(sk2.getN(), sk1.getN());
@@ -336,7 +336,7 @@ public class ReqSketchTest {
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getRetainedItems(), 10);
+    assertEquals(sketch.getRetainedValues(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, NON_INCLUSIVE), (i - 1) / 10.0);

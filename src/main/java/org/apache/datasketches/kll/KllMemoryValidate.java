@@ -129,11 +129,11 @@ final class KllMemoryValidate {
         // Create Levels Arr
         levelsArr = new int[numLevels + 1];
         srcMem.getIntArray(DATA_START_ADR, levelsArr, 0, numLevels); //copies all except the last one
-        final int capacityItems = KllHelper.computeTotalValueCapacity(k, m, numLevels);
-        levelsArr[numLevels] = capacityItems; //load the last one
+        final int capacityValues = KllHelper.computeTotalValueCapacity(k, m, numLevels);
+        levelsArr[numLevels] = capacityValues; //load the last one
 
-        final int retainedItems = (levelsArr[numLevels] - levelsArr[0]);
-        sketchBytes = DATA_START_ADR + numLevels * Integer.BYTES + 2 * typeBytes + retainedItems * typeBytes;
+        final int retainedValues = (levelsArr[numLevels] - levelsArr[0]);
+        sketchBytes = DATA_START_ADR + numLevels * Integer.BYTES + 2 * typeBytes + retainedValues * typeBytes;
         break;
       }
       case 1: { //EMPTY_COMPACT
@@ -163,7 +163,7 @@ final class KllMemoryValidate {
   void updatableMemFormatValidate(final WritableMemory wSrcMem) {
     if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
     n = getMemoryN(wSrcMem);
-    empty = n == 0;       //empty & singleItem are set for convenience
+    empty = n == 0;       //empty & singleValue are set for convenience
     singleValue = n == 1;  // there is no error checking on these bits
     minK = getMemoryMinK(wSrcMem);
     numLevels = getMemoryNumLevels(wSrcMem);
@@ -181,11 +181,11 @@ final class KllMemoryValidate {
     SRC_NOT_KLL("FamilyID Field must be: " + Family.KLL.getID() + ", NOT: "),
     EMPTYBIT_AND_PREINTS("Empty Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
     EMPTYBIT_AND_SER_VER("Empty Bit: 1 -> SerVer: " + SERIAL_VERSION_EMPTY_FULL + ", NOT: "),
-    SINGLEBIT_AND_SER_VER("Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: "),
-    SINGLEBIT_AND_PREINTS("Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
+    SINGLEBIT_AND_SER_VER("Single Value Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: "),
+    SINGLEBIT_AND_PREINTS("Single Value Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
     INVALID_PREINTS("PreInts Must Be: " + PREAMBLE_INTS_FULL + ", NOT: "),
     UPDATABLEBIT_AND_SER_VER("((SerVer == 3) ^ (Updatable Bit)) must = 0, NOT: "),
-    EMPTYBIT_AND_SINGLEBIT("Empty flag bit and SingleItem flag bit cannot both be set. Flags: ");
+    EMPTYBIT_AND_SINGLEBIT("Empty flag bit and SingleValue flag bit cannot both be set. Flags: ");
 
     private String msg;
 

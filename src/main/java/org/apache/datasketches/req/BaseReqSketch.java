@@ -92,14 +92,14 @@ abstract class BaseReqSketch {
    * @param k the given value of k
    * @param rank the given normalized rank, a number in [0,1].
    * @param hra if true High Rank Accuracy mode is being selected, otherwise, Low Rank Accuracy.
-   * @param totalN an estimate of the total number of items submitted to the sketch.
+   * @param totalN an estimate of the total number of values submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
   public abstract double getRSE(int k, double rank, boolean hra, long totalN);
 
   /**
-   * Gets the total number of items offered to the sketch.
-   * @return the total number of items offered to the sketch.
+   * Gets the total number of values offered to the sketch.
+   * @return the total number of values offered to the sketch.
    */
   public abstract long getN();
 
@@ -218,10 +218,10 @@ abstract class BaseReqSketch {
   public abstract double getRankUpperBound(double rank, int numStdDev);
 
   /**
-   * Gets the number of retained items of this sketch
+   * Gets the number of retained values of this sketch
    * @return the number of retained entries of this sketch
    */
-  public abstract int getRetainedItems();
+  public abstract int getRetainedValues();
 
   /**
    * Gets the number of bytes when serialized.
@@ -258,8 +258,8 @@ abstract class BaseReqSketch {
   public abstract boolean isLessThanOrEqual();
 
   /**
-   * Returns an iterator for all the items in this sketch.
-   * @return an iterator for all the items in this sketch.
+   * Returns an iterator for all the values in this sketch.
+   * @return an iterator for all the values in this sketch.
    */
   public abstract ReqIterator iterator();
 
@@ -305,17 +305,17 @@ abstract class BaseReqSketch {
   public abstract String toString();
 
   /**
-   * Updates this sketch with the given item.
-   * @param item the given item
+   * Updates this sketch with the given value.
+   * @param value the given value
    */
-  public abstract void update(final float item);
+  public abstract void update(final float value);
 
   /**
    * A detailed, human readable view of the sketch compactors and their data.
    * Each compactor string is prepended by the compactor lgWeight, the current number of retained
-   * items of the compactor and the current nominal capacity of the compactor.
-   * @param fmt the format string for the data items; example: "%4.0f".
-   * @param allData all the retained items for the sketch will be output by
+   * values of the compactor and the current nominal capacity of the compactor.
+   * @param fmt the format string for the data values; example: "%4.0f".
+   * @param allData all the retained values for the sketch will be output by
    * compactor level.  Otherwise, just a summary will be output.
    * @return a detailed view of the compactors and their data
    */

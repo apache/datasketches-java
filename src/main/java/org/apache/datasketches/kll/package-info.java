@@ -19,7 +19,7 @@
 
 /**
  * Implementation of a very compact quantiles sketch with lazy compaction scheme
- * and nearly optimal accuracy per retained item.
+ * and nearly optimal accuracy per retained value.
  * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
