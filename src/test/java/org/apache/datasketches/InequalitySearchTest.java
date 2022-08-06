@@ -562,7 +562,7 @@ public class InequalitySearchTest {
     }
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format
