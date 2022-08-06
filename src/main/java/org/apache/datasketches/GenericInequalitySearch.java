@@ -118,12 +118,14 @@ public class GenericInequalitySearch {
    * If -1 is returned there are no values in the search range that satisfy the inequality.
    *
    * @param arr the given array of comparable values that must be sorted.
-   * The array must not be null or empty and the values of the array must not be null (or NaN) in the range [low, high].
+   * The array must not be null or empty and the values of the array must not be null (or NaN)
+   * in the range [low, high].
    * @param low the lowest index of the lowest value in the search range, inclusive.
    * @param high the highest index of the highest value in the search range, inclusive.
    * @param v the value to search for. It must not be null (or NaN).
    * @param crit one of the Inequality criteria: LT, LE, EQ, GE, GT.  It must not be null.
-   * @param comparator for the type T. It must not be null. It must return: -1 if A < B, 0 if A == B, and +1 if A > B.
+   * @param comparator for the type T.
+   * It must not be null. It must return: -1 if A &lt; B, 0 if A == B, and +1 if A &gt; B.
    * @param <T> The generic type of value to be used in the search process.
    * @return the index of the value in the given search range that satisfies the Inequality criterion.
    */

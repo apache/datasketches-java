@@ -436,7 +436,7 @@ public abstract class KllDoublesSketch extends KllSketch {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param values the given quantile values from which to obtain their corresponding ranks.
-   * @param inclusive
+   * @param inclusive if INCLUSIVE, the given values include the rank directly corresponding to each value.
    * @return an array of normalized ranks corresponding to the given array of quantile values.
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
