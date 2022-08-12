@@ -23,7 +23,6 @@ import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.datasketches.QuantileSearchCriteria;
@@ -122,7 +121,7 @@ public class ReqSketch extends BaseReqSketch {
   /**
    * Normal Constructor used by ReqSketchBuilder.
    * @param k Controls the size and error of the sketch. It must be even and in the range
-   * [4, 1024], inclusive.
+   * [4, 1024].
    * The default value of 12 roughly corresponds to 1% relative error guarantee at 95% confidence.
    * @param highRankAccuracy if true, the default, the high ranks are prioritized for better
    * accuracy. Otherwise the low ranks are prioritized for better accuracy.
@@ -177,7 +176,7 @@ public class ReqSketch extends BaseReqSketch {
   private static void checkK(final int k) {
     if ((k & 1) > 0 || k < 4 || k > 1024) {
       throw new SketchesArgumentException(
-          "<i>K</i> must be even and in the range [4, 1024], inclusive: " + k );
+          "<i>K</i> must be even and in the range [4, 1024]: " + k );
     }
   }
 
@@ -234,15 +233,10 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
+  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    final int numBkts = splitPoints.length + 1;
-    final double[] outArr = new double[numBkts];
-    final long[] buckets = getPMForCDF(splitPoints, inclusive);
-    for (int j = 0; j < numBkts; j++) {
-      outArr[j] = (double)buckets[j] / getN();
-    }
-    return outArr;
+    refreshSortedView();
+    return reqSV.getPmfOrCdf(splitPoints, true, searchCrit);
   }
 
   @Override
@@ -271,16 +265,10 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria inclusive) {
-    if (isEmpty()) { return null; }
-    final int numBkts = splitPoints.length + 1;
-    final double[] outArr = new double[numBkts];
-    final long[] buckets = getPMForCDF(splitPoints, inclusive);
-    outArr[0] = (double)buckets[0] / getN();
-    for (int j = 1; j < numBkts; j++) {
-      outArr[j] = (double)(buckets[j] - buckets[j - 1]) / getN();
-    }
-    return outArr;
+  public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    return reqSV.getPmfOrCdf(splitPoints, false, searchCrit);
   }
 
   @Override
@@ -289,14 +277,14 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
+  public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return Float.NaN; }
     if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
     }
     refreshSortedView();
-    return reqSV.getQuantile(normRank, inclusive);
+    return reqSV.getQuantile(normRank, searchCrit);
   }
 
   @Override
@@ -305,12 +293,13 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public float[] getQuantiles(final double[] normRanks, final QuantileSearchCriteria inclusive) {
-    if (isEmpty()) { return null; }
+  public float[] getQuantiles(final double[] normRanks, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
     final int len = normRanks.length;
     final float[] qArr = new float[len];
     for (int i = 0; i < len; i++) {
-      qArr[i] = getQuantile(normRanks[i], inclusive);
+      qArr[i] = reqSV.getQuantile(normRanks[i], searchCrit);
     }
     return qArr;
   }
@@ -321,10 +310,10 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
-    if (isEmpty()) { return Double.NaN; }
-    final long nnCount = getCount(value, inclusive);
-    return (double)nnCount / totalN;
+  public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return Double.NaN; }
+    refreshSortedView();
+    return reqSV.getRank(value, searchCrit);
   }
 
   @Override
@@ -338,20 +327,13 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getRanks(final float[] values, final QuantileSearchCriteria inclusive) {
+  public double[] getRanks(final float[] values, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
+    refreshSortedView();
     final int numValues = values.length;
     final double[] retArr = new double[numValues];
-    if (reqSV != null) {
-      for (int i = 0; i < numValues; i++) {
-        retArr[i] = reqSV.getRank(values[i], inclusive); //already normalized
-      }
-      return retArr;
-    }
-    //if no reqSV use counts method
-    final long[] cumNnrArr = getCounts(values, inclusive);
     for (int i = 0; i < numValues; i++) {
-      retArr[i] = (double)cumNnrArr[i] / totalN;
+      retArr[i] = reqSV.getRank(values[i], searchCrit); //already normalized
     }
     return retArr;
   }
@@ -584,51 +566,6 @@ public class ReqSketch extends BaseReqSketch {
     }
     reqSV = null;
     if (reqDebug != null) { reqDebug.emitCompressDone(); }
-  }
-
-  private long getCount(final float value, final QuantileSearchCriteria inclusive) {
-    if (isEmpty()) { return 0; }
-    final int numComp = compactors.size();
-    long cumNnr = 0;
-    for (int i = 0; i < numComp; i++) { //cycle through compactors
-      final ReqCompactor c = compactors.get(i);
-      final long wt = 1L << c.getLgWeight();
-      final FloatBuffer buf = c.getBuffer();
-      cumNnr += buf.getCountWithCriterion(value, inclusive) * wt;
-    }
-    return cumNnr;
-  }
-
-  private long[] getCounts(final float[] values, final QuantileSearchCriteria inclusive) {
-    final int numValues = values.length;
-    final int numComp = compactors.size();
-    final long[] cumNnrArr = new long[numValues];
-    if (isEmpty()) { return cumNnrArr; }
-    for (int i = 0; i < numComp; i++) { //cycle through compactors
-      final ReqCompactor c = compactors.get(i);
-      final long wt = 1L << c.getLgWeight();
-      final FloatBuffer buf = c.getBuffer();
-      for (int j = 0; j < numValues; j++) {
-        cumNnrArr[j] += buf.getCountWithCriterion(values[j], inclusive) * wt;
-      }
-    }
-    return cumNnrArr;
-  }
-
-  /**
-   * Gets a CDF in raw counts, which can be easily converted into a CDF or PMF.
-   * @param splits the splitPoints array
-   * @param inclusive if true the weight of a given value is included into its rank
-   * @return a CDF in raw counts
-   */
-  private long[] getPMForCDF(final float[] splits, final QuantileSearchCriteria inclusive) {
-    validateSplits(splits);
-    final int numSplits = splits.length;
-    final long[] splitCounts = getCounts(splits, inclusive);
-    final int numBkts = numSplits + 1;
-    final long[] bkts = Arrays.copyOf(splitCounts, numBkts);
-    bkts[numBkts - 1] = getN();
-    return bkts;
   }
 
   private void grow() {

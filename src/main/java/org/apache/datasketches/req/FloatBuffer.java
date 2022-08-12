@@ -206,10 +206,10 @@ class FloatBuffer {
    * Returns the count of values based on the given criteria.
    * Also used in test.
    * @param value the given value
-   * @param inclusive the chosen criterion: LT, LT Strict, or LE
+   * @param searchCrit the chosen criterion: LT, LT Strict, or LE
    * @return count of values based on the given criterion.
    */
-  int getCountWithCriterion(final float value, final QuantileSearchCriteria inclusive) {
+  int getCountWithCriterion(final float value, final QuantileSearchCriteria searchCrit) {
     assert !Float.isNaN(value) : "Float values must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
     int low = 0;    //Initialized to space at top
@@ -218,7 +218,7 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(arr_, low, high, value, crit);
     return index == -1 ? 0 : index - low + 1;
   }

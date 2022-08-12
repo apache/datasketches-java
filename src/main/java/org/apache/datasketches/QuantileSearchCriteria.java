@@ -20,25 +20,8 @@
 package org.apache.datasketches;
 
 /**
- * These search criteria are used by all the quantiles algorithms in the DataSketches library.
- * <ul>
- * <li><b>Definition of Non Inclusive <i>getRank(q)</i> search:</b><br>
- * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is strictly less than <i>q</i>.
- * </li>
+ * These search criteria are used by the KLL, REQ and Classic Quantiles sketches in the DataSketches library.
  *
- * <li><b>Definition of Inclusive <i>getRank(q)</i> search:</b><br>
- * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is less than or equal to <i>q</i>.
- * </li>
- *
- * <li><b>Definition of Non Inclusive Search <i>getQuantile(r)</i> search:</b><br>
- * Given rank <i>r</i>, return the quantile of the smallest rank that is strictly greater than <i>r</i>.
- * </li>
- *
- * <li><b>Definition of Inclusive Search <i>getQuantile(r)</i> search:</b><br>
- * Given rank <i>r</i>, return the quantile of the smallest rank that is strictly greater than or equal to <i>r</i>.
- * </li>
- * </ul>
-
  * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
  * Sketching Quantiles and Ranks Tutorial</a>
  *
@@ -47,28 +30,51 @@ package org.apache.datasketches;
 public enum QuantileSearchCriteria {
 
   /**
-   * See definition of Non Inclusive above.
+   * <b>Definition of INCLUSIVE <i>getQuantile(r)</i> search:</b><br>
+   * Given rank <i>r</i>, return the quantile of the smallest rank that is
+   * strictly greater than or equal to <i>r</i>.
    *
-   * <p>For a non inclusive, strict getQuantile(rank) type search, If the given rank is equal to 1.0,
-   * there is no quantile that satisfies this criterion,
-   * the getQuantile(rank) method will return a NaN.</p>
+   * <p><b>Definition of INCLUSIVE <i>getRank(q)</i> search:</b><br>
+   * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is
+   * less than or equal to <i>q</i>.</p>
    */
-  NON_INCLUSIVE_STRICT,
+  INCLUSIVE,
 
   /**
-   * See definition of Non Inclusive above.
+   * <b>Definition of NON_INCLUSIVE <i>getQuantile(r)</i> search:</b><br>
+   * Given rank <i>r</i>, return the quantile of the smallest rank that is
+   * strictly greater than <i>r</i>.
    *
-   * <p>For a non inclusive, getQuantile(rank) type search, If the given rank is is equal to 1.0,
-   * there is no quantile that satisfies this criterion, however,
-   * the method will return the largest quantile value retained by the sketch as a convenience.</p>
+   * <p>If the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
+   * the method will return the largest quantile value retained by the sketch as a convenience.
+   * This is not strictly mathematically correct, but very convenient as it is most often what we expect and
+   * avoids having to return a <i>NaN</i>.</p>
    *
-   * <p>This is not strictly mathematically correct, but very convenient as it is most often what we expect.</p>
+   * <p><b>Definition of NON_INCLUSIVE <i>getRank(q)</i> search:</b><br>
+   * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is
+   * strictly less than <i>q</i>.</p>
+   *
+   * <p>If there is no quantile value that is strictly less than <i>q</i>,
+   * the method will return a rank of zero.</p>
+   *
    */
   NON_INCLUSIVE,
 
   /**
-   * See definition of Inclusive above.
+   * <b>Definition of NON_INCLUSIVE_STRICT <i>getQuantile(r)</i> search:</b><br>
+   * Given rank <i>r</i>, return the quantile of the smallest rank that is
+   * strictly greater than <i>r</i>.
+   *
+   * <p>If the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
+   * the method will return a <i>NaN</i>.</p>
+   *
+   * <p><b>Definition of NON_INCLUSIVE <i>getRank(q)</i> search:</b><br>
+   * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is
+   * strictly less than <i>q</i>.</p>
+   *
+   * <p>If there is no quantile value that is strictly less than <i>q</i>,
+   * the method will return a rank of zero.</p>
    */
-  INCLUSIVE
+  NON_INCLUSIVE_STRICT,
 }
 

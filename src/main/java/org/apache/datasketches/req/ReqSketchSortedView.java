@@ -25,28 +25,17 @@ import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRIC
 
 import java.util.List;
 
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
- * One can iterate of the contents of the sketch, but the result is not sorted.
- * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
- * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
- * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
- * trial &amp; error, try to figure out what the sketch actually has retained.
- *
- * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
- * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
- * test. One needs this sorted view for the test.</p>
- *
- * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
- * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
- * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
- * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.<p>
+ * The SortedView of the ReqSketch.
+ * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public class ReqSketchSortedView {
+public class ReqSketchSortedView implements FloatsSortedView {
   private float[] values;
   private long[] cumWeights;
   private final long totalN;
@@ -64,44 +53,31 @@ public class ReqSketchSortedView {
   }
 
   /**
-   * Construct this sorted view with the given sketch.
-   * The weights will be combined for the duplicate values.
-   * The getQuantile() and getRank() methods will work correctly.
-   * @param sk the given sketch
+   * Constructs this Sorted View given the sketch
+   * @param sk the given ReqSketch
    */
   public ReqSketchSortedView(final ReqSketch sk) {
     totalN = sk.getN();
     buildSortedViewArrays(sk);
   }
 
-  /**
-   * Gets the quantile based on the given normalized rank,
-   * which must be in the range [0.0, 1.0], inclusive.
-   * @param normRank the given normalized rank
-   * @param inclusive determines the search criterion used.
-   * @return the quantile
-   */
-  public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
+  @Override
+  public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
     final int len = cumWeights.length;
     final long rank = (int)(normRank * totalN);
-    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
-      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
+      if (searchCrit == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (searchCrit == NON_INCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }
 
-  /**
-   * Gets the normalized rank based on the given value.
-   * @param value the given value
-   * @param inclusive determines the search criterion used.
-   * @return the normalized rank
-   */
-  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
+  @Override
+  public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
     final int len = values.length;
-    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
@@ -109,6 +85,23 @@ public class ReqSketchSortedView {
     return (double)cumWeights[index] / totalN;
   }
 
+  @Override
+  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf, final QuantileSearchCriteria searchCrit) {
+    validateFloatValues(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    if (isCdf) { return buckets; }
+    for (int i = len; i-- > 1;) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
+  @Override
   public ReqSketchSortedViewIterator iterator() {
     return new ReqSketchSortedViewIterator(values, cumWeights);
   }
@@ -178,6 +171,24 @@ public class ReqSketchSortedView {
     }
     if (totalN > 0) {
       assert cumWeights[len - 1] == totalN;
+    }
+  }
+
+  /**
+   * Checks the sequential validity of the given array of splitpoints as floats.
+   * They must be unique, monotonically increasing and not NaN.
+   * Only used for getPmfOrCdf().
+   * @param values the given array of values
+   */
+  private static void validateFloatValues(final float[] values) {
+    for (int i = 0; i < values.length; i++) {
+      if (!Float.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
+      }
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
     }
   }
 

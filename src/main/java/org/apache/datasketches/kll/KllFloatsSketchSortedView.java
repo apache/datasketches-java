@@ -25,32 +25,17 @@ import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRIC
 
 import java.util.Arrays;
 
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
- * One can iterate of the contents of the sketch, but the result is not sorted.
- * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
- * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
- * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
- * trial &amp; error, try to figure out what the sketch actually has retained.
- *
- * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
- * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
- * test. One needs this sorted view for the test.</p>
- *
- * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
- * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
- * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
- * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.</p>
- *
- * @author Kevin Lang
+ * The SortedView of the KllFloatsSketch.
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public final class KllFloatsSketchSortedView {
+public final class KllFloatsSketchSortedView implements FloatsSortedView {
 
   private final float[] values;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
@@ -69,7 +54,7 @@ public final class KllFloatsSketchSortedView {
   }
 
   /**
-   * Constructs the Sorted View given the sketch
+   * Constructs this Sorted View given the sketch
    * @param sk the given KllFloatsSketch.
    */
   public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
@@ -88,6 +73,52 @@ public final class KllFloatsSketchSortedView {
     cumWeights = new long[numValues];
     populateFromSketch(srcValues, srcLevels, srcNumLevels, numValues);
     sk.kllFloatsSV = this;
+  }
+
+  @Override
+  public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
+    checkRank(normRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (int)(normRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      if (searchCrit == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (searchCrit == NON_INCLUSIVE) { return values[len - 1]; }
+    }
+    return values[index];
+  }
+
+  @Override
+  public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
+    final int len = values.length;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / totalN;
+  }
+
+  @Override
+  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf, final QuantileSearchCriteria searchCrit) {
+    validateFloatValues(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    if (isCdf) { return buckets; }
+    for (int i = len; i-- > 1;) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
+  @Override
+  public KllFloatsSketchSortedViewIterator iterator() {
+    return new KllFloatsSketchSortedViewIterator(values, cumWeights);
   }
 
   //populates values, cumWeights
@@ -114,76 +145,6 @@ public final class KllFloatsSketchSortedView {
     final int numLevels = dstLevel;
     blockyTandemMergeSort(values, cumWeights, myLevels, numLevels); //create unit weights
     KllHelper.convertToCumulative(cumWeights);
-  }
-
-  /**
-   * Gets the quantile based on the given normalized rank,
-   * which must be in the range [0.0, 1.0], inclusive.
-   * @param normRank the given normalized rank
-   * @param inclusive determines the search criterion used.
-   * @return the quantile
-   */
-  public float getQuantile(final double normRank, final QuantileSearchCriteria inclusive) {
-    checkRank(normRank);
-    final int len = cumWeights.length;
-    final long naturalRank = (int)(normRank * totalN);
-    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
-    if (index == -1) {
-      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
-      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
-    }
-    return values[index];
-  }
-
-  /**
-   * Gets the normalized rank based on the given value.
-   * @param value the given value
-   * @param inclusive determines the search criterion used.
-   * @return the normalized rank
-   */
-  public double getRank(final float value, final QuantileSearchCriteria inclusive) {
-    final int len = values.length;
-    final InequalitySearch crit = (inclusive == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
-    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
-    if (index == -1) {
-      return 0; //LT: value <= minValue; LE: value < minValue
-    }
-    return (double)cumWeights[index] / totalN;
-  }
-
-  /**
-   * Returns an iterator for this sorted view
-   * @return an iterator for this sorted view
-   */
-  public KllFloatsSketchSortedViewIterator iterator() {
-    return new KllFloatsSketchSortedViewIterator(values, cumWeights);
-  }
-
-  /**
-   * Returns an array of fractional intervals of the distribution represented by the sketch as a CDF or PMF.
-   * @param splitPoints the given array of splitPoints. These is a sorted, unique, monotonic array of float
-   * values in the range of (minValue, maxValue). This array must not include either the minValue or the maxValue.
-   * The returned array will have one extra interval representing the very top of the distribution.
-   * @param isCdf if true, a CDF will be returned, otherwise, a PMF will be returned.
-   * @param inclusive if INCLUSIVE, each interval within the distribution will include its top value and exclude its
-   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
-   * the top value retained by the sketch.
-   * @return an array of fractional portions of the distribution represented by the sketch as a CDF or PMF.
-   */
-  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf, final QuantileSearchCriteria inclusive) {
-    validateFloatValues(splitPoints);
-    final int len = splitPoints.length + 1;
-    final double[] buckets = new double[len];
-    for (int i = 0; i < len - 1; i++) {
-      buckets[i] = getRank(splitPoints[i], inclusive);
-    }
-    buckets[len - 1] = 1.0;
-    if (isCdf) { return buckets; }
-    for (int i = len; i-- > 1;) {
-      buckets[i] -= buckets[i - 1];
-    }
-    return buckets;
   }
 
   private static void blockyTandemMergeSort(final float[] values, final long[] weights,

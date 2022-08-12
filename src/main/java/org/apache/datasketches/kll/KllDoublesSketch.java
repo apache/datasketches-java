@@ -214,7 +214,7 @@ public abstract class KllDoublesSketch extends KllSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param inclusive if true the weight of the given value is included into the rank.
+   * @param searchCrit if true the weight of the given value is included into the rank.
    * Otherwise the rank equals the sum of the weights of all values that are less than the given value
    *
    * @return an array of m+1 double values on the interval [0.0, 1.0),
@@ -222,10 +222,10 @@ public abstract class KllDoublesSketch extends KllSketch {
    * The value at array position j of the returned CDF array is the sum of the returned values
    * in positions 0 through j of the returned PMF array.
    */
-  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria inclusive) {
+  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return kllDoublesSV.getPmfOrCdf(splitPoints, true, inclusive);
+    return kllDoublesSV.getPmfOrCdf(splitPoints, true, searchCrit);
   }
 
   /**
@@ -253,7 +253,7 @@ public abstract class KllDoublesSketch extends KllSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param inclusive  if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * @param searchCrit  if INCLUSIVE, each interval within the distribution will include its top value and exclude its
    * bottom value. Otherwise, it will be the reverse.  The only exception is that the top interval will always include
    * the top value retained by the sketch.
    *
@@ -261,10 +261,10 @@ public abstract class KllDoublesSketch extends KllSketch {
    * each of which is an approximation to the fraction, or mass, of the total input stream values
    * that fall into that interval.
    */
-  public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria inclusive) {
+  public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return kllDoublesSV.getPmfOrCdf(splitPoints, false, inclusive);
+    return kllDoublesSV.getPmfOrCdf(splitPoints, false, searchCrit);
   }
 
   /**
@@ -286,7 +286,7 @@ public abstract class KllDoublesSketch extends KllSketch {
    * <p>If the sketch is empty this returns NaN.
    *
    * @param rank the given normalized rank, a value in the interval [0.0,1.0].
-   * @param inclusive is INCLUSIVE, the given rank includes all values &le; the value directly
+   * @param searchCrit is INCLUSIVE, the given rank includes all values &le; the value directly
    * corresponding to the given rank.
    * @return the quantile associated with the given rank.
    * @see
@@ -294,10 +294,10 @@ public abstract class KllDoublesSketch extends KllSketch {
    * KLL package summary</a>
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double getQuantile(final double rank, final QuantileSearchCriteria inclusive) {
+  public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return Float.NaN; }
     refreshSortedView();
-    return kllDoublesSV.getQuantile(rank, inclusive);
+    return kllDoublesSV.getQuantile(rank, searchCrit);
   }
 
   /**
@@ -318,20 +318,20 @@ public abstract class KllDoublesSketch extends KllSketch {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
-   * @param inclusive if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
+   * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
    * @return array of quantiles
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
    * KLL package summary</a>
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria inclusive) {
+  public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
     final int len = ranks.length;
     final double[] quantiles = new double[len];
     for (int i = 0; i < len; i++) {
-      quantiles[i] = kllDoublesSV.getQuantile(ranks[i], inclusive);
+      quantiles[i] = kllDoublesSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
   }
@@ -358,16 +358,16 @@ public abstract class KllDoublesSketch extends KllSketch {
    * A value of 2 will return the min and the max value. A value of 3 will return the min,
    * the median and the max value, etc.
    *
-   * @param inclusive if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
+   * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
    * @return array of quantiles.
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
    * KLL package summary</a>
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria inclusive) {
+  public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), inclusive);
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
   /**
@@ -407,17 +407,17 @@ public abstract class KllDoublesSketch extends KllSketch {
    * <p>If the sketch is empty this returns NaN.</p>
    *
    * @param value to be ranked
-   * @param inclusive if INCLUSIVE the given quantile value is included into the rank.
+   * @param searchCrit if INCLUSIVE the given quantile value is included into the rank.
    * @return an approximate rank of the given value
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
    * KLL package summary</a>
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double getRank(final double value, final QuantileSearchCriteria inclusive) {
+  public double getRank(final double value, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return Double.NaN; }
     refreshSortedView();
-    return kllDoublesSV.getRank(value, inclusive);
+    return kllDoublesSV.getRank(value, searchCrit);
   }
 
   /**
@@ -436,20 +436,20 @@ public abstract class KllDoublesSketch extends KllSketch {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param values the given quantile values from which to obtain their corresponding ranks.
-   * @param inclusive if INCLUSIVE, the given values include the rank directly corresponding to each value.
+   * @param searchCrit if INCLUSIVE, the given values include the rank directly corresponding to each value.
    * @return an array of normalized ranks corresponding to the given array of quantile values.
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
    * KLL package summary</a>
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double[] getRanks(final double[] values, final QuantileSearchCriteria inclusive) {
+  public double[] getRanks(final double[] values, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
     final int len = values.length;
     final double[] ranks = new double[len];
     for (int i = 0; i < len; i++) {
-      ranks[i] = kllDoublesSV.getRank(values[i], inclusive);
+      ranks[i] = kllDoublesSV.getRank(values[i], searchCrit);
     }
     return ranks;
   }
