@@ -53,8 +53,8 @@ public interface GenericSortedView<T> extends SortedView {
    * between from zero. For example, if one of the returned values is 0.5, then the splitPoint corresponding to that
    * value would be the median of the distribution.</p>
    *
-   * <p>If <i>isCdf</i> is false, the points in the returned array are not monotonic and represent the descrete
-   * derivative of the CDF, or the Probablity Mass Function (PMF). Each returned point represents the fractional
+   * <p>If <i>isCdf</i> is false, the points in the returned array are not monotonic and represent the discrete
+   * derivative of the CDF, or the Probability Mass Function (PMF). Each returned point represents the fractional
    * area of the total distribution which lies between the previous point (or zero) and the given point, which
    * corresponds to the given splitPoint.<p>
    *
@@ -62,10 +62,17 @@ public interface GenericSortedView<T> extends SortedView {
    * of items in the range of (minValue, maxValue). This array should not include either the minValue or the maxValue.
    * The returned array will have one extra interval representing the very top of the distribution.
    * @param isCdf if true, a CDF will be returned, otherwise, a PMF will be returned.
+<<<<<<< HEAD
    * @param searchCrit if INCLUSIVE, each interval within the distribution will include its top item and exclude its
    * bottom item. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
    * the top item retained by the sketch.
    * @return an array of points that correspond to the given splitPoints, and represents the data distributio
+=======
+   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * the top value retained by the sketch.
+   * @return an array of points that correspond to the given splitPoints, and represents the data distribution
+>>>>>>> refs/heads/master
    * as a CDF or PMF.
    */
   double[] getPmfOrCdf(T[] splitPoints, boolean isCdf, QuantileSearchCriteria searchCrit);
