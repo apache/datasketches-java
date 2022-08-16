@@ -37,6 +37,8 @@ import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
 
+import java.util.Objects;
+
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -188,9 +190,7 @@ final class Util {
    * @param values the given array of double values
    */
   static final void checkSplitPointsOrder(final double[] values) {
-    if (values == null) {
-      throw new SketchesArgumentException("Values cannot be null.");
-    }
+    Objects.requireNonNull(values);
     final int lenM1 = values.length - 1;
     for (int j = 0; j < lenM1; j++) {
       if (values[j] < values[j + 1]) { continue; }
@@ -200,13 +200,13 @@ final class Util {
   }
 
   /**
-   * Checks that the given fractional rank: <i>0 &le; frank &le; 1.0</i>.
-   * @param frank the given fractional rank.
+   * Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.
+   * @param nRank the given normalized rank.
    */
-  static final void checkFractionalRankBounds(final double frank) {
-    if ((frank < 0.0) || (frank > 1.0)) {
+  static final void checkNormalizedRankBounds(final double nRank) {
+    if ((nRank < 0.0) || (nRank > 1.0)) {
       throw new SketchesArgumentException(
-        "Fractional rank must be >= 0 and <= 1.0: " + frank);
+        "A normalized rank must be >= 0 and <= 1.0: " + nRank);
     }
   }
 

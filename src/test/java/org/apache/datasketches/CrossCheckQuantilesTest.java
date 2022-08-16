@@ -21,8 +21,8 @@ package org.apache.datasketches;
 
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE_STRICT;
 import static org.apache.datasketches.ReflectUtility.KLL_DOUBLES_SV_CTOR;
 import static org.apache.datasketches.ReflectUtility.KLL_FLOATS_SV_CTOR;
 import static org.apache.datasketches.ReflectUtility.REQ_SV_CTOR;
@@ -36,12 +36,31 @@ import org.apache.datasketches.req.ReqSketch;
 import org.apache.datasketches.req.ReqSketchSortedView;
 import org.testng.annotations.Test;
 
+/**
+ * This test suite runs a common set of tests against all of the quantiles-type sketches in the library.
+ * Although the unit tests for each of the sketches is quite extensive, the purpose of this test is to make
+ * sure that key corner cases are in fact handled the same way by all of the sketches.
+ *
+ * <p>These tests are not about estimation accuracy, per se, as each of the different quantile sketches have very
+ * different algortithms for selecting the data to be retained in the sketch and thus will have very different error
+ * properties. These tests are primarily interested in making sure that the internal search and comparison algorithms
+ * used within the sketches are producing the correct results for exact queries based on a chosen search
+ * criteria. The search criteria are selected from the enum {@link QuantileSearchCriteria}. The corner cases of
+ * interest here are to make sure that each of the search criteria behave correctly for the following.
+ * <ul>
+ * <li>A sketch with a single value.</li>
+ * <li>A sketch with two identical values<li>
+ * <li>A sketch with multiple duplicates and where the duplicates have weights greater than one.</li>
+ * </ul>
+ *
+ * @author Lee Rhodes
+ */
 public class CrossCheckQuantilesTest {
 
   final int k = 32; //all sketches are in exact mode
 
-  //These test sets are specifically designed to test some tough corner cases so don't mess with them
-  //  unless you know what you are doing.
+  //These test sets are specifically designed the corner cases mentioned in the class javadoc.
+  //  Please don't mess with them  unless you know what you are doing.
   //These sets must start with 10 and be multiples of 10.
   final float[][] svFValues =
     {
@@ -92,13 +111,13 @@ public class CrossCheckQuantilesTest {
       buildSketches(set);
       println("TEST getRank across all sketches and their Sorted Views");
       checkGetRank(set, INCLUSIVE);
-      checkGetRank(set, NON_INCLUSIVE);
-      checkGetRank(set, NON_INCLUSIVE_STRICT);
+      checkGetRank(set, EXCLUSIVE);
+      checkGetRank(set, EXCLUSIVE_STRICT);
       println("");
       println("TEST getQuantile across all sketches and their Sorted Views");
       checkGetQuantile(set, INCLUSIVE);
-      checkGetQuantile(set, NON_INCLUSIVE);
-      checkGetQuantile(set, NON_INCLUSIVE_STRICT);
+      checkGetQuantile(set, EXCLUSIVE);
+      checkGetQuantile(set, EXCLUSIVE_STRICT);
     }
   }
 
@@ -199,11 +218,11 @@ public class CrossCheckQuantilesTest {
     final long rank = (int)(normRank * N); //denormalize
     final InequalitySearch crit = inclusive == INCLUSIVE
         ? InequalitySearch.GE
-        : InequalitySearch.GT; //includes both NON_INCLUSIVE and NON_INCLUSIVE_STRICT
+        : InequalitySearch.GT; //includes both EXCLUSIVE and EXCLUSIVE_STRICT
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      if (inclusive == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
-      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
+      if (inclusive == EXCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (inclusive == EXCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }
@@ -227,11 +246,11 @@ public class CrossCheckQuantilesTest {
     final long rank = (int)(normRank * N); //denormalize
     final InequalitySearch crit = inclusive == INCLUSIVE
         ? InequalitySearch.GE
-        : InequalitySearch.GT; //includes both NON_INCLUSIVE and NON_INCLUSIVE_STRICT
+        : InequalitySearch.GT; //includes both EXCLUSIVE and EXCLUSIVE_STRICT
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      if (inclusive == NON_INCLUSIVE_STRICT) { return Double.NaN; } //GT: normRank == 1.0;
-      if (inclusive == NON_INCLUSIVE) { return values[len - 1]; }
+      if (inclusive == EXCLUSIVE_STRICT) { return Double.NaN; } //GT: normRank == 1.0;
+      if (inclusive == EXCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }

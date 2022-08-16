@@ -50,8 +50,8 @@ public interface DoublesSortedView extends SortedView {
    * <p>If <i>isCdf</i> is true, the points in the returned array are monotonically increasing and end with the
    * value 1.0. Each value represents a point along the cumulative distribution function that approximates
    * the CDF of the input data stream. Therefore, each point represents the fractional density of the distribution
-   * between from zero. For example, if one of the returned values is 0.5, then the splitPoint corresponding to that
-   * value would be the median of the distribution.</p>
+   * from zero to the given point. For example, if one of the returned values is 0.5, then the splitPoint corresponding
+   * to that value would be the median of the distribution.</p>
    *
    * <p>If <i>isCdf</i> is false, the points in the returned array are not monotonic and represent the descrete
    * derivative of the CDF, or the Probablity Mass Function (PMF). Each returned point represents the fractional
@@ -69,6 +69,14 @@ public interface DoublesSortedView extends SortedView {
    * as a CDF or PMF.
    */
   double[] getPmfOrCdf(double[] splitPoints, boolean isCdf, QuantileSearchCriteria searchCrit);
+
+
+  /**
+   * Returns the array of values.
+   * @return the array of values.
+   */
+  double[] getValues();
+
 
   @Override
   DoublesSortedViewIterator iterator();

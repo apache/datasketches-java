@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -187,46 +188,21 @@ public class DoublesSketchTest {
     sketch.update(3);
     sketch.update(1);
     sketch.update(2);
-    { // non-cumulative (inclusive does not matter in this case)
-      final DoublesSketchSortedView view = sketch.getSortedView(false, false);
-      final DoublesSketchSortedViewIterator it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), false);
-    }
-    { // cumulative non-inclusive
-      final DoublesSketchSortedView view = sketch.getSortedView(true, false);
-      final DoublesSketchSortedViewIterator it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 0);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 2);
-      Assert.assertEquals(it.next(), false);
-    }
     { // cumulative inclusive
-      final DoublesSketchSortedView view = sketch.getSortedView(true, true);
+      final DoublesSketchSortedView view = sketch.getSortedView();
       final DoublesSketchSortedViewIterator it = view.iterator();
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getValue(), 1);
       Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 2);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 3);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
       Assert.assertEquals(it.next(), false);
     }
   }

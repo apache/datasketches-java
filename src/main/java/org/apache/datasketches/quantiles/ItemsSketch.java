@@ -21,6 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
@@ -36,6 +37,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
+import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -74,12 +76,12 @@ public final class ItemsSketch<T> {
   long n_;
 
   /**
-   * The smallest value ever seen in the stream.
+   * The smallest item ever seen in the stream.
    */
   T minValue_;
 
   /**
-   * The largest value ever seen in the stream.
+   * The largest item ever seen in the stream.
    */
   T maxValue_;
 
@@ -116,8 +118,10 @@ public final class ItemsSketch<T> {
    */
   Object[] combinedBuffer_;
 
+  ItemsSketchSortedView<T> classicQisSV = null;
+
   /**
-   * Setting the seed makes the results of the sketch deterministic if the input values are
+   * Setting the seed makes the results of the sketch deterministic if the input items are
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
    */
@@ -237,282 +241,276 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Updates this sketch with the given double data item
-   * @param dataItem an item from a stream of items. NaNs are ignored.
+   * Returns the max value of the stream
+   * @return the max value of the stream
    */
-  public void update(final T dataItem) {
-    // this method only uses the base buffer part of the combined buffer
+  public T getMaxValue() { return maxValue_; }
 
-    if (dataItem == null) { return; }
-    if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
-    if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
+  /**
+   * Returns the min value of the stream
+   * @return the min value of the stream
+   */
+  public T getMinValue() { return minValue_; }
 
-    if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
-      ItemsSketch.growBaseBuffer(this);
-    }
-    combinedBuffer_[baseBufferCount_++] = dataItem;
-    n_++;
-    if (baseBufferCount_ == 2 * k_) {
-      ItemsUtil.processFullBaseBuffer(this);
-    }
+  /**
+   * Same as {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(double[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public double[] getCDF(final T[] splitPoints) {
+    return getCDF(splitPoints, EXCLUSIVE);
   }
 
   /**
-   * This returns an approximation to the value of the data item
-   * that would be preceded by the given fraction of a hypothetical sorted
-   * version of the input stream so far.
+   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
+   * cumulative analog of the PMF, of the input stream given a set of splitPoint (items).
    *
-   * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
-   * so it should not be called multiple times to get different quantiles from the same
-   * sketch. Instead use getQuantiles(). which pays the overhead only once.
-   *
-   * @param fraction the specified fractional position in the hypothetical sorted stream.
-   * These are also called normalized ranks or fractional ranks.
-   * If fraction = 0.0, the true minimum value of the stream is returned.
-   * If fraction = 1.0, the true maximum value of the stream is returned.
-   *
-   * @param inclusive if true, the given fraction (rank) is considered inclusive
-   * 
-   * @return the approximation to the value at the above fraction
-   */
-  public T getQuantile(final double fraction, final boolean inclusive) {
-    if (fraction < 0.0 || fraction > 1.0) {
-      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
-    }
-    if      (fraction == 0.0) { return minValue_; }
-    else if (fraction == 1.0) { return maxValue_; }
-    else {
-      final ItemsSketchSortedView<T> aux = new ItemsSketchSortedView<>(this, true, inclusive);
-      return aux.getQuantile(fraction);
-    }
-  }
-
-  /**
-   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
-   * @param fraction fractional rank
-   * @return quantile
-   */
-  public T getQuantile(final double fraction) {
-    return getQuantile(fraction, false);
-  }
-
-  /**
-   * Gets the upper bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
-   * @return the upper bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
-   */
-  public T getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + Util.getNormalizedRankError(k_, false)));
-  }
-
-  /**
-   * Gets the lower bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
-   * @return the lower bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
-   */
-  public T getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - Util.getNormalizedRankError(k_, false)));
-  }
-
-  /**
-   * This is a more efficient multiple-query version of getQuantile().
-   *
-   * <p>This returns an array that could have been generated by using getQuantile() with many
-   * different fractional ranks, but would be very inefficient.
-   * This method incurs the internal set-up overhead once and obtains multiple quantile values in
-   * a single query. It is strongly recommend that this method be used instead of multiple calls
-   * to getQuantile().
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param fRanks the given array of fractional (or normalized) ranks in the hypothetical
-   * sorted stream of all the input values seen so far.
-   * These fRanks must all be in the interval [0.0, 1.0] inclusively.
-   *
-   * @param inclusive if true, the given fractional ranks are considered inclusive
-   * 
-   * @return array of approximate quantiles of the given fRanks in the same order as in the given
-   * fRanks array.
-   */
-  public T[] getQuantiles(final double[] fRanks, final boolean inclusive) {
-    if (isEmpty()) { return null; }
-    ItemsSketchSortedView<T> aux = null;
-    @SuppressWarnings("unchecked")
-    final T[] quantiles = (T[]) Array.newInstance(minValue_.getClass(), fRanks.length);
-    for (int i = 0; i < fRanks.length; i++) {
-      final double fRank = fRanks[i];
-      if      (fRank == 0.0) { quantiles[i] = minValue_; }
-      else if (fRank == 1.0) { quantiles[i] = maxValue_; }
-      else {
-        if (aux == null) {
-          aux = new ItemsSketchSortedView<>(this, true, inclusive);
-        }
-        quantiles[i] = aux.getQuantile(fRank);
-      }
-    }
-    return quantiles;
-  }
-
-  /**
-   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fRanks, false)}
-   * @param fRanks fractional ranks
-   * @return quantiles
-   */
-  public T[] getQuantiles(final double[] fRanks) {
-    return getQuantiles(fRanks, false);
-  }
-
-  /**
-   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
-   * specify the number of evenly spaced fractional ranks.
-   *
-   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
-   * This must be a positive integer greater than 1.
-   * A value of 2 will return the min and the max value. A value of 3 will return the min,
-   * the median and the max value, etc.
-   *
-   * @param inclusive if true, fractional ranks are considered inclusive
-   * 
-   * @return array of approximations to the given fractions in the same order as given fractions
-   * array.
-   */
-  public T[] getQuantiles(final int numEvenlySpaced, final boolean inclusive) {
-    if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), inclusive);
-  }
-
-  /**
-   * Same as {@link #getQuantiles(int, boolean) getQuantiles(int numEvenlySpaced, false)}
-   * @param numEvenlySpaced number of evenly spaced fractional ranks
-   * @return quantiles
-   */
-  public T[] getQuantiles(final int numEvenlySpaced) {
-    return getQuantiles(numEvenlySpaced, false);
-  }
-
-  /**
-   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1
-   * inclusive.
-   *
-   * <p>The resulting approximation has a probabilistic guarantee that be obtained from the
+   * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(false) function.
    *
-   * <p>If the sketch is empty this returns NaN.</p>
+   * <p>If the sketch is empty this returns null.</p>
    *
-   * @param value to be ranked
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * @return an approximate rank of the given value
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
+   * that divide the ordered line into <i>m+1</i> consecutive disjoint intervals.
+   * The definition of an "interval" is inclusive of the left splitPoint (or smallest value) and
+   * exclusive of the right splitPoint, with the exception that the last interval will include
+   * the largest value.
+   * It is not necessary to include either the minimum or maximum items in these split points.
+   *
+   * @param searchCrit if true the weight of the given item is included into the rank.
+   * Otherwise the rank equals the sum of the weights of all items that are less than the given item.
+   *
+   * @return an array of m+1 double values on the interval [0.0, 1.0),
+   * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
+   * The value at array position j of the returned CDF array is the sum of the returned values
+   * in positions 0 through j of the returned PMF array.
    */
-  @SuppressWarnings("unchecked")
-  public double getRank(final T value, final boolean inclusive) {
-    if (isEmpty()) { return Double.NaN; }
-    long total = 0;
-    int weight = 1;
-    for (int i = 0; i < baseBufferCount_; i++) {
-      final T sample = (T) combinedBuffer_[i];
-      if (inclusive ? comparator_.compare(sample, value) <= 0 : comparator_.compare(sample, value) < 0) {
-        total += weight;
-      }
-    }
-    long bitPattern = bitPattern_;
-    for (int lvl = 0; bitPattern != 0L; lvl++, bitPattern >>>= 1) {
-      weight *= 2;
-      if ((bitPattern & 1L) > 0) { // level is not empty
-        final int offset = (2 + lvl) * k_;
-        for (int i = 0; i < k_; i++) {
-          final T sample = (T) combinedBuffer_[i + offset];
-          if (inclusive ? comparator_.compare(sample, value) <= 0 : comparator_.compare(sample, value) < 0) {
-            total += weight;
-          } else {
-            break; // levels are sorted, no point comparing further
-          }
-        }
-      }
-    }
-    return (double) total / n_;
+  public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { return null; }
+    refreshSortedView();
+    return classicQisSV.getPmfOrCdf(splitPoints, true, searchCrit);
   }
 
-  public double getRank(final T value) {
-    return getRank(value, false);
+  /**
+   * Same as {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(double[] splitPoints, false)}
+   * @param splitPoints splitPoints
+   * @return PMF
+   */
+  public double[] getPMF(final T[] splitPoints) {
+    return getPMF(splitPoints, EXCLUSIVE);
   }
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * given a set of splitPoints (values).
+   * given a set of splitPoints (items).
    *
    * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
    * getNormalizedRankError(true) function.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing item values
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * that divide the ordered space into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * The definition of an "interval" is inclusive of the left splitPoint (or smallest value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
    * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
+   * It is not necessary to include either the minimum or maximum items in these splitpoints.
    *
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * 
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
+   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its largest value and exclude its
+   * smallest value. Otherwise, it will be the reverse.  The only exception is that the highest interval will always include
+   * the highest item retained by the sketch.
+   *
+   * @return an array of m+1 values on the interval [0.0, 1.0),
+   * each of which is an approximation to the fraction, or mass, of the total input stream items
+   * that fall into that interval.
    */
-  public double[] getPMF(final T[] splitPoints, final boolean inclusive) {
+  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, false, inclusive);
+    refreshSortedView();
+    return classicQisSV.getPmfOrCdf(splitPoints, false, searchCrit);
   }
 
   /**
-   * Same as {@link #getPMF(Object[], boolean) getPMF(T[] splitPoints, false)}
-   * @param splitPoints splitPoints
-   * @return PMF
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, EXCLUSIVE)}
+   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
+   * @return quantile
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
-  public double[] getPMF(final T[] splitPoints) {
-    return getPMF(splitPoints, false);
+  public T getQuantile(final double rank) {
+    return getQuantile(rank, EXCLUSIVE);
   }
 
   /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
-   * cumulative analog of the PMF, of the input stream given a set of splitPoints (values).
+   * Returns the quantile associated with the given rank.
    *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError(false) function.
+   * <p>If the sketch is empty this returns null.
+   *
+   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
+   * @param searchCrit if INCLUSIVE, the given rank includes all values &le; the value directly
+   * corresponding to the given rank.
+   * @return the quantile associated with the given rank.
+   * @see org.apache.datasketches.QuantileSearchCriteria
+   */
+  public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    return classicQisSV.getQuantile(rank, searchCrit);
+  }
+
+  /**
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, EXCLUSIVE)}
+   * @param ranks normalied ranks on the interval [0.0, 1.0].
+   * @return quantiles
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
+   */
+  public T[] getQuantiles(final double[] ranks) {
+    return getQuantiles(ranks, EXCLUSIVE);
+  }
+
+  /**
+   * Returns an array of quantiles from the given array of normalized ranks.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing item values
-   * that divide the ordered space into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
-   *
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * 
-   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
-   * of the input stream given the splitPoints. The value at array position j of the returned
-   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
-   * array.
+   * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
+   * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each
+   * rank.
+   * @return array of quantiles
+   * @see
+   * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
+   * KLL package summary</a>
+   * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double[] getCDF(final T[] splitPoints, final boolean inclusive) {
+  @SuppressWarnings("unchecked")
+  public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return ItemsPmfCdfImpl.getPMFOrCDF(this, splitPoints, true, inclusive);
+    refreshSortedView();
+    final int len = ranks.length;
+    final T[] quantiles = (T[]) Array.newInstance(minValue_.getClass(), len);
+    for (int i = 0; i < len; i++) {
+      quantiles[i] = classicQisSV.getQuantile(ranks[i], searchCrit);
+    }
+    return quantiles;
   }
 
   /**
-   * Same as {@link #getCDF(Object[], boolean) getCDF(T[] splitPoints, false)}
-   * @param splitPoints splitPoints
-   * @return CDF
+   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, EXCLUSIVE)}
+   * @param numEvenlySpaced number of evenly spaced normalied ranks
+   * @return array of quantiles.
+   * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
-  public double[] getCDF(final T[] splitPoints) {
-    return getCDF(splitPoints, false);
+  public T[] getQuantiles(final int numEvenlySpaced) {
+    return getQuantiles(numEvenlySpaced, EXCLUSIVE);
   }
+
+  /**
+   * This is a version of getQuantiles() and allows the caller to
+   * specify the number of evenly spaced normalized ranks.
+   *
+   * <p>If the sketch is empty this returns null.
+   *
+   * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
+   * This must be a positive integer greater than 0. Based on the specified searchCrit:
+   * a value of 1 will return the lowest item;
+   * a value of 2 will return the lowest and the highest items;
+   * a value of 3 will return the lowest, the median and the highest items; etc.
+   *
+   * @param searchCrit if INCLUSIVE, the given ranks include all items &le; the item directly corresponding to
+   * each rank.
+   * @return array of quantiles.
+   * @see org.apache.datasketches.QuantileSearchCriteria
+   */
+  public T[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { return null; }
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+  }
+
+  /**
+   * Gets the lower bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%.
+   * @param rank the given normalized rank as a fraction
+   * @return the lower bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   */
+  public T getQuantileLowerBound(final double rank) {
+    return getQuantile(max(0, rank - Util.getNormalizedRankError(k_, false)));
+  }
+
+  /**
+   * Gets the upper bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%.
+   * @param rank the given normalized rank as a fraction
+   * @return the upper bound of the value interval in which the true quantile of the given rank
+   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   */
+  public T getQuantileUpperBound(final double rank) {
+    return getQuantile(min(1.0, rank + Util.getNormalizedRankError(k_, false)));
+  }
+
+  /**
+   * Same as {@link #getRank(Object, QuantileSearchCriteria) getRank(value, EXCLUSIVE)}
+   * @param item item to be ranked
+   * @return normalized rank
+   */
+  public double getRank(final T item) {
+    return getRank(item, EXCLUSIVE);
+  }
+
+  /**
+   * Returns a normalized rank given a quantile item.
+   *
+   * <p>If the sketch is empty this returns NaN.</p>
+   *
+   * @param item to be ranked
+   * @param searchCrit if INCLUSIVE the given quantile item is included into the rank.
+   * @return an approximate rank of the given item
+   * @see org.apache.datasketches.QuantileSearchCriteria
+   */
+  public double getRank(final T item, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { return Double.NaN; }
+    refreshSortedView();
+    return classicQisSV.getRank(item, searchCrit);
+  }
+
+  /**
+   * Same as {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(items, EXCLUSIVE)}
+   * @param items array of items to be ranked.
+   * @return the array of normalized ranks.
+   */
+  public double[] getRanks(final T[] items) {
+    return getRanks(items, EXCLUSIVE);
+  }
+
+  /**
+   * Returns an array of normalized ranks corresponding to the given array of quantile items and the given
+   * search criterion.
+   *
+   * <p>If the sketch is empty this returns null.</p>
+   *
+   * @param items the given quantile values from which to obtain their corresponding ranks.
+   * @param searchCrit if INCLUSIVE, the given values include the rank directly corresponding to each value.
+   * @return an array of normalized ranks corresponding to the given array of quantile values.
+   * @see org.apache.datasketches.QuantileSearchCriteria
+   */
+  public double[] getRanks(final T[] items, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    final int len = items.length;
+    final double[] ranks = new double[len];
+    for (int i = 0; i < len; i++) {
+      ranks[i] = classicQisSV.getRank(items[i], searchCrit);
+    }
+    return ranks;
+  }
+
+  /**
+   * @return the iterator for this class
+   */
+  public ItemsSketchIterator<T> iterator() {
+    return new ItemsSketchIterator<>(this, bitPattern_);
+  }
+
+
 
   /**
    * Returns the configured value of K
@@ -522,21 +520,7 @@ public final class ItemsSketch<T> {
     return k_;
   }
 
-  /**
-   * Returns the min value of the stream
-   * @return the min value of the stream
-   */
-  public T getMinValue() {
-    return minValue_;
-  }
 
-  /**
-   * Returns the max value of the stream
-   * @return the max value of the stream
-   */
-  public T getMaxValue() {
-    return maxValue_;
-  }
 
   /**
    * Returns the length of the input stream so far.
@@ -616,6 +600,7 @@ public final class ItemsSketch<T> {
     bitPattern_ = 0;
     minValue_ = null;
     maxValue_ = null;
+    classicQisSV = null;
   }
 
   /**
@@ -713,24 +698,41 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * @return the iterator for this class
+   * Sorted view of the sketch.
+   * Complexity: linear merge of sorted levels plus sorting of the level 0.
+   * @return sorted view object
    */
-  public ItemsSketchIterator<T> iterator() {
-    return new ItemsSketchIterator<>(this, bitPattern_);
+  public ItemsSketchSortedView<T> getSortedView() {
+    return new ItemsSketchSortedView<T>(this);
   }
 
   /**
-   * Sorted view of the sketch.
-   * Complexity: linear merge of sorted levels plus sorting of the level 0.
-   * @param cumulative if true weights are cumulative
-   * @param inclusive if true cumulative weight of an item includes its own weight
-   * @return sorted view object
+   * Updates this sketch with the given double data item
+   * @param dataItem an item from a stream of items. NaNs are ignored.
    */
-  public ItemsSketchSortedView<T> getSortedView(final boolean cumulative, final boolean inclusive) {
-    return new ItemsSketchSortedView<>(this, cumulative, inclusive);
+  public void update(final T dataItem) {
+    // this method only uses the base buffer part of the combined buffer
+
+    if (dataItem == null) { return; }
+    if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
+    if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
+
+    if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
+      ItemsSketch.growBaseBuffer(this);
+    }
+    combinedBuffer_[baseBufferCount_++] = dataItem;
+    n_++;
+    if (baseBufferCount_ == 2 * k_) {
+      ItemsUtil.processFullBaseBuffer(this);
+    }
+    classicQisSV = null;
   }
 
   // Restricted
+
+  private final void refreshSortedView() {
+    classicQisSV = (classicQisSV == null) ? new ItemsSketchSortedView<T>(this) : classicQisSV;
+  }
 
   /**
    * Returns the base buffer count

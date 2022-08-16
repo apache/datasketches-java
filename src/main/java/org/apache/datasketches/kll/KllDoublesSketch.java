@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
@@ -195,7 +195,7 @@ public abstract class KllDoublesSketch extends KllSketch {
    * @return CDF
    */
   public double[] getCDF(final double[] splitPoints) {
-    return getCDF(splitPoints, NON_INCLUSIVE);
+    return getCDF(splitPoints, EXCLUSIVE);
   }
 
   /**
@@ -209,10 +209,10 @@ public abstract class KllDoublesSketch extends KllSketch {
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * The definition of an "interval" is inclusive of the left splitPoint (or smallest value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these split points.
+   * the largest value.
+   * It is not necessary to include either the minimum or maximum values in these split points.
    *
    * @param searchCrit if true the weight of the given value is included into the rank.
    * Otherwise the rank equals the sum of the weights of all values that are less than the given value
@@ -234,7 +234,7 @@ public abstract class KllDoublesSketch extends KllSketch {
    * @return PMF
    */
   public double[] getPMF(final double[] splitPoints) {
-    return getPMF(splitPoints, NON_INCLUSIVE);
+    return getPMF(splitPoints, EXCLUSIVE);
   }
 
   /**
@@ -248,14 +248,14 @@ public abstract class KllDoublesSketch extends KllSketch {
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
+   * The definition of an "interval" is inclusive of the left splitPoint (or smallest value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these split points.
+   * the largest value.
+   * It is not necessary to include either the minimum or maximum values in these split points.
    *
-   * @param searchCrit  if INCLUSIVE, each interval within the distribution will include its top value and exclude its
-   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top interval will always include
-   * the top value retained by the sketch.
+   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its highest value and exclude its
+   * lowest value. Otherwise, it will be the reverse.  The only exception is that the highest interval will always include
+   * the highest value retained by the sketch.
    *
    * @return an array of m+1 doubles on the interval [0.0, 1.0),
    * each of which is an approximation to the fraction, or mass, of the total input stream values
@@ -268,25 +268,22 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, NON_INCLUSIVE)}
-   * @param rank  the given normalized rank, a value in the interval [0.0,1.0].
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, EXCLUSIVE)}
+   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
    * @return quantile
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public double getQuantile(final double rank) {
-    return getQuantile(rank, NON_INCLUSIVE);
+    return getQuantile(rank, EXCLUSIVE);
   }
 
   /**
    * Returns the quantile associated with the given rank.
    *
-   * <p>We note that this method has some overhead when called for the first time
-   * after an update or sketch merge.  Use getQuantiles() if there is a requirement to obtain multiple quantiles.
-   *
    * <p>If the sketch is empty this returns NaN.
    *
    * @param rank the given normalized rank, a value in the interval [0.0,1.0].
-   * @param searchCrit is INCLUSIVE, the given rank includes all values &le; the value directly
+   * @param searchCrit if INCLUSIVE, the given rank includes all values &le; the value directly
    * corresponding to the given rank.
    * @return the quantile associated with the given rank.
    * @see
@@ -301,24 +298,23 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, NON_INCLUSIVE)}
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, EXCLUSIVE)}
    * @param ranks normalied ranks on the interval [0.0, 1.0].
    * @return quantiles
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public double[] getQuantiles(final double[] ranks) {
-    return getQuantiles(ranks, NON_INCLUSIVE);
+    return getQuantiles(ranks, EXCLUSIVE);
   }
 
   /**
-   * This is a more efficient multiple-query version of getQuantile().
-   *
-   * <p>Returns an array of quantiles from the given array of normalized ranks.</p>
+   * Returns an array of quantiles from the given array of normalized ranks.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
-   * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
+   * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each
+   * rank.
    * @return array of quantiles
    * @see
    * <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
@@ -337,26 +333,27 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, NON_INCLUSIVE)}
+   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, EXCLUSIVE)}
    * @param numEvenlySpaced number of evenly spaced normalied ranks
    * @return array of quantiles.
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public double[] getQuantiles(final int numEvenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), NON_INCLUSIVE);
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), EXCLUSIVE);
   }
 
   /**
-   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
-   * specify the number of evenly spaced fractional ranks.
+   * This is a version of getQuantiles() and allows the caller to
+   * specify the number of evenly spaced normalized ranks.
    *
    * <p>If the sketch is empty this returns null.
    *
    * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
-   * This must be a positive integer greater than 0. A value of 1 will return the min value.
-   * A value of 2 will return the min and the max value. A value of 3 will return the min,
-   * the median and the max value, etc.
+   * This must be a positive integer greater than 0. Based on the specified searchCrit:
+   * a value of 1 will return the lowest value;
+   * a value of 2 will return the lowest and the highest values;
+   * a value of 3 will return the lowest, the median and the highest values; etc.
    *
    * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each rank.
    * @return array of quantiles.
@@ -373,32 +370,32 @@ public abstract class KllDoublesSketch extends KllSketch {
   /**
    * Gets the lower bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
+   * @param rank the given normalized rank
    * @return the lower bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - KllHelper.getNormalizedRankError(getMinK(), false)));
+  public double getQuantileLowerBound(final double rank) {
+    return getQuantile(max(0, rank - KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
    * Gets the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
+   * @param rank the given normalized rank
    * @return the upper bound of the value interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
-  public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + KllHelper.getNormalizedRankError(getMinK(), false)));
+  public double getQuantileUpperBound(final double rank) {
+    return getQuantile(min(1.0, rank + KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
-   * Same as {@link #getRank(double, QuantileSearchCriteria) getRank(value, NON_INCLUSIVE)}
+   * Same as {@link #getRank(double, QuantileSearchCriteria) getRank(value, EXCLUSIVE)}
    * @param value value to be ranked
    * @return normalized rank
    */
   public double getRank(final double value) {
-    return getRank(value, NON_INCLUSIVE);
+    return getRank(value, EXCLUSIVE);
   }
 
   /**
@@ -421,12 +418,12 @@ public abstract class KllDoublesSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getRanks(double[], QuantileSearchCriteria) getRanks(values, NON_INCLUSIVE)}
+   * Same as {@link #getRanks(double[], QuantileSearchCriteria) getRanks(values, EXCLUSIVE)}
    * @param values array of values to be ranked.
    * @return the array of normalized ranks.
    */
   public double[] getRanks(final double[] values) {
-    return getRanks(values, NON_INCLUSIVE);
+    return getRanks(values, EXCLUSIVE);
   }
 
   /**

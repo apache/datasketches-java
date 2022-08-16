@@ -19,9 +19,13 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,10 +36,8 @@ import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -49,66 +51,66 @@ public class ItemsSketchTest {
   @Test
   public void empty() {
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
-    Assert.assertNotNull(sketch);
-    Assert.assertTrue(sketch.isEmpty());
-    Assert.assertEquals(sketch.getN(), 0);
-    Assert.assertEquals(sketch.getRetainedItems(), 0);
-    Assert.assertNull(sketch.getMinValue());
-    Assert.assertNull(sketch.getMaxValue());
-    Assert.assertNull(sketch.getQuantile(0.5));
-    Assert.assertNull(sketch.getQuantiles(2));
-    Assert.assertNull(sketch.getQuantiles(new double[] {0.0, 1.0}));
+    assertNotNull(sketch);
+    assertTrue(sketch.isEmpty());
+    assertEquals(sketch.getN(), 0);
+    assertEquals(sketch.getRetainedItems(), 0);
+    assertNull(sketch.getMinValue());
+    assertNull(sketch.getMaxValue());
+    assertNull(sketch.getQuantile(0.5));
+    assertNull(sketch.getQuantiles(2));
+    assertNull(sketch.getQuantiles(new double[] {0.0, 1.0}));
     final byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
-    Assert.assertEquals(byteArr.length, 8);
-    Assert.assertNull(sketch.getPMF(new String[0]));
-    Assert.assertNull(sketch.getCDF(new String[0]));
-    Assert.assertTrue(Double.isNaN(sketch.getRank("a")));
+    assertEquals(byteArr.length, 8);
+    assertNull(sketch.getPMF(new String[0]));
+    assertNull(sketch.getCDF(new String[0]));
+    assertTrue(Double.isNaN(sketch.getRank("a")));
   }
 
   @Test
   public void oneItem() {
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
     sketch.update("a");
-    Assert.assertEquals(sketch.getN(), 1);
-    Assert.assertEquals(sketch.getRetainedItems(), 1);
-    Assert.assertEquals(sketch.getMinValue(), "a");
-    Assert.assertEquals(sketch.getMaxValue(), "a");
-    Assert.assertEquals(sketch.getQuantile(0.5), "a");
-    Assert.assertEquals(sketch.getRank("a"), 0.0);
+    assertEquals(sketch.getN(), 1);
+    assertEquals(sketch.getRetainedItems(), 1);
+    assertEquals(sketch.getMinValue(), "a");
+    assertEquals(sketch.getMaxValue(), "a");
+    assertEquals(sketch.getQuantile(0.5), "a");
+    assertEquals(sketch.getRank("a"), 0.0);
 
     {
       final double[] pmf = sketch.getPMF(new String[0]);
-      Assert.assertEquals(pmf.length, 1);
-      Assert.assertEquals(pmf[0], 1.0);
+      assertEquals(pmf.length, 1);
+      assertEquals(pmf[0], 1.0);
     }
 
     {
       final double[] pmf = sketch.getPMF(new String[] {"a"});
-      Assert.assertEquals(pmf.length, 2);
-      Assert.assertEquals(pmf[0], 0.0);
-      Assert.assertEquals(pmf[1], 1.0);
+      assertEquals(pmf.length, 2);
+      assertEquals(pmf[0], 0.0);
+      assertEquals(pmf[1], 1.0);
     }
 
     {
       final double[] cdf = sketch.getCDF(new String[0]);
-      Assert.assertEquals(cdf.length, 1);
-      Assert.assertEquals(cdf[0], 1.0);
+      assertEquals(cdf.length, 1);
+      assertEquals(cdf[0], 1.0);
     }
 
     {
       final double[] cdf = sketch.getCDF(new String[] {"a"});
-      Assert.assertEquals(cdf.length, 2);
-      Assert.assertEquals(cdf[0], 0.0);
-      Assert.assertEquals(cdf[1], 1.0);
+      assertEquals(cdf.length, 2);
+      assertEquals(cdf[0], 0.0);
+      assertEquals(cdf[1], 1.0);
     }
 
     sketch.reset();
-    Assert.assertTrue(sketch.isEmpty());
-    Assert.assertEquals(sketch.getN(), 0);
-    Assert.assertEquals(sketch.getRetainedItems(), 0);
-    Assert.assertNull(sketch.getMinValue());
-    Assert.assertNull(sketch.getMaxValue());
-    Assert.assertNull(sketch.getQuantile(0.5));
+    assertTrue(sketch.isEmpty());
+    assertEquals(sketch.getN(), 0);
+    assertEquals(sketch.getRetainedItems(), 0);
+    assertNull(sketch.getMinValue());
+    assertNull(sketch.getMaxValue());
+    assertNull(sketch.getQuantile(0.5));
   }
 
   @Test
@@ -120,8 +122,8 @@ public class ItemsSketchTest {
     assertEquals(sketch.getRetainedItems(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, true), i / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
     // inclusive = false (default)
     assertEquals(sketch.getQuantile(0), 1); // always min value
@@ -136,17 +138,17 @@ public class ItemsSketchTest {
     assertEquals(sketch.getQuantile(0.9), 10);
     assertEquals(sketch.getQuantile(1), 10); // always max value
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, true), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1, true), 1);
-    assertEquals(sketch.getQuantile(0.2, true), 2);
-    assertEquals(sketch.getQuantile(0.3, true), 3);
-    assertEquals(sketch.getQuantile(0.4, true), 4);
-    assertEquals(sketch.getQuantile(0.5, true), 5);
-    assertEquals(sketch.getQuantile(0.6, true), 6);
-    assertEquals(sketch.getQuantile(0.7, true), 7);
-    assertEquals(sketch.getQuantile(0.8, true), 8);
-    assertEquals(sketch.getQuantile(0.9, true), 9);
-    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.4, INCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.6, INCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10); // always max value
 
     // getQuantile() and getQuantiles() equivalence
     {
@@ -160,9 +162,9 @@ public class ItemsSketchTest {
     {
       // inclusive = true
       final Integer[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+        assertEquals(sketch.getQuantile(i / 10.0, INCLUSIVE), quantiles[i]);
       }
     }
   }
@@ -173,50 +175,47 @@ public class ItemsSketchTest {
     for (int i = 1; i <= 1000; i++) {
       sketch.update(i);
     }
-    Assert.assertEquals(sketch.getN(), 1000);
-    Assert.assertTrue(sketch.getRetainedItems() < 1000);
-    Assert.assertEquals(sketch.getMinValue(), Integer.valueOf(1));
-    Assert.assertEquals(sketch.getMaxValue(), Integer.valueOf(1000));
+    assertEquals(sketch.getN(), 1000);
+    assertTrue(sketch.getRetainedItems() < 1000);
+    assertEquals(sketch.getMinValue(), Integer.valueOf(1));
+    assertEquals(sketch.getMaxValue(), Integer.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
-    Assert.assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
-    Assert.assertEquals(sketch.getQuantile(0.0), Integer.valueOf(1));
-    Assert.assertEquals(sketch.getQuantile(1.0), Integer.valueOf(1000));
+    assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
 
-    final double[] fracRanks = {0.0, 0.5, 1.0};
-    Integer[] quantiles = sketch.getQuantiles(fracRanks);
-    Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
-    Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
-    Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
+    final double[] normRanks = {0.0, 0.5, 1.0};
+    Integer[] quantiles = sketch.getQuantiles(normRanks);
 
-    final double[] fracRanks2 = {.25, 0.5, 0.75};
-    final Integer[] quantiles2 = sketch.getQuantiles(fracRanks2);
-    Assert.assertEquals(quantiles2[0], Integer.valueOf(250), 17); // min value
-    Assert.assertEquals(quantiles2[1], Integer.valueOf(500), 17); // median
-    Assert.assertEquals(quantiles2[2], Integer.valueOf(750), 17); // max value
+    assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
 
-    quantiles = sketch.getQuantiles(2);
-    Assert.assertEquals(quantiles[0], Integer.valueOf(1));
+
+    final double[] normRanks2 = {.25, 0.5, 0.75};
+    final Integer[] quantiles2 = sketch.getQuantiles(normRanks2);
+    assertEquals(quantiles2[0], Integer.valueOf(250), 17);
+    assertEquals(quantiles2[1], Integer.valueOf(500), 17);
+    assertEquals(quantiles2[2], Integer.valueOf(750), 17);
+
+
 
     quantiles = sketch.getQuantiles(3);
-    Assert.assertEquals(quantiles[0], Integer.valueOf(1)); // min value
-    Assert.assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
-    Assert.assertEquals(quantiles[2], Integer.valueOf(1000)); // max value
+
+    assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
+
 
     final double normErr = sketch.getNormalizedRankError(true);
-    Assert.assertEquals(normErr, .0172, .001);
+    assertEquals(normErr, .0172, .001);
     println(""+normErr);
 
     {
       final double[] pmf = sketch.getPMF(new Integer[0]);
-      Assert.assertEquals(pmf.length, 1);
-      Assert.assertEquals(pmf[0], 1.0);
+      assertEquals(pmf.length, 1);
+      assertEquals(pmf[0], 1.0);
     }
 
     {
       final double[] pmf = sketch.getPMF(new Integer[] {500});
-      Assert.assertEquals(pmf.length, 2);
-      Assert.assertEquals(pmf[0], 0.5, 0.05);
-      Assert.assertEquals(pmf[1], 0.5, 0.05);
+      assertEquals(pmf.length, 2);
+      assertEquals(pmf[0], 0.5, 0.05);
+      assertEquals(pmf[1], 0.5, 0.05);
     }
 
     {
@@ -225,23 +224,23 @@ public class ItemsSketchTest {
         intArr[i] = 20*i +10;
       }
       final double[] pmf = sketch.getPMF(intArr);
-      Assert.assertEquals(pmf.length, 51);
+      assertEquals(pmf.length, 51);
     }
 
     {
       final double[] cdf = sketch.getCDF(new Integer[0]);
-      Assert.assertEquals(cdf.length, 1);
-      Assert.assertEquals(cdf[0], 1.0);
+      assertEquals(cdf.length, 1);
+      assertEquals(cdf[0], 1.0);
     }
 
     {
       final double[] cdf = sketch.getCDF(new Integer[] {500});
-      Assert.assertEquals(cdf.length, 2);
-      Assert.assertEquals(cdf[0], 0.5, 0.05);
-      Assert.assertEquals(cdf[1], 1.0, 0.05);
+      assertEquals(cdf.length, 2);
+      assertEquals(cdf[0], 0.5, 0.05);
+      assertEquals(cdf[1], 1.0, 0.05);
     }
 
-    Assert.assertEquals(sketch.getRank(500), 0.5, 0.01);
+    assertEquals(sketch.getRank(500), 0.5, 0.01);
   }
 
   @Test
@@ -258,12 +257,12 @@ public class ItemsSketchTest {
     for (int i = 501; i <= 1000; i++) {
       sketch2.update((long) i);
     }
-    Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals(sketch2.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(sketch2.getMaxValue(), Long.valueOf(1000));
+    assertEquals(sketch2.getN(), 1000);
+    assertTrue(sketch2.getRetainedItems() < 1000);
+    assertEquals(sketch2.getMinValue(), Long.valueOf(1));
+    assertEquals(sketch2.getMaxValue(), Long.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
-    Assert.assertEquals(sketch2.getQuantile(0.5), Long.valueOf(500), 17);
+    assertEquals(sketch2.getQuantile(0.5), Long.valueOf(500), 17);
   }
 
   @Test
@@ -280,12 +279,12 @@ public class ItemsSketchTest {
     for (int i = 501; i <= 1000; i++) {
       sketch2.update((double) i);
     }
-    Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals(sketch2.getMinValue(), Double.valueOf(1));
-    Assert.assertEquals(sketch2.getMaxValue(), Double.valueOf(1000));
+    assertEquals(sketch2.getN(), 1000);
+    assertTrue(sketch2.getRetainedItems() < 1000);
+    assertEquals(sketch2.getMinValue(), Double.valueOf(1));
+    assertEquals(sketch2.getMaxValue(), Double.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
-    Assert.assertEquals(sketch2.getQuantile(0.5), 500, 17);
+    assertEquals(sketch2.getQuantile(0.5), 500, 17);
   }
 
   @Test
@@ -312,12 +311,12 @@ public class ItemsSketchTest {
     for (int i = 501; i <= 1000; i++) {
       sketch2.update(Integer.toBinaryString(i << 10));
     }
-    Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals(sketch2.getMinValue(), Integer.toBinaryString(1 << 10));
-    Assert.assertEquals(sketch2.getMaxValue(), Integer.toBinaryString(1000 << 10));
+    assertEquals(sketch2.getN(), 1000);
+    assertTrue(sketch2.getRetainedItems() < 1000);
+    assertEquals(sketch2.getMinValue(), Integer.toBinaryString(1 << 10));
+    assertEquals(sketch2.getMaxValue(), Integer.toBinaryString(1000 << 10));
     // based on ~1.7% normalized rank error for this particular case
-    Assert.assertEquals(Integer.parseInt(sketch2.getQuantile(0.5), 2) >> 10, Integer.valueOf(500), 17);
+    assertEquals(Integer.parseInt(sketch2.getQuantile(0.5), 2) >> 10, Integer.valueOf(500), 17);
   }
 
   @Test
@@ -332,8 +331,8 @@ public class ItemsSketchTest {
     full = sketch.toString(true, true);
     part = sketch.toString(false, true);
     //println(full);
-    Assert.assertTrue(brief.length() < full.length());
-    Assert.assertTrue(part.length() < full.length());
+    assertTrue(brief.length() < full.length());
+    assertTrue(part.length() < full.length());
     final ArrayOfItemsSerDe<String> serDe = new ArrayOfStringsSerDe();
     final byte[] bytes = sketch.toByteArray(serDe);
     ItemsSketch.toString(bytes);
@@ -351,7 +350,7 @@ public class ItemsSketchTest {
     final String bigger = sketch.toString();
     final String full = sketch.toString(true, true);
     //println(full);
-    Assert.assertTrue(bigger.length() < full.length());
+    assertTrue(bigger.length() < full.length());
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -373,7 +372,7 @@ public class ItemsSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void negativeQuantileMustThrow() {
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(16, Comparator.naturalOrder());
-    sketch.update(null);
+    sketch.update("ABC");
     sketch.getQuantile(-0.1);
   }
 
@@ -405,7 +404,7 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     final ItemsSketch<String> out = sketch.downSample(8);
-    Assert.assertEquals(out.getK(), 8);
+    assertEquals(out.getK(), 8);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -422,7 +421,7 @@ public class ItemsSketchTest {
     sketch.getPMF(new Integer[] {1, 1});
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = NullPointerException.class)
   public void nullInSplitPoints() {
     final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Comparator.naturalOrder());
     sketch.update(1);
@@ -494,13 +493,13 @@ public class ItemsSketchTest {
     { // inclusive = false (default)
       final double[] ranks = sketch.getCDF(values);
       for (int i = 0; i < n; i++) {
-        Assert.assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+        assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
       }
     }
     { // inclusive = true
-      final double[] ranks = sketch.getCDF(values, true);
+      final double[] ranks = sketch.getCDF(values, INCLUSIVE);
       for (int i = 0; i < n; i++) {
-        Assert.assertEquals(ranks[i], sketch.getRank(values[i], true), 0.00001, "CDF vs rank for value " + i);
+        assertEquals(ranks[i], sketch.getRank(values[i], INCLUSIVE), 0.00001, "CDF vs rank for value " + i);
       }
     }
   }
@@ -517,7 +516,7 @@ public class ItemsSketchTest {
     Arrays.sort(values, sketch.getComparator());
     final double[] ranks = sketch.getCDF(values);
     for (int i = 0; i < n; i++) {
-      Assert.assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
+      assertEquals(ranks[i], sketch.getRank(values[i]), 0.00001, "CDF vs rank for value " + i);
     }
   }
 
@@ -606,7 +605,7 @@ public class ItemsSketchTest {
       final String[] quantiles = sketch.getQuantiles(100);
       final String[] sorted = Arrays.copyOf(quantiles, quantiles.length);
       Arrays.sort(sorted, c);
-      Assert.assertEquals(quantiles, sorted, c.toString());
+      assertEquals(quantiles, sorted, c.toString());
     }
   }
 
@@ -616,51 +615,22 @@ public class ItemsSketchTest {
     sketch.update(3);
     sketch.update(1);
     sketch.update(2);
-    { // non-cumulative (inclusive does not matter in this case)
-      final ItemsSketchSortedView<Integer> view = sketch.getSortedView(false, false);
-      final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), false);
-      try {
-        view.getQuantile(0);
-        fail();
-      } catch(SketchesStateException e) {}
-    }
-    { // cumulative non-inclusive
-      final ItemsSketchSortedView<Integer> view = sketch.getSortedView(true, false);
-      final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 0);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 2);
-      Assert.assertEquals(it.next(), false);
-    }
     { // cumulative inclusive
-      final ItemsSketchSortedView<Integer> view = sketch.getSortedView(true, true);
+      final ItemsSketchSortedView<Integer> view = sketch.getSortedView();
       final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 2);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 3);
-      Assert.assertEquals(it.next(), false);
+      assertEquals(it.next(), true);
+      assertEquals(it.getItem(), 1);
+      assertEquals(it.getWeight(), 1);
+      assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
+      assertEquals(it.next(), true);
+      assertEquals(it.getItem(), 2);
+      assertEquals(it.getWeight(), 1);
+      assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
+      assertEquals(it.next(), true);
+      assertEquals(it.getItem(), 3);
+      assertEquals(it.getWeight(), 1);
+      assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
+      assertEquals(it.next(), false);
     }
   }
 

@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.floor;
+import static org.apache.datasketches.QuantileSearchCriteria.*;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
@@ -108,91 +109,6 @@ public class HeapUpdateDoublesSketchTest {
     }
 
     assertEquals(result.getRank(500000), 0.5, 0.01);
-  }
-
-  @Test
-  public void checkConstructAuxiliary() {
-    for (int k = 2; k <= 32; k *= 2) {
-      HeapUpdateDoublesSketch qs = HeapUpdateDoublesSketch.newInstance(k);
-      for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
-        DoublesSketchSortedView aux = new DoublesSketchSortedView(qs, true, false);
-        int numSamples = qs.getRetainedItems();
-        double[] auxItems = aux.auxSamplesArr_;
-        long[] auxAccum = aux.auxCumWtsArr_;
-
-        assertTrue(qs.getN() == aux.auxN_);
-        assertTrue(numItemsSoFar == aux.auxN_);
-
-        assertTrue(auxItems.length == numSamples);
-        assertTrue(auxAccum.length == (numSamples + 1));
-
-        double mqSumOfSamples = sumOfSamplesInSketch(qs);
-        double auSumOfSamples = sumOfDoublesInSubArray(auxItems, 0, numSamples);
-
-        // the following test might be able to detect errors in handling the samples
-        // e.g. accidentally dropping or duplicating a sample
-        assertTrue(Math.floor(0.5 + mqSumOfSamples) == Math.floor(0.5 + auSumOfSamples));
-
-        // the following test might be able to detect errors in handling the sample weights
-        assertTrue(auxAccum[numSamples] == numItemsSoFar);
-
-        for (int i = 0; i < (numSamples-1); i++) {
-          assertTrue(auxItems[i] <= auxItems[i+1]); // assert sorted order
-          assertTrue(auxAccum[i] <  auxAccum[i+1]); // assert cumulative property
-        }
-
-        // This is a better test when the items are inserted in reverse order
-        // as follows, but the negation seems kind of awkward.
-        qs.update (-1.0 * (numItemsSoFar + 1) );
-      } // end of loop over test stream
-    } // end of loop over values of k
-  }
-
-  @Test
-  public void checkBigMinMax () {
-    int k = 32;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
-    assertFalse(qs1.isEstimationMode());
-
-    for (int i = 999; i >= 1; i--) {
-      qs1.update(i);
-      qs2.update(1000+i);
-      qs3.update(i);
-    }
-    assertTrue(qs1.isEstimationMode());
-
-    assertTrue(qs1.getQuantile(0.0) == 1.0);
-    assertTrue(qs1.getQuantile(1.0) == 999.0);
-
-    assertTrue(qs2.getQuantile(0.0) == 1001.0);
-    assertTrue(qs2.getQuantile(1.0) == 1999.0);
-
-    assertTrue((qs3.getQuantile(0.0) == 1.0));
-    assertTrue(qs3.getQuantile(1.0) == 999.0);
-
-    double[] queries = {0.0, 1.0};
-
-    double[] resultsA = qs1.getQuantiles(queries);
-    assertTrue(resultsA[0] == 1.0);
-    assertTrue(resultsA[1] == 999.0);
-
-    DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
-    DoublesSketch result1 = union1.getResult();
-
-    DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
-    DoublesSketch result2 = union2.getResult();
-
-    double[] resultsB = result1.getQuantiles(queries);
-    assertTrue(resultsB[0] == 1.0);
-    assertTrue(resultsB[1] == 1999.0);
-
-    double[] resultsC = result2.getQuantiles(queries);
-    assertTrue(resultsC[0] == 1.0);
-    assertTrue(resultsC[1] == 1999.0);
   }
 
   @Test
@@ -880,11 +796,10 @@ public class HeapUpdateDoublesSketchTest {
   public void checkEvenlySpacedQuantiles() {
     DoublesSketch qsk = buildAndLoadQS(32, 1001);
     double[] values = qsk.getQuantiles(11);
-//    for (int i = 0; i<values.length; i++) {
-//      println(""+values[i]);
-//    }
-    assertEquals(values[0], 1.0, 0.0);
-    assertEquals(values[10], 1001.0, 0.0);
+    for (int i = 0; i<values.length; i++) {
+      println(""+values[i]);
+    }
+    assertEquals(values.length, 11);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -991,9 +906,9 @@ public class HeapUpdateDoublesSketchTest {
       }
     }
     { // inclusive = true
-      final double[] ranks = sketch.getCDF(values, true);
+      final double[] ranks = sketch.getCDF(values, INCLUSIVE);
       for (int i = 0; i < n; i++) {
-        assertEquals(ranks[i], sketch.getRank(values[i], true), 0.00001, "CDF vs rank for value " + i);
+        assertEquals(ranks[i], sketch.getRank(values[i], INCLUSIVE), 0.00001, "CDF vs rank for value " + i);
       }
     }
   }
@@ -1042,8 +957,8 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch.getRetainedItems(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, true), i / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
     // inclusive = false (default)
     assertEquals(sketch.getQuantile(0), 1); // always min value
@@ -1058,17 +973,17 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch.getQuantile(0.9), 10);
     assertEquals(sketch.getQuantile(1), 10); // always max value
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, true), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1, true), 1);
-    assertEquals(sketch.getQuantile(0.2, true), 2);
-    assertEquals(sketch.getQuantile(0.3, true), 3);
-    assertEquals(sketch.getQuantile(0.4, true), 4);
-    assertEquals(sketch.getQuantile(0.5, true), 5);
-    assertEquals(sketch.getQuantile(0.6, true), 6);
-    assertEquals(sketch.getQuantile(0.7, true), 7);
-    assertEquals(sketch.getQuantile(0.8, true), 8);
-    assertEquals(sketch.getQuantile(0.9, true), 9);
-    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.4, INCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.6, INCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10); // always max value
 
     // getQuantile() and getQuantiles() equivalence
     {
@@ -1082,9 +997,9 @@ public class HeapUpdateDoublesSketchTest {
     {
       // inclusive = true
       final double[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+        assertEquals(sketch.getQuantile(i / 10.0, INCLUSIVE), quantiles[i]);
       }
     }
   }
@@ -1111,35 +1026,6 @@ public class HeapUpdateDoublesSketchTest {
     } catch (SketchesArgumentException e) {
       //pass
     }
-  }
-
-  /**
-   * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
-   * @param sketch the given quantiles sketch
-   * @return a checksum of all the samples in the sketch
-   */
-  private static double sumOfSamplesInSketch(HeapUpdateDoublesSketch sketch) {
-    double[] combinedBuffer = sketch.getCombinedBuffer();
-    int bbCount = sketch.getBaseBufferCount();
-    double total = sumOfDoublesInSubArray(combinedBuffer, 0, bbCount);
-    long bits = sketch.getBitPattern();
-    int k = sketch.getK();
-    assert bits == (sketch.getN() / (2L * k)); // internal consistency check
-    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        total += sumOfDoublesInSubArray(combinedBuffer, ((2+lvl) * k), k);
-      }
-    }
-    return total;
-  }
-
-  private static double sumOfDoublesInSubArray(double[] arr, int subArrayStart, int subArrayLength) {
-    double total = 0.0;
-    int subArrayStop = subArrayStart + subArrayLength;
-    for (int i = subArrayStart; i < subArrayStop; i++) {
-      total += arr[i];
-    }
-    return total;
   }
 
   private static boolean sameStructurePredicate(final DoublesSketch mq1, final DoublesSketch mq2) {

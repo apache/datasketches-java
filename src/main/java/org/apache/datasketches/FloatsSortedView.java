@@ -70,6 +70,12 @@ public interface FloatsSortedView extends SortedView {
    */
   double[] getPmfOrCdf(float[] splitPoints, boolean isCdf, QuantileSearchCriteria searchCrit);
 
+  /**
+   * Returns the array of values
+   * @return the array of values
+   */
+  float[] getValues();
+
   @Override
   FloatsSortedViewIterator iterator();
 }

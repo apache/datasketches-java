@@ -22,7 +22,6 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -40,53 +39,6 @@ public class DirectUpdateDoublesSketchTest {
   @BeforeMethod
   public void setUp() {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
-  }
-
-  @Test
-  public void checkBigMinMax () {
-    int k = 32;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
-    assertFalse(qs1.isEstimationMode());
-
-    for (int i = 999; i >= 1; i--) {
-      qs1.update(i);
-      qs2.update(1000+i);
-      qs3.update(i);
-    }
-    assertTrue(qs1.isEstimationMode());
-
-    assertTrue(qs1.getQuantile(0.0) == 1.0);
-    assertTrue(qs1.getQuantile(1.0) == 999.0);
-
-    assertTrue(qs2.getQuantile(0.0) == 1001.0);
-    assertTrue(qs2.getQuantile(1.0) == 1999.0);
-
-    assertTrue((qs3.getQuantile(0.0) == 1.0));
-    assertTrue(qs3.getQuantile(1.0) == 999.0);
-
-    double[] queries = {0.0, 1.0};
-
-    double[] resultsA = qs1.getQuantiles(queries);
-    assertTrue(resultsA[0] == 1.0);
-    assertTrue(resultsA[1] == 999.0);
-
-    DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
-    DoublesSketch result1 = union1.getResult();
-
-    DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
-    DoublesSketch result2 = union2.getResult();
-
-    double[] resultsB = result1.getQuantiles(queries);
-    assertTrue(resultsB[0] == 1.0);
-    assertTrue(resultsB[1] == 1999.0);
-
-    double[] resultsC = result2.getQuantiles(queries);
-    assertTrue(resultsC[0] == 1.0);
-    assertTrue(resultsC[1] == 1999.0);
   }
 
   @Test

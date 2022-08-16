@@ -20,7 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -127,9 +127,9 @@ public class ReqFloatBufferTest {
     final FloatBuffer buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
     final FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountWithCriterion(4, NON_INCLUSIVE), 3);
+    assertEquals(buf2.getCountWithCriterion(4, EXCLUSIVE), 3);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountWithCriterion(4, NON_INCLUSIVE), 6);
+    assertEquals(buf2.getCountWithCriterion(4, EXCLUSIVE), 6);
     assertEquals(buf2.getCount(), 14);
     buf2.trimCount(12);
     assertEquals(buf2.getCount(), 12);
@@ -155,7 +155,7 @@ public class ReqFloatBufferTest {
   //@Test
   public void checkCount() {
     final FloatBuffer buf = createSortedFloatBuffer(120, 0, true, 100);
-    println("LT: " + buf.getCountWithCriterion(100, NON_INCLUSIVE));
+    println("LT: " + buf.getCountWithCriterion(100, EXCLUSIVE));
     println("LE: " + buf.getCountWithCriterion(100, INCLUSIVE));
   }
 
@@ -163,7 +163,7 @@ public class ReqFloatBufferTest {
     int count;
     final int len = buf.getCount();
     final int iv = (int) v;
-    count = buf.getCountWithCriterion(v, NON_INCLUSIVE);
+    count = buf.getCountWithCriterion(v, EXCLUSIVE);
     assertEquals(count, v > len ? len : v <= 1 ? 0 : iv == v? iv - 1 : iv);
     count = buf.getCountWithCriterion(v, INCLUSIVE);
     assertEquals(count, v >= len ? len : v < 1 ? 0 : iv);

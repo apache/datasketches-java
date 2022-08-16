@@ -21,6 +21,8 @@ package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.DoublesUtil.copyToHeap;
 
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -60,6 +62,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl directInstance(final int maxK, final WritableMemory dstMem) {
+    Objects.requireNonNull(dstMem);
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.newInstance(maxK, dstMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(maxK);
     union.maxK_ = maxK;
@@ -75,6 +78,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl heapifyInstance(final DoublesSketch sketch) {
+    Objects.requireNonNull(sketch);
     final int k = sketch.getK();
     final DoublesUnionImpl union = new DoublesUnionImpl(k);
     union.maxK_ = k;
@@ -92,6 +96,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * @return a DoublesUnion object
    */
   static DoublesUnionImpl heapifyInstance(final Memory srcMem) {
+    Objects.requireNonNull(srcMem);
     final HeapUpdateDoublesSketch sketch = HeapUpdateDoublesSketch.heapifyInstance(srcMem);
     final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
@@ -107,6 +112,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * @return a Union object
    */
   static DoublesUnionImpl wrapInstance(final WritableMemory mem) {
+    Objects.requireNonNull(mem);
     final DirectUpdateDoublesSketch sketch = DirectUpdateDoublesSketch.wrapInstance(mem);
     final DoublesUnionImpl union = new DoublesUnionImpl(sketch.getK());
     union.gadget_ = sketch;
@@ -115,20 +121,25 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
 
   @Override
   public void update(final DoublesSketch sketchIn) {
+    Objects.requireNonNull(sketchIn);
     gadget_ = updateLogic(maxK_, gadget_, sketchIn);
+    gadget_.classicQdsSV = null;
   }
 
   @Override
   public void update(final Memory mem) {
+    Objects.requireNonNull(mem);
     gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(mem));
+    gadget_.classicQdsSV = null;
   }
 
   @Override
-  public void update(final double dataItem) {
+  public void update(final double value) {
     if (gadget_ == null) {
       gadget_ = HeapUpdateDoublesSketch.newInstance(maxK_);
     }
-    gadget_.update(dataItem);
+    gadget_.update(value);
+    gadget_.classicQdsSV = null;
   }
 
   @Override

@@ -20,8 +20,8 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE_STRICT;
 
 import java.util.List;
 
@@ -68,8 +68,8 @@ public class ReqSketchSortedView implements FloatsSortedView {
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
     if (index == -1) {
-      if (searchCrit == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
-      if (searchCrit == NON_INCLUSIVE) { return values[len - 1]; }
+      if (searchCrit == EXCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (searchCrit == EXCLUSIVE) { return values[len - 1]; }
     }
     return values[index];
   }
@@ -99,6 +99,16 @@ public class ReqSketchSortedView implements FloatsSortedView {
       buckets[i] -= buckets[i - 1];
     }
     return buckets;
+  }
+
+  @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights;
+  }
+
+  @Override
+  public float[] getValues() {
+    return values;
   }
 
   @Override

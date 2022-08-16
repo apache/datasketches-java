@@ -253,6 +253,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       baseBufferCount_ = newBBCount;
     }
     n_ = newN;
+    classicQdsSV = null;
   }
 
   /**

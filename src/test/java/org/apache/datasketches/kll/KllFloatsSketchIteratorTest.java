@@ -20,7 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -64,18 +64,18 @@ public class KllFloatsSketchIteratorTest {
 
     assertEquals(itr.getValue(), 1f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
-    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0);
+    assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
 
     assertTrue(itr.next());
 
     assertEquals(itr.getValue(), 2f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
-    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0.5);
+    assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0.5);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
   }
 

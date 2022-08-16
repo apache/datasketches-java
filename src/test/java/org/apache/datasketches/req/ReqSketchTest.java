@@ -20,8 +20,8 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE_STRICT;
 
 
 import static org.apache.datasketches.Util.evenlySpacedFloats;
@@ -339,7 +339,7 @@ public class ReqSketchTest {
     assertEquals(sketch.getRetainedValues(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, NON_INCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
     }
     // inclusive = false (default)

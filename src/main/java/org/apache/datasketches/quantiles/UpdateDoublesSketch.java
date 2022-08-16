@@ -26,6 +26,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Jon Malkin
  */
 public abstract class UpdateDoublesSketch extends DoublesSketch {
+
   UpdateDoublesSketch(final int k) {
     super(k);
   }

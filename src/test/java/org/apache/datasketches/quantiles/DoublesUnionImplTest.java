@@ -564,7 +564,8 @@ public class DoublesUnionImplTest {
     final DoublesSketch sk2 = union.getResultAndReset();
     assertNull(sk1);
     assertNull(sk2);
-    union.update(sk2);
+    try { union.update(sk2); fail(); }
+    catch (NullPointerException e) { }
     final DoublesSketch sk3 = union.getResultAndReset();
     assertNull(sk3);
   }

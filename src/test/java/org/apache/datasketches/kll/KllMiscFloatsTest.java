@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Objects;
 
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -48,7 +49,17 @@ public class KllMiscFloatsTest {
 
   @Test
   public void checkSortedViewConstruction() {
-
+    final KllFloatsSketch kll = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 20; i++) { kll.update(i); }
+    FloatsSortedView fsv = kll.getSortedView();
+    long[] cumWeights = fsv.getCumulativeWeights();
+    float[] values = fsv.getValues();
+    assertEquals(cumWeights.length, 20);
+    assertEquals(values.length, 20);
+    for (int i = 0; i < 20; i++) {
+      assertEquals(cumWeights[i], i + 1);
+      assertEquals(values[i], i + 1);
+    }
   }
 
   @Test

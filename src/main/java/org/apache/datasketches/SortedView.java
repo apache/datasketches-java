@@ -43,5 +43,10 @@ public interface SortedView {
    */
   SortedViewIterator iterator();
 
+  /**
+   * Returns the array of cumulative weights
+   * @return the array of cumulative weights
+   */
+  long[] getCumulativeWeights();
 }
 

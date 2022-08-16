@@ -20,7 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -229,7 +229,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getCDF(final float[] splitPoints) {
-    return getCDF(splitPoints, QuantileSearchCriteria.NON_INCLUSIVE);
+    return getCDF(splitPoints, QuantileSearchCriteria.EXCLUSIVE);
   }
 
   @Override
@@ -261,7 +261,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getPMF(final float[] splitPoints) {
-    return getPMF(splitPoints, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
+    return getPMF(splitPoints, ltEq == true ? INCLUSIVE : EXCLUSIVE);
   }
 
   @Override
@@ -273,7 +273,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getQuantile(final double normRank) {
-    return getQuantile(normRank, ltEq == true ? INCLUSIVE : NON_INCLUSIVE );
+    return getQuantile(normRank, ltEq == true ? INCLUSIVE : EXCLUSIVE );
   }
 
   @Override
@@ -289,7 +289,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float[] getQuantiles(final double[] normRanks) {
-    return getQuantiles(normRanks, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
+    return getQuantiles(normRanks, ltEq == true ? INCLUSIVE : EXCLUSIVE);
   }
 
   @Override
@@ -306,7 +306,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double getRank(final float value) {
-    return getRank(value, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
+    return getRank(value, ltEq == true ? INCLUSIVE : EXCLUSIVE);
   }
 
   @Override
@@ -323,7 +323,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getRanks(final float[] values) {
-    return getRanks(values, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
+    return getRanks(values, ltEq == true ? INCLUSIVE : EXCLUSIVE);
   }
 
   @Override

@@ -109,7 +109,7 @@ public class GenericInequalitySearchTest {
     v = highV + 1;
     res = find(arr, low, high, v, LT, comparator);
     println(desc(arr, low, high, v, res, LT, comparator));
-    assertEquals(res, high); //??
+    assertEquals(res, high);
 
     v = lowV -1;
     res = find(arr, low, high, v, LE, comparator);

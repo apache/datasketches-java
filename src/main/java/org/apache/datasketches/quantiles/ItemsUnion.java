@@ -45,6 +45,7 @@ public final class ItemsUnion<T> {
     maxK_ = maxK;
     comparator_ = comparator;
     gadget_ = gadget;
+    gadget_.classicQisSV = null;
   }
 
   /**

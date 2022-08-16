@@ -19,116 +19,138 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.Util.checkFractionalRankBounds;
+import static org.apache.datasketches.GenericInequalitySearch.*;
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE_STRICT;
+import static org.apache.datasketches.quantiles.Util.checkNormalizedRankBounds;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
 
+import org.apache.datasketches.GenericInequalitySearch;
+import org.apache.datasketches.GenericSortedView;
+import org.apache.datasketches.InequalitySearch;
+import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 
 /**
- * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
- * One can iterate of the contents of the sketch, but the result is not sorted.
- * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
- * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
- * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
- * trial &amp; error, try to figure out what the sketch actually has retained.
- *
- * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
- * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
- * test. One needs this sorted view for the test.</p>
- *
- * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
- * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
- * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
- * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.</p>
- *
+ * The SortedView of the Classic Quantiles ItemsSketch.
  * @param <T> type of item
- *
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-public final class ItemsSketchSortedView<T> {
-  final long auxN_;
-  final Object[] auxSamplesArr_; //array of size samples
-  final long[] auxCumWtsArr_;
+public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
+
+  private final Object[] items; //array of size samples
+  private final long[] cumWeights;
+  private final long totalN;
+  private final Comparator<? super T> comparator;
 
   /**
-   * Constructs the Auxiliary structure from the ItemsSketch
-   * @param qs an ItemsSketch
+   * Construct from elements for testing.
+   * @param items sorted array of itemss
+   * @param cumWeights sorted, monotonically increasing cumulative weights.
+   * @param totalN the total number of values presented to the sketch.
+   */
+  ItemsSketchSortedView(final T[] items, final long[] cumWeights, final long totalN,
+      final Comparator<? super T> comparator) {
+    this.items = items;
+    this.cumWeights = cumWeights;
+    this.totalN = totalN;
+    this.comparator = comparator;
+  }
+
+  /**
+   * Constructs this Sorted View given the sketch
+   * @param sketch the given Classic Quantiles ItemsSketch
    */
   @SuppressWarnings("unchecked")
-  ItemsSketchSortedView(final ItemsSketch<T> qs, final boolean cumulative, final boolean inclusive) {
-    final int k = qs.getK();
-    final long n = qs.getN();
-    final long bitPattern = qs.getBitPattern();
-    final Object[] combinedBuffer = qs.getCombinedBuffer();
-    final int baseBufferCount = qs.getBaseBufferCount();
-    final int numSamples = qs.getRetainedItems();
+  ItemsSketchSortedView(final ItemsSketch<T> sketch) {
+    this.totalN = sketch.getN();
+    final int k = sketch.getK();
+    final int numSamples = sketch.getRetainedItems();
+    items = new Object[numSamples];
+    cumWeights = new long[numSamples];
+    comparator = sketch.getComparator();
 
-    final Object[] itemsArr = new Object[numSamples];
-    final long[] cumWtsArr = new long[numSamples + 1]; /* the extra slot is very important */
+    final Object[] combinedBuffer = sketch.getCombinedBuffer();
+    final int baseBufferCount = sketch.getBaseBufferCount();
 
     // Populate from ItemsSketch:
     // copy over the "levels" and then the base buffer, all with appropriate weights
-    populateFromItemsSketch(k, n, bitPattern, (T[]) combinedBuffer, baseBufferCount,
-        numSamples, (T[]) itemsArr, cumWtsArr, qs.getComparator());
+    populateFromItemsSketch(k, totalN, sketch.getBitPattern(), (T[]) combinedBuffer, baseBufferCount,
+        numSamples, (T[]) items, cumWeights, sketch.getComparator());
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     // taking advantage of the already sorted blocks of length k
-    ItemsMergeImpl.blockyTandemMergeSort((T[]) itemsArr, cumWtsArr, numSamples, k, qs.getComparator());
+    ItemsMergeImpl.blockyTandemMergeSort((T[]) items, cumWeights, numSamples, k, sketch.getComparator());
 
-    // convert the item weights into totals of the weights preceding each item or including the item
-    if (cumulative) {
-      long subtot = 0;
-      for (int i = 0; i < (numSamples + 1); i++) {
-        final long newSubtot = subtot + cumWtsArr[i];
-        cumWtsArr[i] = inclusive ? newSubtot : subtot;
-        subtot = newSubtot;
-      }
-
-      assert subtot == n;
+    if (convertToCumulative(cumWeights) != totalN) {
+      throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
     }
-
-    auxN_ = n;
-    auxSamplesArr_ = itemsArr;
-    auxCumWtsArr_ = cumWtsArr;
   }
 
-  /**
-   * Get the estimated quantile given a fractional rank.
-   * @param rank the normalized rank where: 0 &le; rank &le; 1.0.
-   * @return the estimated quantile
-   */
-  @SuppressWarnings("deprecation")
-  public T getQuantile(final double rank) {
-    checkFractionalRankBounds(rank);
-    if (auxN_ <= 0) { return null; }
-    if (auxCumWtsArr_[auxCumWtsArr_.length - 1] < auxN_) {
-      throw new SketchesStateException("getQuantile must be used with cumulative view only");
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public T getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
+    checkNormalizedRankBounds(normRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (int)(normRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      if (searchCrit == EXCLUSIVE_STRICT) { return null; } //GT: normRank == 1.0;
+      if (searchCrit == EXCLUSIVE) { return (T)items[len - 1]; }
     }
-    final long pos = ClassicQuantilesHelper.posOfRank(rank, auxN_);
-    return approximatelyAnswerPositionalQuery(pos);
+    return (T)items[index];
   }
 
-  /**
-   * Assuming that there are n items in the true stream, this asks what
-   * item would appear in position 0 &le; pos &lt; n of a hypothetical sorted
-   * version of that stream.
-   *
-   * <p>Note that since that since the true stream is unavailable,
-   * we don't actually answer the question for that stream, but rather for
-   * a <i>different</i> stream of the same length, that could hypothetically
-   * be reconstructed from the weighted samples in our sketch.
-   * @param pos position
-   * @return approximate answer
-   */
-  @SuppressWarnings({ "unchecked", "deprecation" })
-  private T approximatelyAnswerPositionalQuery(final long pos) {
-    assert 0 <= pos;
-    assert pos < auxN_;
-    final int index = ClassicQuantilesHelper.chunkContainingPos(auxCumWtsArr_, pos);
-    return (T) this.auxSamplesArr_[index];
+  @SuppressWarnings("unchecked")
+  @Override
+  public double getRank(final T item, final QuantileSearchCriteria searchCrit) {
+    final int len = items.length;
+    final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
+    final int index = GenericInequalitySearch.find((T[])items,  0, len - 1, item, crit, comparator);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / totalN;
+  }
+
+  @Override
+  public double[] getPmfOrCdf(final T[] splitPoints, final boolean isCdf, final QuantileSearchCriteria searchCrit) {
+    checkSplitPoints(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    if (isCdf) { return buckets; }
+    for (int i = len; i-- > 1;) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
+  @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public T[] getItems() {
+    return (T[])items;
+  }
+
+  @Override
+  public ItemsSketchSortedViewIterator<T> iterator() {
+    return new ItemsSketchSortedViewIterator<T>(items, cumWeights);
   }
 
   /**
@@ -178,10 +200,31 @@ public final class ItemsSketchSortedView<T> {
     // Must sort the items that came from the base buffer.
     // Don't need to sort the corresponding weights because they are all the same.
     Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples, comparator);
-    cumWtsArr[numSamples] = 0;
   }
 
-  public ItemsSketchSortedViewIterator<T> iterator() {
-    return new ItemsSketchSortedViewIterator<T>(auxSamplesArr_, auxCumWtsArr_);
+  /**
+   * Convert the individual weights into cumulative weights.
+   * An array of {1,1,1,1} becomes {1,2,3,4}
+   * @param array of actual weights from the sketch, none of the weights may be zero
+   * @return total weight
+   */
+  private static long convertToCumulative(final long[] array) {
+    long subtotal = 0;
+    for (int i = 0; i < array.length; i++) {
+      final long newSubtotal = subtotal + array[i];
+      subtotal = array[i] = newSubtotal;
+    }
+    return subtotal;
+  }
+
+  private final void checkSplitPoints(final T[] items) {
+    Objects.requireNonNull(items);
+    Objects.requireNonNull(comparator);
+    final int len = items.length -1;
+    for (int i = 0; i < len; i++) {
+      if (comparator.compare(items[i], items[i + 1]) < 0) { continue; }
+      throw new SketchesArgumentException(
+          "Values must be unique, monotonically increasing and not NaN.");
+    }
   }
 }

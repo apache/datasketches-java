@@ -41,16 +41,16 @@ public enum QuantileSearchCriteria {
   INCLUSIVE,
 
   /**
-   * <b>Definition of NON_INCLUSIVE <i>getQuantile(r)</i> search:</b><br>
+   * <b>Definition of EXCLUSIVE <i>getQuantile(r)</i> search:</b><br>
    * Given rank <i>r</i>, return the quantile of the smallest rank that is
    * strictly greater than <i>r</i>.
    *
    * <p>If the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
    * the method will return the largest quantile value retained by the sketch as a convenience.
    * This is not strictly mathematically correct, but very convenient as it is most often what we expect and
-   * avoids having to return a <i>NaN</i>.</p>
+   * avoids having to return a <i>NaN</i> or <i>null</i>.</p>
    *
-   * <p><b>Definition of NON_INCLUSIVE <i>getRank(q)</i> search:</b><br>
+   * <p><b>Definition of EXCLUSIVE <i>getRank(q)</i> search:</b><br>
    * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is
    * strictly less than <i>q</i>.</p>
    *
@@ -58,23 +58,19 @@ public enum QuantileSearchCriteria {
    * the method will return a rank of zero.</p>
    *
    */
-  NON_INCLUSIVE,
+  EXCLUSIVE,
 
   /**
-   * <b>Definition of NON_INCLUSIVE_STRICT <i>getQuantile(r)</i> search:</b><br>
+   * <b>Definition of EXCLUSIVE_STRICT <i>getQuantile(r)</i> search:</b><br>
    * Given rank <i>r</i>, return the quantile of the smallest rank that is
    * strictly greater than <i>r</i>.
    *
    * <p>If the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
-   * the method will return a <i>NaN</i>.</p>
+   * the method will return a <i>NaN</i> or <i>null</i>.</p>
    *
-   * <p><b>Definition of NON_INCLUSIVE <i>getRank(q)</i> search:</b><br>
-   * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is
-   * strictly less than <i>q</i>.</p>
-   *
-   * <p>If there is no quantile value that is strictly less than <i>q</i>,
-   * the method will return a rank of zero.</p>
+   * <p><b>Definition of EXCLUSIVE_STRICT <i>getRank(q)</i> search:</b><br>
+   * This is identical to the EXCLUSIVE <i>getRank(q)</i> search.
    */
-  NON_INCLUSIVE_STRICT,
+  EXCLUSIVE_STRICT,
 }
 

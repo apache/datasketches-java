@@ -20,7 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -55,18 +55,18 @@ public class ReqSketchSortedViewTest {
 
     assertEquals(itr.getValue(), 1f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
-    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0);
+    assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
 
     assertTrue(itr.next());
 
     assertEquals(itr.getValue(), 2f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
-    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0.5);
+    assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0.5);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
   }
 
@@ -109,8 +109,8 @@ public class ReqSketchSortedViewTest {
     while (itr.next()) {
       float v = itr.getValue();
       long wt = itr.getWeight();
-      long cumWtNotInc   = itr.getCumulativeWeight(NON_INCLUSIVE);
-      double nRankNotInc = itr.getNormalizedRank(NON_INCLUSIVE);
+      long cumWtNotInc   = itr.getCumulativeWeight(EXCLUSIVE);
+      double nRankNotInc = itr.getNormalizedRank(EXCLUSIVE);
       long cumWtInc      = itr.getCumulativeWeight(INCLUSIVE);
       double nRankInc    = itr.getNormalizedRank(INCLUSIVE);
       printf(fmt, v, wt, cumWtNotInc, nRankNotInc, cumWtInc, nRankInc);

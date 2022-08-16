@@ -123,7 +123,7 @@ public class UtilTest {
     }
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = NullPointerException.class)
   public void checkValidateValuesNullException() {
     Util.checkSplitPointsOrder(null);
   }

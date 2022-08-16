@@ -20,7 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -81,8 +81,8 @@ public class KllDoublesSketchTest {
     assertEquals(sketch.getNumRetained(), 1);
     assertEquals(sketch.getRank(1), 0.0);
     assertEquals(sketch.getRank(2), 1.0);
-    assertEquals(sketch.getRank(1, NON_INCLUSIVE), 0.0);
-    assertEquals(sketch.getRank(2, NON_INCLUSIVE), 1.0);
+    assertEquals(sketch.getRank(1, EXCLUSIVE), 0.0);
+    assertEquals(sketch.getRank(2, EXCLUSIVE), 1.0);
     assertEquals(sketch.getRank(0, INCLUSIVE), 0.0);
     assertEquals(sketch.getRank(1, INCLUSIVE), 1.0);
     assertEquals(sketch.getMinValue(), 1.0);
@@ -99,7 +99,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, NON_INCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
     // inclusive = false (default)
@@ -537,17 +537,17 @@ public class KllDoublesSketchTest {
     assertEquals(itr.next(), true);
     assertEquals(itr.getValue(), 1);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
     assertEquals(itr.next(), true);
     assertEquals(itr.getValue(), 2);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
     assertEquals(itr.next(), true);
     assertEquals(itr.getValue(), 3);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 2);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 2);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
     assertEquals(itr.next(), false);
   }
