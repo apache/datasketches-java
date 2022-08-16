@@ -115,11 +115,11 @@ class ReqCompactor {
 
   /**
    * Perform a compaction operation on this compactor
-   * @return the array of items to be promoted to the next level compactor
+   * @return the array of values to be promoted to the next level compactor
    */
   FloatBuffer compact(final CompactorReturn cReturn) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
-    final int startRetItems = buf.getCount();
+    final int startRetValues = buf.getCount();
     final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
     final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
@@ -141,7 +141,7 @@ class ReqCompactor {
     buf.trimCount(buf.getCount() - (compactionEnd - compactionStart));
     state += 1;
     ensureEnoughSections();
-    cReturn.deltaRetItems = buf.getCount() - startRetItems + promote.getCount();
+    cReturn.deltaRetValues = buf.getCount() - startRetValues + promote.getCount();
     cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;

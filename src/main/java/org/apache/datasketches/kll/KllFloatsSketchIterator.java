@@ -24,19 +24,19 @@ package org.apache.datasketches.kll;
  */
 public class KllFloatsSketchIterator {
 
-  private final float[] items_;
-  private final int[] levels_;
-  private final int numLevels_;
-  private int level_;
-  private int i_;
-  private long weight_;
+  private final float[] values;
+  private final int[] levels;
+  private final int numLevels;
+  private int level;
+  private int index;
+  private long weight;
   private boolean isInitialized_;
 
-  KllFloatsSketchIterator(final float[] items, final int[] levels, final int numLevels) {
-    items_ = items;
-    levels_ = levels;
-    numLevels_ = numLevels;
-    isInitialized_ = false;
+  KllFloatsSketchIterator(final float[] values, final int[] levels, final int numLevels) {
+    this.values = values;
+    this.levels = levels;
+    this.numLevels = numLevels;
+    this.isInitialized_ = false;
   }
 
   /**
@@ -46,7 +46,7 @@ public class KllFloatsSketchIterator {
    * @return value from the current entry
    */
   public float getValue() {
-    return items_[i_];
+    return values[index];
   }
 
   /**
@@ -56,7 +56,7 @@ public class KllFloatsSketchIterator {
    * @return weight for the value from the current entry
    */
   public long getWeight() {
-    return weight_;
+    return weight;
   }
 
   /**
@@ -67,25 +67,25 @@ public class KllFloatsSketchIterator {
    */
   public boolean next() {
     if (!isInitialized_) {
-      level_ = 0;
-      i_ = levels_[level_];
-      weight_ = 1;
+      level = 0;
+      index = levels[level];
+      weight = 1;
       isInitialized_ = true;
     } else {
-      i_++;
+      index++;
     }
-    if (i_ < levels_[level_ + 1]) {
+    if (index < levels[level + 1]) {
       return true;
     }
     // go to the next non-empty level
     do {
-      level_++;
-      if (level_ == numLevels_) {
+      level++;
+      if (level == numLevels) {
         return false; // run out of levels
       }
-      weight_ *= 2;
-    } while (levels_[level_] == levels_[level_ + 1]);
-    i_ = levels_[level_];
+      weight *= 2;
+    } while (levels[level] == levels[level + 1]);
+    index = levels[level];
     return true;
   }
 

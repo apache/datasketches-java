@@ -46,7 +46,7 @@ public class GenericInequalitySearchTest {
 
   private static Float[] buildRandFloatArr(final int len) {
     final Float[] arr = new Float[len];
-    Float v = 1.0f; //lgtm [java/non-null-boxed-variable]
+    Float v = 1.0f;
     for (int i = 0; i < len; i++) {
       arr[i] = v;
       v += randDelta();
@@ -109,7 +109,7 @@ public class GenericInequalitySearchTest {
     v = highV + 1;
     res = find(arr, low, high, v, LT, comparator);
     println(desc(arr, low, high, v, res, LT, comparator));
-    assertEquals(res, high);
+    assertEquals(res, high); //??
 
     v = lowV -1;
     res = find(arr, low, high, v, LE, comparator);
@@ -171,8 +171,6 @@ public class GenericInequalitySearchTest {
     println(desc(arr, low, high, v, res, GE, comparator));
     assertEquals(res, -1);
   }
-
-
 
   @Test // visual only
   public void exerciseFltBinSearch() {
@@ -259,7 +257,7 @@ public class GenericInequalitySearchTest {
           }
           return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
         }
-        return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+        return "EQ: " + v + " == arr[" + idx + "]; return arr[" + idx + "]=" + arr[idx];
       }
       case GE: {
         if (idx == -1) {

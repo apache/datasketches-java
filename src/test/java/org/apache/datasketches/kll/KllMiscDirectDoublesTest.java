@@ -29,7 +29,7 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-public class MiscDirectDoublesTest {
+public class KllMiscDirectDoublesTest {
   static final String LS = System.getProperty("line.separator");
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
@@ -58,8 +58,8 @@ public class MiscDirectDoublesTest {
     for (int i = 0; i < 20; i++) { sk.update(i); }
     //sk.toString(true, true);
     //sk.toByteArray();
-    final double[] items = sk.getDoubleItemsArray();
-    assertEquals(items.length, 16);
+    final double[] values = sk.getDoubleValuesArray();
+    assertEquals(values.length, 16);
     final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
     assertEquals(sk.getNumLevels(), 2);
@@ -119,7 +119,7 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
+    assertEquals(sk.getDoubleValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -135,7 +135,7 @@ public class MiscDirectDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -152,7 +152,7 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -182,7 +182,7 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
+    assertEquals(sk.getDoubleValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -202,7 +202,7 @@ public class MiscDirectDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -223,7 +223,7 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -253,7 +253,7 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 33);
+    assertEquals(sk.getDoubleValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
     assertEquals(sk.getMaxDoubleValue(), 21.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);
@@ -273,7 +273,7 @@ public class MiscDirectDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), Double.NaN);
     assertEquals(sk.getMinDoubleValue(), Double.NaN);
@@ -294,7 +294,7 @@ public class MiscDirectDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleItemsArray().length, 20);
+    assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
     assertEquals(sk.getMaxDoubleValue(), 1.0);
     assertEquals(sk.getMinDoubleValue(), 1.0);

@@ -22,7 +22,7 @@ package org.apache.datasketches.req;
 import java.util.List;
 
 /**
- * Iterator over all retained items of the ReqSketch. The order is not defined.
+ * Iterator over all retained values of the ReqSketch. The order is not defined.
  *
  * @author Lee Rhodes
  */
@@ -30,13 +30,13 @@ public class ReqIterator {
   private List<ReqCompactor> compactors;
   private int cIndex;
   private int bIndex;
-  private int retainedItems;
+  private int retainedValues;
   private int count;
   private FloatBuffer currentBuf;
 
   ReqIterator(final ReqSketch sketch) {
     compactors = sketch.getCompactors();
-    retainedItems = sketch.getRetainedItems();
+    retainedValues = sketch.getRetainedValues();
     currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;
@@ -50,7 +50,7 @@ public class ReqIterator {
    * @return true if the next element exists
    */
   public boolean next() {
-    if ((retainedItems == 0)
+    if ((retainedValues == 0)
         || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {
       return false;
     }
@@ -72,7 +72,7 @@ public class ReqIterator {
    * @return value from the current entry
    */
   public float getValue() {
-    return currentBuf.getItem(bIndex);
+    return currentBuf.getValue(bIndex);
   }
 
   /**
@@ -86,8 +86,8 @@ public class ReqIterator {
   }
 
   /**
-   * The number of items processed so far
-   * @return  The number of items processed so far
+   * The number of values processed so far
+   * @return  The number of values processed so far
    */
   public int getCount() {
     return count;

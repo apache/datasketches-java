@@ -19,12 +19,17 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
-
 public class ReqSketchSortedViewTest {
   private final int k = 32;
   private final boolean hra = false;
@@ -33,14 +38,46 @@ public class ReqSketchSortedViewTest {
   private final int n = numV * dup;
 
   @Test
+  public void emptySketch() {
+    ReqSketch sketch = ReqSketch.builder().build();
+    ReqSketchSortedViewIterator itr =  sketch.getSortedView().iterator();
+    Assert.assertFalse(itr.next());
+  }
+
+  @Test
+  public void twoValueSketch() {
+    ReqSketch sketch = ReqSketch.builder().build();
+    sketch.update(1f);
+    sketch.update(2f);
+    ReqSketchSortedViewIterator itr =  sketch.getSortedView().iterator();
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0);
+    assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0.5);
+    assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
+  }
+
+  //@Test //visual only
   public void checkIterator() {
     println("");
     println("CHECK ReqSketchSortedViewIterator");
     println("  k: " + k + ", hra: " + hra);
     println("  numV: " + numV + ", dup: " + dup + ", Total n = " + n);
     ReqSketch sketch = buildDataLoadSketch();
-    checkNotDedup(sketch);
-    checkDedup(sketch);
+    checkIterator(sketch);
   }
 
   private ReqSketch buildDataLoadSketch() {
@@ -56,16 +93,9 @@ public class ReqSketchSortedViewTest {
     return sketch;
   }
 
-  private void checkNotDedup(final ReqSketch sketch) {
+  private void checkIterator(final ReqSketch sketch) {
     println("\nNot Deduped:");
     ReqSketchSortedView sv = sketch.getSortedView();
-    ReqSketchSortedViewIterator itr = sv.iterator();
-    printIterator(itr);
-  }
-
-  private void checkDedup(final ReqSketch sketch) {
-    println("\nDeduped:");
-    ReqSketchSortedView sv = new ReqSketchSortedView(sketch, true);
     ReqSketchSortedViewIterator itr = sv.iterator();
     printIterator(itr);
   }
@@ -79,10 +109,10 @@ public class ReqSketchSortedViewTest {
     while (itr.next()) {
       float v = itr.getValue();
       long wt = itr.getWeight();
-      long cumWtNotInc   = itr.getCumulativeWeight(false);
-      double nRankNotInc = itr.getNormalizedRank(false);
-      long cumWtInc      = itr.getCumulativeWeight(true);
-      double nRankInc    = itr.getNormalizedRank(true);
+      long cumWtNotInc   = itr.getCumulativeWeight(NON_INCLUSIVE);
+      double nRankNotInc = itr.getNormalizedRank(NON_INCLUSIVE);
+      long cumWtInc      = itr.getCumulativeWeight(INCLUSIVE);
+      double nRankInc    = itr.getNormalizedRank(INCLUSIVE);
       printf(fmt, v, wt, cumWtNotInc, nRankNotInc, cumWtInc, nRankInc);
     }
   }

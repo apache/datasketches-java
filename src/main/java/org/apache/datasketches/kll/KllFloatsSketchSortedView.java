@@ -19,90 +19,148 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.FloatsSortedView;
+import org.apache.datasketches.InequalitySearch;
+import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.SketchesArgumentException;
 
 /**
- * The Sorted View provides a view of the data retained by the sketch that would be cumbersome to get any other way.
- * One can iterate of the contents of the sketch, but the result is not sorted.
- * Trying to use getQuantiles would be very cumbersome since one doesn't know what ranks to use to supply the
- * getQuantiles method.  Even worse, suppose it is a large sketch that has retained 1000 values from a stream of
- * millions (or billions).  One would have to execute the getQuantiles method many thousands of times, and using
- * trial &amp; error, try to figure out what the sketch actually has retained.
- *
- * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
- * analysis not directly provided by the sketch.  A good example comparing two sketches using the Kolmogorov-Smirnov
- * test. One needs this sorted view for the test.</p>
- *
- * <p>This sorted view can also be used for multiple getRank and getQuantile queries once it has been created.
- * Because it takes some computational work to create this sorted view, it doesn't make sense to create this sorted view
- * just for single getRank queries.  For the first getQuantile queries, it must be created. But for all queries
- * after the first, assuming the sketch has not been updated, the getQuantile and getRank queries are very fast.</p>
- *
- * @author Kevin Lang
+ * The SortedView of the KllFloatsSketch.
  * @author Alexander Saydakov
+ * @author Lee Rhodes
  */
-public final class KllFloatsSketchSortedView {
+public final class KllFloatsSketchSortedView implements FloatsSortedView {
 
-  private final long n_;
-  private final float[] items_;
-  private final long[] weights_; //comes in as weights, converted to cumulative weights
-  private final int[] levels_;
-  private int numLevels_;
+  private final float[] values;
+  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
+  private final long totalN;
 
-  // assumes that all levels are sorted including level 0
-  @SuppressWarnings("deprecation")
-  KllFloatsSketchSortedView(final float[] items, final int[] levels, final int numLevels,
-      final long n, final boolean cumulative, final boolean inclusive) {
-    n_ = n;
-    final int numItems = levels[numLevels] - levels[0];
-    items_ = new float[numItems];
-    weights_ = new long[numItems + 1]; // one more is intentional
-    levels_ = new int[numLevels + 1];
-    populateFromSketch(items, levels, numLevels, numItems);
-    blockyTandemMergeSort(items_, weights_, levels_, numLevels_);
-    if (cumulative) {
-      KllQuantilesHelper.convertToPrecedingCumulative(weights_, inclusive);
+  /**
+   * Construct from elements for testing.
+   * @param values sorted array of values
+   * @param cumWeights sorted, monotonically increasing cumulative weights.
+   * @param totalN the total number of values presented to the sketch.
+   */
+  KllFloatsSketchSortedView(final float[] values, final long[] cumWeights, final long totalN) {
+    this.values = values;
+    this.cumWeights  = cumWeights;
+    this.totalN = totalN;
+  }
+
+  /**
+   * Constructs this Sorted View given the sketch
+   * @param sk the given KllFloatsSketch.
+   */
+  public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
+    this.totalN = sk.getN();
+    final float[] srcValues = sk.getFloatValuesArray();
+    final int[] srcLevels = sk.getLevelsArray();
+    final int srcNumLevels = sk.getNumLevels();
+
+    if (!sk.isLevelZeroSorted()) {
+      Arrays.sort(srcValues, srcLevels[0], srcLevels[1]);
+      if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
     }
+
+    final int numValues = srcLevels[srcNumLevels] - srcLevels[0]; //remove garbage
+    values = new float[numValues];
+    cumWeights = new long[numValues];
+    populateFromSketch(srcValues, srcLevels, srcNumLevels, numValues);
+    sk.kllFloatsSV = this;
   }
 
-  //For testing only. Allows testing of getQuantile without a sketch.
-  KllFloatsSketchSortedView(final float[] items, final long[] weights, final long n) {
-    n_ = n;
-    items_ = items;
-    weights_ = weights; //must be size of items + 1
-    levels_ = null;  //not used by test
-    numLevels_ = 0;  //not used by test
-  }
-
-  @SuppressWarnings("deprecation")
-  public float getQuantile(final double rank) {
-    if (weights_[weights_.length - 1] < n_) {
-      throw new SketchesStateException("getQuantile must be used with cumulative view only");
+  @Override
+  public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
+    checkRank(normRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (int)(normRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      if (searchCrit == NON_INCLUSIVE_STRICT) { return Float.NaN; } //GT: normRank == 1.0;
+      if (searchCrit == NON_INCLUSIVE) { return values[len - 1]; }
     }
-    final long pos = KllQuantilesHelper.posOfRank(rank, n_);
-    return approximatelyAnswerPositonalQuery(pos);
+    return values[index];
   }
 
+  @Override
+  public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
+    final int len = values.length;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / totalN;
+  }
+
+  @Override
+  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf, final QuantileSearchCriteria searchCrit) {
+    validateFloatValues(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    if (isCdf) { return buckets; }
+    for (int i = len; i-- > 1;) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
+  @Override
   public KllFloatsSketchSortedViewIterator iterator() {
-    return new KllFloatsSketchSortedViewIterator(items_, weights_);
+    return new KllFloatsSketchSortedViewIterator(values, cumWeights);
   }
 
-  private static void blockyTandemMergeSort(final float[] items, final long[] weights,
+  //populates values, cumWeights
+  private void populateFromSketch(final float[] srcValues, final int[] srcLevels,
+    final int srcNumLevels, final int numValues) {
+    final int[] myLevels = new int[srcNumLevels + 1];
+    final int offset = srcLevels[0];
+    System.arraycopy(srcValues, offset, values, 0, numValues);
+    int srcLevel = 0;
+    int dstLevel = 0;
+    long weight = 1;
+    while (srcLevel < srcNumLevels) {
+      final int fromIndex = srcLevels[srcLevel] - offset;
+      final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
+      if (fromIndex < toIndex) { // if equal, skip empty level
+        Arrays.fill(cumWeights, fromIndex, toIndex, weight);
+        myLevels[dstLevel] = fromIndex;
+        myLevels[dstLevel + 1] = toIndex;
+        dstLevel++;
+      }
+      srcLevel++;
+      weight *= 2;
+    }
+    final int numLevels = dstLevel;
+    blockyTandemMergeSort(values, cumWeights, myLevels, numLevels); //create unit weights
+    KllHelper.convertToCumulative(cumWeights);
+  }
+
+  private static void blockyTandemMergeSort(final float[] values, final long[] weights,
       final int[] levels, final int numLevels) {
     if (numLevels == 1) { return; }
 
     // duplicate the input in preparation for the "ping-pong" copy reduction strategy.
-    final float[] itemsTmp = Arrays.copyOf(items, items.length);
-    final long[] weightsTmp = Arrays.copyOf(weights, items.length); // don't need the extra one here
+    final float[] valuesTmp = Arrays.copyOf(values, values.length);
+    final long[] weightsTmp = Arrays.copyOf(weights, values.length); // don't need the extra one here
 
-    blockyTandemMergeSortRecursion(itemsTmp, weightsTmp, items, weights, levels, 0, numLevels);
+    blockyTandemMergeSortRecursion(valuesTmp, weightsTmp, values, weights, levels, 0, numLevels);
   }
 
   private static void blockyTandemMergeSortRecursion(
-      final float[] itemsSrc, final long[] weightsSrc,
-      final float[] itemsDst, final long[] weightsDst,
+      final float[] valuesSrc, final long[] weightsSrc,
+      final float[] valuesDst, final long[] weightsDst,
       final int[] levels, final int startingLevel, final int numLevels) {
     if (numLevels == 1) { return; }
     final int numLevels1 = numLevels / 2;
@@ -113,24 +171,24 @@ public final class KllFloatsSketchSortedView {
     final int startingLevel2 = startingLevel + numLevels1;
     // swap roles of src and dst
     blockyTandemMergeSortRecursion(
-        itemsDst, weightsDst,
-        itemsSrc, weightsSrc,
+        valuesDst, weightsDst,
+        valuesSrc, weightsSrc,
         levels, startingLevel1, numLevels1);
     blockyTandemMergeSortRecursion(
-        itemsDst, weightsDst,
-        itemsSrc, weightsSrc,
+        valuesDst, weightsDst,
+        valuesSrc, weightsSrc,
         levels, startingLevel2, numLevels2);
     tandemMerge(
-        itemsSrc, weightsSrc,
-        itemsDst, weightsDst,
+        valuesSrc, weightsSrc,
+        valuesDst, weightsDst,
         levels,
         startingLevel1, numLevels1,
         startingLevel2, numLevels2);
   }
 
   private static void tandemMerge(
-      final float[] itemsSrc, final long[] weightsSrc,
-      final float[] itemsDst, final long[] weightsDst,
+      final float[] valuesSrc, final long[] weightsSrc,
+      final float[] valuesDst, final long[] weightsDst,
       final int[] levelStarts,
       final int startingLevel1, final int numLevels1,
       final int startingLevel2, final int numLevels2) {
@@ -143,55 +201,49 @@ public final class KllFloatsSketchSortedView {
     int iDst = fromIndex1;
 
     while (iSrc1 < toIndex1 && iSrc2 < toIndex2) {
-      if (itemsSrc[iSrc1] < itemsSrc[iSrc2]) {
-        itemsDst[iDst] = itemsSrc[iSrc1];
+      if (valuesSrc[iSrc1] < valuesSrc[iSrc2]) {
+        valuesDst[iDst] = valuesSrc[iSrc1];
         weightsDst[iDst] = weightsSrc[iSrc1];
         iSrc1++;
       } else {
-        itemsDst[iDst] = itemsSrc[iSrc2];
+        valuesDst[iDst] = valuesSrc[iSrc2];
         weightsDst[iDst] = weightsSrc[iSrc2];
         iSrc2++;
       }
       iDst++;
     }
     if (iSrc1 < toIndex1) {
-      System.arraycopy(itemsSrc, iSrc1, itemsDst, iDst, toIndex1 - iSrc1);
+      System.arraycopy(valuesSrc, iSrc1, valuesDst, iDst, toIndex1 - iSrc1);
       System.arraycopy(weightsSrc, iSrc1, weightsDst, iDst, toIndex1 - iSrc1);
     } else if (iSrc2 < toIndex2) {
-      System.arraycopy(itemsSrc, iSrc2, itemsDst, iDst, toIndex2 - iSrc2);
+      System.arraycopy(valuesSrc, iSrc2, valuesDst, iDst, toIndex2 - iSrc2);
       System.arraycopy(weightsSrc, iSrc2, weightsDst, iDst, toIndex2 - iSrc2);
     }
   }
 
-  @SuppressWarnings("deprecation")
-  private float approximatelyAnswerPositonalQuery(final long pos) {
-    assert pos >= 0;
-    assert pos < n_;
-    final int index = KllQuantilesHelper.chunkContainingPos(weights_, pos);
-    return items_[index];
+  private static final void checkRank(final double rank) {
+    if (rank < 0.0 || rank > 1.0) {
+      throw new SketchesArgumentException(
+          "A normalized rank " + rank + " cannot be less than zero nor greater than 1.0");
+    }
   }
 
-  private void populateFromSketch(final float[] srcItems, final int[] srcLevels,
-      final int numLevels, final int numItems) {
-    final int offset = srcLevels[0];
-    System.arraycopy(srcItems, offset, items_, 0, numItems);
-    int srcLevel = 0;
-    int dstLevel = 0;
-    long weight = 1;
-    while (srcLevel < numLevels) {
-      final int fromIndex = srcLevels[srcLevel] - offset;
-      final int toIndex = srcLevels[srcLevel + 1] - offset; // exclusive
-      if (fromIndex < toIndex) { // if equal, skip empty level
-        Arrays.fill(weights_, fromIndex, toIndex, weight);
-        levels_[dstLevel] = fromIndex;
-        levels_[dstLevel + 1] = toIndex;
-        dstLevel++;
+  /**
+   * Checks the sequential validity of the given array of splitpoints as floats.
+   * They must be unique, monotonically increasing and not NaN.
+   * Only used for getPmfOrCdf().
+   * @param values the given array of values
+   */
+  private static void validateFloatValues(final float[] values) {
+    for (int i = 0; i < values.length; i++) {
+      if (!Float.isFinite(values[i])) {
+        throw new SketchesArgumentException("Values must be finite");
       }
-      srcLevel++;
-      weight *= 2;
+      if (i < values.length - 1 && values[i] >= values[i + 1]) {
+        throw new SketchesArgumentException(
+          "Values must be unique and monotonically increasing");
+      }
     }
-    weights_[numItems] = 0;
-    numLevels_ = dstLevel;
   }
 
 }

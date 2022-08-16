@@ -21,6 +21,10 @@ package org.apache.datasketches.req;
 
 import java.util.Arrays;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+
+import org.apache.datasketches.QuantileSearchCriteria;
+
 import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableBuffer;
@@ -95,8 +99,8 @@ class FloatBuffer {
   /**
    * Used by ReqSerDe. The array is only the active region and will be positioned
    * based on capacity, delta, and sab. This copies over the sorted flag.
-   * @param arr the active items extracted from the deserialization.
-   * @param count the number of active items
+   * @param arr the active values extracted from the deserialization.
+   * @param count the number of active values
    * @param capacity the capacity of the internal array
    * @param delta add space in this increment
    * @param sorted if the incoming array is sorted
@@ -135,15 +139,15 @@ class FloatBuffer {
   }
 
   /**
-   * Appends the given item to the active array and increments the active count.
+   * Appends the given value to the active array and increments the active count.
    * This will expand the array if necessary.
-   * @param item the given item
+   * @param value the given value
    * @return this
    */
-  FloatBuffer append(final float item) {
+  FloatBuffer append(final float value) {
     ensureSpace(1);
     final int index = spaceAtBottom_ ? capacity_ - count_ - 1 : count_;
-    arr_[index] = item;
+    arr_[index] = value;
     count_++;
     sorted_ = false;
     return this;
@@ -181,8 +185,8 @@ class FloatBuffer {
   }
 
   /**
-   * Returns a reference to the internal item array. Be careful and don't modify this array!
-   * @return the internal item array.
+   * Returns a reference to the internal value array. Be careful and don't modify this array!
+   * @return the internal value array.
    */
   float[] getArray() {
     return arr_;
@@ -199,13 +203,13 @@ class FloatBuffer {
   }
 
   /**
-   * Returns the count of items based on the given criteria.
+   * Returns the count of values based on the given criteria.
    * Also used in test.
    * @param value the given value
-   * @param ltEq the chosen criterion: LT or LE
-   * @return count of items based on the given criterion.
+   * @param searchCrit the chosen criterion: LT, LT Strict, or LE
+   * @return count of values based on the given criterion.
    */
-  int getCountWithCriterion(final float value, final boolean ltEq) {
+  int getCountWithCriterion(final float value, final QuantileSearchCriteria searchCrit) {
     assert !Float.isNaN(value) : "Float values must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
     int low = 0;    //Initialized to space at top
@@ -214,7 +218,7 @@ class FloatBuffer {
       low = capacity_ - count_;
       high = capacity_ - 1;
     }
-    final InequalitySearch crit = ltEq ? InequalitySearch.LE : InequalitySearch.LT;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(arr_, low, high, value, crit);
     return index == -1 ? 0 : index - low + 1;
   }
@@ -252,16 +256,16 @@ class FloatBuffer {
    * @param index the given index
    * @return a value given its backing array index
    */
-  float getItemFromIndex(final int index) {
+  float getValueFromIndex(final int index) {
     return arr_[index];
   }
 
   /**
-   * Gets an item given its offset in the active region
+   * Gets a value given its offset in the active region
    * @param offset the given offset in the active region
-   * @return an item given its offset
+   * @return a value given its offset
    */
-  float getItem(final int offset) {
+  float getValue(final int offset) {
     final int index = spaceAtBottom_ ? capacity_ - count_ + offset : offset;
     return arr_[index];
   }
@@ -275,9 +279,9 @@ class FloatBuffer {
   }
 
   /**
-   * Returns the active item count.
+   * Returns the active value count.
    *
-   * @return the active item count of this buffer.
+   * @return the active value count of this buffer.
    */
   int getCount() {
     return count_;
@@ -342,7 +346,7 @@ class FloatBuffer {
     if (!sorted_ || !bufIn.isSorted()) {
       throw new SketchesArgumentException("Both buffers must be sorted.");
     }
-    final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
+    final float[] arrIn = bufIn.getArray(); //may be larger than its value count.
     final int bufInLen = bufIn.getCount();
     ensureSpace(bufInLen);
     final int totLen = count_ + bufInLen;
@@ -410,8 +414,8 @@ class FloatBuffer {
 
   /**
    * Returns a printable formatted string of the values of this buffer separated by a single space.
-   * @param fmt The format for each printed item.
-   * @param width the number of items to print per line
+   * @param fmt The format for each printed value.
+   * @param width the number of values to print per line
    * @return a printable, formatted string of the values of this buffer.
    */
   String toHorizList(final String fmt, final int width) {

@@ -47,7 +47,7 @@ import org.apache.datasketches.memory.WritableMemory;
    * Normal Binary Format:
    * PreInts=4
    * Empty=false
-   * RawItems=false
+   * RawValues=false
    * # Constructors > 1, C0 to Cm, whatever is required
    *
    * Long Adr / Byte Offset
@@ -69,7 +69,7 @@ import org.apache.datasketches.memory.WritableMemory;
    * <pre>
    * PreInts=2
    * Empty=false
-   * RawItems=false
+   * RawValues=false
    * # Constructors=C0=1
    *
    * Long Adr / Byte Offset
@@ -80,12 +80,12 @@ import org.apache.datasketches.memory.WritableMemory;
    *  1   ||                                   |-------------------------C0*-------------------|
    * </pre>
    *
-   * <p>A RAW ITEMS binary format sketch has only a few values: </p>
+   * <p>A RAW VALUES binary format sketch has only a few values: </p>
    *
    * <pre>
    * PreInts=2
    * Empty=false
-   * RawItems=true
+   * RawValues=true
    * # Constructors=C0=1
    *
    * Long Adr / Byte Offset
@@ -101,7 +101,7 @@ import org.apache.datasketches.memory.WritableMemory;
    * <pre>
    * PreInts=2
    * Empty=true
-   * RawItems=false
+   * RawValues=false
    * # Constructors==C0=1
    *
    * Long Adr / Byte Offset
@@ -114,7 +114,7 @@ import org.apache.datasketches.memory.WritableMemory;
    * Bit 1 : ReadOnly, reserved
    * Bit 2 : Empty
    * Bit 3 : HRA
-   * Bit 4 : Raw Items
+   * Bit 4 : Raw Values
    * Bit 5 : L0 Sorted
    * Bit 6 : reserved
    * Bit 7 : reserved
@@ -123,7 +123,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 class ReqSerDe {
-  enum SerDeFormat { EMPTY, RAWITEMS, EXACT, ESTIMATION }
+  enum SerDeFormat { EMPTY, RAWVALUES, EXACT, ESTIMATION }
 
   private static final byte SER_VER = 1;
   private static final byte FAMILY_ID = 17;
@@ -140,23 +140,23 @@ class ReqSerDe {
     final int flags = buff.getByte() & 0xFF;
     final boolean empty = (flags & 4) > 0;
     final boolean hra = (flags & 8) > 0;
-    final boolean rawItems = (flags & 16) > 0;
+    final boolean rawValues = (flags & 16) > 0;
     final boolean lvl0Sorted = (flags & 32) > 0;
     //  remainder fields
     final int k = buff.getShort() & 0xFFFF;
     final int numCompactors = buff.getByte() & 0xFF;
-    final int numRawItems = buff.getByte() & 0xFF;
+    final int numRawValues = buff.getByte() & 0xFF;
     //  extract different serialization formats
-    final SerDeFormat deserFormat = getDeserFormat(empty, rawItems, numCompactors);
+    final SerDeFormat deserFormat = getDeserFormat(empty, rawValues, numCompactors);
     switch (deserFormat) {
       case EMPTY: {
         assert preInts == 2;
         return new ReqSketch(k, hra, null);
       }
-      case RAWITEMS: {
+      case RAWVALUES: {
         assert preInts == 2;
         final ReqSketch sk = new ReqSketch(k, hra, null);
-        for (int i = 0; i < numRawItems; i++) { sk.update(buff.getFloat()); }
+        for (int i = 0; i < numRawValues; i++) { sk.update(buff.getFloat()); }
         return sk;
       }
       case EXACT: {
@@ -170,7 +170,7 @@ class ReqSerDe {
         compactors.add(compactor.reqCompactor);
         final ReqSketch sk = new ReqSketch(k, hra, totalN, minValue, maxValue, compactors);
         sk.setMaxNomSize(sk.computeMaxNomSize());
-        sk.setRetainedItems(sk.computeTotalRetainedItems());
+        sk.setRetainedValues(sk.computeTotalRetainedValues());
         return sk;
       }
       default: { //ESTIMATION
@@ -187,7 +187,7 @@ class ReqSerDe {
         }
         final ReqSketch sk = new ReqSketch(k, hra, totalN, minValue, maxValue, compactors);
         sk.setMaxNomSize(sk.computeMaxNomSize());
-        sk.setRetainedItems(sk.computeTotalRetainedItems());
+        sk.setRetainedValues(sk.computeTotalRetainedValues());
         return sk;
       }
     }
@@ -235,27 +235,27 @@ class ReqSerDe {
   }
 
   private static byte getFlags(final ReqSketch sk) {
-    final boolean rawItems = sk.getN() <= ReqSketch.MIN_K;
+    final boolean rawValues = sk.getN() <= ReqSketch.MIN_K;
     final boolean level0Sorted = sk.getCompactors().get(0).getBuffer().isSorted();
     final int flags = (sk.isEmpty() ? 4 : 0)
         | (sk.getHighRankAccuracy() ? 8 : 0)
-        | (rawItems ? 16 : 0)
+        | (rawValues ? 16 : 0)
         | (level0Sorted ? 32 : 0);
     return (byte) flags;
   }
 
   static SerDeFormat getSerFormat(final ReqSketch sk) {
     if (sk.isEmpty()) { return SerDeFormat.EMPTY; }
-    if (sk.getN() <= ReqSketch.MIN_K) { return SerDeFormat.RAWITEMS; }
+    if (sk.getN() <= ReqSketch.MIN_K) { return SerDeFormat.RAWVALUES; }
     if (sk.getNumLevels() == 1) { return SerDeFormat.EXACT; }
     return SerDeFormat.ESTIMATION;
   }
 
-  private static SerDeFormat getDeserFormat(final boolean empty, final boolean rawItems,
+  private static SerDeFormat getDeserFormat(final boolean empty, final boolean rawValues,
       final int numCompactors) {
     if (numCompactors <= 1) {
       if (empty) { return SerDeFormat.EMPTY; }
-      if (rawItems) { return SerDeFormat.RAWITEMS; }
+      if (rawValues) { return SerDeFormat.RAWVALUES; }
       return SerDeFormat.EXACT;
     }
     return SerDeFormat.ESTIMATION;
@@ -269,24 +269,24 @@ class ReqSerDe {
     final byte preInts = (byte)(serDeFormat == SerDeFormat.ESTIMATION ? 4 : 2);
     final byte flags = getFlags(sk);
     final byte numCompactors = sk.isEmpty() ? 0 : (byte) sk.getNumLevels();
-    final byte numRawItems = sk.getN() <= 4 ? (byte) sk.getN() : 0;
+    final byte numRawValues = sk.getN() <= 4 ? (byte) sk.getN() : 0;
     wbuf.putByte(preInts);
     wbuf.putByte(SER_VER);
     wbuf.putByte(FAMILY_ID);
     wbuf.putByte(flags);
     wbuf.putShort((short)sk.getK());
     wbuf.putByte(numCompactors);
-    wbuf.putByte(numRawItems);
+    wbuf.putByte(numRawValues);
 
     switch (serDeFormat) {
       case EMPTY: {
         assert wbuf.getPosition() == bytes;
         return arr;
       }
-      case RAWITEMS: {
+      case RAWVALUES: {
         final ReqCompactor c0 = sk.getCompactors().get(0);
         final FloatBuffer fbuf = c0.getBuffer();
-        for (int i = 0; i < numRawItems; i++) { wbuf.putFloat(fbuf.getItem(i)); }
+        for (int i = 0; i < numRawValues; i++) { wbuf.putFloat(fbuf.getValue(i)); }
         assert wbuf.getPosition() == bytes;
         return arr;
       }
@@ -315,7 +315,7 @@ class ReqSerDe {
       case EMPTY: {
         return 8;
       }
-      case RAWITEMS: {
+      case RAWVALUES: {
         return sk.getCompactors().get(0).getBuffer().getCount() * Float.BYTES + 8;
       }
       case EXACT: {

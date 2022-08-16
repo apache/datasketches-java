@@ -60,7 +60,7 @@ public class ReqDebugImpl implements ReqDebug {
   @Override
   public void emitStartCompress() {
     if (debugLevel == 0) { return; }
-    final int retItems = sk.getRetainedItems();
+    final int retItems = sk.getRetainedValues();
     final int maxNomSize = sk.getMaxNomSize();
     final long totalN = sk.getN();
     final StringBuilder sb = new StringBuilder();
@@ -75,7 +75,7 @@ public class ReqDebugImpl implements ReqDebug {
   @Override
   public void emitCompressDone() {
     if (debugLevel == 0) { return; }
-    final int retItems = sk.getRetainedItems();
+    final int retItems = sk.getRetainedValues();
     final int maxNomSize = sk.getMaxNomSize();
     emitAllHorizList();
     println("COMPRESS: DONE: SketchSize: " + retItems + TAB

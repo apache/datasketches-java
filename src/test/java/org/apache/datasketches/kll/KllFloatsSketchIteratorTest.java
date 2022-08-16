@@ -19,6 +19,11 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -32,14 +37,46 @@ public class KllFloatsSketchIteratorTest {
   }
 
   @Test
-  public void oneItemSketch() {
+  public void twoItemSketchForIterator() {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    sketch.update(0);
-    KllFloatsSketchIterator it = sketch.iterator();
-    Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getValue(), 0f);
-    Assert.assertEquals(it.getWeight(), 1);
-    Assert.assertFalse(it.next());
+    sketch.update(1);
+    sketch.update(2);;
+    KllFloatsSketchIterator itr = sketch.iterator();
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getWeight(), 1);
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getWeight(), 1);
+  }
+
+  @Test
+  public void twoItemSketchForSortedViewIterator() {
+    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
+    sketch.update(1);
+    sketch.update(2);;
+    KllFloatsSketchSortedViewIterator itr = sketch.getSortedView().iterator();
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0);
+    assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
+
+    assertTrue(itr.next());
+
+    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0.5);
+    assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
   }
 
   @Test

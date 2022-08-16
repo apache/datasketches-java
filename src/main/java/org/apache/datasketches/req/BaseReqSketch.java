@@ -19,13 +19,25 @@
 
 package org.apache.datasketches.req;
 
+import org.apache.datasketches.QuantileSearchCriteria;
+
 /**
  * This abstract class provides a single place to define and document the public API
  * for the Relative Error Quantiles Sketch.
  *
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks Tutorial</a>
+ *
  * @author Lee Rhodes
  */
 abstract class BaseReqSketch {
+
+  /**
+   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(float[] splitPoints, QuantileSearchCriteria)}
+   * @param splitPoints splitPoints
+   * @return CDF
+   */
+  public abstract double[] getCDF(float[] splitPoints);
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
@@ -40,24 +52,17 @@ abstract class BaseReqSketch {
    * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
    * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
+   * the largest value retained by the sketch.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param inclusive if true the weight of a given value is included into its rank.
+   * @param searchCrit if true, the weight of a given value is included into its rank.
    *
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned
    * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
    * array.
    */
-  public abstract double[] getCDF(float[] splitPoints, boolean inclusive);
-
-  /**
-   * Same as {@link #getCDF(float[], boolean) getCDF(float[] splitPoints, isLessThanOrEqual())}
-   * @param splitPoints splitPoints
-   * @return CDF
-   */
-  public abstract double[] getCDF(float[] splitPoints);
+  public abstract double[] getCDF(float[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
    * If true, the high ranks are prioritized for better accuracy. Otherwise
@@ -87,14 +92,14 @@ abstract class BaseReqSketch {
    * @param k the given value of k
    * @param rank the given normalized rank, a number in [0,1].
    * @param hra if true High Rank Accuracy mode is being selected, otherwise, Low Rank Accuracy.
-   * @param totalN an estimate of the total number of items submitted to the sketch.
+   * @param totalN an estimate of the total number of values submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
   public abstract double getRSE(int k, double rank, boolean hra, long totalN);
 
   /**
-   * Gets the total number of items offered to the sketch.
-   * @return the total number of items offered to the sketch.
+   * Gets the total number of values offered to the sketch.
+   * @return the total number of values offered to the sketch.
    */
   public abstract long getN();
 
@@ -114,17 +119,17 @@ abstract class BaseReqSketch {
    * the maximum value.
    * It is not necessary to include either the min or max values in these splitpoints.
    *
-   * @param inclusive if true the weight of a given value is included into its rank.
+   * @param searchCrit if INCLUSIVE the weight of a given value is included into its rank.
    *
    * @return an array of m+1 doubles each of which is an approximation
    * to the fraction of the input stream values (the mass) that fall into one of those intervals.
    * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
+   * splitPoint, with the exception that the last interval will include the largest value retained by the sketch.
    */
-  public abstract double[] getPMF(float[] splitPoints, boolean inclusive);
+  public abstract double[] getPMF(float[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getPMF(float[], boolean) getPMF(float[] splitPoints, isLessThanOrEqual())}
+   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(float[] splitPoints, QuantileSearchCriteria)}
    * @param splitPoints splitPoints
    * @return PMF
    */
@@ -132,15 +137,16 @@ abstract class BaseReqSketch {
 
   /**
    * Gets the approximate quantile of the given normalized rank based on the given criterion.
-   * The normalized rank must be in the range [0.0, 1.0] (inclusive, inclusive).
+   * The normalized rank must be in the range [0.0, 1.0].
    * @param normRank the given normalized rank.
-   * @param inclusive if true, the given rank is considered inclusive.
+   * @param searchCrit is INCLUSIVE, the given rank includes all values &le; the value directly
+   * corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
    */
-  public abstract float getQuantile(double normRank, boolean inclusive);
+  public abstract float getQuantile(double normRank, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, isLessThanOrEqual())}
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(double fraction, QuantileSearchCriteria)}
    * @param normRank fractional rank
    * @return quantile
    */
@@ -149,14 +155,15 @@ abstract class BaseReqSketch {
   /**
    * Gets an array of quantiles that correspond to the given array of normalized ranks.
    * @param normRanks the given array of normalized ranks.
-   * @param inclusive if true, the given ranks are considered inclusive.
+   * @param searchCrit if INCLUSIVE, the given ranks are considered inclusive.
    * @return the array of quantiles that correspond to the given array of normalized ranks.
    * See <i>getQuantile(double)</i>
    */
-  public abstract float[] getQuantiles(double[] normRanks, boolean inclusive);
+  public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fractions, isLessThanOrEqual())}
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria)
+   * getQuantiles(double[] fractions, QuantileSearchCriteria)}
    * @param normRanks normalized ranks
    * @return quantiles
    */
@@ -165,15 +172,15 @@ abstract class BaseReqSketch {
   /**
    * Computes the normalized rank of the given value in the stream.
    * The normalized rank is the fraction of values less than the given value;
-   * or if inclusive is true, the fraction of values less than or equal to the given value.
+   * or if searchCrit is INCLUSIVE, the fraction of values less than or equal to the given value.
    * @param value the given value.
-   * @param inclusive if true the weight of the given value is included into its rank.
+   * @param searchCrit if INCLUSIVE the weight of the given value is included into its rank.
    * @return the normalized rank of the given value in the stream.
    */
-  public abstract double getRank(float value, boolean inclusive);
+  public abstract double getRank(float value, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRank(float, boolean) getRank(float value, isLessThanOrEqual())}
+   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(float value, QuantileSearchCriteria)}
    * @param value value to be ranked
    * @return normalized rank
    */
@@ -190,14 +197,14 @@ abstract class BaseReqSketch {
   /**
    * Gets an array of normalized ranks that correspond to the given array of values.
    * @param values the given array of values.
-   * @param inclusive if true the weight of the given value is included into its rank.
+   * @param searchCrit if INCLUSIVE the weight of the given value is included into its rank.
    * @return the array of normalized ranks that correspond to the given array of values.
    * See <i>getRank(float)</i>
    */
-  public abstract double[] getRanks(float[] values, boolean inclusive);
+  public abstract double[] getRanks(float[] values, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRanks(float[], boolean) getRanks(float[] values, isLessThanOrEqual())}
+   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(float[] values, QuantileSearchCriteria)}
    * @param values the given array of values to be ranked
    * @return array of normalized ranks
    */
@@ -212,10 +219,10 @@ abstract class BaseReqSketch {
   public abstract double getRankUpperBound(double rank, int numStdDev);
 
   /**
-   * Gets the number of retained items of this sketch
+   * Gets the number of retained values of this sketch
    * @return the number of retained entries of this sketch
    */
-  public abstract int getRetainedItems();
+  public abstract int getRetainedValues();
 
   /**
    * Gets the number of bytes when serialized.
@@ -252,8 +259,8 @@ abstract class BaseReqSketch {
   public abstract boolean isLessThanOrEqual();
 
   /**
-   * Returns an iterator for all the items in this sketch.
-   * @return an iterator for all the items in this sketch.
+   * Returns an iterator for all the values in this sketch.
+   * @return an iterator for all the values in this sketch.
    */
   public abstract ReqIterator iterator();
 
@@ -299,17 +306,17 @@ abstract class BaseReqSketch {
   public abstract String toString();
 
   /**
-   * Updates this sketch with the given item.
-   * @param item the given item
+   * Updates this sketch with the given value.
+   * @param value the given value
    */
-  public abstract void update(final float item);
+  public abstract void update(final float value);
 
   /**
    * A detailed, human readable view of the sketch compactors and their data.
    * Each compactor string is prepended by the compactor lgWeight, the current number of retained
-   * items of the compactor and the current nominal capacity of the compactor.
-   * @param fmt the format string for the data items; example: "%4.0f".
-   * @param allData all the retained items for the sketch will be output by
+   * values of the compactor and the current nominal capacity of the compactor.
+   * @param fmt the format string for the data values; example: "%4.0f".
+   * @param allData all the retained values for the sketch will be output by
    * compactor level.  Otherwise, just a summary will be output.
    * @return a detailed view of the compactors and their data
    */

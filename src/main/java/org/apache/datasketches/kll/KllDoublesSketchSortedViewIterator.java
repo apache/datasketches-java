@@ -19,50 +19,61 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+
+import org.apache.datasketches.DoublesSortedViewIterator;
+import org.apache.datasketches.QuantileSearchCriteria;
+
 /**
  * Iterator over KllDoublesSketchSortedView
+ * @author Alexander Saydakov
+ * @author Lee Rhodes
  */
-public class KllDoublesSketchSortedViewIterator {
+public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIterator{
 
-  private final double[] items_;
-  private final long[] weights_;
-  private int i_;
+  private final double[] values;
+  private final long[] cumWeights;
+  private final long totalN;
+  private int index;
 
-  KllDoublesSketchSortedViewIterator(final double[] items, final long[] weights) {
-    items_ = items;
-    weights_ = weights;
-    i_ = -1;
+  KllDoublesSketchSortedViewIterator(final double[] values, final long[] cumWeights) {
+    this.values = values;
+    this.cumWeights = cumWeights;
+    this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
+    index = -1;
   }
 
-  /**
-   * Gets a value from the current entry.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
+  @Override
+  public long getCumulativeWeight(final QuantileSearchCriteria searchCrit) {
+    if (searchCrit == INCLUSIVE) { return cumWeights[index]; }
+    return (index == 0) ? 0 : cumWeights[index - 1];
+  }
+
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
+  public double getNormalizedRank(final QuantileSearchCriteria searchCrit) {
+    return (double) getCumulativeWeight(searchCrit) / totalN;
+  }
+
+  @Override
   public double getValue() {
-    return items_[i_];
+    return values[index];
   }
 
-  /**
-   * Gets a weight for the value from the current entry.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
+  @Override
   public long getWeight() {
-    return weights_[i_];
+    if (index == 0) { return cumWeights[0]; }
+    return cumWeights[index] - cumWeights[index - 1];
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
+  @Override
   public boolean next() {
-    i_++;
-    return i_ < items_.length;
+    index++;
+    return index < values.length;
   }
 
 }

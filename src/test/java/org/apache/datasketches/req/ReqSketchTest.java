@@ -19,6 +19,11 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE_STRICT;
+
+
 import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -27,8 +32,8 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.req.ReqSketchSortedView.Row;
 import org.testng.annotations.Test;
+import org.apache.datasketches.QuantileSearchCriteria;
 
 /**
  * @author Lee Rhodes
@@ -154,23 +159,17 @@ public class ReqSketchTest {
 
   private static void checkSortedView(final ReqSketch sk, final int iDebug) {
     final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
-    if (iDebug > 0) { println(sv.toString(3,12)); }
-
-    final int totalCount = sk.getRetainedItems();
-    float value = 0;
-    long wt = 0;
-    for (int i = 0; i < totalCount; i++) {
-      final Row row = sv.getRow(i);
-      if (i == 0) {
-        value = row.value;
-        wt = row.cumWeight;
-      } else {
-        assertTrue(row.value >= value);
-        assertTrue(row.cumWeight >= wt);
-        value = row.value;
-        wt = row.cumWeight;
-      }
+    final ReqSketchSortedViewIterator itr = sv.iterator();
+    final int retainedCount = sk.getRetainedValues();
+    final long totalN = sk.getN();
+    int count = 0;
+    long cumWt = 0;
+    while (itr.next()) {
+      cumWt = itr.getCumulativeWeight(INCLUSIVE);
+      count++;
     }
+    assertEquals(cumWt, totalN);
+    assertEquals(count, retainedCount);
   }
 
   private static void checkGetQuantiles(final ReqSketch sk, final int iDebug) {
@@ -296,7 +295,7 @@ public class ReqSketchTest {
     final byte[] sk1Arr = sk1.toByteArray();
     final Memory mem = Memory.wrap(sk1Arr);
     final ReqSketch sk2 = ReqSketch.heapify(mem);
-    assertEquals(sk2.getRetainedItems(), sk1.getRetainedItems());
+    assertEquals(sk2.getRetainedValues(), sk1.getRetainedValues());
     assertEquals(sk2.getMinValue(), sk1.getMinValue());
     assertEquals(sk2.getMaxValue(), sk1.getMaxValue());
     assertEquals(sk2.getN(), sk1.getN());
@@ -337,11 +336,11 @@ public class ReqSketchTest {
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getRetainedItems(), 10);
+    assertEquals(sketch.getRetainedValues(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, true), (i) / 10.0);
+      assertEquals(sketch.getRank(i, NON_INCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
     }
     // inclusive = false (default)
     assertEquals(sketch.getQuantile(0), 1); // always min value
@@ -356,17 +355,17 @@ public class ReqSketchTest {
     assertEquals(sketch.getQuantile(0.9), 10);
     assertEquals(sketch.getQuantile(1), 10); // always max value
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, true), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1, true), 1);
-    assertEquals(sketch.getQuantile(0.2, true), 2);
-    assertEquals(sketch.getQuantile(0.3, true), 3);
-    assertEquals(sketch.getQuantile(0.4, true), 4);
-    assertEquals(sketch.getQuantile(0.5, true), 5);
-    assertEquals(sketch.getQuantile(0.6, true), 6);
-    assertEquals(sketch.getQuantile(0.7, true), 7);
-    assertEquals(sketch.getQuantile(0.8, true), 8);
-    assertEquals(sketch.getQuantile(0.9, true), 9);
-    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1); // always min value
+    assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.4, INCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.6, INCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10); // always max value
 
     // getQuantile() and getQuantiles() equivalence
     {
@@ -380,9 +379,9 @@ public class ReqSketchTest {
     {
       // inclusive = true
       final float[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+        assertEquals(sketch.getQuantile(i / 10.0, INCLUSIVE), quantiles[i]);
       }
     }
   }

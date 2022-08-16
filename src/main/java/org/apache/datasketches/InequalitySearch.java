@@ -29,14 +29,17 @@ import java.util.Objects;
  *
  * <p>In order to make the searching unique and unambiguous, we modified the traditional binary
  * search algorithm to search for adjacent pairs of values <i>{A, B}</i> in the values array
- * instead of just a single value, where <i>A</i> and <i>B</i> are the array indices of two
- * adjacent values in the array. For all the search criteria, if the algorithm reaches the ends of
- * the search range, the algorithm calls the <i>resolve()</i> method to determine what to
- * return to the caller. If the key value cannot be resolved, it returns a -1 to the caller.
+ * instead of just a single value, where <i>a</i> and <i>b</i> are the array indices of two
+ * adjacent values in the array. For all the search criteria, when the algorithm has narrowed the
+ * search down to a single value or adjacent pair of values, the <i>resolve()</i> method provides the
+ * final result of the search. If there is no valid value in the array that satisfies the search
+ * criterion, the algorithm will return -1 to the caller.</p>
  *
- * <p>Given a sorted array of values <i>arr[]</i> and the search key value <i>v</i>, the algorithms for
+ * <p>Given a sorted array of values <i>arr[]</i> and a search key value <i>v</i>, the algorithms for
  * the searching criteria are given with each enum criterion.</p>
  *
+ * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
+ * Sketching Quantiles and Ranks Tutorial</a>
  * @author Lee Rhodes
  */
 public enum InequalitySearch {
@@ -45,8 +48,8 @@ public enum InequalitySearch {
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>v</i>,
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &lt; v &le; B</i>.<br>
-   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-   * Let <i>high</i> = highest index of the highest value in the range.
+   * Let <i>low</i> = index of the lowest value in the range.<br>
+   * Let <i>high</i> = index of the highest value in the range.
    *
    * <p>If <i>v</i> &gt; arr[high], return arr[high].<br>
    * If <i>v</i> &le; arr[low], return -1.<br>
@@ -84,8 +87,24 @@ public enum InequalitySearch {
     }
 
     @Override
-    int resolve(final int lo, final int hi, final int low, final int high) {
-      return (lo >= high) ? high : -1;
+    int resolve(final double[] arr, final int lo, final int hi, final double v) {
+      return (lo == hi)
+          ? (v > arr[lo] ? lo : -1)
+          : v > arr[hi] ? hi : (v > arr[lo] ? lo : -1);
+    }
+
+    @Override
+    int resolve(final float[] arr, final int lo, final int hi, final float v) {
+      return (lo == hi)
+          ? (v > arr[lo] ? lo : -1)
+          : v > arr[hi] ? hi : (v > arr[lo] ? lo : -1);
+    }
+
+    @Override
+    int resolve(final long[] arr, final int lo, final int hi, final long v) {
+      return (lo == hi)
+          ? (v > arr[lo] ? lo : -1)
+          : v > arr[hi] ? hi : (v > arr[lo] ? lo : -1);
     }
 
     @Override
@@ -135,8 +154,8 @@ public enum InequalitySearch {
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the highest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.<br>
-   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-   * Let <i>high</i> = highest index of the highest value in the range.
+   * Let <i>low</i> = index of the lowest value in the range.<br>
+   * Let <i>high</i> = index of the highest value in the range.
    *
    * <p>If <i>v</i> &ge; arr[high], return arr[high].<br>
    * If <i>v</i> &lt; arr[low], return -1.<br>
@@ -174,8 +193,24 @@ public enum InequalitySearch {
     }
 
     @Override
-    int resolve(final int lo, final int hi, final int low, final int high) {
-      return (lo >= high) ? high : -1;
+    int resolve(final double[] arr, final int lo, final int hi, final double v) {
+      return (lo == hi)
+          ? (v >= arr[lo] ? lo : -1)
+          : v >= arr[hi] ? hi : (v >= arr[lo] ? lo : -1);
+    }
+
+    @Override
+    int resolve(final float[] arr, final int lo, final int hi, final float v) {
+      return (lo == hi)
+          ? (v >= arr[lo] ? lo : -1)
+          : v >= arr[hi] ? hi : (v >= arr[lo] ? lo : -1);
+    }
+
+    @Override
+    int resolve(final long[] arr, final int lo, final int hi, final long v) {
+      return (lo == hi)
+          ? (v >= arr[lo] ? lo : -1)
+          : v >= arr[hi] ? hi : (v >= arr[lo] ? lo : -1);
     }
 
     @Override
@@ -260,8 +295,24 @@ public enum InequalitySearch {
     }
 
     @Override
-    int resolve(final int lo, final int hi, final int low, final int high) {
-      return -1;
+    int resolve(final double[] arr, final int lo, final int hi, final double v) {
+      return (lo == hi)
+          ? (v == arr[lo] ? lo : -1)
+          : v == arr[lo] ? lo : (v == arr[hi] ? hi : -1);
+    }
+
+    @Override
+    int resolve(final float[] arr, final int lo, final int hi, final float v) {
+      return (lo == hi)
+          ? (v == arr[lo] ? lo : -1)
+          : v == arr[lo] ? lo : (v == arr[hi] ? hi : -1);
+    }
+
+    @Override
+    int resolve(final long[] arr, final int lo, final int hi, final long v) {
+      return (lo == hi)
+          ? (v == arr[lo] ? lo : -1)
+          : v == arr[lo] ? lo : (v == arr[hi] ? hi : -1);
     }
 
     @Override
@@ -275,7 +326,7 @@ public enum InequalitySearch {
         }
         return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
       }
-      return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+      return "EQ: " + v + " == arr[" + idx + "]; return arr[" + idx + "]=" + arr[idx];
     }
 
     @Override
@@ -289,7 +340,7 @@ public enum InequalitySearch {
         }
         return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
       }
-      return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+      return "EQ: " + v + " == arr[" + idx + "]; return arr[" + idx + "]=" + arr[idx];
     }
 
     @Override
@@ -303,7 +354,7 @@ public enum InequalitySearch {
         }
         return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
       }
-      return "EQ: " + v + " == arr[" + idx + "]; return " + idx;
+      return "EQ: " + v + " == arr[" + idx + "]; return arr[" + idx +"]=" + arr[idx];
     }
   },
 
@@ -311,8 +362,8 @@ public enum InequalitySearch {
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &lt; V &le; B</i>.<br>
-   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-   * Let <i>high</i> = highest index of the highest value in the range.
+   * Let <i>low</i> = index of the lowest value in the range.<br>
+   * Let <i>high</i> = index of the highest value in the range.
    *
    * <p>If <i>v</i> &le; arr[low], return arr[low].<br>
    * If <i>v</i> &gt; arr[high], return -1.<br>
@@ -350,8 +401,24 @@ public enum InequalitySearch {
     }
 
     @Override
-    int resolve(final int lo, final int hi, final int low, final int high) {
-      return (hi <= low) ? low : -1;
+    int resolve(final double[] arr, final int lo, final int hi, final double v) {
+      return (lo == hi)
+          ? (v <= arr[lo] ? lo : -1)
+          : v <= arr[lo] ? lo : (v <= arr[hi] ? hi : -1);
+    }
+
+    @Override
+    int resolve(final float[] arr, final int lo, final int hi, final float v) {
+      return (lo == hi)
+          ? (v <= arr[lo] ? lo : -1)
+          : v <= arr[lo] ? lo : (v <= arr[hi] ? hi : -1);
+    }
+
+    @Override
+    int resolve(final long[] arr, final int lo, final int hi, final long v) {
+      return (lo == hi)
+          ? (v <= arr[lo] ? lo : -1)
+          : v <= arr[lo] ? lo : (v <= arr[hi] ? hi : -1);
     }
 
     @Override
@@ -401,8 +468,8 @@ public enum InequalitySearch {
    * Given a sorted array of increasing values <i>arr[]</i> and a key value <i>V</i>,
    * this criterion instructs the binary search algorithm to find the lowest adjacent pair of
    * values <i>{A,B}</i> such that <i>A &le; V &lt; B</i>.<br>
-   * Let <i>low</i> = lowest index of the lowest value in the range.<br>
-   * Let <i>high</i> = highest index of the highest value in the range.
+   * Let <i>low</i> = index of the lowest value in the range.<br>
+   * Let <i>high</i> = index of the highest value in the range.
    *
    * <p>If <i>v</i> &lt; arr[low], return arr[low].<br>
    * If <i>v</i> &ge; arr[high], return -1.<br>
@@ -440,8 +507,24 @@ public enum InequalitySearch {
     }
 
     @Override
-    int resolve(final int lo, final int hi, final int low, final int high) {
-      return (hi <= low) ? low : -1;
+    int resolve(final double[] arr, final int lo, final int hi, final double v) {
+      return (lo == hi)
+          ? (v < arr[lo] ? lo : -1)
+          : v < arr[lo] ? lo : (v < arr[hi] ? hi : -1);
+    }
+
+    @Override
+    int resolve(final float[] arr, final int lo, final int hi, final float v) {
+      return (lo == hi)
+          ? (v < arr[lo] ? lo : -1)
+          : v < arr[lo] ? lo : (v < arr[hi] ? hi : -1);
+    }
+
+    @Override
+    int resolve(final long[] arr, final int lo, final int hi, final long v) {
+      return (lo == hi)
+          ? (v < arr[lo] ? lo : -1)
+          : v < arr[lo] ? lo : (v < arr[hi] ? hi : -1);
     }
 
     @Override
@@ -554,17 +637,34 @@ public enum InequalitySearch {
   abstract int getIndex(long[] arr, int a, int b, long v);
 
   /**
-   * Called to resolve what to do if not found. In the search algorithm this occurs when the
-   * <i>lo</i> and <i>hi</i> indices become inverted at the ends of the array.
-   * This resolve method then determines what to do to resolve what to return based on the
-   * criterion.
+   * Called to resolve the search when the hi and lo pointers are equal or adjacent.
+   * @param arr the array being searched
    * @param lo the current lo value
    * @param hi the current hi value
-   * @param low the low index of the range
-   * @param high the high index of the range
+   * @param v the value being searched for
    * @return the index of the resolution or -1, if it cannot be resolved.
    */
-  abstract int resolve(int lo, int hi, int low, int high);
+  abstract int resolve(double[] arr, int lo, int hi, double v);
+
+  /**
+   * Called to resolve the search when the hi and lo pointers are equal or adjacent.
+   * @param arr the array being searched
+   * @param lo the current lo value
+   * @param hi the current hi value
+   * @param v the value being searched for
+   * @return the index of the resolution or -1, if it cannot be resolved.
+   */
+  abstract int resolve(float[] arr, int lo, int hi, float v);
+
+  /**
+   * Called to resolve the search when the hi and lo pointers are equal or adjacent.
+   * @param arr the array being searched
+   * @param lo the current lo value
+   * @param hi the current hi value
+   * @param v the value being searched for
+   * @return the index of the resolution or -1, if it cannot be resolved.
+   */
+  abstract int resolve(long[] arr, int lo, int hi, long v);
 
   /**
    * Optional call that describes the details of the results of the search.
@@ -607,30 +707,33 @@ public enum InequalitySearch {
    * the given InequalitySearch criterion.
    * If -1 is returned there are no values in the search range that satisfy the criterion.
    *
-   * @param arr the given array that must be sorted.
-   * It must not be null and must not contain any NaN values in the range {low, high} inclusive.
+   * @param arr the given array of comparable values that must be sorted with increasing values.
+   * The array must not be null and the values of the array must not be NaN in the range [low, high].
    * @param low the lowest index of the lowest value in the search range, inclusive.
    * @param high the highest index of the highest value in the search range, inclusive.
    * @param v the value to search for. It must not be NaN.
-   * @param crit one of LT, LE, EQ, GT, GE. It must not be null.
-   * @return the index of the value in the given search range that satisfies the criterion
+   * @param crit one of the InequalitySearch criteria: LT, LE, EQ, GT, GE. It must not be null.
+   * @return the index of the value in the given search range that satisfies the InequalitySearch criterion
    */
   public static int find(final double[] arr, final int low, final int high,
       final double v, final InequalitySearch crit) {
-    Objects.requireNonNull(arr, "Inpurt arr must not be null");
+    Objects.requireNonNull(arr, "Input arr must not be null");
     Objects.requireNonNull(crit, "Input crit must not be null");
+    if (arr.length == 0) { throw new SketchesArgumentException("Input array must not be empty."); }
     if (Double.isNaN(v)) { throw new SketchesArgumentException("Input v must not be NaN."); }
     int lo = low;
-    int hi = high - 1;
-    int ret;
+    int hi = high;
     while (lo <= hi) {
-      final int midA = lo + (hi - lo) / 2;
-      ret = crit.compare(arr, midA, midA + 1, v);
-      if (ret == -1 ) { hi = midA - 1; }
-      else if (ret == 1) { lo = midA + 1; }
-      else  { return crit.getIndex(arr, midA, midA + 1, v); }
+      if (hi - lo <= 1) {
+        return crit.resolve(arr, lo, hi, v);
+      }
+      final int mid = (lo + hi) / 2;
+      final int ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid; }
+      else if (ret == 1) { lo = mid + 1; }
+      else  { return crit.getIndex(arr, mid, mid + 1, v); }
     }
-    return crit.resolve(lo, hi, low, high);
+    return -1; //should never return here
   }
 
   /**
@@ -648,20 +751,23 @@ public enum InequalitySearch {
    */
   public static int find(final float[] arr, final int low, final int high,
       final float v, final InequalitySearch crit) {
-    Objects.requireNonNull(arr, "Inpurt arr must not be null");
+    Objects.requireNonNull(arr, "Input arr must not be null");
     Objects.requireNonNull(crit, "Input crit must not be null");
+    if (arr.length == 0) { throw new SketchesArgumentException("Input array must not be empty."); }
     if (Float.isNaN(v)) { throw new SketchesArgumentException("Input v must not be NaN."); }
     int lo = low;
-    int hi = high - 1;
-    int ret;
+    int hi = high;
     while (lo <= hi) {
-      final int mid = lo + (hi - lo) / 2;
-      ret = crit.compare(arr, mid, mid + 1, v);
-      if (ret == -1 ) { hi = mid - 1; }
+      if (hi - lo <= 1) {
+        return crit.resolve(arr, lo, hi, v);
+      }
+      final int mid = (lo + hi) / 2;;
+      final int ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid; }
       else if (ret == 1) { lo = mid + 1; }
       else  { return crit.getIndex(arr, mid, mid + 1, v); }
     }
-    return crit.resolve(lo, hi, low, high);
+    return -1; //should never return here
   }
 
   /**
@@ -678,18 +784,22 @@ public enum InequalitySearch {
    */
   public static int find(final long[] arr, final int low, final int high,
       final long v, final InequalitySearch crit) {
-    Objects.requireNonNull(arr, "Inpurt arr must not be null");
+    Objects.requireNonNull(arr, "Input arr must not be null");
     Objects.requireNonNull(crit, "Input crit must not be null");
+    if (arr.length == 0) { throw new SketchesArgumentException("Input array must not be empty."); }
     int lo = low;
-    int hi = high - 1;
-    int ret;
+    int hi = high;
     while (lo <= hi) {
-      final int mid = lo + (hi - lo) / 2;
-      ret = crit.compare(arr, mid, mid + 1, v);
-      if (ret == -1 ) { hi = mid - 1; }
+      if (hi - lo <= 1) {
+        return crit.resolve(arr, lo, hi, v);
+      }
+      final int mid = (lo + hi) / 2;;
+      final int ret = crit.compare(arr, mid, mid + 1, v);
+      if (ret == -1 ) { hi = mid; }
       else if (ret == 1) { lo = mid + 1; }
       else  { return crit.getIndex(arr, mid, mid + 1, v); }
     }
-    return crit.resolve(lo, hi, low, high);
+    return -1; //should never return here
   }
+
 } //End of enum

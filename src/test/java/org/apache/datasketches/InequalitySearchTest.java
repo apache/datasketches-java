@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-public class BinarySearchTest {
+public class InequalitySearchTest {
   static Random rand = new Random(1);
   private static final String LS = System.getProperty("line.separator");
 
@@ -389,93 +389,113 @@ public class BinarySearchTest {
 
   /****************/
 
-  @Test // visual only for doubles inequality
-  public void exerciseDblBinSearch() {
-    //                    0 1 2 3 4 5,6
-    final double[] arr = {1,1,3,3,4,5,5};
+  //@Test // visual only for doubles inequality
+  public void exerciseDoublesSearch() {
+    println("--------{1f}--------");
+    double[] arr = {1};
+    exerciseDoubles(arr);
+    println("------{1f, 1f}------");
+    arr = new double[] {1f, 1f};
+    exerciseDoubles(arr);
+    println("---------{1,1,1,2,2,2,3,4,4,4}--------");
+    //                 0 1 2 3 4 5 6 7 8 9
+    arr = new double[] {1,1,1,2,2,2,3,4,4,4};
+    exerciseDoubles(arr);
+  }
+
+  private void exerciseDoubles(final double[] arr) {
     checkFindDouble(arr, LT);
     checkFindDouble(arr, LE);
-    checkFindDouble(arr, GT);
+    checkFindDouble(arr, EQ);
     checkFindDouble(arr, GE);
+    checkFindDouble(arr, GT);
   }
 
   private static void checkFindDouble(final double[] arr, final InequalitySearch crit) {
     println("InequalitySearch: " + crit.name());
     final int len = arr.length;
-    for (double v = 0.5; v <= arr[len - 1] + 0.5; v += .5)
-    //final double v = 0.5;
-    {
+    for (double v = 0.5; v <= arr[len - 1] + 0.5; v += .5) {
       final int low = 0;
       final int high = len - 1;
       final int idx = InequalitySearch.find(arr, low, high, v, crit);
-      if (idx == -1) {
-        println(v + " Not resolved, return -1.");
-      }
-      else {
-        println(crit.desc(arr, low, high, v, idx));
-      }
+      println(crit.desc(arr, low, high, v, idx));
     }
     println("");
   }
 
-  @Test // visual only for floats inequality
-  public void exerciseFltBinSearch() {
-    //                   0 1 2 3 4 5 6 7 8 9
-    final float[] arr = {5,5,5,6,6,6,7,8,8,8};
+  /****************/
+
+  //@Test // visual only for floats inequality
+  public void exerciseFloatsSearch() {
+    println("--------{1f}--------");
+    float[] arr = {1f};
+    exerciseFloats(arr);
+    println("------{1f, 1f}------");
+    arr = new float[] {1f, 1f};
+    exerciseFloats(arr);
+    println("---------{1,1,1,2,2,2,3,4,4,4}--------");
+    //                 0 1 2 3 4 5 6 7 8 9
+    arr = new float[] {1,1,1,2,2,2,3,4,4,4};
+    exerciseFloats(arr);
+  }
+
+  private void exerciseFloats(final float[] arr) {
     checkFindFloat(arr, LT);
     checkFindFloat(arr, LE);
-    checkFindFloat(arr, GT);
+    checkFindFloat(arr, EQ);
     checkFindFloat(arr, GE);
+    checkFindFloat(arr, GT);
   }
 
   private static void checkFindFloat(final float[] arr, final InequalitySearch crit) {
     println("InequalitySearch: " + crit.name());
     final int len = arr.length;
-    for (float v = 0.5f; v <= arr[len - 1] + 0.5f; v += 0.5f)
-    //final double v = 0.5;
-    {
+    for (float v = 0.5f; v <= arr[len - 1] + 0.5f; v += 0.5f) {
       final int low = 0;
       final int high = len - 1;
       final int idx = InequalitySearch.find(arr, low, high, v, crit);
-      if (idx == -1) {
-        println("LT: " + v + " Not resolved, return -1.");
-      }
-      else {
-        println(crit.desc(arr, low, high, v, idx));
-      }
+      println(crit.desc(arr, low, high, v, idx));
     }
     println("");
-  }
-
-  @Test // visual only for longs inequality
-  public void exerciseLongBinSearch() {
-    //                   0 1 2 3 4 5 6 7  8  9
-    final long[] arr =  {5,5,5,7,7,7,9,11,11,11};
-    checkFindLong(arr, LT);
-    checkFindLong(arr, LE);
-    checkFindLong(arr, GT);
-    checkFindLong(arr, GE);
   }
 
   /****************/
 
+  //@Test // visual only for longs inequality
+  public void exerciseLongsSearch() {
+    println("--------{1}--------");
+    long[] arr = {1};
+    exerciseLongs(arr);
+    println("------{1, 1}------");
+    arr = new long[] {1, 1};
+    exerciseLongs(arr);
+    println("--------{1,1,1,2,2,2,3,4,4,4}--------");
+    //                0 1 2 3 4 5 6 7 8 9
+    arr = new long[] {1,1,1,2,2,2,3,4,4,4};
+    exerciseLongs(arr);
+  }
+
+  private void exerciseLongs(final long[] arr) {
+    checkFindLong(arr, LT);
+    checkFindLong(arr, LE);
+    checkFindLong(arr, EQ);
+    checkFindLong(arr, GE);
+    checkFindLong(arr, GT);
+  }
+
   private static void checkFindLong(final long[] arr, final InequalitySearch crit) {
     println("InequalitySearch: " + crit.name());
     final int len = arr.length;
-    for (long v = 1L; v <= arr[len - 1] + 1L; v++)
-    {
+    for (long v = 0L; v <= arr[len - 1] + 1L; v++) {
       final int low = 0;
       final int high = len - 1;
       final int idx = InequalitySearch.find(arr, low, high, v, crit);
-      if (idx == -1) {
-        println("LT: " + v + " Not resolved, return -1.");
-      }
-      else {
-        println(crit.desc(arr, low, high, v, idx));
-      }
+      println(crit.desc(arr, low, high, v, idx));
     }
     println("");
   }
+
+  /****************/
 
   //test equality binary searches
 
@@ -542,18 +562,20 @@ public class BinarySearchTest {
     }
   }
 
+  private final static boolean enablePrinting = false;
+
   /**
    * @param format the format
    * @param args the args
    */
-  static final void printf(final String format, final Object ...args) {
-    //System.out.printf(format, args);
+  private static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
-   * @param o the Object to print
+   * @param o the Object to println
    */
-  static final void println(final Object o) {
-    //System.out.println(o.toString());
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 }
