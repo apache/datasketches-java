@@ -288,7 +288,7 @@ public final class ItemsSketch<T> {
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
-    return classicQisSV.getPmfOrCdf(splitPoints, true, searchCrit);
+    return classicQisSV.getCDF(splitPoints, searchCrit);
   }
 
   /**
@@ -327,7 +327,7 @@ public final class ItemsSketch<T> {
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
-    return classicQisSV.getPmfOrCdf(splitPoints, false, searchCrit);
+    return classicQisSV.getPMF(splitPoints, searchCrit);
   }
 
   /**

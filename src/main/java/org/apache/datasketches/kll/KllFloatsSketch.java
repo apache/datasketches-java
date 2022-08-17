@@ -225,7 +225,7 @@ public abstract class KllFloatsSketch extends KllSketch {
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return kllFloatsSV.getPmfOrCdf(splitPoints, true, searchCrit);
+    return kllFloatsSV.getCDF(splitPoints, searchCrit);
   }
 
   /**
@@ -264,7 +264,7 @@ public abstract class KllFloatsSketch extends KllSketch {
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return kllFloatsSV.getPmfOrCdf(splitPoints, false, searchCrit);
+    return kllFloatsSV.getPMF(splitPoints, searchCrit);
   }
 
   /**

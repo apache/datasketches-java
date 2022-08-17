@@ -47,28 +47,42 @@ public interface GenericSortedView<T> extends SortedView {
    * Returns an array of values where each value is a number in the range [0.0, 1.0].
    * The size of this array is one larger than the size of the input splitPoints array.
    *
-   * <p>If <i>isCdf</i> is true, the points in the returned array are monotonically increasing and end with the
+   * <p>The points in the returned array are monotonically increasing and end with the
    * value 1.0. Each value represents a point along the cumulative distribution function that approximates
    * the CDF of the input data stream. Therefore, each point represents the fractional density of the distribution
-   * from zero to the given point. For example, if one of the returned values is 0.5, then the splitPoint
-   * corresponding to that value would be the median of the distribution.</p>
+   * from zero to the given point. For example, if one of the returned values is 0.5, then the splitPoint corresponding
+   * to that value would be the median of the distribution.</p>
    *
-   * <p>If <i>isCdf</i> is false, the points in the returned array are not monotonic and represent the discrete
-   * derivative of the CDF, or the Probability Mass Function (PMF). Each returned point represents the fractional
+   * @param splitPoints the given array of quantile values or splitPoints. This is a sorted, monotonic array of unique
+   * values in the range of (minValue, maxValue). This array should not include either the minValue or the maxValue.
+   * The returned array will have one extra interval representing the very top of the distribution.
+   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * the top value retained by the sketch.
+   * @return an array of points that correspond to the given splitPoints, and represents the input data distribution
+   * as a CDF.
+   */
+  double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
+
+  /**
+   * Returns an array of values where each value is a number in the range [0.0, 1.0].
+   * The size of this array is one larger than the size of the input splitPoints array.
+   *
+   * <p>The points in the returned array are not monotonic and represent the discrete derivative of the CDF,
+   * which is also called the Probability Mass Function (PMF). Each returned point represents the fractional
    * area of the total distribution which lies between the previous point (or zero) and the given point, which
    * corresponds to the given splitPoint.<p>
    *
-   * @param splitPoints the given array of quantile items or splitPoints. This is a sorted, unique, monotonic array
-   * of items in the range of (minValue, maxValue). This array should not include either the minValue or the maxValue.
+   * @param splitPoints the given array of quantile values or splitPoints. This is a sorted, monotonic array of unique
+   * values in the range of (minValue, maxValue). This array should not include either the minValue or the maxValue.
    * The returned array will have one extra interval representing the very top of the distribution.
-   * @param isCdf if true, a CDF will be returned, otherwise, a PMF will be returned.
-   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its top item and exclude its
-   * bottom item. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
-   * the top item retained by the sketch.
-   * @return an array of points that correspond to the given splitPoints, and represents the data distribution
-   * as a CDF or PMF.
+   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its top value and exclude its
+   * bottom value. Otherwise, it will be the reverse.  The only exception is that the top portion will always include
+   * the top value retained by the sketch.
+   * @return an array of points that correspond to the given splitPoints, and represents the input data distribution
+   * as a PMF.
    */
-  double[] getPmfOrCdf(T[] splitPoints, boolean isCdf, QuantileSearchCriteria searchCrit);
+  double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
 
   /**
    * Returns the array of items.

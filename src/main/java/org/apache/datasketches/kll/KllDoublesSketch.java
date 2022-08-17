@@ -225,7 +225,7 @@ public abstract class KllDoublesSketch extends KllSketch {
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return kllDoublesSV.getPmfOrCdf(splitPoints, true, searchCrit);
+    return kllDoublesSV.getCDF(splitPoints, searchCrit);
   }
 
   /**
@@ -264,7 +264,7 @@ public abstract class KllDoublesSketch extends KllSketch {
   public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return kllDoublesSV.getPmfOrCdf(splitPoints, false, searchCrit);
+    return kllDoublesSV.getPMF(splitPoints, searchCrit);
   }
 
   /**

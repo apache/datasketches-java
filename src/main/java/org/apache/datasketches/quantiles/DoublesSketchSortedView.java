@@ -106,7 +106,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public double[] getPmfOrCdf(final double[] splitPoints, final boolean isCdf, final QuantileSearchCriteria searchCrit) {
+  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     Util.checkSplitPointsOrder(splitPoints);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -114,8 +114,14 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
       buckets[i] = getRank(splitPoints[i], searchCrit);
     }
     buckets[len - 1] = 1.0;
-    if (isCdf) { return buckets; }
-    for (int i = len; i-- > 1;) {
+    return buckets;
+  }
+
+  @Override
+  public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    final double[] buckets = getCDF(splitPoints, searchCrit);
+    final int len = buckets.length;
+    for (int i = len; i-- > 1; ) {
       buckets[i] -= buckets[i - 1];
     }
     return buckets;

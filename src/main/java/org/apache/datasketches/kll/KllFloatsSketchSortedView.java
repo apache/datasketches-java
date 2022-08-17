@@ -101,7 +101,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   }
 
   @Override
-  public double[] getPmfOrCdf(final float[] splitPoints, final boolean isCdf, final QuantileSearchCriteria searchCrit) {
+  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     validateFloatValues(splitPoints);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -109,8 +109,14 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
       buckets[i] = getRank(splitPoints[i], searchCrit);
     }
     buckets[len - 1] = 1.0;
-    if (isCdf) { return buckets; }
-    for (int i = len; i-- > 1;) {
+    return buckets;
+  }
+
+  @Override
+  public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    final double[] buckets = getCDF(splitPoints, searchCrit);
+    final int len = buckets.length;
+    for (int i = len; i-- > 1; ) {
       buckets[i] -= buckets[i - 1];
     }
     return buckets;

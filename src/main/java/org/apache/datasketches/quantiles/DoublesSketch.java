@@ -251,7 +251,7 @@ public abstract class DoublesSketch {
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return classicQdsSV.getPmfOrCdf(splitPoints, true, searchCrit);
+    return classicQdsSV.getCDF(splitPoints, searchCrit);
   }
 
   /**
@@ -290,7 +290,7 @@ public abstract class DoublesSketch {
   public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return classicQdsSV.getPmfOrCdf(splitPoints, false, searchCrit);
+    return classicQdsSV.getPMF(splitPoints, searchCrit);
   }
 
   /**

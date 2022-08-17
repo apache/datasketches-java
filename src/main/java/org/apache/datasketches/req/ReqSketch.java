@@ -236,7 +236,7 @@ public class ReqSketch extends BaseReqSketch {
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
-    return reqSV.getPmfOrCdf(splitPoints, true, searchCrit);
+    return reqSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
@@ -268,7 +268,7 @@ public class ReqSketch extends BaseReqSketch {
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return reqSV.getPmfOrCdf(splitPoints, false, searchCrit);
+    return reqSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
