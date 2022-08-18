@@ -20,7 +20,6 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,7 +88,6 @@ public class ReqSketch extends BaseReqSketch {
   private final int k; //default is 12 (1% @ 95% Conf)
   private final boolean hra; //default is true
   //state variables
-  private boolean ltEq = false; //default: LT, can be set after construction
   private long totalN = 0;
   private float minValue = Float.NaN;
   private float maxValue = Float.NaN;
@@ -147,7 +145,6 @@ public class ReqSketch extends BaseReqSketch {
     maxNomSize = other.maxNomSize;
     minValue = other.minValue;
     maxValue = other.maxValue;
-    ltEq = other.ltEq;
     reqDebug = other.reqDebug;
     reqSV = null;
 
@@ -229,7 +226,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getCDF(final float[] splitPoints) {
-    return getCDF(splitPoints, QuantileSearchCriteria.EXCLUSIVE);
+    return getCDF(splitPoints, QuantileSearchCriteria.INCLUSIVE);
   }
 
   @Override
@@ -261,7 +258,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getPMF(final float[] splitPoints) {
-    return getPMF(splitPoints, ltEq == true ? INCLUSIVE : EXCLUSIVE);
+    return getPMF(splitPoints, INCLUSIVE);
   }
 
   @Override
@@ -273,7 +270,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getQuantile(final double normRank) {
-    return getQuantile(normRank, ltEq == true ? INCLUSIVE : EXCLUSIVE );
+    return getQuantile(normRank, INCLUSIVE );
   }
 
   @Override
@@ -289,7 +286,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public float[] getQuantiles(final double[] normRanks) {
-    return getQuantiles(normRanks, ltEq == true ? INCLUSIVE : EXCLUSIVE);
+    return getQuantiles(normRanks, INCLUSIVE);
   }
 
   @Override
@@ -306,7 +303,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double getRank(final float value) {
-    return getRank(value, ltEq == true ? INCLUSIVE : EXCLUSIVE);
+    return getRank(value, INCLUSIVE);
   }
 
   @Override
@@ -323,7 +320,7 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getRanks(final float[] values) {
-    return getRanks(values, ltEq == true ? INCLUSIVE : EXCLUSIVE);
+    return getRanks(values, INCLUSIVE);
   }
 
   @Override
@@ -374,11 +371,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public boolean isLessThanOrEqual() {
-    return ltEq;
-  }
-
-  @Override
   public ReqIterator iterator() {
     return new ReqIterator(this);
   }
@@ -424,12 +416,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public ReqSketch setLessThanOrEqual(final boolean ltEq) {
-    this.ltEq = ltEq;
-    return this;
-  }
-
-  @Override
   public byte[] toByteArray() {
     return ReqSerDe.toByteArray(this);
   }
@@ -444,7 +430,6 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("  Min Value       : " + minValue).append(LS);
     sb.append("  Max Value       : " + maxValue).append(LS);
     sb.append("  Estimation Mode : " + isEstimationMode()).append(LS);
-    sb.append("  LtEQ            : " + ltEq).append(LS);
     sb.append("  High Rank Acc   : " + hra).append(LS);
     sb.append("  Levels          : " + compactors.size()).append(LS);
     sb.append("************************End Summary************************").append(LS);
@@ -514,15 +499,6 @@ public class ReqSketch extends BaseReqSketch {
 
   int getK() {
     return k;
-  }
-
-  /**
-   * @return ltEq flag
-   * @deprecated
-   */
-  @Deprecated
-  boolean getLtEq() {
-    return ltEq;
   }
 
   int getMaxNomSize() {

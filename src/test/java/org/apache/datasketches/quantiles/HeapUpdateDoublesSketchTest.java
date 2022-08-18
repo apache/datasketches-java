@@ -124,24 +124,24 @@ public class HeapUpdateDoublesSketchTest {
       qs2.update(10+i);
       qs3.update(i);
     }
-    assert (qs1.getQuantile (0.0) == 1.0);
-    assert (qs1.getQuantile (0.5) == 5.0);
-    assert (qs1.getQuantile (1.0) == 8.0);
+    assertEquals(qs1.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs1.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs1.getQuantile (1.0, EXCLUSIVE), Double.NaN);
 
-    assert (qs2.getQuantile (0.0) == 11.0);
-    assert (qs2.getQuantile (0.5) == 15.0);
-    assert (qs2.getQuantile (1.0) == 18.0);
+    assertEquals(qs2.getQuantile (0.0, EXCLUSIVE), 11.0);
+    assertEquals(qs2.getQuantile (0.5, EXCLUSIVE), 15.0);
+    assertEquals(qs2.getQuantile (1.0, EXCLUSIVE), Double.NaN);
 
-    assert (qs3.getQuantile (0.0) == 1.0);
-    assert (qs3.getQuantile (0.5) == 5.0);
-    assert (qs3.getQuantile (1.0) == 8.0);
+    assertEquals(qs3.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs3.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), Double.NaN);
 
     double[] queries = {0.0, 0.5, 1.0};
 
-    double[] resultsA = qs1.getQuantiles(queries);
-    assert (resultsA[0] == 1.0);
-    assert (resultsA[1] == 5.0);
-    assert (resultsA[2] == 8.0);
+    double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsA[0], 1.0);
+    assertEquals(resultsA[1], 5.0);
+    assertEquals(resultsA[2], Double.NaN);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
@@ -151,15 +151,15 @@ public class HeapUpdateDoublesSketchTest {
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
-    double[] resultsB = result1.getQuantiles(queries);
-    assert (resultsB[0] == 1.0);
-    assert (resultsB[1] == 11.0);
-    assert (resultsB[2] == 18.0);
+    double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsB[0], 1.0);
+    assertEquals(resultsB[1], 11.0);
+    assertEquals(resultsB[2], Double.NaN);
 
-    double[] resultsC = result2.getQuantiles(queries);
-    assert (resultsC[0] == 1.0);
-    assert (resultsC[1] == 11.0);
-    assert (resultsC[2] == 18.0);
+    double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsC[0], 1.0);
+    assertEquals(resultsC[1], 11.0);
+    assertEquals(resultsC[2], Double.NaN);
   }
 
   @Test
@@ -956,24 +956,24 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch.getN(), 10);
     assertEquals(sketch.getRetainedItems(), 10);
     for (int i = 1; i <= 10; i++) {
-      assertEquals(sketch.getRank(i), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
     // inclusive = false (default)
-    assertEquals(sketch.getQuantile(0), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1), 2);
-    assertEquals(sketch.getQuantile(0.2), 3);
-    assertEquals(sketch.getQuantile(0.3), 4);
-    assertEquals(sketch.getQuantile(0.4), 5);
-    assertEquals(sketch.getQuantile(0.5), 6);
-    assertEquals(sketch.getQuantile(0.6), 7);
-    assertEquals(sketch.getQuantile(0.7), 8);
-    assertEquals(sketch.getQuantile(0.8), 9);
-    assertEquals(sketch.getQuantile(0.9), 10);
-    assertEquals(sketch.getQuantile(1), 10); // always max value
+    assertEquals(sketch.getQuantile(0, EXCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.1, EXCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.2, EXCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.3, EXCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.4, EXCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.6, EXCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
+    assertEquals(sketch.getQuantile(1, EXCLUSIVE), Double.NaN);
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1); // always min value
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
     assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
@@ -983,7 +983,7 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
     assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
     assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
-    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10); // always max value
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10);
 
     // getQuantile() and getQuantiles() equivalence
     {

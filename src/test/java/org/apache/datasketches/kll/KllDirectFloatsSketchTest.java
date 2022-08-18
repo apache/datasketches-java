@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -78,11 +79,11 @@ public class KllDirectFloatsSketchTest {
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getRank(1), 0.0);
-    assertEquals(sketch.getRank(2), 1.0);
+    assertEquals(sketch.getRank(1, EXCLUSIVE), 0.0);
+    assertEquals(sketch.getRank(2, EXCLUSIVE), 1.0);
     assertEquals(sketch.getMinValue(), 1f);
     assertEquals(sketch.getMaxValue(), 1f);
-    assertEquals(sketch.getQuantile(0.5), 1f);
+    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 1f);
   }
 
   @Test
@@ -427,12 +428,12 @@ public class KllDirectFloatsSketchTest {
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
-    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
-    final float[] quantiles2 = sketch.getQuantiles(3);
+    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1}, EXCLUSIVE);
+    final float[] quantiles2 = sketch.getQuantiles(3, EXCLUSIVE);
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1f);
     assertEquals(quantiles1[1], 2f);
-    assertEquals(quantiles1[2], 3f);
+    assertEquals(quantiles1[2], Float.NaN);
   }
 
   @Test

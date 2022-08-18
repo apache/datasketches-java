@@ -80,15 +80,15 @@ public class KllFloatsSketchTest {
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getRank(1f), 0.0);
-    assertEquals(sketch.getRank(2), 1.0);
+    assertEquals(sketch.getRank(1f, EXCLUSIVE), 0.0);
+    assertEquals(sketch.getRank(2, EXCLUSIVE), 1.0);
     assertEquals(sketch.getRank(1, EXCLUSIVE), 0.0);
     assertEquals(sketch.getRank(2, EXCLUSIVE), 1.0);
     assertEquals(sketch.getRank(0, INCLUSIVE), 0.0);
     assertEquals(sketch.getRank(1, INCLUSIVE), 1.0);
     assertEquals(sketch.getMinValue(), 1f);
     assertEquals(sketch.getMaxValue(), 1f);
-    assertEquals(sketch.getQuantile(0.5), 1f);
+    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 1f);
   }
 
   @Test
@@ -99,22 +99,21 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getN(), 10);
     assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
-      assertEquals(sketch.getRank(i), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
     }
     // inclusive = false (default)
-    assertEquals(sketch.getQuantile(0), 1);
-    assertEquals(sketch.getQuantile(0.1), 2);
-    assertEquals(sketch.getQuantile(0.2), 3);
-    assertEquals(sketch.getQuantile(0.3), 4);
-    assertEquals(sketch.getQuantile(0.4), 5);
-    assertEquals(sketch.getQuantile(0.5), 6);
-    assertEquals(sketch.getQuantile(0.6), 7);
-    assertEquals(sketch.getQuantile(0.7), 8);
-    assertEquals(sketch.getQuantile(0.8), 9);
-    assertEquals(sketch.getQuantile(0.9), 10);
-    assertEquals(sketch.getQuantile(1), 10);
+    assertEquals(sketch.getQuantile(0, EXCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.1, EXCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.2, EXCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.3, EXCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.4, EXCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.6, EXCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
+    assertEquals(sketch.getQuantile(1, EXCLUSIVE), Float.NaN);
     // inclusive = true
     assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
@@ -130,15 +129,15 @@ public class KllFloatsSketchTest {
 
     // getQuantile() and getQuantiles() equivalence
     {
-      // inclusive = false (default)
+      // exclusive
       final float[] quantiles =
           sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
-      for (int i = 0; i <= 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0), quantiles[i]);
+      for (int i = 0; i < 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0, EXCLUSIVE), quantiles[i + 1]);
       }
     }
     {
-      // inclusive = true
+      // inclusive
       final float[] quantiles =
           sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
@@ -464,12 +463,12 @@ public class KllFloatsSketchTest {
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
-    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
-    final float[] quantiles2 = sketch.getQuantiles(3);
+    final float[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1}, EXCLUSIVE);
+    final float[] quantiles2 = sketch.getQuantiles(3, EXCLUSIVE);
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1f);
     assertEquals(quantiles1[1], 2f);
-    assertEquals(quantiles1[2], 3f);
+    assertEquals(quantiles1[2], Float.NaN);
   }
 
   @Test

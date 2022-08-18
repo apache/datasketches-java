@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class AccuracyTest {
-  static Random rand = new Random();
+  static Random rand = new Random(1);
 
   @Test
   public void baseTest() {

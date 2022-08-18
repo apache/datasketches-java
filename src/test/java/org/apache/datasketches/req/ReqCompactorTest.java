@@ -42,8 +42,7 @@ public class ReqCompactorTest {
   public void checkGetters() {
     final boolean up = true;
     final boolean hra = true;
-    final boolean ltEq = true;
-    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  ltEq, 0);
+    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra, 0);
     final ReqCompactor c = sk.getCompactors().get(0);
 
     c.getCoin();

@@ -33,7 +33,7 @@ import org.apache.datasketches.QuantileSearchCriteria;
 abstract class BaseReqSketch {
 
   /**
-   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(float[] splitPoints, QuantileSearchCriteria)}
+   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(float[] splitPoints, INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return CDF
    */
@@ -55,7 +55,7 @@ abstract class BaseReqSketch {
    * the largest value retained by the sketch.
    * It is not necessary to include either the min or max values in these split points.
    *
-   * @param searchCrit if true, the weight of a given value is included into its rank.
+   * @param searchCrit if INCLUSIVE, the weight of a given value is included into its rank.
    *
    * @return an array of m+1 double values, which are a consecutive approximation to the CDF
    * of the input stream given the splitPoints. The value at array position j of the returned
@@ -129,7 +129,7 @@ abstract class BaseReqSketch {
   public abstract double[] getPMF(float[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(float[] splitPoints, QuantileSearchCriteria)}
+   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(float[] splitPoints, INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return PMF
    */
@@ -146,7 +146,7 @@ abstract class BaseReqSketch {
   public abstract float getQuantile(double normRank, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(double fraction, QuantileSearchCriteria)}
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(double fraction, INCLUSIVE)}
    * @param normRank fractional rank
    * @return quantile
    */
@@ -162,8 +162,7 @@ abstract class BaseReqSketch {
   public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria)
-   * getQuantiles(double[] fractions, QuantileSearchCriteria)}
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(double[] fractions, INCLUSIVE)}
    * @param normRanks normalized ranks
    * @return quantiles
    */
@@ -180,7 +179,7 @@ abstract class BaseReqSketch {
   public abstract double getRank(float value, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(float value, QuantileSearchCriteria)}
+   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(float value, INCLUSIVE)}
    * @param value value to be ranked
    * @return normalized rank
    */
@@ -204,7 +203,7 @@ abstract class BaseReqSketch {
   public abstract double[] getRanks(float[] values, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(float[] values, QuantileSearchCriteria)}
+   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(float[] values, INCLUSIVE)}
    * @param values the given array of values to be ranked
    * @return array of normalized ranks
    */
@@ -249,16 +248,6 @@ abstract class BaseReqSketch {
   public abstract boolean isEstimationMode();
 
   /**
-   * Returns the current comparison criterion. If true the value comparison criterion is
-   * &le;, otherwise it will be the default, which is &lt;.
-   * @return the current comparison criterion
-   * @deprecated in the future the ltEq comparison parameter will not be saved at the class level in preference to
-   * the comparison parameter being specified for each API call. This method will be removed.
-   */
-  @Deprecated
-  public abstract boolean isLessThanOrEqual();
-
-  /**
    * Returns an iterator for all the values in this sketch.
    * @return an iterator for all the values in this sketch.
    */
@@ -278,19 +267,6 @@ abstract class BaseReqSketch {
    * @return this
    */
   public abstract ReqSketch reset();
-
-  /**
-   * Sets the chosen criterion for value comparison
-   * @param ltEq (Less-than-or Equals) If true, the sketch will use the &le; criterion for comparing
-   * values.  Otherwise, the criterion is strictly &lt;, the default.
-   * This can be set anytime prior to a <i>getRank(float)</i> or <i>getQuantile(double)</i> or
-   * equivalent query.
-   * @return this
-   * @deprecated 4.0.0. In the future the ltEq comparison parameter will not be saved at the class level in preference to
-   * the comparison parameter being specified for each API call. This method will be removed.
-   */
-  @Deprecated
-  public abstract ReqSketch setLessThanOrEqual(final boolean ltEq);
 
   /**
    * Returns a byte array representation of this sketch.

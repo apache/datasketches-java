@@ -45,10 +45,8 @@ public enum QuantileSearchCriteria {
    * Given rank <i>r</i>, return the quantile of the smallest rank that is
    * strictly greater than <i>r</i>.
    *
-   * <p>If the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
-   * the method will return the largest quantile value retained by the sketch as a convenience.
-   * This is not strictly mathematically correct, but very convenient as it is most often what we expect and
-   * avoids having to return a <i>NaN</i> or <i>null</i>.</p>
+   * <p>However, if the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
+   * the method will return a <i>NaN</i> or <i>null</i>.</p>
    *
    * <p><b>Definition of EXCLUSIVE <i>getRank(q)</i> search:</b><br>
    * Given quantile <i>q</i>, return the rank, <i>r</i>, of the largest quantile that is
@@ -58,19 +56,6 @@ public enum QuantileSearchCriteria {
    * the method will return a rank of zero.</p>
    *
    */
-  EXCLUSIVE,
-
-  /**
-   * <b>Definition of EXCLUSIVE_STRICT <i>getQuantile(r)</i> search:</b><br>
-   * Given rank <i>r</i>, return the quantile of the smallest rank that is
-   * strictly greater than <i>r</i>.
-   *
-   * <p>If the given rank is is equal to 1.0, or there is no quantile that satisfies this criterion
-   * the method will return a <i>NaN</i> or <i>null</i>.</p>
-   *
-   * <p><b>Definition of EXCLUSIVE_STRICT <i>getRank(q)</i> search:</b><br>
-   * This is identical to the EXCLUSIVE <i>getRank(q)</i> search.
-   */
-  EXCLUSIVE_STRICT,
+  EXCLUSIVE
 }
 

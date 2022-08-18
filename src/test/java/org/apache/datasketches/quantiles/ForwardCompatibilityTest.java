@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.Util.getResourceBytes;
 
 import org.apache.datasketches.memory.Memory;
@@ -123,14 +124,14 @@ public class ForwardCompatibilityTest {
     // heapify as update sketch
     DoublesSketch qs2 = UpdateDoublesSketch.heapify(srcMem);
     //Test the quantile
-    double q2 = qs2.getQuantile(nf);
+    double q2 = qs2.getQuantile(nf, EXCLUSIVE);
     println("New Median: " + q2);
     Assert.assertEquals(q2, quantile, 0.0);
 
     // same thing with compact sketch
     qs2 = CompactDoublesSketch.heapify(srcMem);
     //Test the quantile
-    q2 = qs2.getQuantile(nf);
+    q2 = qs2.getQuantile(nf, EXCLUSIVE);
     println("New Median: " + q2);
     Assert.assertEquals(q2, quantile, 0.0);
   }

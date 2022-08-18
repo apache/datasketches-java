@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
@@ -190,12 +190,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   public float getMinValue() { return getMinFloatValue(); }
 
   /**
-   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(splitPoints, EXCLUSIVE)}
+   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return CDF
    */
   public double[] getCDF(final float[] splitPoints) {
-    return getCDF(splitPoints, EXCLUSIVE);
+    return getCDF(splitPoints, INCLUSIVE);
   }
 
   /**
@@ -229,12 +229,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(splitPoints, EXCLUSIVE)}
+   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return PMF
    */
   public double[] getPMF(final float[] splitPoints) {
-    return getPMF(splitPoints, EXCLUSIVE);
+    return getPMF(splitPoints, INCLUSIVE);
   }
 
   /**
@@ -268,13 +268,13 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, EXCLUSIVE)}
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank  the given normalized rank, a value in the interval [0.0,1.0].
    * @return quantile
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public float getQuantile(final double rank) {
-    return getQuantile(rank, EXCLUSIVE);
+    return getQuantile(rank, INCLUSIVE);
   }
 
   /**
@@ -298,13 +298,13 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, EXCLUSIVE)}
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
    * @param ranks normalied ranks on the interval [0.0, 1.0].
    * @return quantiles
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public float[] getQuantiles(final double[] ranks) {
-    return getQuantiles(ranks, EXCLUSIVE);
+    return getQuantiles(ranks, INCLUSIVE);
   }
 
   /**
@@ -334,14 +334,14 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, EXCLUSIVE)}
+   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
    * @param numEvenlySpaced number of evenly spaced normalied ranks
    * @return array of quantiles.
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public float[] getQuantiles(final int numEvenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), EXCLUSIVE);
+    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), INCLUSIVE);
   }
 
   /**
@@ -390,12 +390,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(value, EXCLUSIVE)}
+   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(value, INCLUSIVE)}
    * @param value value to be ranked
    * @return normalized rank
    */
   public double getRank(final float value) {
-    return getRank(value, EXCLUSIVE);
+    return getRank(value, INCLUSIVE);
   }
 
   /**
@@ -418,12 +418,12 @@ public abstract class KllFloatsSketch extends KllSketch {
   }
 
   /**
-   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(values, EXCLUSIVE)}
+   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(values, INCLUSIVE)}
    * @param values array of values to be ranked.
    * @return the array of normalized ranks.
    */
   public double[] getRanks(final float[] values) {
-    return getRanks(values, EXCLUSIVE);
+    return getRanks(values, INCLUSIVE);
   }
 
   /**

@@ -21,7 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
@@ -253,12 +253,12 @@ public final class ItemsSketch<T> {
   public T getMinValue() { return minValue_; }
 
   /**
-   * Same as {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(double[] splitPoints, false)}
+   * Same as {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(double[] splitPoints, INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return CDF
    */
   public double[] getCDF(final T[] splitPoints) {
-    return getCDF(splitPoints, EXCLUSIVE);
+    return getCDF(splitPoints, INCLUSIVE);
   }
 
   /**
@@ -277,7 +277,7 @@ public final class ItemsSketch<T> {
    * the largest value.
    * It is not necessary to include either the minimum or maximum items in these split points.
    *
-   * @param searchCrit if true the weight of the given item is included into the rank.
+   * @param searchCrit if INCLUSIVE the weight of the given item is included into the rank.
    * Otherwise the rank equals the sum of the weights of all items that are less than the given item.
    *
    * @return an array of m+1 double values on the interval [0.0, 1.0),
@@ -292,12 +292,12 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(double[] splitPoints, false)}
+   * Same as {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(double[] splitPoints, INCLUSIVE)}
    * @param splitPoints splitPoints
    * @return PMF
    */
   public double[] getPMF(final T[] splitPoints) {
-    return getPMF(splitPoints, EXCLUSIVE);
+    return getPMF(splitPoints, INCLUSIVE);
   }
 
   /**
@@ -331,13 +331,13 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, EXCLUSIVE)}
+   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank the given normalized rank, a value in the interval [0.0,1.0].
    * @return quantile
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public T getQuantile(final double rank) {
-    return getQuantile(rank, EXCLUSIVE);
+    return getQuantile(rank, INCLUSIVE);
   }
 
   /**
@@ -358,13 +358,13 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, EXCLUSIVE)}
+   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
    * @param ranks normalied ranks on the interval [0.0, 1.0].
    * @return quantiles
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public T[] getQuantiles(final double[] ranks) {
-    return getQuantiles(ranks, EXCLUSIVE);
+    return getQuantiles(ranks, INCLUSIVE);
   }
 
   /**
@@ -394,13 +394,13 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, EXCLUSIVE)}
+   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
    * @param numEvenlySpaced number of evenly spaced normalied ranks
    * @return array of quantiles.
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
   public T[] getQuantiles(final int numEvenlySpaced) {
-    return getQuantiles(numEvenlySpaced, EXCLUSIVE);
+    return getQuantiles(numEvenlySpaced, INCLUSIVE);
   }
 
   /**
@@ -448,12 +448,12 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getRank(Object, QuantileSearchCriteria) getRank(value, EXCLUSIVE)}
+   * Same as {@link #getRank(Object, QuantileSearchCriteria) getRank(value, INCLUSIVE)}
    * @param item item to be ranked
    * @return normalized rank
    */
   public double getRank(final T item) {
-    return getRank(item, EXCLUSIVE);
+    return getRank(item, INCLUSIVE);
   }
 
   /**
@@ -473,12 +473,12 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(items, EXCLUSIVE)}
+   * Same as {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(items, INCLUSIVE)}
    * @param items array of items to be ranked.
    * @return the array of normalized ranks.
    */
   public double[] getRanks(final T[] items) {
-    return getRanks(items, EXCLUSIVE);
+    return getRanks(items, INCLUSIVE);
   }
 
   /**

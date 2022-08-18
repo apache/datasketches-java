@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.quantiles.Util.LS;
 import static org.testng.Assert.assertEquals;
@@ -54,24 +55,24 @@ public class DirectUpdateDoublesSketchTest {
       qs2.update(10+i);
       qs3.update(i);
     }
-    assert (qs1.getQuantile (0.0) == 1.0);
-    assert (qs1.getQuantile (0.5) == 5.0);
-    assert (qs1.getQuantile (1.0) == 8.0);
+    assertEquals(qs1.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs1.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs1.getQuantile (1.0, EXCLUSIVE), Double.NaN);
 
-    assert (qs2.getQuantile (0.0) == 11.0);
-    assert (qs2.getQuantile (0.5) == 15.0);
-    assert (qs2.getQuantile (1.0) == 18.0);
+    assertEquals(qs2.getQuantile (0.0, EXCLUSIVE), 11.0);
+    assertEquals(qs2.getQuantile (0.5, EXCLUSIVE), 15.0);
+    assertEquals(qs2.getQuantile (1.0, EXCLUSIVE), Double.NaN);
 
-    assert (qs3.getQuantile (0.0) == 1.0);
-    assert (qs3.getQuantile (0.5) == 5.0);
-    assert (qs3.getQuantile (1.0) == 8.0);
+    assertEquals(qs3.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs3.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), Double.NaN);
 
     double[] queries = {0.0, 0.5, 1.0};
 
-    double[] resultsA = qs1.getQuantiles(queries);
-    assert (resultsA[0] == 1.0);
-    assert (resultsA[1] == 5.0);
-    assert (resultsA[2] == 8.0);
+    double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsA[0], 1.0);
+    assertEquals(resultsA[1], 5.0);
+    assertEquals(resultsA[2], Double.NaN);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
@@ -81,16 +82,16 @@ public class DirectUpdateDoublesSketchTest {
     union2.update(qs3);
     DoublesSketch result2 = union2.getResult();
 
-    double[] resultsB = result1.getQuantiles(queries);
+    double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
     printResults(resultsB);
-    assert (resultsB[0] == 1.0);
-    assert (resultsB[1] == 11.0);
-    assert (resultsB[2] == 18.0);
+    assertEquals(resultsB[0], 1.0);
+    assertEquals(resultsB[1], 11.0);
+    assertEquals(resultsB[2], Double.NaN);
 
-    double[] resultsC = result2.getQuantiles(queries);
-    assert (resultsC[0] == 1.0);
-    assert (resultsC[1] == 11.0);
-    assert (resultsC[2] == 18.0);
+    double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsC[0], 1.0);
+    assertEquals(resultsC[1], 11.0);
+    assertEquals(resultsC[2], Double.NaN);
   }
 
   static void printResults(double[] results) {

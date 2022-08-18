@@ -35,7 +35,7 @@ public class KolmogorovSmirnovTest {
    final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
    final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
 
-   final Random rand = new Random();
+   final Random rand = new Random(1);
 
    final int n =  (3 * k) - 1;
    for (int i = 0; i < n; ++i) {
@@ -53,7 +53,7 @@ public class KolmogorovSmirnovTest {
    final int k = 256;
    final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
 
-   final Random rand = new Random();
+   final Random rand = new Random(1);
 
    final int n =  (3 * k) - 1;
    for (int i = 0; i < n; ++i) {
@@ -72,7 +72,7 @@ public class KolmogorovSmirnovTest {
    final UpdateDoublesSketch s1 = DoublesSketch.builder().setK(k).build();
    final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
 
-   final Random rand = new Random();
+   final Random rand = new Random(1);
 
    final int n =  (3 * k) - 1;
    for (int i = 0; i < n; ++i) {
@@ -92,7 +92,7 @@ public class KolmogorovSmirnovTest {
    final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
    final double tgtPvalue = .05;
 
-   final Random rand = new Random();
+   final Random rand = new Random(1);
 
    final int n =  (3 * k) - 1;
    for (int i = 0; i < n; ++i) {
@@ -116,7 +116,7 @@ public class KolmogorovSmirnovTest {
    final UpdateDoublesSketch s2 = DoublesSketch.builder().setK(k).build();
    final double tgtPvalue = .05;
 
-   final Random rand = new Random();
+   final Random rand = new Random(1);
 
    final int n =  (3 * k) - 1;
    for (int i = 0; i < n; ++i) {
