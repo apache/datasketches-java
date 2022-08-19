@@ -130,12 +130,12 @@ final class DoublesUtil {
     final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
     final double eps =  Util.getNormalizedRankError(k, false);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-    final String memCap = sk.isDirect() ? Long.toString(sk.getMemory().getCapacity()) : "";
+    final String memCap = sk.hasMemory() ? Long.toString(sk.getMemory().getCapacity()) : "";
 
     sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
       .append(LS);
     sb.append("   Empty                        : ").append(sk.isEmpty()).append(LS);
-    sb.append("   Direct, Capacity bytes       : ").append(sk.isDirect())
+    sb.append("   Memory, Capacity bytes       : ").append(sk.hasMemory())
       .append(", ").append(memCap).append(LS);
     sb.append("   Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
     sb.append("   K                            : ").append(kStr).append(LS);

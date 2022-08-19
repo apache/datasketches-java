@@ -113,13 +113,18 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public boolean isEmpty() {
-    return (gadget_ == null) || gadget_.isEmpty();
+  public boolean hasMemory() {
+    return (gadget_ != null) && gadget_.hasMemory();
   }
 
   @Override
   public boolean isDirect() {
     return (gadget_ != null) && gadget_.isDirect();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return (gadget_ == null) || gadget_.isEmpty();
   }
 
   @Override

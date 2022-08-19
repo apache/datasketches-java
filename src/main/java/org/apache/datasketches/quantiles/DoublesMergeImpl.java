@@ -106,7 +106,7 @@ final class DoublesMergeImpl {
       }
     }
 
-    if (tgt.isDirect() && (nFinal > 0)) {
+    if (tgt.hasMemory() && (nFinal > 0)) {
       final WritableMemory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
@@ -198,7 +198,7 @@ final class DoublesMergeImpl {
         tgt.putBitPattern(newTgtBitPattern); //off-heap is a no-op
       }
     }
-    if (tgt.isDirect() && (nFinal > 0)) {
+    if (tgt.hasMemory() && (nFinal > 0)) {
       final WritableMemory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }

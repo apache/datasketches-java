@@ -522,10 +522,13 @@ public abstract class DoublesSketch {
    * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
    * @return true if this sketch's data structure is backed by Memory or WritableMemory.
    */
-public boolean hasMemory() {
-  return false;
-}
+  public abstract boolean hasMemory();
 
+  /**
+   * Returns true if this sketch is off-heap (direct)
+   * @return true if this sketch is off-heap (direct)
+   */
+  public abstract boolean isDirect();
 
   /**
    * Returns true if this sketch is empty
@@ -534,12 +537,6 @@ public boolean hasMemory() {
   public boolean isEmpty() {
     return getN() == 0;
   }
-
-  /**
-   * Returns true if this sketch is off-heap (direct)
-   * @return true if this sketch is off-heap (direct)
-   */
-  public abstract boolean isDirect();
 
   /**
    * Returns true if this sketch is in estimation mode.
@@ -730,7 +727,7 @@ public boolean hasMemory() {
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    if (isDirect() && isCompact() == compact) {
+    if (hasMemory() && isCompact() == compact) {
       final Memory srcMem = getMemory();
       srcMem.copyTo(0, dstMem, 0, getSerializedSizeBytes());
     } else {

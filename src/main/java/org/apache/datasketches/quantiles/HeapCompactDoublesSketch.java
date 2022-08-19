@@ -211,6 +211,11 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return false;
+  }
+
+  @Override
   public boolean isDirect() {
     return false;
   }

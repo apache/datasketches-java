@@ -212,7 +212,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
           }
           else { //Bigger: myQS.getK() > other.getK(), must effectively downsize me or swap
             if (myQS.isEmpty()) {
-              if (myQS.isDirect()) {
+              if (myQS.hasMemory()) {
                 final WritableMemory mem = myQS.getMemory(); //myQS is empty, ok to reconfigure
                 other.putMemory(mem, false); // not compact, but BB ordered
                 ret = DirectUpdateDoublesSketch.wrapInstance(mem);
@@ -224,7 +224,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
               final UpdateDoublesSketch tmp = DoublesSketch.builder().setK(other.getK()).build();
 
               DoublesMergeImpl.downSamplingMergeInto(myQS, tmp); //myData -> tmp
-              ret = (myQS.isDirect())
+              ret = (myQS.hasMemory())
                   ? DoublesSketch.builder().setK(other.getK()).build(myQS.getMemory())
                   : DoublesSketch.builder().setK(other.getK()).build();
 

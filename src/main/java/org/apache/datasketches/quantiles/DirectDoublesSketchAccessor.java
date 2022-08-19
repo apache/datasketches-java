@@ -31,7 +31,7 @@ class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
                               final boolean forceSize,
                               final int level) {
     super(ds, forceSize, level);
-    assert ds.isDirect();
+    assert ds.hasMemory();
   }
 
   @Override

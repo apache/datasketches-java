@@ -178,6 +178,11 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return false;
+  }
+
+  @Override
   public boolean isDirect() {
     return false;
   }

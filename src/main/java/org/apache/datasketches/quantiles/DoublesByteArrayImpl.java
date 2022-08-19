@@ -56,7 +56,7 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    if (empty && !sketch.isDirect()) { //empty & on-heap
+    if (empty && !sketch.hasMemory()) { //empty & has Memory
       final byte[] outByteArr = new byte[Long.BYTES];
       final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
       final int preLongs = 1;

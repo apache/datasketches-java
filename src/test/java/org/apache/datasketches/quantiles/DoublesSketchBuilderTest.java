@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
@@ -39,7 +40,8 @@ public class DoublesSketchBuilderTest {
     byte[] byteArr = new byte[bytes];
     WritableMemory mem = WritableMemory.writableWrap(byteArr);
     DoublesSketch ds = bldr.build(mem);
-    assertTrue(ds.isDirect());
+    assertTrue(ds.hasMemory());
+    assertFalse(ds.isDirect());
     println(bldr.toString());
 
     bldr = DoublesSketch.builder();

@@ -83,16 +83,22 @@ public abstract class DoublesUnion {
   }
 
   /**
+   * Returns true if this union's data structure is backed by Memory or WritableMemory.
+   * @return true if this union's data structure is backed by Memory or WritableMemory.
+   */
+  public abstract boolean hasMemory();
+
+  /**
+ * Returns true if this union is off-heap (direct)
+ * @return true if this union is off-heap (direct)
+   */
+  public abstract boolean isDirect();
+
+  /**
    * Returns true if this union is empty
    * @return true if this union is empty
    */
   public abstract boolean isEmpty();
-
-  /**
-   * Returns true if this union is direct
-   * @return true if this union is direct
-   */
-  public abstract boolean isDirect();
 
   /**
    * Returns the configured <i>maxK</i> of this Union.
