@@ -62,7 +62,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   public DoublesSketchSortedView(final DoublesSketch sketch) {
     this.totalN = sketch.getN();
     final int k = sketch.getK();
-    final int numSamples = sketch.getRetainedItems();
+    final int numSamples = sketch.getNumRetained();
     values = new double[numSamples];
     cumWeights = new long[numSamples];
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);

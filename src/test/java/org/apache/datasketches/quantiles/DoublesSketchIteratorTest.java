@@ -56,7 +56,7 @@ public class DoublesSketchIteratorTest {
         count++;
         weight += (int)it.getWeight();
       }
-      Assert.assertEquals(count, sketch.getRetainedItems());
+      Assert.assertEquals(count, sketch.getNumRetained());
       Assert.assertEquals(weight, n);
     }
   }

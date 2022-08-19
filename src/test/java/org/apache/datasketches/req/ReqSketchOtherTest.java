@@ -108,7 +108,7 @@ public class ReqSketchOtherTest {
     final ReqSketchSortedView aux = sk.getSortedView();
     assertNotNull(aux);
     assertTrue(sk.getRSE(sk.getK(), .5, false, 120) > 0);
-    assertTrue(sk.getSerializationBytes() > 0);
+    assertTrue(sk.getSerializedSizeBytes() > 0);
   }
 
   @Test

@@ -42,7 +42,7 @@ public class SerDeCompatibilityTest {
 
     for (int i = 501; i <= 1000; i++) { sketch2.update(i); }
     Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
+    Assert.assertTrue(sketch2.getNumRetained() < 1000);
     Assert.assertEquals(sketch2.getMinValue(), 1.0);
     Assert.assertEquals(sketch2.getMaxValue(), 1000.0);
     // based on ~1.7% normalized rank error for this particular case
@@ -65,9 +65,9 @@ public class SerDeCompatibilityTest {
 
     for (int i = 501; i <= 1000; i++) { sketch2.update((double) i); }
     Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals((double)sketch2.getMinValue(), 1.0);
-    Assert.assertEquals((double)sketch2.getMaxValue(), 1000.0);
+    Assert.assertTrue(sketch2.getNumRetained() < 1000);
+    Assert.assertEquals((double)sketch2.getMinItem(), 1.0);
+    Assert.assertEquals((double)sketch2.getMaxItem(), 1000.0);
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch2.getQuantile(0.5), 500.0, 17);
   }

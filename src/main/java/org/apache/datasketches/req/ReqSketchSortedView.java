@@ -125,7 +125,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
   private void buildSortedViewArrays(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
-    final int totalValues = sk.getRetainedValues();
+    final int totalValues = sk.getNumRetained();
     values = new float[totalValues];
     cumWeights = new long[totalValues];
     int count = 0;
@@ -134,7 +134,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
       final FloatBuffer bufIn = c.getBuffer();
       final long bufWeight = 1 << c.getLgWeight();
       final int bufInLen = bufIn.getCount();
-      mergeSortIn(bufIn, bufWeight, count, sk.getHighRankAccuracy());
+      mergeSortIn(bufIn, bufWeight, count, sk.getHighRankAccuracyMode());
       count += bufInLen;
     }
     createCumulativeNativeRanks();

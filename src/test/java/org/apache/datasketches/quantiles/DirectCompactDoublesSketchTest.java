@@ -64,7 +64,7 @@ public class DirectCompactDoublesSketchTest {
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
-    final WritableMemory dstMem = WritableMemory.writableWrap(new byte[qs.getCompactStorageBytes()]);
+    final WritableMemory dstMem = WritableMemory.writableWrap(new byte[qs.getCurrentCompactSerializedSizeBytes()]);
     final DirectCompactDoublesSketch compactQs
             = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
 
@@ -88,7 +88,7 @@ public class DirectCompactDoublesSketchTest {
 
     final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
-    assertEquals(qsBytes.length, compactQs.getStorageBytes());
+    assertEquals(qsBytes.length, compactQs.getSerializedSizeBytes());
 
     final double[] combinedBuffer = compactQs.getCombinedBuffer();
     assertEquals(combinedBuffer.length, compactQs.getCombinedBufferItemCapacity());
@@ -151,7 +151,7 @@ public class DirectCompactDoublesSketchTest {
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }
-    final byte[] byteArr = new byte[qs.getCompactStorageBytes()];
+    final byte[] byteArr = new byte[qs.getCurrentCompactSerializedSizeBytes()];
     final WritableMemory mem = WritableMemory.writableWrap(byteArr);
     return (DirectCompactDoublesSketch) qs.compact(mem);
   }

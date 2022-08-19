@@ -104,23 +104,23 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxValue();
-    final T srcMin = src.getMinValue();
-    final T tgtMax = tgt.getMaxValue();
-    final T tgtMin = tgt.getMinValue();
+    final T srcMax = src.getMaxItem();
+    final T srcMin = src.getMinItem();
+    final T tgtMax = tgt.getMaxItem();
+    final T tgtMin = tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
-      tgt.maxValue_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+      tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
     } //only one could be null
     else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
-      tgt.maxValue_ = srcMax;
+      tgt.maxItem_ = srcMax;
     }
 
     if ((srcMin != null) && (tgtMin != null)) {
-      tgt.minValue_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+      tgt.minItem_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
     } //only one could be null
     else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
-      tgt.minValue_ = srcMin;
+      tgt.minItem_ = srcMin;
     }
   }
 
@@ -181,23 +181,23 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * targetK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxValue();
-    final T srcMin = src.getMinValue();
-    final T tgtMax = tgt.getMaxValue();
-    final T tgtMin = tgt.getMinValue();
+    final T srcMax = src.getMaxItem();
+    final T srcMin = src.getMinItem();
+    final T tgtMax = tgt.getMaxItem();
+    final T tgtMin = tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
-      tgt.maxValue_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+      tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
     } //only one could be null
     else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
-      tgt.maxValue_ = srcMax;
+      tgt.maxItem_ = srcMax;
     }
 
     if ((srcMin != null) && (tgtMin != null)) {
-      tgt.minValue_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+      tgt.minItem_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
     } //only one could be null
     else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
-      tgt.minValue_ = srcMin;
+      tgt.minItem_ = srcMin;
     }
   }
 

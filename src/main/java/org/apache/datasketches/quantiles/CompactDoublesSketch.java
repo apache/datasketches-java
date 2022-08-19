@@ -38,4 +38,9 @@ public abstract class CompactDoublesSketch extends DoublesSketch {
     return true;
   }
 
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
 }

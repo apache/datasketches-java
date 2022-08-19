@@ -183,6 +183,11 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
+  @Override
   public void reset() {
     n_ = 0;
     final int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //min is important

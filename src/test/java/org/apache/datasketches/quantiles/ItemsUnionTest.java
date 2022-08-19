@@ -48,8 +48,8 @@ public class ItemsUnionTest {
     ItemsSketch<Integer> result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
     Assert.assertNull(union.getResultAndReset());
 
     final ItemsSketch<Integer> emptySk = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -68,8 +68,8 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
     union.update(validSk);
 
     union.reset();
@@ -78,16 +78,16 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
 
     // internal sketch is not null again because getResult() instantiated it
     union.update(ItemsSketch.getInstance(Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
 
     union.reset();
     // internal sketch is null again
@@ -95,8 +95,8 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
   }
 
   @Test
@@ -106,22 +106,22 @@ public class ItemsUnionTest {
     ItemsSketch<Integer> result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getN(), 1);
-    Assert.assertEquals(result.getMinValue(), Integer.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMinItem(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Integer.valueOf(1));
 
     union.update((ItemsSketch<Integer>) null);
     result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getN(), 1);
-    Assert.assertEquals(result.getMinValue(), Integer.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMinItem(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Integer.valueOf(1));
 
     union.update(ItemsSketch.getInstance(Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getN(), 1);
-    Assert.assertEquals(result.getMinValue(), Integer.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMinItem(), Integer.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Integer.valueOf(1));
   }
 
   @Test
@@ -143,14 +143,14 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
 
     for (int i = 1; i <= 1000; i++) { union.update((long) i); }
     result = union.getResult();
     Assert.assertEquals(result.getN(), 1000);
-    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Long.valueOf(1000));
+    Assert.assertEquals(result.getMinItem(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Long.valueOf(1000));
     Assert.assertEquals(result.getQuantile(0.5), 500, 17); // ~1.7% normalized rank error
 
     final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -158,8 +158,8 @@ public class ItemsUnionTest {
     union.update(sketch1);
     result = union.getResult();
     Assert.assertEquals(result.getN(), 2000);
-    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Long.valueOf(2000));
+    Assert.assertEquals(result.getMinItem(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Long.valueOf(2000));
     Assert.assertEquals(result.getQuantile(0.5), 1000, 34); // ~1.7% normalized rank error
 
     final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Comparator.naturalOrder());
@@ -169,14 +169,14 @@ public class ItemsUnionTest {
     result = union.getResultAndReset();
     Assert.assertNotNull(result);
     Assert.assertEquals(result.getN(), 3000);
-    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Long.valueOf(3000));
+    Assert.assertEquals(result.getMinItem(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Long.valueOf(3000));
     Assert.assertEquals(result.getQuantile(0.5), 1500, 51); // ~1.7% normalized rank error
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
   }
 
   @Test
@@ -184,15 +184,15 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(512, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
 
     for (int i = 1; i <= 10000; i++) { union.update((long) i); }
     result = union.getResult();
     Assert.assertEquals(result.getK(), 512);
     Assert.assertEquals(result.getN(), 10000);
-    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Long.valueOf(10000));
+    Assert.assertEquals(result.getMinItem(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Long.valueOf(10000));
     Assert.assertEquals(result.getQuantile(0.5), 5000, 50); // ~0.5% normalized rank error
 
     final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(256, Comparator.naturalOrder());
@@ -201,8 +201,8 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertEquals(result.getK(), 256);
     Assert.assertEquals(result.getN(), 20000);
-    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Long.valueOf(20000));
+    Assert.assertEquals(result.getMinItem(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Long.valueOf(20000));
     Assert.assertEquals(result.getQuantile(0.5), 10000, 180); // ~0.9% normalized rank error
 
     final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(128, Comparator.naturalOrder());
@@ -213,14 +213,14 @@ public class ItemsUnionTest {
     Assert.assertNotNull(result);
     Assert.assertEquals(result.getK(), 128);
     Assert.assertEquals(result.getN(), 30000);
-    Assert.assertEquals(result.getMinValue(), Long.valueOf(1));
-    Assert.assertEquals(result.getMaxValue(), Long.valueOf(30000));
+    Assert.assertEquals(result.getMinItem(), Long.valueOf(1));
+    Assert.assertEquals(result.getMaxItem(), Long.valueOf(30000));
     Assert.assertEquals(result.getQuantile(0.5), 15000, 510); // ~1.7% normalized rank error
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinValue());
-    Assert.assertNull(result.getMaxValue());
+    Assert.assertNull(result.getMinItem());
+    Assert.assertNull(result.getMaxItem());
   }
 
   @Test
@@ -276,14 +276,14 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(16, Comparator.naturalOrder()); //me null
     ItemsSketch<Long> skEst = buildIS(32, 64); //other is bigger, est
     union.update(skEst);
-    Assert.assertEquals(union.getResult().getMinValue(), skEst.getMinValue(), 0.0);
-    Assert.assertEquals(union.getResult().getMaxValue(), skEst.getMaxValue(), 0.0);
+    Assert.assertEquals(union.getResult().getMinItem(), skEst.getMinItem(), 0.0);
+    Assert.assertEquals(union.getResult().getMaxItem(), skEst.getMaxItem(), 0.0);
 
     union.reset();
     skEst = buildIS(8, 64); //other is smaller est,
     union.update(skEst);
-    Assert.assertEquals(union.getResult().getMinValue(), skEst.getMinValue(), 0.0);
-    Assert.assertEquals(union.getResult().getMaxValue(), skEst.getMaxValue(), 0.0);
+    Assert.assertEquals(union.getResult().getMinItem(), skEst.getMinItem(), 0.0);
+    Assert.assertEquals(union.getResult().getMaxItem(), skEst.getMaxItem(), 0.0);
   }
 
   @Test
@@ -293,15 +293,15 @@ public class ItemsUnionTest {
     union.update(skEmpty); //empty at k = 16
     ItemsSketch<Long> skExact = buildIS(32, 63); //bigger, exact
     union.update(skExact);
-    Assert.assertEquals(union.getResult().getMinValue(), skExact.getMinValue(), 0.0);
-    Assert.assertEquals(union.getResult().getMaxValue(), skExact.getMaxValue(), 0.0);
+    Assert.assertEquals(union.getResult().getMinItem(), skExact.getMinItem(), 0.0);
+    Assert.assertEquals(union.getResult().getMaxItem(), skExact.getMaxItem(), 0.0);
 
     union.reset();
     union.update(skEmpty); //empty at k = 16
     skExact = buildIS(8, 15); //smaller, exact
     union.update(skExact);
-    Assert.assertEquals(union.getResult().getMinValue(), skExact.getMinValue(), 0.0);
-    Assert.assertEquals(union.getResult().getMaxValue(), skExact.getMaxValue(), 0.0);
+    Assert.assertEquals(union.getResult().getMinItem(), skExact.getMinItem(), 0.0);
+    Assert.assertEquals(union.getResult().getMaxItem(), skExact.getMaxItem(), 0.0);
   }
 
   @Test
@@ -311,15 +311,15 @@ public class ItemsUnionTest {
     union.update(skEmpty); //empty at k = 16
     ItemsSketch<Long> skExact = buildIS(32, 64); //bigger, est
     union.update(skExact);
-    Assert.assertEquals(union.getResult().getMinValue(), skExact.getMinValue(), 0.0);
-    Assert.assertEquals(union.getResult().getMaxValue(), skExact.getMaxValue(), 0.0);
+    Assert.assertEquals(union.getResult().getMinItem(), skExact.getMinItem(), 0.0);
+    Assert.assertEquals(union.getResult().getMaxItem(), skExact.getMaxItem(), 0.0);
 
     union.reset();
     union.update(skEmpty); //empty at k = 16
     skExact = buildIS(8, 16); //smaller, est
     union.update(skExact);
-    Assert.assertEquals(union.getResult().getMinValue(), skExact.getMinValue(), 0.0);
-    Assert.assertEquals(union.getResult().getMaxValue(), skExact.getMaxValue(), 0.0);
+    Assert.assertEquals(union.getResult().getMinItem(), skExact.getMinItem(), 0.0);
+    Assert.assertEquals(union.getResult().getMaxItem(), skExact.getMaxItem(), 0.0);
   }
 
   @Test
@@ -327,41 +327,41 @@ public class ItemsUnionTest {
     final ItemsSketch<Long> skEmpty1 = buildIS(32, 0);
     final ItemsSketch<Long> skEmpty2 = buildIS(32, 0);
     ItemsMergeImpl.mergeInto(skEmpty1, skEmpty2);
-    Assert.assertNull(skEmpty2.getMaxValue());
-    Assert.assertNull(skEmpty2.getMaxValue());
+    Assert.assertNull(skEmpty2.getMaxItem());
+    Assert.assertNull(skEmpty2.getMaxItem());
 
     ItemsSketch<Long> skValid1, skValid2;
     int n = 64;
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, 0, 0); //empty
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
-    Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid2.getMaxValue(), n - 1.0, 0.0);
+    Assert.assertEquals(skValid2.getMinItem(), 0.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxItem(), n - 1.0, 0.0);
 
     skValid1 = buildIS(32, 0, 0); //empty
     skValid2 = buildIS(32, n, 0);
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
-    Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid2.getMaxValue(), n - 1.0, 0.0);
+    Assert.assertEquals(skValid2.getMinItem(), 0.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxItem(), n - 1.0, 0.0);
 
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, n, n);
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
-    Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid2.getMaxValue(), (2 * n) - 1.0, 0.0);
+    Assert.assertEquals(skValid2.getMinItem(), 0.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxItem(), (2 * n) - 1.0, 0.0);
 
     n = 512;
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, n, n);
     ItemsMergeImpl.mergeInto(skValid1, skValid2);
-    Assert.assertEquals(skValid2.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid2.getMaxValue(), (2 * n) - 1.0, 0.0);
+    Assert.assertEquals(skValid2.getMinItem(), 0.0, 0.0);
+    Assert.assertEquals(skValid2.getMaxItem(), (2 * n) - 1.0, 0.0);
 
     skValid1 = buildIS(32, n, 0);
     skValid2 = buildIS(32, n, n);
     ItemsMergeImpl.mergeInto(skValid2, skValid1);
-    Assert.assertEquals(skValid1.getMinValue(), 0.0, 0.0);
-    Assert.assertEquals(skValid1.getMaxValue(), (2 * n) - 1.0, 0.0);
+    Assert.assertEquals(skValid1.getMinItem(), 0.0, 0.0);
+    Assert.assertEquals(skValid1.getMaxItem(), (2 * n) - 1.0, 0.0);
   }
 
   @Test

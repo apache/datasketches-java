@@ -71,8 +71,8 @@ public class DebugUnionTest {
     }
 
     //iterates and counts errors
-    int hCount = hSketch.getRetainedItems();
-    int dCount = dSketch.getRetainedItems();
+    int hCount = hSketch.getNumRetained();
+    int dCount = dSketch.getNumRetained();
 
     assertEquals(hCount, dCount); //Retained items must be the same
 

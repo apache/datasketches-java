@@ -112,7 +112,7 @@ public class HeapCompactDoublesSketchTest {
     final Memory mem = Memory.wrap(byteArr);
     final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
     assertTrue(qs2.isEmpty());
-    assertEquals(byteArr.length, qs1.getStorageBytes());
+    assertEquals(byteArr.length, qs1.getSerializedSizeBytes());
     assertEquals(byteArr, byteArr2);
     assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
     assertTrue(Double.isNaN(qs2.getQuantile(1.0)));

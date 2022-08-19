@@ -25,55 +25,22 @@ package org.apache.datasketches.quantiles;
  */
 public class ItemsSketchIterator<T> {
 
-  private final ItemsSketch<T> sketch_;
-  private Object[] combinedBuffer_;
-  private long bits_;
-  private int level_;
-  private long weight_;
-  private int i_;
-  private int offset_;
-  private int num_;
+  private final ItemsSketch<T> sketch;
+  private Object[] combinedBuffer;
+  private long bitPattern;
+  private int level;
+  private long weight;
+  private int index;
+  private int offset;
+  private int num;
 
   ItemsSketchIterator(final ItemsSketch<T> sketch, final long bitPattern) {
-    sketch_ = sketch;
-    bits_ = bitPattern;
-    level_ = -1;
-    weight_ = 1;
-    i_ = 0;
-    offset_ = 0;
-  }
-
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
-  public boolean next() {
-    if (combinedBuffer_ == null) { // initial setup
-      combinedBuffer_ = sketch_.combinedBuffer_;
-      num_ = sketch_.getBaseBufferCount();
-    } else { // advance index within the current level
-      i_++;
-    }
-    if (i_ < num_) {
-      return true;
-    }
-    // go to the next non-empty level
-    do {
-      level_++;
-      if (level_ > 0) {
-        bits_ >>>= 1;
-      }
-      if (bits_ == 0L) {
-        return false; // run out of levels
-      }
-      weight_ *= 2;
-    } while ((bits_ & 1L) == 0L);
-    i_ = 0;
-    offset_ = (2 + level_) * sketch_.getK();
-    num_ = sketch_.getK();
-    return true;
+    this.sketch = sketch;
+    this.bitPattern = bitPattern;
+    this.level = -1;
+    this.weight = 1;
+    this.index = 0;
+    this.offset = 0;
   }
 
   /**
@@ -84,7 +51,7 @@ public class ItemsSketchIterator<T> {
    */
   @SuppressWarnings("unchecked")
   public T getValue() {
-    return (T) combinedBuffer_[offset_ + i_];
+    return (T) combinedBuffer[offset + index];
   }
 
   /**
@@ -94,7 +61,40 @@ public class ItemsSketchIterator<T> {
    * @return weight for the value from the current entry
    */
   public long getWeight() {
-    return weight_;
+    return weight;
+  }
+
+  /**
+   * Advancing the iterator and checking existence of the next entry
+   * is combined here for efficiency. This results in an undefined
+   * state of the iterator before the first call of this method.
+   * @return true if the next element exists
+   */
+  public boolean next() {
+    if (combinedBuffer == null) { // initial setup
+      combinedBuffer = sketch.combinedBuffer_;
+      num = sketch.getBaseBufferCount();
+    } else { // advance index within the current level
+      index++;
+    }
+    if (index < num) {
+      return true;
+    }
+    // go to the next non-empty level
+    do {
+      level++;
+      if (level > 0) {
+        bitPattern >>>= 1;
+      }
+      if (bitPattern == 0L) {
+        return false; // run out of levels
+      }
+      weight *= 2;
+    } while ((bitPattern & 1L) == 0L);
+    index = 0;
+    offset = (2 + level) * sketch.getK();
+    num = sketch.getK();
+    return true;
   }
 
 }

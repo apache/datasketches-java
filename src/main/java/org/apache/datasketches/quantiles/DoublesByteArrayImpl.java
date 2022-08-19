@@ -87,7 +87,7 @@ final class DoublesByteArrayImpl {
     // whether to copy data out.
     final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(sketch, !compact);
 
-    final int outBytes = (compact ? sketch.getCompactStorageBytes() : sketch.getUpdatableStorageBytes());
+    final int outBytes = (compact ? sketch.getCurrentCompactSerializedSizeBytes() : sketch.getCurrentUpdatableSerializedSizeBytes());
 
     final byte[] outByteArr = new byte[outBytes];
     final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);

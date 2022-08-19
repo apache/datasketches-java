@@ -128,6 +128,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   }
 
   @Override
+  public boolean isReadOnly() {
+    return false;
+  }
+
+  @Override
   public void update(final double dataItem) {
     if (Double.isNaN(dataItem)) { return; }
 

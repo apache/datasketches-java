@@ -341,11 +341,11 @@ public abstract class KllFloatsSketch extends KllSketch {
    */
   public float[] getQuantiles(final int numEvenlySpaced) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), INCLUSIVE);
+    return getQuantiles(numEvenlySpaced, INCLUSIVE);
   }
 
   /**
-   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
+   * This is a multiple-query version of getQuantile() and allows the caller to
    * specify the number of evenly spaced normalized ranks.
    *
    * <p>If the sketch is empty this returns null.

@@ -320,15 +320,11 @@ public abstract class KllSketch {
   }
 
   /**
-   * Returns true if the backing resource is direct, i.e., actually allocated in off-heap memory.
-   * This is the case for off-heap memory and memory mapped files.
-   * This backing resource could be either Memory(read-only) or WritableMemory.
-   * However, if the backing Memory or WritabelMemory resource is allocated on-heap,
-   * this will return false.
-   * @return true if the backing resource is off-heap memory.
+   * Returns true if this sketch is off-heap (direct)
+   * @return true if this sketch is off-heap (direct)
    */
   public boolean isDirect() {
-    return wmem.isDirect();
+    return (wmem != null) ? wmem.isDirect() : false;
   }
 
   /**

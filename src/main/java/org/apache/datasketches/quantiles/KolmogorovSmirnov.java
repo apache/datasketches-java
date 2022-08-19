@@ -82,8 +82,8 @@ final class KolmogorovSmirnov {
   public static double computeKSThreshold(final DoublesSketch sketch1,
                                           final DoublesSketch sketch2,
                                           final double tgtPvalue) {
-    final double r1 = sketch1.getRetainedItems();
-    final double r2 = sketch2.getRetainedItems();
+    final double r1 = sketch1.getNumRetained();
+    final double r2 = sketch2.getNumRetained();
     final double alpha = tgtPvalue;
     final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
     final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));

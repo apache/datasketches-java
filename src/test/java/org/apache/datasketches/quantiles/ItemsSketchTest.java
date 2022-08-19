@@ -54,9 +54,9 @@ public class ItemsSketchTest {
     assertNotNull(sketch);
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
-    assertEquals(sketch.getRetainedItems(), 0);
-    assertNull(sketch.getMinValue());
-    assertNull(sketch.getMaxValue());
+    assertEquals(sketch.getNumRetained(), 0);
+    assertNull(sketch.getMinItem());
+    assertNull(sketch.getMaxItem());
     assertNull(sketch.getQuantile(0.5));
     assertNull(sketch.getQuantiles(2));
     assertNull(sketch.getQuantiles(new double[] {0.0, 1.0}));
@@ -72,9 +72,9 @@ public class ItemsSketchTest {
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
     sketch.update("a");
     assertEquals(sketch.getN(), 1);
-    assertEquals(sketch.getRetainedItems(), 1);
-    assertEquals(sketch.getMinValue(), "a");
-    assertEquals(sketch.getMaxValue(), "a");
+    assertEquals(sketch.getNumRetained(), 1);
+    assertEquals(sketch.getMinItem(), "a");
+    assertEquals(sketch.getMaxItem(), "a");
     assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), "a");
     assertEquals(sketch.getRank("a", EXCLUSIVE), 0.0);
 
@@ -107,9 +107,9 @@ public class ItemsSketchTest {
     sketch.reset();
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
-    assertEquals(sketch.getRetainedItems(), 0);
-    assertNull(sketch.getMinValue());
-    assertNull(sketch.getMaxValue());
+    assertEquals(sketch.getNumRetained(), 0);
+    assertNull(sketch.getMinItem());
+    assertNull(sketch.getMaxItem());
     assertNull(sketch.getQuantile(0.5));
   }
 
@@ -119,7 +119,7 @@ public class ItemsSketchTest {
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getRetainedItems(), 10);
+    assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i) / 10.0);
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
@@ -176,9 +176,9 @@ public class ItemsSketchTest {
       sketch.update(i);
     }
     assertEquals(sketch.getN(), 1000);
-    assertTrue(sketch.getRetainedItems() < 1000);
-    assertEquals(sketch.getMinValue(), Integer.valueOf(1));
-    assertEquals(sketch.getMaxValue(), Integer.valueOf(1000));
+    assertTrue(sketch.getNumRetained() < 1000);
+    assertEquals(sketch.getMinItem(), Integer.valueOf(1));
+    assertEquals(sketch.getMaxItem(), Integer.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
     assertEquals(sketch.getQuantile(0.5), Integer.valueOf(500), 17);
 
@@ -258,9 +258,9 @@ public class ItemsSketchTest {
       sketch2.update((long) i);
     }
     assertEquals(sketch2.getN(), 1000);
-    assertTrue(sketch2.getRetainedItems() < 1000);
-    assertEquals(sketch2.getMinValue(), Long.valueOf(1));
-    assertEquals(sketch2.getMaxValue(), Long.valueOf(1000));
+    assertTrue(sketch2.getNumRetained() < 1000);
+    assertEquals(sketch2.getMinItem(), Long.valueOf(1));
+    assertEquals(sketch2.getMaxItem(), Long.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
     assertEquals(sketch2.getQuantile(0.5), Long.valueOf(500), 17);
   }
@@ -280,9 +280,9 @@ public class ItemsSketchTest {
       sketch2.update((double) i);
     }
     assertEquals(sketch2.getN(), 1000);
-    assertTrue(sketch2.getRetainedItems() < 1000);
-    assertEquals(sketch2.getMinValue(), Double.valueOf(1));
-    assertEquals(sketch2.getMaxValue(), Double.valueOf(1000));
+    assertTrue(sketch2.getNumRetained() < 1000);
+    assertEquals(sketch2.getMinItem(), Double.valueOf(1));
+    assertEquals(sketch2.getMaxItem(), Double.valueOf(1000));
     // based on ~1.7% normalized rank error for this particular case
     assertEquals(sketch2.getQuantile(0.5), 500, 17);
   }
@@ -312,9 +312,9 @@ public class ItemsSketchTest {
       sketch2.update(Integer.toBinaryString(i << 10));
     }
     assertEquals(sketch2.getN(), 1000);
-    assertTrue(sketch2.getRetainedItems() < 1000);
-    assertEquals(sketch2.getMinValue(), Integer.toBinaryString(1 << 10));
-    assertEquals(sketch2.getMaxValue(), Integer.toBinaryString(1000 << 10));
+    assertTrue(sketch2.getNumRetained() < 1000);
+    assertEquals(sketch2.getMinItem(), Integer.toBinaryString(1 << 10));
+    assertEquals(sketch2.getMaxItem(), Integer.toBinaryString(1000 << 10));
     // based on ~1.7% normalized rank error for this particular case
     assertEquals(Integer.parseInt(sketch2.getQuantile(0.5), 2) >> 10, Integer.valueOf(500), 17);
   }

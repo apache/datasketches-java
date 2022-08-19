@@ -154,7 +154,7 @@ public class ReqSketchTest {
   private static void checkSortedView(final ReqSketch sk, final int iDebug) {
     final ReqSketchSortedView sv = new ReqSketchSortedView(sk);
     final ReqSketchSortedViewIterator itr = sv.iterator();
-    final int retainedCount = sk.getRetainedValues();
+    final int retainedCount = sk.getNumRetained();
     final long totalN = sk.getN();
     int count = 0;
     long cumWt = 0;
@@ -211,8 +211,7 @@ public class ReqSketchTest {
     while (itr.next()) {
       final float v = itr.getValue();
       final long wt = itr.getWeight();
-      final int cnt = itr.getCount();
-      if (iDebug > 0) { println("count=" + cnt +" v=" + v + " wt=" +wt); }
+      if (iDebug > 0) { println(" v=" + v + " wt=" +wt); }
     }
     if (iDebug > 0) { println(""); }
   }
@@ -288,15 +287,15 @@ public class ReqSketchTest {
     final byte[] sk1Arr = sk1.toByteArray();
     final Memory mem = Memory.wrap(sk1Arr);
     final ReqSketch sk2 = ReqSketch.heapify(mem);
-    assertEquals(sk2.getRetainedValues(), sk1.getRetainedValues());
+    assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
     assertEquals(sk2.getMinValue(), sk1.getMinValue());
     assertEquals(sk2.getMaxValue(), sk1.getMaxValue());
     assertEquals(sk2.getN(), sk1.getN());
-    assertEquals(sk2.getHighRankAccuracy(),sk1.getHighRankAccuracy());
+    assertEquals(sk2.getHighRankAccuracyMode(),sk1.getHighRankAccuracyMode());
     assertEquals(sk2.getK(), sk1.getK());
     assertEquals(sk2.getMaxNomSize(), sk1.getMaxNomSize());
     assertEquals(sk2.getNumLevels(), sk1.getNumLevels());
-    assertEquals(sk2.getSerializationBytes(), sk1.getSerializationBytes());
+    assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
   }
 
   @Test
@@ -314,7 +313,7 @@ public class ReqSketchTest {
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getRetainedValues(), 10);
+    assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i), (i) / 10.0);
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);

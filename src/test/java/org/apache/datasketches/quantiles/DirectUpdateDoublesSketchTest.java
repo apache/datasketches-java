@@ -229,7 +229,7 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
 
     byte[] arr2 = sketch2.toByteArray(false);
-    assertEquals(arr2.length, sketch2.getStorageBytes());
+    assertEquals(arr2.length, sketch2.getSerializedSizeBytes());
     DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.writableWrap(arr2));
     assertEquals(sketch3.getMinValue(), 0.0);
     assertEquals(sketch3.getMaxValue(), 1999.0);

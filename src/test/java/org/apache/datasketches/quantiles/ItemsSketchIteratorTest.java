@@ -58,7 +58,7 @@ public class ItemsSketchIteratorTest {
         count++;
         weight += (int)it.getWeight();
       }
-      Assert.assertEquals(count, sketch.getRetainedItems());
+      Assert.assertEquals(count, sketch.getNumRetained());
       Assert.assertEquals(weight, n);
     }
   }

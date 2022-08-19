@@ -78,12 +78,12 @@ public final class ItemsSketch<T> {
   /**
    * The smallest item ever seen in the stream.
    */
-  T minValue_;
+  T minItem_;
 
   /**
    * The largest item ever seen in the stream.
    */
-  T maxValue_;
+  T maxItem_;
 
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
@@ -159,8 +159,8 @@ public final class ItemsSketch<T> {
     qs.combinedBuffer_ = new Object[bufAlloc];
     qs.baseBufferCount_ = 0;
     qs.bitPattern_ = 0;
-    qs.minValue_ = null;
-    qs.maxValue_ = null;
+    qs.minItem_ = null;
+    qs.maxItem_ = null;
     return qs;
   }
 
@@ -230,8 +230,8 @@ public final class ItemsSketch<T> {
   static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
     final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
-    qsCopy.minValue_ = sketch.getMinValue();
-    qsCopy.maxValue_ = sketch.getMaxValue();
+    qsCopy.minItem_ = sketch.getMinItem();
+    qsCopy.maxItem_ = sketch.getMaxItem();
     qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferAllocatedCount();
     qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
     qsCopy.bitPattern_ = sketch.getBitPattern();
@@ -241,16 +241,16 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Returns the max value of the stream
-   * @return the max value of the stream
+   * Returns the max item of the stream
+   * @return the max item of the stream
    */
-  public T getMaxValue() { return maxValue_; }
+  public T getMaxItem() { return maxItem_; }
 
   /**
-   * Returns the min value of the stream
-   * @return the min value of the stream
+   * Returns the min item of the stream
+   * @return the min item of the stream
    */
-  public T getMinValue() { return minValue_; }
+  public T getMinItem() { return minItem_; }
 
   /**
    * Same as {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(double[] splitPoints, INCLUSIVE)}
@@ -272,18 +272,18 @@ public final class ItemsSketch<T> {
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * that divide the ordered line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or smallest value) and
+   * The definition of an "interval" is inclusive of the left splitPoint (or smallest item) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the largest value.
-   * It is not necessary to include either the minimum or maximum items in these split points.
+   * the largest item.
+   * It is not necessary to include either the minimum or the maximum item in these split points.
    *
    * @param searchCrit if INCLUSIVE the weight of the given item is included into the rank.
    * Otherwise the rank equals the sum of the weights of all items that are less than the given item.
    *
-   * @return an array of m+1 double values on the interval [0.0, 1.0),
+   * @return an array of m+1 double ranks on the interval [0.0, 1.0),
    * which are a consecutive approximation to the CDF of the input stream given the splitPoints.
-   * The value at array position j of the returned CDF array is the sum of the returned values
-   * in positions 0 through j of the returned PMF array.
+   * The rank at array position j of the returned CDF array is the sum of the returned values
+   * in positions 0 through j of the related returned PMF array.
    */
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
@@ -311,17 +311,17 @@ public final class ItemsSketch<T> {
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * that divide the ordered space into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or smallest value) and
+   * The definition of an "interval" is inclusive of the left splitPoint (or smallest item) and
    * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the minimum or maximum items in these splitpoints.
+   * the maximum item.
+   * It is not necessary to include either the minimum or the maximum item in these splitpoints.
    *
-   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its largest value and exclude its
-   * smallest value. Otherwise, it will be the reverse.  The only exception is that the highest interval will always include
+   * @param searchCrit if INCLUSIVE, each interval within the distribution will include its largest item and exclude its
+   * smallest item. Otherwise, it will be the reverse.  The only exception is that the highest interval will always include
    * the highest item retained by the sketch.
    *
-   * @return an array of m+1 values on the interval [0.0, 1.0),
-   * each of which is an approximation to the fraction, or mass, of the total input stream items
+   * @return an array of m+1 double fractions on the interval [0.0, 1.0),
+   * each of which is an approximation to the fraction of the total mass of the input stream
    * that fall into that interval.
    */
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -332,7 +332,7 @@ public final class ItemsSketch<T> {
 
   /**
    * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
-   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
+   * @param rank the given normalized rank, an item in the interval [0.0,1.0].
    * @return quantile
    * @see org.apache.datasketches.QuantileSearchCriteria QuantileSearchCriteria
    */
@@ -345,8 +345,8 @@ public final class ItemsSketch<T> {
    *
    * <p>If the sketch is empty this returns null.
    *
-   * @param rank the given normalized rank, a value in the interval [0.0,1.0].
-   * @param searchCrit if INCLUSIVE, the given rank includes all values &le; the value directly
+   * @param rank the given normalized rank, an item in the interval [0.0,1.0].
+   * @param searchCrit if INCLUSIVE, the given rank includes all items &le; the item directly
    * corresponding to the given rank.
    * @return the quantile associated with the given rank.
    * @see org.apache.datasketches.QuantileSearchCriteria
@@ -373,7 +373,7 @@ public final class ItemsSketch<T> {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param ranks the given array of normalized ranks, each of which must be in the interval [0.0,1.0].
-   * @param searchCrit if INCLUSIVE, the given ranks include all values &le; the value directly corresponding to each
+   * @param searchCrit if INCLUSIVE, the given ranks include all items &le; the item directly corresponding to each
    * rank.
    * @return array of quantiles
    * @see
@@ -386,7 +386,7 @@ public final class ItemsSketch<T> {
     if (isEmpty()) { return null; }
     refreshSortedView();
     final int len = ranks.length;
-    final T[] quantiles = (T[]) Array.newInstance(minValue_.getClass(), len);
+    final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
     for (int i = 0; i < len; i++) {
       quantiles[i] = classicQisSV.getQuantile(ranks[i], searchCrit);
     }
@@ -426,10 +426,10 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Gets the lower bound of the value interval in which the true quantile of the given rank
+   * Gets the lower bound of the interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
-   * @param rank the given normalized rank as a fraction
-   * @return the lower bound of the value interval in which the true quantile of the given rank
+   * @param rank the given normalized rank
+   * @return the lower bound of the interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public T getQuantileLowerBound(final double rank) {
@@ -437,10 +437,10 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Gets the upper bound of the value interval in which the true quantile of the given rank
+   * Gets the upper bound of the interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%.
-   * @param rank the given normalized rank as a fraction
-   * @return the upper bound of the value interval in which the true quantile of the given rank
+   * @param rank the given normalized rank
+   * @return the upper bound of the interval in which the true quantile of the given rank
    * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
    */
   public T getQuantileUpperBound(final double rank) {
@@ -448,7 +448,7 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Same as {@link #getRank(Object, QuantileSearchCriteria) getRank(value, INCLUSIVE)}
+   * Same as {@link #getRank(Object, QuantileSearchCriteria) getRank(item, INCLUSIVE)}
    * @param item item to be ranked
    * @return normalized rank
    */
@@ -487,9 +487,9 @@ public final class ItemsSketch<T> {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param items the given quantile values from which to obtain their corresponding ranks.
-   * @param searchCrit if INCLUSIVE, the given values include the rank directly corresponding to each value.
-   * @return an array of normalized ranks corresponding to the given array of quantile values.
+   * @param items the given quantile items from which to obtain their corresponding ranks.
+   * @param searchCrit if INCLUSIVE, the given items include the rank directly corresponding to each item.
+   * @return an array of normalized ranks corresponding to the given array of quantile items.
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
   public double[] getRanks(final T[] items, final QuantileSearchCriteria searchCrit) {
@@ -568,6 +568,14 @@ public final class ItemsSketch<T> {
   }
 
   /**
+   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
+   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
+   */
+  public boolean hasMemory() {
+    return false;
+  }
+
+  /**
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
    */
@@ -590,6 +598,14 @@ public final class ItemsSketch<T> {
   }
 
   /**
+   * Returns true if this sketch is read only.
+   * @return true if this sketch is read only.
+   */
+  public boolean isReadOnly() {
+    return false;
+  }
+
+  /**
    * Resets this sketch to a virgin state, but retains the original value of k.
    */
   public void reset() {
@@ -598,8 +614,8 @@ public final class ItemsSketch<T> {
     combinedBuffer_ = new Object[combinedBufferItemCapacity_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
-    minValue_ = null;
-    maxValue_ = null;
+    minItem_ = null;
+    maxItem_ = null;
     classicQisSV = null;
   }
 
@@ -673,10 +689,10 @@ public final class ItemsSketch<T> {
   }
 
   /**
-   * Computes the number of retained entries (samples) in the sketch
-   * @return the number of retained entries (samples) in the sketch
+   * Returns the number of retained items (samples) in the sketch.
+   * @return the number of retained items (samples) in the sketch
    */
-  public int getRetainedItems() {
+  public int getNumRetained() {
     return Util.computeRetainedItems(getK(), getN());
   }
 
@@ -714,8 +730,8 @@ public final class ItemsSketch<T> {
     // this method only uses the base buffer part of the combined buffer
 
     if (dataItem == null) { return; }
-    if (maxValue_ == null || comparator_.compare(dataItem, maxValue_) > 0) { maxValue_ = dataItem; }
-    if (minValue_ == null || comparator_.compare(dataItem, minValue_) < 0) { minValue_ = dataItem; }
+    if (maxItem_ == null || comparator_.compare(dataItem, maxItem_) > 0) { maxItem_ = dataItem; }
+    if (minItem_ == null || comparator_.compare(dataItem, minItem_) < 0) { minItem_ = dataItem; }
 
     if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
       ItemsSketch.growBaseBuffer(this);
@@ -776,11 +792,11 @@ public final class ItemsSketch<T> {
    * @param itemsArray the given items array
    */
   private void itemsArrayToCombinedBuffer(final T[] itemsArray) {
-    final int extra = 2; // space for min and max values
+    final int extra = 2; // space for min and max items
 
     //Load min, max
-    minValue_ = itemsArray[0];
-    maxValue_ = itemsArray[1];
+    minItem_ = itemsArray[0];
+    maxItem_ = itemsArray[1];
 
     //Load base buffer
     System.arraycopy(itemsArray, extra, combinedBuffer_, 0, baseBufferCount_);

@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -170,11 +168,9 @@ public class ReqSketch extends BaseReqSketch {
     return ReqSerDe.heapify(mem);
   }
 
-  private static void checkK(final int k) {
-    if ((k & 1) > 0 || k < 4 || k > 1024) {
-      throw new SketchesArgumentException(
-          "<i>K</i> must be even and in the range [4, 1024]: " + k );
-    }
+  @Override
+  public int getK() {
+    return k;
   }
 
   /**
@@ -225,11 +221,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getCDF(final float[] splitPoints) {
-    return getCDF(splitPoints, QuantileSearchCriteria.INCLUSIVE);
-  }
-
-  @Override
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
@@ -237,7 +228,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public boolean getHighRankAccuracy() {
+  public boolean getHighRankAccuracyMode() {
     return hra;
   }
 
@@ -257,20 +248,10 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getPMF(final float[] splitPoints) {
-    return getPMF(splitPoints, INCLUSIVE);
-  }
-
-  @Override
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
     return reqSV.getPMF(splitPoints, searchCrit);
-  }
-
-  @Override
-  public float getQuantile(final double normRank) {
-    return getQuantile(normRank, INCLUSIVE );
   }
 
   @Override
@@ -282,11 +263,6 @@ public class ReqSketch extends BaseReqSketch {
     }
     refreshSortedView();
     return reqSV.getQuantile(normRank, searchCrit);
-  }
-
-  @Override
-  public float[] getQuantiles(final double[] normRanks) {
-    return getQuantiles(normRanks, INCLUSIVE);
   }
 
   @Override
@@ -302,11 +278,6 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double getRank(final float value) {
-    return getRank(value, INCLUSIVE);
-  }
-
-  @Override
   public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return Double.NaN; }
     refreshSortedView();
@@ -316,11 +287,6 @@ public class ReqSketch extends BaseReqSketch {
   @Override
   public double getRankLowerBound(final double rank, final int numStdDev) {
     return getRankLB(k, getNumLevels(), rank, numStdDev, hra, getN());
-  }
-
-  @Override
-  public double[] getRanks(final float[] values) {
-    return getRanks(values, INCLUSIVE);
   }
 
   @Override
@@ -341,7 +307,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public int getRetainedValues() { return retValues; }
+  public int getNumRetained() { return retValues; }
 
   @Override
   public double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
@@ -349,7 +315,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public int getSerializationBytes() {
+  public int getSerializedSizeBytes() {
     final ReqSerDe.SerDeFormat serDeFormat = ReqSerDe.getSerFormat(this);
     return ReqSerDe.getSerBytes(this, serDeFormat);
   }
@@ -461,7 +427,7 @@ public class ReqSketch extends BaseReqSketch {
   public String viewCompactorDetail(final String fmt, final boolean allData) {
     final StringBuilder sb = new StringBuilder();
     sb.append("*********Relative Error Quantiles Compactor Detail*********").append(LS);
-    sb.append("Compactor Detail: Ret Values: ").append(getRetainedValues())
+    sb.append("Compactor Detail: Ret Values: ").append(getNumRetained())
       .append("  N: ").append(getN());
     sb.append(LS);
     for (int i = 0; i < getNumLevels(); i++) {
@@ -497,10 +463,6 @@ public class ReqSketch extends BaseReqSketch {
     return compactors;
   }
 
-  int getK() {
-    return k;
-  }
-
   int getMaxNomSize() {
     return maxNomSize;
   }
@@ -519,6 +481,13 @@ public class ReqSketch extends BaseReqSketch {
 
   void setRetainedValues(final int retValues) {
     this.retValues = retValues;
+  }
+
+  private static void checkK(final int k) {
+    if ((k & 1) > 0 || k < 4 || k > 1024) {
+      throw new SketchesArgumentException(
+          "<i>K</i> must be even and in the range [4, 1024]: " + k );
+    }
   }
 
   private void compress() {

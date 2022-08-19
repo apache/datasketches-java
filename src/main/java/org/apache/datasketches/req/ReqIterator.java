@@ -31,38 +31,14 @@ public class ReqIterator {
   private int cIndex;
   private int bIndex;
   private int retainedValues;
-  private int count;
   private FloatBuffer currentBuf;
 
   ReqIterator(final ReqSketch sketch) {
     compactors = sketch.getCompactors();
-    retainedValues = sketch.getRetainedValues();
+    retainedValues = sketch.getNumRetained();
     currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;
-    count = 0;
-  }
-
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
-  public boolean next() {
-    if ((retainedValues == 0)
-        || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {
-      return false;
-    }
-    if (bIndex == (currentBuf.getCount() - 1)) {
-      cIndex++;
-      currentBuf = compactors.get(cIndex).getBuffer();
-      bIndex = 0;
-    } else {
-      bIndex++;
-    }
-    count++;
-    return true;
   }
 
   /**
@@ -86,10 +62,23 @@ public class ReqIterator {
   }
 
   /**
-   * The number of values processed so far
-   * @return  The number of values processed so far
+   * Advancing the iterator and checking existence of the next entry
+   * is combined here for efficiency. This results in an undefined
+   * state of the iterator before the first call of this method.
+   * @return true if the next element exists
    */
-  public int getCount() {
-    return count;
+  public boolean next() {
+    if ((retainedValues == 0)
+        || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {
+      return false;
+    }
+    if (bIndex == (currentBuf.getCount() - 1)) {
+      cIndex++;
+      currentBuf = compactors.get(cIndex).getBuffer();
+      bIndex = 0;
+    } else {
+      bIndex++;
+    }
+    return true;
   }
 }

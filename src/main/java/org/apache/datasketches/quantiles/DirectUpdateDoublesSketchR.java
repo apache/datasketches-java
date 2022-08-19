@@ -104,7 +104,17 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return (mem_ != null);
+  }
+
+  @Override
   public boolean isDirect() {
+    return (mem_ != null) ? mem_.isDirect() : false;
+  }
+
+  @Override
+  public boolean isReadOnly() {
     return true;
   }
 

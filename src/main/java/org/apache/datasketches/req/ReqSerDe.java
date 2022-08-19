@@ -238,7 +238,7 @@ class ReqSerDe {
     final boolean rawValues = sk.getN() <= ReqSketch.MIN_K;
     final boolean level0Sorted = sk.getCompactors().get(0).getBuffer().isSorted();
     final int flags = (sk.isEmpty() ? 4 : 0)
-        | (sk.getHighRankAccuracy() ? 8 : 0)
+        | (sk.getHighRankAccuracyMode() ? 8 : 0)
         | (rawValues ? 16 : 0)
         | (level0Sorted ? 32 : 0);
     return (byte) flags;

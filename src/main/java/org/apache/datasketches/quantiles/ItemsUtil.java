@@ -149,7 +149,7 @@ final class ItemsUtil {
       final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
       final double eps =  Util.getNormalizedRankError(k, false);
       final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-      final int numSamples = sketch.getRetainedItems();
+      final int numSamples = sketch.getNumRetained();
       final String numSampStr = String.format("%,d", numSamples);
       sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(Util.LS);
       sb.append("   K                            : ").append(k).append(Util.LS);
@@ -165,8 +165,8 @@ final class ItemsUtil {
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
       sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-      sb.append("   Min Value                    : ").append(sketch.getMinValue()).append(Util.LS);
-      sb.append("   Max Value                    : ").append(sketch.getMaxValue()).append(Util.LS);
+      sb.append("   Min Value                    : ").append(sketch.getMinItem()).append(Util.LS);
+      sb.append("   Max Value                    : ").append(sketch.getMaxItem()).append(Util.LS);
       sb.append("### END SKETCH SUMMARY").append(Util.LS);
     }
     return sb.toString();

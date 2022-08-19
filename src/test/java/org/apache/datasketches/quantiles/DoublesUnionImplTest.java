@@ -395,7 +395,7 @@ public class DoublesUnionImplTest {
   @Test
   public void checkUpdateMemory() {
     final DoublesSketch qs1 = buildAndLoadQS(256, 1000);
-    final int bytes = qs1.getCompactStorageBytes();
+    final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     final WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem);
     final Memory srcMem = dstMem;
@@ -413,7 +413,7 @@ public class DoublesUnionImplTest {
   @Test
   public void checkUpdateMemoryDirect() {
     final DoublesSketch qs1 = buildAndLoadDQS(256, 1000);
-    final int bytes = qs1.getCompactStorageBytes();
+    final int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     final WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem);
     final Memory srcMem = dstMem;

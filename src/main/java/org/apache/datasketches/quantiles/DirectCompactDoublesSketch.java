@@ -176,8 +176,13 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return (mem_ != null);
+  }
+
+  @Override
   public boolean isDirect() {
-    return true;
+    return (mem_ != null) ? mem_.isDirect() : false;
   }
 
   @Override
@@ -230,7 +235,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {
-    final int reqBufBytes = getCompactStorageBytes(k, n);
+    final int reqBufBytes = getCompactSerialiedSizeBytes(k, n);
 
     if (memCapBytes < reqBufBytes) {
       throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "

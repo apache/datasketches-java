@@ -300,17 +300,17 @@ public class HeapUpdateDoublesSketchTest {
   public void checkGetStorageBytes() {
     int k = PreambleUtil.DEFAULT_K; //128
     DoublesSketch qs = buildAndLoadQS(k, 0); //k, n
-    int stor = qs.getCompactStorageBytes();
+    int stor = qs.getCurrentCompactSerializedSizeBytes();
     assertEquals(stor, 8);
 
     qs = buildAndLoadQS(k, 2*k); //forces one level
-    stor = qs.getCompactStorageBytes();
+    stor = qs.getCurrentCompactSerializedSizeBytes();
 
     int retItems = Util.computeRetainedItems(k, 2*k);
     assertEquals(stor, 32 + (retItems << 3));
 
     qs = buildAndLoadQS(k, (2*k)-1); //just Base Buffer
-    stor = qs.getCompactStorageBytes();
+    stor = qs.getCurrentCompactSerializedSizeBytes();
     retItems = Util.computeRetainedItems(k, (2*k)-1);
     assertEquals(stor, 32 + (retItems << 3));
   }
@@ -326,7 +326,7 @@ public class HeapUpdateDoublesSketchTest {
 //        qs.update(v++);
 //      }
       byte[] byteArr = qs.toByteArray(false);
-      assertEquals(byteArr.length, qs.getUpdatableStorageBytes());
+      assertEquals(byteArr.length, qs.getCurrentUpdatableSerializedSizeBytes());
     }
   }
 
@@ -549,7 +549,7 @@ public class HeapUpdateDoublesSketchTest {
     println(LS+"Sk2"+LS);
     s2 = sketch2.toString(true, true);
     println(s2);
-    assertEquals(downSketch.getRetainedItems(), sketch2.getRetainedItems());
+    assertEquals(downSketch.getNumRetained(), sketch2.getNumRetained());
   }
 
   @Test
@@ -721,10 +721,10 @@ public class HeapUpdateDoublesSketchTest {
     double err = qs1.getNormalizedRankError(false);
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 0));
     qs1.update(1.0);
     arr = qs1.toByteArray(true); //40
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 1));
   }
 
   @Test
@@ -734,12 +734,12 @@ public class HeapUpdateDoublesSketchTest {
     double err = qs1.getNormalizedRankError(false);
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
-    assertEquals(arr.length, qs1.getCompactStorageBytes());
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 0));
+    assertEquals(arr.length, qs1.getCurrentCompactSerializedSizeBytes());
     qs1.update(1.0);
     arr = qs1.toByteArray(true); //40
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
-    assertEquals(arr.length, qs1.getCompactStorageBytes());
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 1));
+    assertEquals(arr.length, qs1.getCurrentCompactSerializedSizeBytes());
   }
 
   @Test
@@ -748,7 +748,7 @@ public class HeapUpdateDoublesSketchTest {
     for (int i=0; i<1000; i++) {
       qs1.update(i);
     }
-    int bytes = qs1.getUpdatableStorageBytes();
+    int bytes = qs1.getCurrentUpdatableSerializedSizeBytes();
     WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
@@ -763,7 +763,7 @@ public class HeapUpdateDoublesSketchTest {
     for (int i=0; i<1000; i++) {
       qs1.update(i);
     }
-    int bytes = qs1.getCompactStorageBytes();
+    int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
   }
@@ -879,7 +879,7 @@ public class HeapUpdateDoublesSketchTest {
   public void serializeDeserializeEmptyNonCompact() {
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().build();
     byte[] byteArr = sketch1.toByteArray(false); //Ordered, Not Compact, Empty
-    assertEquals(byteArr.length, sketch1.getStorageBytes());
+    assertEquals(byteArr.length, sketch1.getSerializedSizeBytes());
     Memory mem = Memory.wrap(byteArr);
     UpdateDoublesSketch sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
     for (int i = 0; i < 1000; i++) {
@@ -954,7 +954,7 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getRetainedItems(), 10);
+    assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);

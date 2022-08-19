@@ -71,7 +71,7 @@ public class DoublesSketchTest {
     ds.update(1);
     ds.update(2);
     byte[] arr = ds.toByteArray(false);
-    assertEquals(arr.length, ds.getUpdatableStorageBytes());
+    assertEquals(arr.length, ds.getCurrentUpdatableSerializedSizeBytes());
   }
 
   /**

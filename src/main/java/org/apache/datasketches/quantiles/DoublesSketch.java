@@ -519,6 +519,15 @@ public abstract class DoublesSketch {
   }
 
   /**
+   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
+   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
+   */
+public boolean hasMemory() {
+  return false;
+}
+
+
+  /**
    * Returns true if this sketch is empty
    * @return true if this sketch is empty
    */
@@ -527,8 +536,8 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Returns true if this sketch is direct
-   * @return true if this sketch is direct
+   * Returns true if this sketch is off-heap (direct)
+   * @return true if this sketch is off-heap (direct)
    */
   public abstract boolean isDirect();
 
@@ -539,6 +548,12 @@ public abstract class DoublesSketch {
   public boolean isEstimationMode() {
     return getN() >= 2L * k_;
   }
+
+  /**
+   * Returns true if this sketch is read only.
+   * @return true if this sketch is read only.
+   */
+  public abstract boolean isReadOnly();
 
   /**
    * Returns true if the backing resource of <i>this</i> is identical with the backing resource
@@ -632,20 +647,19 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Computes the number of retained items (samples) in the sketch
-   * @return the number of retained items (samples) in the sketch
+   * Returns the number of retained values (samples) in the sketch.
+   * @return the number of retained values (samples) in the sketch
    */
-  public int getRetainedItems() {
+  public int getNumRetained() {
     return Util.computeRetainedItems(getK(), getN());
   }
 
   /**
-   * Returns the number of bytes this sketch would require to store in compact form, which is not
-   * updatable.
-   * @return the number of bytes this sketch would require to store in compact form.
+   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
    */
-  public int getCompactStorageBytes() {
-    return getCompactStorageBytes(getK(), getN());
+  public int getCurrentCompactSerializedSizeBytes() {
+    return getCompactSerialiedSizeBytes(getK(), getN());
   }
 
   /**
@@ -655,28 +669,26 @@ public abstract class DoublesSketch {
    * @param n the number of items input into the sketch
    * @return the number of bytes required to store this sketch in compact form.
    */
-  public static int getCompactStorageBytes(final int k, final long n) {
+  public static int getCompactSerialiedSizeBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
     return metaPreLongs + Util.computeRetainedItems(k, n) << 3;
   }
 
   /**
-   * Returns the number of bytes this sketch would require to store in native form: compact for
-   * a CompactDoublesSketch, non-compact for an UpdateDoublesSketch.
-   * @return the number of bytes this sketch would require to store in compact form.
+   * Returns the current number of bytes this Sketch would require if serialized.
+   * @return the number of bytes this sketch would require if serialized.
    */
-  public int getStorageBytes() {
-    if (isCompact()) { return getCompactStorageBytes(); }
-    return getUpdatableStorageBytes();
+  public int getSerializedSizeBytes() {
+    if (isCompact()) { return getCurrentCompactSerializedSizeBytes(); }
+    return getCurrentUpdatableSerializedSizeBytes();
   }
 
   /**
-   * Returns the number of bytes this sketch would require to store in updatable form.
-   * This uses roughly 2X the storage of the compact form.
-   * @return the number of bytes this sketch would require to store in updatable form.
+   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
    */
-  public int getUpdatableStorageBytes() {
+  public int getCurrentUpdatableSerializedSizeBytes() {
     return getUpdatableStorageBytes(getK(), getN());
   }
 
@@ -720,7 +732,7 @@ public abstract class DoublesSketch {
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
     if (isDirect() && isCompact() == compact) {
       final Memory srcMem = getMemory();
-      srcMem.copyTo(0, dstMem, 0, getStorageBytes());
+      srcMem.copyTo(0, dstMem, 0, getSerializedSizeBytes());
     } else {
       final byte[] byteArr = toByteArray(compact);
       final int arrLen = byteArr.length;

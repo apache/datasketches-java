@@ -70,7 +70,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   ItemsSketchSortedView(final ItemsSketch<T> sketch) {
     this.totalN = sketch.getN();
     final int k = sketch.getK();
-    final int numSamples = sketch.getRetainedItems();
+    final int numSamples = sketch.getNumRetained();
     items = new Object[numSamples];
     cumWeights = new long[numSamples];
     comparator = sketch.getComparator();

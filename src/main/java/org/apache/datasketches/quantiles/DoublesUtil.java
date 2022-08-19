@@ -123,9 +123,9 @@ final class DoublesUtil {
     final int neededLevels = Util.computeNumLevelsNeeded(k, n);
     final int totalLevels = Util.computeTotalLevels(bitPattern);
     final int validLevels = Util.computeValidLevels(bitPattern);
-    final String retItemsStr = String.format("%,d", sk.getRetainedItems());
-    final String cmptBytesStr = String.format("%,d", sk.getCompactStorageBytes());
-    final String updtBytesStr = String.format("%,d", sk.getUpdatableStorageBytes());
+    final String retItemsStr = String.format("%,d", sk.getNumRetained());
+    final String cmptBytesStr = String.format("%,d", sk.getCurrentCompactSerializedSizeBytes());
+    final String updtBytesStr = String.format("%,d", sk.getCurrentUpdatableSerializedSizeBytes());
     final double epsPmf = Util.getNormalizedRankError(k, true);
     final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
     final double eps =  Util.getNormalizedRankError(k, false);
