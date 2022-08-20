@@ -45,7 +45,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getRetainedEntries(), 0);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
-    SketchIterator<DoubleSummary> it = sketch.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     Assert.assertNotNull(it);
     Assert.assertFalse(it.next());
     sketch.toString();
@@ -66,7 +66,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getRetainedEntries(), 0);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
-    SketchIterator<DoubleSummary> it = sketch.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     Assert.assertNotNull(it);
     Assert.assertFalse(it.next());
   }
@@ -84,7 +84,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getRetainedEntries(), 0);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
-    SketchIterator<DoubleSummary> it = sketch.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     Assert.assertNotNull(it);
     Assert.assertFalse(it.next());
   }
@@ -108,7 +108,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getRetainedEntries(), 3);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
-    SketchIterator<DoubleSummary> it = sketch.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     int count = 0;
     while (it.next()) {
      Assert.assertEquals(it.getSummary().getValue(), 2.0);
@@ -136,7 +136,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch2.getRetainedEntries(), 3);
     Assert.assertEquals(sketch2.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch2.getTheta(), 1.0);
-    SketchIterator<DoubleSummary> it = sketch2.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch2.iterator();
     int count = 0;
     while (it.next()) {
      Assert.assertEquals(it.getSummary().getValue(), 1.0);
@@ -165,7 +165,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), sketch1.getEstimate());
     Assert.assertEquals(sketch2.getThetaLong(), sketch1.getThetaLong());
-    SketchIterator<DoubleSummary> it = sketch2.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch2.iterator();
     int count = 0;
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
@@ -197,7 +197,7 @@ public class CompactSketchWithDoubleSummaryTest {
     Assert.assertEquals(sketch.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch.getRetainedEntries(), 4096);
     int count = 0;
-    SketchIterator<DoubleSummary> it = sketch.iterator();
+    TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       count++;

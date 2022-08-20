@@ -20,7 +20,7 @@
 package org.apache.datasketches;
 
 /**
- * The Sorted View Iterator for double values.
+ * The quantiles SortedView iterator for double values.
  *
  * @author Alexander Saydakov
  * @author Lee Rhodes
@@ -28,8 +28,12 @@ package org.apache.datasketches;
 public interface DoublesSortedViewIterator extends SortedViewIterator {
 
   /**
-   * Gets the quantile value at the current index.
-   * @return the quantile value at the current index.
+   * Gets the double value at the current index.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @return the double value at the current index.
    */
   double getValue();
 }

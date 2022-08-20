@@ -20,22 +20,21 @@
 package org.apache.datasketches;
 
 /**
- * The quantiles SortedView Iterator for float values.
- *
- * @author Alexander Saydakov
+ * The quantiles sketch iterator for generic items.
+ * @param <T> The generic quantile item type
  * @author Lee Rhodes
  */
-public interface FloatsSortedViewIterator extends SortedViewIterator {
+public interface QuantilesGenericSketchIterator<T> extends QuantilesSketchIterator {
 
   /**
-   * Gets the float value at the current index.
+   * Gets the item at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the float value at the current index.
+   * @return the item at the current index.
    */
-  float getValue();
+  T getItem();
 
 }
 

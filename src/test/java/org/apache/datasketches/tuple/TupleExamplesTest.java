@@ -61,7 +61,7 @@ public class TupleExamplesTest {
     final CompactSketch<IntegerSummary> ucsk = union.getResult();
     int entries = ucsk.getRetainedEntries();
     println("Union Stateful: tuple, theta: " + entries);
-    final SketchIterator<IntegerSummary> uiter = ucsk.iterator();
+    final TupleSketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
     int twos = 0;
     int ones = 0;
@@ -81,7 +81,7 @@ public class TupleExamplesTest {
     final CompactSketch<IntegerSummary> icsk = inter.getResult();
     entries = icsk.getRetainedEntries();
     println("Intersection Stateful: tuple, theta: " + entries);
-    final SketchIterator<IntegerSummary> iiter = icsk.iterator();
+    final TupleSketchIterator<IntegerSummary> iiter = icsk.iterator();
     counter = 1;
     while (iiter.next()) {
       final int i = iiter.getSummary().getValue();
@@ -106,7 +106,7 @@ public class TupleExamplesTest {
     final CompactSketch<IntegerSummary> ucsk = union.union(tupleSk1, tupleSk2);
     int entries = ucsk.getRetainedEntries();
     println("Union: " + entries);
-    final SketchIterator<IntegerSummary> uiter = ucsk.iterator();
+    final TupleSketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
     int twos = 0;
     int ones = 0;
@@ -124,7 +124,7 @@ public class TupleExamplesTest {
     final CompactSketch<IntegerSummary> icsk = inter.intersect(tupleSk1, tupleSk2);
     entries = icsk.getRetainedEntries();
     println("Intersection: " + entries);
-    final SketchIterator<IntegerSummary> iiter = icsk.iterator();
+    final TupleSketchIterator<IntegerSummary> iiter = icsk.iterator();
     counter = 1;
     while (iiter.next()) {
       final int i = iiter.getSummary().getValue();
@@ -149,7 +149,7 @@ public class TupleExamplesTest {
         union.union(tupleSk, thetaSk, ufactory.newSummary().update(1));
     int entries = ucsk.getRetainedEntries();
     println("Union: " + entries);
-    final SketchIterator<IntegerSummary> uiter = ucsk.iterator();
+    final TupleSketchIterator<IntegerSummary> uiter = ucsk.iterator();
     int counter = 1;
     int twos = 0;
     int ones = 0;
@@ -168,7 +168,7 @@ public class TupleExamplesTest {
         inter.intersect(tupleSk, thetaSk, ufactory.newSummary().update(1));
     entries = icsk.getRetainedEntries();
     println("Intersection: " + entries);
-    final SketchIterator<IntegerSummary> iiter = icsk.iterator();
+    final TupleSketchIterator<IntegerSummary> iiter = icsk.iterator();
     counter = 1;
     while (iiter.next()) {
       final int i = iiter.getSummary().getValue();

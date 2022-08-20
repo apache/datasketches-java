@@ -207,7 +207,7 @@ public class ReqSketchTest {
 
   private static void checkIterator(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("Sketch iterator() Test"); }
-    final ReqIterator itr = sk.iterator();
+    final ReqSketchIterator itr = sk.iterator();
     while (itr.next()) {
       final float v = itr.getValue();
       final long wt = itr.getWeight();

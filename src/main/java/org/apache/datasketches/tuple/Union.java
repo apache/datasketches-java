@@ -107,7 +107,7 @@ public class Union<S extends Summary> {
     if (tupleSketch == null || tupleSketch.isEmpty()) { return; }
     empty_ = false;
     unionThetaLong_ = min(tupleSketch.thetaLong_, unionThetaLong_);
-    final SketchIterator<S> it = tupleSketch.iterator();
+    final TupleSketchIterator<S> it = tupleSketch.iterator();
     while (it.next()) {
       qsk_.merge(it.getHash(), it.getSummary(), summarySetOps_);
     }
@@ -164,7 +164,7 @@ public class Union<S extends Summary> {
 
       //count the number of valid hashes in because Alpha can have dirty values
       int numHashesIn = 0;
-      SketchIterator<S> it = qsk_.iterator();
+      TupleSketchIterator<S> it = qsk_.iterator();
       while (it.next()) { //counts valid hashes
         if (it.getHash() < tmpThetaLong) { numHashesIn++; }
       }

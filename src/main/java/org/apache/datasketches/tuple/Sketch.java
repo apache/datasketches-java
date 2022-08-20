@@ -178,7 +178,7 @@ public abstract class Sketch<S extends Summary> {
    * Returns a SketchIterator
    * @return a SketchIterator
    */
-  public abstract SketchIterator<S> iterator();
+  public abstract TupleSketchIterator<S> iterator();
 
   /**
    * Returns Theta as a long

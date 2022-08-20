@@ -29,7 +29,7 @@ import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
@@ -141,7 +141,7 @@ public class AdoubleAnotBTest {
         assertEquals(result.getUpperBound(1), expect, 0.0);
         assertEquals(result.getLowerBound(1), expect, 0.0);
       }
-      final SketchIterator<DoubleSummary> it = result.iterator();
+      final TupleSketchIterator<DoubleSummary> it = result.iterator();
       while (it.next()) {
         Assert.assertEquals(it.getSummary().getValue(), sum);
       }

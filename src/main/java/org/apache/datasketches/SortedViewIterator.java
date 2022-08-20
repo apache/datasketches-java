@@ -38,46 +38,52 @@ package org.apache.datasketches;
 public interface SortedViewIterator {
 
   /**
-   * Gets the cumulative weight for the current value based on the chosen search criterion.
+   * Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.
    * This is also referred to as the "Natural Rank".
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @param searchCrit if INCLUSIVE, includes the weight of the current value in the cumulative sum.
-   * @return cumulative weight for the current value based on the chosen search criterion.
+   * @param searchCrit if INCLUSIVE, includes the weight at the current index in the cumulative sum.
+   * Otherwise, it will return the cumulative weight of the previous index.
+   * @return cumulative weight at the current index on the chosen search criterion.
    */
   long getCumulativeWeight(QuantileSearchCriteria searchCrit);
 
   /**
-   * Gets the total count of all values presented to the sketch.
-   * @return the total count of all values presented to the sketch.
+   * Gets the total count of all values (or items) presented to the sketch.
+   * @return the total count of all values (or items) presented to the sketch.
    */
   long getN();
 
   /**
-   * Gets the normalized rank for the current value based on the chosen search criterion.
+   * Gets the normalized rank at the current index (or previous index)
+   * based on the chosen search criterion.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @param searchCrit if INCLUSIVE, includes the normalized rank of the current value.
-   * Otherwise, returns the normalized rank of the previous value.
-   * @return normalized rank for the current value or previous value.
+   * @param searchCrit if INCLUSIVE, includes the normalized rank at the current index.
+   * Otherwise, returns the normalized rank of the previous index.
+   * @return the normalized rank at the current index (or previous index)
+   * based on the chosen search criterion.
    */
   double getNormalizedRank(QuantileSearchCriteria searchCrit);
 
   /**
-   * Gets the natural weight of the current value.
-   * @return the natural weight of the current value.
+   * Gets the natural weight at the current index.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @return the natural weight at the current index.
    */
   long getWeight();
 
   /**
-   * Advances the iterator and checks the existence of the next entry,
-   * which are combined here for efficiency.
+   * Advances the index and checks if it is valid.
    * The state of this iterator is undefined before the first call of this method.
-   * @return true if the next element exists
+   * @return true if the next index is valid.
    */
   boolean next();
 

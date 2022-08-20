@@ -538,8 +538,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   @Override
-  public SketchIterator<S> iterator() {
-    return new SketchIterator<>(hashTable_, summaryTable_);
+  public TupleSketchIterator<S> iterator() {
+    return new TupleSketchIterator<>(hashTable_, summaryTable_);
   }
 
 }

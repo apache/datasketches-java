@@ -55,7 +55,7 @@ public class Filter<T extends Summary> {
 
         final QuickSelectSketch<T> sketch =
             new QuickSelectSketch<>(sketchIn.getRetainedEntries(), ResizeFactor.X1.lg(), null);
-        final SketchIterator<T> it = sketchIn.iterator();
+        final TupleSketchIterator<T> it = sketchIn.iterator();
         while (it.next()) {
             final T summary = it.getSummary();
             if (predicate.test(summary)) {

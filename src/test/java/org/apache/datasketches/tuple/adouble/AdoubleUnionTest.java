@@ -25,7 +25,7 @@ import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
@@ -78,7 +78,7 @@ public class AdoubleUnionTest {
     CompactSketch<DoubleSummary> result = union.getResult();
     Assert.assertEquals(result.getEstimate(), 3.0);
 
-    final SketchIterator<DoubleSummary> it = result.iterator();
+    final TupleSketchIterator<DoubleSummary> it = result.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getSummary().getValue(), 3.0);
     Assert.assertTrue(it.next());

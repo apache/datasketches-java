@@ -25,7 +25,7 @@ import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Sketches;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
@@ -48,7 +48,7 @@ public class AdoubleTest {
     Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertEquals(sketch.getTheta(), 1.0);
     Assert.assertNotNull(sketch.toString());
-    final SketchIterator<DoubleSummary> it = sketch.iterator();
+    final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     Assert.assertNotNull(it);
     Assert.assertFalse(it.next());
   }
@@ -142,7 +142,7 @@ public class AdoubleTest {
     Assert.assertEquals(sketch.getTheta(), 1.0);
 
     int count = 0;
-    final SketchIterator<DoubleSummary> it = sketch.iterator();
+    final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       count++;
@@ -177,7 +177,7 @@ public class AdoubleTest {
     Assert.assertTrue(sketch.getEstimate() < sketch.getUpperBound(1));
 
     int count = 0;
-    final SketchIterator<DoubleSummary> it = sketch.iterator();
+    final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       count++;
@@ -234,7 +234,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 1.0);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       Assert.assertFalse(it.next());
@@ -242,7 +242,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 0.7);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 1.7);
       Assert.assertFalse(it.next());
@@ -250,7 +250,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 0.8);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 2.5);
       Assert.assertFalse(it.next());
@@ -265,7 +265,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 1.0);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       Assert.assertFalse(it.next());
@@ -273,7 +273,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 0.7);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 0.7);
       Assert.assertFalse(it.next());
@@ -281,7 +281,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 0.8);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 0.7);
       Assert.assertFalse(it.next());
@@ -296,7 +296,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 1.0);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       Assert.assertFalse(it.next());
@@ -304,7 +304,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 0.7);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 1.0);
       Assert.assertFalse(it.next());
@@ -312,7 +312,7 @@ public class AdoubleTest {
     {
       sketch.update(1, 2.0);
       Assert.assertEquals(sketch.getRetainedEntries(), 1);
-      final SketchIterator<DoubleSummary> it = sketch.iterator();
+      final TupleSketchIterator<DoubleSummary> it = sketch.iterator();
       Assert.assertTrue(it.next());
       Assert.assertEquals(it.getSummary().getValue(), 2.0);
       Assert.assertFalse(it.next());
@@ -331,7 +331,7 @@ public class AdoubleTest {
         new DoubleSummaryDeserializer(), new DoubleSummaryFactory(mode));
 
     Assert.assertEquals(sketch2.getEstimate(), 1.0);
-    final SketchIterator<DoubleSummary> it = sketch2.iterator();
+    final TupleSketchIterator<DoubleSummary> it = sketch2.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getSummary().getValue(), 1.0);
     Assert.assertFalse(it.next());
@@ -366,7 +366,7 @@ public class AdoubleTest {
     Assert.assertTrue(sketch2.isEstimationMode());
     Assert.assertEquals(sketch2.getEstimate(), 8192, 8192 * 0.99);
     Assert.assertEquals(sketch1.getTheta(), sketch2.getTheta());
-    final SketchIterator<DoubleSummary> it = sketch2.iterator();
+    final TupleSketchIterator<DoubleSummary> it = sketch2.iterator();
     int count = 0;
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 10.0);

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.req;
 
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import java.util.List;
 
 /**
@@ -26,14 +27,14 @@ import java.util.List;
  *
  * @author Lee Rhodes
  */
-public class ReqIterator {
+public class ReqSketchIterator implements QuantilesFloatsSketchIterator {
   private List<ReqCompactor> compactors;
   private int cIndex;
   private int bIndex;
   private int retainedValues;
   private FloatBuffer currentBuf;
 
-  ReqIterator(final ReqSketch sketch) {
+  ReqSketchIterator(final ReqSketch sketch) {
     compactors = sketch.getCompactors();
     retainedValues = sketch.getNumRetained();
     currentBuf = compactors.get(0).getBuffer();
@@ -41,32 +42,17 @@ public class ReqIterator {
     bIndex = -1;
   }
 
-  /**
-   * Gets a value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
+  @Override
   public float getValue() {
     return currentBuf.getValue(bIndex);
   }
 
-  /**
-   * Gets a weight for the value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
+  @Override
   public long getWeight() {
     return 1 << cIndex;
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
+  @Override
   public boolean next() {
     if ((retainedValues == 0)
         || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {

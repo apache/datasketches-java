@@ -20,12 +20,10 @@
 package org.apache.datasketches;
 
 /**
- * The quantiles SortedView Iterator for float values.
- *
- * @author Alexander Saydakov
+ * The quantiles sketch iterator for float values.
  * @author Lee Rhodes
  */
-public interface FloatsSortedViewIterator extends SortedViewIterator {
+public interface QuantilesFloatsSketchIterator extends QuantilesSketchIterator {
 
   /**
    * Gets the float value at the current index.
@@ -36,6 +34,5 @@ public interface FloatsSortedViewIterator extends SortedViewIterator {
    * @return the float value at the current index.
    */
   float getValue();
-
 }
 

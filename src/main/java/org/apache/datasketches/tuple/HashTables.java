@@ -44,7 +44,7 @@ class HashTables<S extends Summary> {
     lgTableSize = getLgTableSize(numKeys);
 
     hashTable = new long[1 << lgTableSize];
-    final SketchIterator<S> it = sketch.iterator();
+    final TupleSketchIterator<S> it = sketch.iterator();
     while (it.next()) {
       final long hash = it.getHash();
       final int index = hashInsertOnly(hashTable, lgTableSize, hash);
@@ -102,7 +102,7 @@ class HashTables<S extends Summary> {
     final long[] matchHashArr = new long[maxMatchSize];
     final S[] matchSummariesArr = Util.newSummaryArray(summaryTable, maxMatchSize);
     int matchCount = 0;
-    final SketchIterator<S> it = nextTupleSketch.iterator();
+    final TupleSketchIterator<S> it = nextTupleSketch.iterator();
 
     while (it.next()) {
       final long hash = it.getHash();

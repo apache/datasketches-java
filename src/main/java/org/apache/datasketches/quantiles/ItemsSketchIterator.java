@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.quantiles;
 
+import org.apache.datasketches.QuantilesGenericSketchIterator;
+
 /**
  * Iterator over ItemsSketch. The order is not defined.
  * @param <T> type of item
  */
-public class ItemsSketchIterator<T> {
+public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T> {
 
   private final ItemsSketch<T> sketch;
   private Object[] combinedBuffer;
@@ -43,33 +45,18 @@ public class ItemsSketchIterator<T> {
     this.offset = 0;
   }
 
-  /**
-   * Gets a value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
+  @Override
   @SuppressWarnings("unchecked")
-  public T getValue() {
+  public T getItem() {
     return (T) combinedBuffer[offset + index];
   }
 
-  /**
-   * Gets a weight for the value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
+  @Override
   public long getWeight() {
     return weight;
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
+  @Override
   public boolean next() {
     if (combinedBuffer == null) { // initial setup
       combinedBuffer = sketch.combinedBuffer_;

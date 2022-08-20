@@ -20,22 +20,38 @@
 package org.apache.datasketches;
 
 /**
- * The quantiles SortedView Iterator for float values.
+ * This is the base interface for the SketchIterator hierarchy used for viewing the
+ * non-ordered items or values retained by a sketch.
  *
- * @author Alexander Saydakov
+ * <p>Prototype example of the recommended iteration loop:</p>
+ * <pre>{@code
+ *   SketchIterator itr = sketch.iterator();
+ *   while (itr.next()) {
+ *     ...get*();
+ *   }
+ * }</pre>
+ *
  * @author Lee Rhodes
  */
-public interface FloatsSortedViewIterator extends SortedViewIterator {
+
+public interface QuantilesSketchIterator {
 
   /**
-   * Gets the float value at the current index.
+   * Gets the natural weight at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the float value at the current index.
+   * @return the natural weight at the current index.
    */
-  float getValue();
+  long getWeight();
+
+  /**
+   * Advances the index and checks if it is valid.
+   * The state of this iterator is undefined before the first call of this method.
+   * @return true if the next index is valid.
+   */
+  boolean next();
 
 }
 

@@ -39,7 +39,7 @@ public class ItemsSketchIteratorTest {
     sketch.update(0);
     ItemsSketchIterator<Integer> it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getValue(), Integer.valueOf(0));
+    Assert.assertEquals(it.getItem(), Integer.valueOf(0));
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }

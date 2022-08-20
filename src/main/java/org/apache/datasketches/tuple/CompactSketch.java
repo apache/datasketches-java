@@ -239,8 +239,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   @Override
-  public SketchIterator<S> iterator() {
-    return new SketchIterator<>(hashArr_, summaryArr_);
+  public TupleSketchIterator<S> iterator() {
+    return new TupleSketchIterator<>(hashArr_, summaryArr_);
   }
 
 }

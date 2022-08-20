@@ -23,13 +23,13 @@ package org.apache.datasketches.tuple;
  * Iterator over a generic tuple sketch
  * @param <S> Type of Summary
  */
-public class SketchIterator<S extends Summary> {
+public class TupleSketchIterator<S extends Summary> {
 
   private final long[] hashArrTbl_; //could be either hashArr or hashTable
   private final S[] summaryArrTbl_; //could be either summaryArr or summaryTable
   private int i_;
 
-  SketchIterator(final long[] hashes, final S[] summaries) {
+  TupleSketchIterator(final long[] hashes, final S[] summaries) {
     hashArrTbl_ = hashes;
     summaryArrTbl_ =  summaries;
     i_ = -1;

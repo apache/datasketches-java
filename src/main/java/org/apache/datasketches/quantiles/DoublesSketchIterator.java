@@ -19,10 +19,12 @@
 
 package org.apache.datasketches.quantiles;
 
+import org.apache.datasketches.QuantilesDoublesSketchIterator;
+
 /**
  * Iterator over DoublesSketch. The order is not defined.
  */
-public class DoublesSketchIterator {
+public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
 
   private final DoublesSketch sketch;
   private DoublesSketchAccessor sketchAccessor;
@@ -39,32 +41,17 @@ public class DoublesSketchIterator {
     this.index = 0;
   }
 
-  /**
-   * Gets a value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
+  @Override
   public double getValue() {
     return sketchAccessor.get(index);
   }
 
-  /**
-   * Gets a weight for the value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
+  @Override
   public long getWeight() {
     return weight;
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
+  @Override
   public boolean next() {
     if (sketchAccessor == null) { // initial setup
       sketchAccessor = DoublesSketchAccessor.wrap(sketch);

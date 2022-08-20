@@ -27,7 +27,7 @@ import java.util.List;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
 import org.testng.annotations.Test;
 
@@ -47,7 +47,7 @@ public class FdtSketchTest {
     final String[] nodesArr = {"abc", "def" };
     sketch.update(nodesArr);
 
-    final SketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
+    final TupleSketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
     int count = 0;
     while (it.next()) {
       final String[] nodesArr2 = it.getSummary().getValue();
@@ -63,7 +63,7 @@ public class FdtSketchTest {
     FdtSketch sketch2 = new FdtSketch(mem);
 
     //check output
-    final SketchIterator<ArrayOfStringsSummary> it2 = sketch2.iterator();
+    final TupleSketchIterator<ArrayOfStringsSummary> it2 = sketch2.iterator();
     int count2 = 0;
     while (it2.next()) {
       final String[] nodesArr2 = it2.getSummary().getValue();

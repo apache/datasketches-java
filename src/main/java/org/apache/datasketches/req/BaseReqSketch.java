@@ -333,7 +333,7 @@ abstract class BaseReqSketch {
    * Returns an iterator for all the values in this sketch.
    * @return an iterator for all the values in this sketch.
    */
-  public abstract ReqIterator iterator();
+  public abstract ReqSketchIterator iterator();
 
   /**
    * Merge other sketch into this one. The other sketch is not modified.

@@ -337,8 +337,8 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public ReqIterator iterator() {
-    return new ReqIterator(this);
+  public ReqSketchIterator iterator() {
+    return new ReqSketchIterator(this);
   }
 
   @Override

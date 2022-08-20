@@ -20,7 +20,7 @@
 package org.apache.datasketches;
 
 /**
- * The Sorted View Iterator for generic items.
+ * The quantiles SortedView Iterator for generic items.
  *
  * @param <T> The generic quantile item type
  * @author Alexander Saydakov
@@ -29,9 +29,14 @@ package org.apache.datasketches;
 public interface GenericSortedViewIterator<T> extends SortedViewIterator {
 
   /**
-   * Gets the quantile item at the current index.
-   * @return the quantile item at the current index.
+   * Gets the item at the current index.
+   *
+   * <p>Don't call this before calling next() for the first time
+   * or after getting false from next().</p>
+   *
+   * @return the item at the current index.
    */
   T getItem();
+
 }
 
