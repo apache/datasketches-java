@@ -27,8 +27,10 @@ import static org.apache.datasketches.quantiles.Util.checkIsCompactMemory;
 
 import java.util.Random;
 
+import org.apache.datasketches.DoublesSortedView;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -745,7 +747,7 @@ public abstract class DoublesSketch {
   /**
    * @return the iterator for this class
    */
-  public DoublesSketchIterator iterator() {
+  public QuantilesDoublesSketchIterator iterator() {
     return new DoublesSketchIterator(this, getBitPattern());
   }
 
@@ -754,7 +756,7 @@ public abstract class DoublesSketch {
    * Complexity: linear merge of sorted levels plus sorting of the level 0.
    * @return sorted view object
    */
-  public DoublesSketchSortedView getSortedView() {
+  public DoublesSortedView getSortedView() {
     return new DoublesSketchSortedView(this);
   }
 

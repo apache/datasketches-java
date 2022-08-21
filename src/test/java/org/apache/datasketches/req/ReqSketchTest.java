@@ -33,7 +33,9 @@ import static org.testng.Assert.fail;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 
 /**
  * @author Lee Rhodes
@@ -63,7 +65,7 @@ public class ReqSketchTest {
           + " up=" + up + " hra=" + hra + " criterion=" + crit + LS);
     }
     final ReqSketch sk = loadSketch(k, min, max, up, hra, skDebug);
-    final ReqSketchSortedView sv = sk.getSortedView();
+    final FloatsSortedView sv = sk.getSortedView();
     checkToString(sk, iDebug);
     checkSortedView(sk, iDebug);
     checkGetRank(sk, min, max, iDebug);
@@ -207,7 +209,7 @@ public class ReqSketchTest {
 
   private static void checkIterator(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("Sketch iterator() Test"); }
-    final ReqSketchIterator itr = sk.iterator();
+    final QuantilesFloatsSketchIterator itr = sk.iterator();
     while (itr.next()) {
       final float v = itr.getValue();
       final long wt = itr.getWeight();

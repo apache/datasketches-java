@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.Assert;
@@ -30,7 +31,7 @@ public class KllDirectFloatsSketchIteratorTest {
   @Test
   public void emptySketch() {
     final KllFloatsSketch sketch = getDFSketch(200, 0);
-    KllFloatsSketchIterator it = sketch.iterator();
+    QuantilesFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -38,7 +39,7 @@ public class KllDirectFloatsSketchIteratorTest {
   public void oneItemSketch() {
     final KllFloatsSketch sketch = getDFSketch(200, 0);
     sketch.update(0);
-    KllFloatsSketchIterator it = sketch.iterator();
+    QuantilesFloatsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getValue(), 0f);
     Assert.assertEquals(it.getWeight(), 1);
@@ -52,7 +53,7 @@ public class KllDirectFloatsSketchIteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      KllFloatsSketchIterator it = sketch.iterator();
+      QuantilesFloatsSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

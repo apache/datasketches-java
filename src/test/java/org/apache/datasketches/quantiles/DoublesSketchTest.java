@@ -27,6 +27,8 @@ import static org.testng.Assert.assertTrue;
 
 import java.nio.ByteOrder;
 
+import org.apache.datasketches.DoublesSortedView;
+import org.apache.datasketches.DoublesSortedViewIterator;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
@@ -189,8 +191,8 @@ public class DoublesSketchTest {
     sketch.update(1);
     sketch.update(2);
     { // cumulative inclusive
-      final DoublesSketchSortedView view = sketch.getSortedView();
-      final DoublesSketchSortedViewIterator it = view.iterator();
+      final DoublesSortedView view = sketch.getSortedView();
+      final DoublesSortedViewIterator it = view.iterator();
       Assert.assertEquals(it.next(), true);
       Assert.assertEquals(it.getValue(), 1);
       Assert.assertEquals(it.getWeight(), 1);

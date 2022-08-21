@@ -30,6 +30,7 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
@@ -105,7 +106,7 @@ public class ReqSketchOtherTest {
     assertEquals(maxNomSize, 240);
     final float v = sk.getQuantile(1.0);
     assertEquals(v, 120.0f);
-    final ReqSketchSortedView aux = sk.getSortedView();
+    final FloatsSortedView aux = sk.getSortedView();
     assertNotNull(aux);
     assertTrue(sk.getRSE(sk.getK(), .5, false, 120) > 0);
     assertTrue(sk.getSerializedSizeBytes() > 0);

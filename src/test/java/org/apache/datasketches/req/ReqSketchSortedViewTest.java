@@ -24,6 +24,8 @@ import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.FloatsSortedView;
+import org.apache.datasketches.FloatsSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -40,7 +42,7 @@ public class ReqSketchSortedViewTest {
   @Test
   public void emptySketch() {
     ReqSketch sketch = ReqSketch.builder().build();
-    ReqSketchSortedViewIterator itr =  sketch.getSortedView().iterator();
+    FloatsSortedViewIterator itr =  sketch.getSortedView().iterator();
     Assert.assertFalse(itr.next());
   }
 
@@ -49,7 +51,7 @@ public class ReqSketchSortedViewTest {
     ReqSketch sketch = ReqSketch.builder().build();
     sketch.update(1f);
     sketch.update(2f);
-    ReqSketchSortedViewIterator itr =  sketch.getSortedView().iterator();
+    FloatsSortedViewIterator itr =  sketch.getSortedView().iterator();
 
     assertTrue(itr.next());
 
@@ -95,12 +97,12 @@ public class ReqSketchSortedViewTest {
 
   private void checkIterator(final ReqSketch sketch) {
     println("\nNot Deduped:");
-    ReqSketchSortedView sv = sketch.getSortedView();
-    ReqSketchSortedViewIterator itr = sv.iterator();
+    FloatsSortedView sv = sketch.getSortedView();
+    FloatsSortedViewIterator itr = sv.iterator();
     printIterator(itr);
   }
 
-  private void printIterator(final ReqSketchSortedViewIterator itr) {
+  private void printIterator(final FloatsSortedViewIterator itr) {
     println("");
     String[] header = {"Value", "Wt", "CumWtNotInc", "NormRankNotInc", "CumWtInc", "NormRankInc"};
     String hfmt = "%8s%6s%16s%16s%16s%16s\n";

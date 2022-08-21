@@ -21,6 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import java.util.Comparator;
 
+import org.apache.datasketches.QuantilesGenericSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -29,7 +30,7 @@ public class ItemsSketchIteratorTest {
   @Test
   public void emptySketch() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
-    ItemsSketchIterator<Integer> it = sketch.iterator();
+    QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -37,7 +38,7 @@ public class ItemsSketchIteratorTest {
   public void oneItemSketch() {
     ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
     sketch.update(0);
-    ItemsSketchIterator<Integer> it = sketch.iterator();
+    QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
     Assert.assertTrue(it.next());
     Assert.assertEquals(it.getItem(), Integer.valueOf(0));
     Assert.assertEquals(it.getWeight(), 1);
@@ -51,7 +52,7 @@ public class ItemsSketchIteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      ItemsSketchIterator<Integer> it = sketch.iterator();
+      QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

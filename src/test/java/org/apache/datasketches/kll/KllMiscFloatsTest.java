@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Objects;
 
 import org.apache.datasketches.FloatsSortedView;
+import org.apache.datasketches.FloatsSortedViewIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -174,8 +175,8 @@ public class KllMiscFloatsTest {
   public void viewCompactionAndSortedView() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     show(sk, 20);
-    KllFloatsSketchSortedView sv = sk.getSortedView();
-    KllFloatsSketchSortedViewIterator itr = sv.iterator();
+    FloatsSortedView sv = sk.getSortedView();
+    FloatsSortedViewIterator itr = sv.iterator();
     printf("%12s%12s\n", "Value", "CumWeight");
     while (itr.next()) {
       float v = itr.getValue();

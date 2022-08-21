@@ -22,7 +22,9 @@ package org.apache.datasketches.req;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
@@ -321,7 +323,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public ReqSketchSortedView getSortedView() {
+  public FloatsSortedView getSortedView() {
     refreshSortedView();
     return reqSV;
   }
@@ -337,7 +339,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public ReqSketchIterator iterator() {
+  public QuantilesFloatsSketchIterator iterator() {
     return new ReqSketchIterator(this);
   }
 

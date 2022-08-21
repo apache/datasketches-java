@@ -30,7 +30,9 @@ import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import java.util.Objects;
 
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -454,7 +456,7 @@ public abstract class KllFloatsSketch extends KllSketch {
   /**
    * @return the iterator for this class
    */
-  public KllFloatsSketchIterator iterator() {
+  public QuantilesFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(getFloatValuesArray(), getLevelsArray(), getNumLevels());
   }
 
@@ -474,7 +476,7 @@ public abstract class KllFloatsSketch extends KllSketch {
    * Complexity: linear, single-pass merge of sorted levels plus sorting of the level 0.
    * @return sorted view object
    */
-  public KllFloatsSketchSortedView getSortedView() {
+  public FloatsSortedView getSortedView() {
     refreshSortedView();
     return kllFloatsSV;
   }

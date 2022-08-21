@@ -26,7 +26,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.HashSet;
 
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -79,8 +79,8 @@ public class DebugUnionTest {
     int hErrors = 0;
     int dErrors = 0;
 
-    DoublesSketchIterator hit = hSketch.iterator();
-    DoublesSketchIterator dit = dSketch.iterator();
+    QuantilesDoublesSketchIterator hit = hSketch.iterator();
+    QuantilesDoublesSketchIterator dit = dSketch.iterator();
 
     while (hit.next() && dit.next()) {
       double v = hit.getValue();

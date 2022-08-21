@@ -38,7 +38,9 @@ import java.util.Comparator;
 import java.util.Random;
 
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesGenericSketchIterator;
 import org.apache.datasketches.ArrayOfItemsSerDe;
+import org.apache.datasketches.GenericSortedView;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -506,7 +508,7 @@ public final class ItemsSketch<T> {
   /**
    * @return the iterator for this class
    */
-  public ItemsSketchIterator<T> iterator() {
+  public QuantilesGenericSketchIterator<T> iterator() {
     return new ItemsSketchIterator<>(this, bitPattern_);
   }
 
@@ -718,7 +720,7 @@ public final class ItemsSketch<T> {
    * Complexity: linear merge of sorted levels plus sorting of the level 0.
    * @return sorted view object
    */
-  public ItemsSketchSortedView<T> getSortedView() {
+  public GenericSortedView<T> getSortedView() {
     return new ItemsSketchSortedView<T>(this);
   }
 

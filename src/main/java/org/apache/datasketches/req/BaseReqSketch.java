@@ -20,7 +20,10 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+
+import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 
 /**
  * This abstract class provides a single place to define and document the public API
@@ -291,7 +294,7 @@ abstract class BaseReqSketch {
    * Gets the sorted view of the current state of this sketch
    * @return the sorted view of the current state of this sketch
    */
-  public abstract ReqSketchSortedView getSortedView();
+  public abstract FloatsSortedView getSortedView();
 
   /**
    * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
@@ -333,7 +336,7 @@ abstract class BaseReqSketch {
    * Returns an iterator for all the values in this sketch.
    * @return an iterator for all the values in this sketch.
    */
-  public abstract ReqSketchIterator iterator();
+  public abstract QuantilesFloatsSketchIterator iterator();
 
   /**
    * Merge other sketch into this one. The other sketch is not modified.

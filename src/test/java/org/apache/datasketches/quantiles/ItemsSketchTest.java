@@ -35,6 +35,8 @@ import org.apache.datasketches.ArrayOfDoublesSerDe;
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
+import org.apache.datasketches.GenericSortedView;
+import org.apache.datasketches.GenericSortedViewIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -616,8 +618,8 @@ public class ItemsSketchTest {
     sketch.update(1);
     sketch.update(2);
     { // cumulative inclusive
-      final ItemsSketchSortedView<Integer> view = sketch.getSortedView();
-      final ItemsSketchSortedViewIterator<Integer> it = view.iterator();
+      final GenericSortedView<Integer> view = sketch.getSortedView();
+      final GenericSortedViewIterator<Integer> it = view.iterator();
       assertEquals(it.next(), true);
       assertEquals(it.getItem(), 1);
       assertEquals(it.getWeight(), 1);

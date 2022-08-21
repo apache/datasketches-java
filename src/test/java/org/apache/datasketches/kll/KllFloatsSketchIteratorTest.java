@@ -24,6 +24,8 @@ import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.FloatsSortedViewIterator;
+import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -32,7 +34,7 @@ public class KllFloatsSketchIteratorTest {
   @Test
   public void emptySketch() {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    KllFloatsSketchIterator it = sketch.iterator();
+    QuantilesFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -41,7 +43,7 @@ public class KllFloatsSketchIteratorTest {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
     sketch.update(2);;
-    KllFloatsSketchIterator itr = sketch.iterator();
+    QuantilesFloatsSketchIterator itr = sketch.iterator();
     assertTrue(itr.next());
 
     assertEquals(itr.getValue(), 2f);
@@ -58,7 +60,7 @@ public class KllFloatsSketchIteratorTest {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
     sketch.update(2);;
-    KllFloatsSketchSortedViewIterator itr = sketch.getSortedView().iterator();
+    FloatsSortedViewIterator itr = sketch.getSortedView().iterator();
 
     assertTrue(itr.next());
 
@@ -86,7 +88,7 @@ public class KllFloatsSketchIteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      KllFloatsSketchIterator it = sketch.iterator();
+      QuantilesFloatsSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

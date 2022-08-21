@@ -29,6 +29,8 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import org.apache.datasketches.FloatsSortedView;
+import org.apache.datasketches.FloatsSortedViewIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -531,8 +533,8 @@ public class KllFloatsSketchTest {
     sk.update(1);
     sk.update(2);
     {
-      final KllFloatsSketchSortedView view = sk.getSortedView();
-      final KllFloatsSketchSortedViewIterator itr = view.iterator();
+      final FloatsSortedView view = sk.getSortedView();
+      final FloatsSortedViewIterator itr = view.iterator();
       assertEquals(itr.next(), true);
       assertEquals(itr.getValue(), 1);
       assertEquals(itr.getWeight(), 1);
