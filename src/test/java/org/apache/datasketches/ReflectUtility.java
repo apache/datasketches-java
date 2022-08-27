@@ -85,7 +85,7 @@ public final class ReflectUtility {
 
   /**
    * Gets a declared constructor given the owner class and parameter types
-   * @param ownerClass the Class<?> object of the class loaded by the SystemClassLoader.
+   * @param ownerClass the Class object of the class loaded by the SystemClassLoader.
    * @param parameterTypes parameter types for the constructor
    * @return the constructor
    */
@@ -117,7 +117,7 @@ public final class ReflectUtility {
 
   /**
    * Gets a declared field of the given the loaded owner class and field name. The accessible flag will be set true.
-   * @param ownerClass the Class<?> object of the class loaded by the SystemClassLoader.
+   * @param ownerClass the Class object of the class loaded by the SystemClassLoader.
    * @param fieldName the desired field name
    * @return the desired field.
    */

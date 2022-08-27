@@ -29,6 +29,7 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("deprecation")
 public class KllMiscDirectFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
@@ -377,8 +378,8 @@ public class KllMiscDirectFloatsTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
-    assertEquals(sk1.getMaxValue(), 121.0F);
-    assertEquals(sk1.getMinValue(), 1.0F);
+    assertEquals(sk1.getMaxQuantile(), 121.0F);
+    assertEquals(sk1.getMinQuantile(), 1.0F);
   }
 
   @Test
@@ -400,8 +401,8 @@ public class KllMiscDirectFloatsTest {
     WritableMemory dstMem = WritableMemory.allocate(3000);
     KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
-    assertEquals(sk.getMinValue(), 1.0F);
-    assertEquals(sk.getMaxValue(), 10000.0F);
+    assertEquals(sk.getMinQuantile(), 1.0F);
+    assertEquals(sk.getMaxQuantile(), 10000.0F);
     //println(sk.toString(true, true));
   }
 
@@ -412,8 +413,8 @@ public class KllMiscDirectFloatsTest {
     WritableMemory dstMem = WritableMemory.allocate(1000);
     KllFloatsSketch sk = KllDirectFloatsSketch.newDirectInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
-    assertEquals(sk.getMinValue(), 1.0);
-    assertEquals(sk.getMaxValue(), 200.0);
+    assertEquals(sk.getMinQuantile(), 1.0);
+    assertEquals(sk.getMaxQuantile(), 200.0);
   }
 
   private static KllFloatsSketch getDFSketch(final int k, final int n) {

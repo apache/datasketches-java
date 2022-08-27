@@ -40,8 +40,8 @@ public class KllDirectCompactFloatsSketchTest {
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     Memory srcMem = Memory.wrap(byteArr);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
-    assertEquals(sk2.getMinValue(), 1.0F);
-    assertEquals(sk2.getMaxValue(), 21.0F);
+    assertEquals(sk2.getMinQuantile(), 1.0F);
+    assertEquals(sk2.getMaxQuantile(), 21.0F);
   }
 
   @Test
@@ -52,12 +52,12 @@ public class KllDirectCompactFloatsSketchTest {
     Memory srcMem = Memory.wrap(sk.toByteArray());
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
     println(sk2.toString(true, true));
-    assertEquals(sk2.getMinValue(), 1.0F);
-    assertEquals(sk2.getMaxValue(), 21.0F);
+    assertEquals(sk2.getMinQuantile(), 1.0F);
+    assertEquals(sk2.getMaxQuantile(), 21.0F);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
     KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null);
-    assertEquals(sk3.getMinValue(), 1.0F);
-    assertEquals(sk3.getMaxValue(), 21.0F);
+    assertEquals(sk3.getMinQuantile(), 1.0F);
+    assertEquals(sk3.getMaxQuantile(), 21.0F);
   }
 
   @Test
@@ -106,16 +106,16 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertTrue(Float.isNaN(sk2.getMaxValue()));
-    assertTrue(Float.isNaN(sk2.getMinValue()));
+    assertTrue(Float.isNaN(sk2.getMaxQuantile()));
+    assertTrue(Float.isNaN(sk2.getMinQuantile()));
     sk.update(1);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),1.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
+    assertEquals(sk2.getMaxQuantile(),1.0F);
+    assertEquals(sk2.getMinQuantile(),1.0F);
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),21.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
+    assertEquals(sk2.getMaxQuantile(),21.0F);
+    assertEquals(sk2.getMinQuantile(),1.0F);
   }
 
   @Test

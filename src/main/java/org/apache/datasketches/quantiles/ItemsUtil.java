@@ -165,8 +165,8 @@ final class ItemsUtil {
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
       sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-      sb.append("   Min Value                    : ").append(sketch.getMinItem()).append(Util.LS);
-      sb.append("   Max Value                    : ").append(sketch.getMaxItem()).append(Util.LS);
+      sb.append("   Min Value                    : ").append(sketch.getMinQuantile()).append(Util.LS);
+      sb.append("   Max Value                    : ").append(sketch.getMaxQuantile()).append(Util.LS);
       sb.append("### END SKETCH SUMMARY").append(Util.LS);
     }
     return sb.toString();

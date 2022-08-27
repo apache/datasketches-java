@@ -19,9 +19,11 @@
 
 package org.apache.datasketches.quantiles;
 
+import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**
+ * Compact sketches are inherently <i>read ony</i>.
  * @author Jon Malkin
  */
 public abstract class CompactDoublesSketch extends DoublesSketch {
@@ -41,6 +43,16 @@ public abstract class CompactDoublesSketch extends DoublesSketch {
   @Override
   public boolean isReadOnly() {
     return false;
+  }
+
+  @Override
+  public void reset() {
+    throw new SketchesStateException("Cannot reset a compact sketch, which is read-only.");
+  }
+
+  @Override
+  public void update(double value) {
+    throw new SketchesStateException("Cannot update a compact sketch, which is read-only.");
   }
 
 }

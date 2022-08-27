@@ -96,8 +96,8 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     } else {
       insertFlags(dstMem, flags);
       insertN(dstMem, n);
-      insertMinDouble(dstMem, sketch.getMinValue());
-      insertMaxDouble(dstMem, sketch.getMaxValue());
+      insertMinDouble(dstMem, sketch.getMinQuantile());
+      insertMaxDouble(dstMem, sketch.getMaxQuantile());
 
       final int bbCount = computeBaseBufferItems(k, n);
 
@@ -161,12 +161,12 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
-  public double getMaxValue() {
+  public double getMaxQuantile() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
-  public double getMinValue() {
+  public double getMinQuantile() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
   }
 

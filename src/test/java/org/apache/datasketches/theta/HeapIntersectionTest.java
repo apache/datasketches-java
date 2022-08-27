@@ -376,7 +376,7 @@ public class HeapIntersectionTest {
 
 
   /**
-   * This proves that the hash of 7 is < 0.5. This fact will be used in other tests involving P.
+   * This proves that the hash of 7 is &lt; 0.5. This fact will be used in other tests involving P.
    */
   @Test
   public void checkPreject() {

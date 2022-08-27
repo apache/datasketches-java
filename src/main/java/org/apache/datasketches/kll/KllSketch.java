@@ -31,6 +31,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import java.util.Random;
 
+import org.apache.datasketches.QuantilesAPI;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -74,7 +75,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
-public abstract class KllSketch {
+public abstract class KllSketch implements QuantilesAPI {
 
   /**
    * Used to define the variable type of the current instance of this class.
@@ -178,25 +179,6 @@ public abstract class KllSketch {
   }
 
   /**
-   * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
-   * <em>k</em> and stream length. This method can be used if allocation of storage
-   * is necessary beforehand.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @return upper bound on the compact serialized size
-   * @deprecated Instead use getMaxSerializedSizeBytes(int, long, boolean)
-   * from the descendants of this class, or
-   * getMaxSerializedSizeBytes(int, long, SketchType, boolean) from this class.
-   * Version 3.2.0
-   */
-  @Deprecated
-  public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, FLOATS_SKETCH, false);
-    return gStats.compactBytes;
-  }
-
-  /**
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
@@ -242,7 +224,9 @@ public abstract class KllSketch {
   /**
    * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
    * @return the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
    */
+  @Deprecated
   public final int getCurrentCompactSerializedSizeBytes() {
     return getCurrentSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
   }
@@ -250,22 +234,18 @@ public abstract class KllSketch {
   /**
    * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
    * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
    */
+  @Deprecated
   public final int getCurrentUpdatableSerializedSizeBytes() {
     final int valuesCap = KllHelper.computeTotalValueCapacity(getK(), getM(), getNumLevels());
     return getCurrentSerializedSizeBytes(getNumLevels(), valuesCap, sketchType, true);
   }
 
-  /**
-   * Returns the user configured parameter k
-   * @return the user configured parameter k
-   */
+  @Override
   public abstract int getK();
 
-  /**
-   * Returns the length of the input stream in values.
-   * @return stream length
-   */
+  @Override
   public abstract long getN();
 
   /**
@@ -284,10 +264,7 @@ public abstract class KllSketch {
     return getNormalizedRankError(getMinK(), pmf);
   }
 
-  /**
-   * Returns the number of retained values (samples) in the sketch.
-   * @return the number of retained values (samples) in the sketch
-   */
+  @Override
   public final int getNumRetained() {
     return levelsArr[getNumLevels()] - levelsArr[0];
   }
@@ -311,34 +288,22 @@ public abstract class KllSketch {
     return wmem;
   }
 
-  /**
-   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
-   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
-   */
+  @Override
   public boolean hasMemory() {
     return (wmem != null);
   }
 
-  /**
-   * Returns true if this sketch is off-heap (direct)
-   * @return true if this sketch is off-heap (direct)
-   */
+  @Override
   public boolean isDirect() {
     return (wmem != null) ? wmem.isDirect() : false;
   }
 
-  /**
-   * Returns true if this sketch is empty.
-   * @return empty flag
-   */
+  @Override
   public final boolean isEmpty() {
     return getN() == 0;
   }
 
-  /**
-   * Returns true if this sketch is in estimation mode.
-   * @return estimation mode flag
-   */
+  @Override
   public final boolean isEstimationMode() {
     return getNumLevels() > 1;
   }
@@ -351,10 +316,7 @@ public abstract class KllSketch {
     return hasMemory() && updatableMemFormat;
   }
 
-  /**
-   * Returns true if this sketch is read only.
-   * @return true if this sketch is read only.
-   */
+  @Override
   public final boolean isReadOnly() {
     return readOnly;
   }
@@ -389,10 +351,10 @@ public abstract class KllSketch {
   }
 
   /**
-   * This resets the current sketch back to zero entries.
-   * It retains key parameters such as <i>k</i> and
-   * <i>SketchType (double or float)</i>.
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
    */
+  @Override
   public final void reset() {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int k = getK();
@@ -410,14 +372,6 @@ public abstract class KllSketch {
       setMaxFloatValue(Float.NaN);
       setFloatValuesArray(new float[k]);
     }
-  }
-
-  /**
-   * Returns serialized sketch in a compact byte array form.
-   * @return serialized sketch in a compact byte array form.
-   */
-  public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this);
   }
 
   @Override

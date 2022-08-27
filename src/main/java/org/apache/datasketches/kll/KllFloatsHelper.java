@@ -395,7 +395,7 @@ final class KllFloatsHelper {
    * The following must be enabled for use with the KllFloatsValidationTest,
    * which is only enabled for manual testing. In addition, two methods
    * above need to be modified.
-   */ //NOTE Validation Method: Need to uncomment
+   */ //NOTE Validation Method: Need to uncomment to use
   //    static int nextOffset = 0;
   //
   //    private static int deterministicOffset() {

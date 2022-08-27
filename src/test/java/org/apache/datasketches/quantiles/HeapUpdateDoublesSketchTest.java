@@ -676,8 +676,8 @@ public class HeapUpdateDoublesSketchTest {
   static String getRanksTable(DoublesSketch qs, double[] ranks) {
     double rankError = qs.getNormalizedRankError(false);
     double[] values = qs.getQuantiles(ranks);
-    double maxV = qs.getMaxValue();
-    double minV = qs.getMinValue();
+    double maxV = qs.getMaxQuantile();
+    double minV = qs.getMinQuantile();
     double delta = maxV - minV;
     println("Note: This prints the relative value errors for illustration.");
     println("The quantiles sketch does not and can not guarantee relative value errors");
@@ -753,8 +753,8 @@ public class HeapUpdateDoublesSketchTest {
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
     DoublesSketch qs2 = DoublesSketch.heapify(srcMem);
-    assertEquals(qs1.getMinValue(), qs2.getMinValue(), 0.0);
-    assertEquals(qs1.getMaxValue(), qs2.getMaxValue(), 0.0);
+    assertEquals(qs1.getMinQuantile(), qs2.getMinQuantile(), 0.0);
+    assertEquals(qs1.getMaxQuantile(), qs2.getMaxQuantile(), 0.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -870,8 +870,8 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
-    assertEquals(sketch2.getMinValue(), 0.0);
-    assertEquals(sketch2.getMaxValue(), 1999.0);
+    assertEquals(sketch2.getMinQuantile(), 0.0);
+    assertEquals(sketch2.getMaxQuantile(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
   }
 
@@ -885,8 +885,8 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i);
     }
-    assertEquals(sketch2.getMinValue(), 0.0);
-    assertEquals(sketch2.getMaxValue(), 999.0);
+    assertEquals(sketch2.getMinQuantile(), 0.0);
+    assertEquals(sketch2.getMaxQuantile(), 999.0);
     assertEquals(sketch2.getQuantile(0.5), 500.0, 4.0);
   }
 
@@ -1041,10 +1041,10 @@ public class HeapUpdateDoublesSketchTest {
 
     final boolean b2;
     if (mq1.isEmpty()) {
-      b2 = (Double.isNaN(mq1.getMinValue())) && (Double.isNaN(mq2.getMinValue())
-        &&  Double.isNaN(mq1.getMaxValue())) && (Double.isNaN(mq2.getMaxValue()));
+      b2 = (Double.isNaN(mq1.getMinQuantile())) && (Double.isNaN(mq2.getMinQuantile())
+        &&  Double.isNaN(mq1.getMaxQuantile())) && (Double.isNaN(mq2.getMaxQuantile()));
     } else {
-      b2 =  (mq1.getMinValue() == mq2.getMinValue()) && (mq1.getMaxValue() == mq2.getMaxValue());
+      b2 =  (mq1.getMinQuantile() == mq2.getMinQuantile()) && (mq1.getMaxQuantile() == mq2.getMaxQuantile());
     }
     return b1 && b2;
   }

@@ -296,10 +296,10 @@ class ReqSerDe {
         assert wbuf.getPosition() == bytes;
         return arr;
       }
-      default: { //Normal
+      default: { //Normal Estimation
         wbuf.putLong(sk.getN());
-        wbuf.putFloat(sk.getMinValue());
-        wbuf.putFloat(sk.getMaxValue());
+        wbuf.putFloat(sk.getMinQuantile());
+        wbuf.putFloat(sk.getMaxQuantile());
         for (int i = 0; i < numCompactors; i++) {
           final ReqCompactor c = sk.getCompactors().get(i);
           wbuf.putByteArray(c.toByteArray(), 0, c.getSerializationBytes());

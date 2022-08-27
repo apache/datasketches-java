@@ -71,8 +71,8 @@ import org.apache.datasketches.memory.WritableMemory;
  * This class provides some useful sketch analysis tools that are used internally.
  *
  * @author lrhodes
- *
  */
+@SuppressWarnings("deprecation")
 final class KllHelper {
 
   static class GrowthStats {

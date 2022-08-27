@@ -26,48 +26,49 @@
  * approximate distribution of values from a very large stream in a single pass, requiring only
  * that the values are comparable.
  * The analysis is obtained using <i>getQuantile()</i> or <i>getQuantiles()</i> functions or the
- * inverse functions getRank(), getPMF() (Probability Mass Function), and getCDF()
- * (Cumulative Distribution Function).
+ * inverse functions getRank(), getPMF() (the Probability Mass Function), and getCDF()
+ * (the Cumulative Distribution Function).</p>
  *
- * <p>Given an input stream of <i>N</i> numeric values, the <i>absolute rank</i> of any specific
- * value is defined as its index <i>(0 to N-1)</i> in the hypothetical sorted stream of all
- * <i>N</i> input values.
+ * <p>Given an input stream of <i>N</i> numeric values, the <i>natural rank</i> of any specific
+ * value is defined as its index <i>(1 to N)</i> in the hypothetical sorted stream of all
+ * <i>N</i> input values.</p>
  *
  * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific value is defined as its
- * <i>absolute rank</i> divided by <i>N</i>.
- * Thus, the <i>normalized rank</i> is a value in the interval [0.0, 1.0).
- * In the documentation and Javadocs for this sketch <i>absolute rank</i> is never used so any
- * reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.
+ * <i>natural rank</i> divided by <i>N</i>.
+ * Thus, the <i>normalized rank</i> is a value in the interval (0.0, 1.0].
+ * In the Javadocs for all the quantile sketches <i>natural rank</i> is never used
+ * so any reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.</p>
  *
- * <p>This sketch is configured with a parameter <i>k</i>, which affects the size of the sketch
- * and its estimation error.
+ * <p>All quantile sketches are configured with a parameter <i>k</i>, which affects the size of
+ * the sketch and its estimation error.</p>
  *
  * <p>In the research literature, the estimation error is commonly called <i>epsilon</i>
  * (or <i>eps</i>) and is a fraction between zero and one.
  * Larger values of <i>k</i> result in smaller values of epsilon.
- * The epsilon error is always with respect to the rank and cannot be applied to the
- * corresponding values.
+ * The epsilon error is always with respect to the rank domain. Estimating the error in the
+ * quantile domain must be done by first computing the error in the rank domain and then
+ * translating that to the quantile domain.</p>
  *
- * <p>The relationship between the normalized rank and the corresponding values can be viewed
+ * <p>The relationship between the normalized rank and the corresponding quantiles can be viewed
  * as a two dimensional monotonic plot with the normalized rank on one axis and the
- * corresponding values on the other axis. If the y-axis is specified as the value-axis and
- * the x-axis as the normalized rank, then <i>y = getQuantile(x)</i> is a monotonically
- * increasing function.
+ * corresponding values on the other axis. Let <i>q := quantile</i> and <i>r := rank</i> then both
+ * <i>q = getQuantile(r)</i> and <i>r = getRank(q)</i> are monotonically increasing functions.
+ * If the y-axis is used for the rank domain and the x-axis for the quantile domain,
+ * then <i>y = getRank(x)</i> is also the single point Cumulative Distribution Function (CDF).</p>
  *
- * <p>The functions <i>getQuantile(rank)</i> and getQuantiles(...) translate ranks into
- * corresponding values. The functions <i>getRank(value),
- * getCDF(...) (Cumulative Distribution Function), and getPMF(...)
- * (Probability Mass Function)</i> perform the opposite operation and translate values into ranks.
+ * <p>The functions <i>getQuantile(...)</i> translate ranks into corresponding quantiles.
+ * The functions <i>getRank(...), getCDF(...), and getPMF(...) (Probability Mass Function)</i>
+ * perform the opposite operation and translate values into ranks.</p>
  *
  * <p>The <i>getPMF(...)</i> function has about 13 to 47% worse rank error (depending
  * on <i>k</i>) than the other queries because the mass of each "bin" of the PMF has
  * "double-sided" error from the upper and lower edges of the bin as a result of a subtraction,
- * as the errors from the two edges can sometimes add.
+ * as the errors from the two edges can sometimes add.</p>
  *
  * <p>The default <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
- * "double-sided" (PMF) epsilon of about 1.65%.
+ * "double-sided" (PMF) epsilon of about 1.65%.</p>
  *
- * <p>A <i>getQuantile(rank)</i> query has the following guarantees:
+ * <p>A <i>getQuantile(rank)</i> query has the following guarantees:</p>
  * <ul>
  * <li>Let <i>v = getQuantile(r)</i> where <i>r</i> is the rank between zero and one.</li>
  * <li>The value <i>v</i> will be a value from the input stream.</li>
@@ -78,7 +79,7 @@
  * error is on the rank, not the value.</li>
  * </ul>
  *
- * <p>A <i>getRank(value)</i> query has the following guarantees:
+ * <p>A <i>getRank(value)</i> query has the following guarantees:</p>
  * <ul>
  * <li>Let <i>r = getRank(v)</i> where <i>v</i> is a value between the min and max values of
  * the input stream.</li>
@@ -88,7 +89,7 @@
  * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
  * </ul>
  *
- * <p>A <i>getPMF(...)</i> query has the following guarantees:
+ * <p>A <i>getPMF(...)</i> query has the following guarantees:</p>
  * <ul>
  * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
  * = getPMF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
@@ -112,7 +113,7 @@
  * <i>max = v<sub>m+1</sub></i>.</li>
  * </ul>
  *
- * <p>A <i>getCDF(...)</i> query has the following guarantees;
+ * <p>A <i>getCDF(...)</i> query has the following guarantees:</p>
  * <ul>
  * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
  * = getCDF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
@@ -137,9 +138,9 @@
  *
  * <p>From the above, it might seem like we could make some estimates to bound the
  * <em>value</em> returned from a call to <em>getQuantile()</em>. The sketch, however, does not
- * let us derive error bounds or confidences around values. Because errors are independent, we
+ * let us derive error bounds or confidences around quantiles. Because errors are independent, we
  * can approximately bracket a value as shown below, but there are no error estimates available.
- * Additionally, the interval may be quite large for certain distributions.
+ * Additionally, the interval may be quite large for certain distributions.</p>
  * <ul>
  * <li>Let <i>v = getQuantile(r)</i>, the estimated quantile value of rank <i>r</i>.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>

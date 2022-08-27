@@ -187,7 +187,7 @@ public class ReqSketchTest {
     final double[] cdf = sk.getCDF(spArr);
     if (iDebug > 0) {
       for (int i = 0; i < cdf.length; i++) {
-        final float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
+        final float sp = i == spArr.length ? sk.getMaxQuantile() : spArr[i];
         println("SP: " +sp + ", Den: " + cdf[i]);
       }
     }
@@ -200,7 +200,7 @@ public class ReqSketchTest {
     final double[] pmf = sk.getPMF(spArr);
     if (iDebug > 0) {
       for (int i = 0; i < pmf.length; i++) {
-        final float sp = i == spArr.length ? sk.getMaxValue() : spArr[i];
+        final float sp = i == spArr.length ? sk.getMaxQuantile() : spArr[i];
         println("SP: " +sp + ", Mass: " + pmf[i]);
       }
     }
@@ -290,8 +290,8 @@ public class ReqSketchTest {
     final Memory mem = Memory.wrap(sk1Arr);
     final ReqSketch sk2 = ReqSketch.heapify(mem);
     assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
-    assertEquals(sk2.getMinValue(), sk1.getMinValue());
-    assertEquals(sk2.getMaxValue(), sk1.getMaxValue());
+    assertEquals(sk2.getMinQuantile(), sk1.getMinQuantile());
+    assertEquals(sk2.getMaxQuantile(), sk1.getMaxQuantile());
     assertEquals(sk2.getN(), sk1.getN());
     assertEquals(sk2.getHighRankAccuracyMode(),sk1.getHighRankAccuracyMode());
     assertEquals(sk2.getK(), sk1.getK());

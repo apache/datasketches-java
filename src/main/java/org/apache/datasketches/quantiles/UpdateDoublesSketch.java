@@ -48,11 +48,6 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    */
   public abstract void update(double dataItem);
 
-  /**
-   * Resets this sketch to the empty state, but retains the original value of k.
-   */
-  public abstract void reset();
-
   public static UpdateDoublesSketch heapify(final Memory srcMem) {
     return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
   }

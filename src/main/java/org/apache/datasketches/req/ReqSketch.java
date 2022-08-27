@@ -235,12 +235,12 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public float getMaxValue() {
+  public float getMaxQuantile() {
     return maxValue;
   }
 
   @Override
-  public float getMinValue() {
+  public float getMinQuantile() {
     return minValue;
   }
 
@@ -371,7 +371,7 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public ReqSketch reset() {
+  public void reset() {
     totalN = 0;
     retValues = 0;
     maxNomSize = 0;
@@ -380,7 +380,6 @@ public class ReqSketch extends BaseReqSketch {
     reqSV = null;
     compactors = new ArrayList<>();
     grow();
-    return this;
   }
 
   @Override
