@@ -19,13 +19,12 @@
 
 package org.apache.datasketches.req;
 
-import java.util.Arrays;
-
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 
-import org.apache.datasketches.QuantileSearchCriteria;
+import java.util.Arrays;
 
 import org.apache.datasketches.InequalitySearch;
+import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;

@@ -24,6 +24,7 @@ import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 
 import org.apache.datasketches.FloatsSortedViewIterator;
 import org.apache.datasketches.QuantileSearchCriteria;
+
 /**
  * Iterator over ReqSketchSortedView.
  * @author Alexander Saydakov

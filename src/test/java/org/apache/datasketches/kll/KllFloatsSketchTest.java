@@ -105,6 +105,15 @@ public class KllFloatsSketchTest {
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
     }
+    final float[] qArr = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    double[] rOut = sketch.getRanks(qArr); //inclusive
+    for (int i = 0; i < qArr.length; i++) {
+      assertEquals(rOut[i], (i + 1) / 10.0);
+    }
+    rOut = sketch.getRanks(qArr, EXCLUSIVE); //exclusive
+    for (int i = 0; i < qArr.length; i++) {
+      assertEquals(rOut[i], i / 10.0);
+    }
     // inclusive = false (default)
     assertEquals(sketch.getQuantile(0, EXCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, EXCLUSIVE), 2);

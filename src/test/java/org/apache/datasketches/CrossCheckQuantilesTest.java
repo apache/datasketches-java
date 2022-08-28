@@ -60,7 +60,7 @@ import org.testng.annotations.Test;
  */
 public class CrossCheckQuantilesTest {
 
-  final int k = 32; //all sketches are in exact mode
+  final static int k = 32; //all sketches are in exact mode
 
   //These test sets are specifically designed for the corner cases mentioned in the class javadoc.
   //  Please don't mess with them  unless you know what you are doing.

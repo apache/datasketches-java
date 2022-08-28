@@ -23,7 +23,7 @@ package org.apache.datasketches;
  * The quantiles sketch iterator for double values.
  * @author Lee Rhodes
  */
-public interface QuantilesDoublesSketchIterator extends QuantilesSketchIterator{
+public interface QuantilesDoublesSketchIterator extends QuantilesSketchIterator {
 
   /**
    * Gets the double value at the current index.

@@ -36,8 +36,6 @@ public class CompressedStateTest {
   long vIn = 0;
   int lgK = 10;
 
-
-  @SuppressWarnings("unused")
   private void updateStateUnion(final CpcSketch sk) {
     Format skFmt = sk.getFormat();
     CompressedState state = CompressedState.compress(sk);
@@ -63,6 +61,8 @@ public class CompressedStateTest {
     state.exportToMemory(wmem);
     printf("%8d %8d %10s %35s\n", vIn, c, f.toString(), fmt.toString());
     state2 = CompressedState.importFromMemory(wmem);
+    fmt = state2.getFormat();
+    assertEquals(fmt, skFmt);
   }
 
   @Test

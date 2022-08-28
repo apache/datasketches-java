@@ -19,20 +19,18 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.GenericInequalitySearch.*;
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantiles.Util.checkNormalizedRankBounds;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Objects;
 
 import org.apache.datasketches.GenericInequalitySearch;
+import org.apache.datasketches.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.GenericSortedView;
 import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 
 /**
@@ -92,7 +90,6 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     }
   }
 
-
   @SuppressWarnings("unchecked")
   @Override
   public T getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
@@ -121,7 +118,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    checkSplitPoints(splitPoints);
+    ItemsUtil.validateValues(splitPoints, comparator);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
     for (int i = 0; i < len - 1; i++) {
@@ -133,6 +130,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    ItemsUtil.validateValues(splitPoints, comparator);
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
     for (int i = len; i-- > 1; ) {
@@ -143,13 +141,13 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public long[] getCumulativeWeights() {
-    return cumWeights;
+    return cumWeights.clone();
   }
 
   @SuppressWarnings("unchecked")
   @Override
   public T[] getItems() {
-    return (T[])items;
+    return (T[])items.clone();
   }
 
   @Override
@@ -221,14 +219,4 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     return subtotal;
   }
 
-  private final void checkSplitPoints(final T[] items) {
-    Objects.requireNonNull(items);
-    Objects.requireNonNull(comparator);
-    final int len = items.length -1;
-    for (int i = 0; i < len; i++) {
-      if (comparator.compare(items[i], items[i + 1]) < 0) { continue; }
-      throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not NaN.");
-    }
-  }
 }

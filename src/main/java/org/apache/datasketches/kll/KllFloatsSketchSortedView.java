@@ -35,7 +35,6 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public final class KllFloatsSketchSortedView implements FloatsSortedView {
-
   private final float[] values;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
@@ -71,7 +70,6 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
     values = new float[numValues];
     cumWeights = new long[numValues];
     populateFromSketch(srcValues, srcLevels, srcNumLevels, numValues);
-    sk.kllFloatsSV = this;
   }
 
   @Override
@@ -122,12 +120,12 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
 
   @Override
   public long[] getCumulativeWeights() {
-    return cumWeights;
+    return cumWeights.clone();
   }
 
   @Override
   public float[] getValues() {
-    return values;
+    return values.clone();
   }
 
   @Override

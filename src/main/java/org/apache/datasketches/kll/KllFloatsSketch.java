@@ -52,7 +52,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Alexander Saydakov
  */
 public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
-  KllFloatsSketchSortedView kllFloatsSV = null;
+  private KllFloatsSketchSortedView kllFloatsSV = null;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
     super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
@@ -281,6 +281,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     refreshSortedView();
     return kllFloatsSV;
   }
+
+  void nullSortedView() { kllFloatsSV = null; }
 
   @Override //Artifact of inheritance
   double[] getDoubleValuesArray() { kllSketchThrow(MUST_NOT_CALL); return null; }

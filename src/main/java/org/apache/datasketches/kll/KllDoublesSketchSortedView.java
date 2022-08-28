@@ -35,7 +35,6 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public final class KllDoublesSketchSortedView implements DoublesSortedView {
-
   private final double[] values;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
@@ -71,7 +70,6 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
     values = new double[numValues];
     cumWeights = new long[numValues];
     populateFromSketch(srcValues, srcLevels, srcNumLevels, numValues);
-    sk.kllDoublesSV = this;
   }
 
   @Override
@@ -122,12 +120,12 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public long[] getCumulativeWeights() {
-    return cumWeights;
+    return cumWeights.clone();
   }
 
   @Override
   public double[] getValues() {
-    return values;
+    return values.clone();
   }
 
   @Override

@@ -71,7 +71,7 @@ public interface FloatsSortedView extends SortedView {
    * <p>The points in the returned array are not monotonic and represent the discrete derivative of the CDF,
    * which is also called the Probability Mass Function (PMF). Each returned point represents the fractional
    * area of the total distribution which lies between the previous point (or zero) and the given point, which
-   * corresponds to the given splitPoint.<p>
+   * corresponds to the given splitPoint.</p>
    *
    * @param splitPoints the given array of quantile values or splitPoints. This is a sorted, monotonic array of unique
    * values in the range of (minValue, maxValue). This array should not include either the minValue or the maxValue.

@@ -70,7 +70,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
    * @param totalN an estimate of the total number of values submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
-  public static double getRSE(int k, double rank, boolean hra, long totalN) {
+  public static double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
     return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
   }
 
@@ -87,15 +87,17 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria searchCrit);
 
   @Override
-  public float[] getQuantiles(int numEvenlySpaced, QuantileSearchCriteria searchCrit) {
+  public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
+  @Override
   public abstract float getQuantileLowerBound(double rank);
 
   public abstract float getQuantileLowerBound(double rank, int numStdDev);
 
+  @Override
   public abstract float getQuantileUpperBound(double rank);
 
   public abstract float getQuantileUpperBound(double rank, int numStdDev);
@@ -169,7 +171,6 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Override
   public abstract void reset();
 
-
   @Override
   public abstract byte[] toByteArray();
 
@@ -217,6 +218,5 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
     final double ubFix = rank + numStdDev * fixed;
     return Math.min(ubRel, ubFix);
   }
-
 
 }

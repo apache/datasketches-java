@@ -37,7 +37,7 @@ final class KllFloatsHelper {
   //Called from KllSketch
   static void mergeFloatImpl(final KllFloatsSketch sketch, final KllSketch other) {
     if (other.isEmpty()) { return; }
-    sketch.kllFloatsSV = null;
+    sketch.nullSortedView();
     final long finalN = sketch.getN() + other.getN();
     final int otherNumLevels = other.getNumLevels();
     final int[] otherLevelsArr = other.getLevelsArray();

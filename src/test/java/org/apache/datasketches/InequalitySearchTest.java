@@ -389,7 +389,7 @@ public class InequalitySearchTest {
 
   /****************/
 
-  //@Test // visual only for doubles inequality
+  @Test // visual only for doubles inequality
   public void exerciseDoublesSearch() {
     println("--------{1f}--------");
     double[] arr = {1};
@@ -425,7 +425,7 @@ public class InequalitySearchTest {
 
   /****************/
 
-  //@Test // visual only for floats inequality
+  @Test // visual only for floats inequality
   public void exerciseFloatsSearch() {
     println("--------{1f}--------");
     float[] arr = {1f};
@@ -461,7 +461,7 @@ public class InequalitySearchTest {
 
   /****************/
 
-  //@Test // visual only for longs inequality
+  @Test // visual only for longs inequality
   public void exerciseLongsSearch() {
     println("--------{1}--------");
     long[] arr = {1};
@@ -549,8 +549,8 @@ public class InequalitySearchTest {
 
   /****************/
 
-  //@Test //visual testing only
-  @SuppressWarnings("unused")
+  @Test //visual testing only
+  //@SuppressWarnings("unused")
   private static void checkBuildRandFloatArr() {
     final int len = 10;
     for (int i = 0; i < 10; i++) {
@@ -568,14 +568,14 @@ public class InequalitySearchTest {
    * @param format the format
    * @param args the args
    */
-  private static final void printf(final String format, final Object ...args) {
+  static final void printf(final String format, final Object ...args) {
     if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
    * @param o the Object to println
    */
-  private static final void println(final Object o) {
+  static final void println(final Object o) {
     if (enablePrinting) { System.out.println(o.toString()); }
   }
 }

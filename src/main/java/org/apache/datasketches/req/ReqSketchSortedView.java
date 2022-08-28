@@ -107,12 +107,12 @@ public class ReqSketchSortedView implements FloatsSortedView {
 
   @Override
   public long[] getCumulativeWeights() {
-    return cumWeights;
+    return cumWeights.clone();
   }
 
   @Override
   public float[] getValues() {
-    return values;
+    return values.clone();
   }
 
   @Override

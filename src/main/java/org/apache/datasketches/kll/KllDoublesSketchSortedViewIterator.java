@@ -29,7 +29,7 @@ import org.apache.datasketches.QuantileSearchCriteria;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIterator{
+public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIterator {
 
   private final double[] values;
   private final long[] cumWeights;

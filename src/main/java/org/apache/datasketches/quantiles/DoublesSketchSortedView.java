@@ -127,12 +127,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public long[] getCumulativeWeights() {
-    return cumWeights;
+    return cumWeights.clone();
   }
 
   @Override
   public double[] getValues() {
-    return values;
+    return values.clone();
   }
 
   @Override

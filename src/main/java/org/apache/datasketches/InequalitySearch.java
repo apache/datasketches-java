@@ -354,7 +354,7 @@ public enum InequalitySearch {
         }
         return "EQ: " + v + " Cannot be found within arr[" + low + "], arr[" + high + "]; return -1";
       }
-      return "EQ: " + v + " == arr[" + idx + "]; return arr[" + idx +"]=" + arr[idx];
+      return "EQ: " + v + " == arr[" + idx + "]; return arr[" + idx + "]=" + arr[idx];
     }
   },
 

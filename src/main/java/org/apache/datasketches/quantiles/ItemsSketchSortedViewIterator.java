@@ -43,7 +43,7 @@ public class ItemsSketchSortedViewIterator<T> implements GenericSortedViewIterat
   }
 
   @Override
-  public long getCumulativeWeight(QuantileSearchCriteria searchCrit) {
+  public long getCumulativeWeight(final QuantileSearchCriteria searchCrit) {
     if (searchCrit == INCLUSIVE) { return cumWeights[index]; }
     return (index == 0) ? 0 : cumWeights[index - 1];
   }
@@ -60,7 +60,7 @@ public class ItemsSketchSortedViewIterator<T> implements GenericSortedViewIterat
   }
 
   @Override
-  public double getNormalizedRank(QuantileSearchCriteria searchCrit) {
+  public double getNormalizedRank(final QuantileSearchCriteria searchCrit) {
     return (double) getCumulativeWeight(searchCrit) / totalN;
   }
 

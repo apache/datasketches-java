@@ -768,15 +768,6 @@ public class HeapUpdateDoublesSketchTest {
     qs1.putMemory(dstMem);
   }
 
-  @SuppressWarnings("deprecation")
-  @Test
-  public void checkAuxPosOfRank() throws Exception {
-    long n = 10;
-    long returnValue = ClassicQuantilesHelper.posOfRank(1.0, 10);
-    //println("" + returnValue);
-    assertEquals(returnValue, n-1);
-  }
-
   //Himanshu's case
   @Test
   public void testIt() {

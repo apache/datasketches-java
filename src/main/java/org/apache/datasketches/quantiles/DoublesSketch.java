@@ -223,7 +223,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return classicQdsSV.getPMF(splitPoints, searchCrit);
   }
 
-
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return Double.NaN; }

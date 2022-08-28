@@ -78,6 +78,7 @@ public class ReqSketch extends BaseReqSketch {
     int deltaRetValues;
     int deltaNomSize;
   }
+
   //static finals
   private static final String LS = System.getProperty("line.separator");
   static final byte MIN_K = 4;
@@ -193,8 +194,6 @@ public class ReqSketch extends BaseReqSketch {
     }
   }
 
-
-
   @Override
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
@@ -258,12 +257,12 @@ public class ReqSketch extends BaseReqSketch {
    * specified by the upper and lower quantile bounds for this sketch is 0.95.
    */
   @Override
-  public float getQuantileLowerBound(double rank) {
+  public float getQuantileLowerBound(final double rank) {
     return getQuantile(getRankLowerBound(rank, 2), INCLUSIVE);
   }
 
   @Override
-  public float getQuantileLowerBound(double rank, int numStdDev) {
+  public float getQuantileLowerBound(final double rank, final int numStdDev) {
     return getQuantile(getRankLowerBound(rank, numStdDev), INCLUSIVE);
   }
 
@@ -273,15 +272,14 @@ public class ReqSketch extends BaseReqSketch {
    * specified by the upper and lower quantile bounds for this sketch is 0.95.
    */
   @Override
-  public float getQuantileUpperBound(double rank) {
+  public float getQuantileUpperBound(final double rank) {
     return getQuantile(getRankUpperBound(rank, 2), INCLUSIVE);
   }
 
   @Override
-  public float getQuantileUpperBound(double rank, int numStdDev) {
+  public float getQuantileUpperBound(final double rank, final int numStdDev) {
     return getQuantile(getRankUpperBound(rank, numStdDev), INCLUSIVE);
   }
-
 
   @Override
   public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
