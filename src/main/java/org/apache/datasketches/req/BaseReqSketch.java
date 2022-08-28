@@ -34,6 +34,10 @@ import org.apache.datasketches.QuantilesFloatsSketchIterator;
  * @author Lee Rhodes
  */
 abstract class BaseReqSketch implements QuantilesFloatsAPI {
+  static final byte INIT_NUMBER_OF_SECTIONS = 3;
+  //These two factors are used by upper and lower bounds
+  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  private static final double fixRseFactor = .084;
 
   @Override
   public abstract double[] getCDF(float[] splitPoints, QuantileSearchCriteria searchCrit);
@@ -58,7 +62,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   /**
    * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    * Derived from Lemma 12 in https://arxiv.org/abs/2004.01668v2, but the constant factors were
-   * modified based on empirical measurements.
+   * adjusted based on empirical measurements.
    *
    * @param k the given value of k
    * @param rank the given normalized rank, a number in [0,1].
@@ -66,7 +70,9 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
    * @param totalN an estimate of the total number of values submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
-  public abstract double getRSE(int k, double rank, boolean hra, long totalN);
+  public static double getRSE(int k, double rank, boolean hra, long totalN) {
+    return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
+  }
 
   @Override
   public abstract long getN();
@@ -85,6 +91,14 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
     if (isEmpty()) { return null; }
     return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
+
+  public abstract float getQuantileLowerBound(double rank);
+
+  public abstract float getQuantileLowerBound(double rank, int numStdDev);
+
+  public abstract float getQuantileUpperBound(double rank);
+
+  public abstract float getQuantileUpperBound(double rank, int numStdDev);
 
   @Override
   public abstract double getRank(float quantile, QuantileSearchCriteria searchCrit);
@@ -175,5 +189,34 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
    * @return a detailed view of the compactors and their data
    */
   public abstract String viewCompactorDetail(String fmt, boolean allData);
+
+  static boolean exactRank(final int k, final int levels, final double rank,
+      final boolean hra, final long totalN) {
+    final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
+    if (levels == 1 || totalN <= baseCap) { return true; }
+    final double exactRankThresh = (double)baseCap / totalN;
+    return hra && rank >= 1.0 - exactRankThresh || !hra && rank <= exactRankThresh;
+  }
+
+  static double getRankLB(final int k, final int levels, final double rank,
+      final int numStdDev, final boolean hra, final long totalN) {
+    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
+    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double fixed = fixRseFactor / k;
+    final double lbRel = rank - numStdDev * relative;
+    final double lbFix = rank - numStdDev * fixed;
+    return Math.max(lbRel, lbFix);
+  }
+
+  static double getRankUB(final int k, final int levels, final double rank,
+      final int numStdDev, final boolean hra, final long totalN) {
+    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
+    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double fixed = fixRseFactor / k;
+    final double ubRel = rank + numStdDev * relative;
+    final double ubFix = rank + numStdDev * fixed;
+    return Math.min(ubRel, ubFix);
+  }
+
 
 }

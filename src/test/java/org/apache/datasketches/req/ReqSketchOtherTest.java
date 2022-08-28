@@ -108,7 +108,7 @@ public class ReqSketchOtherTest {
     assertEquals(v, 120.0f);
     final FloatsSortedView aux = sk.getSortedView();
     assertNotNull(aux);
-    assertTrue(sk.getRSE(sk.getK(), .5, false, 120) > 0);
+    assertTrue(BaseReqSketch.getRSE(sk.getK(), .5, false, 120) > 0);
     assertTrue(sk.getSerializedSizeBytes() > 0);
   }
 
@@ -179,7 +179,7 @@ public class ReqSketchOtherTest {
     assertNull(sk.getQuantiles(new double[] {0.5}));
     assertNull(sk.getPMF(new float[] { 1f }));
     assertNull(sk.getCDF(new float[] { 1f }));
-    assertTrue(sk.getRSE(50, 0.5, true, 0) > 0);
+    assertTrue(BaseReqSketch.getRSE(50, 0.5, true, 0) > 0);
     assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
   }
 

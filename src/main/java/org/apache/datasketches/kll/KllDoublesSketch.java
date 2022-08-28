@@ -221,23 +221,21 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   /**
-   * Gets the lower bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param rank the given normalized rank
-   * @return the lower bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is withing the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
+  @Override
   public double getQuantileLowerBound(final double rank) {
     return getQuantile(max(0, rank - KllHelper.getNormalizedRankError(getMinK(), false)));
   }
 
   /**
-   * Gets the upper bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param rank the given normalized rank
-   * @return the upper bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is withing the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
+  @Override
   public double getQuantileUpperBound(final double rank) {
     return getQuantile(min(1.0, rank + KllHelper.getNormalizedRankError(getMinK(), false)));
   }

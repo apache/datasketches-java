@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,12 +80,9 @@ public class ReqSketch extends BaseReqSketch {
   }
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static final byte INIT_NUMBER_OF_SECTIONS = 3;
   static final byte MIN_K = 4;
   static final byte NOM_CAP_MULT = 2;
-  //These two factors are used by upper and lower bounds
-  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
-  private static final double fixRseFactor = .084;
+
   //finals
   private final int k; //default is 12 (1% @ 95% Conf)
   private final boolean hra; //default is true
@@ -194,33 +193,7 @@ public class ReqSketch extends BaseReqSketch {
     }
   }
 
-  private static boolean exactRank(final int k, final int levels, final double rank,
-      final boolean hra, final long totalN) {
-    final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
-    if (levels == 1 || totalN <= baseCap) { return true; }
-    final double exactRankThresh = (double)baseCap / totalN;
-    return hra && rank >= 1.0 - exactRankThresh || !hra && rank <= exactRankThresh;
-  }
 
-  private static double getRankLB(final int k, final int levels, final double rank,
-      final int numStdDev, final boolean hra, final long totalN) {
-    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
-    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
-    final double fixed = fixRseFactor / k;
-    final double lbRel = rank - numStdDev * relative;
-    final double lbFix = rank - numStdDev * fixed;
-    return Math.max(lbRel, lbFix);
-  }
-
-  private static double getRankUB(final int k, final int levels, final double rank,
-      final int numStdDev, final boolean hra, final long totalN) {
-    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
-    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
-    final double fixed = fixRseFactor / k;
-    final double ubRel = rank + numStdDev * relative;
-    final double ubFix = rank + numStdDev * fixed;
-    return Math.min(ubRel, ubFix);
-  }
 
   @Override
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -279,6 +252,37 @@ public class ReqSketch extends BaseReqSketch {
     return qArr;
   }
 
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is withing the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.95.
+   */
+  @Override
+  public float getQuantileLowerBound(double rank) {
+    return getQuantile(getRankLowerBound(rank, 2), INCLUSIVE);
+  }
+
+  @Override
+  public float getQuantileLowerBound(double rank, int numStdDev) {
+    return getQuantile(getRankLowerBound(rank, numStdDev), INCLUSIVE);
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is withing the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.95.
+   */
+  @Override
+  public float getQuantileUpperBound(double rank) {
+    return getQuantile(getRankUpperBound(rank, 2), INCLUSIVE);
+  }
+
+  @Override
+  public float getQuantileUpperBound(double rank, int numStdDev) {
+    return getQuantile(getRankUpperBound(rank, numStdDev), INCLUSIVE);
+  }
+
+
   @Override
   public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return Double.NaN; }
@@ -310,11 +314,6 @@ public class ReqSketch extends BaseReqSketch {
 
   @Override
   public int getNumRetained() { return retValues; }
-
-  @Override
-  public double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
-    return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
-  }
 
   @Override
   public int getSerializedSizeBytes() {

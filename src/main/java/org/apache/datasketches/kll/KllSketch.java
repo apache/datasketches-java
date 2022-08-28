@@ -169,9 +169,6 @@ public abstract class KllSketch implements QuantilesAPI {
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
    * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   *
-   * <p>Please refer to the documentation in the package-info:<br>
-   * {@link org.apache.datasketches.kll}</p>
    * @return the value of <i>k</i> given a value of epsilon.
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
@@ -196,6 +193,8 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the <i>getNormalizedRankError(boolean)</i>.
+   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -250,15 +249,12 @@ public abstract class KllSketch implements QuantilesAPI {
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * The epsilon value returned is a best fit to 99 percentile empirically measured max error in
-   * thousands of trials
-   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
+   * @return if pmf is true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   *
-   * <p>Please refer to the documentation in the package-info:<br>
-   * {@link org.apache.datasketches.kll}</p>
    */
   public final double getNormalizedRankError(final boolean pmf) {
     return getNormalizedRankError(getMinK(), pmf);

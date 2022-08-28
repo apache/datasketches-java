@@ -160,6 +160,36 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
   float getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
   /**
+   * Gets the lower bound of the quantile confidence interval in which the quantile of the
+   * given rank exists.
+   *
+   * <p>Although it is possible to estimate the probablity that the true quantile
+   * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
+   * it is not possible to estimate the width of the quantile confidence interval
+   * as an additive or multiplicative percent of the true quantile value.</p>
+   *
+   * @param rank the given normalized rank
+   * @return the lower bound of the quantile confidence interval in which the quantile of the
+   * given rank exists.
+   */
+  float getQuantileLowerBound(double rank);
+
+  /**
+   * Gets the upper bound of the quantile confidence interval in which the true quantile of the
+   * given rank exists.
+   *
+   * <p>Although it is possible to estimate the probablity that the true quantile
+   * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
+   * it is not possible to estimate the width of the quantile interval
+   * as an additive or multiplicative percent of the true quantile value.</p>
+   *
+   * @param rank the given normalized rank
+   * @return the upper bound of the quantile confidence interval in which the true quantile of the
+   * given rank exists.
+   */
+  float getQuantileUpperBound(double rank);
+
+  /**
    * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].

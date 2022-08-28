@@ -250,23 +250,21 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Gets the lower bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param rank the given normalized rank
-   * @return the lower bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is withing the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
+  @Override
   public double getQuantileLowerBound(final double rank) {
     return getQuantile(max(0, rank - Util.getNormalizedRankError(k_, false)));
   }
 
   /**
-   * Gets the upper bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param rank the given normalized rank
-   * @return the upper bound of the quantile interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is withing the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
+  @Override
   public double getQuantileUpperBound(final double rank) {
     return getQuantile(min(1.0, rank + Util.getNormalizedRankError(k_, false)));
   }
@@ -300,6 +298,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, returns the normalized rank error for the getPMF() function.
@@ -311,7 +311,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * Gets the normalized rank error given k and pmf.
-   * Static method version of the {@link #getNormalizedRankError(boolean)}.
+   * Static method version of the <i>getNormalizedRankError(boolean)</i>.
+   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
