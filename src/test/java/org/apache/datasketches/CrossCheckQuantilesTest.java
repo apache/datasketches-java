@@ -27,6 +27,7 @@ import static org.apache.datasketches.ReflectUtility.KLL_DOUBLES_SV_CTOR;
 import static org.apache.datasketches.ReflectUtility.KLL_FLOATS_SV_CTOR;
 import static org.apache.datasketches.ReflectUtility.REQ_SV_CTOR;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.fail;
 
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllDoublesSketchSortedView;
@@ -131,7 +132,7 @@ public class CrossCheckQuantilesTest {
     float maxFloatvalue = getMaxFloatValue(set);
     println("");
     for (float v = 5f; v <= maxFloatvalue + 5f; v += 5f) {
-      trueRank = getStdFloatRank(svCumWeights[set], svFValues[set],v, crit);
+      trueRank = getTrueFloatRank(svCumWeights[set], svFValues[set],v, crit);
       testRank = reqFloatsSV.getRank(v, crit);
       assertEquals(testRank, trueRank);
       testRank = reqFloatsSk.getRank(v, crit);
@@ -146,7 +147,7 @@ public class CrossCheckQuantilesTest {
     println("");
     double maxDoubleValue = getMaxDoubleValue(set);
     for (double v = 5; v <= maxDoubleValue + 5; v += 5) {
-      trueRank = getStdDoubleRank(svCumWeights[set], svDValues[set],v, crit);
+      trueRank = getTrueDoubleRank(svCumWeights[set], svDValues[set],v, crit);
 
       testRank = kllDoublesSV.getRank(v, crit);
       assertEquals(testRank, trueRank);
@@ -170,7 +171,7 @@ public class CrossCheckQuantilesTest {
     println("");
     for (int i = 0; i <= twoN; i++) {
       double normRank = i / dTwoN;
-      trueFQ = getStdFloatQuantile(svCumWeights[set], svFValues[set], normRank, crit);
+      trueFQ = getTrueFloatQuantile(svCumWeights[set], svFValues[set], normRank, crit);
 
       testFQ = reqFloatsSV.getQuantile(normRank, crit);
       assertEquals(testFQ, trueFQ);
@@ -189,7 +190,7 @@ public class CrossCheckQuantilesTest {
     double testDQ;
     for (int i = 0; i <= twoN; i++) {
       double normRank = i / dTwoN;
-      trueDQ = getStdDoubleQuantile(svCumWeights[set], svDValues[set], normRank, crit);
+      trueDQ = getTrueDoubleQuantile(svCumWeights[set], svDValues[set], normRank, crit);
 
       testDQ = kllDoublesSV.getQuantile(normRank, crit);
       assertEquals(testDQ, trueDQ);
@@ -217,106 +218,308 @@ public class CrossCheckQuantilesTest {
 
   /**
    * Gets the quantile based on the given normalized rank.
+   * <ul><li><b>getQuantile(rank, INCLUSIVE) or q(r, GE)</b><br>
+   * := Given r, return the quantile, q, of the smallest rank that is strictly Greater than or Equal to r.</li>
+   * <li><br>getQuantile(rank, EXCLUSIVE) or q(r, GT)</b><br>
+   * := Given r, return the quantile, q, of the smallest rank that is strictly Greater Than r.</li>
+   * </ul>
+   *
    * @param cumWeights the given natural cumulative weights. The last value must be N.
-   * @param values the given values
-   * @param normRank the given normalized rank, which must be in the range [0.0, 1.0], inclusive.
+   * @param quantiles the given quantile array
+   * @param givenNormR the given normalized rank, which must be in the range [0.0, 1.0], inclusive.
    * @param inclusive determines the search criterion used.
    * @return the quantile
    */
-  private float getStdFloatQuantile(
+  private float getTrueFloatQuantile(
       final long[] cumWeights,
-      final float[] values,
-      final double normRank,
+      final float[] quantiles,
+      final double givenNormR,
       final QuantileSearchCriteria inclusive) {
-
     final int len = cumWeights.length;
-    final long N = cumWeights[len -1];
-    final long rank = (int)(normRank * N); //denormalize
-    final InequalitySearch crit = inclusive == INCLUSIVE
-        ? InequalitySearch.GE
-        : InequalitySearch.GT; //includes both EXCLUSIVE and EXCLUSIVE_STRICT
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
-    if (index == -1) {
-      if (inclusive == EXCLUSIVE) { return Float.NaN; } //GT: normRank == 1.0;
+    final long N = cumWeights[len - 1];
+    float result = Float.NaN;
+
+    for (int i = 0; i < len; i++) {
+      if (i == len - 1) { //at top or single element array
+        double topR = (double)cumWeights[i] / N;
+        float topQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (givenNormR <= topR) { result = topQ; break; }
+          fail("normRank > 1.0");
+        }
+        //EXCLUSIVE
+        if (givenNormR < topR ) { result = topQ; break; }
+        if (1.0 < givenNormR) { fail("normRank > 1.0"); }
+        result = Float.NaN; // R == 1.0
+        break;
+      }
+      else { //always at least two valid entries
+        double loR = (double)cumWeights[i] / N;
+        double hiR = (double)cumWeights[i + 1] / N;
+        float loQ = quantiles[i];
+        float hiQ = quantiles[i + 1];
+        if (inclusive == INCLUSIVE) {
+          if (i == 0) { //at bottom, starting up
+            if (givenNormR <= loR) { result = loQ; break; }
+          }
+          if (loR < givenNormR && givenNormR <= hiR) { result = hiQ; break; }
+          continue;
+        }
+        //EXCLUSIVE
+        if (i == 0) { //at bottom, starting up
+          if (givenNormR < loR) { result = loQ; break; }
+        }
+        if (loR <= givenNormR && givenNormR < hiR) { result = hiQ; break; }
+        continue;
+      }
     }
-    return values[index];
+    return result;
   }
+
+//  private float getTrueFloatQuantile2(
+//      final long[] cumWeights,
+//      final float[] quantiles,
+//      final double givenNormR,
+//      final QuantileSearchCriteria inclusive) {
+//    final int len = cumWeights.length;
+//    final long N = cumWeights[len - 1];
+//    float result = Float.NaN;
+//
+//    if (len == 1) {
+//      double topR =  (double)cumWeights[0] / N;
+//      float topQ = quantiles[0];
+//      if (inclusive == INCLUSIVE && givenNormR < topR) { return Float.NaN } : topQ;
+//
+//    }
+//    else {
+//
+//    }
+//    for (int i = 0; i < len; i++) {
+//      if (i == len - 1) { //at top or single element array
+//        double topR = (double)cumWeights[i] / N;
+//        float topQ = quantiles[i];
+//        if (inclusive == INCLUSIVE) {
+//          if (givenNormR <= topR) { result = topQ; break; }
+//          fail("normRank > 1.0");
+//        }
+//      }
+//
+//
+//      if (i == len - 1) { //at top or single element array
+//        double topR = (double)cumWeights[i] / N;
+//        float topQ = quantiles[i];
+//        if (inclusive == INCLUSIVE) {
+//          if (givenNormR <= topR) { result = topQ; break; }
+//          fail("normRank > 1.0");
+//        }
+//        //EXCLUSIVE
+//        if (givenNormR < topR ) { result = topQ; break; }
+//        if (1.0 < givenNormR) { fail("normRank > 1.0"); }
+//        result = Float.NaN; // R == 1.0
+//        break;
+//      }
+//      else { //always at least two valid entries
+//        double loR = (double)cumWeights[i] / N;
+//        double hiR = (double)cumWeights[i + 1] / N;
+//        float loQ = quantiles[i];
+//        float hiQ = quantiles[i + 1];
+//        if (inclusive == INCLUSIVE) {
+//          if (i == 0) { //at bottom, starting up
+//            if (givenNormR <= loR) { result = loQ; break; }
+//          }
+//          if (loR < givenNormR && givenNormR <= hiR) { result = hiQ; break; }
+//          continue;
+//        }
+//        //EXCLUSIVE
+//        if (i == 0) { //at bottom, starting up
+//          if (givenNormR < loR) { result = loQ; break; }
+//        }
+//        if (loR <= givenNormR && givenNormR < hiR) { result = hiQ; break; }
+//        continue;
+//      }
+//    }
+//    return result;
+//  }
 
   /**
    * Gets the quantile based on the given normalized rank.
+   * <ul><li><b>getQuantile(rank, INCLUSIVE) or q(r, GE)</b><br>
+   * := Given r, return the quantile, q, of the smallest rank that is strictly Greater than or Equal to r.</li>
+   * <li><br>getQuantile(rank, EXCLUSIVE) or q(r, GT)</b><br>
+   * := Given r, return the quantile, q, of the smallest rank that is strictly Greater Than r.</li>
+   * </ul>
+   *
    * @param cumWeights the given natural cumulative weights. The last value must be N.
-   * @param values the given values
-   * @param normRank the given normalized rank, which must be in the range [0.0, 1.0], inclusive.
+   * @param quantiles the given quantile array
+   * @param givenNormR the given normalized rank, which must be in the range [0.0, 1.0], inclusive.
    * @param inclusive determines the search criterion used.
    * @return the quantile
    */
-  private double getStdDoubleQuantile(
+  private double getTrueDoubleQuantile(
       final long[] cumWeights,
-      final double[] values,
-      final double normRank,
+      final double[] quantiles,
+      final double givenNormR,
       final QuantileSearchCriteria inclusive) {
-
     final int len = cumWeights.length;
-    final long N = cumWeights[len -1];
-    final long rank = (int)(normRank * N); //denormalize
-    final InequalitySearch crit = inclusive == INCLUSIVE
-        ? InequalitySearch.GE
-        : InequalitySearch.GT; //includes both EXCLUSIVE and EXCLUSIVE_STRICT
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
-    if (index == -1) {
-      if (inclusive == EXCLUSIVE) { return Double.NaN; } //GT: normRank == 1.0;
+    final long N = cumWeights[len - 1];
+    double result = Double.NaN;
+
+    for (int i = 0; i < len; i++) {
+      if (i == len - 1) { //at top or single element array
+        double topR = (double)cumWeights[i] / N;
+        double topQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (givenNormR <= topR) { result = topQ; break; }
+          fail("normRank > 1.0");
+        }
+        //EXCLUSIVE
+        if (givenNormR < topR ) { result = topQ; break; }
+        if (1.0 < givenNormR) { fail("normRank > 1.0"); }
+        result = Double.NaN; // R == 1.0
+        break;
+      }
+      else { //always at least two valid entries
+        double loR = (double)cumWeights[i] / N;
+        double hiR = (double)cumWeights[i + 1] / N;
+        double loQ = quantiles[i];
+        double hiQ = quantiles[i + 1];
+        if (inclusive == INCLUSIVE) {
+          if (i == 0) { //at bottom, starting up
+            if (givenNormR <= loR) { result = loQ; break; }
+          }
+          if (loR < givenNormR && givenNormR <= hiR) { result = hiQ; break; }
+          continue;
+        }
+        //EXCLUSIVE) {
+        if (i == 0) { //at bottom, starting up
+          if (givenNormR < loR) { result = loQ; break; }
+        }
+        if (loR <= givenNormR && givenNormR < hiR) { result = hiQ; break; }
+        continue;
+      }
     }
-    return values[index];
+    return result;
   }
 
+  @SuppressWarnings("unused")
   /**
    * Gets the normalized rank based on the given value.
+   * <ul><li><b>getRank(quantile, INCLUSIVE) or r(q, LE)</b><br>
+   * := Given q, return the rank, r, of the largest quantile that is less than or equal to q.</li>
+   * <li><b>getRank(quantile, EXCLUSIVE) or r(q, LT)</b>
+   * := Given q, return the rank, r, of the largest quantile that is strictly Less Than q.</li>
+   * </ul>
+   *
    * @param cumWeights the given cumulative weights
-   * @param values the given values
-   * @param value the given value
+   * @param quantiles the given quantile array
+   * @param givenQ the given quantile
    * @param inclusive determines the search criterion used.
    * @return the normalized rank
    */
-  private double getStdFloatRank(
+  private double getTrueFloatRank(
       final long[] cumWeights,
-      final float[] values,
-      final float value,
+      final float[] quantiles,
+      final float givenQ,
       final QuantileSearchCriteria inclusive) {
-
-    final int len = values.length;
+    final int len = quantiles.length;
     final long N = cumWeights[len -1];
-    final InequalitySearch crit = inclusive == INCLUSIVE ? InequalitySearch.LE : InequalitySearch.LT;
-    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
-    if (index == -1) {
-      return 0; //LT: value <= minValue; LE: value < minValue
+    double result = Double.NaN;
+
+    for (int i = len; i-- > 0; ) {
+      if (i == 0) { //at bottom or single element array
+        double bottomR = (double)cumWeights[i] / N;
+        float bottomQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (givenQ <  bottomQ) { result = 0; break; }
+          result = bottomR;
+          break;
+        }
+        //EXCLUSIVE
+        if (givenQ <= bottomQ) { result = 0; break; }
+        if (bottomQ < givenQ) { result = bottomR; break; }
+      }
+      else { //always at least two valid entries
+        double loR = (double)cumWeights[i - 1] / N;
+        //double hiR = (double)cumWeights[i] / N;
+        float loQ = quantiles[i - 1];
+        float hiQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (i == len - 1) { //at top, starting down
+            if (hiQ <= givenQ) { result = 1.0; break; }
+          }
+          if (loQ <= givenQ && givenQ < hiQ) { result = loR; break; }
+          continue;
+        }
+        //EXCLUSIVE
+        if (i == len - 1) { //at top, starting down
+          if (hiQ < givenQ) { result = 1.0; break; }
+        }
+        if (loQ < givenQ && givenQ <= hiQ) { result = loR; break; }
+        continue;
+      }
     }
-    return (double)cumWeights[index] / N; //normalize
+    return result;
   }
 
+  @SuppressWarnings("unused")
   /**
    * Gets the normalized rank based on the given value.
+   * <ul><li><b>getRank(quantile, INCLUSIVE) or r(q, LE)</b><br>
+   * := Given q, return the rank, r, of the largest quantile that is less than or equal to q.</li>
+   * <li><b>getRank(quantile, EXCLUSIVE) or r(q, LT)</b>
+   * := Given q, return the rank, r, of the largest quantile that is strictly Less Than q.</li>
+   * </ul>
+   *
    * @param cumWeights the given cumulative weights
-   * @param values the given values
-   * @param value the given value
+   * @param quantiles the given quantile array
+   * @param givenQ the given quantile
    * @param inclusive determines the search criterion used.
    * @return the normalized rank
    */
-  private double getStdDoubleRank(
+  private double getTrueDoubleRank(
       final long[] cumWeights,
-      final double[] values,
-      final double value,
+      final double[] quantiles,
+      final double givenQ,
       final QuantileSearchCriteria inclusive) {
-
-    final int len = values.length;
+    final int len = quantiles.length;
     final long N = cumWeights[len -1];
-    final InequalitySearch crit = inclusive == INCLUSIVE ? InequalitySearch.LE : InequalitySearch.LT;
-    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
-    if (index == -1) {
-      return 0; //LT: value <= minValue; LE: value < minValue
-    }
-    return (double)cumWeights[index] / N; //normalize
-  }
+    double result = Double.NaN;
 
+    for (int i = len; i-- > 0; ) {
+      if (i == 0) { //at bottom or single element array
+        double bottomR = (double)cumWeights[i] / N;
+        double bottomQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (givenQ <  bottomQ) { result = 0; break; }
+          result = bottomR;
+          break;
+        }
+        //EXCLUSIVE
+        if (givenQ <= bottomQ) { result = 0; break; }
+        if (bottomQ < givenQ) { result = bottomR; break; }
+      }
+      else { //always at least two valid entries
+        double loR = (double)cumWeights[i - 1] / N;
+        //double hiR = (double)cumWeights[i] / N;
+        double loQ = quantiles[i - 1];
+        double hiQ = quantiles[i];
+        if (inclusive == INCLUSIVE) {
+          if (i == len - 1) { //at top, starting down
+            if (hiQ <= givenQ) { result = 1.0; break; }
+          }
+          if (loQ <= givenQ && givenQ < hiQ) { result = loR; break; }
+          continue;
+        }
+        //EXCLUSIVE
+        if (i == len - 1) { //at top, starting down
+          if (hiQ < givenQ) { result = 1.0; break; }
+        }
+        if (loQ < givenQ && givenQ <= hiQ) { result = loR; break; }
+        continue;
+      }
+    }
+    return result;
+  }
 
   /*******BUILD & LOAD SKETCHES***********/
 
@@ -429,7 +632,7 @@ public class CrossCheckQuantilesTest {
 
   /*******************/
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param o the Object to println

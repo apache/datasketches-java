@@ -210,15 +210,52 @@ public class DoublesSketchTest {
   }
 
   @Test
+  public void checkRankLBError() {
+    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final double eps = sk.getNormalizedRankError(false);
+    println("" + (2 * eps));
+    for (int i = 1; i <= 10000; i++) { sk.update(i); }
+    double rlb = sk.getRankLowerBound(.5);
+    println(.5 - rlb);
+    assertTrue(.5 - rlb <= 2* eps);
+  }
+
+  @Test
+  public void checkRankUBError() {
+    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final double eps = sk.getNormalizedRankError(false);
+    println(""+ (2 * eps));
+    for (int i = 1; i <= 10000; i++) { sk.update(i); }
+    double rub = sk.getRankUpperBound(.5);
+    println(rub -.5);
+    assertTrue(rub -.5 <= 2 * eps);
+  }
+
+  @Test
+  public void checkGetRanks() {
+    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    for (int i = 1; i <= 10000; i++) { sk.update(i); }
+    final double[] qArr = {1000,2000,3000,4000,5000,6000,7000,8000,9000,10000};
+    final double[] ranks = sk.getRanks(qArr, INCLUSIVE);
+    for (int i = 0; i < qArr.length; i++) {
+      final double rLB = sk.getRankLowerBound(ranks[i]);
+      final double rUB = sk.getRankUpperBound(ranks[i]);
+      assertTrue(rLB <= ranks[i]);
+      assertTrue(rUB >= ranks[i]);
+      println(rLB + ", " + ranks[i] + ", " + rUB);
+    }
+  }
+
+  @Test
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }

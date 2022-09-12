@@ -292,7 +292,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * Returns the maximum quantile of the stream. This is provided for convenience, but is distinct from the largest
    * quantile retained by the sketch algorithm.
-   * If the sketch is empty this returns NaN.
+   *
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @return the maximum quantile of the stream
    */
@@ -301,7 +302,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * Returns the minimum quantile of the stream. This is provided for convenience, but is distinct from the smallest
    * quantile retained by the sketch algorithm.
-   * If the sketch is empty this returns NaN.
+   *
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @return the minimum quantile of the stream
    */
@@ -371,7 +373,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * Gets the approximate quantile of the given normalized rank and the given search criterion.
    *
-   * <p>If the sketch is empty this returns NaN.</p>
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param rank the given normalized rank, a value in the range [0.0, 1.0].
    * @param searchCrit is INCLUSIVE, the given rank includes all quantiles &le;
@@ -432,7 +434,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * This is a version of getQuantiles() where the caller only specifies the number of of desired evenly spaced,
    * normalized ranks, and returns an array of the corresponding quantiles.
    *
-   * <p>If the sketch is empty this returns null.
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
    * This must be a positive integer greater than 0.
@@ -457,22 +459,42 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   }
 
   /**
-   * Gets the lower bound of the interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
+   * Gets the lower bound of the quantile confidence interval in which the quantile of the
+   * given rank exists.
+   *
+   * <p>Although it is possible to estimate the probablity that the true quantile
+   * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
+   * it is not possible to guarantee the width of the quantile confidence interval
+   * as an additive or multiplicative percent of the true quantile value.</p>
+   *
+   * <p>The approximate probability that the true quantile is within the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.</p>
+   *
    * @param rank the given normalized rank
-   * @return the lower bound of the interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   * @return the lower bound of the quantile confidence interval in which the quantile of the
+   * given rank exists.
    */
   public T getQuantileLowerBound(final double rank) {
     return getQuantile(max(0, rank - Util.getNormalizedRankError(k_, false)));
   }
 
   /**
-   * Gets the upper bound of the interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
+   * Gets the upper bound of the quantile confidence interval in which the true quantile of the
+   * given rank exists.
+   *
+   * <p>The confidence level for this sketch is 99%.</p>
+   *
+   * <p>Although it is possible to estimate the probablity that the true quantile
+   * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
+   * it is not possible to guarantee the width of the quantile interval
+   * as an additive or multiplicative percent of the true quantile value.</p>
+   *
+   * <p>The approximate probability that the true quantile is within the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.</p>
+   *
    * @param rank the given normalized rank
-   * @return the upper bound of the interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
+   * @return the upper bound of the quantile confidence interval in which the true quantile of the
+   * given rank exists.
    */
   public T getQuantileUpperBound(final double rank) {
     return getQuantile(min(1.0, rank + Util.getNormalizedRankError(k_, false)));
@@ -501,6 +523,26 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     if (isEmpty()) { return Double.NaN; }
     refreshSortedView();
     return classicQisSV.getRank(quantile, searchCrit);
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.99.
+   */
+  @Override
+  public double getRankLowerBound(final double rank) {
+    return max(0.0, rank - Util.getNormalizedRankError(k_, false));
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.99.
+   */
+  @Override
+  public double getRankUpperBound(final double rank) {
+    return min(1.0, rank + Util.getNormalizedRankError(k_, false));
   }
 
   /**

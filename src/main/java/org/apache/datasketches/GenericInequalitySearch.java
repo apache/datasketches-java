@@ -143,7 +143,7 @@ public class GenericInequalitySearch {
       if (hi - lo <= 1) {
         return resolve(arr, lo, hi, v, crit, comparator);
       }
-      final int mid = (lo + hi) / 2;
+      final int mid = lo + (hi - lo) / 2;
       final int ret = compare(arr, mid, mid + 1, v, crit, comparator);
       if (ret == -1 ) { hi = mid; }
       else if (ret == 1) { lo = mid + 1; }

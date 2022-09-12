@@ -253,7 +253,7 @@ public class ReqSketch extends BaseReqSketch {
 
   /**
    * {@inheritDoc}
-   * The approximate probability that the true quantile is withing the confidence interval
+   * The approximate probability that the true quantile is within the confidence interval
    * specified by the upper and lower quantile bounds for this sketch is 0.95.
    */
   @Override
@@ -268,7 +268,7 @@ public class ReqSketch extends BaseReqSketch {
 
   /**
    * {@inheritDoc}
-   * The approximate probability that the true quantile is withing the confidence interval
+   * The approximate probability that the true quantile is within the confidence interval
    * specified by the upper and lower quantile bounds for this sketch is 0.95.
    */
   @Override
@@ -288,6 +288,10 @@ public class ReqSketch extends BaseReqSketch {
     return reqSV.getRank(value, searchCrit);
   }
 
+  public double getRankLowerBound(final double rank) {
+    return getRankLB(k, getNumLevels(), rank, 2, hra, getN());
+  }
+
   @Override
   public double getRankLowerBound(final double rank, final int numStdDev) {
     return getRankLB(k, getNumLevels(), rank, numStdDev, hra, getN());
@@ -303,6 +307,10 @@ public class ReqSketch extends BaseReqSketch {
       retArr[i] = reqSV.getRank(values[i], searchCrit); //already normalized
     }
     return retArr;
+  }
+
+  public double getRankUpperBound(final double rank) {
+    return getRankUB(k, getNumLevels(), rank, 2, hra, getN());
   }
 
   @Override

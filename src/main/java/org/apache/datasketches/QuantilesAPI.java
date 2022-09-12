@@ -42,6 +42,24 @@ public interface QuantilesAPI {
   int getNumRetained();
 
   /**
+   * Gets the lower bound of the rank confidence interval in which the true rank of the
+   * given rank exists.
+   * @param rank the given normalized rank.
+   * @return the lower bound of the rank confidence interval in which the true rank of the
+   * given rank exists.
+   */
+  double getRankLowerBound(double rank);
+
+  /**
+   * Gets the upper bound of the rank confidence interval in which the true rank of the
+   * given rank exists.
+   * @param rank the given normalized rank.
+   * @return the upper bound of the rank confidence interval in which the true rank of the
+   * given rank exists.
+   */
+  double getRankUpperBound(double rank);
+
+  /**
    * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
    * @return true if this sketch's data structure is backed by Memory or WritableMemory.
    */

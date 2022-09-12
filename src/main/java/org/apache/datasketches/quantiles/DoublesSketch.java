@@ -250,7 +250,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * {@inheritDoc}
-   * The approximate probability that the true quantile is withing the confidence interval
+   * The approximate probability that the true quantile is within the confidence interval
    * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
   @Override
@@ -260,7 +260,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * {@inheritDoc}
-   * The approximate probability that the true quantile is withing the confidence interval
+   * The approximate probability that the true quantile is within the confidence interval
    * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
   @Override
@@ -274,6 +274,27 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     refreshSortedView();
     return classicQdsSV.getRank(quantile, searchCrit);
   }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.99.
+   */
+  @Override
+  public double getRankLowerBound(final double rank) {
+    return max(0.0, rank - Util.getNormalizedRankError(k_, false));
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.99.
+   */
+  @Override
+  public double getRankUpperBound(final double rank) {
+    return min(1.0, rank + Util.getNormalizedRankError(k_, false));
+  }
+
 
   @Override
   public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {

@@ -106,7 +106,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public abstract double getRank(float quantile, QuantileSearchCriteria searchCrit);
 
   /**
-   * returns an approximate lower bound rank of the given normalized rank.
+   * Gets an approximate lower bound rank of the given normalized rank.
    * @param rank the given rank, a value between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate lower bound rank.
@@ -117,7 +117,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public abstract double[] getRanks(float[] quantiles, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns an approximate upper bound rank of the given rank.
+   * Gets an approximate upper bound rank of the given rank.
    * @param rank the given rank, a value between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate upper bound rank.

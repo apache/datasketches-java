@@ -74,7 +74,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   /**
    * Returns the maximum quantile of the stream. This is provided for convenience, but is distinct from the largest
    * quantile retained by the sketch algorithm.
-   * If the sketch is empty this returns NaN.
+   *
+   * <p>If the sketch is empty this returns NaN.</p>
    *
    * @return the maximum quantile of the stream
    */
@@ -83,7 +84,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   /**
    * Returns the minimum quantile of the stream. This is provided for convenience, but is distinct from the smallest
    * quantile retained by the sketch algorithm.
-   * If the sketch is empty this returns NaN.
+   *
+   * <p>If the sketch is empty this returns NaN.</p>
    *
    * @return the minimum quantile of the stream
    */
@@ -165,7 +167,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
-   * it is not possible to estimate the width of the quantile confidence interval
+   * it is not possible to guarantee the width of the quantile confidence interval
    * as an additive or multiplicative percent of the true quantile value.</p>
    *
    * @param rank the given normalized rank
@@ -180,7 +182,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
-   * it is not possible to estimate the width of the quantile interval
+   * it is not possible to guarantee the width of the quantile interval
    * as an additive or multiplicative percent of the true quantile value.</p>
    *
    * @param rank the given normalized rank

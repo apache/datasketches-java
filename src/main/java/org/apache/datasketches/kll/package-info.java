@@ -136,17 +136,15 @@
  * <i>max = v<sub>m+1</sub></i>.</li>
  * </ul>
  *
- * <p>From the above, it might seem like we could make some estimates to bound the
- * <em>value</em> returned from a call to <em>getQuantile()</em>. The sketch, however, does not
- * let us derive error bounds or confidences around quantiles. Because errors are independent, we
- * can approximately bracket a value as shown below, but there are no error estimates available.
- * Additionally, the interval may be quite large for certain distributions.</p>
+ * <p>Because errors are independent, we can make some estimates of the size of the confidence bounds
+ * for the <em>quantile</em> returned from a call to <em>getQuantile()</em>, but not error bounds.
+ * These confidence bounds may be quite large for certain distributions.</p>
  * <ul>
- * <li>Let <i>v = getQuantile(r)</i>, the estimated quantile value of rank <i>r</i>.</li>
+ * <li>Let <i>q = getQuantile(r)</i>, the estimated quantile of rank <i>r</i>.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
- * <li>Let <i>v<sub>lo</sub></i> = estimated quantile value of rank <i>(r - eps)</i>.</li>
- * <li>Let <i>v<sub>hi</sub></i> = estimated quantile value of rank <i>(r + eps)</i>.</li>
- * <li>Then <i>v<sub>lo</sub> &le; v &le; v<sub>hi</sub></i>, with 99% confidence.</li>
+ * <li>Let <i>q<sub>lo</sub></i> = estimated quantile of rank <i>(r - eps)</i>.</li>
+ * <li>Let <i>q<sub>hi</sub></i> = estimated quantile of rank <i>(r + eps)</i>.</li>
+ * <li>Then <i>q<sub>lo</sub> &le; q &le; q<sub>hi</sub></i>, with 99% confidence.</li>
  * </ul>
  *
  * <p>Please visit our website: <a href="https://datasketches.apache.org">DataSketches Home Page</a> and

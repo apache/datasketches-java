@@ -727,7 +727,7 @@ public enum InequalitySearch {
       if (hi - lo <= 1) {
         return crit.resolve(arr, lo, hi, v);
       }
-      final int mid = (lo + hi) / 2;
+      final int mid = lo + (hi - lo) / 2;
       final int ret = crit.compare(arr, mid, mid + 1, v);
       if (ret == -1 ) { hi = mid; }
       else if (ret == 1) { lo = mid + 1; }
@@ -761,7 +761,7 @@ public enum InequalitySearch {
       if (hi - lo <= 1) {
         return crit.resolve(arr, lo, hi, v);
       }
-      final int mid = (lo + hi) / 2;;
+      final int mid = lo + (hi - lo) / 2;
       final int ret = crit.compare(arr, mid, mid + 1, v);
       if (ret == -1 ) { hi = mid; }
       else if (ret == 1) { lo = mid + 1; }
@@ -793,7 +793,7 @@ public enum InequalitySearch {
       if (hi - lo <= 1) {
         return crit.resolve(arr, lo, hi, v);
       }
-      final int mid = (lo + hi) / 2;;
+      final int mid = lo + (hi - lo) / 2;
       final int ret = crit.compare(arr, mid, mid + 1, v);
       if (ret == -1 ) { hi = mid; }
       else if (ret == 1) { lo = mid + 1; }

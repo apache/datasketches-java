@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantiles.Util.checkNormalizedRankBounds;
 
@@ -99,7 +98,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
-      if (searchCrit == EXCLUSIVE) { return null; } //GT: normRank == 1.0;
+      return null; //EXCLUSIVE (GT) case: normRank == 1.0;
     }
     return (T)items[index];
   }
