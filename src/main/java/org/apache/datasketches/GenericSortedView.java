@@ -19,6 +19,13 @@
 
 package org.apache.datasketches;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.Util.checkNormalizedRankBounds;
+
+import org.apache.datasketches.GenericInequalitySearch.Inequality;
+
+import java.util.Comparator;
+
 /**
  * The Sorted View for generic items.
  * @param <T> The generic quantile item type
@@ -34,6 +41,60 @@ public interface GenericSortedView<T> extends SortedView {
    * @return the associated quantile item.
    */
   T getQuantile(double normalizedRank, QuantileSearchCriteria searchCrit);
+
+  /**
+   * Gets the generic quantile based on the given normalized rank, and the given search criterion.
+   * @param normalizedRank the given normalized rank, which must be in the range [0.0, 1.0].
+   * @param searchCrit the given search criterion to use.
+   * @param cumWeights the array of sorted cumulative weights from the Sorted View class.
+   * @param quantiles the array of sorted generic quantiles from the Sorted View class.
+   * @param totalN the total number of entries presented to the sketch.
+   * @return the associated quantile value.
+   */
+  default Object getQuantile(
+      final double normalizedRank,
+      final QuantileSearchCriteria searchCrit,
+      final long[] cumWeights,
+      final Object[] quantiles,
+      final long totalN) {
+    checkNormalizedRankBounds(normalizedRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (searchCrit == INCLUSIVE)
+        ? (long)Math.ceil(normalizedRank * totalN) : (long)Math.floor(normalizedRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      return null; //EXCLUSIVE (GT) case: normRank == 1.0;
+    }
+    return quantiles[index];
+  }
+
+  /**
+   * Gets the normalized rank based on the given generic quantile.
+   * @param quantile the given generic quantile
+   * @param searchCrit the given search criterion to use.
+   * @param cumWeights the array of sorted cumulative weights from the Sorted View class.
+   * @param quantiles the array of sorted quantiles from the Sorted View class.
+   * @param totalN the total number of entries presented to the sketch.
+   * @param comparator the user defined comparator for objects of type T.
+   * @return the normalized rank, which is a number in the range [0.0, 1.0].
+   */
+  default double getRank(
+      final T quantile,
+      final QuantileSearchCriteria searchCrit,
+      final long[] cumWeights,
+      final T[] quantiles,
+      final long totalN,
+      final Comparator<? super T> comparator) {
+    final int len = quantiles.length;
+    final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
+    final int index = GenericInequalitySearch.find(quantiles,  0, len - 1, quantile, crit, comparator);
+    if (index == -1) {
+      return 0; //LT: value <= minValue; LE: value < minValue
+    }
+    return (double)cumWeights[index] / totalN;
+
+  }
 
   /**
    * Gets the normalized rank based on the given quantile item.

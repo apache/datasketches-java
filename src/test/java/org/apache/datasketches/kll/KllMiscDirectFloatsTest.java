@@ -36,19 +36,24 @@ public class KllMiscDirectFloatsTest {
 
   @Test
   public void checkBounds() {
-    final KllFloatsSketch sk = getDFSketch(200, 0);
+    final KllFloatsSketch kll = getDFSketch(200, 0);
     for (int i = 0; i < 1000; i++) {
-      sk.update(i);
+      kll.update(i);
     }
-    final double eps = sk.getNormalizedRankError(false);
-    final float est = sk.getQuantile(0.5);
-    final float ub = sk.getQuantileUpperBound(0.5);
-    final float lb = sk.getQuantileLowerBound(0.5);
-    assertEquals(ub, sk.getQuantile(.5 + eps));
-    assertEquals(lb, sk.getQuantile(0.5 - eps));
+    final double eps = kll.getNormalizedRankError(false);
+    final float est = kll.getQuantile(0.5);
+    final float ub = kll.getQuantileUpperBound(0.5);
+    final float lb = kll.getQuantileLowerBound(0.5);
+    assertEquals(ub, kll.getQuantile(.5 + eps));
+    assertEquals(lb, kll.getQuantile(0.5 - eps));
     println("Ext     : " + est);
     println("UB      : " + ub);
     println("LB      : " + lb);
+    final double rest = kll.getRank(est);
+    final double restUB = kll.getRankUpperBound(rest);
+    final double restLB = kll.getRankLowerBound(rest);
+    assertTrue(restUB - rest < (2 * eps));
+    assertTrue(rest - restLB < (2 * eps));
   }
 
   @Test

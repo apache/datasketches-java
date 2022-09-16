@@ -1,5 +1,5 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one
+       * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -20,7 +20,6 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantiles.Util.checkNormalizedRankBounds;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -28,7 +27,6 @@ import java.util.Comparator;
 import org.apache.datasketches.GenericInequalitySearch;
 import org.apache.datasketches.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.GenericSortedView;
-import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesStateException;
 
@@ -92,15 +90,17 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   @SuppressWarnings("unchecked")
   @Override
   public T getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    checkNormalizedRankBounds(normRank);
-    final int len = cumWeights.length;
-    final long naturalRank = (int)(normRank * totalN);
-    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
-    if (index == -1) {
-      return null; //EXCLUSIVE (GT) case: normRank == 1.0;
-    }
-    return (T)items[index];
+    return (T)getQuantile(normRank, searchCrit, cumWeights, items, totalN);
+
+//    checkNormalizedRankBounds(normRank);
+//    final int len = cumWeights.length;
+//    final long naturalRank = (int)(normRank * totalN);
+//    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+//    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+//    if (index == -1) {
+//      return null; //EXCLUSIVE (GT) case: normRank == 1.0;
+//    }
+//    return (T)items[index];
   }
 
   @SuppressWarnings("unchecked")

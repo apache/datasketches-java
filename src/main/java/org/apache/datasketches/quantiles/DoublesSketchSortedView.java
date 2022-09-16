@@ -20,14 +20,11 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.System.arraycopy;
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
-import static org.apache.datasketches.quantiles.Util.checkNormalizedRankBounds;
 
 import java.util.Arrays;
 
 import org.apache.datasketches.DoublesSortedView;
-import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesStateException;
 
@@ -38,18 +35,18 @@ import org.apache.datasketches.SketchesStateException;
  */
 public final class DoublesSketchSortedView implements DoublesSortedView {
 
-  private final double[] values;
+  private final double[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
 
   /**
    * Construct from elements for testing.
-   * @param values sorted array of values
+   * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of values presented to the sketch.
+   * @param totalN the total number of quantiles presented to the sketch.
    */
-  DoublesSketchSortedView(final double[] values, final long[] cumWeights, final long totalN) {
-    this.values = values;
+  DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN) {
+    this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
   }
@@ -62,17 +59,17 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     this.totalN = sketch.getN();
     final int k = sketch.getK();
     final int numSamples = sketch.getNumRetained();
-    values = new double[numSamples];
+    quantiles = new double[numSamples];
     cumWeights = new long[numSamples];
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
 
     // Populate from DoublesSketch:
     //  copy over the "levels" and then the base buffer, all with appropriate weights
-    populateFromDoublesSketch(k, totalN, sketch.getBitPattern(), sketchAccessor, values, cumWeights);
+    populateFromDoublesSketch(k, totalN, sketch.getBitPattern(), sketchAccessor, quantiles, cumWeights);
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     //  taking advantage of the already sorted blocks of length k
-    blockyTandemMergeSort(values, cumWeights, numSamples, k);
+    blockyTandemMergeSort(quantiles, cumWeights, numSamples, k);
    if (convertToCumulative(cumWeights) != totalN) {
      throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
    }
@@ -80,48 +77,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    checkNormalizedRankBounds(normRank);
-    final int len = cumWeights.length;
-    final long naturalRank = (int)(normRank * totalN);
-    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
-    if (index == -1) {
-      return Double.NaN; ///EXCLUSIVE (GT) case: normRank == 1.0;
-    }
-    return values[index];
+    return getQuantile(normRank, searchCrit, cumWeights, quantiles, totalN);
   }
 
   @Override
-  public double getRank(final double value, final QuantileSearchCriteria searchCrit) {
-    final int len = values.length;
-    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
-    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
-    if (index == -1) {
-      return 0; //LT: value <= minValue; LE: value < minValue
-    }
-    return (double)cumWeights[index] / totalN;
-  }
-
-  @Override
-  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    Util.checkSplitPointsOrder(splitPoints);
-    final int len = splitPoints.length + 1;
-    final double[] buckets = new double[len];
-    for (int i = 0; i < len - 1; i++) {
-      buckets[i] = getRank(splitPoints[i], searchCrit);
-    }
-    buckets[len - 1] = 1.0;
-    return buckets;
-  }
-
-  @Override
-  public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    final double[] buckets = getCDF(splitPoints, searchCrit);
-    final int len = buckets.length;
-    for (int i = len; i-- > 1; ) {
-      buckets[i] -= buckets[i - 1];
-    }
-    return buckets;
+  public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
+    return getRank(quantile, searchCrit, cumWeights, quantiles, totalN);
   }
 
   @Override
@@ -131,12 +92,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double[] getValues() {
-    return values.clone();
+    return quantiles.clone();
   }
 
   @Override
   public DoublesSketchSortedViewIterator iterator() {
-    return new DoublesSketchSortedViewIterator(values, cumWeights);
+    return new DoublesSketchSortedViewIterator(quantiles, cumWeights);
   }
 
   /**

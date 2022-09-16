@@ -19,14 +19,10 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-
 import java.util.List;
 
 import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * The SortedView of the ReqSketch.
@@ -34,18 +30,18 @@ import org.apache.datasketches.SketchesArgumentException;
  * @author Lee Rhodes
  */
 public class ReqSketchSortedView implements FloatsSortedView {
-  private float[] values;
+  private float[] quantiles;
   private long[] cumWeights;
   private final long totalN;
 
   /**
    * Construct from elements for testing.
-   * @param values sorted array of values
+   * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of values presented to the sketch.
+   * @param totalN the total number of quantiles presented to the sketch.
    */
-  ReqSketchSortedView(final float[] values, final long[] cumWeights, final long totalN) {
-    this.values = values;
+  ReqSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN) {
+    this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
   }
@@ -61,47 +57,12 @@ public class ReqSketchSortedView implements FloatsSortedView {
 
   @Override
   public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    final int len = cumWeights.length;
-    final long rank = (int)(normRank * totalN);
-    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-    final int index = InequalitySearch.find(cumWeights, 0, len - 1, rank, crit);
-    if (index == -1) {
-      return Float.NaN; //EXCLUSIVE (GT) case: normRank == 1.0;
-    }
-    return values[index];
+    return getQuantile(normRank, searchCrit, cumWeights, quantiles, totalN);
   }
 
   @Override
-  public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
-    final int len = values.length;
-    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
-    final int index = InequalitySearch.find(values,  0, len - 1, value, crit);
-    if (index == -1) {
-      return 0; //LT: value <= minValue; LE: value < minValue
-    }
-    return (double)cumWeights[index] / totalN;
-  }
-
-  @Override
-  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    validateFloatValues(splitPoints);
-    final int len = splitPoints.length + 1;
-    final double[] buckets = new double[len];
-    for (int i = 0; i < len - 1; i++) {
-      buckets[i] = getRank(splitPoints[i], searchCrit);
-    }
-    buckets[len - 1] = 1.0;
-    return buckets;
-  }
-
-  @Override
-  public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    final double[] buckets = getCDF(splitPoints, searchCrit);
-    final int len = buckets.length;
-    for (int i = len; i-- > 1; ) {
-      buckets[i] -= buckets[i - 1];
-    }
-    return buckets;
+  public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
+    return getRank(quantile, searchCrit, cumWeights, quantiles, totalN);
   }
 
   @Override
@@ -111,12 +72,12 @@ public class ReqSketchSortedView implements FloatsSortedView {
 
   @Override
   public float[] getValues() {
-    return values.clone();
+    return quantiles.clone();
   }
 
   @Override
   public ReqSketchSortedViewIterator iterator() {
-    return new ReqSketchSortedViewIterator(values, cumWeights);
+    return new ReqSketchSortedViewIterator(quantiles, cumWeights);
   }
 
   //restricted methods
@@ -125,7 +86,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
     final int totalValues = sk.getNumRetained();
-    values = new float[totalValues];
+    quantiles = new float[totalValues];
     cumWeights = new long[totalValues];
     int count = 0;
     for (int i = 0; i < numComp; i++) {
@@ -158,18 +119,18 @@ public class ReqSketchSortedView implements FloatsSortedView {
     int h = hra ? bufIn.getCapacity() - 1 : bufInLen - 1;
     for (int k = totLen; k-- > 0; ) {
       if (i >= 0 && j >= 0) { //both valid
-        if (values[i] >= arrIn[h]) {
-          values[k] = values[i];
+        if (quantiles[i] >= arrIn[h]) {
+          quantiles[k] = quantiles[i];
           cumWeights[k] = cumWeights[i--]; //not yet natRanks, just individual wts
         } else {
-          values[k] = arrIn[h--]; j--;
+          quantiles[k] = arrIn[h--]; j--;
           cumWeights[k] = bufWeight;
         }
       } else if (i >= 0) { //i is valid
-        values[k] = values[i];
+        quantiles[k] = quantiles[i];
         cumWeights[k] = cumWeights[i--];
       } else if (j >= 0) { //j is valid
-        values[k] = arrIn[h--]; j--;
+        quantiles[k] = arrIn[h--]; j--;
         cumWeights[k] = bufWeight;
       } else {
         break;
@@ -178,30 +139,12 @@ public class ReqSketchSortedView implements FloatsSortedView {
   }
 
   private void createCumulativeNativeRanks() {
-    final int len = values.length;
+    final int len = quantiles.length;
     for (int i = 1; i < len; i++) {
       cumWeights[i] +=  cumWeights[i - 1];
     }
     if (totalN > 0) {
       assert cumWeights[len - 1] == totalN;
-    }
-  }
-
-  /**
-   * Checks the sequential validity of the given array of splitpoints as floats.
-   * They must be unique, monotonically increasing and not NaN.
-   * Only used for getPmfOrCdf().
-   * @param values the given array of values
-   */
-  private static void validateFloatValues(final float[] values) {
-    for (int i = 0; i < values.length; i++) {
-      if (!Float.isFinite(values[i])) {
-        throw new SketchesArgumentException("Values must be finite");
-      }
-      if (i < values.length - 1 && values[i] >= values[i + 1]) {
-        throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
-      }
     }
   }
 

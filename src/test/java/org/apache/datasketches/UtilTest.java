@@ -27,6 +27,8 @@ import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.Util.ceilingLongPowerOf2;
 import static org.apache.datasketches.Util.ceilingPowerBaseOfDouble;
 import static org.apache.datasketches.Util.characterPad;
+import static org.apache.datasketches.Util.checkBounds;
+import static org.apache.datasketches.Util.checkDoublesSplitPointsOrder;
 import static org.apache.datasketches.Util.checkIfMultipleOf8AndGT0;
 import static org.apache.datasketches.Util.checkIfIntPowerOf2;
 import static org.apache.datasketches.Util.checkIfLongPowerOf2;
@@ -48,6 +50,7 @@ import static org.apache.datasketches.Util.isLessThanUnsigned;
 import static org.apache.datasketches.Util.isMultipleOf8AndGT0;
 import static org.apache.datasketches.Util.isIntPowerOf2;
 import static org.apache.datasketches.Util.isLongPowerOf2;
+import static org.apache.datasketches.Util.longToBytes;
 import static org.apache.datasketches.Util.milliSecToString;
 import static org.apache.datasketches.Util.nanoSecToString;
 import static org.apache.datasketches.Util.numberOfLeadingOnes;
@@ -90,7 +93,7 @@ public class UtilTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkBoundsTest() {
-    Util.checkBounds(999, 2, 1000);
+    checkBounds(999L, 2L, 1000L);
   }
 
   @Test
@@ -356,7 +359,7 @@ public class UtilTest {
     final long lng = 0XF8F7F6F504030201L;
     //println(Long.toHexString(lng));
     byte[] bytes = new byte[8];
-    bytes = Util.longToBytes(lng, bytes);
+    bytes = longToBytes(lng, bytes);
     final String sep = ".";
     final String unsignLE = bytesToString(bytes, false, true, sep);
     final String signedLE = bytesToString(bytes, true, true, sep);
@@ -515,6 +518,12 @@ public class UtilTest {
     final String shortFileName = "cpc-empty.sk";
     getResourceBytes(shortFileName + "123");
   }
+
+  @Test(expectedExceptions = NullPointerException.class)
+  public void checkValidateValuesNullException() {
+    checkDoublesSplitPointsOrder(null);
+  }
+
 
   @Test
   public void printlnTest() {

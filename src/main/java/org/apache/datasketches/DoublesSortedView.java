@@ -19,6 +19,9 @@
 
 package org.apache.datasketches;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.Util.*;
+
 /**
  * The Sorted View for double values.
  *
@@ -36,12 +39,62 @@ public interface DoublesSortedView extends SortedView {
   double getQuantile(double normalizedRank, QuantileSearchCriteria searchCrit);
 
   /**
-   * Gets the normalized rank based on the given quantile value.
-   * @param value the given quantile value
+   * Gets the double quantile based on the given normalized rank, and the given search criterion.
+   * @param normalizedRank the given normalized rank, which must be in the range [0.0, 1.0].
+   * @param searchCrit the given search criterion to use.
+   * @param cumWeights the array of sorted cumulative weights from the Sorted View class.
+   * @param quantiles the array of sorted quantiles from the Sorted View class.
+   * @param totalN the total number of entries presented to the sketch.
+   * @return the associated quantile value.
+   */
+  default double getQuantile(
+      final double normalizedRank,
+      final QuantileSearchCriteria searchCrit,
+      final long[] cumWeights,
+      final double[] quantiles,
+      final long totalN) {
+    checkNormalizedRankBounds(normalizedRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (searchCrit == INCLUSIVE)
+        ? (long)Math.ceil(normalizedRank * totalN) : (long)Math.floor(normalizedRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      return Double.NaN; ///EXCLUSIVE (GT) case: normRank == 1.0;
+    }
+    return quantiles[index];
+  }
+
+  /**
+   * Gets the normalized rank based on the given double quantile.
+   * @param quantile the given quantile value
    * @param searchCrit the given search criterion to use.
    * @return the normalized rank, which is a number in the range [0.0, 1.0].
    */
-  double getRank(double value, QuantileSearchCriteria searchCrit);
+  double getRank(double quantile, QuantileSearchCriteria searchCrit);
+
+  /**
+   * Gets the normalized rank based on the given double quantile.
+   * @param quantile the given quantile
+   * @param searchCrit the given search criterion to use.
+   * @param cumWeights the array of sorted cumulative weights from the Sorted View class.
+   * @param quantiles the array of sorted quantiles from the Sorted View class.
+   * @param totalN the total number of entries presented to the sketch.
+   * @return the normalized rank, which is a number in the range [0.0, 1.0].
+   */
+  default double getRank(final double quantile,
+      final QuantileSearchCriteria searchCrit,
+      final long[] cumWeights,
+      final double[] quantiles,
+      final long totalN) {
+    final int len = quantiles.length;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
+    if (index == -1) {
+      return 0; //LT: given quantile <= minValue; LE: given quantile < minValue
+    }
+    return (double)cumWeights[index] / totalN;
+  }
 
   /**
    * Returns an array of values where each value is a number in the range [0.0, 1.0].
@@ -62,7 +115,16 @@ public interface DoublesSortedView extends SortedView {
    * @return an array of points that correspond to the given splitPoints, and represents the input data distribution
    * as a CDF.
    */
-  double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit);
+  default double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit) {
+    checkDoublesSplitPointsOrder(splitPoints);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    return buckets;
+  }
 
   /**
    * Returns an array of values where each value is a number in the range [0.0, 1.0].
@@ -82,8 +144,14 @@ public interface DoublesSortedView extends SortedView {
    * @return an array of points that correspond to the given splitPoints, and represents the input data distribution
    * as a PMF.
    */
-  double[] getPMF(double[] splitPoints,  QuantileSearchCriteria searchCrit);
-
+  default double[] getPMF(double[] splitPoints,  QuantileSearchCriteria searchCrit) {
+    final double[] buckets = getCDF(splitPoints, searchCrit);
+    final int len = buckets.length;
+    for (int i = len; i-- > 1; ) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
 
   /**
    * Returns the array of values.

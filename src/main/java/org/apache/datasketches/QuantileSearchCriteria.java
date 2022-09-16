@@ -56,6 +56,7 @@ public enum QuantileSearchCriteria {
    * the method will return a rank of zero.</p>
    *
    */
-  EXCLUSIVE
+  EXCLUSIVE;
+
 }
 

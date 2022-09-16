@@ -876,6 +876,17 @@ public final class Util {
   }
 
   /**
+   * Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.
+   * @param nRank the given normalized rank.
+   */
+  public static final void checkNormalizedRankBounds(final double nRank) {
+    if ((nRank < 0.0) || (nRank > 1.0)) {
+      throw new SketchesArgumentException(
+        "A normalized rank must be >= 0 and <= 1.0: " + nRank);
+    }
+  }
+
+  /**
    * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
    * inclusive.
    *
@@ -889,6 +900,36 @@ public final class Util {
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
+  }
+
+  /**
+   * Checks the sequential validity of the given array of double values.
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of double values
+   */
+  public static final void checkDoublesSplitPointsOrder(final double[] values) {
+    Objects.requireNonNull(values);
+    final int len = values.length - 1;
+    for (int j = 0; j < len; j++) {
+      if (values[j] < values[j + 1]) { continue; }
+      throw new SketchesArgumentException(
+          "Values must be unique, monotonically increasing and not NaN.");
+    }
+  }
+
+  /**
+   * Checks the sequential validity of the given array of float values.
+   * They must be unique, monotonically increasing and not NaN.
+   * @param values the given array of double values
+   */
+  public static final void checkFloatsSplitPointsOrder(final float[] values) {
+    Objects.requireNonNull(values);
+    final int len = values.length - 1;
+    for (int j = 0; j < len; j++) {
+      if (values[j] < values[j + 1]) { continue; }
+      throw new SketchesArgumentException(
+          "Values must be unique, monotonically increasing and not NaN.");
+    }
   }
 
   //Boolean Checks

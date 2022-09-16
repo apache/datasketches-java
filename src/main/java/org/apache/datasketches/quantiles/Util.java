@@ -37,8 +37,6 @@ import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
 
-import java.util.Objects;
-
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -52,7 +50,7 @@ import org.apache.datasketches.memory.Memory;
  *
  * @author Lee Rhodes
  */
-final class Util {
+public final class Util {
 
   private Util() {}
 
@@ -182,32 +180,6 @@ final class Util {
     final int flags = extractFlags(srcMem);
     final int compactFlags = READ_ONLY_FLAG_MASK | COMPACT_FLAG_MASK;
     return (flags & compactFlags) > 0;
-  }
-
-  /**
-   * Checks the sequential validity of the given array of double values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of double values
-   */
-  static final void checkSplitPointsOrder(final double[] values) {
-    Objects.requireNonNull(values);
-    final int lenM1 = values.length - 1;
-    for (int j = 0; j < lenM1; j++) {
-      if (values[j] < values[j + 1]) { continue; }
-      throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not NaN.");
-    }
-  }
-
-  /**
-   * Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.
-   * @param nRank the given normalized rank.
-   */
-  static final void checkNormalizedRankBounds(final double nRank) {
-    if ((nRank < 0.0) || (nRank > 1.0)) {
-      throw new SketchesArgumentException(
-        "A normalized rank must be >= 0 and <= 1.0: " + nRank);
-    }
   }
 
   /**

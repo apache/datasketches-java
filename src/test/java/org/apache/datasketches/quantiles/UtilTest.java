@@ -81,11 +81,6 @@ public class UtilTest {
     assertEquals(result, 64);
   }
 
-  @Test(expectedExceptions = NullPointerException.class)
-  public void checkValidateValuesNullException() {
-    Util.checkSplitPointsOrder(null);
-  }
-
 //The remainder of this file is a brute force test of corner cases
  // for blockyTandemMergeSort.
 

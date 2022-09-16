@@ -28,6 +28,7 @@ import static org.apache.datasketches.quantiles.Util.LS;
 import static org.apache.datasketches.quantiles.Util.computeCombinedBufferItemCapacity;
 import static org.apache.datasketches.quantiles.Util.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.Util.lg;
+import static org.apache.datasketches.Util.checkDoublesSplitPointsOrder;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -293,7 +294,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkValidateSplitPointsOrder() {
     double[] arr = {2, 1};
-    Util.checkSplitPointsOrder(arr);
+    checkDoublesSplitPointsOrder(arr);
   }
 
   @Test

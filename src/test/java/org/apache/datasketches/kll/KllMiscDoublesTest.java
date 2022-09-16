@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.Objects;
 
@@ -54,6 +55,11 @@ public class KllMiscDoublesTest {
     println("Ext     : " + est);
     println("UB      : " + ub);
     println("LB      : " + lb);
+    final double rest = kll.getRank(est);
+    final double restUB = kll.getRankUpperBound(rest);
+    final double restLB = kll.getRankLowerBound(rest);
+    assertTrue(restUB - rest < (2 * eps));
+    assertTrue(rest - restLB < (2 * eps));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -518,6 +524,18 @@ public class KllMiscDoublesTest {
     KllDoublesSketch skCompact = KllDoublesSketch.wrap(srcMem2);
     assertTrue(skCompact instanceof KllDirectCompactDoublesSketch);
     assertEquals(skCompact.getDoubleSingleValue(), 1.0);
+  }
+
+  @Test
+  public void checkInheritanceArtifacts() {
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
+    try { sk.getFloatValuesArray(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getMaxFloatValue(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getMinFloatValue(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setFloatValuesArray(null); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setFloatValuesArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setMaxFloatValue(0); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setMinFloatValue(0); fail();} catch (SketchesArgumentException e) {}
   }
 
   @Test
