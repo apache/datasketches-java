@@ -19,9 +19,13 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.Util.checkNormalizedRankBounds;
+
 import java.util.List;
 
 import org.apache.datasketches.FloatsSortedView;
+import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
 
 /**
@@ -56,13 +60,28 @@ public class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
-  public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    return getQuantile(normRank, searchCrit, cumWeights, quantiles, totalN);
+  public float getQuantile(final double normalizedRank, final QuantileSearchCriteria searchCrit) {
+    checkNormalizedRankBounds(normalizedRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (searchCrit == INCLUSIVE)
+        ? (long)Math.ceil(normalizedRank * totalN) : (long)Math.floor(normalizedRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      return quantiles[quantiles.length - 1]; ///EXCLUSIVE (GT) case: normRank == 1.0;
+    }
+    return quantiles[index];
   }
 
   @Override
   public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
-    return getRank(quantile, searchCrit, cumWeights, quantiles, totalN);
+    final int len = quantiles.length;
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
+    final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
+    if (index == -1) {
+      return 0; //LT: given quantile <= minValue; LE: given quantile < minValue
+    }
+    return (double)cumWeights[index] / totalN;
   }
 
   @Override

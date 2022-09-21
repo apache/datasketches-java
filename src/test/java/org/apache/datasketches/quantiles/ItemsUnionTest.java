@@ -35,29 +35,14 @@ public class ItemsUnionTest {
 
   @Test
   public void nullAndEmpty() {
-    ItemsUnion<Integer> union = ItemsUnion.getInstance(Comparator.naturalOrder());
-
-    // union gadget sketch is null at this point
-    Assert.assertTrue(union.isEmpty());
-    Assert.assertFalse(union.isDirect());
-    Assert.assertEquals(union.getMaxK(), DEFAULT_K);
-    Assert.assertEquals(union.getEffectiveK(), DEFAULT_K);
-    Assert.assertTrue(union.toString().length() > 0);
-
-    union.update((Integer) null);
-    ItemsSketch<Integer> result = union.getResult();
-    Assert.assertTrue(result.isEmpty());
-    Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinQuantile());
-    Assert.assertNull(result.getMaxQuantile());
-    Assert.assertNull(union.getResultAndReset());
-
-    final ItemsSketch<Integer> emptySk = ItemsSketch.getInstance(Comparator.naturalOrder());
-    final ItemsSketch<Integer> validSk = ItemsSketch.getInstance(Comparator.naturalOrder());
+    final ItemsSketch<Integer> emptySk = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    final ItemsSketch<Integer> validSk = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    ItemsSketch<Integer> result;
     validSk.update(1);
+    ItemsUnion<Integer> union = ItemsUnion.getInstance(Integer.class, Comparator.naturalOrder());
     union.update(validSk);
 
-    union = ItemsUnion.getInstance(result);
+    union = ItemsUnion.getInstance(emptySk);
     // internal sketch is empty at this point
     union.update((ItemsSketch<Integer>) null);
     union.update(emptySk);
@@ -82,7 +67,7 @@ public class ItemsUnionTest {
     Assert.assertNull(result.getMaxQuantile());
 
     // internal sketch is not null again because getResult() instantiated it
-    union.update(ItemsSketch.getInstance(Comparator.naturalOrder()));
+    union.update(ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
@@ -91,7 +76,7 @@ public class ItemsUnionTest {
 
     union.reset();
     // internal sketch is null again
-    union.update(ItemsSketch.getInstance(Comparator.naturalOrder()));
+    union.update(ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
@@ -101,7 +86,7 @@ public class ItemsUnionTest {
 
   @Test
   public void nullAndEmptyInputsToNonEmptyUnion() {
-    final ItemsUnion<Integer> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+    final ItemsUnion<Integer> union = ItemsUnion.getInstance(Integer.class, 128, Comparator.naturalOrder());
     union.update(1);
     ItemsSketch<Integer> result = union.getResult();
     Assert.assertFalse(result.isEmpty());
@@ -116,7 +101,7 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMinQuantile(), Integer.valueOf(1));
     Assert.assertEquals(result.getMaxQuantile(), Integer.valueOf(1));
 
-    union.update(ItemsSketch.getInstance(Comparator.naturalOrder()));
+    union.update(ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertFalse(result.isEmpty());
     Assert.assertEquals(result.getN(), 1);
@@ -128,19 +113,19 @@ public class ItemsUnionTest {
   public void basedOnSketch() {
     final Comparator<String> comp = Comparator.naturalOrder();
     final ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(comp);
+    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, comp);
     ItemsUnion<String> union = ItemsUnion.getInstance(sketch);
     union.reset();
     final byte[] byteArr = sketch.toByteArray(serDe);
     final Memory mem = Memory.wrap(byteArr);
-    union = ItemsUnion.getInstance(mem, comp, serDe);
+    union = ItemsUnion.getInstance(String.class, mem, comp, serDe);
     Assert.assertEquals(byteArr.length, 8);
     union.reset();
   }
 
   @Test
   public void sameK() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 128, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinQuantile());
@@ -153,7 +138,7 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMaxQuantile(), Long.valueOf(1000));
     Assert.assertEquals(result.getQuantile(0.5), 500, 17); // ~1.7% normalized rank error
 
-    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Comparator.naturalOrder());
+    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Long.class, Comparator.naturalOrder());
     for (int i = 1001; i <= 2000; i++) { sketch1.update((long) i); }
     union.update(sketch1);
     result = union.getResult();
@@ -162,7 +147,7 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMaxQuantile(), Long.valueOf(2000));
     Assert.assertEquals(result.getQuantile(0.5), 1000, 34); // ~1.7% normalized rank error
 
-    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Comparator.naturalOrder());
+    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Long.class, Comparator.naturalOrder());
     for (int i = 2001; i <= 3000; i++) { sketch2.update((long) i); }
     final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
     union.update(Memory.wrap(sketch2.toByteArray(serDe)), serDe);
@@ -181,7 +166,7 @@ public class ItemsUnionTest {
 
   @Test
   public void differentK() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(512, Comparator.naturalOrder());
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 512, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
     Assert.assertNull(result.getMinQuantile());
@@ -195,7 +180,7 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMaxQuantile(), Long.valueOf(10000));
     Assert.assertEquals(result.getQuantile(0.5), 5000, 50); // ~0.5% normalized rank error
 
-    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(256, Comparator.naturalOrder());
+    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Long.class, 256, Comparator.naturalOrder());
     for (int i = 10001; i <= 20000; i++) { sketch1.update((long) i); }
     union.update(sketch1);
     result = union.getResult();
@@ -205,7 +190,7 @@ public class ItemsUnionTest {
     Assert.assertEquals(result.getMaxQuantile(), Long.valueOf(20000));
     Assert.assertEquals(result.getQuantile(0.5), 10000, 180); // ~0.9% normalized rank error
 
-    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(128, Comparator.naturalOrder());
+    final ItemsSketch<Long> sketch2 = ItemsSketch.getInstance(Long.class,128,  Comparator.naturalOrder());
     for (int i = 20001; i <= 30000; i++) { sketch2.update((long) i); }
     final ArrayOfItemsSerDe<Long> serDe = new ArrayOfLongsSerDe();
     union.update(Memory.wrap(sketch2.toByteArray(serDe)), serDe);
@@ -225,8 +210,8 @@ public class ItemsUnionTest {
 
   @Test
   public void differentLargerK() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
-    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(256, Comparator.naturalOrder());
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 128, Comparator.naturalOrder());
+    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Long.class, 256, Comparator.naturalOrder());
     union.update(sketch1);
     Assert.assertEquals(union.getResult().getK(), 128);
     sketch1.update(1L);
@@ -236,18 +221,18 @@ public class ItemsUnionTest {
 
   @Test
   public void differentSmallerK() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
-    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(64, Comparator.naturalOrder());
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 128, Comparator.naturalOrder());
+    final ItemsSketch<Long> sketch1 = ItemsSketch.getInstance(Long.class, 64, Comparator.naturalOrder());
+    union.update(sketch1); //union empty, sketch1: empty
+    Assert.assertEquals(union.getResult().getK(), 128); //union: empty, k=128
+    sketch1.update(1L); //union: empty, k=128; sketch: valid, k=64
     union.update(sketch1);
-    Assert.assertEquals(union.getResult().getK(), 64);
-    sketch1.update(1L);
-    union.update(sketch1);
-    Assert.assertEquals(union.getResult().getK(), 64);
+    Assert.assertEquals(union.getResult().getK(), 128);
   }
 
   @Test
   public void toStringCrudeCheck() {
-    final ItemsUnion<String> union = ItemsUnion.getInstance(128, Comparator.naturalOrder());
+    final ItemsUnion<String> union = ItemsUnion.getInstance(String.class, 128, Comparator.naturalOrder());
     union.update("a");
     final String brief = union.toString();
     final String full = union.toString(true, true);
@@ -256,7 +241,7 @@ public class ItemsUnionTest {
 
   @Test
   public void meNullOtherExactBiggerSmaller() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(16, Comparator.naturalOrder()); //me null
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 16, Comparator.naturalOrder()); //me null
     ItemsSketch<Long> skExact = buildIS(32, 31); //other is bigger, exact
     union.update(skExact);
     println(skExact.toString(true, true));
@@ -273,7 +258,7 @@ public class ItemsUnionTest {
 
   @Test
   public void meNullOtherEstBiggerSmaller() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(16, Comparator.naturalOrder()); //me null
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 16, Comparator.naturalOrder()); //me null
     ItemsSketch<Long> skEst = buildIS(32, 64); //other is bigger, est
     union.update(skEst);
     Assert.assertEquals(union.getResult().getMinQuantile(), skEst.getMinQuantile(), 0.0);
@@ -288,8 +273,8 @@ public class ItemsUnionTest {
 
   @Test
   public void meEmptyOtherExactBiggerSmaller() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(16, Comparator.naturalOrder()); //me null
-    final ItemsSketch<Long> skEmpty = ItemsSketch.getInstance(64, Comparator.naturalOrder());
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 16, Comparator.naturalOrder()); //me null
+    final ItemsSketch<Long> skEmpty = ItemsSketch.getInstance(Long.class, 64, Comparator.naturalOrder());
     union.update(skEmpty); //empty at k = 16
     ItemsSketch<Long> skExact = buildIS(32, 63); //bigger, exact
     union.update(skExact);
@@ -306,8 +291,8 @@ public class ItemsUnionTest {
 
   @Test
   public void meEmptyOtherEstBiggerSmaller() {
-    final ItemsUnion<Long> union = ItemsUnion.getInstance(16, Comparator.naturalOrder()); //me null
-    final ItemsSketch<Long> skEmpty = ItemsSketch.getInstance(64, Comparator.naturalOrder());
+    final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 16, Comparator.naturalOrder()); //me null
+    final ItemsSketch<Long> skEmpty = ItemsSketch.getInstance(Long.class, 64, Comparator.naturalOrder());
     union.update(skEmpty); //empty at k = 16
     ItemsSketch<Long> skExact = buildIS(32, 64); //bigger, est
     union.update(skExact);
@@ -381,14 +366,14 @@ public class ItemsUnionTest {
   public void checkToByteArray() {
     final int k = 32;
     final ArrayOfLongsSerDe serDe = new ArrayOfLongsSerDe();
-    ItemsUnion<Long> union = ItemsUnion.getInstance(k, Comparator.naturalOrder());
+    ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, k, Comparator.naturalOrder());
     byte[] bytesOut = union.toByteArray(serDe);
     Assert.assertEquals(bytesOut.length, 8);
     Assert.assertTrue(union.isEmpty());
 
     final byte[] byteArr = buildIS(k, (2 * k) + 5).toByteArray(serDe);
     final Memory mem = Memory.wrap(byteArr);
-    union = ItemsUnion.getInstance(mem, Comparator.naturalOrder(), serDe);
+    union = ItemsUnion.getInstance(Long.class, mem, Comparator.naturalOrder(), serDe);
     bytesOut = union.toByteArray(serDe);
     Assert.assertEquals(bytesOut.length, byteArr.length);
     Assert.assertEquals(bytesOut, byteArr); // assumes consistent internal use of toByteArray()
@@ -399,7 +384,7 @@ public class ItemsUnionTest {
   }
 
   private static ItemsSketch<Long> buildIS(final int k, final int n, final int startV) {
-    final ItemsSketch<Long> is = ItemsSketch.getInstance(k, Comparator.naturalOrder());
+    final ItemsSketch<Long> is = ItemsSketch.getInstance(Long.class, k, Comparator.naturalOrder());
     for (long i = 0; i < n; i++) { is.update(i + startV); }
     return is;
   }
@@ -410,10 +395,10 @@ public class ItemsUnionTest {
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(final  String s) {
-    //System.out.println(s); //disable here
+  static void println(final  Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }

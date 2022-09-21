@@ -127,22 +127,22 @@ public class HeapUpdateDoublesSketchTest {
     }
     assertEquals(qs1.getQuantile (0.0, EXCLUSIVE), 1.0);
     assertEquals(qs1.getQuantile (0.5, EXCLUSIVE), 5.0);
-    assertEquals(qs1.getQuantile (1.0, EXCLUSIVE), Double.NaN);
+    assertEquals(qs1.getQuantile (1.0, EXCLUSIVE), 8.0);
 
     assertEquals(qs2.getQuantile (0.0, EXCLUSIVE), 11.0);
     assertEquals(qs2.getQuantile (0.5, EXCLUSIVE), 15.0);
-    assertEquals(qs2.getQuantile (1.0, EXCLUSIVE), Double.NaN);
+    assertEquals(qs2.getQuantile (1.0, EXCLUSIVE), 18.0);
 
     assertEquals(qs3.getQuantile (0.0, EXCLUSIVE), 1.0);
     assertEquals(qs3.getQuantile (0.5, EXCLUSIVE), 5.0);
-    assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), Double.NaN);
+    assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), 8.0);
 
     double[] queries = {0.0, 0.5, 1.0};
 
     double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
     assertEquals(resultsA[0], 1.0);
     assertEquals(resultsA[1], 5.0);
-    assertEquals(resultsA[2], Double.NaN);
+    assertEquals(resultsA[2], 8.0);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
     union1.update(qs2);
@@ -155,12 +155,12 @@ public class HeapUpdateDoublesSketchTest {
     double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
     assertEquals(resultsB[0], 1.0);
     assertEquals(resultsB[1], 11.0);
-    assertEquals(resultsB[2], Double.NaN);
+    assertEquals(resultsB[2], 18.0);
 
     double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
     assertEquals(resultsC[0], 1.0);
     assertEquals(resultsC[1], 11.0);
-    assertEquals(resultsC[2], Double.NaN);
+    assertEquals(resultsC[2], 18.0);
   }
 
   @Test
@@ -963,7 +963,7 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
     assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
     assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
-    assertEquals(sketch.getQuantile(1, EXCLUSIVE), Double.NaN);
+    assertEquals(sketch.getQuantile(1, EXCLUSIVE), 10);
     // inclusive = true
     assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);

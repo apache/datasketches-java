@@ -435,7 +435,7 @@ public class KllDirectDoublesSketchTest {
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1.0);
     assertEquals(quantiles1[1], 2.0);
-    assertEquals(quantiles1[2], Double.NaN);
+    assertEquals(quantiles1[2], 3.0);
   }
 
   @Test

@@ -434,7 +434,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1f);
     assertEquals(quantiles1[1], 2f);
-    assertEquals(quantiles1[2], Float.NaN);
+    assertEquals(quantiles1[2], 3f);
   }
 
   @Test

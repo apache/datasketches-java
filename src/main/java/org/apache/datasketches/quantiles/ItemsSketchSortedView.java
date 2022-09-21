@@ -20,25 +20,28 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.Util.checkNormalizedRankBounds;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 
 import org.apache.datasketches.GenericInequalitySearch;
 import org.apache.datasketches.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.GenericSortedView;
+import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesStateException;
 
 /**
  * The SortedView of the Classic Quantiles ItemsSketch.
- * @param <T> type of item
+ * @param <T> The sketch data type
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
 public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
-  private final Object[] items; //array of size samples
+  private final T[] items; //array of size samples
   private final long[] cumWeights;
   private final long totalN;
   private final Comparator<? super T> comparator;
@@ -50,7 +53,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param totalN the total number of values presented to the sketch.
    */
   ItemsSketchSortedView(final T[] items, final long[] cumWeights, final long totalN,
-      final Comparator<? super T> comparator) {
+      final Comparator<T> comparator) {
     this.items = items;
     this.cumWeights = cumWeights;
     this.totalN = totalN;
@@ -66,7 +69,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     this.totalN = sketch.getN();
     final int k = sketch.getK();
     final int numSamples = sketch.getNumRetained();
-    items = new Object[numSamples];
+    items = (T[]) Array.newInstance(sketch.clazz, numSamples);
     cumWeights = new long[numSamples];
     comparator = sketch.getComparator();
 
@@ -76,39 +79,35 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     // Populate from ItemsSketch:
     // copy over the "levels" and then the base buffer, all with appropriate weights
     populateFromItemsSketch(k, totalN, sketch.getBitPattern(), (T[]) combinedBuffer, baseBufferCount,
-        numSamples, (T[]) items, cumWeights, sketch.getComparator());
+        numSamples, items, cumWeights, sketch.getComparator());
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     // taking advantage of the already sorted blocks of length k
-    ItemsMergeImpl.blockyTandemMergeSort((T[]) items, cumWeights, numSamples, k, sketch.getComparator());
+    ItemsMergeImpl.blockyTandemMergeSort(items, cumWeights, numSamples, k, sketch.getComparator());
 
     if (convertToCumulative(cumWeights) != totalN) {
       throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
     }
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public T getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    return (T)getQuantile(normRank, searchCrit, cumWeights, items, totalN);
-
-//    checkNormalizedRankBounds(normRank);
-//    final int len = cumWeights.length;
-//    final long naturalRank = (int)(normRank * totalN);
-//    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
-//    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
-//    if (index == -1) {
-//      return null; //EXCLUSIVE (GT) case: normRank == 1.0;
-//    }
-//    return (T)items[index];
+    checkNormalizedRankBounds(normRank);
+    final int len = cumWeights.length;
+    final long naturalRank = (int)(normRank * totalN);
+    final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
+    final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
+    if (index == -1) {
+      return items[items.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+    }
+    return items[index];
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public double getRank(final T item, final QuantileSearchCriteria searchCrit) {
     final int len = items.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
-    final int index = GenericInequalitySearch.find((T[])items,  0, len - 1, item, crit, comparator);
+    final int index = GenericInequalitySearch.find(items,  0, len - 1, item, crit, comparator);
     if (index == -1) {
       return 0; //LT: value <= minValue; LE: value < minValue
     }
@@ -143,10 +142,9 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     return cumWeights.clone();
   }
 
-  @SuppressWarnings("unchecked")
   @Override
   public T[] getItems() {
-    return (T[])items.clone();
+    return items.clone();
   }
 
   @Override

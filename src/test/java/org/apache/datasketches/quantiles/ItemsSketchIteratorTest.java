@@ -29,14 +29,14 @@ public class ItemsSketchIteratorTest {
 
   @Test
   public void emptySketch() {
-    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
+    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
     QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
+    ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
     sketch.update(0);
     QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
     Assert.assertTrue(it.next());
@@ -48,7 +48,7 @@ public class ItemsSketchIteratorTest {
   @Test
   public void bigSketches() {
     for (int n = 1000; n < 100000; n += 2000) {
-      ItemsSketch<Integer> sketch = ItemsSketch.getInstance(128, Comparator.naturalOrder());
+      ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, 128, Comparator.naturalOrder());
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }

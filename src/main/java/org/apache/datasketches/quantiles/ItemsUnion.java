@@ -22,6 +22,7 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.Util.LS;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.memory.Memory;
@@ -39,28 +40,34 @@ public final class ItemsUnion<T> {
   protected final int maxK_;
   protected final Comparator<? super T> comparator_;
   protected ItemsSketch<T> gadget_;
+  protected Class<T> clazz_;
 
-  private ItemsUnion(final int maxK, final Comparator<? super T> comparator,
-      final ItemsSketch<T> gadget) {
+  private ItemsUnion(final int maxK, final Comparator<? super T> comparator, final ItemsSketch<T> gadget) {
+    Objects.requireNonNull(gadget, "Gadjet sketch must not be null.");
+    Objects.requireNonNull(comparator, "Comparator must not be null.");
     maxK_ = maxK;
     comparator_ = comparator;
     gadget_ = gadget;
-    if (gadget_ != null) { gadget_.classicQisSV = null; }
+    clazz_ = gadget.clazz;
+    gadget_.classicQisSV = null;
   }
 
   /**
    * Create an instance of ItemsUnion with the default k
-   * @param <T> type of item
+   * @param <T> The sketch data type
+   * @param clazz The sketch class type
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Comparator<? super T> comparator) {
-    return new ItemsUnion<T>(PreambleUtil.DEFAULT_K, comparator, null);
+  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Comparator<? super T> comparator) {
+    ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
+    return new ItemsUnion<T>(PreambleUtil.DEFAULT_K, comparator, emptySk);
   }
 
   /**
    * Create an instance of ItemsUnion
-   * @param <T> type of item
+   * @param clazz The sketch class type
+   * @param <T> The sketch data type
    * @param maxK determines the accuracy and size of the union and is a maximum value.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
@@ -68,28 +75,31 @@ public final class ItemsUnion<T> {
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final int maxK, final Comparator<? super T> comparator) {
-    return new ItemsUnion<>(maxK, comparator, null);
+  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final int maxK,
+      final Comparator<? super T> comparator) {
+    ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, maxK, comparator);
+    return new ItemsUnion<>(maxK, comparator, emptySk);
   }
 
   /**
    * Heapify the given srcMem into a Union object.
-   * @param <T> type of item
-   * @param srcMem the given srcMem.
+   * @param clazz The sketch class type
    * A reference to srcMem will not be maintained internally.
+   * @param srcMem the given srcMem.
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
+   * @param <T> The sketch data type
    * @return an instance of ItemsUnion
    */
-  public static <T> ItemsUnion<T> getInstance(final Memory srcMem,
+  public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Memory srcMem,
       final Comparator<? super T> comparator, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> gadget = ItemsSketch.getInstance(srcMem, comparator, serDe);
+    final ItemsSketch<T> gadget = ItemsSketch.getInstance(clazz, srcMem, comparator, serDe);
     return new ItemsUnion<>(gadget.getK(), gadget.getComparator(), gadget);
   }
 
   /**
    * Create an instance of ItemsUnion based on ItemsSketch
-   * @param <T> type of item
+   * @param <T> The sketch data type
    * @param sketch the basis of the union
    * @return an instance of ItemsUnion
    */
@@ -110,7 +120,7 @@ public final class ItemsUnion<T> {
    *
    * @param sketchIn the sketch to be merged into this one.
    */
-  public void update(final ItemsSketch<T> sketchIn) {
+  public void update(final ItemsSketch<T> sketchIn) { //TODO rename merge
     gadget_ = updateLogic(maxK_, comparator_, gadget_, sketchIn);
   }
 
@@ -127,8 +137,8 @@ public final class ItemsUnion<T> {
    * @param srcMem Memory image of sketch to be merged
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void update(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
-    final ItemsSketch<T> that = ItemsSketch.getInstance(srcMem, comparator_, serDe);
+  public void update(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) { //TODO rename merge
+    final ItemsSketch<T> that = ItemsSketch.getInstance(this.clazz_, srcMem, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }
 
@@ -140,7 +150,7 @@ public final class ItemsUnion<T> {
   public void update(final T dataItem) {
     if (dataItem == null) { return; }
     if (gadget_ == null) {
-      gadget_ = ItemsSketch.getInstance(maxK_, comparator_);
+      gadget_ = ItemsSketch.getInstance(this.clazz_, maxK_, comparator_);
     }
     gadget_.update(dataItem);
   }
@@ -152,7 +162,7 @@ public final class ItemsUnion<T> {
    */
   public ItemsSketch<T> getResult() {
     if (gadget_ == null) {
-      return ItemsSketch.getInstance(maxK_, comparator_);
+      return ItemsSketch.getInstance(this.clazz_, maxK_, comparator_);
     }
     return ItemsSketch.copy(gadget_); //can't have any externally owned handles.
   }
@@ -172,6 +182,7 @@ public final class ItemsUnion<T> {
 
   /**
    * Resets this Union to a virgin state.
+   * Keeps maxK, comparator and clazz
    */
   public void reset() {
     gadget_ = null;
@@ -231,7 +242,7 @@ public final class ItemsUnion<T> {
     sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
-      sb.append(ItemsSketch.getInstance(maxK_, comparator_).toString());
+      sb.append(ItemsSketch.getInstance(this.clazz_, maxK_, comparator_).toString());
       return sb.toString();
     }
     sb.append(gadget_.toString(sketchSummary, dataDetail));
@@ -248,7 +259,7 @@ public final class ItemsUnion<T> {
    */
   public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
     if (gadget_ == null) {
-      final ItemsSketch<T> sketch = ItemsSketch.getInstance(maxK_, comparator_);
+      final ItemsSketch<T> sketch = ItemsSketch.getInstance(this.clazz_, maxK_, comparator_);
       return sketch.toByteArray(serDe);
     }
     return gadget_.toByteArray(serDe);
@@ -280,7 +291,7 @@ public final class ItemsUnion<T> {
       case 2: { //myQS = null,  other = valid; stream or downsample to myMaxK
         assert other != null;
         if (!other.isEstimationMode()) { //other is exact, stream items in
-          ret = ItemsSketch.getInstance(myMaxK, comparator);
+          ret = ItemsSketch.getInstance(other.getSketchType(), myMaxK, comparator);
           final int otherCnt = other.getBaseBufferCount();
           final Object[] combBuf = other.getCombinedBuffer();
           for (int i = 0; i < otherCnt; i++) {
@@ -320,7 +331,7 @@ public final class ItemsUnion<T> {
       }
       case 4: {
         assert other != null;
-        ret = ItemsSketch.getInstance(Math.min(myMaxK, other.getK()), comparator);
+        ret = ItemsSketch.getInstance(other.getSketchType(), Math.min(myMaxK, other.getK()), comparator);
         break;
       }
       //default: //This cannot happen and cannot be tested

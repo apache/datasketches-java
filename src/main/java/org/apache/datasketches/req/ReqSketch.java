@@ -288,6 +288,12 @@ public class ReqSketch extends BaseReqSketch {
     return reqSV.getRank(value, searchCrit);
   }
 
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.95.
+   */
+  @Override
   public double getRankLowerBound(final double rank) {
     return getRankLB(k, getNumLevels(), rank, 2, hra, getN());
   }
@@ -309,6 +315,12 @@ public class ReqSketch extends BaseReqSketch {
     return retArr;
   }
 
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.95.
+   */
+  @Override
   public double getRankUpperBound(final double rank) {
     return getRankUB(k, getNumLevels(), rank, 2, hra, getN());
   }

@@ -125,7 +125,7 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
     assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
     assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
-    assertEquals(sketch.getQuantile(1, EXCLUSIVE), Float.NaN);
+    assertEquals(sketch.getQuantile(1, EXCLUSIVE), 10);
     // inclusive = true
     assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
@@ -480,7 +480,7 @@ public class KllFloatsSketchTest {
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1f);
     assertEquals(quantiles1[1], 2f);
-    assertEquals(quantiles1[2], Float.NaN);
+    assertEquals(quantiles1[2], 3f);
   }
 
   @Test

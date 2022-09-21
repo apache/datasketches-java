@@ -58,7 +58,7 @@ public class LinearRanksAndQuantiles {
         //EXCLUSIVE
         if (givenNormR < topR ) { result = topQ; break; }
         if (givenNormR > 1.0) { fail("normRank > 1.0"); }
-        result = Float.NaN; // R == 1.0
+        result =topQ; // R == 1.0
         break;
       }
       else { //always at least two valid entries
@@ -118,7 +118,7 @@ public class LinearRanksAndQuantiles {
         //EXCLUSIVE
         if (givenNormR < topR ) { result = topQ; break; }
         if (givenNormR > 1.0) { fail("normRank > 1.0"); }
-        result = Double.NaN; // R == 1.0
+        result = topQ; // R == 1.0
         break;
       }
       else { //always at least two valid entries

@@ -127,7 +127,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
     assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
     assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
-    assertEquals(sketch.getQuantile(1, EXCLUSIVE), Double.NaN);
+    assertEquals(sketch.getQuantile(1, EXCLUSIVE), 10);
     // inclusive = true
     assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
     assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
@@ -481,7 +481,7 @@ public class KllDoublesSketchTest {
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1.0);
     assertEquals(quantiles1[1], 2.0);
-    assertEquals(quantiles1[2], Double.NaN);
+    assertEquals(quantiles1[2], 3.0);
   }
 
   @Test

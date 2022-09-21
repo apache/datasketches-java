@@ -35,6 +35,7 @@ import static org.apache.datasketches.quantiles.Util.computeBitPattern;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.Random;
 
 import org.apache.datasketches.QuantileSearchCriteria;
@@ -59,12 +60,14 @@ import org.apache.datasketches.memory.WritableMemory;
  * <p>There is more documentation available on
  * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
  *
- * @param <T> type of item
+ * @param <T> The sketch data type
  *
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
 public final class ItemsSketch<T> implements QuantilesAPI {
+
+  final Class<T> clazz;
 
   private final Comparator<? super T> comparator_;
 
@@ -124,32 +127,45 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    */
   public static final Random rand = new Random();
 
-  private ItemsSketch(final int k, final Comparator<? super T> comparator) {
+  private ItemsSketch(
+      final int k,
+      final Class<T> clazz,
+      final Comparator<? super T> comparator) {
+    Objects.requireNonNull(clazz, "Class<T> must not be null.");
+    Objects.requireNonNull(comparator, "Comparator must not be null.");
     Util.checkK(k);
     k_ = k;
+    this.clazz = clazz;
     comparator_ = comparator;
   }
 
   /**
    * Obtains a new instance of an ItemsSketch using the DEFAULT_K.
-   * @param <T> type of item
+   * @param <T> The sketch data type
+   * @param clazz the given class of T
    * @param comparator to compare items
    * @return a GenericQuantileSketch
    */
-  public static <T> ItemsSketch<T> getInstance(final Comparator<? super T> comparator) {
-    return getInstance(PreambleUtil.DEFAULT_K, comparator);
+  public static <T> ItemsSketch<T> getInstance(
+      final Class<T> clazz,
+      final Comparator<? super T> comparator) {
+    return getInstance(clazz, PreambleUtil.DEFAULT_K, comparator);
   }
 
   /**
    * Obtains a new instance of an ItemsSketch.
-   * @param <T> type of item
+   * @param clazz the given class of T
    * @param k Parameter that controls space usage of sketch and accuracy of estimates.
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
+   * @param <T> The sketch data type
    * @return a GenericQuantileSketch
    */
-  public static <T> ItemsSketch<T> getInstance(final int k, final Comparator<? super T> comparator) {
-    final ItemsSketch<T> qs = new ItemsSketch<>(k, comparator);
+  public static <T> ItemsSketch<T> getInstance(
+      final Class<T> clazz,
+      final int k,
+      final Comparator<? super T> comparator) {
+    final ItemsSketch<T> qs = new ItemsSketch<>(k, clazz, comparator);
     final int bufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
     qs.n_ = 0;
     qs.combinedBufferItemCapacity_ = bufAlloc;
@@ -163,16 +179,19 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * Heapifies the given srcMem, which must be a Memory image of a ItemsSketch
-   * @param <T> type of item
+   * @param clazz the given class of T
    * @param srcMem a Memory image of a sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
+   * @param <T> The sketch data type
    * @return a ItemsSketch on the Java heap.
    */
-  public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
-                                               final Comparator<? super T> comparator,
-                                               final ArrayOfItemsSerDe<T> serDe) {
+  public static <T> ItemsSketch<T> getInstance(
+      final Class<T> clazz,
+      final Memory srcMem,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
     final long memCapBytes = srcMem.getCapacity();
     if (memCapBytes < 8) {
       throw new SketchesArgumentException("Memory too small: " + memCapBytes);
@@ -193,7 +212,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     Util.checkFamilyID(familyID);
 
-    final ItemsSketch<T> qs = getInstance(k, comparator); //checks k
+    final ItemsSketch<T> qs = getInstance(clazz, k, comparator); //checks k
     if (empty) { return qs; }
 
     //Not empty, must have valid preamble + min, max
@@ -220,12 +239,12 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * Returns a copy of the given sketch
-   * @param <T> the data type
+   * @param <T> The sketch data type
    * @param sketch the given sketch
    * @return a copy of the given sketch
    */
   static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
-    final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.k_, sketch.comparator_);
+    final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.clazz, sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
     qsCopy.minQuantile_ = sketch.getMinQuantile();
     qsCopy.maxQuantile_ = sketch.getMaxQuantile();
@@ -283,11 +302,15 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * @return an CDF array of m+1 double ranks (or probabilities) on the interval [0.0, 1.0).
    */
-  public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+  public double[] getCDF(
+      final T[] splitPoints,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
     return classicQisSV.getCDF(splitPoints, searchCrit);
   }
+
+  public Class<T> getSketchType() { return clazz; }
 
   /**
    * Returns the maximum quantile of the stream. This is provided for convenience, but is distinct from the largest
@@ -355,7 +378,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * @return a PDF array of m+1 densities as double values on the interval [0.0, 1.0).
    */
-  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+  public double[] getPMF(
+      final T[] splitPoints,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
     return classicQisSV.getPMF(splitPoints, searchCrit);
@@ -381,7 +406,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @return the approximate quantile given the normalized rank.
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+  public T getQuantile(
+      final double rank,
+      final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
     return classicQisSV.getQuantile(rank, searchCrit);
@@ -410,7 +437,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
   @SuppressWarnings("unchecked")
-  public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
+  public T[] getQuantiles(
+      final double[] ranks,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
     final int len = ranks.length;
@@ -453,7 +482,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public T[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
+  public T[] getQuantiles(
+      final int numEvenlySpaced,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
@@ -519,7 +550,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @return the normalized rank corresponding to the given quantile
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
+  public double getRank(
+      final T quantile,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return Double.NaN; }
     refreshSortedView();
     return classicQisSV.getRank(quantile, searchCrit);
@@ -565,7 +598,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @see org.apache.datasketches.QuantileSearchCriteria
    */
-  public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
+  public double[] getRanks(
+      final T[] quantiles,
+      final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
     final int len = quantiles.length;
@@ -614,7 +649,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @return if pmf is true, the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
-  public static double getNormalizedRankError(final int k, final boolean pmf) {
+  public static double getNormalizedRankError(
+      final int k,
+      final boolean pmf) {
     return Util.getNormalizedRankError(k, pmf);
   }
 
@@ -627,7 +664,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * epsilon for all the other queries.
    * @return the value of <i>k</i> given a value of epsilon.
    */
-  public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
+  public static int getKFromEpsilon(
+      final double epsilon,
+      final boolean pmf) {
     return Util.getKFromEpsilon(epsilon, pmf);
   }
 
@@ -687,7 +726,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param serDe an instance of ArrayOfItemsSerDe
    * @return this sketch in a byte array form.
    */
-  public byte[] toByteArray(final boolean ordered, final ArrayOfItemsSerDe<T> serDe) {
+  public byte[] toByteArray(
+      final boolean ordered,
+      final ArrayOfItemsSerDe<T> serDe) {
     return ItemsByteArrayImpl.toByteArray(this, ordered, serDe);
   }
 
@@ -702,7 +743,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param dataDetail if true includes data detail
    * @return summary information about the sketch.
    */
-  public String toString(final boolean sketchSummary, final boolean dataDetail) {
+  public String toString(
+      final boolean sketchSummary,
+      final boolean dataDetail) {
     return ItemsUtil.toString(sketchSummary, dataDetail, this);
   }
 
@@ -733,7 +776,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @return the new sketch.
    */
   public ItemsSketch<T> downSample(final int newK) {
-    final ItemsSketch<T> newSketch = ItemsSketch.getInstance(newK, comparator_);
+    final ItemsSketch<T> newSketch = ItemsSketch.getInstance(clazz, newK, comparator_);
     ItemsMergeImpl.downSamplingMergeInto(this, newSketch);
     return newSketch;
   }
@@ -750,7 +793,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param dstMem the given memory.
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void putMemory(final WritableMemory dstMem, final ArrayOfItemsSerDe<T> serDe) {
+  public void putMemory(
+      final WritableMemory dstMem,
+      final ArrayOfItemsSerDe<T> serDe) {
     final byte[] byteArr = toByteArray(serDe);
     final long memCap = dstMem.getCapacity();
     if (memCap < byteArr.length) {
