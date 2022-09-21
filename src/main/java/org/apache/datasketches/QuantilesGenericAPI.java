@@ -24,7 +24,7 @@ import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 public interface QuantilesGenericAPI<T> extends QuantilesAPI {
 
   /**
-   * Same as {@link #getCDF(T[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
+   * Same as {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
    * @return a CDF array of m+1 double ranks (or probabilities) on the interval [0.0, 1.0).
    */
@@ -92,7 +92,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   T getMinQuantile();
 
   /**
-   * Same as {@link #getPMF(T[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
+   * Same as {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
    * @return a PDF array of m+1 densities as double values on the interval [0.0, 1.0).
    */
@@ -271,7 +271,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   double getRank(T quantile, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRanks(T[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
+   * Same as {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    */

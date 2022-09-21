@@ -236,14 +236,14 @@ public class ReadOnlyMemoryTest {
     }
 
     try {
-      u.update(s2);
+      u.union(s2);
       fail();
     } catch (SketchesReadOnlyException e) {
       // expected
     }
 
     try {
-      u.update(mem);
+      u.union(mem);
       fail();
     } catch (SketchesReadOnlyException e) {
       // expected

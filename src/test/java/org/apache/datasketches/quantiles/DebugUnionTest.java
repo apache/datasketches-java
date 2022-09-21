@@ -54,7 +54,7 @@ public class DebugUnionTest {
     //loads the on heap union
     DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion hUnion = DoublesUnion.builder().setMaxK(unionK).build();
-    for (int s = 0; s < numSketches; s++) { hUnion.update(sketchArr[s]); }
+    for (int s = 0; s < numSketches; s++) { hUnion.union(sketchArr[s]); }
     DoublesSketch hSketch = hUnion.getResult();
 
     //loads the direct union
@@ -64,7 +64,7 @@ public class DebugUnionTest {
     try ( WritableHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
       WritableMemory wmem = wdh.getWritable();
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
-      for (int s = 0; s < numSketches; s++) { dUnion.update(sketchArr[s]); }
+      for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap
     } catch (final Exception e) {
       throw new RuntimeException(e);

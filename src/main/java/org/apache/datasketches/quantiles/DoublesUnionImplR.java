@@ -58,12 +58,12 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public void update(final DoublesSketch sketchIn) {
+  public void union(final DoublesSketch sketchIn) {
     throw new SketchesReadOnlyException("Call to update() on read-only Union");
   }
 
   @Override
-  public void update(final Memory mem) {
+  public void union(final Memory mem) {
     throw new SketchesReadOnlyException("Call to update() on read-only Union");
   }
 

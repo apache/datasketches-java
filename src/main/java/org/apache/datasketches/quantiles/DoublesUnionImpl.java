@@ -120,14 +120,14 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
   }
 
   @Override
-  public void update(final DoublesSketch sketchIn) {
+  public void union(final DoublesSketch sketchIn) {
     Objects.requireNonNull(sketchIn);
     gadget_ = updateLogic(maxK_, gadget_, sketchIn);
     gadget_.classicQdsSV = null;
   }
 
   @Override
-  public void update(final Memory mem) {
+  public void union(final Memory mem) {
     Objects.requireNonNull(mem);
     gadget_ = updateLogic(maxK_, gadget_, DoublesSketch.wrap(mem));
     gadget_.classicQdsSV = null;

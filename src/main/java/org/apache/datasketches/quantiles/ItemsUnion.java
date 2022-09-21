@@ -60,7 +60,7 @@ public final class ItemsUnion<T> {
    * @return an instance of ItemsUnion
    */
   public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final Comparator<? super T> comparator) {
-    ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
+    final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, comparator);
     return new ItemsUnion<T>(PreambleUtil.DEFAULT_K, comparator, emptySk);
   }
 
@@ -77,7 +77,7 @@ public final class ItemsUnion<T> {
    */
   public static <T> ItemsUnion<T> getInstance(final Class<T> clazz, final int maxK,
       final Comparator<? super T> comparator) {
-    ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, maxK, comparator);
+    final ItemsSketch<T> emptySk = ItemsSketch.getInstance(clazz, maxK, comparator);
     return new ItemsUnion<>(maxK, comparator, emptySk);
   }
 
@@ -120,7 +120,7 @@ public final class ItemsUnion<T> {
    *
    * @param sketchIn the sketch to be merged into this one.
    */
-  public void update(final ItemsSketch<T> sketchIn) { //TODO rename merge
+  public void union(final ItemsSketch<T> sketchIn) {
     gadget_ = updateLogic(maxK_, comparator_, gadget_, sketchIn);
   }
 
@@ -137,7 +137,7 @@ public final class ItemsUnion<T> {
    * @param srcMem Memory image of sketch to be merged
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void update(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) { //TODO rename merge
+  public void union(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) { //TODO rename merge
     final ItemsSketch<T> that = ItemsSketch.getInstance(this.clazz_, srcMem, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }

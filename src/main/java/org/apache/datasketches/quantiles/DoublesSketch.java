@@ -295,7 +295,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return min(1.0, rank + Util.getNormalizedRankError(k_, false));
   }
 
-
   @Override
   public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }

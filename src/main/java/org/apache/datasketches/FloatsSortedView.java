@@ -19,7 +19,7 @@
 
 package org.apache.datasketches;
 
-import static org.apache.datasketches.Util.*;
+import static org.apache.datasketches.Util.checkFloatsSplitPointsOrder;
 
 /**
  * The Sorted View for float values.

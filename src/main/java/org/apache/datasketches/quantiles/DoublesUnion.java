@@ -125,7 +125,7 @@ public abstract class DoublesUnion {
    *
    * @param sketchIn the sketch to be merged into this one.
    */
-  public abstract void update(DoublesSketch sketchIn);
+  public abstract void union(DoublesSketch sketchIn);
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
@@ -140,7 +140,7 @@ public abstract class DoublesUnion {
    *
    * @param mem Memory image of sketch to be merged
    */
-  public abstract void update(Memory mem);
+  public abstract void union(Memory mem);
 
   /**
    * Update this union with the given double (or float) data Item.

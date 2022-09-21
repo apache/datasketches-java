@@ -75,11 +75,11 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(resultsA[2], 8.0);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
+    union1.union(qs2);
     DoublesSketch result1 = union1.getResult();
 
     DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
+    union2.union(qs3);
     DoublesSketch result2 = union2.getResult();
 
     double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
@@ -241,8 +241,8 @@ public class DirectUpdateDoublesSketchTest {
     DoublesSketch dqs1 = buildAndLoadDQS(128, 256);
     DoublesSketch dqs2 = buildAndLoadDQS(128, 256, 256);
     DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
-    union.update(dqs1);
-    union.update(dqs2);
+    union.union(dqs1);
+    union.union(dqs2);
     DoublesSketch result = union.getResult();
     double median = result.getQuantile(0.5);
     println("Median: " + median);

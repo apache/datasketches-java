@@ -70,7 +70,7 @@ public class HeapUpdateDoublesSketchTest {
     }
     assertEquals(qs.getN() + qs2.getN(), n);
     DoublesUnion union = DoublesUnion.heapify(qs);
-    union.update(qs2);
+    union.union(qs2);
     DoublesSketch result = union.getResult();
 
     int numPhiValues = 99;
@@ -145,11 +145,11 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(resultsA[2], 8.0);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
+    union1.union(qs2);
     DoublesSketch result1 = union1.getResult();
 
     DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
+    union2.union(qs3);
     DoublesSketch result2 = union2.getResult();
 
     double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
@@ -338,7 +338,7 @@ public class HeapUpdateDoublesSketchTest {
     DoublesSketch qs1 = buildAndLoadQS(k,n,0);
     DoublesSketch qs2 = buildAndLoadQS(k,0,0); //empty
     DoublesUnion union = DoublesUnion.heapify(qs2);
-    union.update(qs1);
+    union.union(qs1);
     DoublesSketch result = union.getResult();
     double med1 = qs1.getQuantile(0.5);
     double med2 = result.getQuantile(0.5);
@@ -352,7 +352,7 @@ public class HeapUpdateDoublesSketchTest {
     DoublesSketch qs1 = buildAndLoadQS(k,  1000, 0);
     DoublesSketch qs2 = buildAndLoadQS(2*k,1000, 1000);
     DoublesUnion union = DoublesUnion.heapify(qs2);
-    union.update(qs1); //attempt merge into larger k
+    union.union(qs1); //attempt merge into larger k
     DoublesSketch result = union.getResult();
     assertEquals(result.getK(), k);
   }

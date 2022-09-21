@@ -63,9 +63,9 @@ import org.apache.datasketches.memory.WritableMemory;
  * of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
  * heap or Direct (off-heap).
  *
- * KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme
+ * <p>KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme
  * and nearly optimal accuracy per retained value.
- * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.
+ * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.</p>
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
  * approximate distribution of values from a very large stream in a single pass, requiring only
