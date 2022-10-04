@@ -40,7 +40,7 @@ public class ItemsSketchIteratorTest {
     sketch.update(0);
     QuantilesGenericSketchIterator<Integer> it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getItem(), Integer.valueOf(0));
+    Assert.assertEquals(it.getQuantile(), Integer.valueOf(0));
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }

@@ -102,7 +102,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   }
 
   @Override
-  public float[] getValues() {
+  public float[] getQuantiles() {
     return quantiles.clone();
   }
 

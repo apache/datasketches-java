@@ -149,10 +149,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   int getM() { return m_; }
 
   @Override
-  float getMaxFloatValue() { return maxFloatValue_; }
+  float getMaxFloatQuantile() { return maxFloatValue_; }
 
   @Override
-  float getMinFloatValue() { return minFloatValue_; }
+  float getMinFloatQuantile() { return minFloatValue_; }
 
   @Override
   int getMinK() { return minK_; }
@@ -176,10 +176,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }
 
   @Override
-  void setMaxFloatValue(final float value) { maxFloatValue_ = value; }
+  void setMaxFloatQuantile(final float value) { maxFloatValue_ = value; }
 
   @Override
-  void setMinFloatValue(final float value) { minFloatValue_ = value; }
+  void setMinFloatQuantile(final float value) { minFloatValue_ = value; }
 
   @Override
   void setMinK(final int minK) { minK_ = minK; }

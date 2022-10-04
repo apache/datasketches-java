@@ -230,8 +230,8 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
   /**
    * Checks the validity of the direct memory capacity assuming n, k.
-   * @param k the given value of k
-   * @param n the given value of n
+   * @param k the given k
+   * @param n the given n
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {

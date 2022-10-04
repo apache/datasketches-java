@@ -20,20 +20,20 @@
 package org.apache.datasketches;
 
 /**
- * The quantiles sketch iterator for double values.
+ * The quantiles sketch iterator for primitive type double.
  * @author Lee Rhodes
  */
 public interface QuantilesDoublesSketchIterator extends QuantilesSketchIterator {
 
   /**
-   * Gets the double value at the current index.
+   * Gets the double quantile at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the double value at the current index.
+   * @return the double quantile at the current index.
    */
-  double getValue();
+  double getQuantile();
 
 }
 

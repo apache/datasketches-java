@@ -43,8 +43,8 @@ final class KllDoublesHelper {
     final int[] otherLevelsArr = other.getLevelsArray();
     final double[] otherDoubleValuesArr;
     //capture my min & max, minK
-    final double myMin = sketch.getMinDoubleValue();
-    final double myMax = sketch.getMaxDoubleValue();
+    final double myMin = sketch.getMinDoubleQuantile();
+    final double myMax = sketch.getMaxDoubleQuantile();
     final int myMinK = sketch.getMinK();
 
     //update this sketch with level0 values from the other sketch
@@ -130,10 +130,10 @@ final class KllDoublesHelper {
     sketch.setDoubleValuesArray(myNewDoubleValuesArr);
 
     //Update min, max values
-    final double otherMin = other.getMinDoubleValue();
-    final double otherMax = other.getMaxDoubleValue();
-    sketch.setMinDoubleValue(resolveDoubleMinValue(myMin, otherMin));
-    sketch.setMaxDoubleValue(resolveDoubleMaxValue(myMax, otherMax));
+    final double otherMin = other.getMinDoubleQuantile();
+    final double otherMax = other.getMaxDoubleQuantile();
+    sketch.setMinDoubleQuantile(resolveDoubleMinValue(myMin, otherMin));
+    sketch.setMaxDoubleQuantile(resolveDoubleMaxValue(myMax, otherMax));
     assert KllHelper.sumTheSampleWeights(sketch.getNumLevels(), sketch.getLevelsArray()) == sketch.getN();
   }
 
@@ -214,10 +214,10 @@ final class KllDoublesHelper {
   //Called from KllDoublesSketch, this.mergeDoubleImpl(...)
   static void updateDouble(final KllSketch sketch, final double value) {
     if (Double.isNaN(value)) { return; }
-    final double prevMin = sketch.getMinDoubleValue();
-    final double prevMax = sketch.getMaxDoubleValue();
-    sketch.setMinDoubleValue(resolveDoubleMinValue(prevMin, value));
-    sketch.setMaxDoubleValue(resolveDoubleMaxValue(prevMax, value));
+    final double prevMin = sketch.getMinDoubleQuantile();
+    final double prevMax = sketch.getMaxDoubleQuantile();
+    sketch.setMinDoubleQuantile(resolveDoubleMinValue(prevMin, value));
+    sketch.setMaxDoubleQuantile(resolveDoubleMaxValue(prevMax, value));
     if (sketch.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(sketch); }
     final int myLevelsArrAtZero = sketch.getLevelsArray()[0]; //LevelsArr could be expanded
     sketch.incN();

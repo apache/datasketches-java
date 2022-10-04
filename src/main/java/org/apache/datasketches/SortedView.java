@@ -27,7 +27,7 @@ package org.apache.datasketches;
  * One can iterate over the contents of the sketch using the sketch's iterator, but the result is not sorted.
  * Once this sorted view has been created, it provides not only a sorted view of the data retained by the sketch
  * but also the basic queries, such as getRank(), getQuantile(), and getCDF() and getPMF().
- * In addition, the iterator obtained from this sorted view provides useful detailed information about each value.</p>
+ * In addition, the iterator obtained from this sorted view provides useful detailed information about each entry.</p>
  *
  * <p>The data from a Sorted view is an unbiased sample of the input stream that can be used for other kinds of
  * analysis not directly provided by the sketch.  For example, comparing two sketches using the Kolmogorov-Smirnov

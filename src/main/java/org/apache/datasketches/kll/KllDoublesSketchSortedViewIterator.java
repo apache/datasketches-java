@@ -60,7 +60,7 @@ public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIter
   }
 
   @Override
-  public double getValue() {
+  public double getQuantile() {
     return values[index];
   }
 

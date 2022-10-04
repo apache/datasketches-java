@@ -102,7 +102,7 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public double[] getValues() {
+  public double[] getQuantiles() {
     return quantiles.clone();
   }
 

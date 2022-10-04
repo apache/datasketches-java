@@ -78,7 +78,7 @@ final class DoublesByteArrayImpl {
   private static byte[] convertToByteArray(final DoublesSketch sketch, final int flags,
                                            final boolean ordered, final boolean compact) {
     final int preLongs = 2;
-    final int extra = 2; // extra space for min and max values
+    final int extra = 2; // extra space for min and max quantiles
     final int prePlusExtraBytes = (preLongs + extra) << 3;
     final int k = sketch.getK();
     final long n = sketch.getN();

@@ -41,10 +41,10 @@ public class DoublesUnionBuilder {
   /**
    * Sets the parameter <i>masK</i> that determines the maximum size of the sketch that
    * results from a union and its accuracy.
-   * @param maxK determines the accuracy and size of the union and is a maximum value.
+   * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
-   * different values of <i>k</i>.
+   * different <i>k</i>.
    * @return this builder
    */
   public DoublesUnionBuilder setMaxK(final int maxK) {
@@ -54,8 +54,8 @@ public class DoublesUnionBuilder {
   }
 
   /**
-   * Gets the current configured value of <i>maxK</i>
-   * @return the current configured value of <i>maxK</i>
+   * Gets the current configured <i>maxK</i>
+   * @return the current configured <i>maxK</i>
    */
   public int getMaxK() {
     return bMaxK;

@@ -46,6 +46,7 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
    *
    * @param dataItem an item from a stream of items.  NaNs are ignored.
    */
+  @Override
   public abstract void update(double dataItem);
 
   public static UpdateDoublesSketch heapify(final Memory srcMem) {
@@ -80,23 +81,23 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   //Puts
 
   /**
-   * Puts the min value
+   * Puts the minimum quantile
    *
-   * @param minValue the given min value
+   * @param minQuantile the given minimum quantile
    */
-  abstract void putMinValue(double minValue);
+  abstract void putMinQuantile(double minQuantile);
 
   /**
-   * Puts the max value
+   * Puts the max quantile
    *
-   * @param maxValue the given max value
+   * @param maxQuantile the given maximum quantile
    */
-  abstract void putMaxValue(double maxValue);
+  abstract void putMaxQuantile(double maxQuantile);
 
   /**
-   * Puts the value of <i>n</i>
+   * Puts the long <i>n</i>
    *
-   * @param n the given value of <i>n</i>
+   * @param n the given long <i>n</i>
    */
   abstract void putN(long n);
 

@@ -41,7 +41,7 @@ public class KllDirectFloatsSketchIteratorTest {
     sketch.update(0);
     QuantilesFloatsSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getValue(), 0f);
+    Assert.assertEquals(it.getQuantile(), 0f);
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }

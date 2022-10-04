@@ -194,15 +194,15 @@ public class DoublesSketchTest {
       final DoublesSortedView view = sketch.getSortedView();
       final DoublesSortedViewIterator it = view.iterator();
       Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getQuantile(), 1);
       Assert.assertEquals(it.getWeight(), 1);
       Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
       Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
+      Assert.assertEquals(it.getQuantile(), 2);
       Assert.assertEquals(it.getWeight(), 1);
       Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
       Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
+      Assert.assertEquals(it.getQuantile(), 3);
       Assert.assertEquals(it.getWeight(), 1);
       Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
       Assert.assertEquals(it.next(), false);

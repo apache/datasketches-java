@@ -55,7 +55,7 @@ public class KllMiscFloatsTest {
     for (int i = 1; i <= 20; i++) { kll.update(i); }
     FloatsSortedView fsv = kll.getSortedView();
     long[] cumWeights = fsv.getCumulativeWeights();
-    float[] values = fsv.getValues();
+    float[] values = fsv.getQuantiles();
     assertEquals(cumWeights.length, 20);
     assertEquals(values.length, 20);
     for (int i = 0; i < 20; i++) {
@@ -185,7 +185,7 @@ public class KllMiscFloatsTest {
     FloatsSortedViewIterator itr = sv.iterator();
     printf("%12s%12s\n", "Value", "CumWeight");
     while (itr.next()) {
-      float v = itr.getValue();
+      float v = itr.getQuantile();
       long wt = itr.getWeight();
       printf("%12.1f%12d\n", v, wt);
     }
@@ -223,8 +223,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -239,8 +239,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Float.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -256,8 +256,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -286,8 +286,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -306,8 +306,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Float.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -327,8 +327,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -357,8 +357,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -377,8 +377,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Float.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -398,8 +398,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -567,12 +567,12 @@ public class KllMiscFloatsTest {
   public void checkInheritanceArtifacts() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
     try { sk.getDoubleValuesArray(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMaxDoubleValue(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMinDoubleValue(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getMaxDoubleQuantile(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getMinDoubleQuantile(); fail();} catch (SketchesArgumentException e) {}
     try { sk.setDoubleValuesArray(null); fail();} catch (SketchesArgumentException e) {}
     try { sk.setDoubleValuesArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMaxDoubleValue(0); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMinDoubleValue(0); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setMaxDoubleQuantile(0); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setMinDoubleQuantile(0); fail();} catch (SketchesArgumentException e) {}
   }
 
   @Test

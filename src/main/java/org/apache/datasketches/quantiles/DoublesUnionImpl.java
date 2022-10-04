@@ -40,10 +40,10 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
 
   /**
    * Returns a empty Heap DoublesUnion object.
-   * @param maxK determines the accuracy and size of the union and is a maximum value.
+   * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
-   * different values of <i>k</i>.
+   * different <i>k</i>.
    * @return a new DoublesUnionImpl on the Java heap
    */
   static DoublesUnionImpl heapInstance(final int maxK) {
@@ -54,10 +54,10 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
    * Returns a empty DoublesUnion object that refers to the given direct, off-heap Memory,
    * which will be initialized to the empty state.
    *
-   * @param maxK determines the accuracy and size of the union and is a maximum value.
+   * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
    * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
-   * different values of <i>k</i>.
+   * different <i>k</i>.
    * @param dstMem the Memory to be used by the sketch
    * @return a DoublesUnion object
    */
@@ -134,11 +134,11 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
   }
 
   @Override
-  public void update(final double value) {
+  public void update(final double quantile) {
     if (gadget_ == null) {
       gadget_ = HeapUpdateDoublesSketch.newInstance(maxK_);
     }
-    gadget_.update(value);
+    gadget_.update(quantile);
     gadget_.classicQdsSV = null;
   }
 

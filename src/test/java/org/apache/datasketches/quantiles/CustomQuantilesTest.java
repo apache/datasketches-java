@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 
 public class CustomQuantilesTest {
 
-
   @Test
   /**
    * Currently, this test only exercises the classic DoublesSketch, but all the quantiles
@@ -54,7 +53,7 @@ public class CustomQuantilesTest {
     }
     long N = sk.getN();
     DoublesSketchSortedView sv = new DoublesSketchSortedView(sk);
-    double[] quantilesArr = sv.getValues();
+    double[] quantilesArr = sv.getQuantiles();
     long[] cumWtsArr = sv.getCumulativeWeights();
     int lenQ = quantilesArr.length;
     println("Sorted View:");

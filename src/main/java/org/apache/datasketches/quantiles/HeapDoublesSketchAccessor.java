@@ -46,13 +46,13 @@ class HeapDoublesSketchAccessor extends DoublesSketchAccessor {
   }
 
   @Override
-  double set(final int index, final double value) {
+  double set(final int index, final double quantile) {
     assert index >= 0 && index < numItems_;
     assert n_ == ds_.getN();
 
     final int idxOffset = offset_ + index;
     final double oldVal = ds_.getCombinedBuffer()[idxOffset];
-    ds_.getCombinedBuffer()[idxOffset] = value;
+    ds_.getCombinedBuffer()[idxOffset] = quantile;
 
     return oldVal;
   }

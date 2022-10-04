@@ -633,15 +633,15 @@ public class ItemsSketchTest {
       final GenericSortedView<Integer> view = sketch.getSortedView();
       final GenericSortedViewIterator<Integer> it = view.iterator();
       assertEquals(it.next(), true);
-      assertEquals(it.getItem(), 1);
+      assertEquals(it.getQuantile(), 1);
       assertEquals(it.getWeight(), 1);
       assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
       assertEquals(it.next(), true);
-      assertEquals(it.getItem(), 2);
+      assertEquals(it.getQuantile(), 2);
       assertEquals(it.getWeight(), 1);
       assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
       assertEquals(it.next(), true);
-      assertEquals(it.getItem(), 3);
+      assertEquals(it.getQuantile(), 3);
       assertEquals(it.getWeight(), 1);
       assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
       assertEquals(it.next(), false);
@@ -661,7 +661,7 @@ public class ItemsSketchTest {
       println("rank: " + ranks[i] + ", quantiles: " + qOut[i]);
     }
     long[] cumWts = sv.getCumulativeWeights();
-    Double[] quants = sv.getItems();
+    Double[] quants = sv.getQuantiles();
     for (int i = 0; i < qArr.length; i++) {
       assertEquals(quants[i], qArr[i]);
       assertEquals(cumWts[i], cwArr[i]);

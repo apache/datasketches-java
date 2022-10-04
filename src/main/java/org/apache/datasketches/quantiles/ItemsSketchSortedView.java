@@ -1,5 +1,5 @@
 /*
-       * Licensed to the Apache Software Foundation (ASF) under one
+ * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -48,9 +48,9 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   /**
    * Construct from elements for testing.
-   * @param items sorted array of itemss
+   * @param items sorted array of items
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of values presented to the sketch.
+   * @param totalN the total number of quantiles presented to the sketch.
    */
   ItemsSketchSortedView(final T[] items, final long[] cumWeights, final long totalN,
       final Comparator<T> comparator) {
@@ -109,14 +109,14 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
     final int index = GenericInequalitySearch.find(items,  0, len - 1, item, crit, comparator);
     if (index == -1) {
-      return 0; //LT: value <= minValue; LE: value < minValue
+      return 0; //LT: quantile <= minQuantile; LE: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
   }
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    ItemsUtil.validateValues(splitPoints, comparator);
+    ItemsUtil.validateItems(splitPoints, comparator);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
     for (int i = 0; i < len - 1; i++) {
@@ -128,7 +128,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    ItemsUtil.validateValues(splitPoints, comparator);
+    ItemsUtil.validateItems(splitPoints, comparator);
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
     for (int i = len; i-- > 1; ) {
@@ -143,7 +143,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
-  public T[] getItems() {
+  public T[] getQuantiles() {
     return items.clone();
   }
 
@@ -155,7 +155,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   /**
    * Populate the arrays and registers from an ItemsSketch
    * @param <T> the data type
-   * @param k K value of sketch
+   * @param k K parameter of sketch
    * @param n The current size of the stream
    * @param bitPattern the bit pattern for valid log levels
    * @param combinedBuffer the combined buffer reference

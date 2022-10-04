@@ -45,8 +45,8 @@ public class DoublesSketchBuilder {
    * Sets the parameter <i>k</i> that determines the accuracy and size of the sketch.
    * @param k determines the accuracy and size of the sketch.
    * It is recommended that <i>k</i> be a power of 2 to enable unioning of sketches with
-   * different values of <i>k</i>. It is only possible to union from
-   * larger values of <i>k</i> to smaller values.
+   * different <i>k</i>. It is only possible to union from
+   * larger <i>k</i> to smaller <i>k</i>.
    * @return this builder
    */
   public DoublesSketchBuilder setK(final int k) {
@@ -56,8 +56,8 @@ public class DoublesSketchBuilder {
   }
 
   /**
-   * Gets the current configured value of <i>k</i>
-   * @return the current configured value of <i>k</i>
+   * Gets the current configured <i>k</i>
+   * @return the current configured <i>k</i>
    */
   public int getK() {
     return bK;

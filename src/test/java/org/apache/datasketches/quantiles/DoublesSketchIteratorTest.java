@@ -38,7 +38,7 @@ public class DoublesSketchIteratorTest {
     sketch.update(0);
     QuantilesDoublesSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getValue(), 0.0);
+    Assert.assertEquals(it.getQuantile(), 0.0);
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }

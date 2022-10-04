@@ -172,13 +172,13 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   //Puts
 
   @Override
-  void putMinValue(final double minValue) {
-    throw new SketchesReadOnlyException("Call to putMinValue() on read-only buffer");
+  void putMinQuantile(final double minQuantile) {
+    throw new SketchesReadOnlyException("Call to putMinQuantile() on read-only buffer");
   }
 
   @Override
-  void putMaxValue(final double maxValue) {
-    throw new SketchesReadOnlyException("Call to putMaxValue() on read-only buffer");
+  void putMaxQuantile(final double maxQuantile) {
+    throw new SketchesReadOnlyException("Call to putMaxQuantile() on read-only buffer");
   }
 
   @Override
@@ -210,8 +210,8 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   /**
    * Checks the validity of the direct memory capacity assuming n, k.
-   * @param k the given value of k
-   * @param n the given value of n
+   * @param k the given k
+   * @param n the given n
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {

@@ -169,6 +169,14 @@ public class ReqFloatBufferTest {
     assertEquals(count, v >= len ? len : v < 1 ? 0 : iv);
   }
 
+  /**
+   * Creates a FloatBuffer with data
+   * @param cap size of the buffer
+   * @param delta incremental growth size
+   * @param sab space-at-bottom T/F
+   * @param len number of values to load, starting at 1.0f.
+   * @return FloatBuffer
+   */
   private static FloatBuffer createSortedFloatBuffer(final int cap, final int delta,
       final boolean sab, final int len) {
     final FloatBuffer buf = new FloatBuffer(cap, delta, sab);

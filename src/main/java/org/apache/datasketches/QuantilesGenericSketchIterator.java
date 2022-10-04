@@ -20,21 +20,21 @@
 package org.apache.datasketches;
 
 /**
- * The quantiles sketch iterator for generic items.
- * @param <T> The generic quantile item type
+ * The quantiles sketch iterator for generic types.
+ * @param <T> The generic quantile type
  * @author Lee Rhodes
  */
 public interface QuantilesGenericSketchIterator<T> extends QuantilesSketchIterator {
 
   /**
-   * Gets the item at the current index.
+   * Gets the generic quantile at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the item at the current index.
+   * @return the generic quantile at the current index.
    */
-  T getItem();
+  T getQuantile();
 
 }
 

@@ -25,7 +25,7 @@ package org.apache.datasketches.quantiles;
 abstract class DoublesBufferAccessor {
   abstract double get(final int index);
 
-  abstract double set(final int index, final double value);
+  abstract double set(final int index, final double quantile);
 
   abstract int numItems();
 

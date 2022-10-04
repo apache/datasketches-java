@@ -55,7 +55,7 @@ public class ReqSketchSortedViewTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getQuantile(), 1f);
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
@@ -64,7 +64,7 @@ public class ReqSketchSortedViewTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getQuantile(), 2f);
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
@@ -109,7 +109,7 @@ public class ReqSketchSortedViewTest {
     String fmt = "%8.1f%6d%16d%16.3f%16d%16.3f\n";
     printf(hfmt, (Object[]) header);
     while (itr.next()) {
-      float v = itr.getValue();
+      float v = itr.getQuantile();
       long wt = itr.getWeight();
       long cumWtNotInc   = itr.getCumulativeWeight(EXCLUSIVE);
       double nRankNotInc = itr.getNormalizedRank(EXCLUSIVE);

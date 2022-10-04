@@ -60,7 +60,7 @@ public class KllFloatsSketchSortedViewIterator implements FloatsSortedViewIterat
   }
 
   @Override
-  public float getValue() {
+  public float getQuantile() {
     return values[index];
   }
 

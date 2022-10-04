@@ -39,23 +39,23 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /*
  * Sampled stream data (floats or doubles) is stored as an array or as part of a Memory object.
- * This array is partitioned into sections called levels and the indices into the array of values
+ * This array is partitioned into sections called levels and the indices into the array of quantiles
  * are tracked by a small integer array called levels or levels array.
  * The data for level i lies in positions levelsArray[i] through levelsArray[i + 1] - 1 inclusive.
  * Hence, the levelsArray must contain (numLevels + 1) indices.
- * The valid portion of values array is completely packed and sorted, except for level 0,
- * which is filled from the top down. Any values below the index levelsArray[0] is garbage and will be
+ * The valid portion of the quantiles array is completely packed and sorted, except for level 0,
+ * which is filled from the top down. Any quantiles below the index levelsArray[0] is garbage and will be
  * overwritten by subsequent updates.
  *
  * Invariants:
  * 1) After a compaction, or an update, or a merge, every level is sorted except for level zero.
- * 2) After a compaction, (sum of capacities) - (sum of values) >= 1,
- *  so there is room for least 1 more value in level zero.
+ * 2) After a compaction, (sum of capacities) - (sum of quantiles) >= 1,
+ *  so there is room for least 1 more quantile in level zero.
  * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
- *  the sketch is exactly filled to capacity and must be compacted or the valuesArray and levelsArray
+ *  the sketch is exactly filled to capacity and must be compacted or the quantiles array and levels array
  *  must be expanded to include more levels.
- * 4) Sum of weights of all retained values == N.
- * 5) Current total value capacity = valuesArray.length = levelsArray[numLevels].
+ * 4) Sum of weights of all retained quantiles == N.
+ * 5) Current total quantile capacity = values array.length = levelsArray[numLevels].
  */
 
 /**
@@ -64,46 +64,46 @@ import org.apache.datasketches.memory.WritableMemory;
  * heap or Direct (off-heap).
  *
  * <p>KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme
- * and nearly optimal accuracy per retained value.
+ * and nearly optimal accuracy per retained quantile.
  * See <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.</p>
  *
  * <p>This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of values from a very large stream in a single pass, requiring only
- * that the values are comparable.
+ * approximate distribution of quantiles from a very large stream in a single pass, requiring only
+ * that the quantiles are comparable.
  * The analysis is obtained using <i>getQuantile()</i> or <i>getQuantiles()</i> functions or the
  * inverse functions getRank(), getPMF() (the Probability Mass Function), and getCDF()
  * (the Cumulative Distribution Function).</p>
  *
- * <p>Given an input stream of <i>N</i> numeric values, the <i>natural rank</i> of any specific
- * value is defined as its index <i>(1 to N)</i> in the hypothetical sorted stream of all
- * <i>N</i> input values.</p>
+ * <p>Given an input stream of <i>N</i> numeric quantiles, the <i>natural rank</i> of any specific
+ * quantile is defined as its index <i>(1 to N)</i> in the hypothetical sorted stream of all
+ * <i>N</i> input quantiles.</p>
  *
- * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific value is defined as its
+ * <p>The <i>normalized rank</i> (<i>rank</i>) of any specific quantile is defined as its
  * <i>natural rank</i> divided by <i>N</i>.
- * Thus, the <i>normalized rank</i> is a value in the interval (0.0, 1.0].
+ * Thus, the <i>normalized rank</i> is a number in the interval (0.0, 1.0].
  * In the Javadocs for all the quantile sketches <i>natural rank</i> is never used
- * so any reference to just <i>rank</i> should be interpreted to mean <i>normalized rank</i>.</p>
+ * so any reference to just <i>rank</i> should be interpreted as <i>normalized rank</i>.</p>
  *
  * <p>All quantile sketches are configured with a parameter <i>k</i>, which affects the size of
  * the sketch and its estimation error.</p>
  *
  * <p>In the research literature, the estimation error is commonly called <i>epsilon</i>
  * (or <i>eps</i>) and is a fraction between zero and one.
- * Larger values of <i>k</i> result in smaller values of epsilon.
+ * Larger sizes of <i>k</i> result in a smaller epsilon.
  * The epsilon error is always with respect to the rank domain. Estimating the error in the
  * quantile domain must be done by first computing the error in the rank domain and then
  * translating that to the quantile domain.</p>
  *
  * <p>The relationship between the normalized rank and the corresponding quantiles can be viewed
  * as a two dimensional monotonic plot with the normalized rank on one axis and the
- * corresponding values on the other axis. Let <i>q := quantile</i> and <i>r := rank</i> then both
+ * corresponding quantiles on the other axis. Let <i>q := quantile</i> and <i>r := rank</i> then both
  * <i>q = getQuantile(r)</i> and <i>r = getRank(q)</i> are monotonically increasing functions.
  * If the y-axis is used for the rank domain and the x-axis for the quantile domain,
  * then <i>y = getRank(x)</i> is also the single point Cumulative Distribution Function (CDF).</p>
  *
  * <p>The functions <i>getQuantile(...)</i> translate ranks into corresponding quantiles.
  * The functions <i>getRank(...), getCDF(...), and getPMF(...) (Probability Mass Function)</i>
- * perform the opposite operation and translate values into ranks.</p>
+ * perform the opposite operation and translate quantiles into ranks.</p>
  *
  * <p>The <i>getPMF(...)</i> function has about 13 to 47% worse rank error (depending
  * on <i>k</i>) than the other queries because the mass of each "bin" of the PMF has
@@ -115,21 +115,21 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * <p>A <i>getQuantile(rank)</i> query has the following guarantees:</p>
  * <ul>
- * <li>Let <i>v = getQuantile(r)</i> where <i>r</i> is the rank between zero and one.</li>
- * <li>The value <i>v</i> will be a value from the input stream.</li>
- * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
- * stream of all <i>N</i> values.</li>
+ * <li>Let <i>q = getQuantile(r)</i> where <i>r</i> is the rank between zero and one.</li>
+ * <li>The quantile <i>q</i> will be a quantile from the input stream.</li>
+ * <li>Let <i>trueRank</i> be the true rank of <i>q</i> derived from the hypothetical sorted
+ * stream of all <i>N</i> quantiles.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
  * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%. Note that the
- * error is on the rank, not the value.</li>
+ * error is on the rank, not the quantile.</li>
  * </ul>
  *
- * <p>A <i>getRank(value)</i> query has the following guarantees:</p>
+ * <p>A <i>getRank(quantile)</i> query has the following guarantees:</p>
  * <ul>
- * <li>Let <i>r = getRank(v)</i> where <i>v</i> is a value between the min and max values of
+ * <li>Let <i>r = getRank(q)</i> where <i>q</i> is a quantile between the min and max quantiles of
  * the input stream.</li>
- * <li>Let <i>trueRank</i> be the true rank of <i>v</i> derived from the hypothetical sorted
- * stream of all <i>N</i> values.</li>
+ * <li>Let <i>trueRank</i> be the true rank of <i>q</i> derived from the hypothetical sorted
+ * stream of all <i>N</i> quantiles.</li>
  * <li>Let <i>eps = getNormalizedRankError(false)</i>.</li>
  * <li>Then <i>r - eps &le; trueRank &le; r + eps</i> with a confidence of 99%.</li>
  * </ul>
@@ -138,47 +138,47 @@ import org.apache.datasketches.memory.WritableMemory;
  * <ul>
  * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
  * = getPMF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
- * <i>v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub></i> are monotonically increasing values
+ * <i>q<sub>1</sub>, q<sub>2</sub>, ..., q<sub>m</sub></i> are monotonically increasing quantiles
  * supplied by the user that are part of the monotonic sequence
- * <i>v<sub>0</sub> = min, v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>, v<sub>m+1</sub> = max</i>,
- * and where <i>min</i> and <i>max</i> are the actual minimum and maximum values of the input
+ * <i>q<sub>0</sub> = min, q<sub>1</sub>, q<sub>2</sub>, ..., q<sub>m</sub>, q<sub>m+1</sub> = max</i>,
+ * and where <i>min</i> and <i>max</i> are the actual minimum and maximum quantiles of the input
  * stream automatically included in the sequence by the <i>getPMF(...)</i> function.
  *
  * <li>Let <i>r<sub>i</sub> = mass<sub>i</sub></i> = estimated mass between
- * <i>v<sub>i-1</sub></i> and <i>v<sub>i</sub></i> where <i>v<sub>0</sub> = min</i>
- * and <i>v<sub>m+1</sub> = max</i>.</li>
+ * <i>v<sub>i-1</sub></i> and <i>q<sub>i</sub></i> where <i>q<sub>0</sub> = min</i>
+ * and <i>q<sub>m+1</sub> = max</i>.</li>
  *
- * <li>Let <i>trueMass</i> be the true mass between the values of <i>v<sub>i</sub>,
- * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>trueMass</i> be the true mass between the quantiles of <i>q<sub>i</sub>,
+ * q<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> quantiles.</li>
  * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
  * <li>Then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
- * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
- * <i>v<sub>1</sub></i>.</li>
- * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>v<sub>m</sub></i> and
- * <i>max = v<sub>m+1</sub></i>.</li>
+ * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = q<sub>0</sub></i> and
+ * <i>q<sub>1</sub></i>.</li>
+ * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>q<sub>m</sub></i> and
+ * <i>max = q<sub>m+1</sub></i>.</li>
  * </ul>
  *
  * <p>A <i>getCDF(...)</i> query has the following guarantees:</p>
  * <ul>
  * <li>Let <i>{r<sub>1</sub>, r<sub>2</sub>, ..., r<sub>m+1</sub>}
- * = getCDF(v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> where
- * <i>v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>)</i> are monotonically increasing values
+ * = getCDF(q<sub>1</sub>, q<sub>2</sub>, ..., q<sub>m</sub>)</i> where
+ * <i>q<sub>1</sub>, q<sub>2</sub>, ..., q<sub>m</sub>)</i> are monotonically increasing quantiles
  * supplied by the user that are part of the monotonic sequence
- * <i>{v<sub>0</sub> = min, v<sub>1</sub>, v<sub>2</sub>, ..., v<sub>m</sub>, v<sub>m+1</sub> = max}</i>,
- * and where <i>min</i> and <i>max</i> are the actual minimum and maximum values of the input
+ * <i>{q<sub>0</sub> = min, q<sub>1</sub>, q<sub>2</sub>, ..., q<sub>m</sub>, q<sub>m+1</sub> = max}</i>,
+ * and where <i>min</i> and <i>max</i> are the actual minimum and maximum quantiles of the input
  * stream automatically included in the sequence by the <i>getCDF(...)</i> function.
  *
  * <li>Let <i>r<sub>i</sub> = mass<sub>i</sub></i> = estimated mass between
- * <i>v<sub>0</sub> = min</i> and <i>v<sub>i</sub></i>.</li>
+ * <i>q<sub>0</sub> = min</i> and <i>q<sub>i</sub></i>.</li>
  *
- * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>v<sub>i</sub>,
- * v<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> values.</li>
+ * <li>Let <i>trueMass</i> be the true mass between the true ranks of <i>q<sub>i</sub>,
+ * q<sub>i+1</sub></i> derived from the hypothetical sorted stream of all <i>N</i> quantiles.</li>
  * <li>Let <i>eps = getNormalizedRankError(true)</i>.</li>
  * <li>then <i>mass - eps &le; trueMass &le; mass + eps</i> with a confidence of 99%.</li>
- * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
- * <i>v<sub>1</sub></i>.</li>
- * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>min = v<sub>0</sub></i> and
- * <i>max = v<sub>m+1</sub></i>.</li>
+ * <li><i>r<sub>1</sub></i> includes the mass of all points between <i>min = q<sub>0</sub></i> and
+ * <i>q<sub>1</sub></i>.</li>
+ * <li><i>r<sub>m+1</sub></i> includes the mass of all points between <i>min = q<sub>0</sub></i> and
+ * <i>max = q<sub>m+1</sub></i>.</li>
  * </ul>
  *
  * <p>Because errors are independent, we can make some estimates of the size of the confidence bounds
@@ -237,24 +237,24 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   /**
-   * The default value of K
+   * The default K
    */
   public static final int DEFAULT_K = 200;
 
   /**
-   * The maximum value of K
+   * The maximum K
    */
   public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   /**
-   * The default value of M. The parameter <i>m</i> is the minimum level size in number of values.
+   * The default M. The parameter <i>m</i> is the minimum level size in number of quantiles.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
-   * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
-   * Choosing smaller values of <i>m</i> less than 8 will make the sketch slower.
+   * 2, 4, 6 or 8, and the sketch works just fine.  The number 8 was chosen as a compromise between speed and size.
+   * Choosing a smaller <i>m</i> less than 8 will make the sketch slower.
    */
   static final int DEFAULT_M = 8;
-  static final int MAX_M = 8; //The maximum value of M
-  static final int MIN_M = 2; //The minimum value of M
+  static final int MAX_M = 8; //The maximum M
+  static final int MIN_M = 2; //The minimum M
   static final Random random = new Random();
   final SketchType sketchType;
   final boolean updatableMemFormat;
@@ -292,13 +292,13 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * @param pmf if true, this function returns the <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * returns <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
+   * @return <i>k</i> given epsilon.
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
     return KllHelper.getKFromEpsilon(epsilon, pmf);
@@ -322,7 +322,7 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the <i>getNormalizedRankError(boolean)</i>.
-   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
    * in thousands of trials.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
@@ -334,19 +334,19 @@ public abstract class KllSketch implements QuantilesAPI {
     return KllHelper.getNormalizedRankError(k, pmf);
   }
 
-  //numValues can be either numRetained, or current max capacity at given K and numLevels.
-  static int getCurrentSerializedSizeBytes(final int numLevels, final int numValues,
+  //numQuantiles can be either numRetained, or current max capacity at given K and numLevels.
+  static int getCurrentSerializedSizeBytes(final int numLevels, final int numQuantiles,
       final SketchType sketchType, final boolean updatableMemFormat) {
     final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     int levelsBytes = 0;
     if (updatableMemFormat) {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     } else {
-      if (numValues == 0) { return N_LONG_ADR; }
-      if (numValues == 1) { return DATA_START_ADR_SINGLE_VALUE + typeBytes; }
+      if (numQuantiles == 0) { return N_LONG_ADR; }
+      if (numQuantiles == 1) { return DATA_START_ADR_SINGLE_VALUE + typeBytes; }
       levelsBytes = numLevels * Integer.BYTES;
     }
-    return DATA_START_ADR + levelsBytes + (numValues + 2) * typeBytes; //+2 is for min & max
+    return DATA_START_ADR + levelsBytes + (numQuantiles + 2) * typeBytes; //+2 is for min & max
   }
 
   /**
@@ -366,8 +366,8 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   @Deprecated
   public final int getCurrentUpdatableSerializedSizeBytes() {
-    final int valuesCap = KllHelper.computeTotalValueCapacity(getK(), getM(), getNumLevels());
-    return getCurrentSerializedSizeBytes(getNumLevels(), valuesCap, sketchType, true);
+    final int quantilesCap = KllHelper.computeTotalValueCapacity(getK(), getM(), getNumLevels());
+    return getCurrentSerializedSizeBytes(getNumLevels(), quantilesCap, sketchType, true);
   }
 
   @Override
@@ -378,7 +378,7 @@ public abstract class KllSketch implements QuantilesAPI {
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
-   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
    * in thousands of trials.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -489,12 +489,12 @@ public abstract class KllSketch implements QuantilesAPI {
     setLevelZeroSorted(false);
     setLevelsArray(new int[] {k, k});
     if (sketchType == DOUBLES_SKETCH) {
-      setMinDoubleValue(Double.NaN);
-      setMaxDoubleValue(Double.NaN);
+      setMinDoubleQuantile(Double.NaN);
+      setMaxDoubleQuantile(Double.NaN);
       setDoubleValuesArray(new double[k]);
     } else {
-      setMinFloatValue(Float.NaN);
-      setMaxFloatValue(Float.NaN);
+      setMinFloatQuantile(Float.NaN);
+      setMaxFloatQuantile(Float.NaN);
       setFloatValuesArray(new float[k]);
     }
   }
@@ -541,13 +541,13 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   abstract int getM();
 
-  abstract double getMaxDoubleValue();
+  abstract double getMaxDoubleQuantile();
 
-  abstract float getMaxFloatValue();
+  abstract float getMaxFloatQuantile();
 
-  abstract double getMinDoubleValue();
+  abstract double getMinDoubleQuantile();
 
-  abstract float getMinFloatValue();
+  abstract float getMinFloatQuantile();
 
   /**
    * MinK is the value of K that results from a merge with a sketch configured with a value of K lower than
@@ -607,13 +607,13 @@ public abstract class KllSketch implements QuantilesAPI {
 
   abstract void setLevelZeroSorted(boolean sorted);
 
-  abstract void setMaxDoubleValue(double value);
+  abstract void setMaxDoubleQuantile(double value);
 
-  abstract void setMaxFloatValue(float value);
+  abstract void setMaxFloatQuantile(float value);
 
-  abstract void setMinDoubleValue(double value);
+  abstract void setMinDoubleQuantile(double value);
 
-  abstract void setMinFloatValue(float value);
+  abstract void setMinFloatQuantile(float value);
 
   abstract void setMinK(int minK);
 

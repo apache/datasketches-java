@@ -94,7 +94,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   /**
    * Same as {@link #getPMF(double[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
-   * @return a PDF array of m+1 densities as double values on the interval [0.0, 1.0).
+   * @return a PDF array of m+1 densities as doubles on the interval [0.0, 1.0).
    */
   default double[] getPMF(double[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -102,7 +102,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * as an array of double value densities on the interval [0.0, 1.0],
+   * as an array of densities as doubles on the interval [0.0, 1.0],
    * given a set of splitPoints.
    * The sum of the densities in the returned array is always 1.0.
    *
@@ -135,13 +135,13 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * is included into the interval below.
    * Otherwise, it is included into the interval above.
    *
-   * @return a PDF array of m+1 densities as double values on the interval [0.0, 1.0).
+   * @return a PDF array of m+1 densities as doubles on the interval [0.0, 1.0).
    */
   double[] getPMF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
    * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
-   * @param rank the given normalized rank, a value in the range [0.0, 1.0].
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
    */
   default double getQuantile(double rank) {
@@ -153,7 +153,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    *
    * <p>If the sketch is empty this returns NaN.</p>
    *
-   * @param rank the given normalized rank, a value in the range [0.0, 1.0].
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @param searchCrit is INCLUSIVE, the given rank includes all quantiles &le;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
@@ -168,7 +168,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
-   * as an additive or multiplicative percent of the true quantile value.</p>
+   * as an additive or multiplicative percent of the true quantile.</p>
    *
    * @param rank the given normalized rank
    * @return the lower bound of the quantile confidence interval in which the quantile of the
@@ -183,7 +183,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
-   * as an additive or multiplicative percent of the true quantile value.</p>
+   * as an additive or multiplicative percent of the true quantile.</p>
    *
    * @param rank the given normalized rank
    * @return the upper bound of the quantile confidence interval in which the true quantile of the
@@ -235,10 +235,10 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <ul><li>Let <i>Smallest</i> and <i>Largest</i> be the smallest and largest quantiles
    * retained by the sketch algorithm, respectively.
    * (This should not to be confused with {@link #getMinQuantile} and {@link #getMaxQuantile},
-   * which are the smallest and largest values of the stream.)</li>
-   * <li>A value of 1 will return the Smallest quantile.</li>
-   * <li>A value of 2 will return the Smallest and Largest quantiles.</li>
-   * <li>A value of 3 will return the Smallest, the Median, and the Largest quantiles.</li>
+   * which are the smallest and largest quantiles of the stream.)</li>
+   * <li>A 1 will return the Smallest quantile.</li>
+   * <li>A 2 will return the Smallest and Largest quantiles.</li>
+   * <li>A 3 will return the Smallest, the Median, and the Largest quantiles.</li>
    * <li>Etc.</li>
    * </ul>
    *

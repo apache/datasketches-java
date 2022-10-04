@@ -54,21 +54,21 @@ final class ItemsUtil {
   }
 
   /**
-   * Checks the sequential validity of the given array of values.
+   * Checks the sequential validity of the given array of generic items.
    * They must be unique, monotonically increasing and not null.
    * @param <T> the data type
-   * @param values given array of values
-   * @param comparator the comparator for data type T
+   * @param items given array of generic items
+   * @param comparator the comparator for generic item data type T
    */
-  static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
-    final int lenM1 = values.length - 1;
+  static final <T> void validateItems(final T[] items, final Comparator<? super T> comparator) {
+    final int lenM1 = items.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if ((values[j] != null) && (values[j + 1] != null)
-          && (comparator.compare(values[j], values[j + 1]) < 0)) {
+      if ((items[j] != null) && (items[j + 1] != null)
+          && (comparator.compare(items[j], items[j + 1]) < 0)) {
         continue;
       }
       throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not null.");
+          "Items must be unique, monotonically increasing and not null.");
     }
   }
 
@@ -165,8 +165,8 @@ final class ItemsUtil {
       sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
       sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-      sb.append("   Min Value                    : ").append(sketch.getMinQuantile()).append(Util.LS);
-      sb.append("   Max Value                    : ").append(sketch.getMaxQuantile()).append(Util.LS);
+      sb.append("   Min Quantile                 : ").append(sketch.getMinQuantile()).append(Util.LS);
+      sb.append("   Max Quantile                 : ").append(sketch.getMaxQuantile()).append(Util.LS);
       sb.append("### END SKETCH SUMMARY").append(Util.LS);
     }
     return sb.toString();

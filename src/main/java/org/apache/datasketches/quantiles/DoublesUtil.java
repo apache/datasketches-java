@@ -48,8 +48,8 @@ final class DoublesUtil {
     final HeapUpdateDoublesSketch qsCopy;
     qsCopy = HeapUpdateDoublesSketch.newInstance(sketch.getK());
     qsCopy.putN(sketch.getN());
-    qsCopy.putMinValue(sketch.getMinQuantile());
-    qsCopy.putMaxValue(sketch.getMaxQuantile());
+    qsCopy.putMinQuantile(sketch.getMinQuantile());
+    qsCopy.putMaxQuantile(sketch.getMaxQuantile());
     qsCopy.putBaseBufferCount(sketch.getBaseBufferCount());
     qsCopy.putBitPattern(sketch.getBitPattern());
 
@@ -151,9 +151,9 @@ final class DoublesUtil {
     sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
     sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
     sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-    sb.append("   Min Value                    : ")
+    sb.append("   Min Quantile                 : ")
       .append(String.format("%12.6e", sk.getMinQuantile())).append(LS);
-    sb.append("   Max Value                    : ")
+    sb.append("   Max Quantile                 : ")
       .append(String.format("%12.6e", sk.getMaxQuantile())).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();

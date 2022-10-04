@@ -51,7 +51,7 @@ public abstract class CompactDoublesSketch extends DoublesSketch {
   }
 
   @Override
-  public void update(final double value) {
+  public void update(final double quantile) {
     throw new SketchesStateException("Cannot update a compact sketch, which is read-only.");
   }
 

@@ -51,14 +51,14 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
-   * The smallest value ever seen in the stream.
+   * The smallest quantile ever seen in the stream.
    */
-  private double minValue_;
+  private double minQuantile_;
 
   /**
-   * The largest value ever seen in the stream.
+   * The largest quantile ever seen in the stream.
    */
-  private double maxValue_;
+  private double maxQuantile_;
 
   /**
    * The total count of items seen.
@@ -66,16 +66,16 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   private long n_;
 
   /**
-   * Number of samples currently in base buffer.
+   * Number of quantiles currently in base buffer.
    *
-   * <p>Count = N % (2*K)
+   * <p>Count = N % (2*K)</p>
    */
   private int baseBufferCount_;
 
   /**
    * Active levels expressed as a bit pattern.
    *
-   * <p>Pattern = N / (2 * K)
+   * <p>Pattern = N / (2 * K)</p>
    */
   private long bitPattern_;
 
@@ -85,7 +85,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    * A level is of size K and is either full and sorted, or not used. A "not used" buffer may have
    * garbage. Whether a level buffer used or not is indicated by the bitPattern_.
    * The base buffer has length 2*K but might not be full and isn't necessarily sorted.
-   * The base buffer precedes the level buffers. This buffer does not include the min, max values.
+   * The base buffer precedes the level buffers. This buffer does not include the min, max quantiles.
    *
    * <p>The levels arrays require quite a bit of explanation, which we defer until later.</p>
    */
@@ -110,8 +110,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     hqs.combinedBuffer_ = new double[baseBufAlloc];
     hqs.baseBufferCount_ = 0;
     hqs.bitPattern_ = 0;
-    hqs.minValue_ = Double.NaN;
-    hqs.maxValue_ = Double.NaN;
+    hqs.minQuantile_ = Double.NaN;
+    hqs.maxQuantile_ = Double.NaN;
     return hqs;
   }
 
@@ -164,12 +164,12 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
   @Override
   public double getMaxQuantile() {
-    return maxValue_;
+    return maxQuantile_;
   }
 
   @Override
   public double getMinQuantile() {
-    return minValue_;
+    return minQuantile_;
   }
 
   @Override
@@ -199,8 +199,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     combinedBuffer_ = new double[combinedBufferItemCapacity];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
-    minValue_ = Double.NaN;
-    maxValue_ = Double.NaN;
+    minQuantile_ = Double.NaN;
+    maxQuantile_ = Double.NaN;
   }
 
   @Override
@@ -208,11 +208,11 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     if (Double.isNaN(dataItem)) { return; }
 
     if (n_ == 0) {
-      putMaxValue(dataItem);
-      putMinValue(dataItem);
+      putMaxQuantile(dataItem);
+      putMinQuantile(dataItem);
     } else {
-      if (dataItem > getMaxQuantile()) { putMaxValue(dataItem); }
-      if (dataItem < getMinQuantile()) { putMinValue(dataItem); }
+      if (dataItem > getMaxQuantile()) { putMaxQuantile(dataItem); }
+      if (dataItem < getMinQuantile()) { putMinQuantile(dataItem); }
     }
 
     //don't increment n_ and baseBufferCount_ yet
@@ -277,15 +277,15 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   private void srcMemoryToCombinedBuffer(final Memory srcMem, final int serVer,
                                          final boolean srcIsCompact, final int combBufCap) {
     final int preLongs = 2;
-    final int extra = (serVer == 1) ? 3 : 2; // space for min and max values, buf alloc (SerVer 1)
+    final int extra = (serVer == 1) ? 3 : 2; // space for min and max quantiles, buf alloc (SerVer 1)
     final int preBytes = (preLongs + extra) << 3;
     final int bbCnt = baseBufferCount_;
     final int k = getK();
     final long n = getN();
     final double[] combinedBuffer = new double[combBufCap]; //always non-compact
     //Load min, max
-    putMinValue(srcMem.getDouble(MIN_DOUBLE));
-    putMaxValue(srcMem.getDouble(MAX_DOUBLE));
+    putMinQuantile(srcMem.getDouble(MIN_DOUBLE));
+    putMaxQuantile(srcMem.getDouble(MAX_DOUBLE));
 
     if (srcIsCompact) {
       //Load base buffer
@@ -345,13 +345,13 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   //Puts
 
   @Override
-  void putMinValue(final double minValue) {
-    minValue_ = minValue;
+  void putMinQuantile(final double minQuantile) {
+    minQuantile_ = minQuantile;
   }
 
   @Override
-  void putMaxValue(final double maxValue) {
-    maxValue_ = maxValue;
+  void putMaxQuantile(final double maxQuantile) {
+    maxQuantile_ = maxQuantile;
   }
 
   @Override
@@ -374,7 +374,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     bitPattern_ = bitPattern;
   }
 
-  @Override //the return value is not always used
+  @Override //the returned array is not always used
   double[] growCombinedBuffer(final int currentSpace, final int spaceNeeded) {
     combinedBuffer_ = Arrays.copyOf(combinedBuffer_, spaceNeeded);
     return combinedBuffer_;
@@ -412,7 +412,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       case 78  : break; //!compact,  empty, serVer = 3, preLongs = 2;
       case 77  : break; // compact, !empty, serVer = 3, preLongs = 2;
       case 76  : break; //!compact, !empty, serVer = 3, preLongs = 2;
-      default : //all other case values are invalid
+      default : //all other cases are invalid
         valid = false;
     }
 
@@ -425,8 +425,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
   /**
    * Checks the validity of the heap memory capacity assuming n, k and the compact state.
-   * @param k the given value of k
-   * @param n the given value of n
+   * @param k the given k
+   * @param n the given n
    * @param compact true if memory is in compact form
    * @param serVer serialization version of the source
    * @param memCapBytes the current memory capacity in bytes

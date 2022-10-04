@@ -50,7 +50,7 @@ public class ItemsSketchSortedViewIterator<T> implements GenericSortedViewIterat
 
   @SuppressWarnings("unchecked")
   @Override
-  public T getItem() {
+  public T getQuantile() {
     return (T) items[index];
   }
 

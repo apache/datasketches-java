@@ -137,13 +137,13 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  double getMaxDoubleValue() {
+  double getMaxDoubleQuantile() {
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + Double.BYTES;
     return wmem.getDouble(offset);
   }
 
   @Override
-  double getMinDoubleValue() {
+  double getMinDoubleQuantile() {
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES;
     return wmem.getDouble(offset);
   }
@@ -194,14 +194,14 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void setMaxDoubleValue(final double value) {
+  void setMaxDoubleQuantile(final double value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + Double.BYTES;
     wmem.putDouble(offset, value);
   }
 
   @Override
-  void setMinDoubleValue(final double value) {
+  void setMinDoubleQuantile(final double value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES;
     wmem.putDouble(offset, value);

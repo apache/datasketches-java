@@ -43,8 +43,8 @@ final class KllFloatsHelper {
     final int[] otherLevelsArr = other.getLevelsArray();
     final float[] otherFloatValuesArr;
     //capture my min & max, minK
-    final float myMin = sketch.getMinFloatValue();
-    final float myMax = sketch.getMaxFloatValue();
+    final float myMin = sketch.getMinFloatQuantile();
+    final float myMax = sketch.getMaxFloatQuantile();
     final int myMinK = sketch.getMinK();
 
     //update this sketch with level0 values from the other sketch
@@ -130,10 +130,10 @@ final class KllFloatsHelper {
     sketch.setFloatValuesArray(myNewFloatValuesArr);
 
     //Update min, max values
-    final float otherMin = other.getMinFloatValue();
-    final float otherMax = other.getMaxFloatValue();
-    sketch.setMinFloatValue(resolveFloatMinValue(myMin, otherMin));
-    sketch.setMaxFloatValue(resolveFloatMaxValue(myMax, otherMax));
+    final float otherMin = other.getMinFloatQuantile();
+    final float otherMax = other.getMaxFloatQuantile();
+    sketch.setMinFloatQuantile(resolveFloatMinValue(myMin, otherMin));
+    sketch.setMaxFloatQuantile(resolveFloatMaxValue(myMax, otherMax));
     assert KllHelper.sumTheSampleWeights(sketch.getNumLevels(), sketch.getLevelsArray()) == sketch.getN();
   }
 
@@ -214,10 +214,10 @@ final class KllFloatsHelper {
   //Called from KllFloatsSketch, this.mergeFloatImpl(...)
   static void updateFloat(final KllSketch sketch, final float value) {
     if (Float.isNaN(value)) { return; }
-    final float prevMin = sketch.getMinFloatValue();
-    final float prevMax = sketch.getMaxFloatValue();
-    sketch.setMinFloatValue(resolveFloatMinValue(prevMin, value));
-    sketch.setMaxFloatValue(resolveFloatMaxValue(prevMax, value));
+    final float prevMin = sketch.getMinFloatQuantile();
+    final float prevMax = sketch.getMaxFloatQuantile();
+    sketch.setMinFloatQuantile(resolveFloatMinValue(prevMin, value));
+    sketch.setMaxFloatQuantile(resolveFloatMaxValue(prevMax, value));
     if (sketch.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(sketch); }
     final int myLevelsArrAtZero = sketch.getLevelsArray()[0]; //LevelsArr could be expanded
     sketch.incN();

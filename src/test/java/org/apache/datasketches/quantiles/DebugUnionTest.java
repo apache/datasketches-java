@@ -83,10 +83,10 @@ public class DebugUnionTest {
     QuantilesDoublesSketchIterator dit = dSketch.iterator();
 
     while (hit.next() && dit.next()) {
-      double v = hit.getValue();
+      double v = hit.getQuantile();
       if (!set.contains(v)) { hErrors++; }
 
-      double w = dit.getValue();
+      double w = dit.getQuantile();
       if (!set.contains(w)) { dErrors++; }
       assertEquals(v, w, 0); //Items must be returned in same order and be equal
     }

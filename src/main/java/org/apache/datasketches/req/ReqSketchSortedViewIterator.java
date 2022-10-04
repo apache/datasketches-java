@@ -61,7 +61,7 @@ public class ReqSketchSortedViewIterator implements FloatsSortedViewIterator {
   }
 
   @Override
-  public float getValue() {
+  public float getQuantile() {
     return values[index];
   }
 

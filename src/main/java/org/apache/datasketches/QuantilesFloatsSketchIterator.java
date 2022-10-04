@@ -20,19 +20,20 @@
 package org.apache.datasketches;
 
 /**
- * The quantiles sketch iterator for float values.
+ * The quantiles sketch iterator for primitive type float.
  * @author Lee Rhodes
  */
 public interface QuantilesFloatsSketchIterator extends QuantilesSketchIterator {
 
   /**
-   * Gets the float value at the current index.
+   * Gets the float quantile at the current index.
    *
    * <p>Don't call this before calling next() for the first time
    * or after getting false from next().</p>
    *
-   * @return the float value at the current index.
+   * @return the float quantile at the current index.
    */
-  float getValue();
+  float getQuantile();
+
 }
 

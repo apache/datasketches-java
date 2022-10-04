@@ -21,7 +21,7 @@ package org.apache.datasketches;
 
 /**
  * This is the base interface for the SortedViewIterator hierarchy used with a SortedView obtained
- * from a quantile-type sketch. This provides an ordered iterator over the retained values of
+ * from a quantile-type sketch. This provides an ordered iterator over the retained quantiles of
  * the associated quantile-type sketch.
  *
  * <p>Prototype example of the recommended iteration loop:</p>
@@ -51,8 +51,8 @@ public interface SortedViewIterator {
   long getCumulativeWeight(QuantileSearchCriteria searchCrit);
 
   /**
-   * Gets the total count of all values (or items) presented to the sketch.
-   * @return the total count of all values (or items) presented to the sketch.
+   * Gets the total count of all quantiles presented to the sketch.
+   * @return the total count of all quantiles presented to the sketch.
    */
   long getN();
 

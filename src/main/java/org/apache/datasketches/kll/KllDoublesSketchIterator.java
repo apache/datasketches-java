@@ -42,7 +42,7 @@ public class KllDoublesSketchIterator implements QuantilesDoublesSketchIterator 
   }
 
   @Override
-  public double getValue() {
+  public double getQuantile() {
     return values[index];
   }
 

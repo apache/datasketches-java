@@ -335,7 +335,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * Same as {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
-   * @return a PDF array of m+1 densities as double values on the interval [0.0, 1.0).
+   * @return a PDF array of m+1 densities as doubles on the interval [0.0, 1.0).
    */
   public double[] getPMF(final T[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -343,7 +343,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * as an array of double value densities on the interval [0.0, 1.0],
+   * as an array of double densities on the interval [0.0, 1.0],
    * given a set of splitPoints.
    * The sum of the densities in the returned array is always 1.0.
    *
@@ -376,7 +376,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * is included into the interval below.
    * Otherwise, it is included into the interval above.
    *
-   * @return a PDF array of m+1 densities as double values on the interval [0.0, 1.0).
+   * @return a PDF array of m+1 densities as doubles on the interval [0.0, 1.0).
    */
   public double[] getPMF(
       final T[] splitPoints,
@@ -388,7 +388,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
-   * @param rank the given normalized rank, a value in the range [0.0, 1.0].
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
    */
   public T getQuantile(final double rank) {
@@ -400,7 +400,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @param rank the given normalized rank, a value in the range [0.0, 1.0].
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @param searchCrit is INCLUSIVE, the given rank includes all quantiles &le;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
@@ -470,10 +470,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * <ul><li>Let <i>Smallest</i> and <i>Largest</i> be the smallest and largest quantiles
    * retained by the sketch algorithm, respectively.
    * (This should not to be confused with {@link #getMinQuantile} and {@link #getMaxQuantile},
-   * which are the smallest and largest values of the stream.)</li>
-   * <li>A value of 1 will return the Smallest quantile.</li>
-   * <li>A value of 2 will return the Smallest and Largest quantiles.</li>
-   * <li>A value of 3 will return the Smallest, the Median, and the Largest quantiles.</li>
+   * which are the smallest and largest quantiles of the stream.)</li>
+   * <li>A 1 will return the Smallest quantile.</li>
+   * <li>A 2 will return the Smallest and Largest quantiles.</li>
+   * <li>A 3 will return the Smallest, the Median, and the Largest quantiles.</li>
    * <li>Etc.</li>
    * </ul>
    *
@@ -496,7 +496,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
-   * as an additive or multiplicative percent of the true quantile value.</p>
+   * as an additive or multiplicative percent of the true quantile.</p>
    *
    * <p>The approximate probability that the true quantile is within the confidence interval
    * specified by the upper and lower quantile bounds for this sketch is 0.99.</p>
@@ -518,7 +518,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
-   * as an additive or multiplicative percent of the true quantile value.</p>
+   * as an additive or multiplicative percent of the true quantile.</p>
    *
    * <p>The approximate probability that the true quantile is within the confidence interval
    * specified by the upper and lower quantile bounds for this sketch is 0.99.</p>
@@ -656,13 +656,13 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   }
 
   /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * @param pmf if true, this function returns <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * returns <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
+   * @return <i>k</i> given epsilon.
    */
   public static int getKFromEpsilon(
       final double epsilon,
@@ -768,10 +768,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   }
 
   /**
-   * From an existing sketch, this creates a new sketch that can have a smaller value of K.
+   * From an existing sketch, this creates a new sketch that can have a smaller K.
    * The original sketch is not modified.
    *
-   * @param newK the new value of K that must be smaller than current value of K.
+   * @param newK the new K that must be smaller than current K.
    * It is required that this.getK() = newK * 2^(nonnegative integer).
    * @return the new sketch.
    */

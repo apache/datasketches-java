@@ -42,7 +42,7 @@ public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
   }
 
   @Override
-  public double getValue() {
+  public double getQuantile() {
     return sketchAccessor.get(index);
   }
 

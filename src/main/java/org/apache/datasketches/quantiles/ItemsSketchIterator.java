@@ -47,7 +47,7 @@ public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T>
 
   @Override
   @SuppressWarnings("unchecked")
-  public T getItem() {
+  public T getQuantile() {
     return (T) combinedBuffer[offset + index];
   }
 

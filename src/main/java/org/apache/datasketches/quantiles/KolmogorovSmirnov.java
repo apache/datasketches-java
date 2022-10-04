@@ -39,8 +39,8 @@ final class KolmogorovSmirnov {
     final DoublesSketchSortedView p = new DoublesSketchSortedView(sketch1);
     final DoublesSketchSortedView q = new DoublesSketchSortedView(sketch2);
 
-    final double[] pSamplesArr = p.getValues();
-    final double[] qSamplesArr = q.getValues();
+    final double[] pSamplesArr = p.getQuantiles();
+    final double[] qSamplesArr = q.getQuantiles();
     final long[] pCumWtsArr = p.getCumulativeWeights();
     final long[] qCumWtsArr = q.getCumulativeWeights();
     final int pSamplesArrLen = pSamplesArr.length;

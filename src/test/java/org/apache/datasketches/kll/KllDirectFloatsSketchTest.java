@@ -489,8 +489,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0);
-    assertEquals(sk.getMinFloatValue(), 1.0);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0);
+    assertEquals(sk.getMinFloatQuantile(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -509,8 +509,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Double.NaN);
-    assertEquals(sk.getMinFloatValue(), Double.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Double.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -530,8 +530,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0);
-    assertEquals(sk.getMinFloatValue(), 1.0);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0);
+    assertEquals(sk.getMinFloatQuantile(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -636,8 +636,8 @@ public class KllDirectFloatsSketchTest {
     try { sk2.setFloatValuesArray(fltArr);      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setFloatValuesArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);        fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxFloatValue(fltV);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinFloatValue(fltV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxFloatQuantile(fltV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinFloatQuantile(fltV);          fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }

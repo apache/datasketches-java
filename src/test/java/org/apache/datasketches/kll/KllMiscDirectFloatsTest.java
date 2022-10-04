@@ -127,8 +127,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -143,8 +143,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Float.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -160,8 +160,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -190,8 +190,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0f);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0f);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -210,8 +210,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Float.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -231,8 +231,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -261,8 +261,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 21.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -281,8 +281,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatQuantile(), Float.NaN);
+    assertEquals(sk.getMinFloatQuantile(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -302,8 +302,8 @@ public class KllMiscDirectFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatQuantile(), 1.0F);
+    assertEquals(sk.getMinFloatQuantile(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }

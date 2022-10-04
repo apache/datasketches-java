@@ -21,7 +21,7 @@ package org.apache.datasketches;
 
 /**
  * This is the base interface for the SketchIterator hierarchy used for viewing the
- * non-ordered items or values retained by a sketch.
+ * non-ordered quantiles retained by a sketch.
  *
  * <p>Prototype example of the recommended iteration loop:</p>
  * <pre>{@code

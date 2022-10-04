@@ -211,7 +211,7 @@ public class ReqSketchTest {
     if (iDebug > 0) { println("Sketch iterator() Test"); }
     final QuantilesFloatsSketchIterator itr = sk.iterator();
     while (itr.next()) {
-      final float v = itr.getValue();
+      final float v = itr.getQuantile();
       final long wt = itr.getWeight();
       if (iDebug > 0) { println(" v=" + v + " wt=" +wt); }
     }

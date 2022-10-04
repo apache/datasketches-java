@@ -149,10 +149,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   int getM() { return m_; }
 
   @Override
-  double getMaxDoubleValue() { return maxDoubleValue_; }
+  double getMaxDoubleQuantile() { return maxDoubleValue_; }
 
   @Override
-  double getMinDoubleValue() { return minDoubleValue_; }
+  double getMinDoubleQuantile() { return minDoubleValue_; }
 
   @Override
   int getMinK() { return minK_; }
@@ -176,10 +176,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }
 
   @Override
-  void setMaxDoubleValue(final double value) { maxDoubleValue_ = value; }
+  void setMaxDoubleQuantile(final double value) { maxDoubleValue_ = value; }
 
   @Override
-  void setMinDoubleValue(final double value) { minDoubleValue_ = value; }
+  void setMinDoubleQuantile(final double value) { minDoubleValue_ = value; }
 
   @Override
   void setMinK(final int minK) { minK_ = minK; }

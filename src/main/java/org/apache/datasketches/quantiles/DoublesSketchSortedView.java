@@ -39,7 +39,7 @@ import org.apache.datasketches.SketchesStateException;
 public final class DoublesSketchSortedView implements DoublesSortedView {
 
   private final double[] quantiles;
-  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
+  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights at the end
   private final long totalN;
 
   /**
@@ -98,7 +98,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
     if (index == -1) {
-      return 0; //LT: given quantile <= minValue; LE: given quantile < minValue
+      return 0; //LT: given quantile <= minQuantile; LE: given quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
   }
@@ -109,7 +109,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
-  public double[] getValues() {
+  public double[] getQuantiles() {
     return quantiles.clone();
   }
 
@@ -120,7 +120,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   /**
    * Populate the arrays and registers from a DoublesSketch
-   * @param k K value of sketch
+   * @param k K parameter of the sketch
    * @param n The current size of the stream
    * @param bitPattern the bit pattern for valid log levels
    * @param sketchAccessor A DoublesSketchAccessor around the sketch
@@ -164,7 +164,6 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     // Don't need to sort the corresponding weights because they are all the same.
     final int numSamples = nxt;
     Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples);
-    //cumWtsArr[numSamples] = 0;
   }
 
   /**
@@ -173,13 +172,13 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    * that have already been sorted, so that only the top part of the
    * merge tree remains to be executed. Also, two arrays are sorted in tandem,
    * as discussed below.
-   * @param keyArr array of keys
-   * @param valArr array of values
-   * @param arrLen length of keyArr and valArr
+   * @param quantiles array of quantiles
+   * @param cumWts array of cum weights
+   * @param arrLen length of quantiles array and cumWts array
    * @param blkSize size of internal sorted blocks
    */
-  //used by DoublesAuxiliary and UtilTest
-  static void blockyTandemMergeSort(final double[] keyArr, final long[] valArr, final int arrLen,
+  //used by this and UtilTest
+  static void blockyTandemMergeSort(final double[] quantiles, final long[] cumWts, final int arrLen,
       final int blkSize) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) { return; }
@@ -187,12 +186,12 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     if ((numblks * blkSize) < arrLen) { numblks += 1; }
     assert ((numblks * blkSize) >= arrLen);
 
-    // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
-    final double[] keyTmp = Arrays.copyOf(keyArr, arrLen);
-    final long[] valTmp   = Arrays.copyOf(valArr, arrLen);
+    // duplication of the input arrays is preparation for the "ping-pong" copy reduction strategy.
+    final double[] qSrc = Arrays.copyOf(quantiles, arrLen);
+    final long[] cwSrc   = Arrays.copyOf(cumWts, arrLen);
 
-    blockyTandemMergeSortRecursion(keyTmp, valTmp,
-                                   keyArr, valArr,
+    blockyTandemMergeSortRecursion(qSrc, cwSrc,
+                                   quantiles, cumWts,
                                    0, numblks,
                                    blkSize, arrLen);
   }
@@ -203,17 +202,17 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    *  it manages the buffer swapping that eliminates most copying.
    *  It also maps the input's pre-sorted blocks into the subarrays
    *  that are processed by tandemMerge().
-   * @param keySrc key source
-   * @param valSrc value source
-   * @param keyDst key destination
-   * @param valDst value destination
+   * @param qSrc source array of quantiles
+   * @param cwSrc source weights array
+   * @param qDst destination quantiles array
+   * @param cwDst destination weights array
    * @param grpStart group start, refers to pre-sorted blocks such as block 0, block 1, etc.
    * @param grpLen group length, refers to pre-sorted blocks such as block 0, block 1, etc.
    * @param blkSize block size
    * @param arrLim array limit
    */
-  private static void blockyTandemMergeSortRecursion(final double[] keySrc, final long[] valSrc,
-      final double[] keyDst, final long[] valDst, final int grpStart, final int grpLen,
+  private static void blockyTandemMergeSortRecursion(final double[] qSrc, final long[] cwSrc,
+      final double[] qDst, final long[] cwDst, final int grpStart, final int grpLen,
       /* indices of blocks */ final int blkSize, final int arrLim) {
     // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
@@ -229,13 +228,13 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     final int grpStart2 = grpStart + grpLen1;
 
     //swap roles of src and dst
-    blockyTandemMergeSortRecursion(keyDst, valDst,
-                           keySrc, valSrc,
+    blockyTandemMergeSortRecursion(qDst, cwDst,
+                           qSrc, cwSrc,
                            grpStart1, grpLen1, blkSize, arrLim);
 
     //swap roles of src and dst
-    blockyTandemMergeSortRecursion(keyDst, valDst,
-                           keySrc, valSrc,
+    blockyTandemMergeSortRecursion(qDst, cwDst,
+                           qSrc, cwSrc,
                            grpStart2, grpLen2, blkSize, arrLim);
 
     // here we convert indices of blocks into positions in the underlying array.
@@ -247,30 +246,30 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     // special case for the final block which might be shorter than blkSize.
     if ((arrStart2 + arrLen2) > arrLim) { arrLen2 = arrLim - arrStart2; }
 
-    tandemMerge(keySrc, valSrc,
+    tandemMerge(qSrc, cwSrc,
                 arrStart1, arrLen1,
                 arrStart2, arrLen2,
-                keyDst, valDst,
+                qDst, cwDst,
                 arrStart1); // which will be arrStart3
   }
 
   /**
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.
-   * @param keySrc key source
-   * @param valSrc value source
+   * @param qSrc quantiles source
+   * @param cwSrc cum wts source
    * @param arrStart1 Array 1 start offset
    * @param arrLen1 Array 1 length
    * @param arrStart2 Array 2 start offset
    * @param arrLen2 Array 2 length
-   * @param keyDst key destination
-   * @param valDst value destination
+   * @param qDst quantiles destination
+   * @param cwDst cum wts destination
    * @param arrStart3 Array 3 start offset
    */
-  private static void tandemMerge(final double[] keySrc, final long[] valSrc,
+  private static void tandemMerge(final double[] qSrc, final long[] cwSrc,
                                   final int arrStart1, final int arrLen1,
                                   final int arrStart2, final int arrLen2,
-                                  final double[] keyDst, final long[] valDst,
+                                  final double[] qDst, final long[] cwDst,
                                   final int arrStart3) {
     final int arrStop1 = arrStart1 + arrLen1;
     final int arrStop2 = arrStart2 + arrLen2;
@@ -279,25 +278,25 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     int i2 = arrStart2;
     int i3 = arrStart3;
     while ((i1 < arrStop1) && (i2 < arrStop2)) {
-      if (keySrc[i2] < keySrc[i1]) {
-        keyDst[i3] = keySrc[i2];
-        valDst[i3] = valSrc[i2];
+      if (qSrc[i2] < qSrc[i1]) {
+        qDst[i3] = qSrc[i2];
+        cwDst[i3] = cwSrc[i2];
         i2++;
       } else {
-        keyDst[i3] = keySrc[i1];
-        valDst[i3] = valSrc[i1];
+        qDst[i3] = qSrc[i1];
+        cwDst[i3] = cwSrc[i1];
         i1++;
       }
       i3++;
     }
 
     if (i1 < arrStop1) {
-      arraycopy(keySrc, i1, keyDst, i3, arrStop1 - i1);
-      arraycopy(valSrc, i1, valDst, i3, arrStop1 - i1);
+      arraycopy(qSrc, i1, qDst, i3, arrStop1 - i1);
+      arraycopy(cwSrc, i1, cwDst, i3, arrStop1 - i1);
     } else {
       assert i2 < arrStop2;
-      arraycopy(keySrc, i2, keyDst, i3, arrStop2 - i2);
-      arraycopy(valSrc, i2, valDst, i3, arrStop2 - i2);
+      arraycopy(qSrc, i2, qDst, i3, arrStop2 - i2);
+      arraycopy(cwSrc, i2, cwDst, i3, arrStop2 - i2);
     }
   }
 
@@ -316,4 +315,4 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     return subtotal;
   }
 
-} // end of class Auxiliary
+}

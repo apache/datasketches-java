@@ -176,10 +176,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public double getMaxQuantile() { return getMaxDoubleValue(); }
+  public double getMaxQuantile() { return getMaxDoubleQuantile(); }
 
   @Override
-  public double getMinQuantile() { return getMinDoubleValue(); }
+  public double getMinQuantile() { return getMinDoubleQuantile(); }
 
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -308,10 +308,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   float[] getFloatValuesArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
   @Override //Artifact of inheritance
-  float getMaxFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getMaxFloatQuantile() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override //Artifact of inheritance
-  float getMinFloatValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getMinFloatQuantile() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override //Artifact of inheritance
   void setFloatValuesArray(final float[] floatValues) { kllSketchThrow(MUST_NOT_CALL); }
@@ -320,10 +320,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   void setFloatValuesArrayAt(final int index, final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
-  void setMaxFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
+  void setMaxFloatQuantile(final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
-  void setMinFloatValue(final float value) { kllSketchThrow(MUST_NOT_CALL); }
+  void setMinFloatQuantile(final float value) { kllSketchThrow(MUST_NOT_CALL); }
 
   private final void refreshSortedView() {
     kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;

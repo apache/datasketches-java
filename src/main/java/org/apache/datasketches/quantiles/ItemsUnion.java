@@ -68,10 +68,10 @@ public final class ItemsUnion<T> {
    * Create an instance of ItemsUnion
    * @param clazz The sketch class type
    * @param <T> The sketch data type
-   * @param maxK determines the accuracy and size of the union and is a maximum value.
+   * @param maxK determines the accuracy and size of the union and is a maximum.
    * The effective <i>k</i> can be smaller due to unions with smaller <i>k</i> sketches.
-   * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with
-   * different values of <i>k</i>.
+   * It is recommended that <i>maxK</i> be a power of 2 to enable unioning of sketches with a
+   * different <i>k</i>.
    * @param comparator to compare items
    * @return an instance of ItemsUnion
    */
@@ -111,8 +111,8 @@ public final class ItemsUnion<T> {
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given sketch into this union object.
    * The given sketch is not modified.
-   * It is required that the ratio of the two K values be a power of 2.
-   * This is easily satisfied if each of the K values is already a power of 2.
+   * It is required that the ratio of the two K's be a power of 2.
+   * This is easily satisfied if each of the K's are already a power of 2.
    * If the given sketch is null or empty it is ignored.
    *
    * <p>It is required that the results of the union operation, which can be obtained at any time,
@@ -128,8 +128,8 @@ public final class ItemsUnion<T> {
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given Memory image of a ItemsSketch into this union object.
    * The given Memory object is not modified and a link to it is not retained.
-   * It is required that the ratio of the two K values be a power of 2.
-   * This is easily satisfied if each of the K values is already a power of 2.
+   * It is required that the ratio of the two K's be a power of 2.
+   * This is easily satisfied if each of the K's are already a power of 2.
    * If the given sketch is null or empty it is ignored.
    *
    * <p>It is required that the results of the union operation, which can be obtained at any time,

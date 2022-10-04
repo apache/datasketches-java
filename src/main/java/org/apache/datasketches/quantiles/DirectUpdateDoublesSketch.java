@@ -149,12 +149,12 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final long curN = getN();
     final long newN = curN + 1;
 
-    if (curN == 0) { //set min and max values
-      putMaxValue(dataItem);
-      putMinValue(dataItem);
+    if (curN == 0) { //set min and max quantiles
+      putMaxQuantile(dataItem);
+      putMinQuantile(dataItem);
     } else {
-      if (dataItem > getMaxQuantile()) { putMaxValue(dataItem); }
-      if (dataItem < getMinQuantile()) { putMinValue(dataItem); }
+      if (dataItem > getMaxQuantile()) { putMaxQuantile(dataItem); }
+      if (dataItem < getMinQuantile()) { putMinQuantile(dataItem); }
     }
 
     mem_.putDouble(COMBINED_BUFFER + ((long) curBBCount * Double.BYTES), dataItem); //put the item
@@ -207,15 +207,15 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   //Puts
 
   @Override
-  void putMinValue(final double minValue) {
+  void putMinQuantile(final double minQuantile) {
     assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putDouble(MIN_DOUBLE, minValue);
+    mem_.putDouble(MIN_DOUBLE, minQuantile);
   }
 
   @Override
-  void putMaxValue(final double maxValue) {
+  void putMaxQuantile(final double maxQuantile) {
     assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putDouble(MAX_DOUBLE, maxValue);
+    mem_.putDouble(MAX_DOUBLE, maxQuantile);
   }
 
   @Override

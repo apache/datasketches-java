@@ -76,7 +76,7 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   }
 
   @Override
-  float getMaxFloatValue() {
+  float getMaxFloatQuantile() {
     if (isEmpty()) { return Float.NaN; }
     if (isSingleValue()) { return getFloatSingleValue(); }
     final int offset =
@@ -85,7 +85,7 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   }
 
   @Override
-  float getMinFloatValue() {
+  float getMinFloatQuantile() {
     if (isEmpty()) { return Float.NaN; }
     if (isSingleValue()) { return getFloatSingleValue(); }
     final int offset =

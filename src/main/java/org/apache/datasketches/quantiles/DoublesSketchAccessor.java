@@ -112,7 +112,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   // setters/modifying methods
 
   @Override
-  abstract double set(final int index, final double value);
+  abstract double set(final int index, final double quantile);
 
   @Override
   abstract void putArray(final double[] srcArray, final int srcIndex,

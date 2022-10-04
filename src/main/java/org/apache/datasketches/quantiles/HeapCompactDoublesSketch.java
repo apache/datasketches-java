@@ -50,14 +50,14 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
-   * The smallest value ever seen in the stream.
+   * The smallest quantile ever seen in the stream.
    */
-  private double minValue_;
+  private double minQuantile_;
 
   /**
-   * The largest value ever seen in the stream.
+   * The largest quantile ever seen in the stream.
    */
-  private double maxValue_;
+  private double maxQuantile_;
 
   /**
    * The total count of items seen.
@@ -65,7 +65,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   private long n_;
 
   /**
-   * Number of samples currently in base buffer.
+   * Number of quantiles currently in base buffer.
    *
    * <p>Count = N % (2*K)
    */
@@ -83,7 +83,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
    * A level is of size K and is either full and sorted.
    * Whether a level buffer is present is indicated by the bitPattern_.
    * The base buffer is sorted and has max length 2*K but uses only baseBufferCount_ items.
-   * The base buffer precedes the level buffers. This buffer does not include the min, max values.
+   * The base buffer precedes the level buffers. This buffer does not include the min, max quantiles.
    *
    * <p>The levels arrays require quite a bit of explanation, which we defer until later.</p>
    */
@@ -110,8 +110,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     hcds.bitPattern_ = computeBitPattern(k, n);
     assert hcds.bitPattern_ == sketch.getBitPattern();
 
-    hcds.minValue_ = sketch.getMinQuantile();
-    hcds.maxValue_ = sketch.getMaxQuantile();
+    hcds.minQuantile_ = sketch.getMinQuantile();
+    hcds.maxQuantile_ = sketch.getMaxQuantile();
     hcds.baseBufferCount_ = computeBaseBufferItems(k, n);
     assert hcds.baseBufferCount_ == sketch.getBaseBufferCount();
 
@@ -181,8 +181,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
       hds.combinedBuffer_ = null;
       hds.baseBufferCount_ = 0;
       hds.bitPattern_ = 0;
-      hds.minValue_ = Double.NaN;
-      hds.maxValue_ = Double.NaN;
+      hds.minQuantile_ = Double.NaN;
+      hds.maxQuantile_ = Double.NaN;
       return hds;
     }
 
@@ -196,8 +196,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     hds.n_ = n;
     hds.baseBufferCount_ = computeBaseBufferItems(k, n);
     hds.bitPattern_ = computeBitPattern(k, n);
-    hds.minValue_ = srcMem.getDouble(MIN_DOUBLE);
-    hds.maxValue_ = srcMem.getDouble(MAX_DOUBLE);
+    hds.minQuantile_ = srcMem.getDouble(MIN_DOUBLE);
+    hds.maxQuantile_ = srcMem.getDouble(MAX_DOUBLE);
 
     final int totItems = Util.computeRetainedItems(k, n);
     hds.srcMemoryToCombinedBuffer(srcMem, serVer, srcIsCompact, totItems);
@@ -222,12 +222,12 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
 
   @Override
   public double getMinQuantile() {
-    return minValue_;
+    return minQuantile_;
   }
 
   @Override
   public double getMaxQuantile() {
-    return maxValue_;
+    return maxQuantile_;
   }
 
   /**
@@ -241,7 +241,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   private void srcMemoryToCombinedBuffer(final Memory srcMem, final int serVer,
                                          final boolean srcIsCompact, final int combBufCap) {
     final int preLongs = 2;
-    final int extra = (serVer == 1) ? 3 : 2; // space for min and max values, buf alloc (SerVer 1)
+    final int extra = (serVer == 1) ? 3 : 2; // space for min and max quantiles, buf alloc (SerVer 1)
     final int preBytes = (preLongs + extra) << 3;
 
     final int k = getK();

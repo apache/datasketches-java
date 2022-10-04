@@ -42,7 +42,7 @@ public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
   }
 
   @Override
-  public float getValue() {
+  public float getQuantile() {
     return values[index];
   }
 

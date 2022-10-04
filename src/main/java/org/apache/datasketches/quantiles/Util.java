@@ -81,14 +81,14 @@ public final class Util {
   }
 
   /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error
+   * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error
    * for the Quantiles DoubleSketch and ItemsSketch.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * @param pmf if true, this function returns <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * returns <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
+   * @return <i>k</i> given epsilon.
    */
   // constants were derived as the best fit to 99 percentile empirically measured max error in
   // thousands of trials
@@ -106,7 +106,7 @@ public final class Util {
   }
 
   /**
-   * Checks the validity of the given value k
+   * Checks the validity of the given k
    * @param k must be greater than 1 and less than 65536 and a power of 2.
    */
   static void checkK(final int k) {
@@ -134,7 +134,7 @@ public final class Util {
    * @param preambleLongs the size of preamble in longs
    * @param flags the flags field
    * @param memCapBytes the memory capacity
-   * @return the value of the empty state
+   * @return the empty state
    */
   static boolean checkPreLongsFlagsCap(final int preambleLongs, final int flags, final long memCapBytes) {
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0; //Preamble flags empty state
@@ -238,7 +238,7 @@ public final class Util {
    * This is equivalent to max(floor(lg(n/k), 0).
    * Returns zero if n is less than 2 * k.
    * @param k the configured size of the sketch
-   * @param n the total values presented to the sketch.
+   * @param n the total number presented to the sketch.
    * @return the total number of levels needed.
    */
   static int computeNumLevelsNeeded(final int k, final long n) {
@@ -248,7 +248,7 @@ public final class Util {
   /**
    * Computes the number of base buffer items given k, n
    * @param k the configured size of the sketch
-   * @param n the total values presented to the sketch
+   * @param n the total number presented to the sketch
    * @return the number of base buffer items
    */
   static int computeBaseBufferItems(final int k, final long n) {
@@ -259,7 +259,7 @@ public final class Util {
    * Computes the levels bit pattern given k, n.
    * This is computed as <i>n / (2*k)</i>.
    * @param k the configured size of the sketch
-   * @param n the total values presented to the sketch.
+   * @param n the total number presented to the sketch.
    * @return the levels bit pattern
    */
   static long computeBitPattern(final int k, final long n) {

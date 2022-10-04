@@ -36,8 +36,8 @@ public interface QuantilesAPI {
   long getN();
 
   /**
-   * Gets the number of values (or items) retained by the sketch.
-   * @return the number of values (or items) retained by the sketch
+   * Gets the number of quantiles retained by the sketch.
+   * @return the number of quantiles retained by the sketch
    */
   int getNumRetained();
 

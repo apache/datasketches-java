@@ -137,13 +137,13 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  float getMaxFloatValue() {
+  float getMaxFloatQuantile() {
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + Float.BYTES;
     return wmem.getFloat(offset);
   }
 
   @Override
-  float getMinFloatValue() {
+  float getMinFloatQuantile() {
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES;
     return wmem.getFloat(offset);
   }
@@ -194,14 +194,14 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setMaxFloatValue(final float value) {
+  void setMaxFloatQuantile(final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES + Float.BYTES;
     wmem.putFloat(offset, value);
   }
 
   @Override
-  void setMinFloatValue(final float value) {
+  void setMinFloatQuantile(final float value) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES;
     wmem.putFloat(offset, value);

@@ -591,15 +591,15 @@ final class KllHelper {
 
       //LOAD MIN, MAX VALUES FOLLOWED BY VALUES ARRAY
       if (doubleType) {
-        wmem.putDouble(offset,sketch. getMinDoubleValue());
+        wmem.putDouble(offset,sketch.getMinDoubleQuantile());
         offset += Double.BYTES;
-        wmem.putDouble(offset, sketch.getMaxDoubleValue());
+        wmem.putDouble(offset, sketch.getMaxDoubleQuantile());
         offset += Double.BYTES;
         wmem.putDoubleArray(offset, sketch.getDoubleValuesArray(), myLevelsArr[0], sketch.getNumRetained());
       } else {
-        wmem.putFloat(offset, sketch.getMinFloatValue());
+        wmem.putFloat(offset, sketch.getMinFloatQuantile());
         offset += Float.BYTES;
-        wmem.putFloat(offset, sketch.getMaxFloatValue());
+        wmem.putFloat(offset, sketch.getMaxFloatQuantile());
         offset += Float.BYTES;
         wmem.putFloatArray(offset, sketch.getFloatValuesArray(), myLevelsArr[0], sketch.getNumRetained());
       }
@@ -667,11 +667,11 @@ final class KllHelper {
     }
 
     if (doubleType) {
-      sb.append("   Min Value              : ").append(sketch.getMinDoubleValue()).append(Util.LS);
-      sb.append("   Max Value              : ").append(sketch.getMaxDoubleValue()).append(Util.LS);
+      sb.append("   Min Value              : ").append(sketch.getMinDoubleQuantile()).append(Util.LS);
+      sb.append("   Max Value              : ").append(sketch.getMaxDoubleQuantile()).append(Util.LS);
     } else {
-      sb.append("   Min Value              : ").append(sketch.getMinFloatValue()).append(Util.LS);
-      sb.append("   Max Value              : ").append(sketch.getMaxFloatValue()).append(Util.LS);
+      sb.append("   Min Value              : ").append(sketch.getMinFloatQuantile()).append(Util.LS);
+      sb.append("   Max Value              : ").append(sketch.getMaxFloatQuantile()).append(Util.LS);
     }
     sb.append("### End sketch summary").append(Util.LS);
 
@@ -743,16 +743,16 @@ final class KllHelper {
 
     //LOAD MIN, MAX VALUES FOLLOWED BY VALUES ARRAY
     if (doubleType) {
-      wmem.putDouble(offset, sketch.getMinDoubleValue());
+      wmem.putDouble(offset, sketch.getMinDoubleQuantile());
       offset += Double.BYTES;
-      wmem.putDouble(offset, sketch.getMaxDoubleValue());
+      wmem.putDouble(offset, sketch.getMaxDoubleQuantile());
       offset += Double.BYTES;
       final double[] doubleValuesArr = sketch.getDoubleValuesArray();
       wmem.putDoubleArray(offset, doubleValuesArr, 0, doubleValuesArr.length);
     } else {
-      wmem.putFloat(offset, sketch.getMinFloatValue());
+      wmem.putFloat(offset, sketch.getMinFloatQuantile());
       offset += Float.BYTES;
-      wmem.putFloat(offset,sketch.getMaxFloatValue());
+      wmem.putFloat(offset,sketch.getMaxFloatQuantile());
       offset += Float.BYTES;
       final float[] floatValuesArr = sketch.getFloatValuesArray();
       wmem.putFloatArray(offset, floatValuesArr, 0, floatValuesArr.length);
@@ -794,14 +794,14 @@ final class KllHelper {
     double[] myNewDoubleValuesArr = null;
 
     if (sketch.sketchType == DOUBLES_SKETCH) {
-      minDouble = sketch.getMinDoubleValue();
-      maxDouble = sketch.getMaxDoubleValue();
+      minDouble = sketch.getMinDoubleQuantile();
+      maxDouble = sketch.getMaxDoubleQuantile();
       myCurDoubleValuesArr = sketch.getDoubleValuesArray();
       //assert we are following a certain growth scheme
       assert myCurDoubleValuesArr.length == myCurTotalValuesCapacity;
     } else { //FLOATS_SKETCH
-      minFloat = sketch.getMinFloatValue();
-      maxFloat = sketch.getMaxFloatValue();
+      minFloat = sketch.getMinFloatQuantile();
+      maxFloat = sketch.getMaxFloatQuantile();
       myCurFloatValuesArr = sketch.getFloatValuesArray();
       assert myCurFloatValuesArr.length == myCurTotalValuesCapacity;
     }
@@ -850,12 +850,12 @@ final class KllHelper {
     sketch.setNumLevels(myNewNumLevels);
     sketch.setLevelsArray(myNewLevelsArr);
     if (sketch.sketchType == DOUBLES_SKETCH) {
-      sketch.setMinDoubleValue(minDouble);
-      sketch.setMaxDoubleValue(maxDouble);
+      sketch.setMinDoubleQuantile(minDouble);
+      sketch.setMaxDoubleQuantile(maxDouble);
       sketch.setDoubleValuesArray(myNewDoubleValuesArr);
     } else { //Float sketch
-      sketch.setMinFloatValue(minFloat);
-      sketch.setMaxFloatValue(maxFloat);
+      sketch.setMinFloatQuantile(minFloat);
+      sketch.setMaxFloatQuantile(maxFloat);
       sketch.setFloatValuesArray(myNewFloatValuesArr);
     }
   }

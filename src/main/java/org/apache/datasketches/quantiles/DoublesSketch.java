@@ -37,38 +37,38 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of real values from a very large stream in a single pass.
+ * approximate distribution of quantiles from a very large stream in a single pass.
  * The analysis is obtained using a getQuantiles(*) function or its inverse functions the
  * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
  *
- * <p>Consider a large stream of one million values such as packet sizes coming into a network node.
- * The absolute rank of any specific size value is simply its index in the hypothetical sorted
- * array of values.
+ * <p>Consider a large stream of one million quantiles such as packet sizes coming into a network node.
+ * The absolute rank of any specific size is simply its index in the hypothetical sorted
+ * array of quantiles.
  * The normalized rank (or fractional rank) is the absolute rank divided by the stream size,
  * in this case one million.
- * The value corresponding to the normalized rank of 0.5 represents the 50th percentile or median
- * value of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from
- * getQuantile(0.95). Using the getQuantiles(0.0, 1.0) will return the min and max values seen by
+ * The quantile corresponding to the normalized rank of 0.5 represents the 50th percentile or median
+ * of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from
+ * getQuantile(0.95). Using the getQuantiles(0.0, 1.0) will return the min and max quantiles seen by
  * the sketch.</p>
  *
- * <p>From the min and max values, for example, 1 and 1000 bytes,
+ * <p>From the min and max quantiles, for example, 1 and 1000 bytes,
  * you can obtain the PMF from getPMF(100, 500, 900) that will result in an array of
- * 4 fractional values such as {.4, .3, .2, .1}, which means that
+ * 4 fractional ranks such as {.4, .3, .2, .1}, which means that
  * <ul>
- * <li>40% of the values were &lt; 100,</li>
- * <li>30% of the values were &ge; 100 and &lt; 500,</li>
- * <li>20% of the values were &ge; 500 and &lt; 900, and</li>
- * <li>10% of the values were &ge; 900.</li>
+ * <li>40% of the quantiles were &lt; 100,</li>
+ * <li>30% of the quantiles were &ge; 100 and &lt; 500,</li>
+ * <li>20% of the quantiles were &ge; 500 and &lt; 900, and</li>
+ * <li>10% of the quantiles were &ge; 900.</li>
  * </ul>
  * A frequency histogram can be obtained by simply multiplying these fractions by getN(),
- * which is the total count of values received.
+ * which is the total count of quantiles received.
  * The getCDF(*) works similarly, but produces the cumulative distribution instead.
  *
- * <p>The accuracy of this sketch is a function of the configured value <i>k</i>, which also affects
+ * <p>The accuracy of this sketch is a function of the configured <i>k</i>, which also affects
  * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to
  * the normalized rank.  A <i>k</i> of 128 produces a normalized, rank error of about 1.7%.
- * For example, the median value returned from getQuantile(0.5) will be between the actual values
- * from the hypothetically sorted array of input values at normalized ranks of 0.483 and 0.517, with
+ * For example, the median returned from getQuantile(0.5) will be between the actual quantiles
+ * from the hypothetically sorted array of input quantiles at normalized ranks of 0.483 and 0.517, with
  * a confidence of about 99%.</p>
  *
  * <pre>
@@ -116,22 +116,22 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * <p>There is more documentation available on
  * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
  *
- * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double
- * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries"
+ * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using doubles,
+ * described in section 3.2 of the journal version of the paper "Mergeable Summaries"
  * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi.
  * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  *
- * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
+ * <p>This algorithm is independent of the distribution of quantiles, which can be anywhere in the
  * range of the IEEE-754 64-bit doubles.
  *
- * <p>This algorithm intentionally inserts randomness into the sampling process for values that
+ * <p>This algorithm intentionally inserts randomness into the sampling process for quantiles that
  * ultimately get retained in the sketch. The results produced by this algorithm are not
  * deterministic. For example, if the same stream is inserted into two different instances of this
- * sketch, the answers obtained from the two sketches may not be be identical.</p>
+ * sketch, the answers obtained from the two sketches will be close, but may not be be identical.</p>
  *
  * <p>Similarly, there may be directional inconsistencies. For example, the resulting array of
- * values obtained from getQuantiles(fractions[]) input into the reverse directional query
- * getPMF(splitPoints[]) may not result in the original fractional values.</p>
+ * quantiles obtained from getQuantiles(ranks[]) input into the reverse directional query
+ * getPMF(splitPoints[]) may not result in the original ranks.</p>
  *
  * @author Kevin Lang
  * @author Lee Rhodes
@@ -144,7 +144,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   static final int MAX_K = 1 << 15;
 
   /**
-   * Setting the seed makes the results of the sketch deterministic if the input values are
+   * Setting the seed makes the results of the sketch deterministic if the input quantiles are
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
    */
@@ -317,7 +317,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
-   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
    * in thousands of trials.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -331,7 +331,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the <i>getNormalizedRankError(boolean)</i>.
-   * The epsilon value returned is a best fit to 99 percent confidence empirically measured max error
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
    * in thousands of trials.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
@@ -344,13 +344,13 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * @param pmf if true, this function returns <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * returns <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
+   * @return <i>k</i> given epsilon.
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
     return Util.getKFromEpsilon(epsilon, pmf);
@@ -440,11 +440,11 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   /**
-   * From an source sketch, create a new sketch that must have a smaller value of K.
+   * From an source sketch, create a new sketch that must have a smaller K.
    * The original sketch is not modified.
    *
    * @param srcSketch the sourcing sketch
-   * @param smallerK the new sketch's value of K that must be smaller than this value of K.
+   * @param smallerK the new sketch's K that must be smaller than this K.
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @param dstMem the destination Memory.  It must not overlap the Memory of this sketch.
    * If null, a heap sketch will be returned, otherwise it will be off-heap.
@@ -471,9 +471,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   /**
    * Returns the number of bytes a DoublesSketch would require to store in compact form
-   * given the values of <i>k</i> and <i>n</i>. The compact form is not updatable.
+   * given <i>k</i> and <i>n</i>. The compact form is not updatable.
    * @param k the size configuration parameter for the sketch
-   * @param n the number of items input into the sketch
+   * @param n the number of quantiles input into the sketch
    * @return the number of bytes required to store this sketch in compact form.
    */
   public static int getCompactSerialiedSizeBytes(final int k, final long n) {
@@ -499,9 +499,9 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   /**
    * Returns the number of bytes a sketch would require to store in updatable form.
    * This uses roughly 2X the storage of the compact form
-   * given the values of <i>k</i> and <i>n</i>.
+   * given <i>k</i> and <i>n</i>.
    * @param k the size configuration parameter for the sketch
-   * @param n the number of items input into the sketch
+   * @param n the number of quantiles input into the sketch
    * @return the number of bytes this sketch would require to store in updatable form.
    */
   public static int getUpdatableStorageBytes(final int k, final long n) {

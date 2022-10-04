@@ -76,7 +76,7 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   }
 
   @Override
-  double getMaxDoubleValue() {
+  double getMaxDoubleQuantile() {
     if (isEmpty()) { return Double.NaN; }
     if (isSingleValue()) { return getDoubleSingleValue(); }
     final int offset =
@@ -85,7 +85,7 @@ class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
   }
 
   @Override
-  double getMinDoubleValue() {
+  double getMinDoubleQuantile() {
     if (isEmpty()) { return Double.NaN; }
     if (isSingleValue()) { return getDoubleSingleValue(); }
     final int offset =

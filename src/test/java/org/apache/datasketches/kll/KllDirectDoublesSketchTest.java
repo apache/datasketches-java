@@ -490,8 +490,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getDoubleValuesArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxDoubleQuantile(), 21.0);
+    assertEquals(sk.getMinDoubleQuantile(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -510,8 +510,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
+    assertEquals(sk.getMaxDoubleQuantile(), Double.NaN);
+    assertEquals(sk.getMinDoubleQuantile(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -531,8 +531,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getDoubleValuesArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxDoubleQuantile(), 1.0);
+    assertEquals(sk.getMinDoubleQuantile(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -637,8 +637,8 @@ public class KllDirectDoublesSketchTest {
     try { sk2.setDoubleValuesArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setDoubleValuesArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxDoubleValue(dblV);           fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinDoubleValue(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxDoubleQuantile(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinDoubleQuantile(dblV);           fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                         fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);                 fail(); } catch (SketchesArgumentException e) { }
