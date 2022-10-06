@@ -163,12 +163,12 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   }
 
   @Override
-  public double getMaxQuantile() {
+  public double getMaxItem() {
     return maxQuantile_;
   }
 
   @Override
-  public double getMinQuantile() {
+  public double getMinItem() {
     return minQuantile_;
   }
 
@@ -211,8 +211,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
       putMaxQuantile(dataItem);
       putMinQuantile(dataItem);
     } else {
-      if (dataItem > getMaxQuantile()) { putMaxQuantile(dataItem); }
-      if (dataItem < getMinQuantile()) { putMinQuantile(dataItem); }
+      if (dataItem > getMaxItem()) { putMaxQuantile(dataItem); }
+      if (dataItem < getMinItem()) { putMinQuantile(dataItem); }
     }
 
     //don't increment n_ and baseBufferCount_ yet

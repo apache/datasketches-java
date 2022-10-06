@@ -21,6 +21,7 @@ package org.apache.datasketches;
 
 /**
  * The quantiles sketch iterator for generic types.
+ * @see QuantilesSketchIterator
  * @param <T> The generic quantile type
  * @author Lee Rhodes
  */

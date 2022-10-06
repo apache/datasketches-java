@@ -23,7 +23,7 @@ import static org.apache.datasketches.Util.checkDoublesSplitPointsOrder;
 
 /**
  * The Sorted View for quantiles of primitive type double.
- *
+ * @see SortedView
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */

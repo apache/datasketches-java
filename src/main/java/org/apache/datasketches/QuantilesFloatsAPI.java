@@ -21,6 +21,11 @@ package org.apache.datasketches;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 
+/**
+ * The API for item type <i>float</i>.
+ * @see QuantilesAPI
+ * @author Lee Rhodes
+ */
 public interface QuantilesFloatsAPI extends QuantilesAPI {
 
   /**

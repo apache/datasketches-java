@@ -89,12 +89,12 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  public double getMaxQuantile() {
+  public double getMaxItem() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
-  public double getMinQuantile() {
+  public double getMinItem() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
   }
 

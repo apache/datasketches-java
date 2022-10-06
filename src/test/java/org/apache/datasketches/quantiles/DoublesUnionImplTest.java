@@ -151,8 +151,8 @@ public class DoublesUnionImplTest {
     assertEquals(union.getMaxK(), k2);
     assertEquals(union.getEffectiveK(), k1);
     final DoublesSketch result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n1, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     assertEquals(result.getK(), k1);
   }
 
@@ -170,8 +170,8 @@ public class DoublesUnionImplTest {
     assertEquals(union.getMaxK(), k2);
     assertEquals(union.getEffectiveK(), k1);
     final DoublesSketch result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n1, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     assertEquals(result.getK(), k1);
   }
 
@@ -195,16 +195,16 @@ public class DoublesUnionImplTest {
     assertEquals(union.getEffectiveK(), k1);
     DoublesSketch result = union.getResult();
     assertEquals(result.getN(), 16);
-    assertEquals(result.getMaxQuantile(), n1, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     assertEquals(result.getK(), k1);
 
     final DoublesSketch sketchIn2 = buildAndLoadQS(k2, n2, 17);
     union.reset();
     union.union(sketchIn2);
     result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n2 + 17, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0 + 17, 0.0);
+    assertEquals(result.getMaxItem(), n2 + 17, 0.0);
+    assertEquals(result.getMinItem(), 1.0 + 17, 0.0);
     println("\nFinal" + union.getResult().toString(true, true));
   }
 
@@ -227,16 +227,16 @@ public class DoublesUnionImplTest {
     assertEquals(union.getEffectiveK(), k1);
     DoublesSketch result = union.getResult();
     assertEquals(result.getN(), 16);
-    assertEquals(result.getMaxQuantile(), n1, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     assertEquals(result.getK(), k1);
 
     final DoublesSketch sketchIn2 = buildAndLoadDQS(k2, n2, 17);
     union.reset();
     union.union(sketchIn2);
     result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n2 + 17, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0 + 17, 0.0);
+    assertEquals(result.getMaxItem(), n2 + 17, 0.0);
+    assertEquals(result.getMinItem(), 1.0 + 17, 0.0);
     println("\nFinal" + union.getResult().toString(true, true));
   }
 
@@ -260,16 +260,16 @@ public class DoublesUnionImplTest {
     assertEquals(union.getEffectiveK(), k1);
     DoublesSketch result = union.getResult();
     assertEquals(result.getN(), 16);
-    assertEquals(result.getMaxQuantile(), n1, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     assertEquals(result.getK(), k1);
 
     final CompactDoublesSketch sketchIn2 = buildAndLoadDQS(k2, n2, 17).compact();
     union.reset();
     union.union(sketchIn2);
     result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n2 + 17, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0 + 17, 0.0);
+    assertEquals(result.getMaxItem(), n2 + 17, 0.0);
+    assertEquals(result.getMinItem(), 1.0 + 17, 0.0);
     println("\nFinal" + union.getResult().toString(true, true));
   }
 
@@ -326,8 +326,8 @@ public class DoublesUnionImplTest {
     final DoublesUnion union = DoublesUnionImpl.heapifyInstance(sk1);
     union.union(sk2);
     final DoublesSketch result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n1 + n2, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1 + n2, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     println("\nFinal" + union.getResult().toString(true, true));
   }
 
@@ -342,8 +342,8 @@ public class DoublesUnionImplTest {
     final DoublesUnion union = DoublesUnionImpl.heapifyInstance(sk1);
     union.union(sk2);
     final DoublesSketch result = union.getResult();
-    assertEquals(result.getMaxQuantile(), n1 + n2, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), n1 + n2, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     println("\nFinal" + union.getResult().toString(true, true));
   }
 
@@ -355,8 +355,8 @@ public class DoublesUnionImplTest {
     println(skEst.toString(true, true));
     println(union.toString(true, true));
     final DoublesSketch result = union.getResult();
-    assertEquals(result.getMaxQuantile(), 64, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), 64, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
   }
 
   @Test
@@ -387,8 +387,8 @@ public class DoublesUnionImplTest {
     final DoublesSketch skEst = buildAndLoadDQS(32, 64); //other is bigger, est
     union.union(skEst);
     final DoublesSketch result = union.getResult();
-    assertEquals(result.getMaxQuantile(), 64, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), 64, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     //    println(skEst.toString(true, true));
     //    println(union.toString(true, true));
   }
@@ -405,7 +405,7 @@ public class DoublesUnionImplTest {
     union.union(srcMem);
     for (int i = 1000; i < 2000; i++) { union.update(i); }
     final DoublesSketch qs2 = union.getResult();
-    assertEquals(qs2.getMaxQuantile(), 1999, 0.0);
+    assertEquals(qs2.getMaxItem(), 1999, 0.0);
     final String s = union.toString();
     println(s); //enable printing to see
     union.reset(); //sets to null
@@ -423,7 +423,7 @@ public class DoublesUnionImplTest {
     union.union(srcMem);
     for (int i = 1000; i < 2000; i++) { union.update(i); }
     final DoublesSketch qs2 = union.getResult();
-    assertEquals(qs2.getMaxQuantile(), 1999, 0.0);
+    assertEquals(qs2.getMaxItem(), 1999, 0.0);
     final String s = union.toString();
     println(s); //enable printing to see
     union.reset(); //sets to null
@@ -437,7 +437,7 @@ public class DoublesUnionImplTest {
     DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
     final DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //valid, null
-    assertEquals(result.getMaxQuantile(), result.getMinQuantile(), 0.0);
+    assertEquals(result.getMaxItem(), result.getMinItem(), 0.0);
   }
 
   @Test
@@ -448,7 +448,7 @@ public class DoublesUnionImplTest {
     DoublesUnionImpl.updateLogic(256, qs2, qs1); //empty, null
     qs2.update(1); //no longer empty
     final DoublesSketch result = DoublesUnionImpl.updateLogic(256, qs2, qs1); //valid, null
-    assertEquals(result.getMaxQuantile(), result.getMinQuantile(), 0.0);
+    assertEquals(result.getMaxItem(), result.getMinItem(), 0.0);
   }
 
   @Test
@@ -456,8 +456,8 @@ public class DoublesUnionImplTest {
     final DirectUpdateDoublesSketch qs1 = (DirectUpdateDoublesSketch) buildAndLoadDQS(256, 1000);
     final DirectUpdateDoublesSketch qs2 = (DirectUpdateDoublesSketch) buildAndLoadDQS(128, 2000);
     final DoublesSketch result = DoublesUnionImpl.updateLogic(128, qs1, qs2);
-    assertEquals(result.getMaxQuantile(), 2000.0, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), 2000.0, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
     assertEquals(result.getN(), 3000);
     assertEquals(result.getK(), 128);
   }
@@ -474,8 +474,8 @@ public class DoublesUnionImplTest {
     union.union(qs2); //case 9
     final DoublesSketch result = union.getResult();
     //println(union.toString(true, true));
-    assertEquals(result.getMaxQuantile(), 1000.0, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), 1000.0, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
 
   }
 
@@ -491,8 +491,8 @@ public class DoublesUnionImplTest {
     union.union(qs2); //case 9
     final DoublesSketch result = union.getResult();
     //println(union.toString(true, true));
-    assertEquals(result.getMaxQuantile(), 1000.0, 0.0);
-    assertEquals(result.getMinQuantile(), 1.0, 0.0);
+    assertEquals(result.getMaxItem(), 1000.0, 0.0);
+    assertEquals(result.getMinItem(), 1.0, 0.0);
   }
 
   @Test

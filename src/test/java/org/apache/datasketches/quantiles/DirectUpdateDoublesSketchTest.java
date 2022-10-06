@@ -107,8 +107,8 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(s2.isEmpty());
 
     assertEquals(s2.getN(), 0);
-    assertTrue(Double.isNaN(s2.getMinQuantile()));
-    assertTrue(Double.isNaN(s2.getMaxQuantile()));
+    assertTrue(Double.isNaN(s2.getMinItem()));
+    assertTrue(Double.isNaN(s2.getMaxItem()));
 
     s2.reset(); // empty: so should be a no-op
     assertEquals(s2.getN(), 0);
@@ -137,8 +137,8 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(combBuf, data);
 
     // shouldn't have changed min/max values
-    assertTrue(Double.isNaN(qs.getMinQuantile()));
-    assertTrue(Double.isNaN(qs.getMaxQuantile()));
+    assertTrue(Double.isNaN(qs.getMinItem()));
+    assertTrue(Double.isNaN(qs.getMaxItem()));
   }
 
   @Test
@@ -224,15 +224,15 @@ public class DirectUpdateDoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
-    assertEquals(sketch2.getMinQuantile(), 0.0);
-    assertEquals(sketch2.getMaxQuantile(), 1999.0);
+    assertEquals(sketch2.getMinItem(), 0.0);
+    assertEquals(sketch2.getMaxItem(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
 
     byte[] arr2 = sketch2.toByteArray(false);
     assertEquals(arr2.length, sketch2.getSerializedSizeBytes());
     DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.writableWrap(arr2));
-    assertEquals(sketch3.getMinQuantile(), 0.0);
-    assertEquals(sketch3.getMaxQuantile(), 1999.0);
+    assertEquals(sketch3.getMinItem(), 0.0);
+    assertEquals(sketch3.getMaxItem(), 1999.0);
     assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);
   }
 

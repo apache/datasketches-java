@@ -21,6 +21,12 @@ package org.apache.datasketches;
 
 import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 
+/**
+ * The API for item type <i>generic</i>.
+ * @see QuantilesAPI
+ * @param <T> The given item type
+ * @author Lee Rhodes
+ */
 public interface QuantilesGenericAPI<T> extends QuantilesAPI {
 
   /**

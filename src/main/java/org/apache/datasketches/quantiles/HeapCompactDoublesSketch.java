@@ -110,8 +110,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     hcds.bitPattern_ = computeBitPattern(k, n);
     assert hcds.bitPattern_ == sketch.getBitPattern();
 
-    hcds.minQuantile_ = sketch.getMinQuantile();
-    hcds.maxQuantile_ = sketch.getMaxQuantile();
+    hcds.minQuantile_ = sketch.getMinItem();
+    hcds.maxQuantile_ = sketch.getMaxItem();
     hcds.baseBufferCount_ = computeBaseBufferItems(k, n);
     assert hcds.baseBufferCount_ == sketch.getBaseBufferCount();
 
@@ -221,12 +221,12 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
-  public double getMinQuantile() {
+  public double getMinItem() {
     return minQuantile_;
   }
 
   @Override
-  public double getMaxQuantile() {
+  public double getMaxItem() {
     return maxQuantile_;
   }
 

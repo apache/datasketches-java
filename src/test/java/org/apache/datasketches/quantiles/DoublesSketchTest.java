@@ -45,8 +45,8 @@ public class DoublesSketchTest {
     }
     DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.writableWrap(heapSketch.toByteArray(false)));
 
-    assertEquals(directSketch.getMinQuantile(), 0.0);
-    assertEquals(directSketch.getMaxQuantile(), 999.0);
+    assertEquals(directSketch.getMinItem(), 0.0);
+    assertEquals(directSketch.getMaxItem(), 999.0);
     assertEquals(directSketch.getQuantile(0.5), 500.0, 4.0);
   }
 
@@ -62,8 +62,8 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
-    assertEquals(heapSketch.getMinQuantile(), 0.0);
-    assertEquals(heapSketch.getMaxQuantile(), 1999.0);
+    assertEquals(heapSketch.getMinItem(), 0.0);
+    assertEquals(heapSketch.getMaxItem(), 1999.0);
     assertEquals(heapSketch.getQuantile(0.5), 1000.0, 10.0);
   }
 
@@ -88,8 +88,8 @@ public class DoublesSketchTest {
     assertEquals(sketch1.getK(), sketch2.getK());
     assertEquals(sketch1.getN(), sketch2.getN());
     assertEquals(sketch1.getBitPattern(), sketch2.getBitPattern());
-    assertEquals(sketch1.getMinQuantile(), sketch2.getMinQuantile());
-    assertEquals(sketch1.getMaxQuantile(), sketch2.getMaxQuantile());
+    assertEquals(sketch1.getMinItem(), sketch2.getMinItem());
+    assertEquals(sketch1.getMaxItem(), sketch2.getMaxItem());
 
     final DoublesSketchAccessor accessor1 = DoublesSketchAccessor.wrap(sketch1);
     final DoublesSketchAccessor accessor2 = DoublesSketchAccessor.wrap(sketch2);

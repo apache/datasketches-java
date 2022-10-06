@@ -21,7 +21,7 @@ package org.apache.datasketches;
 
 /**
  * The quantiles SortedView Iterator for generic types.
- *
+ * @see SortedViewIterator
  * @param <T> The generic quantile type
  * @author Alexander Saydakov
  * @author Lee Rhodes

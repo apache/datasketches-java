@@ -21,7 +21,7 @@ package org.apache.datasketches;
 
 /**
  * The quantiles SortedView Iterator for type float.
- *
+ * @see SortedViewIterator
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */

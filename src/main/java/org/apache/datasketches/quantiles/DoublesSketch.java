@@ -29,6 +29,7 @@ import java.util.Random;
 import org.apache.datasketches.DoublesSortedView;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesAPI;
 import org.apache.datasketches.QuantilesDoublesAPI;
 import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.SketchesArgumentException;
@@ -36,37 +37,13 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of quantiles from a very large stream in a single pass.
- * The analysis is obtained using a getQuantiles(*) function or its inverse functions the
- * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
+ * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using doubles,
+ * described in section 3.2 of the journal version of the paper "Mergeable Summaries"
+ * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi:
  *
- * <p>Consider a large stream of one million quantiles such as packet sizes coming into a network node.
- * The absolute rank of any specific size is simply its index in the hypothetical sorted
- * array of quantiles.
- * The normalized rank (or fractional rank) is the absolute rank divided by the stream size,
- * in this case one million.
- * The quantile corresponding to the normalized rank of 0.5 represents the 50th percentile or median
- * of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from
- * getQuantile(0.95). Using the getQuantiles(0.0, 1.0) will return the min and max quantiles seen by
- * the sketch.</p>
+ * <p>Reference: <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  *
- * <p>From the min and max quantiles, for example, 1 and 1000 bytes,
- * you can obtain the PMF from getPMF(100, 500, 900) that will result in an array of
- * 4 fractional ranks such as {.4, .3, .2, .1}, which means that
- * <ul>
- * <li>40% of the quantiles were &lt; 100,</li>
- * <li>30% of the quantiles were &ge; 100 and &lt; 500,</li>
- * <li>20% of the quantiles were &ge; 500 and &lt; 900, and</li>
- * <li>10% of the quantiles were &ge; 900.</li>
- * </ul>
- * A frequency histogram can be obtained by simply multiplying these fractions by getN(),
- * which is the total count of quantiles received.
- * The getCDF(*) works similarly, but produces the cumulative distribution instead.
- *
- * <p>The accuracy of this sketch is a function of the configured <i>k</i>, which also affects
- * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to
- * the normalized rank.  A <i>k</i> of 128 produces a normalized, rank error of about 1.7%.
+ * <p>A <i>k</i> of 128 produces a normalized, rank error of about 1.7%.
  * For example, the median returned from getQuantile(0.5) will be between the actual quantiles
  * from the hypothetically sorted array of input quantiles at normalized ranks of 0.483 and 0.517, with
  * a confidence of about 99%.</p>
@@ -110,32 +87,9 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  1,073,741,823 |   3,496   6,696  12,840  24,616  47,144  90,152 172,072
  2,147,483,647 |   3,624   6,952  13,352  25,640  49,192  94,248 180,264
  4,294,967,295 |   3,752   7,208  13,864  26,664  51,240  98,344 188,456
-
  * </pre>
-
- * <p>There is more documentation available on
- * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
  *
- * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using doubles,
- * described in section 3.2 of the journal version of the paper "Mergeable Summaries"
- * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi.
- * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
- *
- * <p>This algorithm is independent of the distribution of quantiles, which can be anywhere in the
- * range of the IEEE-754 64-bit doubles.
- *
- * <p>This algorithm intentionally inserts randomness into the sampling process for quantiles that
- * ultimately get retained in the sketch. The results produced by this algorithm are not
- * deterministic. For example, if the same stream is inserted into two different instances of this
- * sketch, the answers obtained from the two sketches will be close, but may not be be identical.</p>
- *
- * <p>Similarly, there may be directional inconsistencies. For example, the resulting array of
- * quantiles obtained from getQuantiles(ranks[]) input into the reverse directional query
- * getPMF(splitPoints[]) may not result in the original ranks.</p>
- *
- * @author Kevin Lang
- * @author Lee Rhodes
- * @author Jon Malkin
+ * @see QuantilesAPI
  */
 public abstract class DoublesSketch implements QuantilesDoublesAPI {
   static final int DOUBLES_SER_VER = 3;
@@ -204,10 +158,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   @Override
-  public abstract double getMaxQuantile();
+  public abstract double getMaxItem();
 
   @Override
-  public abstract double getMinQuantile();
+  public abstract double getMinItem();
 
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {

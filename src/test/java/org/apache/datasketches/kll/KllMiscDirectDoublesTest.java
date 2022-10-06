@@ -383,8 +383,8 @@ public class KllMiscDirectDoublesTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
-    assertEquals(sk1.getMaxQuantile(), 121.0);
-    assertEquals(sk1.getMinQuantile(), 1.0);
+    assertEquals(sk1.getMaxItem(), 121.0);
+    assertEquals(sk1.getMinItem(), 1.0);
   }
 
   @Test
@@ -406,8 +406,8 @@ public class KllMiscDirectDoublesTest {
     WritableMemory dstMem = WritableMemory.allocate(6000);
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
-    assertEquals(sk.getMinQuantile(), 1.0);
-    assertEquals(sk.getMaxQuantile(), 10000.0);
+    assertEquals(sk.getMinItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 10000.0);
     //println(sk.toString(true, true));
   }
 
@@ -418,8 +418,8 @@ public class KllMiscDirectDoublesTest {
     WritableMemory dstMem = WritableMemory.allocate(1000);
     KllDoublesSketch sk = KllDirectDoublesSketch.newDirectInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
-    assertEquals(sk.getMinQuantile(), 1.0);
-    assertEquals(sk.getMaxQuantile(), 200.0);
+    assertEquals(sk.getMinItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 200.0);
   }
 
   private static KllDoublesSketch getDDSketch(final int k, final int n) {

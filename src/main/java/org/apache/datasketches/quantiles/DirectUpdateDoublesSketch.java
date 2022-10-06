@@ -153,8 +153,8 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
       putMaxQuantile(dataItem);
       putMinQuantile(dataItem);
     } else {
-      if (dataItem > getMaxQuantile()) { putMaxQuantile(dataItem); }
-      if (dataItem < getMinQuantile()) { putMinQuantile(dataItem); }
+      if (dataItem > getMaxItem()) { putMaxQuantile(dataItem); }
+      if (dataItem < getMinItem()) { putMinQuantile(dataItem); }
     }
 
     mem_.putDouble(COMBINED_BUFFER + ((long) curBBCount * Double.BYTES), dataItem); //put the item

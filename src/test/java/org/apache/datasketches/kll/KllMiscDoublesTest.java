@@ -449,8 +449,8 @@ public class KllMiscDoublesTest {
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
     assertEquals(sk.getN(), sk2.getN());
-    assertEquals(sk.getMinQuantile(), sk2.getMinQuantile());
-    assertEquals(sk.getMaxQuantile(), sk2.getMaxQuantile());
+    assertEquals(sk.getMinItem(), sk2.getMinItem());
+    assertEquals(sk.getMaxItem(), sk2.getMaxItem());
     assertEquals(sk.getNumRetained(), sk2.getNumRetained());
 
     println("#### CASE: DOUBLE EMPTY UPDATABLE");
@@ -503,8 +503,8 @@ public class KllMiscDoublesTest {
       sk2.update(i + 100);
     }
     sk1.merge(sk2);
-    assertEquals(sk1.getMinQuantile(), 1.0);
-    assertEquals(sk1.getMaxQuantile(), 143.0);
+    assertEquals(sk1.getMinItem(), 1.0);
+    assertEquals(sk1.getMaxItem(), 143.0);
   }
 
   @Test

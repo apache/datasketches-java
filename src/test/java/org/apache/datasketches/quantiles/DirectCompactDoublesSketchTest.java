@@ -102,8 +102,8 @@ public class DirectCompactDoublesSketchTest {
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
-    assertTrue(Double.isNaN(s2.getMinQuantile()));
-    assertTrue(Double.isNaN(s2.getMaxQuantile()));
+    assertTrue(Double.isNaN(s2.getMinItem()));
+    assertTrue(Double.isNaN(s2.getMaxItem()));
   }
 
   @Test

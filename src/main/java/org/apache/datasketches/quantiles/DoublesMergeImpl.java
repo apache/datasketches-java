@@ -116,14 +116,14 @@ final class DoublesMergeImpl {
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    double srcMax = src.getMaxQuantile();
+    double srcMax = src.getMaxItem();
     srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
-    double srcMin = src.getMinQuantile();
+    double srcMin = src.getMinItem();
     srcMin = Double.isNaN(srcMin) ? Double.POSITIVE_INFINITY : srcMin;
 
-    double tgtMax = tgt.getMaxQuantile();
+    double tgtMax = tgt.getMaxItem();
     tgtMax = Double.isNaN(tgtMax) ? Double.NEGATIVE_INFINITY : tgtMax;
-    double tgtMin = tgt.getMinQuantile();
+    double tgtMin = tgt.getMinItem();
     tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
     tgt.putMaxQuantile(Math.max(srcMax, tgtMax));
@@ -206,14 +206,14 @@ final class DoublesMergeImpl {
 
     assert (tgt.getN() / (2L * targetK)) == newTgtBitPattern; // internal consistency check
 
-    double srcMax = src.getMaxQuantile();
+    double srcMax = src.getMaxItem();
     srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
-    double srcMin = src.getMinQuantile();
+    double srcMin = src.getMinItem();
     srcMin = Double.isNaN(srcMin) ? Double.POSITIVE_INFINITY : srcMin;
 
-    double tgtMax = tgt.getMaxQuantile();
+    double tgtMax = tgt.getMaxItem();
     tgtMax = Double.isNaN(tgtMax) ? Double.NEGATIVE_INFINITY : tgtMax;
-    double tgtMin = tgt.getMinQuantile();
+    double tgtMin = tgt.getMinItem();
     tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
     if (srcMax > tgtMax) { tgt.putMaxQuantile(srcMax); }

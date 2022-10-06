@@ -40,16 +40,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * This variation of the KllSketch implements primitive floats.
  *
- * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
  * @see org.apache.datasketches.kll.KllSketch
- * @see <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
- * KLL package summary</a>
- * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
- * Sketching Quantiles and Ranks, Tutorial</a>
- * @see org.apache.datasketches.QuantileSearchCriteria
- * @author Lee Rhodes
- * @author Kevin Lang
- * @author Alexander Saydakov
  */
 public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
   private KllFloatsSketchSortedView kllFloatsSV = null;

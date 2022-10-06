@@ -26,14 +26,17 @@ import java.util.List;
 
 import org.apache.datasketches.FloatsSortedView;
 import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.QuantilesAPI;
 import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
  * This Relative Error Quantiles Sketch is the Java implementation based on the paper
- * "Relative Error Streaming Quantiles", https://arxiv.org/abs/2004.01668, and loosely derived from
- * a Python prototype written by Pavel Vesely.
+ * "Relative Error Streaming Quantiles" by Graham Cormode, Zohar Karnin, Edo Liberty,
+ * Justin Thaler, Pavel Veselý, and loosely derived from a Python prototype written by Pavel Vesely.
+ *
+ * <p>Reference: https://arxiv.org/abs/2004.01668</p>
  *
  * <p>This implementation differs from the algorithm described in the paper in the following:</p>
  *
@@ -58,15 +61,18 @@ import org.apache.datasketches.memory.Memory;
  *
  * <p>This implementation provides a number of capabilities not discussed in the paper or provided
  * in the Python prototype.</p>
+ *
  * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
  * provides the user with the ability to choose either high rank accuracy or low rank accuracy at
  * the time of sketch construction.</li>
- * <li>The Python prototype only implemented a comparison criterion of "&le;". This implementation
- * allows the user to switch back and forth between the "&le;" criterion and the "&lt;" criterion.</li>
+ * <li>The Python prototype only implemented a comparison criterion of "INCLUSIVE". This implementation
+ * allows the user to switch back and forth between the "INCLUSIVE" criterion and the "EXCLUSIVE" criterion.</li>
  * <li>This implementation provides extensive debug visibility into the operation of the sketch with
  * two levels of detail output. This is not only useful for debugging, but is a powerful tool to
  * help users understand how the sketch works.</li>
  * </ul>
+ *
+ * @see QuantilesAPI
  *
  * @author Edo Liberty
  * @author Pavel Vesely

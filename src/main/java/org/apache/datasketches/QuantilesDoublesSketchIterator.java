@@ -21,6 +21,7 @@ package org.apache.datasketches;
 
 /**
  * The quantiles sketch iterator for primitive type double.
+ * @see QuantilesSketchIterator
  * @author Lee Rhodes
  */
 public interface QuantilesDoublesSketchIterator extends QuantilesSketchIterator {

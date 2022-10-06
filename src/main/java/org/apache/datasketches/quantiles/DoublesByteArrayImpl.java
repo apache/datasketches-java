@@ -98,8 +98,8 @@ final class DoublesByteArrayImpl {
     if (sketch.isEmpty()) { return outByteArr; }
 
     insertN(memOut, n);
-    insertMinDouble(memOut, sketch.getMinQuantile());
-    insertMaxDouble(memOut, sketch.getMaxQuantile());
+    insertMinDouble(memOut, sketch.getMinItem());
+    insertMaxDouble(memOut, sketch.getMaxItem());
 
     long memOffsetBytes = prePlusExtraBytes;
 

@@ -41,8 +41,8 @@ public class ReadOnlyMemoryTest {
     // .asReadOnlyBuffer().order(ByteOrder.nativeOrder()));
     final Memory mem = Memory.wrap(bytes);
     final UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.wrap(mem);
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 2.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 2.0);
 
     try {
       s2.update(3);
@@ -61,8 +61,8 @@ public class ReadOnlyMemoryTest {
     // .asReadOnlyBuffer().order(ByteOrder.nativeOrder())););
     final Memory mem = Memory.wrap(s1.compact().toByteArray());
     final DoublesSketch s2 = DoublesSketch.wrap(mem); // compact, so this is ok
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 2.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 2.0);
     Assert.assertEquals(s2.getN(), 2);
   }
 
@@ -73,8 +73,8 @@ public class ReadOnlyMemoryTest {
     s1.update(2);
     Memory mem = Memory.wrap(s1.toByteArray(false));
     DoublesSketch s2 = DoublesSketch.heapify(mem);
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 2.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 2.0);
   }
 
   @Test
@@ -85,8 +85,8 @@ public class ReadOnlyMemoryTest {
     Memory mem = Memory.wrap(s1.toByteArray(false));
     UpdateDoublesSketch s2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
     s2.update(3);
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 3.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
@@ -96,8 +96,8 @@ public class ReadOnlyMemoryTest {
     s1.update(2);
     Memory mem = Memory.wrap(s1.toByteArray(true));
     DoublesSketch s2 = DoublesSketch.heapify(mem);
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 2.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 2.0);
   }
 
   @Test
@@ -199,8 +199,8 @@ public class ReadOnlyMemoryTest {
     DoublesUnion u = DoublesUnion.heapify(mem);
     u.update(3);
     DoublesSketch s2 = u.getResult();
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 3.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
@@ -212,8 +212,8 @@ public class ReadOnlyMemoryTest {
     DoublesUnion u = DoublesUnion.heapify(mem);
     u.update(3);
     DoublesSketch s2 = u.getResult();
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 3.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 3.0);
   }
 
   @Test
@@ -224,8 +224,8 @@ public class ReadOnlyMemoryTest {
     Memory mem = Memory.wrap(s1.toByteArray(false));
     DoublesUnion u = DoublesUnion.wrap(mem);
     DoublesSketch s2 = u.getResult();
-    Assert.assertEquals(s2.getMinQuantile(), 1.0);
-    Assert.assertEquals(s2.getMaxQuantile(), 2.0);
+    Assert.assertEquals(s2.getMinItem(), 1.0);
+    Assert.assertEquals(s2.getMaxItem(), 2.0);
 
     // ensure update and reset methods fail
     try {

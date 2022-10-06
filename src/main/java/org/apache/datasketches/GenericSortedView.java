@@ -23,6 +23,7 @@ package org.apache.datasketches;
  * The Sorted View for quantiles of generic type.
  *
  * @param <T> The generic quantile type.
+ * @see SortedView
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */

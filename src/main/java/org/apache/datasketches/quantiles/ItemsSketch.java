@@ -48,22 +48,23 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of comparable items from a very large stream in a single pass.
- * The analysis is obtained using a getQuantiles(*) function or its inverse functions the
- * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
+ * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using generic items,
+ * described in section 3.2 of the journal version of the paper "Mergeable Summaries"
+ * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi:
  *
- * <p>The documentation for {@link DoublesSketch} applies here except that the size of an ItemsSketch
- * is very dependent on the Items input into the sketch, so there is no comparable size table as
- * for the DoublesSketch.
+ * <p>Reference: <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  *
- * <p>There is more documentation available on
- * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
+ * <p>A <i>k</i> of 128 produces a normalized, rank error of about 1.7%.
+ * For example, the median returned from getQuantile(0.5) will be between the actual quantiles
+ * from the hypothetically sorted array of input quantiles at normalized ranks of 0.483 and 0.517, with
+ * a confidence of about 99%.</p>
+ *
+ * <p>The size of an ItemsSketch is very dependent on the size of the generic Items input into the sketch,
+ * so there is no comparable size table as there is for the DoublesSketch.
+ *
+ * @see QuantilesAPI
  *
  * @param <T> The sketch data type
- *
- * @author Kevin Lang
- * @author Alexander Saydakov
  */
 public final class ItemsSketch<T> implements QuantilesAPI {
 

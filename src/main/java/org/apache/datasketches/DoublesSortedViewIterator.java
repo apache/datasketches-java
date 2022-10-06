@@ -21,7 +21,7 @@ package org.apache.datasketches;
 
 /**
  * The quantiles SortedView iterator for type double.
- *
+ * @see SortedViewIterator
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */

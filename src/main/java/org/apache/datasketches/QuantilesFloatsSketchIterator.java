@@ -21,6 +21,7 @@ package org.apache.datasketches;
 
 /**
  * The quantiles sketch iterator for primitive type float.
+ * @see QuantilesSketchIterator
  * @author Lee Rhodes
  */
 public interface QuantilesFloatsSketchIterator extends QuantilesSketchIterator {
