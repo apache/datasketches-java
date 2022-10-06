@@ -75,10 +75,10 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     checkCompact(serVer, flags);
     checkDirectMemCapacity(k, n, memCap);
     checkEmptyAndN(empty, n);
@@ -138,7 +138,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   @Override
   int getBaseBufferCount() {
-    return Util.computeBaseBufferItems(getK(), getN());
+    return ClassicUtil.computeBaseBufferItems(getK(), getN());
   }
 
   @Override
@@ -151,7 +151,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     final int k = getK();
     if (isEmpty()) { return new double[k << 1]; } //2K
     final long n = getN();
-    final int itemCap = Util.computeCombinedBufferItemCapacity(k, n);
+    final int itemCap = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
     final double[] combinedBuffer = new double[itemCap];
     mem_.getDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, itemCap);
     return combinedBuffer;
@@ -161,7 +161,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   long getBitPattern() {
     final int k = getK();
     final long n = getN();
-    return Util.computeBitPattern(k, n);
+    return ClassicUtil.computeBitPattern(k, n);
   }
 
   @Override

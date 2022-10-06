@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 
 /**
@@ -45,7 +44,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public static ArrayOfDoublesUpdatableSketch heapify(final Memory mem) {
-    return heapify(mem, DEFAULT_UPDATE_SEED);
+    return heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -64,7 +63,7 @@ public abstract class ArrayOfDoublesUpdatableSketch extends ArrayOfDoublesSketch
    * @return an ArrayOfDoublesUpdatableSketch
    */
   public static ArrayOfDoublesUpdatableSketch wrap(final WritableMemory mem) {
-    return wrap(mem, DEFAULT_UPDATE_SEED);
+    return wrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**

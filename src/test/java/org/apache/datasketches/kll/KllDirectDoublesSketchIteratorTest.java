@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

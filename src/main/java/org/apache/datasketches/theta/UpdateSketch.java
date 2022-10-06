@@ -20,11 +20,7 @@
 package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
@@ -50,6 +46,7 @@ import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The parent class for the  Update Sketch families, such as QuickSelect and Alpha.
@@ -66,14 +63,14 @@ public abstract class UpdateSketch extends Sketch {
   * Wrap takes the sketch image in Memory and refers to it directly. There is no data copying onto
   * the java heap. Only "Direct" Serialization Version 3 (i.e, OpenSource) sketches that have
   * been explicitly stored as direct objects can be wrapped. This method assumes the
-  * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
+  * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
   * @return a Sketch backed by the given Memory
   */
   public static UpdateSketch wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -108,12 +105,12 @@ public abstract class UpdateSketch extends Sketch {
 
   /**
    * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
-   * {@link org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}.
+   * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final Memory srcMem) {
-    return heapify(srcMem, DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -375,10 +372,10 @@ public abstract class UpdateSketch extends Sketch {
     }
 
     //Check lgNomLongs
-    if (lgNomLongs < MIN_LG_NOM_LONGS) {
+    if (lgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS) {
       throw new SketchesArgumentException(
           "Possible corruption: Current Memory lgNomLongs < min required size: "
-              + lgNomLongs + " < " + MIN_LG_NOM_LONGS);
+              + lgNomLongs + " < " + ThetaUtil.MIN_LG_NOM_LONGS);
     }
   }
 
@@ -403,7 +400,7 @@ public abstract class UpdateSketch extends Sketch {
 
     //Check seed hashes
     final short seedHash = checkMemorySeedHash(srcMem, expectedSeed);              //byte 6,7
-    checkSeedHashes(seedHash, computeSeedHash(expectedSeed));
+    ThetaUtil.checkSeedHashes(seedHash, ThetaUtil.computeSeedHash(expectedSeed));
 
     //Check mem capacity, lgArrLongs
     final long curCapBytes = srcMem.getCapacity();

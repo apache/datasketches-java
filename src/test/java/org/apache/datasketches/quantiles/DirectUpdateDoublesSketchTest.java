@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;

@@ -48,7 +48,7 @@ public class DoublesUnionBuilder {
    * @return this builder
    */
   public DoublesUnionBuilder setMaxK(final int maxK) {
-    Util.checkK(maxK);
+    ClassicUtil.checkK(maxK);
     bMaxK = maxK;
     return this;
   }

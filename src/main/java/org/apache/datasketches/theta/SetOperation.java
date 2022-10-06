@@ -20,7 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -29,6 +28,7 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The parent API for all Set Operations
@@ -63,7 +63,7 @@ public abstract class SetOperation {
    * @return a Heap-based SetOperation from the given Memory
    */
   public static SetOperation heapify(final Memory srcMem) {
-    return heapify(srcMem, DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -111,7 +111,7 @@ public abstract class SetOperation {
    * @return a SetOperation backed by the given Memory
    */
   public static SetOperation wrap(final Memory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -160,7 +160,7 @@ public abstract class SetOperation {
    * @return a SetOperation backed by the given Memory
    */
   public static SetOperation wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**

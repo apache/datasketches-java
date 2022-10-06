@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.Util.checkNormalizedRankBounds;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.InequalitySearch;
-import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.InequalitySearch;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
  * The SortedView of the KllFloatsSketch.
@@ -73,7 +73,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
 
   @Override
   public float getQuantile(final double normalizedRank, final QuantileSearchCriteria searchCrit) {
-    checkNormalizedRankBounds(normalizedRank);
+    QuantilesUtil.checkNormalizedRankBounds(normalizedRank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
         ? (long)Math.ceil(normalizedRank * totalN) : (long)Math.floor(normalizedRank * totalN);

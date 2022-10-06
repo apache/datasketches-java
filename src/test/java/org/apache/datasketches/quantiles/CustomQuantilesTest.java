@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.LinearRanksAndQuantiles.*;
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.*;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;

@@ -19,14 +19,9 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.TAB;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
@@ -34,6 +29,7 @@ import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * For building a new SetOperation.
@@ -50,16 +46,16 @@ public class SetOperationBuilder {
   /**
    * Constructor for building a new SetOperation.  The default configuration is
    * <ul>
-   * <li>Max Nominal Entries (max K): {@value org.apache.datasketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}</li>
+   * <li>Max Nominal Entries (max K): {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
+   * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Memory: null</li>
    * </ul>
    */
   public SetOperationBuilder() {
-    bLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
-    bSeed = DEFAULT_UPDATE_SEED;
+    bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
+    bSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bMemReqSvr = new DefaultMemoryRequestServer();
@@ -75,7 +71,7 @@ public class SetOperationBuilder {
    */
   public SetOperationBuilder setNominalEntries(final int nomEntries) {
     bLgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries));
-    if ((bLgNomLongs > MAX_LG_NOM_LONGS) || (bLgNomLongs < MIN_LG_NOM_LONGS)) {
+    if ((bLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
         + nomEntries);
     }
@@ -92,7 +88,7 @@ public class SetOperationBuilder {
    * @return this SetOperationBuilder
    */
   public SetOperationBuilder setLogNominalEntries(final int lgNomEntries) {
-    bLgNomLongs = checkNomLongs(1 << lgNomEntries);
+    bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgNomEntries);
     return this;
   }
 

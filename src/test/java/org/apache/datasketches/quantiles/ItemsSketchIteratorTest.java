@@ -21,7 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

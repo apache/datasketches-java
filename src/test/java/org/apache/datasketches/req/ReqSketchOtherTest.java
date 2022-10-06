@@ -19,20 +19,20 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.*;
-import static org.apache.datasketches.InequalitySearch.GE;
-import static org.apache.datasketches.InequalitySearch.GT;
-import static org.apache.datasketches.InequalitySearch.LE;
-import static org.apache.datasketches.InequalitySearch.LT;
+import static org.apache.datasketches.quantilescommon.InequalitySearch.GE;
+import static org.apache.datasketches.quantilescommon.InequalitySearch.GT;
+import static org.apache.datasketches.quantilescommon.InequalitySearch.LE;
+import static org.apache.datasketches.quantilescommon.InequalitySearch.LT;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.InequalitySearch;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.testng.annotations.Test;
 
 /**

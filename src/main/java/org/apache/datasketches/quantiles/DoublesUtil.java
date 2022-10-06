@@ -54,7 +54,7 @@ final class DoublesUtil {
     qsCopy.putBitPattern(sketch.getBitPattern());
 
     if (sketch.isCompact()) {
-      final int combBufItems = Util.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
+      final int combBufItems = ClassicUtil.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
       final double[] combBuf = new double[combBufItems];
       qsCopy.putCombinedBuffer(combBuf);
       final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
@@ -120,19 +120,19 @@ final class DoublesUtil {
     final String bbCntStr = String.format("%,d", sk.getBaseBufferCount());
     final String combBufCapStr = String.format("%,d", sk.getCombinedBufferItemCapacity());
     final long bitPattern = sk.getBitPattern();
-    final int neededLevels = Util.computeNumLevelsNeeded(k, n);
-    final int totalLevels = Util.computeTotalLevels(bitPattern);
-    final int validLevels = Util.computeValidLevels(bitPattern);
+    final int neededLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
+    final int totalLevels = ClassicUtil.computeTotalLevels(bitPattern);
+    final int validLevels = ClassicUtil.computeValidLevels(bitPattern);
     final String retItemsStr = String.format("%,d", sk.getNumRetained());
     final String cmptBytesStr = String.format("%,d", sk.getCurrentCompactSerializedSizeBytes());
     final String updtBytesStr = String.format("%,d", sk.getCurrentUpdatableSerializedSizeBytes());
-    final double epsPmf = Util.getNormalizedRankError(k, true);
+    final double epsPmf = ClassicUtil.getNormalizedRankError(k, true);
     final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
-    final double eps =  Util.getNormalizedRankError(k, false);
+    final double eps =  ClassicUtil.getNormalizedRankError(k, false);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
     final String memCap = sk.hasMemory() ? Long.toString(sk.getMemory().getCapacity()) : "";
 
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
+    sb.append(ClassicUtil.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
       .append(LS);
     sb.append("   Empty                        : ").append(sk.isEmpty()).append(LS);
     sb.append("   Memory, Capacity bytes       : ").append(sk.hasMemory())

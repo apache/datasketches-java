@@ -104,7 +104,7 @@ final class DoublesByteArrayImpl {
     long memOffsetBytes = prePlusExtraBytes;
 
     // might need to sort base buffer but don't want to change input sketch
-    final int bbCnt = Util.computeBaseBufferItems(k, n);
+    final int bbCnt = ClassicUtil.computeBaseBufferItems(k, n);
     if (bbCnt > 0) { //Base buffer items only
       final double[] bbItemsArr = dsa.getArray(0, bbCnt);
       if (ordered) { Arrays.sort(bbItemsArr); }
@@ -115,7 +115,7 @@ final class DoublesByteArrayImpl {
 
     // If serializing from a compact sketch to a non-compact form, we may end up copying data for a
     // higher level one or more times into an unused level. A bit wasteful, but not incorrect.
-    final int totalLevels = Util.computeTotalLevels(sketch.getBitPattern());
+    final int totalLevels = ClassicUtil.computeTotalLevels(sketch.getBitPattern());
     for (int lvl = 0; lvl < totalLevels; ++lvl) {
       dsa.setLevel(lvl);
       if (dsa.numItems() > 0) {

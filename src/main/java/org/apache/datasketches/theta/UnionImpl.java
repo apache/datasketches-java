@@ -20,8 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.QuickSelect.selectExcludingZeros;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -38,15 +36,16 @@ import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.extractUnionThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertUnionThetaLong;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
+import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
 
 import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Shared code for the HeapUnion and DirectUnion implementations.
@@ -72,7 +71,7 @@ final class UnionImpl extends Union {
 
   private UnionImpl(final UpdateSketch gadget, final long seed) {
     gadget_ = gadget;
-    expectedSeedHash_ = computeSeedHash(seed);
+    expectedSeedHash_ = ThetaUtil.computeSeedHash(seed);
   }
 
   /**
@@ -306,7 +305,7 @@ final class UnionImpl extends Union {
       return;
     }
     //sketchIn is valid and not empty
-    Util.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
+    ThetaUtil.checkSeedHashes(expectedSeedHash_, sketchIn.getSeedHash());
     if (sketchIn instanceof SingleItemSketch) {
       gadget_.hashUpdate(sketchIn.getCache()[0]);
       return;
@@ -375,7 +374,7 @@ final class UnionImpl extends Union {
     }
 
     if (serVer == 2) { //older Sketch, which is compact and ordered
-      Util.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
+      ThetaUtil.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
       final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem,expectedSeedHash_);
       union(csk);
       return;
@@ -404,7 +403,7 @@ final class UnionImpl extends Union {
       }
       return; //empty
     }
-    Util.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
+    ThetaUtil.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
     final int curCountIn;
     final long thetaLongIn;
 

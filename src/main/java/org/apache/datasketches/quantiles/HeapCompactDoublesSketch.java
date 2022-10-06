@@ -30,9 +30,9 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.Util.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.Util.computeBitPattern;
-import static org.apache.datasketches.quantiles.Util.computeRetainedItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
 import java.util.Arrays;
 
@@ -171,9 +171,9 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
-    Util.checkHeapFlags(flags);
+    ClassicUtil.checkHeapFlags(flags);
     HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer(flags, serVer, preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
 
     final HeapCompactDoublesSketch hds = new HeapCompactDoublesSketch(k); //checks k
     if (empty) {
@@ -199,7 +199,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     hds.minQuantile_ = srcMem.getDouble(MIN_DOUBLE);
     hds.maxQuantile_ = srcMem.getDouble(MAX_DOUBLE);
 
-    final int totItems = Util.computeRetainedItems(k, n);
+    final int totItems = ClassicUtil.computeRetainedItems(k, n);
     hds.srcMemoryToCombinedBuffer(srcMem, serVer, srcIsCompact, totItems);
 
     return hds;

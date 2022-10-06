@@ -26,13 +26,13 @@ import static org.testng.Assert.fail;
 
 import java.util.Objects;
 
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.FloatsSortedViewIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
 import org.testng.annotations.Test;
 
 /**

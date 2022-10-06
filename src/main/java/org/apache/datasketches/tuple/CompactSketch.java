@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.HashOperations.count;
+import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;

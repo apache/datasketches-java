@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.fdt;
 
-import static org.apache.datasketches.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.tuple.Util.stringHash;
 
 import java.util.ArrayList;

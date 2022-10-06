@@ -33,31 +33,25 @@ public class UtilTest {
   @Test
   public void checkCombBufItemCapacity() {
     int k = 227;
-    int capEl = Util.computeCombinedBufferItemCapacity(k, 0);
+    int capEl = ClassicUtil.computeCombinedBufferItemCapacity(k, 0);
     assertEquals(capEl, 2 * DoublesSketch.MIN_K);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkPreLongsFlagsCap() {
-    Util.checkPreLongsFlagsCap(2, 0, 15);
-  }
-
-  @Test
-  public void checkLg() {
-    int lgbase2 = (int) Util.lg(4096);
-    assertEquals(lgbase2, 12);
+    ClassicUtil.checkPreLongsFlagsCap(2, 0, 15);
   }
 
   @Test
   public void checkHiBitPos() {
-    int bitPos = Util.hiBitPos(4096);
+    int bitPos = ClassicUtil.hiBitPos(4096);
     assertEquals(bitPos, 12);
   }
 
   @Test
   public void checkNumValidLevels() {
     long v = (1L << 32)-1L;
-    int ones = Util.computeValidLevels(v);
+    int ones = ClassicUtil.computeValidLevels(v);
     assertEquals(ones, 32);
   }
 
@@ -67,7 +61,7 @@ public class UtilTest {
     long v = 109L;
     //println("IN: " + Long.toBinaryString(v));
     for (int i = 0, j = 9; i < 10; i++, j--) {
-      int result = Util.lowestZeroBitStartingAt(v, i);
+      int result = ClassicUtil.lowestZeroBitStartingAt(v, i);
       //System.out.printf ("%d %d %d%n", i, result, answers[j]);
       assertTrue (answers[j] == result);
     }
@@ -77,7 +71,7 @@ public class UtilTest {
   public void testPositionOfLowestZeroBitStartingAt2() {
     long bits = -1L;
     int startingBit = 70; //only low 6 bits are used
-    int result = Util.lowestZeroBitStartingAt(bits, startingBit);
+    int result = ClassicUtil.lowestZeroBitStartingAt(bits, startingBit);
     assertEquals(result, 64);
   }
 

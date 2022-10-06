@@ -19,15 +19,15 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.InequalitySearch;
-import org.apache.datasketches.QuantileSearchCriteria;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.InequalitySearch;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 
 /**
  * A special buffer of floats specifically designed to support the ReqCompactor class.

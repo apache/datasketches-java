@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -27,8 +26,8 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -54,7 +53,7 @@ public class AnotBimplTest {
     assertTrue(aNb.isEmpty());  //only applies to stateful
     assertTrue(aNb.getCache().length == 0); //only applies to stateful
     assertEquals(aNb.getThetaLong(), Long.MAX_VALUE); //only applies to stateful
-    assertEquals(aNb.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
+    assertEquals(aNb.getSeedHash(), ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
 
     aNb.setA(usk1);
     aNb.notB(usk2);
@@ -309,7 +308,7 @@ public class AnotBimplTest {
   @Test
   public void checkGetFamily() {
     //cheap trick
-    final AnotBimpl anotb = new AnotBimpl(Util.DEFAULT_UPDATE_SEED);
+    final AnotBimpl anotb = new AnotBimpl(ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals(anotb.getFamily(), Family.A_NOT_B);
   }
 

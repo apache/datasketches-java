@@ -31,11 +31,11 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import java.util.Random;
 
-import org.apache.datasketches.QuantilesAPI;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /*
  * Sampled stream data (floats or doubles) is stored as an array or as part of a Memory object.

@@ -19,10 +19,9 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.HashOperations.minLgHashTableSize;
 import static org.apache.datasketches.ResizeFactor.X4;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.theta.Sketch.getMaxUpdateSketchBytes;
+import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 import static org.testng.Assert.assertEquals;
 //import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.assertFalse;
@@ -38,6 +37,7 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -224,8 +224,8 @@ public class SetOperationTest {
 
   @Test
   public void checkComputeLgArrLongs() {
-    assertEquals(minLgHashTableSize(30, REBUILD_THRESHOLD), 5);
-    assertEquals(minLgHashTableSize(31, REBUILD_THRESHOLD), 6);
+    assertEquals(minLgHashTableSize(30, ThetaUtil.REBUILD_THRESHOLD), 5);
+    assertEquals(minLgHashTableSize(31, ThetaUtil.REBUILD_THRESHOLD), 6);
   }
 
   /**

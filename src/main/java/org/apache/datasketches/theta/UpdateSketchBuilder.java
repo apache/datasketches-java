@@ -19,14 +19,9 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.TAB;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.checkNomLongs;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
@@ -35,6 +30,7 @@ import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * For building a new UpdateSketch.
@@ -59,8 +55,8 @@ public class UpdateSketchBuilder {
   /**
    * Constructor for building a new UpdateSketch. The default configuration is
    * <ul>
-   * <li>Nominal Entries: {@value org.apache.datasketches.Util#DEFAULT_NOMINAL_ENTRIES}</li>
-   * <li>Seed: {@value org.apache.datasketches.Util#DEFAULT_UPDATE_SEED}</li>
+   * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
+   * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
    * <li>Input Sampling Probability: 1.0</li>
    * <li>Family: {@link org.apache.datasketches.Family#QUICKSELECT}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
@@ -78,8 +74,8 @@ public class UpdateSketchBuilder {
    * </ul>
    */
   public UpdateSketchBuilder() {
-    bLgNomLongs = Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES);
-    bSeed = DEFAULT_UPDATE_SEED;
+    bLgNomLongs = Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
+    bSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
     bP = (float) 1.0;
     bRF = ResizeFactor.X8;
     bFam = Family.QUICKSELECT;
@@ -104,7 +100,7 @@ public class UpdateSketchBuilder {
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setNominalEntries(final int nomEntries) {
-    bLgNomLongs = checkNomLongs(nomEntries);
+    bLgNomLongs = ThetaUtil.checkNomLongs(nomEntries);
     return this;
   }
 
@@ -119,7 +115,7 @@ public class UpdateSketchBuilder {
    * @return this UpdateSketchBuilder
    */
   public UpdateSketchBuilder setLogNominalEntries(final int lgNomEntries) {
-    bLgNomLongs = checkNomLongs(1 << lgNomEntries);
+    bLgNomLongs = ThetaUtil.checkNomLongs(1 << lgNomEntries);
     return this;
   }
 
@@ -143,7 +139,7 @@ public class UpdateSketchBuilder {
    */
   public UpdateSketchBuilder setLocalNominalEntries(final int nomEntries) {
     bLocalLgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries));
-    if ((bLocalLgNomLongs > MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < MIN_LG_NOM_LONGS)) {
+    if ((bLocalLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException(
           "Nominal Entries must be >= 16 and <= 67108864: " + nomEntries);
     }
@@ -162,7 +158,7 @@ public class UpdateSketchBuilder {
    */
   public UpdateSketchBuilder setLocalLogNominalEntries(final int lgNomEntries) {
     bLocalLgNomLongs = lgNomEntries;
-    if ((bLocalLgNomLongs > MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < MIN_LG_NOM_LONGS)) {
+    if ((bLocalLgNomLongs > ThetaUtil.MAX_LG_NOM_LONGS) || (bLocalLgNomLongs < ThetaUtil.MIN_LG_NOM_LONGS)) {
       throw new SketchesArgumentException(
           "Log Nominal Entries must be >= 4 and <= 26: " + lgNomEntries);
     }

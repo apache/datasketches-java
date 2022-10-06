@@ -19,16 +19,16 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashSet;
 
 import org.testng.annotations.Test;
-import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
 /**
  * @author Lee Rhodes

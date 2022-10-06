@@ -20,12 +20,12 @@
 package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
 
@@ -64,7 +64,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion heapify(final Memory srcMem) {
-    return heapify(srcMem, DEFAULT_UPDATE_SEED);
+    return heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -83,7 +83,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrap(final Memory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -102,7 +102,7 @@ public abstract class ArrayOfDoublesUnion {
    * @return an ArrayOfDoublesUnion
    */
   public static ArrayOfDoublesUnion wrap(final WritableMemory srcMem) {
-    return wrap(srcMem, DEFAULT_UPDATE_SEED);
+    return wrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**

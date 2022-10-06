@@ -20,8 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.HashOperations.count;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.Util.LS;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
@@ -31,12 +29,14 @@ import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
+import static org.apache.datasketches.thetacommon.HashOperations.count;
 
-import org.apache.datasketches.BinomialBoundsN;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.BinomialBoundsN;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The top-level class for all sketches. This class is never constructed directly.
@@ -73,7 +73,7 @@ public abstract class Sketch {
     if (family == Family.COMPACT) {
       return CompactSketch.heapify(srcMem);
     }
-    return heapifyUpdateFromMemory(srcMem, DEFAULT_UPDATE_SEED);
+    return heapifyUpdateFromMemory(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -133,7 +133,7 @@ public abstract class Sketch {
     final Family family = Family.idToFamily(familyID);
     if (family == Family.QUICKSELECT) {
       if (serVer == 3 && preLongs == 3) {
-        return DirectQuickSelectSketchR.readOnlyWrap(srcMem, DEFAULT_UPDATE_SEED);
+        return DirectQuickSelectSketchR.readOnlyWrap(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
       } else {
         throw new SketchesArgumentException(
             "Corrupted: " + family + " family image: must have SerVer = 3 and preLongs = 3");

@@ -28,14 +28,10 @@ import static org.apache.datasketches.Util.ceilingLongPowerOf2;
 import static org.apache.datasketches.Util.ceilingPowerBaseOfDouble;
 import static org.apache.datasketches.Util.characterPad;
 import static org.apache.datasketches.Util.checkBounds;
-import static org.apache.datasketches.Util.checkDoublesSplitPointsOrder;
 import static org.apache.datasketches.Util.checkIfMultipleOf8AndGT0;
 import static org.apache.datasketches.Util.checkIfIntPowerOf2;
 import static org.apache.datasketches.Util.checkIfLongPowerOf2;
 import static org.apache.datasketches.Util.checkProbability;
-import static org.apache.datasketches.Util.evenlyLogSpaced;
-import static org.apache.datasketches.Util.evenlySpaced;
-import static org.apache.datasketches.Util.evenlySpacedFloats;
 import static org.apache.datasketches.Util.exactLog2OfInt;
 import static org.apache.datasketches.Util.exactLog2OfLong;
 import static org.apache.datasketches.Util.floorPowerOf2;
@@ -58,7 +54,6 @@ import static org.apache.datasketches.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.Util.pwr2SeriesNext;
 import static org.apache.datasketches.Util.pwr2SeriesPrev;
 import static org.apache.datasketches.Util.powerSeriesNextDouble;
-import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.Util.zeroPad;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -289,47 +284,6 @@ public class UtilTest {
   }
 
   @Test
-  public void checkEvenlySpaced() {
-    double[] arr = evenlySpaced(0, 1, 3);
-    assertEquals(arr[0], 0.0);
-    assertEquals(arr[1], 0.5);
-    assertEquals(arr[2], 1.0);
-    arr = evenlySpaced(3, 7, 3);
-    assertEquals(arr[0], 3.0);
-    assertEquals(arr[1], 5.0);
-    assertEquals(arr[2], 7.0);
-  }
-
-  @Test
-  public void checkEvenlySpacedFloats() {
-    float[] arr = evenlySpacedFloats(0, 1, 3);
-    assertEquals(arr[0], 0.0f);
-    assertEquals(arr[1], 0.5f);
-    assertEquals(arr[2], 1.0f);
-    arr = evenlySpacedFloats(3, 7, 3);
-    assertEquals(arr[0], 3.0f);
-    assertEquals(arr[1], 5.0f);
-    assertEquals(arr[2], 7.0f);
-    arr = evenlySpacedFloats(0f, 1.0f, 2);
-    assertEquals(arr[0], 0f);
-    assertEquals(arr[1], 1f);
-    try { evenlySpacedFloats(0f, 1f, 1); fail(); } catch (SketchesArgumentException e) {}
-  }
-
-  @Test
-  public void checkEvenlyLogSpaced() {
-    final double[] arr = evenlyLogSpaced(1, 8, 4);
-    assertEquals(arr[0], 1.0);
-    assertEquals(arr[1], 2.0);
-    assertEquals(arr[2], 4.0);
-    assertEquals(arr[3], 8.0);
-    try { evenlyLogSpaced(-1.0, 1.0, 2); fail(); } catch (SketchesArgumentException e) {}
-    try { evenlyLogSpaced(1.0, -1.0, 2); fail(); } catch (SketchesArgumentException e) {}
-    try { evenlyLogSpaced(-1.0, -1.0, 2); fail(); } catch (SketchesArgumentException e) {}
-    try { evenlyLogSpaced(1.0, 1.0, 1); fail(); } catch (SketchesArgumentException e) {}
-  }
-
-  @Test
   public void checkEvenOdd() {
     assertTrue(isEven(0));
     assertFalse(isOdd(0));
@@ -417,7 +371,6 @@ public class UtilTest {
     Assert.assertEquals(next, Math.sqrt(2), 0.0);
     next = powerSeriesNextDouble(2, next, false, 2.0);
     Assert.assertEquals(next, 2.0, 0.0);
-
   }
 
   @Test
@@ -481,16 +434,6 @@ public class UtilTest {
     } catch (final SketchesArgumentException e) { }
   }
 
-  @Test
-  public void checkStartingSubMultiple() {
-    Assert.assertEquals(startingSubMultiple(8, 3, 4), 5);
-    Assert.assertEquals(startingSubMultiple(7, 3, 4), 4);
-    Assert.assertEquals(startingSubMultiple(6, 3, 4), 6);
-  }
-
-//  @Test
-//  public void checkNomLongs
-
   //Resources
 
   @Test
@@ -518,12 +461,6 @@ public class UtilTest {
     final String shortFileName = "cpc-empty.sk";
     getResourceBytes(shortFileName + "123");
   }
-
-  @Test(expectedExceptions = NullPointerException.class)
-  public void checkValidateValuesNullException() {
-    checkDoublesSplitPointsOrder(null);
-  }
-
 
   @Test
   public void printlnTest() {

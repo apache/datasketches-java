@@ -39,7 +39,7 @@ final class DoublesUpdateImpl {
   //important: newN might not equal n_
   // This only increases the size and does not touch or move any data.
   static int getRequiredItemCapacity(final int k, final long newN) {
-    final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
+    final int numLevelsNeeded = ClassicUtil.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
       // don't need any levels yet, and might have small base buffer; this can happen during a merge
       return 2 * k;
@@ -103,7 +103,7 @@ final class DoublesUpdateImpl {
           final int k,
           final DoublesSketchAccessor tgtSketchBuf,
           final long bitPattern) {
-    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
+    final int endingLevel = ClassicUtil.lowestZeroBitStartingAt(bitPattern, startingLevel);
     tgtSketchBuf.setLevel(endingLevel);
     if (doUpdateVersion) { // update version of computation
       // its is okay for optSrcKBuf to be null in this case

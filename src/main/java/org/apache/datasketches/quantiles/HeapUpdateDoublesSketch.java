@@ -29,10 +29,10 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.Util.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.Util.computeBitPattern;
-import static org.apache.datasketches.quantiles.Util.computeCombinedBufferItemCapacity;
-import static org.apache.datasketches.quantiles.Util.computeRetainedItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
 import java.util.Arrays;
 
@@ -139,9 +139,9 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
-    Util.checkHeapFlags(flags);
+    ClassicUtil.checkHeapFlags(flags);
     checkPreLongsFlagsSerVer(flags, serVer, preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
 
     final HeapUpdateDoublesSketch hds = newInstance(k); //checks k
     if (empty) { return hds; }
@@ -307,7 +307,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
       }
     } else { //srcMem not compact
-      final int levels = Util.computeNumLevelsNeeded(k, n);
+      final int levels = ClassicUtil.computeNumLevelsNeeded(k, n);
       final int totItems = (levels == 0) ? bbCnt : (2 + levels) * k;
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, totItems);
     }
@@ -439,7 +439,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     if (compact) {
       reqBufBytes = (metaPre + retainedItems) << 3;
     } else { //not compact
-      final int totLevels = Util.computeNumLevelsNeeded(k, n);
+      final int totLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
       reqBufBytes = (totLevels == 0)
           ? (metaPre + retainedItems) << 3
           : (metaPre + ((2 + totLevels) * k)) << 3;

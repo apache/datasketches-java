@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
 import static org.apache.datasketches.Util.floorPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
@@ -35,6 +34,7 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The API for intersection operations
@@ -152,7 +152,7 @@ public abstract class Intersection extends SetOperation {
   }
 
   protected static void checkMinSizeMemory(final Memory mem) {
-    final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << MIN_LG_ARR_LONGS);//280
+    final int minBytes = (CONST_PREAMBLE_LONGS << 3) + (8 << ThetaUtil.MIN_LG_ARR_LONGS);//280
     final long cap = mem.getCapacity();
     if (cap < minBytes) {
       throw new SketchesArgumentException(

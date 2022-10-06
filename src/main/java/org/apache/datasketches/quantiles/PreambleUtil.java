@@ -20,8 +20,8 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.quantiles.Util.LS;
-import static org.apache.datasketches.quantiles.Util.computeRetainedItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
 import java.nio.ByteOrder;
 

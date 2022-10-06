@@ -22,12 +22,13 @@ package org.apache.datasketches.tuple;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.HashOperations.hashSearch;
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.lang.reflect.Array;
+
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 @SuppressWarnings("unchecked")
 class HashTables<S extends Summary> {
@@ -161,7 +162,7 @@ class HashTables<S extends Summary> {
   }
 
   static int getLgTableSize(final int count) {
-    final int tableSize = max(ceilingIntPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
+    final int tableSize = max(ceilingIntPowerOf2((int) ceil(count / 0.75)), 1 << ThetaUtil.MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
   }
 

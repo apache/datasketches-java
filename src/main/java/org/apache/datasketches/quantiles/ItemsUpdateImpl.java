@@ -31,7 +31,7 @@ final class ItemsUpdateImpl {
   static <T> void maybeGrowLevels(final ItemsSketch<T> sketch, final long newN) {
     // important: newN might not equal n_
     final int k = sketch.getK();
-    final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
+    final int numLevelsNeeded = ClassicUtil.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
       // don't need any levels yet, and might have small base buffer; this can happen during a merge
       return;
@@ -59,7 +59,7 @@ final class ItemsUpdateImpl {
     final long bitPattern = sketch.getBitPattern();
     final int k = sketch.getK();
 
-    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
+    final int endingLevel = ClassicUtil.lowestZeroBitStartingAt(bitPattern, startingLevel);
 
     if (doUpdateVersion) { // update version of computation
       // its is okay for sizeKbuf to be null in this case

@@ -24,7 +24,6 @@ import static java.lang.Math.floor;
 import static java.lang.Math.log;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
-import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,62 +40,6 @@ import java.util.Objects;
  * @author Lee Rhodes
  */
 public final class Util {
-
-  /**
-   * The smallest Log2 cache size allowed: 5.
-   */
-  public static final int MIN_LG_ARR_LONGS = 5;
-
-  /**
-   * The smallest Log2 nom entries allowed: 4.
-   */
-  public static final int MIN_LG_NOM_LONGS = 4;
-
-  /**
-   * The largest Log2 nom entries allowed: 26.
-   */
-  public static final int MAX_LG_NOM_LONGS = 26;
-
-  /**
-   * The hash table rebuild threshold = 15.0/16.0.
-   */
-  public static final double REBUILD_THRESHOLD = 15.0 / 16.0;
-
-  /**
-   * The resize threshold = 0.5; tuned for speed.
-   */
-  public static final double RESIZE_THRESHOLD = 0.5;
-
-  /**
-   * The default nominal entries is provided as a convenience for those cases where the
-   * nominal sketch size in number of entries is not provided.
-   * A sketch of 4096 entries has a Relative Standard Error (RSE) of +/- 1.56% at a confidence of
-   * 68%; or equivalently, a Relative Error of +/- 3.1% at a confidence of 95.4%.
-   * <a href="{@docRoot}/resources/dictionary.html#defaultNomEntries">See Default Nominal Entries</a>
-   */
-  public static final int DEFAULT_NOMINAL_ENTRIES = 4096;
-
-  /**
-   * The seed 9001 used in the sketch update methods is a prime number that
-   * was chosen very early on in experimental testing. Choosing a seed is somewhat arbitrary, and
-   * the author cannot prove that this particular seed is somehow superior to other seeds.  There
-   * was some early Internet discussion that a seed of 0 did not produce as clean avalanche diagrams
-   * as non-zero seeds, but this may have been more related to the MurmurHash2 release, which did
-   * have some issues. As far as the author can determine, MurmurHash3 does not have these problems.
-   *
-   * <p>In order to perform set operations on two sketches it is critical that the same hash
-   * function and seed are identical for both sketches, otherwise the assumed 1:1 relationship
-   * between the original source key value and the hashed bit string would be violated. Once
-   * you have developed a history of stored sketches you are stuck with it.
-   *
-   * <p><b>WARNING:</b> This seed is used internally by library sketches in different
-   * packages and thus must be declared public. However, this seed value must not be used by library
-   * users with the MurmurHash3 function. It should be viewed as existing for exclusive, private
-   * use by the library.
-   *
-   * <p><a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">See Default Update Seed</a>
-   */
-  public static final long DEFAULT_UPDATE_SEED = 9001L;
 
   /**
    * The java line separator character as a String.
@@ -318,41 +261,6 @@ public final class Util {
       return String.valueOf(out);
     }
     return s;
-  }
-
-  //Seed Hash
-
-  /**
-   * Check if the two seed hashes are equal. If not, throw an SketchesArgumentException.
-   * @param seedHashA the seedHash A
-   * @param seedHashB the seedHash B
-   * @return seedHashA if they are equal
-   */
-  public static short checkSeedHashes(final short seedHashA, final short seedHashB) {
-    if (seedHashA != seedHashB) {
-      throw new SketchesArgumentException(
-          "Incompatible Seed Hashes. " + Integer.toHexString(seedHashA & 0XFFFF)
-            + ", " + Integer.toHexString(seedHashB & 0XFFFF));
-    }
-    return seedHashA;
-  }
-
-  /**
-   * Computes and checks the 16-bit seed hash from the given long seed.
-   * The seed hash may not be zero in order to maintain compatibility with older serialized
-   * versions that did not have this concept.
-   * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>
-   * @return the seed hash.
-   */
-  public static short computeSeedHash(final long seed) {
-    final long[] seedArr = {seed};
-    final short seedHash = (short)(hash(seedArr, 0L)[0] & 0xFFFFL);
-    if (seedHash == 0) {
-      throw new SketchesArgumentException(
-          "The given seed: " + seed + " produced a seedHash of zero. "
-              + "You must choose a different seed.");
-    }
-    return seedHash;
   }
 
   //Memory byte alignment
@@ -753,94 +661,6 @@ public final class Util {
     return Long.numberOfTrailingZeros(powerOf2);
   }
 
-  /**
-   * Gets the smallest allowed exponent of 2 that it is a sub-multiple of the target by zero,
-   * one or more resize factors.
-   *
-   * @param lgTarget Log2 of the target size
-   * @param lgRF Log_base2 of Resize Factor.
-   * <a href="{@docRoot}/resources/dictionary.html#resizeFactor">See Resize Factor</a>
-   * @param lgMin Log2 of the minimum allowed starting size
-   * @return The Log2 of the starting size
-   */
-  public static int startingSubMultiple(final int lgTarget, final int lgRF,
-      final int lgMin) {
-    return lgTarget <= lgMin ? lgMin : lgRF == 0 ? lgTarget : (lgTarget - lgMin) % lgRF + lgMin;
-  }
-
-  //Equal spaced sets
-
-  /**
-   * Returns a double array of evenly spaced values between value1 and value2 inclusive.
-   * If value2 &gt; value1, the resulting sequence will be increasing.
-   * If value2 &lt; value1, the resulting sequence will be decreasing.
-   * @param value1 will be in index 0 of the returned array
-   * @param value2 will be in the highest index of the returned array
-   * @param num the total number of values including value1 and value2. Must be 2 or greater.
-   * @return a double array of evenly spaced values between value1 and value2 inclusive.
-   */
-  public static double[] evenlySpaced(final double value1, final double value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
-    }
-    final double[] out = new double[num];
-    out[0] = value1;
-    out[num - 1] = value2;
-    if (num == 2) { return out; }
-
-    final double delta = (value2 - value1) / (num - 1);
-
-    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
-    return out;
-  }
-
-  /**
-   * Returns a float array of evenly spaced values between value1 and value2 inclusive.
-   * If value2 &gt; value1, the resulting sequence will be increasing.
-   * If value2 &lt; value1, the resulting sequence will be decreasing.
-   * @param value1 will be in index 0 of the returned array
-   * @param value2 will be in the highest index of the returned array
-   * @param num the total number of values including value1 and value2. Must be 2 or greater.
-   * @return a float array of evenly spaced values between value1 and value2 inclusive.
-   */
-  public static float[] evenlySpacedFloats(final float value1, final float value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
-    }
-    final float[] out = new float[num];
-    out[0] = value1;
-    out[num - 1] = value2;
-    if (num == 2) { return out; }
-
-    final float delta = (value2 - value1) / (num - 1);
-
-    for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
-    return out;
-  }
-
-  /**
-   * Returns a double array of values between min and max inclusive where the log of the
-   * returned values are evenly spaced.
-   * If value2 &gt; value1, the resulting sequence will be increasing.
-   * If value2 &lt; value1, the resulting sequence will be decreasing.
-   * @param value1 will be in index 0 of the returned array, and must be greater than zero.
-   * @param value2 will be in the highest index of the returned array, and must be greater than zero.
-   * @param num the total number of values including value1 and value2. Must be 2 or greater
-   * @return a double array of exponentially spaced values between value1 and value2 inclusive.
-   */
-  public static double[] evenlyLogSpaced(final double value1, final double value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
-    }
-    if (value1 <= 0 || value2 <= 0) {
-      throw new SketchesArgumentException("value1 and value2 must be > 0.");
-    }
-
-    final double[] arr = evenlySpaced(log(value1) / LOG2, log(value2) / LOG2, num);
-    for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
-    return arr;
-  }
-
   //Checks that throw
 
   /**
@@ -860,33 +680,6 @@ public final class Util {
   }
 
   /**
-   * Checks that the given nomLongs is within bounds and returns the Log2 of the ceiling power of 2
-   * of the given nomLongs.
-   * @param nomLongs the given number of nominal longs.  This can be any value from 16 to
-   * 67108864, inclusive.
-   * @return The Log2 of the ceiling power of 2 of the given nomLongs.
-   */
-  public static int checkNomLongs(final int nomLongs) {
-    final int lgNomLongs = Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomLongs));
-    if (lgNomLongs > MAX_LG_NOM_LONGS || lgNomLongs < MIN_LG_NOM_LONGS) {
-      throw new SketchesArgumentException("Nominal Entries must be >= 16 and <= 67108864: "
-        + nomLongs);
-    }
-    return lgNomLongs;
-  }
-
-  /**
-   * Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.
-   * @param nRank the given normalized rank.
-   */
-  public static final void checkNormalizedRankBounds(final double nRank) {
-    if ((nRank < 0.0) || (nRank > 1.0)) {
-      throw new SketchesArgumentException(
-        "A normalized rank must be >= 0 and <= 1.0: " + nRank);
-    }
-  }
-
-  /**
    * Checks the given parameter to make sure it is positive and between 0.0 inclusive and 1.0
    * inclusive.
    *
@@ -900,36 +693,6 @@ public final class Util {
     }
     throw new SketchesArgumentException("The value of the parameter \"" + argName
         + "\" must be between 0.0 inclusive and 1.0 inclusive: " + p);
-  }
-
-  /**
-   * Checks the sequential validity of the given array of double values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of double values
-   */
-  public static final void checkDoublesSplitPointsOrder(final double[] values) {
-    Objects.requireNonNull(values);
-    final int len = values.length - 1;
-    for (int j = 0; j < len; j++) {
-      if (values[j] < values[j + 1]) { continue; }
-      throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not NaN.");
-    }
-  }
-
-  /**
-   * Checks the sequential validity of the given array of float values.
-   * They must be unique, monotonically increasing and not NaN.
-   * @param values the given array of double values
-   */
-  public static final void checkFloatsSplitPointsOrder(final float[] values) {
-    Objects.requireNonNull(values);
-    final int len = values.length - 1;
-    for (int j = 0; j < len; j++) {
-      if (values[j] < values[j + 1]) { continue; }
-      throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not NaN.");
-    }
   }
 
   //Boolean Checks

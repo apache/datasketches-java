@@ -19,10 +19,11 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.util.Arrays;
+
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Used only in test.
@@ -37,7 +38,7 @@ class BitMatrix {
   private boolean numCouponsInvalid; //only used if we allowed merges
 
   BitMatrix(final int lgK) {
-    this(lgK, DEFAULT_UPDATE_SEED);
+    this(lgK, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   BitMatrix(final int lgK, final long seed) {

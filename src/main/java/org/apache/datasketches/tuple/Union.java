@@ -20,10 +20,10 @@
 package org.apache.datasketches.tuple;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
 
-import org.apache.datasketches.QuickSelect;
 import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.thetacommon.QuickSelect;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Compute the union of two or more generic tuple sketches or generic tuple sketches combined with
@@ -42,7 +42,7 @@ public class Union<S extends Summary> {
    * @param summarySetOps instance of SummarySetOperations
    */
   public Union(final SummarySetOperations<S> summarySetOps) {
-    this(DEFAULT_NOMINAL_ENTRIES, summarySetOps);
+    this(ThetaUtil.DEFAULT_NOMINAL_ENTRIES, summarySetOps);
   }
 
   /**

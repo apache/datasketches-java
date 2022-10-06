@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -35,11 +35,11 @@ import org.apache.datasketches.ArrayOfDoublesSerDe;
 import org.apache.datasketches.ArrayOfItemsSerDe;
 import org.apache.datasketches.ArrayOfLongsSerDe;
 import org.apache.datasketches.ArrayOfStringsSerDe;
-import org.apache.datasketches.GenericSortedView;
-import org.apache.datasketches.GenericSortedViewIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

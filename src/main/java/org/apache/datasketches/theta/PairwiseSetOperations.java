@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Set Operations where the arguments are presented in pairs as in <i>C = Op(A,B)</i>. These are
@@ -85,7 +85,7 @@ public class PairwiseSetOperations {
    */
   @Deprecated
   public static CompactSketch union(final CompactSketch skA, final CompactSketch skB) {
-    return union(skA, skB, DEFAULT_NOMINAL_ENTRIES);
+    return union(skA, skB, ThetaUtil.DEFAULT_NOMINAL_ENTRIES);
   }
 
   /**

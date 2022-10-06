@@ -39,7 +39,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertMinDouble;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
-import static org.apache.datasketches.quantiles.Util.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 
 import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
@@ -114,10 +114,10 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     checkCompact(serVer, flags);
     checkDirectMemCapacity(k, n, memCap);
     checkEmptyAndN(empty, n);

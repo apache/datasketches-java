@@ -148,7 +148,7 @@ class DoublesUnionImplR extends DoublesUnion {
     final String thisSimpleName = this.getClass().getSimpleName();
     final int maxK = getMaxK();
     final String kStr = String.format("%,d", maxK);
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
+    sb.append(ClassicUtil.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
       sb.append(HeapUpdateDoublesSketch.newInstance(maxK_).toString());

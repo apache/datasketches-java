@@ -19,12 +19,11 @@
 
 package org.apache.datasketches.fdt;
 
-import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
-
 import java.util.List;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;
 
 /**
@@ -157,7 +156,7 @@ public class FdtSketch extends ArrayOfStringsSketch {
   static int computeLgK(final double threshold, final double rse) {
     final double v = Math.ceil(1.0 / (threshold * rse * rse));
     final int lgK = (int) Math.ceil(Math.log(v) / Math.log(2));
-    if (lgK > MAX_LG_NOM_LONGS) {
+    if (lgK > ThetaUtil.MAX_LG_NOM_LONGS) {
       throw new SketchesArgumentException("Requested Sketch (LgK = " + lgK + " &gt; 2^26), "
           + "either increase the threshold, the rse or both.");
     }

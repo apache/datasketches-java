@@ -21,7 +21,7 @@ package org.apache.datasketches.req;
 
 import java.util.List;
 
-import org.apache.datasketches.QuantilesFloatsSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
  * Iterator over all retained values of the ReqSketch. The order is not defined.

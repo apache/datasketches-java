@@ -29,13 +29,13 @@ import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import java.util.Objects;
 
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesFloatsAPI;
-import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsAPI;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
  * This variation of the KllSketch implements primitive floats.
@@ -208,7 +208,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
   /**

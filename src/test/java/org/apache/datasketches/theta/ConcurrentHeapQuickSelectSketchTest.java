@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -34,6 +33,7 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -122,7 +122,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   public void checkHeapifySeedConflict() {
     int lgK = 9;
     long seed = 1021;
-    long seed2 = DEFAULT_UPDATE_SEED;
+    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
     SharedLocal sl = new SharedLocal(lgK, lgK, seed);
     byte[] byteArray = sl.shared.toByteArray();
     Memory srcMem = Memory.wrap(byteArray);
@@ -136,7 +136,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[]  serArr = sl.shared.toByteArray();
     WritableMemory srcMem = WritableMemory.writableWrap(serArr);
     srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
+    Sketch.heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)
@@ -241,7 +241,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
     byte[]  serArr = shared.toByteArray();
 
     Memory srcMem = Memory.wrap(serArr);
-    UpdateSketch recoveredShared = UpdateSketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
+    UpdateSketch recoveredShared = UpdateSketch.heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
 
     final int bytes = Sketch.getMaxUpdateSketchBytes(k);
     final WritableMemory wmem = WritableMemory.allocate(bytes);
@@ -677,7 +677,7 @@ public class ConcurrentHeapQuickSelectSketchTest {
   }
 
   static class SharedLocal {
-    static final long DefaultSeed = DEFAULT_UPDATE_SEED;
+    static final long DefaultSeed = ThetaUtil.DEFAULT_UPDATE_SEED;
     final UpdateSketch shared;
     final ConcurrentSharedThetaSketch sharedIf;
     final UpdateSketch local;

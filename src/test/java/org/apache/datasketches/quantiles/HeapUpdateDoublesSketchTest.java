@@ -20,15 +20,14 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.floor;
-import static org.apache.datasketches.QuantileSearchCriteria.*;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.quantiles.Util.LS;
-import static org.apache.datasketches.quantiles.Util.computeCombinedBufferItemCapacity;
-import static org.apache.datasketches.quantiles.Util.computeNumLevelsNeeded;
-import static org.apache.datasketches.quantiles.Util.lg;
-import static org.apache.datasketches.Util.checkDoublesSplitPointsOrder;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
+import static org.apache.datasketches.Util.log2;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -40,6 +39,7 @@ import java.nio.ByteOrder;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesUtil;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -279,7 +279,7 @@ public class HeapUpdateDoublesSketchTest {
     int n = 1 << 20;
     int k = PreambleUtil.DEFAULT_K;
     int lvls1 = computeNumLevelsNeeded(k, n);
-    int lvls2 = (int)Math.max(floor(lg((double)n/k)),0);
+    int lvls2 = (int)Math.max(floor(log2((double)n/k)),0);
     assertEquals(lvls1, lvls2);
   }
 
@@ -287,14 +287,14 @@ public class HeapUpdateDoublesSketchTest {
   public void checkComputeBitPattern() {
     int n = 1 << 20;
     int k = PreambleUtil.DEFAULT_K;
-    long bitP = Util.computeBitPattern(k, n);
+    long bitP = ClassicUtil.computeBitPattern(k, n);
     assertEquals(bitP, n/(2L*k));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkValidateSplitPointsOrder() {
     double[] arr = {2, 1};
-    checkDoublesSplitPointsOrder(arr);
+    QuantilesUtil.checkDoublesSplitPointsOrder(arr);
   }
 
   @Test
@@ -307,12 +307,12 @@ public class HeapUpdateDoublesSketchTest {
     qs = buildAndLoadQS(k, 2*k); //forces one level
     stor = qs.getCurrentCompactSerializedSizeBytes();
 
-    int retItems = Util.computeRetainedItems(k, 2*k);
+    int retItems = ClassicUtil.computeRetainedItems(k, 2*k);
     assertEquals(stor, 32 + (retItems << 3));
 
     qs = buildAndLoadQS(k, (2*k)-1); //just Base Buffer
     stor = qs.getCurrentCompactSerializedSizeBytes();
-    retItems = Util.computeRetainedItems(k, (2*k)-1);
+    retItems = ClassicUtil.computeRetainedItems(k, (2*k)-1);
     assertEquals(stor, 32 + (retItems << 3));
   }
 
@@ -380,7 +380,7 @@ public class HeapUpdateDoublesSketchTest {
   public void checkComputeBaseBufferCount() {
     int n = 1 << 20;
     int k = PreambleUtil.DEFAULT_K;
-    long bbCnt = Util.computeBaseBufferItems(k, n);
+    long bbCnt = ClassicUtil.computeBaseBufferItems(k, n);
     assertEquals(bbCnt, n % (2L*k));
   }
 
@@ -460,7 +460,7 @@ public class HeapUpdateDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFamilyID() {
-    Util.checkFamilyID(3);
+    ClassicUtil.checkFamilyID(3);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -491,7 +491,7 @@ public class HeapUpdateDoublesSketchTest {
     int preLongs = 5;
     int flags = EMPTY_FLAG_MASK;
     int memCap = 8;
-    Util.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
+    ClassicUtil.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -499,13 +499,13 @@ public class HeapUpdateDoublesSketchTest {
     int preLongs = 5;
     int flags = 0;
     int memCap = 8;
-    Util.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
+    ClassicUtil.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFlags() {
     int flags = 1;
-    Util.checkHeapFlags(flags);
+    ClassicUtil.checkHeapFlags(flags);
   }
 
   @Test
@@ -804,7 +804,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkEvenlySpaced() {
     int n = 11;
-    double[] es = org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, n);
+    double[] es = org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
@@ -1025,9 +1025,9 @@ public class HeapUpdateDoublesSketchTest {
       ( (mq1.getK() == mq2.getK())
         && (mq1.getN() == mq2.getN())
         && (mq1.getCombinedBufferItemCapacity()
-            >= Util.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN()))
+            >= ClassicUtil.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN()))
         && (mq2.getCombinedBufferItemCapacity()
-            >= Util.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN()))
+            >= ClassicUtil.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN()))
         && (mq1.getBaseBufferCount() == mq2.getBaseBufferCount())
         && (mq1.getBitPattern() == mq2.getBitPattern()) );
 

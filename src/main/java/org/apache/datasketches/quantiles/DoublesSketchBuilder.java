@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.Util.LS;
-import static org.apache.datasketches.quantiles.Util.TAB;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.TAB;
 
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -50,7 +50,7 @@ public class DoublesSketchBuilder {
    * @return this builder
    */
   public DoublesSketchBuilder setK(final int k) {
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     bK = k;
     return this;
   }

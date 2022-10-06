@@ -20,21 +20,21 @@
 package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.HashOperations.continueCondition;
-import static org.apache.datasketches.HashOperations.convertToHashTable;
-import static org.apache.datasketches.HashOperations.count;
-import static org.apache.datasketches.HashOperations.hashSearch;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
+import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
+import static org.apache.datasketches.thetacommon.HashOperations.count;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SetOperationCornerCases;
-import org.apache.datasketches.SetOperationCornerCases.AnotbAction;
-import org.apache.datasketches.SetOperationCornerCases.CornerCase;
 //import org.apache.datasketches.tuple.AnotB.DataArrays;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 
 /**
@@ -167,7 +167,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
 
     //create hashtable of skB
     final long[] hashTableB = convertToHashTable(skB.getKeys(), skB.getRetainedEntries(), minThetaLong,
-        REBUILD_THRESHOLD);
+        ThetaUtil.REBUILD_THRESHOLD);
 
     //build temporary arrays of skA
     long[] tmpHashArrA = new long[countA];

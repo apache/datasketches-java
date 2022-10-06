@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
-import org.apache.datasketches.DoublesSortedViewIterator;
-import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 
 /**
  * Iterator over KllDoublesSketchSortedView

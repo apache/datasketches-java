@@ -22,19 +22,19 @@ package org.apache.datasketches.quantiles;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.quantiles.Util.checkIsCompactMemory;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory;
 
 import java.util.Random;
 
-import org.apache.datasketches.DoublesSortedView;
 import org.apache.datasketches.Family;
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesAPI;
-import org.apache.datasketches.QuantilesDoublesAPI;
-import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
 /**
  * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using doubles,
@@ -112,7 +112,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   DoublesSketchSortedView classicQdsSV = null;
 
   DoublesSketch(final int k) {
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     k_ = k;
   }
 
@@ -199,7 +199,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
   /**
@@ -209,7 +209,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getQuantileLowerBound(final double rank) {
-    return getQuantile(max(0, rank - Util.getNormalizedRankError(k_, false)));
+    return getQuantile(max(0, rank - ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -219,7 +219,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getQuantileUpperBound(final double rank) {
-    return getQuantile(min(1.0, rank + Util.getNormalizedRankError(k_, false)));
+    return getQuantile(min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
   @Override
@@ -236,7 +236,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getRankLowerBound(final double rank) {
-    return max(0.0, rank - Util.getNormalizedRankError(k_, false));
+    return max(0.0, rank - ClassicUtil.getNormalizedRankError(k_, false));
   }
 
   /**
@@ -246,7 +246,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getRankUpperBound(final double rank) {
-    return min(1.0, rank + Util.getNormalizedRankError(k_, false));
+    return min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false));
   }
 
   @Override
@@ -279,7 +279,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return Util.getNormalizedRankError(k_, pmf);
+    return ClassicUtil.getNormalizedRankError(k_, pmf);
   }
 
   /**
@@ -294,7 +294,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public static double getNormalizedRankError(final int k, final boolean pmf) {
-    return Util.getNormalizedRankError(k, pmf);
+    return ClassicUtil.getNormalizedRankError(k, pmf);
   }
 
   /**
@@ -307,7 +307,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * @return <i>k</i> given epsilon.
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    return Util.getKFromEpsilon(epsilon, pmf);
+    return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
   @Override
@@ -412,7 +412,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   @Override
   public int getNumRetained() {
-    return Util.computeRetainedItems(getK(), getN());
+    return ClassicUtil.computeRetainedItems(getK(), getN());
   }
 
   /**
@@ -433,7 +433,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   public static int getCompactSerialiedSizeBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    return metaPreLongs + Util.computeRetainedItems(k, n) << 3;
+    return metaPreLongs + ClassicUtil.computeRetainedItems(k, n) << 3;
   }
 
   @Override
@@ -461,7 +461,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   public static int getUpdatableStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    final int totLevels = Util.computeNumLevelsNeeded(k, n);
+    final int totLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
     if (n <= k) {
       final int ceil = Math.max(ceilingIntPowerOf2((int)n), DoublesSketch.MIN_K * 2);
       return metaPre + ceil << 3;

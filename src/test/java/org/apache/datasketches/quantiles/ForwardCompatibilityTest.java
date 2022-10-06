@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.Util.getResourceBytes;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;

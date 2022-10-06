@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
@@ -28,6 +26,7 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
 
@@ -104,7 +103,7 @@ final class HeapArrayOfDoublesCompactSketch extends ArrayOfDoublesCompactSketch 
    * @param mem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    */
   HeapArrayOfDoublesCompactSketch(final Memory mem) {
-    this(mem, DEFAULT_UPDATE_SEED);
+    this(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**

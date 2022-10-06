@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -33,6 +32,7 @@ import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -505,7 +505,7 @@ public class HeapIntersectionTest {
 
   @Test
   public void checkFamily() {
-    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(DEFAULT_UPDATE_SEED);
+    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 

@@ -21,7 +21,6 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
@@ -29,8 +28,9 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.Util.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.Util.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -38,14 +38,14 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Random;
 
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesAPI;
-import org.apache.datasketches.QuantilesGenericSketchIterator;
 import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.GenericSortedView;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 /**
  * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using generic items,
@@ -134,7 +134,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
       final Comparator<? super T> comparator) {
     Objects.requireNonNull(clazz, "Class<T> must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     k_ = k;
     this.clazz = clazz;
     comparator_ = comparator;
@@ -210,8 +210,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
       throw new SketchesArgumentException("Non-compact Memory images are not supported.");
     }
 
-    final boolean empty = Util.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
-    Util.checkFamilyID(familyID);
+    final boolean empty = ClassicUtil.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
+    ClassicUtil.checkFamilyID(familyID);
 
     final ItemsSketch<T> qs = getInstance(clazz, k, comparator); //checks k
     if (empty) { return qs; }
@@ -221,11 +221,11 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
     //can't check memory capacity here, not enough information
     final int extra = 2; //for min, max
-    final int numMemItems = Util.computeRetainedItems(k, n) + extra;
+    final int numMemItems = ClassicUtil.computeRetainedItems(k, n) + extra;
 
     //set class members
     qs.n_ = n;
-    qs.combinedBufferItemCapacity_ = Util.computeCombinedBufferItemCapacity(k, n);
+    qs.combinedBufferItemCapacity_ = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
     qs.baseBufferCount_ = computeBaseBufferItems(k, n);
     qs.bitPattern_ = computeBitPattern(k, n);
     qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];
@@ -405,7 +405,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param searchCrit is INCLUSIVE, the given rank includes all quantiles &le;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
-   * @see org.apache.datasketches.QuantileSearchCriteria
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   public T getQuantile(
       final double rank,
@@ -435,7 +435,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le;
    * the quantile directly corresponding to each rank.
    * @return an array of quantiles corresponding to the given array of normalized ranks.
-   * @see org.apache.datasketches.QuantileSearchCriteria
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   @SuppressWarnings("unchecked")
   public T[] getQuantiles(
@@ -481,13 +481,13 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le; the quantile directly corresponding to
    * each rank.
    * @return an array of quantiles that are evenly spaced by their ranks.
-   * @see org.apache.datasketches.QuantileSearchCriteria
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   public T[] getQuantiles(
       final int numEvenlySpaced,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
   /**
@@ -507,7 +507,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * given rank exists.
    */
   public T getQuantileLowerBound(final double rank) {
-    return getQuantile(max(0, rank - Util.getNormalizedRankError(k_, false)));
+    return getQuantile(max(0, rank - ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -529,7 +529,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * given rank exists.
    */
   public T getQuantileUpperBound(final double rank) {
-    return getQuantile(min(1.0, rank + Util.getNormalizedRankError(k_, false)));
+    return getQuantile(min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -549,7 +549,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
    * @return the normalized rank corresponding to the given quantile
-   * @see org.apache.datasketches.QuantileSearchCriteria
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   public double getRank(
       final T quantile,
@@ -566,7 +566,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    */
   @Override
   public double getRankLowerBound(final double rank) {
-    return max(0.0, rank - Util.getNormalizedRankError(k_, false));
+    return max(0.0, rank - ClassicUtil.getNormalizedRankError(k_, false));
   }
 
   /**
@@ -576,7 +576,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    */
   @Override
   public double getRankUpperBound(final double rank) {
-    return min(1.0, rank + Util.getNormalizedRankError(k_, false));
+    return min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false));
   }
 
   /**
@@ -597,7 +597,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param quantiles the given array of quantiles
    * @param searchCrit if INCLUSIVE, the given quantiles include the rank directly corresponding to each quantile.
    * @return an array of normalized ranks corresponding to the given array of quantiles.
-   * @see org.apache.datasketches.QuantileSearchCriteria
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   public double[] getRanks(
       final T[] quantiles,
@@ -638,7 +638,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return Util.getNormalizedRankError(k_, pmf);
+    return ClassicUtil.getNormalizedRankError(k_, pmf);
   }
 
   /**
@@ -653,7 +653,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   public static double getNormalizedRankError(
       final int k,
       final boolean pmf) {
-    return Util.getNormalizedRankError(k, pmf);
+    return ClassicUtil.getNormalizedRankError(k, pmf);
   }
 
   /**
@@ -668,7 +668,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   public static int getKFromEpsilon(
       final double epsilon,
       final boolean pmf) {
-    return Util.getKFromEpsilon(epsilon, pmf);
+    return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
   @Override
@@ -784,7 +784,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   @Override
   public int getNumRetained() {
-    return Util.computeRetainedItems(getK(), getN());
+    return ClassicUtil.computeRetainedItems(getK(), getN());
   }
 
   /**

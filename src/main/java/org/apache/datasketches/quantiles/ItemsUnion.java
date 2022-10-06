@@ -239,7 +239,7 @@ public final class ItemsUnion<T> {
     final String thisSimpleName = this.getClass().getSimpleName();
     final int maxK = this.getMaxK();
     final String kStr = String.format("%,d", maxK);
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
+    sb.append(ClassicUtil.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
       sb.append(ItemsSketch.getInstance(this.clazz_, maxK_, comparator_).toString());

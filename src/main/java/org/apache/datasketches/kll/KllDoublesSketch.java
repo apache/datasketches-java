@@ -29,13 +29,13 @@ import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import java.util.Objects;
 
-import org.apache.datasketches.DoublesSortedView;
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesDoublesAPI;
-import org.apache.datasketches.QuantilesDoublesSketchIterator;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
 /**
  * This variation of the KllSketch implements primitive doubles.
@@ -208,7 +208,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
   /**

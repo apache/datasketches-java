@@ -23,7 +23,6 @@ import static org.apache.datasketches.Family.QUICKSELECT;
 import static org.apache.datasketches.ResizeFactor.X1;
 import static org.apache.datasketches.ResizeFactor.X2;
 import static org.apache.datasketches.ResizeFactor.X8;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
@@ -42,9 +41,9 @@ import java.util.Arrays;
 import org.apache.datasketches.Family;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -57,7 +56,7 @@ public class HeapQuickSelectSketchTest {
   public void checkBadSerVer() {
     int k = 512;
     int u = k;
-    long seed = DEFAULT_UPDATE_SEED;
+    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
     HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
 
@@ -82,7 +81,7 @@ public class HeapQuickSelectSketchTest {
   public void checkIllegalSketchID_UpdateSketch() {
     int k = 512;
     int u = k;
-    long seed = DEFAULT_UPDATE_SEED;
+    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
     HeapQuickSelectSketch sk1 = (HeapQuickSelectSketch)usk; //for internal checks
     assertTrue(usk.isEmpty());
@@ -106,7 +105,7 @@ public class HeapQuickSelectSketchTest {
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
-    long seed2 = DEFAULT_UPDATE_SEED;
+    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed1).setNominalEntries(k).build();
     byte[] byteArray = usk.toByteArray();
     Memory srcMem = Memory.wrap(byteArray);
@@ -118,14 +117,14 @@ public class HeapQuickSelectSketchTest {
     UpdateSketch usk = UpdateSketch.builder().setNominalEntries(16).build();
     WritableMemory srcMem = WritableMemory.writableWrap(usk.toByteArray());
     srcMem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(srcMem, DEFAULT_UPDATE_SEED);
+    Sketch.heapify(srcMem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test
   public void checkHeapifyByteArrayExact() {
     int k = 512;
     int u = k;
-    long seed = DEFAULT_UPDATE_SEED;
+    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
@@ -152,7 +151,7 @@ public class HeapQuickSelectSketchTest {
   public void checkHeapifyByteArrayEstimating() {
     int k = 4096;
     int u = 2*k;
-    long seed = DEFAULT_UPDATE_SEED;
+    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
 
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
@@ -181,7 +180,7 @@ public class HeapQuickSelectSketchTest {
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
     int u = 2*k;
-    long seed = DEFAULT_UPDATE_SEED;
+    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
     boolean estimating = (u > k);
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
@@ -197,7 +196,7 @@ public class HeapQuickSelectSketchTest {
     byte[] byteArray = sk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
 
-    UpdateSketch sk2 = UpdateSketch.heapify(mem, DEFAULT_UPDATE_SEED);
+    UpdateSketch sk2 = UpdateSketch.heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
 
     assertEquals(sk2.getEstimate(), sk1est);
     assertEquals(sk2.getLowerBound(2), sk1lb);
@@ -513,7 +512,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
     ResizeFactor rf = sk1.getResizeFactor();
-    int subMul = Util.startingSubMultiple(11, rf.lg(), 5); //messy
+    int subMul = ThetaUtil.startingSubMultiple(11, rf.lg(), 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
 
     UpdateSketch usk2 = UpdateSketch.builder().setFamily(fam_).setResizeFactor(ResizeFactor.X1).setNominalEntries(k).build();
@@ -526,7 +525,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(1 << sk1.getLgArrLongs(), 2*k);
     sk1.reset();
     rf = sk1.getResizeFactor();
-    subMul = Util.startingSubMultiple(11, rf.lg(), 5); //messy
+    subMul = ThetaUtil.startingSubMultiple(11, rf.lg(), 5); //messy
     assertEquals(sk1.getLgArrLongs(), subMul);
 
     assertNull(sk1.getMemory());
@@ -596,7 +595,7 @@ public class HeapQuickSelectSketchTest {
     final long origThetaLong = mem.getLong(THETA_LONG);
     try {
       mem.putLong(THETA_LONG, Long.MAX_VALUE / 2); //Corrupt the theta value
-      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+      HeapQuickSelectSketch.heapifyInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -606,7 +605,7 @@ public class HeapQuickSelectSketchTest {
     WritableMemory mem2 = WritableMemory.writableWrap(byteArray2);
     mem.copyTo(0, mem2, 0, mem2.getCapacity());
     try {
-      HeapQuickSelectSketch.heapifyInstance(mem2, DEFAULT_UPDATE_SEED);
+      HeapQuickSelectSketch.heapifyInstance(mem2, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected
@@ -614,14 +613,14 @@ public class HeapQuickSelectSketchTest {
 
     // force ResizeFactor.X1, but allocated capacity too small
     insertLgResizeFactor(mem, ResizeFactor.X1.lg());
-    UpdateSketch hqss = HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+    UpdateSketch hqss = HeapQuickSelectSketch.heapifyInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals(hqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
   private static void tryBadMem(WritableMemory mem, int byteOffset, int byteValue) {
     try {
       mem.putByte(byteOffset, (byte) byteValue); //Corrupt
-      HeapQuickSelectSketch.heapifyInstance(mem, DEFAULT_UPDATE_SEED);
+      HeapQuickSelectSketch.heapifyInstance(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) {
       //expected

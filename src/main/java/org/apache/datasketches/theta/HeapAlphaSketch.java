@@ -22,12 +22,7 @@ package org.apache.datasketches.theta;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
-import static org.apache.datasketches.HashOperations.STRIDE_MASK;
 import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
-import static org.apache.datasketches.Util.startingSubMultiple;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
@@ -40,13 +35,15 @@ import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncre
 import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountNotIncremented;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
+import static org.apache.datasketches.thetacommon.HashOperations.STRIDE_MASK;
 
 import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This sketch uses the
@@ -102,7 +99,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
     final HeapAlphaSketch has = new HeapAlphaSketch(lgNomLongs, seed, p, rf, alpha, split1);
 
-    final int lgArrLongs = startingSubMultiple(lgNomLongs + 1, rf.lg(), MIN_LG_ARR_LONGS);
+    final int lgArrLongs = ThetaUtil.startingSubMultiple(lgNomLongs + 1, rf.lg(), ThetaUtil.MIN_LG_ARR_LONGS);
     has.lgArrLongs_ = lgArrLongs;
     has.hashTableThreshold_ = setHashTableThreshold(lgNomLongs, lgArrLongs);
     has.curCount_ = 0;
@@ -246,7 +243,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   @Override
   public final void reset() {
     final int lgArrLongs =
-        startingSubMultiple(lgNomLongs_ + 1, getResizeFactor().lg(), MIN_LG_ARR_LONGS);
+        ThetaUtil.startingSubMultiple(lgNomLongs_ + 1, getResizeFactor().lg(), ThetaUtil.MIN_LG_ARR_LONGS);
     if (lgArrLongs == lgArrLongs_) {
       final int arrLongs = cache_.length;
       assert (1 << lgArrLongs_) == arrLongs;
@@ -553,7 +550,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * @return the hash table threshold
    */
   private static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    final double fraction = (lgArrLongs <= lgNomLongs) ? RESIZE_THRESHOLD : REBUILD_THRESHOLD;
+    final double fraction = (lgArrLongs <= lgNomLongs) ? ThetaUtil.RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 

@@ -19,17 +19,17 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesAPI;
-import org.apache.datasketches.QuantilesFloatsSketchIterator;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
  * This Relative Error Quantiles Sketch is the Java implementation based on the paper

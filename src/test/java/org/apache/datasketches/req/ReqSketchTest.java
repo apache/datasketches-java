@@ -19,12 +19,8 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.EXCLUSIVE;
-
-
-import static org.apache.datasketches.Util.evenlySpacedFloats;
-import static org.apache.datasketches.Util.evenlySpaced;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -32,10 +28,11 @@ import static org.testng.Assert.fail;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesUtil;
 import org.testng.annotations.Test;
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesFloatsSketchIterator;
 
 /**
  * @author Lee Rhodes
@@ -122,8 +119,8 @@ public class ReqSketchTest {
 
   private static void checkGetRank(final ReqSketch sk, final int min, final int max, final int iDebug) {
     if (iDebug > 0) { println("GetRank Test: INCLUSIVE"); }
-    final float[] spArr = evenlySpacedFloats(0, max, 11);
-    final double[] trueRanks = evenlySpaced(0, 1.0, 11);
+    final float[] spArr = QuantilesUtil.evenlySpacedFloats(0, max, 11);
+    final double[] trueRanks = QuantilesUtil.evenlySpaced(0, 1.0, 11);
     final String dfmt = "%10.2f%10.6f" + LS;
     final String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }
@@ -142,7 +139,7 @@ public class ReqSketchTest {
 
   private static void checkGetRanks(final ReqSketch sk, final int max, final int iDebug) {
     if (iDebug > 0) { println("GetRanks Test:"); }
-    final float[] sp = evenlySpacedFloats(0, max, 11);
+    final float[] sp = QuantilesUtil.evenlySpacedFloats(0, max, 11);
     final String dfmt = "%10.2f%10.6f" + LS;
     final String sfmt = "%10s%10s" + LS;
     if (iDebug > 0) { printf(sfmt, "Value", "Rank"); }

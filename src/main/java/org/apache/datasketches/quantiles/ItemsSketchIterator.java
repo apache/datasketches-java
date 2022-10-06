@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.QuantilesGenericSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 /**
  * Iterator over ItemsSketch. The order is not defined.

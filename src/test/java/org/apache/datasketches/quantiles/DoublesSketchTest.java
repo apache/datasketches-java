@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -27,11 +27,11 @@ import static org.testng.Assert.assertTrue;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.DoublesSortedView;
-import org.apache.datasketches.DoublesSortedViewIterator;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

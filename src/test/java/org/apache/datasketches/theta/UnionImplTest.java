@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.testng.Assert.assertEquals;
@@ -27,10 +26,10 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 public class UnionImplTest {
@@ -101,7 +100,7 @@ public class UnionImplTest {
   @Test
   public void checkFastWrap() {
     final int k = 16;
-    final long seed = DEFAULT_UPDATE_SEED;
+    final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
     final int unionSize = Sketches.getMaxUnionBytes(k);
     final WritableMemory srcMem = WritableMemory.writableWrap(new byte[unionSize]);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion(srcMem);
@@ -138,7 +137,7 @@ public class UnionImplTest {
       sketch.update(i);
     }
     final CompactSketch csk = sketch.compact(true, null);
-    final WritableMemory v2mem = (WritableMemory) convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
+    final WritableMemory v2mem = (WritableMemory) convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
 
     v2mem.putByte(PreambleUtil.FAMILY_BYTE, (byte)0); //corrupt family
 
@@ -166,7 +165,7 @@ public class UnionImplTest {
   public void checkVer2EmptyHandling() {
     final int k = 16;
     final UpdateSketch sketch = Sketches.updateSketchBuilder().setNominalEntries(k).build();
-    final Memory mem = convertSerVer3toSerVer2(sketch.compact(), Util.DEFAULT_UPDATE_SEED);
+    final Memory mem = convertSerVer3toSerVer2(sketch.compact(), ThetaUtil.DEFAULT_UPDATE_SEED);
     final Union union = Sketches.setOperationBuilder().setNominalEntries(k).buildUnion();
     union.union(mem);
   }
@@ -201,7 +200,7 @@ public class UnionImplTest {
     final Union union = Sketches.setOperationBuilder().buildUnion();
     assertTrue(union.isEmpty());
     assertEquals(union.getThetaLong(), Long.MAX_VALUE);
-    assertEquals(union.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
+    assertEquals(union.getSeedHash(), ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
     assertEquals(union.getRetainedEntries(), 0);
     assertEquals(union.getCache().length, 128); //only applies to stateful
   }

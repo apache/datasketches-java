@@ -19,18 +19,16 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.HashOperations.convertToHashTable;
-import static org.apache.datasketches.HashOperations.hashSearch;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.util.Arrays;
 
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Implements the A-and-not-B operations.
@@ -50,7 +48,7 @@ final class AnotBimpl extends AnotB {
    * @param seed <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    */
   AnotBimpl(final long seed) {
-    this(computeSeedHash(seed));
+    this(ThetaUtil.computeSeedHash(seed));
   }
 
   /**
@@ -74,7 +72,7 @@ final class AnotBimpl extends AnotB {
       return;
     }
     //skA is not empty
-    checkSeedHashes(seedHash_, skA.getSeedHash());
+    ThetaUtil.checkSeedHashes(seedHash_, skA.getSeedHash());
 
     //process A
     hashArr_ = getHashArrA(skA);
@@ -87,7 +85,7 @@ final class AnotBimpl extends AnotB {
   public void notB(final Sketch skB) {
     if (empty_ || skB == null || skB.isEmpty()) { return; }
     //local and skB is not empty
-    checkSeedHashes(seedHash_, skB.getSeedHash());
+    ThetaUtil.checkSeedHashes(seedHash_, skB.getSeedHash());
 
     thetaLong_ = Math.min(thetaLong_,  skB.getThetaLong());
 
@@ -123,12 +121,12 @@ final class AnotBimpl extends AnotB {
 
     if (skA.isEmpty()) { return skA.compact(dstOrdered, dstMem); }
     //A is not Empty
-    checkSeedHashes(skA.getSeedHash(), seedHash_);
+    ThetaUtil.checkSeedHashes(skA.getSeedHash(), seedHash_);
 
     if (skB.isEmpty()) {
       return skA.compact(dstOrdered, dstMem);
    }
-    checkSeedHashes(skB.getSeedHash(), seedHash_);
+    ThetaUtil.checkSeedHashes(skB.getSeedHash(), seedHash_);
     //Both skA & skB are not empty
 
     //process A
@@ -175,7 +173,7 @@ final class AnotBimpl extends AnotB {
     final long[] thetaCache = skB.getCache();
     final int countB = skB.getRetainedEntries(true);
     if (skB instanceof CompactSketch) {
-      hashTableB = convertToHashTable(thetaCache, countB, minThetaLong, REBUILD_THRESHOLD);
+      hashTableB = convertToHashTable(thetaCache, countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {
       hashTableB = thetaCache;
     }

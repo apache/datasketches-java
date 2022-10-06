@@ -20,14 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.HashOperations.continueCondition;
-import static org.apache.datasketches.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.HashOperations.hashInsertOnlyMemory;
-import static org.apache.datasketches.HashOperations.hashSearch;
-import static org.apache.datasketches.HashOperations.minLgHashTableSize;
-import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
@@ -53,6 +45,11 @@ import static org.apache.datasketches.theta.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.setEmpty;
+import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
+import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
+import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnlyMemory;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
+import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 
 import java.util.Arrays;
 
@@ -60,9 +57,9 @@ import org.apache.datasketches.Family;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.SketchesReadOnlyException;
 import org.apache.datasketches.SketchesStateException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Intersection operation for Theta Sketches.
@@ -103,17 +100,17 @@ class IntersectionImpl extends Intersection {
       if (dstMemFlag) { //DstMem: compute & store seedHash, no seedhash checking
         checkMinSizeMemory(wmem);
         maxLgArrLongs_ = !readOnly ? getMaxLgArrLongs(wmem) : 0; //Only Off Heap
-        seedHash_ = computeSeedHash(seed);
+        seedHash_ = ThetaUtil.computeSeedHash(seed);
         wmem_.putShort(SEED_HASH_SHORT, seedHash_);
       } else { //SrcMem:gets and stores the seedHash, checks mem_seedHash against the seed
         seedHash_ = wmem_.getShort(SEED_HASH_SHORT);
-        Util.checkSeedHashes(seedHash_, computeSeedHash(seed)); //check for seed hash conflict
+        ThetaUtil.checkSeedHashes(seedHash_, ThetaUtil.computeSeedHash(seed)); //check for seed hash conflict
         maxLgArrLongs_ = 0;
       }
     } else { //compute & store seedHash
       wmem_ = null;
       maxLgArrLongs_ = 0;
-      seedHash_ = computeSeedHash(seed);
+      seedHash_ = ThetaUtil.computeSeedHash(seed);
     }
   }
 
@@ -240,7 +237,7 @@ class IntersectionImpl extends Intersection {
       resetToEmpty();
       return;
     }
-    Util.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
+    ThetaUtil.checkSeedHashes(seedHash_, sketchIn.getSeedHash());
     //Set minTheta
     thetaLong_ = min(thetaLong_, sketchIn.getThetaLong()); //Theta rule
     empty_ = false;
@@ -271,7 +268,7 @@ class IntersectionImpl extends Intersection {
     // state 5
     else if (curCount_ < 0 && sketchInEntries > 0) {
       curCount_ = sketchIn.getRetainedEntries(true);
-      final int requiredLgArrLongs = minLgHashTableSize(curCount_, REBUILD_THRESHOLD);
+      final int requiredLgArrLongs = minLgHashTableSize(curCount_, ThetaUtil.REBUILD_THRESHOLD);
       final int priorLgArrLongs = lgArrLongs_; //prior only used in error message
       lgArrLongs_ = requiredLgArrLongs;
 
@@ -466,7 +463,7 @@ class IntersectionImpl extends Intersection {
     }
     //reduce effective array size to minimum
     curCount_ = matchSetCount;
-    lgArrLongs_ = minLgHashTableSize(matchSetCount, REBUILD_THRESHOLD);
+    lgArrLongs_ = minLgHashTableSize(matchSetCount, ThetaUtil.REBUILD_THRESHOLD);
     if (wmem_ != null) {
       insertCurCount(wmem_, matchSetCount);
       insertLgArrLongs(wmem_, lgArrLongs_);
@@ -531,11 +528,11 @@ class IntersectionImpl extends Intersection {
   private void resetCommon() {
     if (wmem_ != null) {
       if (readOnly_) { throw new SketchesReadOnlyException(); }
-      wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << MIN_LG_ARR_LONGS);
-      insertLgArrLongs(wmem_, MIN_LG_ARR_LONGS);
+      wmem_.clear(CONST_PREAMBLE_LONGS << 3, 8 << ThetaUtil.MIN_LG_ARR_LONGS);
+      insertLgArrLongs(wmem_, ThetaUtil.MIN_LG_ARR_LONGS);
       insertThetaLong(wmem_, Long.MAX_VALUE);
     }
-    lgArrLongs_ = MIN_LG_ARR_LONGS;
+    lgArrLongs_ = ThetaUtil.MIN_LG_ARR_LONGS;
     thetaLong_ = Long.MAX_VALUE;
     hashTable_ = null;
   }

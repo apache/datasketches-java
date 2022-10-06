@@ -20,7 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;

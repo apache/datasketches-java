@@ -20,10 +20,10 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
-import org.apache.datasketches.FloatsSortedViewIterator;
-import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 
 /**
  * Iterator over ReqSketchSortedView.

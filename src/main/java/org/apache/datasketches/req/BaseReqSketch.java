@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.req;
 
-import org.apache.datasketches.FloatsSortedView;
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.QuantilesFloatsAPI;
-import org.apache.datasketches.QuantilesFloatsSketchIterator;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsAPI;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
  * This abstract class provides a single place to define and document the public API
@@ -89,7 +89,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
   }
 
   @Override

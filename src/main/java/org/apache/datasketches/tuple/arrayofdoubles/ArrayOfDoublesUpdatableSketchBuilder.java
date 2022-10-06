@@ -19,13 +19,10 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.checkNomLongs;
-
 import org.apache.datasketches.ResizeFactor;
 import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * For building a new ArrayOfDoublesUpdatableSketch
@@ -46,11 +43,11 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * Creates an instance of builder with default parameters
    */
   public ArrayOfDoublesUpdatableSketchBuilder() {
-    nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
+    nomEntries_ = ThetaUtil.DEFAULT_NOMINAL_ENTRIES;
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     numValues_ = DEFAULT_NUMBER_OF_VALUES;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
-    seed_ = DEFAULT_UPDATE_SEED;
+    seed_ = ThetaUtil.DEFAULT_UPDATE_SEED;
   }
 
   /**
@@ -60,7 +57,7 @@ public class ArrayOfDoublesUpdatableSketchBuilder {
    * @return this builder
    */
   public ArrayOfDoublesUpdatableSketchBuilder setNominalEntries(final int nomEntries) {
-    nomEntries_ = 1 << checkNomLongs(nomEntries);
+    nomEntries_ = 1 << ThetaUtil.checkNomLongs(nomEntries);
     return this;
   }
 

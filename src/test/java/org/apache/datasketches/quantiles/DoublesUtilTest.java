@@ -20,7 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketchTest.buildAndLoadQS;
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 
 import org.testng.annotations.Test;
 

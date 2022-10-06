@@ -19,18 +19,18 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.Util.checkNormalizedRankBounds;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.GenericInequalitySearch;
-import org.apache.datasketches.GenericInequalitySearch.Inequality;
-import org.apache.datasketches.GenericSortedView;
-import org.apache.datasketches.InequalitySearch;
-import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
+import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.InequalitySearch;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesUtil;
+import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.SketchesStateException;
 
 /**
@@ -92,7 +92,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    checkNormalizedRankBounds(normRank);
+    QuantilesUtil.checkNormalizedRankBounds(normRank);
     final int len = cumWeights.length;
     final long naturalRank = (int)(normRank * totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;

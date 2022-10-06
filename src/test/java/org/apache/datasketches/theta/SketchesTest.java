@@ -36,9 +36,9 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -79,13 +79,13 @@ public class SketchesTest {
     CompactSketch csk2 = (CompactSketch)heapifySketch(mem);
     assertEquals((int)csk2.getEstimate(), k);
 
-    csk2 = (CompactSketch)heapifySketch(mem, Util.DEFAULT_UPDATE_SEED);
+    csk2 = (CompactSketch)heapifySketch(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
 
     csk2 = (CompactSketch)wrapSketch(mem);
     assertEquals((int)csk2.getEstimate(), k);
 
-    csk2 = (CompactSketch)wrapSketch(mem, Util.DEFAULT_UPDATE_SEED);
+    csk2 = (CompactSketch)wrapSketch(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals((int)csk2.getEstimate(), k);
   }
 
@@ -112,7 +112,7 @@ public class SketchesTest {
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
-    union2 = (Union)heapifySetOperation(uMem, Util.DEFAULT_UPDATE_SEED);
+    union2 = (Union)heapifySetOperation(uMem, ThetaUtil.DEFAULT_UPDATE_SEED);
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
@@ -120,7 +120,7 @@ public class SketchesTest {
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 
-    union2 = (Union)wrapSetOperation(uMem, Util.DEFAULT_UPDATE_SEED);
+    union2 = (Union)wrapSetOperation(uMem, ThetaUtil.DEFAULT_UPDATE_SEED);
     cSk = union2.getResult(true, null);
     assertEquals((int)cSk.getEstimate(), 3*k/2);
 

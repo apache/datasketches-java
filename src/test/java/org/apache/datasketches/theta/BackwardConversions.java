@@ -20,9 +20,9 @@
 package org.apache.datasketches.theta;
 
 import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This class converts current compact sketches into prior SerVer 1 and SerVer 2 format for testing.
@@ -182,7 +182,7 @@ public class BackwardConversions {
    * @return a SerVer2 SetSketch as Memory object.
    */
   public static Memory convertSerVer3toSerVer2(final CompactSketch skV3, final long seed) {
-    final short seedHash = Util.computeSeedHash(seed);
+    final short seedHash = ThetaUtil.computeSeedHash(seed);
     WritableMemory wmem = null;
 
     if (skV3 instanceof EmptyCompactSketch) {

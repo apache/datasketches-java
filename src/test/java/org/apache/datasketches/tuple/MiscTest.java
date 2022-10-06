@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;
 import org.apache.datasketches.tuple.adouble.DoubleSummaryFactory;
