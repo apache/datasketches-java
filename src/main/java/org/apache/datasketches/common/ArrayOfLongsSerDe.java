@@ -17,38 +17,38 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * Methods of serializing and deserializing arrays of Double.
+ * Methods of serializing and deserializing arrays of Long.
  *
  * @author Alexander Saydakov
  */
-public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
+public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
 
   @Override
-  public byte[] serializeToByteArray(final Double[] items) {
-    final byte[] bytes = new byte[Double.BYTES * items.length];
+  public byte[] serializeToByteArray(final Long[] items) {
+    final byte[] bytes = new byte[Long.BYTES * items.length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putDouble(offsetBytes, items[i]);
-      offsetBytes += Double.BYTES;
+      mem.putLong(offsetBytes, items[i]);
+      offsetBytes += Long.BYTES;
     }
     return bytes;
   }
 
   @Override
-  public Double[] deserializeFromMemory(final Memory mem, final int length) {
-    Util.checkBounds(0, Double.BYTES, mem.getCapacity());
-    final Double[] array = new Double[length];
+  public Long[] deserializeFromMemory(final Memory mem, final int length) {
+    Util.checkBounds(0, (long)length * Long.BYTES, mem.getCapacity());
+    final Long[] array = new Long[length];
     long offsetBytes = 0;
     for (int i = 0; i < length; i++) {
-      array[i] = mem.getDouble(offsetBytes);
-      offsetBytes += Double.BYTES;
+      array[i] = mem.getLong(offsetBytes);
+      offsetBytes += Long.BYTES;
     }
     return array;
   }

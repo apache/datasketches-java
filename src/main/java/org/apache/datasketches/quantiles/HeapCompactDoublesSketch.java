@@ -36,7 +36,7 @@ import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

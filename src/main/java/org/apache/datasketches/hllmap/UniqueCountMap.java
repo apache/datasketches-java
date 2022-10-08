@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.hllmap;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * This is a real-time, key-value HLL mapping sketch that tracks approximate unique counts of

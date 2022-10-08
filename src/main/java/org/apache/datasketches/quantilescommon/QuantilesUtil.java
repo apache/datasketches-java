@@ -24,8 +24,8 @@ import static java.lang.Math.pow;
 
 import java.util.Objects;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 
 /**
  * Utilities for the quantiles sketches.

@@ -22,7 +22,7 @@ package org.apache.datasketches.thetacommon;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.theta.CompactSketch;
 import org.apache.datasketches.theta.Intersection;
 import org.apache.datasketches.theta.Sketches;

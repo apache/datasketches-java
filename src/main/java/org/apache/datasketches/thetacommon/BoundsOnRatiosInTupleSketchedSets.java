@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.thetacommon;
 
-import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
+import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 
-import org.apache.datasketches.BoundsOnRatiosInSampledSets;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.BoundsOnRatiosInSampledSets;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.Summary;
 

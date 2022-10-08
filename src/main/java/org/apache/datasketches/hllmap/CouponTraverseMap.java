@@ -21,7 +21,7 @@ package org.apache.datasketches.hllmap;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.hash.MurmurHash3;
 
 /**

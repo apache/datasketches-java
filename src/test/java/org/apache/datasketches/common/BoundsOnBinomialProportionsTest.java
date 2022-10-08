@@ -17,13 +17,13 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
-import static org.apache.datasketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
-import static org.apache.datasketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
-import static org.apache.datasketches.BoundsOnBinomialProportions.erf;
-import static org.apache.datasketches.BoundsOnBinomialProportions.estimateUnknownP;
-import static org.apache.datasketches.BoundsOnBinomialProportions.normalCDF;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.approximateLowerBoundOnP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.approximateUpperBoundOnP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.erf;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.estimateUnknownP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.normalCDF;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;

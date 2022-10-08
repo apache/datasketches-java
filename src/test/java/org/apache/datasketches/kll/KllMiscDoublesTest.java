@@ -26,11 +26,11 @@ import static org.testng.Assert.fail;
 
 import java.util.Objects;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 /**

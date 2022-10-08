@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**

@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.frequencies;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.zeroPad;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 // @formatter:off

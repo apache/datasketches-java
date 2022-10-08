@@ -25,8 +25,8 @@ import static org.apache.datasketches.hll.HllUtil.RESIZE_NUMER;
 import static org.apache.datasketches.hll.PreambleUtil.extractInt;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**

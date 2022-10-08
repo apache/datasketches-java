@@ -21,7 +21,7 @@ package org.apache.datasketches.fdt;
 
 import java.util.List;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSketch;

@@ -20,15 +20,15 @@
 package org.apache.datasketches.tuple;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;

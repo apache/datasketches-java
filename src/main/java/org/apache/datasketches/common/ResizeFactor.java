@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
 /**
  * For the Families that accept this configuration parameter, it controls the size multiple that

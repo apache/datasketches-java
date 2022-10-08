@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.getResourceFile;
+import static org.apache.datasketches.common.Util.getResourceFile;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;

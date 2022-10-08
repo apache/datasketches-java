@@ -21,7 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 
 /**
  * This allows access to package-private levels and data in whatever quantiles sketch you give

@@ -19,12 +19,12 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 
 import java.util.Comparator;
 import java.util.Objects;
 
-import org.apache.datasketches.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.memory.Memory;
 
 /**

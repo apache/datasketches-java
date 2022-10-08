@@ -30,10 +30,9 @@ import static org.testng.Assert.fail;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
 
 public class DoublesUnionImplTest {
 

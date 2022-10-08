@@ -20,14 +20,14 @@
 package org.apache.datasketches.tuple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.memory.XxHash.hashCharArr;
 import static org.apache.datasketches.memory.XxHash.hashString;
 
 import java.lang.reflect.Array;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**

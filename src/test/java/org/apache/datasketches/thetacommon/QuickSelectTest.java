@@ -26,7 +26,7 @@ import static org.apache.datasketches.thetacommon.QuickSelect.selectIncludingZer
 
 import java.util.Random;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 

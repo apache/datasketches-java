@@ -24,9 +24,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 
 public class UniqueCountMapTest {
   private final static int INIT_ENTRIES = 211;

@@ -21,8 +21,8 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.isEven;
-import static org.apache.datasketches.Util.isOdd;
+import static org.apache.datasketches.common.Util.isEven;
+import static org.apache.datasketches.common.Util.isOdd;
 
 import java.util.Arrays;
 import java.util.Random;

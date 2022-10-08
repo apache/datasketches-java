@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.thetacommon;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * This class enables the estimation of error bounds given a sample set size, the sampling

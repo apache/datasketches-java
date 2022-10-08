@@ -19,10 +19,9 @@
 
 package org.apache.datasketches.hllmap;
 
+import org.apache.datasketches.common.Util;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.Util;
 
 public class HllMapTest {
 

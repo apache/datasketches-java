@@ -22,8 +22,8 @@ package org.apache.datasketches.cpc;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.invPow2;
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.invPow2;
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.CpcUtil.bitMatrixOfSketch;
 import static org.apache.datasketches.cpc.CpcUtil.checkLgK;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
@@ -31,7 +31,7 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;

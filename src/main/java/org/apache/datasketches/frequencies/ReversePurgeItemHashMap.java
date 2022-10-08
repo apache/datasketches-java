@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.frequencies;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.exactLog2OfInt;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.exactLog2OfInt;
 import static org.apache.datasketches.frequencies.Util.hash;
 
 import java.lang.reflect.Array;

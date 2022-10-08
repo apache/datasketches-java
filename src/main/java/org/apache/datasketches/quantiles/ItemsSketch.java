@@ -38,8 +38,8 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Random;
 
-import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericSortedView;

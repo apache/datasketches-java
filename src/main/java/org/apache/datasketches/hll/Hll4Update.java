@@ -22,7 +22,7 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 
 /**
  * Update process common to Heap Hll 4 and Direct Hll 4

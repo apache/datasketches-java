@@ -25,7 +25,7 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.thetacommon.HashOperations;
 
 /**

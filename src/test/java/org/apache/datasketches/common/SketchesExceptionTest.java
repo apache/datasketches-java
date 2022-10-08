@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
 import org.testng.annotations.Test;
 

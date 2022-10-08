@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.Util.isOdd;
+import static org.apache.datasketches.common.Util.isOdd;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;

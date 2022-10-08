@@ -25,7 +25,7 @@ import static org.testng.Assert.fail;
 
 import java.util.List;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;

@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Family.idToFamily;
+import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -31,8 +31,8 @@ import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.BinomialBoundsN;

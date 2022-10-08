@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.Util.invPow2;
+import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

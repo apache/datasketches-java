@@ -24,9 +24,8 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 public class UtilTest {
 

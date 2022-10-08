@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.iGoldenU64;
-import static org.apache.datasketches.Util.log2;
-import static org.apache.datasketches.Util.powerSeriesNextDouble;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.log2;
+import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 

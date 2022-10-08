@@ -21,10 +21,9 @@ package org.apache.datasketches.hllmap;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 public class CouponHashMapTest {
 

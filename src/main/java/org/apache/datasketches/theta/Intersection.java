@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.floorPowerOf2;
+import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
@@ -30,8 +30,8 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;

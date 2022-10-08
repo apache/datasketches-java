@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
-import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.UpdatableSketch;
 

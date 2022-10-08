@@ -20,7 +20,7 @@
 package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.continueCondition;
 import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
@@ -28,8 +28,7 @@ import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.util.Arrays;
 
-//import org.apache.datasketches.tuple.AnotB.DataArrays;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;

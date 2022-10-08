@@ -21,9 +21,8 @@ package org.apache.datasketches.frequencies;
 
 import static org.testng.Assert.assertNull;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 public class ReversePurgeLongHashMapTest {
 

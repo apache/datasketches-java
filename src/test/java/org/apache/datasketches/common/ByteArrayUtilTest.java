@@ -17,28 +17,28 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
-import static org.apache.datasketches.ByteArrayUtil.getDoubleBE;
-import static org.apache.datasketches.ByteArrayUtil.getDoubleLE;
-import static org.apache.datasketches.ByteArrayUtil.getFloatBE;
-import static org.apache.datasketches.ByteArrayUtil.getFloatLE;
-import static org.apache.datasketches.ByteArrayUtil.getIntBE;
-import static org.apache.datasketches.ByteArrayUtil.getIntLE;
-import static org.apache.datasketches.ByteArrayUtil.getLongBE;
-import static org.apache.datasketches.ByteArrayUtil.getLongLE;
-import static org.apache.datasketches.ByteArrayUtil.getShortBE;
-import static org.apache.datasketches.ByteArrayUtil.getShortLE;
-import static org.apache.datasketches.ByteArrayUtil.putDoubleBE;
-import static org.apache.datasketches.ByteArrayUtil.putDoubleLE;
-import static org.apache.datasketches.ByteArrayUtil.putFloatBE;
-import static org.apache.datasketches.ByteArrayUtil.putFloatLE;
-import static org.apache.datasketches.ByteArrayUtil.putIntBE;
-import static org.apache.datasketches.ByteArrayUtil.putIntLE;
-import static org.apache.datasketches.ByteArrayUtil.putLongBE;
-import static org.apache.datasketches.ByteArrayUtil.putLongLE;
-import static org.apache.datasketches.ByteArrayUtil.putShortBE;
-import static org.apache.datasketches.ByteArrayUtil.putShortLE;
+import static org.apache.datasketches.common.ByteArrayUtil.getDoubleBE;
+import static org.apache.datasketches.common.ByteArrayUtil.getDoubleLE;
+import static org.apache.datasketches.common.ByteArrayUtil.getFloatBE;
+import static org.apache.datasketches.common.ByteArrayUtil.getFloatLE;
+import static org.apache.datasketches.common.ByteArrayUtil.getIntBE;
+import static org.apache.datasketches.common.ByteArrayUtil.getIntLE;
+import static org.apache.datasketches.common.ByteArrayUtil.getLongBE;
+import static org.apache.datasketches.common.ByteArrayUtil.getLongLE;
+import static org.apache.datasketches.common.ByteArrayUtil.getShortBE;
+import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putDoubleBE;
+import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putFloatBE;
+import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putIntBE;
+import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putLongBE;
+import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putShortBE;
+import static org.apache.datasketches.common.ByteArrayUtil.putShortLE;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;

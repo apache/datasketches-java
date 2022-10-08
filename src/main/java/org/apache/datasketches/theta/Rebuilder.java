@@ -28,7 +28,7 @@ import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import static org.apache.datasketches.thetacommon.QuickSelect.selectExcludingZeros;
 
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.HashOperations;

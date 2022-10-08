@@ -31,11 +31,11 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Function;
 
-import org.apache.datasketches.ArrayOfDoublesSerDe;
-import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.ArrayOfLongsSerDe;
-import org.apache.datasketches.ArrayOfStringsSerDe;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.ArrayOfDoublesSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.GenericSortedView;

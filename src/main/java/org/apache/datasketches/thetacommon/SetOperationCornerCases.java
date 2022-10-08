@@ -22,7 +22,7 @@ package org.apache.datasketches.thetacommon;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 public class SetOperationCornerCases {
   private static final long MAX = Long.MAX_VALUE;

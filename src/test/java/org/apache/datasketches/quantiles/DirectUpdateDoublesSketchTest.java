@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -31,9 +31,8 @@ import java.nio.ByteOrder;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
 
 public class DirectUpdateDoublesSketchTest {
 

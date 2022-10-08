@@ -19,12 +19,12 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * Utility class for generic quantiles sketch.

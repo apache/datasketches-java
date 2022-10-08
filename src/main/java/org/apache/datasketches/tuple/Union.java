@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple;
 
 import static java.lang.Math.min;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.thetacommon.QuickSelect;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 

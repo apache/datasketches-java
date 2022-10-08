@@ -24,7 +24,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;

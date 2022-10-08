@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.WritableMemory;
 
 final class DirectArrayOfDoublesUnionR extends DirectArrayOfDoublesUnion {

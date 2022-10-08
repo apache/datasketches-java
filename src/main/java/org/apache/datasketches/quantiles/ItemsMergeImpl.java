@@ -20,12 +20,12 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.System.arraycopy;
-import static org.apache.datasketches.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * Down-sampling and merge algorithms

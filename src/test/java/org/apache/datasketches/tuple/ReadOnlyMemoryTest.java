@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSetOperationBuilder;
 import org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesSketch;

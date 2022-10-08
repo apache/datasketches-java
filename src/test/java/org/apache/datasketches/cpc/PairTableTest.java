@@ -25,9 +25,8 @@ import static org.testng.Assert.fail;
 
 import java.util.Random;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

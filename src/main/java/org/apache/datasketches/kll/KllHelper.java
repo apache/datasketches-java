@@ -27,8 +27,8 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
-import static org.apache.datasketches.Util.floorPowerOf2;
-import static org.apache.datasketches.Util.isOdd;
+import static org.apache.datasketches.common.Util.floorPowerOf2;
+import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
@@ -60,10 +60,10 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.ByteArrayUtil;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.ByteArrayUtil;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.WritableMemory;
 

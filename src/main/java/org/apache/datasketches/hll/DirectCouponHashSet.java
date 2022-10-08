@@ -34,8 +34,8 @@ import static org.apache.datasketches.hll.PreambleUtil.insertHashSetCount;
 import static org.apache.datasketches.hll.PreambleUtil.insertInt;
 import static org.apache.datasketches.hll.PreambleUtil.insertLgArr;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

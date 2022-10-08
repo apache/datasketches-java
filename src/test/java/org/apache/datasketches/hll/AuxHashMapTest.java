@@ -23,9 +23,8 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.fail;
 
+import org.apache.datasketches.common.SketchesStateException;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesStateException;
 
 /**
  * @author Lee Rhodes

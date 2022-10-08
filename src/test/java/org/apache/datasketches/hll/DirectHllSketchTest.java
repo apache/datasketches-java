@@ -25,8 +25,8 @@ import static org.testng.Assert.fail;
 
 import java.util.HashSet;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;

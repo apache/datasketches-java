@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.TAB;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.TAB;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -58,7 +58,7 @@ public class UpdateSketchBuilder {
    * <li>Nominal Entries: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
    * <li>Input Sampling Probability: 1.0</li>
-   * <li>Family: {@link org.apache.datasketches.Family#QUICKSELECT}</li>
+   * <li>Family: {@link org.apache.datasketches.common.Family#QUICKSELECT}</li>
    * <li>Resize Factor: The default for sketches on the Java heap is {@link ResizeFactor#X8}.
    * For direct sketches, which are targeted for native memory off the Java heap, this value will
    * be fixed at either {@link ResizeFactor#X1} or {@link ResizeFactor#X2}.</li>

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**

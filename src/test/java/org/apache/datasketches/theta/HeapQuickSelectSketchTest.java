@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Family.QUICKSELECT;
-import static org.apache.datasketches.ResizeFactor.X1;
-import static org.apache.datasketches.ResizeFactor.X2;
-import static org.apache.datasketches.ResizeFactor.X8;
+import static org.apache.datasketches.common.Family.QUICKSELECT;
+import static org.apache.datasketches.common.ResizeFactor.X1;
+import static org.apache.datasketches.common.ResizeFactor.X2;
+import static org.apache.datasketches.common.ResizeFactor.X8;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
@@ -38,9 +38,9 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;

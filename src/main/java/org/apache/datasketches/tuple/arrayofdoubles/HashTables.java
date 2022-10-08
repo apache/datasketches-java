@@ -22,7 +22,7 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
 import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 

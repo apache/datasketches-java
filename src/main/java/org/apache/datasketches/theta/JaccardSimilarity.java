@@ -21,7 +21,7 @@ package org.apache.datasketches.theta;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets.getEstimateOfBoverA;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets.getLowerBoundForBoverA;
 import static org.apache.datasketches.thetacommon.BoundsOnRatiosInThetaSketchedSets.getUpperBoundForBoverA;

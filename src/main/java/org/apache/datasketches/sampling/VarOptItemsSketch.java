@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.sampling;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.sampling.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.GADGET_FLAG_MASK;
 import static org.apache.datasketches.sampling.PreambleUtil.SER_VER;
@@ -46,13 +46,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.apache.datasketches.ArrayOfBooleansSerDe;
-import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.ArrayOfBooleansSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

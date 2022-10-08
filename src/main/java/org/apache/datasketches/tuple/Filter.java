@@ -21,7 +21,7 @@ package org.apache.datasketches.tuple;
 
 import java.util.function.Predicate;
 
-import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.common.ResizeFactor;
 
 /**
  * Class for filtering entries from a {@link Sketch} given a {@link Summary}

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.frequencies;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.frequencies.DistTest.randomGeometricDist;
 import static org.apache.datasketches.frequencies.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.frequencies.PreambleUtil.FLAGS_BYTE;
@@ -37,8 +37,8 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.frequencies.LongsSketch.Row;
 
 public class LongsSketchTest {

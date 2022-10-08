@@ -25,7 +25,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;

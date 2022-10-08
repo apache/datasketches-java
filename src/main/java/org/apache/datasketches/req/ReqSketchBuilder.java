@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.TAB;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.TAB;
 
 /**
  * For building a new ReqSketch

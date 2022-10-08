@@ -21,8 +21,8 @@ package org.apache.datasketches.quantiles;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.ArrayOfDoublesSerDe;
-import org.apache.datasketches.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfDoublesSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;

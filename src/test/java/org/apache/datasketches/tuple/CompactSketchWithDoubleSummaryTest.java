@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.getResourceBytes;
+import static org.apache.datasketches.common.Util.getResourceBytes;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.adouble.DoubleSummary;
 import org.apache.datasketches.tuple.adouble.DoubleSummary.Mode;

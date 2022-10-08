@@ -25,11 +25,10 @@ import java.util.Comparator;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.ArrayOfLongsSerDe;
-import org.apache.datasketches.ArrayOfStringsSerDe;
 
 public class ItemsUnionTest {
 

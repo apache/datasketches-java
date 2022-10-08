@@ -22,7 +22,7 @@ package org.apache.datasketches.quantilescommon;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
 
 public class QuantilesUtilTest {

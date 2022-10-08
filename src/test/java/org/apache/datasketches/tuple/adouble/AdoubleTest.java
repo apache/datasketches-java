@@ -21,8 +21,8 @@ package org.apache.datasketches.tuple.adouble;
 
 import static org.testng.Assert.assertEquals;
 
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.Sketch;
 import org.apache.datasketches.tuple.TupleSketchIterator;

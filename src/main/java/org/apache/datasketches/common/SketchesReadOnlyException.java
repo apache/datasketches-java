@@ -17,17 +17,28 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
 /**
- * Illegal State Exception class for the library
+ * Write operation attempted on a read-only class.
  *
  * @author Lee Rhodes
  */
-public class SketchesStateException extends SketchesException {
+public class SketchesReadOnlyException extends SketchesException {
   private static final long serialVersionUID = 1L;
 
   //other constructors to be added as needed.
+
+  /**
+   * Constructs a new runtime exception with the message:
+   * "Write operation attempted on a read-only class."
+   *
+   * <p>The cause is not initialized, and may subsequently be initialized by a call to
+   * Throwable.initCause(java.lang.Throwable).
+   */
+  public SketchesReadOnlyException() {
+    super("Write operation attempted on a read-only class.");
+  }
 
   /**
    * Constructs a new runtime exception with the specified detail message. The cause is not
@@ -37,7 +48,7 @@ public class SketchesStateException extends SketchesException {
    * @param message the detail message. The detail message is saved for later retrieval by the
    * Throwable.getMessage() method.
    */
-  public SketchesStateException(final String message) {
+  public SketchesReadOnlyException(final String message) {
     super(message);
   }
 }

@@ -17,10 +17,10 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
-import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.Family.stringToFamily;
+import static org.apache.datasketches.common.Family.idToFamily;
+import static org.apache.datasketches.common.Family.stringToFamily;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 

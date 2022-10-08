@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.iGoldenU64;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
 import java.io.PrintStream;

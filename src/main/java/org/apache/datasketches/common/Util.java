@@ -17,7 +17,7 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
 import static java.lang.Math.ceil;
 import static java.lang.Math.floor;

@@ -25,13 +25,13 @@ import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
-import org.apache.datasketches.SketchesStateException;
 
 /**
  * The SortedView of the Classic Quantiles ItemsSketch.

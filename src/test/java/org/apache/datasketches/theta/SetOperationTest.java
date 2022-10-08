@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.ResizeFactor.X4;
+import static org.apache.datasketches.common.ResizeFactor.X4;
 import static org.apache.datasketches.theta.Sketch.getMaxUpdateSketchBytes;
 import static org.apache.datasketches.thetacommon.HashOperations.minLgHashTableSize;
 import static org.testng.Assert.assertEquals;
@@ -30,9 +30,9 @@ import static org.testng.Assert.assertTrue;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;

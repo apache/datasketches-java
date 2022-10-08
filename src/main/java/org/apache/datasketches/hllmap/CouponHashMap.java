@@ -19,12 +19,12 @@
 
 package org.apache.datasketches.hllmap;
 
-import static org.apache.datasketches.Util.checkIfIntPowerOf2;
-import static org.apache.datasketches.Util.invPow2;
+import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.invPow2;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.hash.MurmurHash3;
 
 /**

@@ -23,7 +23,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.InequalitySearch;

@@ -21,8 +21,8 @@ package org.apache.datasketches.thetacommon;
 
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 
 public final class ThetaUtil {
 

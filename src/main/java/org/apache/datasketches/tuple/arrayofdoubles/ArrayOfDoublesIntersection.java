@@ -21,8 +21,8 @@ package org.apache.datasketches.tuple.arrayofdoubles;
 
 import static java.lang.Math.min;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.Util;
 

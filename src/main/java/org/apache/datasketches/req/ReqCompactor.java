@@ -20,7 +20,7 @@
 package org.apache.datasketches.req;
 
 import static java.lang.Math.round;
-import static org.apache.datasketches.Util.numberOfTrailingOnes;
+import static org.apache.datasketches.common.Util.numberOfTrailingOnes;
 import static org.apache.datasketches.req.BaseReqSketch.INIT_NUMBER_OF_SECTIONS;
 import static org.apache.datasketches.req.ReqSketch.MIN_K;
 import static org.apache.datasketches.req.ReqSketch.NOM_CAP_MULT;

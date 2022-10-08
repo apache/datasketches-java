@@ -23,10 +23,10 @@ import static java.lang.Math.floor;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
-import static org.apache.datasketches.Util.log2;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -36,7 +36,7 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;

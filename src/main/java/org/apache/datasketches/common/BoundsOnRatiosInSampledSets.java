@@ -17,10 +17,10 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
-import static org.apache.datasketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
-import static org.apache.datasketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.approximateLowerBoundOnP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.approximateUpperBoundOnP;
 
 /**
  * This class is used to compute the bounds on the estimate of the ratio <i>|B| / |A|</i>, where:

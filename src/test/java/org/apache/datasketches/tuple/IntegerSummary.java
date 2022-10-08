@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.ByteArrayUtil;
+import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.memory.Memory;
 
 /**

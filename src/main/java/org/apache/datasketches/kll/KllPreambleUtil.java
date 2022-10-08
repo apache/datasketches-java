@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.zeroPad;
 
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

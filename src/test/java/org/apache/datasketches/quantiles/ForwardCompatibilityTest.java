@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.getResourceBytes;
+import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 
 import org.apache.datasketches.memory.Memory;

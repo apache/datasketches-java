@@ -48,8 +48,8 @@ import static org.apache.datasketches.hll.PreambleUtil.insertNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.insertPreInts;
 import static org.apache.datasketches.hll.PreambleUtil.insertSerVer;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

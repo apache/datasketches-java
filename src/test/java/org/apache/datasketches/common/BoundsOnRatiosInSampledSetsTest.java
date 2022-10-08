@@ -17,14 +17,14 @@
  * under the License.
  */
 
-package org.apache.datasketches;
+package org.apache.datasketches.common;
 
-import static org.apache.datasketches.BoundsOnRatiosInSampledSets.checkInputs;
-import static org.apache.datasketches.BoundsOnRatiosInSampledSets.getEstimateOfA;
-import static org.apache.datasketches.BoundsOnRatiosInSampledSets.getEstimateOfB;
-import static org.apache.datasketches.BoundsOnRatiosInSampledSets.getEstimateOfBoverA;
-import static org.apache.datasketches.BoundsOnRatiosInSampledSets.getLowerBoundForBoverA;
-import static org.apache.datasketches.BoundsOnRatiosInSampledSets.getUpperBoundForBoverA;
+import static org.apache.datasketches.common.BoundsOnRatiosInSampledSets.checkInputs;
+import static org.apache.datasketches.common.BoundsOnRatiosInSampledSets.getEstimateOfA;
+import static org.apache.datasketches.common.BoundsOnRatiosInSampledSets.getEstimateOfB;
+import static org.apache.datasketches.common.BoundsOnRatiosInSampledSets.getEstimateOfBoverA;
+import static org.apache.datasketches.common.BoundsOnRatiosInSampledSets.getLowerBoundForBoverA;
+import static org.apache.datasketches.common.BoundsOnRatiosInSampledSets.getUpperBoundForBoverA;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;

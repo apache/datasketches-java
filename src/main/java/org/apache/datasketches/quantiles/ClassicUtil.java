@@ -27,8 +27,8 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.isIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.isIntPowerOf2;
 import static org.apache.datasketches.quantiles.DoublesSketch.MAX_K;
 import static org.apache.datasketches.quantiles.DoublesSketch.MIN_K;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
@@ -37,8 +37,8 @@ import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.READ_ONLY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**

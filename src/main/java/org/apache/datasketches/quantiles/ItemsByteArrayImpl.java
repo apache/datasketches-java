@@ -32,8 +32,8 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**

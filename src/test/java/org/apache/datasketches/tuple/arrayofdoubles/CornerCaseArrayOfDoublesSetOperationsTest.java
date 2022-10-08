@@ -19,13 +19,12 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
 import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
-
-import static org.apache.datasketches.Util.zeroPad;
 
 public class CornerCaseArrayOfDoublesSetOperationsTest {
   //Stateful Intersection with intersect(sketch A, combiner), followed by getResult()

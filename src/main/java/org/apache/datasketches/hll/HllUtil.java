@@ -29,9 +29,9 @@ import static org.apache.datasketches.hll.PreambleUtil.extractFamilyId;
 import static org.apache.datasketches.hll.PreambleUtil.extractPreInts;
 import static org.apache.datasketches.hll.PreambleUtil.extractSerVer;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 
 /**

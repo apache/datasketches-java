@@ -21,7 +21,7 @@ package org.apache.datasketches.quantilescommon;
 
 import java.util.Objects;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * This provides efficient, unique and unambiguous binary searching for inequality comparison criteria
