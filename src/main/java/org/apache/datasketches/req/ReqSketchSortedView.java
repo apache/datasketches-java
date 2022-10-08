@@ -35,14 +35,14 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  */
 public class ReqSketchSortedView implements FloatsSortedView {
   private float[] quantiles;
-  private long[] cumWeights;
+  private long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
 
   /**
    * Construct from elements for testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of quantiles presented to the sketch.
+   * @param totalN the total number of items presented to the sketch.
    */
   ReqSketchSortedView(final float[] quantiles, final long[] cumWeights, final long totalN) {
     this.quantiles = quantiles;
@@ -60,11 +60,11 @@ public class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
-  public float getQuantile(final double normalizedRank, final QuantileSearchCriteria searchCrit) {
-    QuantilesUtil.checkNormalizedRankBounds(normalizedRank);
+  public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
-        ? (long)Math.ceil(normalizedRank * totalN) : (long)Math.floor(normalizedRank * totalN);
+        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
@@ -79,7 +79,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
     if (index == -1) {
-      return 0; //LT: given quantile <= minValue; LE: given quantile < minValue
+      return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
   }
@@ -104,9 +104,9 @@ public class ReqSketchSortedView implements FloatsSortedView {
   private void buildSortedViewArrays(final ReqSketch sk) {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
-    final int totalValues = sk.getNumRetained();
-    quantiles = new float[totalValues];
-    cumWeights = new long[totalValues];
+    final int totalQuantiles = sk.getNumRetained();
+    quantiles = new float[totalQuantiles];
+    cumWeights = new long[totalQuantiles];
     int count = 0;
     for (int i = 0; i < numComp; i++) {
       final ReqCompactor c = compactors.get(i);
@@ -126,11 +126,11 @@ public class ReqSketchSortedView implements FloatsSortedView {
    *
    * @param bufIn given FloatBuffer. If not sorted it will be sorted here.
    * @param bufWeight associated weight of input FloatBuffer
-   * @param count tracks number of values inserted into the class arrays
+   * @param count tracks number of items inserted into the class arrays
    */
   private void mergeSortIn(final FloatBuffer bufIn, final long bufWeight, final int count, final boolean hra) {
     if (!bufIn.isSorted()) { bufIn.sort(); }
-    final float[] arrIn = bufIn.getArray(); //may be larger than its value count.
+    final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
     final int bufInLen = bufIn.getCount();
     final int totLen = count + bufInLen;
     int i = count - 1;

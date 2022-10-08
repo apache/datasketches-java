@@ -25,8 +25,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  * Iterator over KllFloatsSketch. The order is not defined.
  */
 public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
-
-  private final float[] values;
+  private final float[] quantiles;
   private final int[] levels;
   private final int numLevels;
   private int level;
@@ -34,8 +33,8 @@ public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
   private long weight;
   private boolean isInitialized_;
 
-  KllFloatsSketchIterator(final float[] values, final int[] levels, final int numLevels) {
-    this.values = values;
+  KllFloatsSketchIterator(final float[] quantiles, final int[] levels, final int numLevels) {
+    this.quantiles = quantiles;
     this.levels = levels;
     this.numLevels = numLevels;
     this.isInitialized_ = false;
@@ -43,7 +42,7 @@ public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
 
   @Override
   public float getQuantile() {
-    return values[index];
+    return quantiles[index];
   }
 
   @Override

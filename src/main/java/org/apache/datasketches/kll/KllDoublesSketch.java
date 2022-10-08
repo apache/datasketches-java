@@ -92,7 +92,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   /**
    * Create a new direct instance of this sketch with the default <em>k</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new direct instance of this sketch
@@ -108,7 +108,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   /**
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
+   * 1.65%. Larger of K will have smaller error but the sketch will be larger (and slower).
    * This will have a rank error of about 1.65%.
    * @return new KllDoublesSketch on the heap.
    */
@@ -118,9 +118,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   /**
    * Create a new heap instance of this sketch with a given parameter <em>k</em>.
-   * <em>k</em> can be any value between DEFAULT_M and 65535, inclusive.
+   * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Higher values of K will have smaller error but the sketch will be larger (and slower).
+   * 1.65%. Larger of K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @return new KllDoublesSketch on the heap.
    */
@@ -167,10 +167,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public double getMaxItem() { return getMaxDoubleQuantile(); }
+  public double getMaxItem() { return getMaxDoubleItem(); }
 
   @Override
-  public double getMinItem() { return getMinDoubleQuantile(); }
+  public double getMinItem() { return getMinDoubleItem(); }
 
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -208,7 +208,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+        searchCrit);
   }
 
   /**
@@ -272,7 +273,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public QuantilesDoublesSketchIterator iterator() {
-    return new KllDoublesSketchIterator(getDoubleValuesArray(), getLevelsArray(), getNumLevels());
+    return new KllDoublesSketchIterator(getDoubleItemsArray(), getLevelsArray(), getNumLevels());
   }
 
   @Override
@@ -281,9 +282,9 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public void update(final double value) {
+  public void update(final double item) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    KllDoublesHelper.updateDouble(this, value);
+    KllDoublesHelper.updateDouble(this, item);
     kllDoublesSV = null;
   }
 
@@ -296,25 +297,25 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   void nullSortedView() { kllDoublesSV = null; }
 
   @Override //Artifact of inheritance
-  float[] getFloatValuesArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
+  float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
 
   @Override //Artifact of inheritance
-  float getMaxFloatQuantile() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getMaxFloatItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override //Artifact of inheritance
-  float getMinFloatQuantile() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getMinFloatItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override //Artifact of inheritance
-  void setFloatValuesArray(final float[] floatValues) { kllSketchThrow(MUST_NOT_CALL); }
+  void setFloatItemsArray(final float[] floatItems) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
-  void setFloatValuesArrayAt(final int index, final float value) { kllSketchThrow(MUST_NOT_CALL); }
+  void setFloatItemsArrayAt(final int index, final float item) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
-  void setMaxFloatQuantile(final float value) { kllSketchThrow(MUST_NOT_CALL); }
+  void setMaxFloatItem(final float item) { kllSketchThrow(MUST_NOT_CALL); }
 
   @Override //Artifact of inheritance
-  void setMinFloatQuantile(final float value) { kllSketchThrow(MUST_NOT_CALL); }
+  void setMinFloatItem(final float item) { kllSketchThrow(MUST_NOT_CALL); }
 
   private final void refreshSortedView() {
     kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;

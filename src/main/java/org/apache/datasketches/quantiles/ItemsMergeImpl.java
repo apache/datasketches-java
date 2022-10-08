@@ -104,23 +104,23 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxQuantile();
-    final T srcMin = src.getMinQuantile();
-    final T tgtMax = tgt.getMaxQuantile();
-    final T tgtMin = tgt.getMinQuantile();
+    final T srcMax = src.getMaxItem();
+    final T srcMin = src.getMinItem();
+    final T tgtMax = tgt.getMaxItem();
+    final T tgtMin = tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
-      tgt.maxQuantile_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+      tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
     } //only one could be null
     else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
-      tgt.maxQuantile_ = srcMax;
+      tgt.maxItem_ = srcMax;
     }
 
     if ((srcMin != null) && (tgtMin != null)) {
-      tgt.minQuantile_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+      tgt.minItem_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
     } //only one could be null
     else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
-      tgt.minQuantile_ = srcMin;
+      tgt.minItem_ = srcMin;
     }
   }
 
@@ -183,23 +183,23 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * targetK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxQuantile();
-    final T srcMin = src.getMinQuantile();
-    final T tgtMax = tgt.getMaxQuantile();
-    final T tgtMin = tgt.getMinQuantile();
+    final T srcMax = src.getMaxItem();
+    final T srcMin = src.getMinItem();
+    final T tgtMax = tgt.getMaxItem();
+    final T tgtMin = tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
-      tgt.maxQuantile_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+      tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
     } //only one could be null
     else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
-      tgt.maxQuantile_ = srcMax;
+      tgt.maxItem_ = srcMax;
     }
 
     if ((srcMin != null) && (tgtMin != null)) {
-      tgt.minQuantile_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+      tgt.minItem_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
     } //only one could be null
     else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
-      tgt.minQuantile_ = srcMin;
+      tgt.minItem_ = srcMin;
     }
   }
 

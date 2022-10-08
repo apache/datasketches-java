@@ -37,7 +37,6 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Lee Rhodes
  */
 public final class DoublesSketchSortedView implements DoublesSortedView {
-
   private final double[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights at the end
   private final long totalN;
@@ -46,7 +45,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    * Construct from elements for testing.
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of quantiles presented to the sketch.
+   * @param totalN the total number of items presented to the sketch.
    */
   DoublesSketchSortedView(final double[] quantiles, final long[] cumWeights, final long totalN) {
     this.quantiles = quantiles;
@@ -61,9 +60,9 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   public DoublesSketchSortedView(final DoublesSketch sketch) {
     this.totalN = sketch.getN();
     final int k = sketch.getK();
-    final int numSamples = sketch.getNumRetained();
-    quantiles = new double[numSamples];
-    cumWeights = new long[numSamples];
+    final int numQuantiles = sketch.getNumRetained();
+    quantiles = new double[numQuantiles];
+    cumWeights = new long[numQuantiles];
     final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
 
     // Populate from DoublesSketch:
@@ -72,18 +71,18 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     //  taking advantage of the already sorted blocks of length k
-    blockyTandemMergeSort(quantiles, cumWeights, numSamples, k);
+    blockyTandemMergeSort(quantiles, cumWeights, numQuantiles, k);
    if (convertToCumulative(cumWeights) != totalN) {
      throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
    }
   }
 
   @Override
-  public double getQuantile(final double normalizedRank, final QuantileSearchCriteria searchCrit) {
-    QuantilesUtil.checkNormalizedRankBounds(normalizedRank);
+  public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
-        ? (long)Math.ceil(normalizedRank * totalN) : (long)Math.floor(normalizedRank * totalN);
+        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
@@ -98,7 +97,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
     if (index == -1) {
-      return 0; //LT: given quantile <= minQuantile; LE: given quantile < minQuantile
+      return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
   }
@@ -118,20 +117,22 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     return new DoublesSketchSortedViewIterator(quantiles, cumWeights);
   }
 
+  //restricted methods
+
   /**
    * Populate the arrays and registers from a DoublesSketch
    * @param k K parameter of the sketch
    * @param n The current size of the stream
    * @param bitPattern the bit pattern for valid log levels
    * @param sketchAccessor A DoublesSketchAccessor around the sketch
-   * @param itemsArr the consolidated array of all items from the sketch populated here
+   * @param quantilesArr the consolidated array of all items from the sketch
    * @param cumWtsArr populates this array with the raw individual weights from the sketch,
    * it will be cumulative later.
    */
   private final static void populateFromDoublesSketch(
           final int k, final long n, final long bitPattern,
           final DoublesSketchAccessor sketchAccessor,
-          final double[] itemsArr, final long[] cumWtsArr) {
+          final double[] quantilesArr, final long[] cumWtsArr) {
     long weight = 1;
     int nxt = 0;
     long bits = bitPattern;
@@ -141,7 +142,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
       if ((bits & 1L) > 0L) {
         sketchAccessor.setLevel(lvl);
         for (int i = 0; i < sketchAccessor.numItems(); i++) {
-          itemsArr[nxt] = sketchAccessor.get(i);
+          quantilesArr[nxt] = sketchAccessor.get(i);
           cumWtsArr[nxt] = weight;
           nxt++;
         }
@@ -154,16 +155,16 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
     // Copy BaseBuffer over, along with weight = 1
     sketchAccessor.setLevel(BB_LVL_IDX);
     for (int i = 0; i < sketchAccessor.numItems(); i++) {
-      itemsArr[nxt] = sketchAccessor.get(i);
+      quantilesArr[nxt] = sketchAccessor.get(i);
       cumWtsArr[nxt] = weight;
       nxt++;
     }
-    assert nxt == itemsArr.length;
+    assert nxt == quantilesArr.length;
 
     // Must sort the items that came from the base buffer.
     // Don't need to sort the corresponding weights because they are all the same.
     final int numSamples = nxt;
-    Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples);
+    Arrays.sort(quantilesArr, startOfBaseBufferBlock, numSamples);
   }
 
   /**

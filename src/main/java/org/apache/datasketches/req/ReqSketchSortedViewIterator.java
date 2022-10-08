@@ -32,13 +32,13 @@ import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
  */
 public class ReqSketchSortedViewIterator implements FloatsSortedViewIterator {
 
-  private final float[] values;
+  private final float[] quantiles;
   private final long[] cumWeights;
   private final long totalN;
   private int index;
 
-  ReqSketchSortedViewIterator(final float[] values, final long[] cumWeights) {
-    this.values = values;
+  ReqSketchSortedViewIterator(final float[] quantiles, final long[] cumWeights) {
+    this.quantiles = quantiles;
     this.cumWeights = cumWeights;
     this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
     index = -1;
@@ -62,7 +62,7 @@ public class ReqSketchSortedViewIterator implements FloatsSortedViewIterator {
 
   @Override
   public float getQuantile() {
-    return values[index];
+    return quantiles[index];
   }
 
   @Override
@@ -74,7 +74,7 @@ public class ReqSketchSortedViewIterator implements FloatsSortedViewIterator {
   @Override
   public boolean next() {
     index++;
-    return index < values.length;
+    return index < quantiles.length;
   }
 
 }

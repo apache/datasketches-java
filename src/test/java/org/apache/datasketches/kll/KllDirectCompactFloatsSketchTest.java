@@ -40,8 +40,8 @@ public class KllDirectCompactFloatsSketchTest {
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     Memory srcMem = Memory.wrap(byteArr);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
-    assertEquals(sk2.getMinQuantile(), 1.0F);
-    assertEquals(sk2.getMaxQuantile(), 21.0F);
+    assertEquals(sk2.getMinItem(), 1.0F);
+    assertEquals(sk2.getMaxItem(), 21.0F);
   }
 
   @Test
@@ -52,12 +52,12 @@ public class KllDirectCompactFloatsSketchTest {
     Memory srcMem = Memory.wrap(sk.toByteArray());
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
     println(sk2.toString(true, true));
-    assertEquals(sk2.getMinQuantile(), 1.0F);
-    assertEquals(sk2.getMaxQuantile(), 21.0F);
+    assertEquals(sk2.getMinItem(), 1.0F);
+    assertEquals(sk2.getMaxItem(), 21.0F);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
     KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null);
-    assertEquals(sk3.getMinQuantile(), 1.0F);
-    assertEquals(sk3.getMaxQuantile(), 21.0F);
+    assertEquals(sk3.getMinItem(), 1.0F);
+    assertEquals(sk3.getMaxItem(), 21.0F);
   }
 
   @Test
@@ -66,12 +66,12 @@ public class KllDirectCompactFloatsSketchTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     sk.update(1);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getFloatSingleValue(), 1.0F);
+    assertEquals(sk2.getFloatSingleItem(), 1.0F);
     sk.update(2);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getN(), 2);
     try {
-      sk2.getFloatSingleValue();
+      sk2.getFloatSingleItem();
       fail();
     } catch (SketchesArgumentException e) {  }
   }
@@ -82,18 +82,18 @@ public class KllDirectCompactFloatsSketchTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
 
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    float[] itemsArr = sk2.getFloatValuesArray();
+    float[] itemsArr = sk2.getFloatItemsArray();
     for (int i = 0; i < 20; i++) { assertEquals(itemsArr[i], 0F); }
 
     sk.update(1);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getFloatValuesArray();
+    itemsArr = sk2.getFloatItemsArray();
     for (int i = 0; i < 19; i++) { assertEquals(itemsArr[i], 0F); }
     assertEquals(itemsArr[19], 1F);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    itemsArr = sk2.getFloatValuesArray();
+    itemsArr = sk2.getFloatItemsArray();
     assertEquals(itemsArr.length, 33);
     assertEquals(itemsArr[22], 21);
     //for (int i = 0; i < itemsArr.length; i++) {
@@ -106,16 +106,16 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertTrue(Float.isNaN(sk2.getMaxQuantile()));
-    assertTrue(Float.isNaN(sk2.getMinQuantile()));
+    assertTrue(Float.isNaN(sk2.getMaxItem()));
+    assertTrue(Float.isNaN(sk2.getMinItem()));
     sk.update(1);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxQuantile(),1.0F);
-    assertEquals(sk2.getMinQuantile(),1.0F);
+    assertEquals(sk2.getMaxItem(),1.0F);
+    assertEquals(sk2.getMinItem(),1.0F);
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxQuantile(),21.0F);
-    assertEquals(sk2.getMinQuantile(),1.0F);
+    assertEquals(sk2.getMaxItem(),21.0F);
+    assertEquals(sk2.getMinItem(),1.0F);
   }
 
   @Test

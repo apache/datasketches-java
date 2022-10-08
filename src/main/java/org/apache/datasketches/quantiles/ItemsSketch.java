@@ -77,14 +77,14 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   long n_;
 
   /**
-   * The smallest quantile ever seen in the stream.
+   * The largest item ever seen in the stream.
    */
-  T minQuantile_;
+  T maxItem_;
 
   /**
-   * The largest quantile ever seen in the stream.
+   * The smallest item ever seen in the stream.
    */
-  T maxQuantile_;
+  T minItem_;
 
   /**
    * In the initial on-heap version, equals combinedBuffer_.length.
@@ -95,7 +95,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   int combinedBufferItemCapacity_;
 
   /**
-   * Number of samples currently in base buffer.
+   * Number of items currently in base buffer.
    *
    * <p>Count = N % (2*K)
    */
@@ -173,8 +173,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     qs.combinedBuffer_ = new Object[bufAlloc];
     qs.baseBufferCount_ = 0;
     qs.bitPattern_ = 0;
-    qs.minQuantile_ = null;
-    qs.maxQuantile_ = null;
+    qs.minItem_ = null;
+    qs.maxItem_ = null;
     return qs;
   }
 
@@ -213,8 +213,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     final boolean empty = ClassicUtil.checkPreLongsFlagsCap(preambleLongs, flags, memCapBytes);
     ClassicUtil.checkFamilyID(familyID);
 
-    final ItemsSketch<T> qs = getInstance(clazz, k, comparator); //checks k
-    if (empty) { return qs; }
+    final ItemsSketch<T> sk = getInstance(clazz, k, comparator); //checks k
+    if (empty) { return sk; }
 
     //Not empty, must have valid preamble + min, max
     final long n = extractN(srcMem);
@@ -224,18 +224,18 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     final int numMemItems = ClassicUtil.computeRetainedItems(k, n) + extra;
 
     //set class members
-    qs.n_ = n;
-    qs.combinedBufferItemCapacity_ = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
-    qs.baseBufferCount_ = computeBaseBufferItems(k, n);
-    qs.bitPattern_ = computeBitPattern(k, n);
-    qs.combinedBuffer_ = new Object[qs.combinedBufferItemCapacity_];
+    sk.n_ = n;
+    sk.combinedBufferItemCapacity_ = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
+    sk.baseBufferCount_ = computeBaseBufferItems(k, n);
+    sk.bitPattern_ = computeBitPattern(k, n);
+    sk.combinedBuffer_ = new Object[sk.combinedBufferItemCapacity_];
 
     final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
     final Memory mReg = srcMem.region(srcMemItemsOffsetBytes,
         srcMem.getCapacity() - srcMemItemsOffsetBytes);
     final T[] itemsArray = serDe.deserializeFromMemory(mReg, numMemItems);
-    qs.itemsArrayToCombinedBuffer(itemsArray);
-    return qs;
+    sk.itemsArrayToCombinedBuffer(itemsArray);
+    return sk;
   }
 
   /**
@@ -247,8 +247,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
     final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.clazz, sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
-    qsCopy.minQuantile_ = sketch.getMinQuantile();
-    qsCopy.maxQuantile_ = sketch.getMaxQuantile();
+    qsCopy.minItem_ = sketch.getMinItem();
+    qsCopy.maxItem_ = sketch.getMaxItem();
     qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferAllocatedCount();
     qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
     qsCopy.bitPattern_ = sketch.getBitPattern();
@@ -258,8 +258,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   }
 
   /**
-   * Same as {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
+   * This is equivalent to {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a CDF array of m+1 double ranks (or probabilities) on the interval [0.0, 1.0).
    */
   public double[] getCDF(final T[] splitPoints) {
@@ -268,40 +268,37 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
-   * as a monotonically increasing array of double ranks (or probabilities) on the interval [0.0, 1.0],
+   * as a monotonically increasing array of double ranks (or cumulative probabilities) on the interval [0.0, 1.0],
    * given a set of splitPoints.
-   * The last rank in the returned array is always 1.0.
+   *
+   * <p>If the sketch is empty this returns null.</p>
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(false) function.
    *
-   * <p>If the sketch is empty this returns null.</p>
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
+   * (of the same type as the input items)
+   * that divide the item input domain into <i>m+1</i> overlapping intervals.
    *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
-   * that divide the real number line into <i>m+1</i> consecutive non-overlapping intervals.
-   * It is not necessary to include either the minimum or maximum quantiles
-   * of the input stream in these split points.
+   * <p>The start of each interval is below the lowest item retained by the sketch
+   * corresponding to a zero rank or zero probability, and the end of the interval
+   * is the rank or cumulative probability corresponding to the split point.</p>
    *
-   * <p>If searchCrit is INCLUSIVE, the definition of an "interval" is
-   * exclusive of the left splitPoint and
-   * inclusive of the right splitPoint.</p>
+   * <p>The <i>(m+1)th</i> interval represents 100% of the distribution represented by the sketch
+   * and consistent with the definition of a cumulative probability distribution, thus the <i>(m+1)th</i>
+   * rank or probability in the returned array is always 1.0.</p>
    *
-   * <p>If searchCrit is EXCLUSIVE, the definition of an "interval" is
-   * inclusive of the left splitPoint and
-   * exclusive of the right splitPoint.</p>
+   * <p>If a split point exactly equals a retained item of the sketch and the search criterion is:</p>
    *
-   *<p>The left "splitPoint" for the lowest interval is the
-   * lowest quantile from the input stream retained by the sketch.
-   * The right "splitPoint" for the highest interval is the
-   * highest quantile from the input stream retained by the sketch.
-   * </p>
+   * <ul>
+   * <li>INCLUSIVE, the resulting cumulative probability will include that item.</li>
+   * <li>EXCLUSIVE, the resulting cumulative probability will not include the weight of that split point.</li>
+   * </ul>
    *
-   * @param searchCrit if INCLUSIVE, the weight of a given splitPoint quantile,
-   * if it also exists as retained quantile by the sketch,
-   * is included into the interval below.
-   * Otherwise, it is included into the interval above.
+   * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
-   * @return an CDF array of m+1 double ranks (or probabilities) on the interval [0.0, 1.0).
+   * @param searchCrit the desired search criteria.
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0).
    */
   public double[] getCDF(
       final T[] splitPoints,
@@ -311,17 +308,20 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     return classicQisSV.getCDF(splitPoints, searchCrit);
   }
 
+  /**
+   * @return the sketch item type
+   */
   public Class<T> getSketchType() { return clazz; }
 
   /**
-   * Returns the maximum quantile of the stream. This is provided for convenience, but is distinct from the largest
-   * quantile retained by the sketch algorithm.
+   * Returns the maximum item of the stream. This is provided for convenience, but may be different from the largest
+   * item retained by the sketch algorithm.
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * @return the maximum quantile of the stream
+   * @return the maximum item of the stream
    */
-  public T getMaxQuantile() { return maxQuantile_; }
+  public T getMaxItem() { return maxItem_; }
 
   /**
    * Returns the minimum quantile of the stream. This is provided for convenience, but is distinct from the smallest
@@ -331,12 +331,12 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * @return the minimum quantile of the stream
    */
-  public T getMinQuantile() { return minQuantile_; }
+  public T getMinItem() { return minItem_; }
 
   /**
    * Same as {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing quantiles
-   * @return a PDF array of m+1 densities as doubles on the interval [0.0, 1.0).
+   * @return a PDF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
    */
   public double[] getPMF(final T[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -344,9 +344,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * as an array of double densities on the interval [0.0, 1.0],
+   * as an array of double probability masses on the interval [0.0, 1.0],
    * given a set of splitPoints.
-   * The sum of the densities in the returned array is always 1.0.
+   * The sum of the probability masses in the returned array is always 1.0.
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(true) function.
@@ -377,7 +377,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * is included into the interval below.
    * Otherwise, it is included into the interval above.
    *
-   * @return a PDF array of m+1 densities as doubles on the interval [0.0, 1.0).
+   * @return a PDF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
    */
   public double[] getPMF(
       final T[] splitPoints,
@@ -402,7 +402,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
-   * @param searchCrit is INCLUSIVE, the given rank includes all quantiles &le;
+   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
+   * the quantile directly corresponding to the given rank.
+   * If EXCLUSIVE, he given rank includes all quantiles &lt;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
@@ -444,7 +446,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     if (isEmpty()) { return null; }
     refreshSortedView();
     final int len = ranks.length;
-    final T[] quantiles = (T[]) Array.newInstance(minQuantile_.getClass(), len);
+    final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
     for (int i = 0; i < len; i++) {
       quantiles[i] = classicQisSV.getQuantile(ranks[i], searchCrit);
     }
@@ -470,7 +472,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * This must be a positive integer greater than 0.
    * <ul><li>Let <i>Smallest</i> and <i>Largest</i> be the smallest and largest quantiles
    * retained by the sketch algorithm, respectively.
-   * (This should not to be confused with {@link #getMinQuantile} and {@link #getMaxQuantile},
+   * (This should not to be confused with {@link #getMinItem} and {@link #getMaxItem},
    * which are the smallest and largest quantiles of the stream.)</li>
    * <li>A 1 will return the Smallest quantile.</li>
    * <li>A 2 will return the Smallest and Largest quantiles.</li>
@@ -487,7 +489,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
       final int numEvenlySpaced,
       final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+        searchCrit);
   }
 
   /**
@@ -498,9 +501,6 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
    * as an additive or multiplicative percent of the true quantile.</p>
-   *
-   * <p>The approximate probability that the true quantile is within the confidence interval
-   * specified by the upper and lower quantile bounds for this sketch is 0.99.</p>
    *
    * @param rank the given normalized rank
    * @return the lower bound of the quantile confidence interval in which the quantile of the
@@ -514,15 +514,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * Gets the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
    *
-   * <p>The confidence level for this sketch is 99%.</p>
-   *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
    * as an additive or multiplicative percent of the true quantile.</p>
-   *
-   * <p>The approximate probability that the true quantile is within the confidence interval
-   * specified by the upper and lower quantile bounds for this sketch is 0.99.</p>
    *
    * @param rank the given normalized rank
    * @return the upper bound of the quantile confidence interval in which the true quantile of the
@@ -707,8 +702,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     combinedBuffer_ = new Object[combinedBufferItemCapacity_];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
-    minQuantile_ = null;
-    maxQuantile_ = null;
+    minItem_ = null;
+    maxItem_ = null;
     classicQisSV = null;
   }
 
@@ -822,8 +817,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     // this method only uses the base buffer part of the combined buffer
 
     if (quantile == null) { return; }
-    if (maxQuantile_ == null || comparator_.compare(quantile, maxQuantile_) > 0) { maxQuantile_ = quantile; }
-    if (minQuantile_ == null || comparator_.compare(quantile, minQuantile_) < 0) { minQuantile_ = quantile; }
+    if (maxItem_ == null || comparator_.compare(quantile, maxItem_) > 0) { maxItem_ = quantile; }
+    if (minItem_ == null || comparator_.compare(quantile, minItem_) < 0) { minItem_ = quantile; }
 
     if (baseBufferCount_ + 1 > combinedBufferItemCapacity_) {
       ItemsSketch.growBaseBuffer(this);
@@ -887,8 +882,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
     final int extra = 2; // space for min and max items
 
     //Load min, max
-    minQuantile_ = itemsArray[0];
-    maxQuantile_ = itemsArray[1];
+    minItem_ = itemsArray[0];
+    maxItem_ = itemsArray[1];
 
     //Load base buffer
     System.arraycopy(itemsArray, extra, combinedBuffer_, 0, baseBufferCount_);

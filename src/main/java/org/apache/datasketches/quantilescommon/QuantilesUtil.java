@@ -94,9 +94,9 @@ public final class QuantilesUtil {
     out[0] = value1;
     out[num - 1] = value2;
     if (num == 2) { return out; }
-  
+
     final double delta = (value2 - value1) / (num - 1);
-  
+
     for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
     return out;
   }
@@ -118,9 +118,9 @@ public final class QuantilesUtil {
     out[0] = value1;
     out[num - 1] = value2;
     if (num == 2) { return out; }
-  
+
     final float delta = (value2 - value1) / (num - 1);
-  
+
     for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
     return out;
   }
@@ -142,12 +142,11 @@ public final class QuantilesUtil {
     if (value1 <= 0 || value2 <= 0) {
       throw new SketchesArgumentException("value1 and value2 must be > 0.");
     }
-  
+
     final double[] arr = evenlySpaced(log(value1) / Util.LOG2, log(value2) / Util.LOG2, num);
     for (int i = 0; i < arr.length; i++) { arr[i] = pow(2.0,arr[i]); }
     return arr;
   }
-
 
 }
 

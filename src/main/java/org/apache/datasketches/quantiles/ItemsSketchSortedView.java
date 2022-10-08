@@ -41,20 +41,20 @@ import org.apache.datasketches.SketchesStateException;
  */
 public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
-  private final T[] items; //array of size samples
-  private final long[] cumWeights;
+  private final T[] quantiles;
+  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
   private final Comparator<? super T> comparator;
 
   /**
    * Construct from elements for testing.
-   * @param items sorted array of items
+   * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
-   * @param totalN the total number of quantiles presented to the sketch.
+   * @param totalN the total number of items presented to the sketch.
    */
-  ItemsSketchSortedView(final T[] items, final long[] cumWeights, final long totalN,
+  ItemsSketchSortedView(final T[] quantiles, final long[] cumWeights, final long totalN,
       final Comparator<T> comparator) {
-    this.items = items;
+    this.quantiles = quantiles;
     this.cumWeights = cumWeights;
     this.totalN = totalN;
     this.comparator = comparator;
@@ -68,9 +68,9 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   ItemsSketchSortedView(final ItemsSketch<T> sketch) {
     this.totalN = sketch.getN();
     final int k = sketch.getK();
-    final int numSamples = sketch.getNumRetained();
-    items = (T[]) Array.newInstance(sketch.clazz, numSamples);
-    cumWeights = new long[numSamples];
+    final int numQuantiles = sketch.getNumRetained();
+    quantiles = (T[]) Array.newInstance(sketch.clazz, numQuantiles);
+    cumWeights = new long[numQuantiles];
     comparator = sketch.getComparator();
 
     final Object[] combinedBuffer = sketch.getCombinedBuffer();
@@ -79,11 +79,11 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     // Populate from ItemsSketch:
     // copy over the "levels" and then the base buffer, all with appropriate weights
     populateFromItemsSketch(k, totalN, sketch.getBitPattern(), (T[]) combinedBuffer, baseBufferCount,
-        numSamples, items, cumWeights, sketch.getComparator());
+        numQuantiles, quantiles, cumWeights, sketch.getComparator());
 
     // Sort the first "numSamples" slots of the two arrays in tandem,
     // taking advantage of the already sorted blocks of length k
-    ItemsMergeImpl.blockyTandemMergeSort(items, cumWeights, numSamples, k, sketch.getComparator());
+    ItemsMergeImpl.blockyTandemMergeSort(quantiles, cumWeights, numQuantiles, k, sketch.getComparator());
 
     if (convertToCumulative(cumWeights) != totalN) {
       throw new SketchesStateException("Sorted View is misconfigured. TotalN does not match cumWeights.");
@@ -91,30 +91,30 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
-  public T getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    QuantilesUtil.checkNormalizedRankBounds(normRank);
+  public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = (int)(normRank * totalN);
+    final long naturalRank = (int)(rank * totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
-      return items[items.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
+      return quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
     }
-    return items[index];
+    return quantiles[index];
   }
 
   @Override
-  public double getRank(final T item, final QuantileSearchCriteria searchCrit) {
-    final int len = items.length;
+  public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
+    final int len = quantiles.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
-    final int index = GenericInequalitySearch.find(items,  0, len - 1, item, crit, comparator);
+    final int index = GenericInequalitySearch.find(quantiles,  0, len - 1, quantile, crit, comparator);
     if (index == -1) {
-      return 0; //LT: quantile <= minQuantile; LE: quantile < minQuantile
+      return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
   }
 
-  @Override
+  @Override //implemented here because it needs the comparator
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     ItemsUtil.validateItems(splitPoints, comparator);
     final int len = splitPoints.length + 1;
@@ -126,7 +126,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     return buckets;
   }
 
-  @Override
+  @Override //implemented here because it needs the comparator
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     ItemsUtil.validateItems(splitPoints, comparator);
     final double[] buckets = getCDF(splitPoints, searchCrit);
@@ -144,13 +144,15 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T[] getQuantiles() {
-    return items.clone();
+    return quantiles.clone();
   }
 
   @Override
   public ItemsSketchSortedViewIterator<T> iterator() {
-    return new ItemsSketchSortedViewIterator<T>(items, cumWeights);
+    return new ItemsSketchSortedViewIterator<T>(quantiles, cumWeights);
   }
+
+  //restricted methods
 
   /**
    * Populate the arrays and registers from an ItemsSketch
@@ -160,14 +162,14 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param bitPattern the bit pattern for valid log levels
    * @param combinedBuffer the combined buffer reference
    * @param baseBufferCount the count of the base buffer
-   * @param numSamples Total samples in the sketch
-   * @param itemsArr the consolidated array of all items from the sketch populated here
-   * @param cumWtsArr the cumulative weights for each item from the sketch populated here
+   * @param numQuantiles number of retained quantiles in the sketch
+   * @param quantilesArr the consolidated array of all quantiles from the sketch
+   * @param weightsArr the weights for each item from the sketch
    * @param comparator the given comparator for data type T
    */
   private final static <T> void populateFromItemsSketch(
       final int k, final long n, final long bitPattern, final T[] combinedBuffer,
-      final int baseBufferCount, final int numSamples, final T[] itemsArr, final long[] cumWtsArr,
+      final int baseBufferCount, final int numQuantiles, final T[] quantilesArr, final long[] weightsArr,
       final Comparator<? super T> comparator) {
     long weight = 1;
     int nxt = 0;
@@ -178,8 +180,8 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       if ((bits & 1L) > 0L) {
         final int offset = (2 + lvl) * k;
         for (int i = 0; i < k; i++) {
-          itemsArr[nxt] = combinedBuffer[i + offset];
-          cumWtsArr[nxt] = weight;
+          quantilesArr[nxt] = combinedBuffer[i + offset];
+          weightsArr[nxt] = weight;
           nxt++;
         }
       }
@@ -190,15 +192,15 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
     // Copy BaseBuffer over, along with weight = 1
     for (int i = 0; i < baseBufferCount; i++) {
-      itemsArr[nxt] = combinedBuffer[i];
-      cumWtsArr[nxt] = weight;
+      quantilesArr[nxt] = combinedBuffer[i];
+      weightsArr[nxt] = weight;
       nxt++;
     }
-    assert nxt == numSamples;
+    assert nxt == numQuantiles;
 
     // Must sort the items that came from the base buffer.
     // Don't need to sort the corresponding weights because they are all the same.
-    Arrays.sort(itemsArr, startOfBaseBufferBlock, numSamples, comparator);
+    Arrays.sort(quantilesArr, startOfBaseBufferBlock, numQuantiles, comparator);
   }
 
   /**

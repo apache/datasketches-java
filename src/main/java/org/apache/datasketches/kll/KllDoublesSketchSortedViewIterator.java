@@ -31,13 +31,13 @@ import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
  */
 public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIterator {
 
-  private final double[] values;
+  private final double[] quantiles;
   private final long[] cumWeights;
   private final long totalN;
   private int index;
 
-  KllDoublesSketchSortedViewIterator(final double[] values, final long[] cumWeights) {
-    this.values = values;
+  KllDoublesSketchSortedViewIterator(final double[] quantiles, final long[] cumWeights) {
+    this.quantiles = quantiles;
     this.cumWeights = cumWeights;
     this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
     index = -1;
@@ -61,7 +61,7 @@ public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIter
 
   @Override
   public double getQuantile() {
-    return values[index];
+    return quantiles[index];
   }
 
   @Override
@@ -73,7 +73,7 @@ public class KllDoublesSketchSortedViewIterator implements DoublesSortedViewIter
   @Override
   public boolean next() {
     index++;
-    return index < values.length;
+    return index < quantiles.length;
   }
 
 }

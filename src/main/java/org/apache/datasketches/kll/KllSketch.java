@@ -20,7 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
@@ -55,7 +55,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  *  the sketch is exactly filled to capacity and must be compacted or the quantiles array and levels array
  *  must be expanded to include more levels.
  * 4) Sum of weights of all retained quantiles == N.
- * 5) Current total quantile capacity = values array.length = levelsArray[numLevels].
+ * 5) Current total quantile capacity = itemsArray.length = levelsArray[numLevels].
  */
 
 /**
@@ -85,9 +85,9 @@ public abstract class KllSketch implements QuantilesAPI {
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
-    SINGLE_VALUE_IMPROPER_CALL("Improper method use for single-value sketch"),
+    SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_VALUE("Sketch is not single value."),
+    NOT_SINGLE_ITEM("Sketch is not single item."),
     MUST_NOT_BE_UPDATABLE_FORMAT("Given Memory object must not be in updatableFormat.");
 
     private String msg;
@@ -212,7 +212,7 @@ public abstract class KllSketch implements QuantilesAPI {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     } else {
       if (numQuantiles == 0) { return N_LONG_ADR; }
-      if (numQuantiles == 1) { return DATA_START_ADR_SINGLE_VALUE + typeBytes; }
+      if (numQuantiles == 1) { return DATA_START_ADR_SINGLE_ITEM + typeBytes; }
       levelsBytes = numLevels * Integer.BYTES;
     }
     return DATA_START_ADR + levelsBytes + (numQuantiles + 2) * typeBytes; //+2 is for min & max
@@ -235,7 +235,7 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   @Deprecated
   public final int getCurrentUpdatableSerializedSizeBytes() {
-    final int quantilesCap = KllHelper.computeTotalValueCapacity(getK(), getM(), getNumLevels());
+    final int quantilesCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
     return getCurrentSerializedSizeBytes(getNumLevels(), quantilesCap, sketchType, true);
   }
 
@@ -358,13 +358,13 @@ public abstract class KllSketch implements QuantilesAPI {
     setLevelZeroSorted(false);
     setLevelsArray(new int[] {k, k});
     if (sketchType == DOUBLES_SKETCH) {
-      setMinDoubleQuantile(Double.NaN);
-      setMaxDoubleQuantile(Double.NaN);
-      setDoubleValuesArray(new double[k]);
+      setMinDoubleItem(Double.NaN);
+      setMaxDoubleItem(Double.NaN);
+      setDoubleItemsArray(new double[k]);
     } else {
-      setMinFloatQuantile(Float.NaN);
-      setMaxFloatQuantile(Float.NaN);
-      setFloatValuesArray(new float[k]);
+      setMinFloatItem(Float.NaN);
+      setMaxFloatItem(Float.NaN);
+      setFloatItemsArray(new float[k]);
     }
   }
 
@@ -384,44 +384,44 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   /**
-   * @return full size of internal values array including garbage.
+   * @return full size of internal items array including garbage.
    */
-  abstract double[] getDoubleValuesArray();
+  abstract double[] getDoubleItemsArray();
 
-  abstract double getDoubleSingleValue();
+  abstract double getDoubleSingleItem();
 
   /**
-   * @return full size of internal values array including garbage.
+   * @return full size of internal items array including garbage.
    */
-  abstract float[] getFloatValuesArray();
+  abstract float[] getFloatItemsArray();
 
-  abstract float getFloatSingleValue();
+  abstract float getFloatSingleItem();
 
   final int[] getLevelsArray() {
     return levelsArr;
   }
 
   /**
-   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of values.
+   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of items.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
-   * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
-   * Choosing smaller values of <i>m</i> will make the sketch much slower.
+   * 2, 4, 6 or 8, and the sketch works just fine.  The number 8 was chosen as a compromise between speed and size.
+   * Choosing smaller <i>m</i> will make the sketch much slower.
    * @return the configured parameter m
    */
   abstract int getM();
 
-  abstract double getMaxDoubleQuantile();
+  abstract double getMaxDoubleItem();
 
-  abstract float getMaxFloatQuantile();
+  abstract float getMaxFloatItem();
 
-  abstract double getMinDoubleQuantile();
+  abstract double getMinDoubleItem();
 
-  abstract float getMinFloatQuantile();
+  abstract float getMinFloatItem();
 
   /**
-   * MinK is the value of K that results from a merge with a sketch configured with a value of K lower than
-   * the k of this sketch. This value is then used in computing the estimated upper and lower bounds of error.
-   * @return The minimum K as a result of merging with lower values of k.
+   * MinK is the K that results from a merge with a sketch configured with a K lower than
+   * the K of this sketch. This is then used in computing the estimated upper and lower bounds of error.
+   * @return The minimum K as a result of merging sketches with lower k.
    */
   abstract int getMinK();
 
@@ -433,7 +433,7 @@ public abstract class KllSketch implements QuantilesAPI {
 
   abstract void incNumLevels();
 
-  final boolean isCompactSingleValue() {
+  final boolean isCompactSingleItem() {
     return hasMemory() && !updatableMemFormat && (getN() == 1);
   }
 
@@ -444,18 +444,18 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract boolean isLevelZeroSorted();
 
   /**
-   * First determine that this is a singleValue sketch before calling this.
-   * @return the value of the single value
+   * First determine that this is a single item sketch before calling this.
+   * @return the single item
    */
-  boolean isSingleValue() { return getN() == 1; }
+  boolean isSingleItem() { return getN() == 1; }
 
-  abstract void setDoubleValuesArray(double[] floatValues);
+  abstract void setDoubleItemsArray(double[] doubleItems);
 
-  abstract void setDoubleValuesArrayAt(int index, double value);
+  abstract void setDoubleItemsArrayAt(int index, double item);
 
-  abstract void setFloatValuesArray(float[] floatValues);
+  abstract void setFloatItemsArray(float[] floatItems);
 
-  abstract void setFloatValuesArrayAt(int index, float value);
+  abstract void setFloatItemsArrayAt(int index, float item);
 
   final void setLevelsArray(final int[] levelsArr) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
@@ -465,24 +465,24 @@ public abstract class KllSketch implements QuantilesAPI {
     }
   }
 
-  final void setLevelsArrayAt(final int index, final int value) {
+  final void setLevelsArrayAt(final int index, final int idxVal) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    this.levelsArr[index] = value;
+    this.levelsArr[index] = idxVal;
     if (wmem != null) {
       final int offset = DATA_START_ADR + index * Integer.BYTES;
-      wmem.putInt(offset, value);
+      wmem.putInt(offset, idxVal);
     }
   }
 
   abstract void setLevelZeroSorted(boolean sorted);
 
-  abstract void setMaxDoubleQuantile(double value);
+  abstract void setMaxDoubleItem(double item);
 
-  abstract void setMaxFloatQuantile(float value);
+  abstract void setMaxFloatItem(float item);
 
-  abstract void setMinDoubleQuantile(double value);
+  abstract void setMinDoubleItem(double item);
 
-  abstract void setMinFloatQuantile(float value);
+  abstract void setMinFloatItem(float item);
 
   abstract void setMinK(int minK);
 

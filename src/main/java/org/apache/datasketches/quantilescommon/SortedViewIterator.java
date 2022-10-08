@@ -51,8 +51,8 @@ public interface SortedViewIterator {
   long getCumulativeWeight(QuantileSearchCriteria searchCrit);
 
   /**
-   * Gets the total count of all quantiles presented to the sketch.
-   * @return the total count of all quantiles presented to the sketch.
+   * Gets the total count of all items presented to the sketch.
+   * @return the total count of all items presented to the sketch.
    */
   long getN();
 

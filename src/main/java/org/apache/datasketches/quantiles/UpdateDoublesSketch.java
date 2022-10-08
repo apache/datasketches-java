@@ -44,10 +44,10 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   /**
    * Updates this sketch with the given double data item
    *
-   * @param dataItem an item from a stream of items.  NaNs are ignored.
+   * @param item an item from a stream of items.  NaNs are ignored.
    */
   @Override
-  public abstract void update(double dataItem);
+  public abstract void update(double item);
 
   public static UpdateDoublesSketch heapify(final Memory srcMem) {
     return HeapUpdateDoublesSketch.heapifyInstance(srcMem);

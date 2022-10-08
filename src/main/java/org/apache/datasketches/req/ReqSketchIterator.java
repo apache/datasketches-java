@@ -24,7 +24,7 @@ import java.util.List;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
- * Iterator over all retained values of the ReqSketch. The order is not defined.
+ * Iterator over all retained items of the ReqSketch. The order is not defined.
  *
  * @author Lee Rhodes
  */
@@ -32,12 +32,12 @@ public class ReqSketchIterator implements QuantilesFloatsSketchIterator {
   private List<ReqCompactor> compactors;
   private int cIndex;
   private int bIndex;
-  private int retainedValues;
+  private int numRetainedItems;
   private FloatBuffer currentBuf;
 
   ReqSketchIterator(final ReqSketch sketch) {
     compactors = sketch.getCompactors();
-    retainedValues = sketch.getNumRetained();
+    numRetainedItems = sketch.getNumRetained();
     currentBuf = compactors.get(0).getBuffer();
     cIndex = 0;
     bIndex = -1;
@@ -45,7 +45,7 @@ public class ReqSketchIterator implements QuantilesFloatsSketchIterator {
 
   @Override
   public float getQuantile() {
-    return currentBuf.getValue(bIndex);
+    return currentBuf.getItem(bIndex);
   }
 
   @Override
@@ -55,7 +55,7 @@ public class ReqSketchIterator implements QuantilesFloatsSketchIterator {
 
   @Override
   public boolean next() {
-    if ((retainedValues == 0)
+    if ((numRetainedItems == 0)
         || ((cIndex == (compactors.size() - 1)) && (bIndex == (currentBuf.getCount() - 1)))) {
       return false;
     }

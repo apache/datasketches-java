@@ -54,20 +54,20 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public abstract int getK();
 
   @Override
-  public abstract float getMaxQuantile();
+  public abstract float getMaxItem();
 
   @Override
-  public abstract float getMinQuantile();
+  public abstract float getMinItem();
 
   /**
    * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    * Derived from Lemma 12 in https://arxiv.org/abs/2004.01668v2, but the constant factors were
    * adjusted based on empirical measurements.
    *
-   * @param k the given value of k
+   * @param k the given size of k
    * @param rank the given normalized rank, a number in [0,1].
    * @param hra if true High Rank Accuracy mode is being selected, otherwise, Low Rank Accuracy.
-   * @param totalN an estimate of the total number of values submitted to the sketch.
+   * @param totalN an estimate of the total number of items submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
   public static double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
@@ -89,7 +89,8 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+        searchCrit);
   }
 
   @Override
@@ -107,7 +108,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
 
   /**
    * Gets an approximate lower bound rank of the given normalized rank.
-   * @param rank the given rank, a value between 0 and 1.0.
+   * @param rank the given rank, a number between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate lower bound rank.
    */
@@ -118,7 +119,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
 
   /**
    * Gets an approximate upper bound rank of the given rank.
-   * @param rank the given rank, a value between 0 and 1.0.
+   * @param rank the given rank, a number between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate upper bound rank.
    */
@@ -178,14 +179,14 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   public abstract String toString();
 
   @Override
-  public abstract void update(final float value);
+  public abstract void update(final float item);
 
   /**
    * A detailed, human readable view of the sketch compactors and their data.
    * Each compactor string is prepended by the compactor lgWeight, the current number of retained
-   * values of the compactor and the current nominal capacity of the compactor.
-   * @param fmt the format string for the data values; example: "%4.0f".
-   * @param allData all the retained values for the sketch will be output by
+   * quantiles of the compactor and the current nominal capacity of the compactor.
+   * @param fmt the format string for the quantiles; example: "%4.0f".
+   * @param allData all the retained quantiles for the sketch will be output by
    * compactor level.  Otherwise, just a summary will be output.
    * @return a detailed view of the compactors and their data
    */

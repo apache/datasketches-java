@@ -82,8 +82,8 @@ public class ReqCompactorTest {
     final Buffer buff = Memory.wrap(c1ser).asBuffer();
     final Compactor compactor = ReqSerDe.extractCompactor(buff, sorted, c1hra);
     final ReqCompactor c2 = compactor.reqCompactor;
-    assertEquals(compactor.minVal, minV);
-    assertEquals(compactor.maxVal, maxV);
+    assertEquals(compactor.minItem, minV);
+    assertEquals(compactor.maxItem, maxV);
     assertEquals(compactor.count, nomCap);
     assertEquals(c2.getSectionSizeFlt(), sectionSizeFlt);
     assertEquals(c2.getSectionSize(), sectionSize);

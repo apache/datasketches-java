@@ -199,7 +199,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced), searchCrit);
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+        searchCrit);
   }
 
   /**
@@ -563,8 +564,8 @@ private final void refreshSortedView() {
   abstract long getBitPattern();
 
   /**
-   * Returns the item capacity for the combined base buffer
-   * @return the item capacity for the combined base buffer
+   * Returns the capacity for the combined base buffer
+   * @return the capacity for the combined base buffer
    */
   abstract int getCombinedBufferItemCapacity();
 

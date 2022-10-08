@@ -20,11 +20,11 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleValueFlag;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_VALUE;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import org.apache.datasketches.memory.Memory;
@@ -39,7 +39,7 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   @Override
   public long getN() {
     if (getMemoryEmptyFlag(wmem)) { return 0; }
-    if (getMemorySingleValueFlag(wmem)) { return 1; }
+    if (getMemorySingleItemFlag(wmem)) { return 1; }
     return getMemoryN(wmem);
   }
 
@@ -52,42 +52,42 @@ class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
   }
 
   @Override //returns expanded array including empty space at bottom
-  float[] getFloatValuesArray() {
+  float[] getFloatItemsArray() {
     final int k = getK();
     if (isEmpty()) { return new float[k]; }
-    if (isSingleValue()) {
-      final float[] valuesArr = new float[k];
-      valuesArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_VALUE);
-      return valuesArr;
+    if (isSingleItem()) {
+      final float[] itemsArr = new float[k];
+      itemsArr[k - 1] = wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+      return itemsArr;
     }
-    final int capacityValues =  levelsArr[getNumLevels()];
-    final float[] valuesArr = new float[capacityValues];
+    final int capacityItems =  levelsArr[getNumLevels()];
+    final float[] itemsArr = new float[capacityItems];
     final int levelsBytes = (levelsArr.length - 1) * Integer.BYTES; //compact format!
     final int offset = DATA_START_ADR + levelsBytes + 2 * Float.BYTES;
     final int shift = levelsArr[0];
-    wmem.getFloatArray(offset, valuesArr, shift, capacityValues - shift);
-    return valuesArr;
+    wmem.getFloatArray(offset, itemsArr, shift, capacityItems - shift);
+    return itemsArr;
   }
 
   @Override
-  float getFloatSingleValue() {
-    if (!isSingleValue()) { kllSketchThrow(NOT_SINGLE_VALUE); }
-    return wmem.getFloat(DATA_START_ADR_SINGLE_VALUE);
+  float getFloatSingleItem() {
+    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); }
+    return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
   }
 
   @Override
-  float getMaxFloatQuantile() {
+  float getMaxFloatItem() {
     if (isEmpty()) { return Float.NaN; }
-    if (isSingleValue()) { return getFloatSingleValue(); }
+    if (isSingleItem()) { return getFloatSingleItem(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Float.BYTES;
     return wmem.getFloat(offset);
   }
 
   @Override
-  float getMinFloatQuantile() {
+  float getMinFloatItem() {
     if (isEmpty()) { return Float.NaN; }
-    if (isSingleValue()) { return getFloatSingleValue(); }
+    if (isSingleItem()) { return getFloatSingleItem(); }
     final int offset =
         DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
     return wmem.getFloat(offset);

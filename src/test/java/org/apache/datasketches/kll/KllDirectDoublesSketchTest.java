@@ -488,10 +488,10 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 33);
+    assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleQuantile(), 21.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 21.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -508,10 +508,10 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), Double.NaN);
-    assertEquals(sk.getMinDoubleQuantile(), Double.NaN);
+    assertEquals(sk.getMaxDoubleItem(), Double.NaN);
+    assertEquals(sk.getMinDoubleItem(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -529,10 +529,10 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), 1.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 1.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -634,15 +634,15 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     try { sk2.incN();                            fail(); } catch (SketchesArgumentException e) { }
     try { sk2.incNumLevels();                    fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setDoubleValuesArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setDoubleValuesArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxDoubleQuantile(dblV);           fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinDoubleQuantile(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxDoubleItem(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinDoubleItem(dblV);           fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                         fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);                 fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.getFloatSingleValue();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getFloatSingleItem();             fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

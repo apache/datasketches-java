@@ -55,7 +55,7 @@ class ReqCompactor {
    * Normal Constructor
    * @param lgWeight the lgWeight of this compactor
    * @param hra High Rank Accuracy
-   * @param sectionSize initially the value of k
+   * @param sectionSize initially the size of k
    * @param reqDebug The debug signaling interface
    */
   ReqCompactor(
@@ -115,11 +115,11 @@ class ReqCompactor {
 
   /**
    * Perform a compaction operation on this compactor
-   * @return the array of values to be promoted to the next level compactor
+   * @return the array of items to be promoted to the next level compactor
    */
   FloatBuffer compact(final CompactorReturn cReturn) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
-    final int startRetValues = buf.getCount();
+    final int startRetItems = buf.getCount();
     final int startNomCap = getNomCapacity();
     // choose a part of the buffer to compact
     final int secsToCompact = Math.min(numberOfTrailingOnes(state) + 1, numSections);
@@ -141,7 +141,7 @@ class ReqCompactor {
     buf.trimCount(buf.getCount() - (compactionEnd - compactionStart));
     state += 1;
     ensureEnoughSections();
-    cReturn.deltaRetValues = buf.getCount() - startRetValues + promote.getCount();
+    cReturn.deltaRetItems = buf.getCount() - startRetItems + promote.getCount();
     cReturn.deltaNomSize = getNomCapacity() - startNomCap;
     if (reqDebug != null) { reqDebug.emitCompactionDone(lgWeight); }
     return promote;
@@ -261,20 +261,20 @@ class ReqCompactor {
   }
 
   /**
-   * Returns the nearest even integer to the given value. Also used by test.
-   * @param value the given value
-   * @return the nearest even integer to the given value.
+   * Returns the nearest even integer to the given float. Also used by test.
+   * @param fltVal the given float
+   * @return the nearest even integer to the given float.
    */
-  static final int nearestEven(final float value) {
-    return (int) round(value / 2.0) << 1;
+  static final int nearestEven(final float fltVal) {
+    return (int) round(fltVal / 2.0) << 1;
   }
 
   /**
    * ReqCompactor SERIALIZATION FORMAT.
    *
    * <p>Low significance bytes of this data structure are on the right just for visualization.
-   * The multi-byte values are stored in native byte order.
-   * The <i>byte</i> values are treated as unsigned. Multibyte values are indicated with "*" and
+   * The multi-byte primitives are stored in native byte order.
+   * The <i>byte</i> primitives are treated as unsigned. Multibyte primitives are indicated with "*" and
    * their size depends on the specific implementation.</p>
    *
    * <p>The binary format for a compactor: </p>

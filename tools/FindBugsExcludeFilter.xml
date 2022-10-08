@@ -23,17 +23,6 @@ under the License.
     <Class name="~.*\.*Test" />
   </Match>
 
-  <!-- This is in the /test/ tree but doesn't end in "Test" -->
-  <Match>
-    <Bug pattern="REFLF_REFLECTION_MAY_INCREASE_ACCESSIBILITY_OF_FIELD" />
-    <Class name="org.apache.datasketches.ReflectUtility" />
-  </Match>
-
-  <!-- Too many false positives to be useful.  I could not make it happy :( -->
-  <Match>
-    <Bug pattern="SF_SWITCH_NO_DEFAULT" />
-  </Match>
-
   <!-- False positive.  FindBugs complains if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD, 
        but this allows us to tune these constants for different sketches. -->
   <Match>
@@ -42,30 +31,8 @@ under the License.
     <Method name="setHashTableThreshold" />
   </Match>
 
-  <!-- False positive.  In this case we want to ignore the exceptions -->
-  <Match>
-    <Bug pattern="SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA" />
-    <Class name="org.apache.datasketches.theta.ConcurrentPropagationService" />
-    <Method name="getInstance" />
-  </Match>
-  
-  <Match>
-    <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS" />
-    <Class name="~.*\.Group" />
-  </Match>
-  
-  <Match>
-    <Bug pattern="VO_VOLATILE_INCREMENT" />
-    <Class name="~.*\.Concurrent.+QuickSelectSketch" />
-  </Match>
-
   <Match>   <!-- Too many False Positives. -->
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-  </Match>
-
-  <Match>   <!-- Harmless in the Builder -->
-    <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
-    <Class name="org.apache.datasketches.theta.UpdateSketchBuilder" />
   </Match>
 
   <Match> <!-- Too many False Positives -->
@@ -92,6 +59,52 @@ under the License.
       <Class name="org.apache.datasketches.req.ReqDebugImpl" />
       <Class name="org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesAnotBImpl" />
     </Or>
+  </Match>
+  
+  <Match>
+    <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS" />
+    <Class name="~.*\.Group" />
+  </Match>
+  
+  <!-- False positive.  In this case we want to ignore the exceptions -->
+  <Match>
+    <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS" />
+    <Class name="org.apache.datasketches.thetacommon.BinomialBoundsN" />
+  </Match>
+  
+  <!-- False positive.  In this case we want to ignore the exceptions -->
+  <Match>
+    <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS" />
+    <Class name="org.apache.datasketches.sampling.SamplingUtil" />
+    <Method name="nextDoubleExcludeZero" />
+  </Match>
+  
+  <!-- This is in the /test/ tree but doesn't end in "Test" -->
+  <Match>
+    <Bug pattern="REFLF_REFLECTION_MAY_INCREASE_ACCESSIBILITY_OF_FIELD" />
+    <Class name="org.apache.datasketches.quantilescommon.ReflectUtility" />
+  </Match>
+  
+  <!-- Too many false positives to be useful.  I could not make it happy :( -->
+  <Match>
+    <Bug pattern="SF_SWITCH_NO_DEFAULT" />
+  </Match>
+  
+  <!-- False positive.  In this case we want to ignore the exceptions -->
+  <Match>
+    <Bug pattern="SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA" />
+    <Class name="org.apache.datasketches.theta.ConcurrentPropagationService" />
+    <Method name="getInstance" />
+  </Match>
+
+  <Match>   <!-- Harmless in the Builder -->
+    <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
+    <Class name="org.apache.datasketches.theta.UpdateSketchBuilder" />
+  </Match>
+  
+  <Match>
+    <Bug pattern="VO_VOLATILE_INCREMENT" />
+    <Class name="~.*\.Concurrent.+QuickSelectSketch" />
   </Match>
   
 </FindBugsFilter>

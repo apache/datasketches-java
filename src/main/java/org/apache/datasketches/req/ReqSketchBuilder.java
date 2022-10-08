@@ -52,24 +52,24 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * Gets the builder confibured value of High Rank Accuracy.
-   * @return the builder confibured value of High Rank Accuracy.
+   * Gets the builder configured High Rank Accuracy.
+   * @return the builder configured High Rank Accuracy.
    */
   public boolean getHighRankAccuracy() {
     return bHRA;
   }
 
   /**
-   * Gets the builder configured value of k.
-   * @return the builder configured value of k.
+   * Gets the builder configured k.
+   * @return the builder configured k.
    */
   public int getK() {
     return bK;
   }
 
   /**
-   * Gets the builder configured value of ReqDebug
-   * @return the builder configured value of ReqDebug, or null.
+   * Gets the builder configured ReqDebug
+   * @return the builder configured ReqDebug, or null.
    */
   public ReqDebug getReqDebug() {
     return bReqDebug;

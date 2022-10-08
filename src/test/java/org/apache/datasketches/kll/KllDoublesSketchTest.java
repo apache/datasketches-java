@@ -507,13 +507,13 @@ public class KllDoublesSketchTest {
     float fltV = 1.0f;
     int idx = 1;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    try { sk.getFloatValuesArray();           fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMaxFloatQuantile();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMinFloatQuantile();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatValuesArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatValuesArrayAt(idx,fltV); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMaxFloatQuantile(fltV);         fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMinFloatQuantile(fltV);         fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getFloatItemsArray();           fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMaxFloatItem();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMinFloatItem();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatItemsArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setFloatItemsArrayAt(idx,fltV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setMaxFloatItem(fltV);         fail(); } catch (SketchesArgumentException e) { }
+    try { sk.setMinFloatItem(fltV);         fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test

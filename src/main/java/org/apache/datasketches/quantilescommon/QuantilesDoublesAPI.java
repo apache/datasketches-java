@@ -22,7 +22,7 @@ package org.apache.datasketches.quantilescommon;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 /**
- * The API for item type <i>double</i>.
+ * The Quantiles API for item type <i>double</i>.
  * @see QuantilesAPI
  * @author Lee Rhodes
  */
@@ -30,9 +30,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
 
   /**
    * This is equivalent to {@link #getCDF(double[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
+   * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0).
-   * @see #getCDF(double[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)
    */
   default double[] getCDF(double[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
@@ -60,7 +59,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * and consistent with the definition of a cumulative probability distribution, thus the <i>(m+1)th</i>
    * rank or probability in the returned array is always 1.0.</p>
    *
-   * <p>If a split point exactly equals a retained item of the sketch and the search criterion is:
+   * <p>If a split point exactly equals a retained item of the sketch and the search criterion is:</p>
+   *
    * <ul>
    * <li>INCLUSIVE, the resulting cumulative probability will include that item.</li>
    * <li>EXCLUSIVE, the resulting cumulative probability will not include the weight of that split point.</li>
@@ -74,7 +74,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns the maximum item of the stream. This is provided for convenience, but is distinct from the largest
+   * Returns the maximum item of the stream. This is provided for convenience, but may be different from the largest
    * item retained by the sketch algorithm.
    *
    * <p>If the sketch is empty this returns NaN.</p>
@@ -116,7 +116,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * (of the same type as the input items)
    * that divide the real number line into <i>m+1</i> consecutive, non-overlapping intervals.
    *
-   * <p>Each interval starts with a split point and ends with the next split point in sequence.</p>
+   * <p>Each interval except for the end intervals starts with a split point and ends with the next split
+   * point in sequence.</p>
    *
    * <p>The first interval starts below the lowest item retained by the sketch
    * corresponding to a zero rank or zero probability, and ends with the first split point</p>
@@ -126,7 +127,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    *
    * <p>The sum of the probability masses of all <i>(m+1)</i> intervals is 1.0.</p>
    *
-   * <p>If the search criterion is:
+   * <p>If the search criterion is:</p>
+   *
    * <ul>
    * <li>INCLUSIVE, and the upper split point of an interval equals an item retained by the sketch, the interval
    * will include that item. If the lower split point equals an item retained by the sketch, the interval will exclude
@@ -139,7 +141,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a PDF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
    */
   double[] getPMF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -323,9 +325,9 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   byte[] toByteArray();
 
   /**
-   * Updates this sketch with the given quantile.
-   * @param quantile from a stream of quantiles. NaNs are ignored.
+   * Updates this sketch with the given item.
+   * @param item from a stream of quantiles. NaNs are ignored.
    */
-  void update(double quantile);
+  void update(double item);
 }
 

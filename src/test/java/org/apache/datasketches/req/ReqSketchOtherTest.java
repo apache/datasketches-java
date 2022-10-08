@@ -57,11 +57,11 @@ public class ReqSketchOtherTest {
     final boolean ltEq = true;
     final ReqSketch sk = reqSketchTest.loadSketch( 6,   1, 50,  true,  true, 0);
     final long n = sk.getN();
-    final float min = sk.getMinQuantile();
-    final float max = sk.getMaxQuantile();
+    final float min = sk.getMinItem();
+    final float max = sk.getMaxItem();
     final ReqSketch sk2 = new ReqSketch(sk);
-    assertEquals(sk2.getMinQuantile(), min);
-    assertEquals(sk2.getMaxQuantile(), max);
+    assertEquals(sk2.getMinItem(), min);
+    assertEquals(sk2.getMaxItem(), max);
   }
 
   @Test

@@ -98,8 +98,8 @@ class FloatBuffer {
   /**
    * Used by ReqSerDe. The array is only the active region and will be positioned
    * based on capacity, delta, and sab. This copies over the sorted flag.
-   * @param arr the active values extracted from the deserialization.
-   * @param count the number of active values
+   * @param arr the active items extracted from the deserialization.
+   * @param count the number of active items
    * @param capacity the capacity of the internal array
    * @param delta add space in this increment
    * @param sorted if the incoming array is sorted
@@ -138,15 +138,15 @@ class FloatBuffer {
   }
 
   /**
-   * Appends the given value to the active array and increments the active count.
+   * Appends the given item to the active array and increments the active count.
    * This will expand the array if necessary.
-   * @param value the given value
+   * @param item the given item
    * @return this
    */
-  FloatBuffer append(final float value) {
+  FloatBuffer append(final float item) {
     ensureSpace(1);
     final int index = spaceAtBottom_ ? capacity_ - count_ - 1 : count_;
-    arr_[index] = value;
+    arr_[index] = item;
     count_++;
     sorted_ = false;
     return this;
@@ -184,8 +184,8 @@ class FloatBuffer {
   }
 
   /**
-   * Returns a reference to the internal value array. Be careful and don't modify this array!
-   * @return the internal value array.
+   * Returns a reference to the internal quantiles array. Be careful and don't modify this array!
+   * @return the internal quantiles array.
    */
   float[] getArray() {
     return arr_;
@@ -202,14 +202,14 @@ class FloatBuffer {
   }
 
   /**
-   * Returns the count of values based on the given criteria.
+   * Returns the count of items based on the given criteria.
    * Also used in test.
-   * @param value the given value
+   * @param item the given item
    * @param searchCrit the chosen criterion: LT, LT Strict, or LE
-   * @return count of values based on the given criterion.
+   * @return count of items based on the given criterion.
    */
-  int getCountWithCriterion(final float value, final QuantileSearchCriteria searchCrit) {
-    assert !Float.isNaN(value) : "Float values must not be NaN.";
+  int getCountWithCriterion(final float item, final QuantileSearchCriteria searchCrit) {
+    assert !Float.isNaN(item) : "Float items must not be NaN.";
     if (!sorted_) { sort(); } //we must be sorted!
     int low = 0;    //Initialized to space at top
     int high = count_ - 1;
@@ -218,7 +218,7 @@ class FloatBuffer {
       high = capacity_ - 1;
     }
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
-    final int index = InequalitySearch.find(arr_, low, high, value, crit);
+    final int index = InequalitySearch.find(arr_, low, high, item, crit);
     return index == -1 ? 0 : index - low + 1;
   }
 
@@ -250,21 +250,21 @@ class FloatBuffer {
   }
 
   /**
-   * Gets a value from the backing array given its index.
+   * Gets an item from the backing array given its index.
    * Only used in test or debug.
    * @param index the given index
-   * @return a value given its backing array index
+   * @return an item given its backing array index
    */
-  float getValueFromIndex(final int index) {
+  float getItemFromIndex(final int index) {
     return arr_[index];
   }
 
   /**
-   * Gets a value given its offset in the active region
+   * Gets an item given its offset in the active region
    * @param offset the given offset in the active region
-   * @return a value given its offset
+   * @return an item given its offset
    */
-  float getValue(final int offset) {
+  float getItem(final int offset) {
     final int index = spaceAtBottom_ ? capacity_ - count_ + offset : offset;
     return arr_[index];
   }
@@ -278,9 +278,9 @@ class FloatBuffer {
   }
 
   /**
-   * Returns the active value count.
+   * Returns the active item count.
    *
-   * @return the active value count of this buffer.
+   * @return the active item count of this buffer.
    */
   int getCount() {
     return count_;
@@ -345,7 +345,7 @@ class FloatBuffer {
     if (!sorted_ || !bufIn.isSorted()) {
       throw new SketchesArgumentException("Both buffers must be sorted.");
     }
-    final float[] arrIn = bufIn.getArray(); //may be larger than its value count.
+    final float[] arrIn = bufIn.getArray(); //may be larger than its item count.
     final int bufInLen = bufIn.getCount();
     ensureSpace(bufInLen);
     final int totLen = count_ + bufInLen;
@@ -412,10 +412,10 @@ class FloatBuffer {
   }
 
   /**
-   * Returns a printable formatted string of the values of this buffer separated by a single space.
-   * @param fmt The format for each printed value.
-   * @param width the number of values to print per line
-   * @return a printable, formatted string of the values of this buffer.
+   * Returns a printable formatted string of the items of this buffer separated by a single space.
+   * @param fmt The format for each printed item.
+   * @param width the number of items to print per line
+   * @return a printable, formatted string of the items of this buffer.
    */
   String toHorizList(final String fmt, final int width) {
     final StringBuilder sb = new StringBuilder();
@@ -451,7 +451,7 @@ class FloatBuffer {
   /**
    * Trims the count_ to newCount. If newCount &gt; count_ this does nothing and returns.
    * Otherwise, the internal count_ is reduced to the given newCount. There is no clearing of
-   * the remainder of the capacity. Any values there are considered garbage.
+   * the remainder of the capacity. Any items there are considered garbage.
    *
    * @param newCount the new active count
    * @return this

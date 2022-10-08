@@ -24,8 +24,9 @@ package org.apache.datasketches.quantilescommon;
  *
  * <p>The Sorted View provides a view of the data retained by a quantiles-type sketch
  * that would be cumbersome to get any other way.
- * One can iterate over the contents of the sketch using the sketch's iterator, but the result is not sorted.
- * Once this sorted view has been created, it provides not only a sorted view of the data retained by the sketch
+ * One can iterate over the contents of the sketch using the sketch's iterator, but the result is not sorted.</p>
+ *
+ * <p>Once this sorted view has been created, it provides not only a sorted view of the data retained by the sketch
  * but also the basic queries, such as getRank(), getQuantile(), and getCDF() and getPMF().
  * In addition, the iterator obtained from this sorted view provides useful detailed information about each entry.</p>
  *

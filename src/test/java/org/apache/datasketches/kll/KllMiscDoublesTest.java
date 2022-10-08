@@ -112,7 +112,7 @@ public class KllMiscDoublesTest {
     for (int i = 0; i < 20; i++) { sk.update(i); }
     sk.toString(true, true);
     sk.toByteArray();
-    final double[] values = sk.getDoubleValuesArray();
+    final double[] values = sk.getDoubleItemsArray();
     assertEquals(values.length, 16);
     final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
@@ -164,7 +164,7 @@ public class KllMiscDoublesTest {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     assertEquals(sk.getNumLevels(), 2);
-    assertEquals(sk.getDoubleValuesArray().length, 33);
+    assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray()[2], 33);
   }
 
@@ -183,10 +183,10 @@ public class KllMiscDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 33);
+    assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleQuantile(), 21.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 21.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -199,10 +199,10 @@ public class KllMiscDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), Double.NaN);
-    assertEquals(sk.getMinDoubleQuantile(), Double.NaN);
+    assertEquals(sk.getMaxDoubleItem(), Double.NaN);
+    assertEquals(sk.getMinDoubleItem(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -216,10 +216,10 @@ public class KllMiscDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), 1.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 1.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -246,10 +246,10 @@ public class KllMiscDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 33);
+    assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleQuantile(), 21.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 21.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -266,10 +266,10 @@ public class KllMiscDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), Double.NaN);
-    assertEquals(sk.getMinDoubleQuantile(), Double.NaN);
+    assertEquals(sk.getMaxDoubleItem(), Double.NaN);
+    assertEquals(sk.getMinDoubleItem(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -287,10 +287,10 @@ public class KllMiscDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), 1.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 1.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -317,10 +317,10 @@ public class KllMiscDoublesTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 33);
+    assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleQuantile(), 21.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 21.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -337,10 +337,10 @@ public class KllMiscDoublesTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), Double.NaN);
-    assertEquals(sk.getMinDoubleQuantile(), Double.NaN);
+    assertEquals(sk.getMaxDoubleItem(), Double.NaN);
+    assertEquals(sk.getMinDoubleItem(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -358,10 +358,10 @@ public class KllMiscDoublesTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleQuantile(), 1.0);
-    assertEquals(sk.getMinDoubleQuantile(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 1.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -513,29 +513,29 @@ public class KllMiscDoublesTest {
     KllDoublesSketch skHeap = KllDoublesSketch.newHeapInstance(k);
     skHeap.update(1);
     assertTrue(skHeap instanceof KllHeapDoublesSketch);
-    assertEquals(skHeap.getDoubleSingleValue(), 1.0);
+    assertEquals(skHeap.getDoubleSingleItem(), 1.0);
 
     WritableMemory srcMem = WritableMemory.writableWrap(KllHelper.toUpdatableByteArrayImpl(skHeap));
     KllDoublesSketch skDirect = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
     assertTrue(skDirect instanceof KllDirectDoublesSketch);
-    assertEquals(skDirect.getDoubleSingleValue(), 1.0);
+    assertEquals(skDirect.getDoubleSingleItem(), 1.0);
 
     Memory srcMem2 = Memory.wrap(skHeap.toByteArray());
     KllDoublesSketch skCompact = KllDoublesSketch.wrap(srcMem2);
     assertTrue(skCompact instanceof KllDirectCompactDoublesSketch);
-    assertEquals(skCompact.getDoubleSingleValue(), 1.0);
+    assertEquals(skCompact.getDoubleSingleItem(), 1.0);
   }
 
   @Test
   public void checkInheritanceArtifacts() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    try { sk.getFloatValuesArray(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMaxFloatQuantile(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMinFloatQuantile(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setFloatValuesArray(null); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setFloatValuesArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMaxFloatQuantile(0); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMinFloatQuantile(0); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getFloatItemsArray(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getMaxFloatItem(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.getMinFloatItem(); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setFloatItemsArray(null); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setFloatItemsArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setMaxFloatItem(0); fail();} catch (SketchesArgumentException e) {}
+    try { sk.setMinFloatItem(0); fail();} catch (SketchesArgumentException e) {}
   }
 
   @Test

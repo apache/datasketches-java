@@ -143,8 +143,5 @@ public final class ThetaUtil {
     return lgNomLongs;
   }
 
-
-
-
 }
 

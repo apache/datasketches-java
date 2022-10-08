@@ -46,7 +46,8 @@ public class SetOperationBuilder {
   /**
    * Constructor for building a new SetOperation.  The default configuration is
    * <ul>
-   * <li>Max Nominal Entries (max K): {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
+   * <li>Max Nominal Entries (max K):
+   *   {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_NOMINAL_ENTRIES}</li>
    * <li>Seed: {@value org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}</li>
    * <li>{@link ResizeFactor#X8}</li>
    * <li>Input Sampling Probability: 1.0</li>
