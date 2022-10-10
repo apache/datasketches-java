@@ -53,6 +53,15 @@ public class StreamingValidation {
   private CpcSketch sketch = null;
   private BitMatrix matrix = null;
 
+  /**
+   *
+   * @param lgMinK lgMinK
+   * @param lgMaxK lgMaxK
+   * @param trials trials
+   * @param ppoN ppoN
+   * @param pS pS
+   * @param pW pW
+   */
   public StreamingValidation(final int lgMinK, final int lgMaxK, final int trials, final int ppoN,
       final PrintStream pS, final PrintWriter pW) {
     this.lgMinK = lgMinK;
@@ -64,6 +73,9 @@ public class StreamingValidation {
     assembleStrings();
   }
 
+  /**
+   *
+   */
   public void start() {
     printf(hfmt, (Object[]) hStrArr);
     doRangeOfLgK();

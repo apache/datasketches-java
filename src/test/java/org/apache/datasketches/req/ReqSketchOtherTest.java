@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused","javadoc"})
 public class ReqSketchOtherTest {
   final ReqSketchTest reqSketchTest = new ReqSketchTest();
   static InequalitySearch critLT = LT;
@@ -46,6 +46,9 @@ public class ReqSketchOtherTest {
   static InequalitySearch critGT = GT;
   static InequalitySearch critGE = GE;
 
+  /**
+   *
+   */
   @Test
   public void checkConstructors() {
     final ReqSketch sk = ReqSketch.builder().build();
@@ -170,6 +173,7 @@ public class ReqSketchOtherTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void checkEmpty() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
     final ReqSketch sk = bldr.build();
@@ -183,6 +187,7 @@ public class ReqSketchOtherTest {
     assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
   }
 
+  @SuppressWarnings("deprecation")
   private void checkGetRank(final boolean hra, final boolean ltEq) {
     final int k = 12;
     final boolean up = true;

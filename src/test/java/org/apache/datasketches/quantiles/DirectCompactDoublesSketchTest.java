@@ -105,6 +105,7 @@ public class DirectCompactDoublesSketchTest {
     assertTrue(Double.isNaN(s2.getMaxItem()));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;

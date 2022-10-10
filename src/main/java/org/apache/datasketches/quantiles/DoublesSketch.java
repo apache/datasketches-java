@@ -184,6 +184,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return classicQdsSV.getQuantile(rank, searchCrit);
   }
 
+  @Deprecated
   @Override
   public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
@@ -196,6 +197,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return quantiles;
   }
 
+  @Deprecated
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
@@ -250,6 +252,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false));
   }
 
+  @Deprecated
   @Override
   public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }

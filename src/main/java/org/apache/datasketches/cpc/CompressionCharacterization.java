@@ -66,7 +66,7 @@ public class CompressionCharacterization {
   private CompressedState[] compressedStates2;
   private CpcSketch[] unCompressedSketches;
 
-  public CompressionCharacterization(
+  CompressionCharacterization(
       final int lgMinK,
       final int lgMaxK,
       final int lgMinT,
@@ -88,7 +88,7 @@ public class CompressionCharacterization {
     assembleFormats();
   }
 
-  public void start() {
+  void start() {
     printf(hfmt, (Object[]) hStrArr); //print header
     doRangeOfLgK();
   }

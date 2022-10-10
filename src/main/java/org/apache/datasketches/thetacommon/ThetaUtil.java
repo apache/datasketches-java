@@ -24,6 +24,11 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 
+/**
+ * Utility methods for the Theta Family of sketches
+ * @author Lee Rhodes
+ *
+ */
 public final class ThetaUtil {
 
   /**

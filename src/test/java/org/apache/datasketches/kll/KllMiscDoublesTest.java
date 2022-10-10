@@ -104,6 +104,7 @@ public class KllMiscDoublesTest {
     KllDoublesSketch.heapify(wmem);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkMisc() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(8);

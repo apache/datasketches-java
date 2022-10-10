@@ -35,6 +35,7 @@ import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class DoublesSketchTest {
 
   @Test
@@ -127,6 +128,7 @@ public class DoublesSketchTest {
     assertFalse(uds.isSameResource(mem));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkEmptyNullReturns() {
     int k = 16;
@@ -231,6 +233,7 @@ public class DoublesSketchTest {
     assertTrue(rub -.5 <= 2 * eps);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkGetRanks() {
     final UpdateDoublesSketch sk = DoublesSketch.builder().build();

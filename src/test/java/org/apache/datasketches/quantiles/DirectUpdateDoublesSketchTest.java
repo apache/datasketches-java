@@ -34,13 +34,16 @@ import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 
+@SuppressWarnings("javadoc")
 public class DirectUpdateDoublesSketchTest {
+
 
   @BeforeMethod
   public void setUp() {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkSmallMinMax () {
     int k = 32;

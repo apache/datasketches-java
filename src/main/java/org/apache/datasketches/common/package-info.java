@@ -17,4 +17,4 @@
  * under the License.
  */
 
-package org.apache.datasketches.fdt;
+package org.apache.datasketches.common;

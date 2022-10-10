@@ -102,6 +102,7 @@ public class HeapCompactDoublesSketchTest {
     checkBaseBufferIsSorted(qs2);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;

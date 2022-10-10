@@ -50,6 +50,14 @@ public class QuickMergingValidation {
   private PrintStream printStream;
   private PrintWriter printWriter;
 
+  /**
+   *
+   * @param lgMinK lgMinK
+   * @param lgMaxK lgMaxK
+   * @param incLgK incLgK
+   * @param ps ps
+   * @param pw pw
+   */
   public QuickMergingValidation(final int lgMinK, final int lgMaxK, final int incLgK,
       final PrintStream ps, final PrintWriter pw) {
     this.lgMinK = lgMinK;
@@ -60,6 +68,9 @@ public class QuickMergingValidation {
     assembleFormats();
   }
 
+  /**
+   *
+   */
   public void start() {
     printf(hfmt, (Object[]) hStrArr); //print header
     doRangeOfLgK();

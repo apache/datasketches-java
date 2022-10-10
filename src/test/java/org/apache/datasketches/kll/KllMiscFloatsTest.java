@@ -38,9 +38,11 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public class KllMiscFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
+
 
   @Test
   public void checkConvertToCumulative() {
@@ -128,6 +130,7 @@ public class KllMiscFloatsTest {
     KllFloatsSketch.heapify(wmem);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkMisc() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(8);

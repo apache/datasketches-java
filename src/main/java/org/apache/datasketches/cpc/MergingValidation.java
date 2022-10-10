@@ -52,6 +52,16 @@ public class MergingValidation {
   private PrintStream printStream;
   private PrintWriter printWriter;
 
+  /**
+   *
+   * @param lgMinK lgMinK
+   * @param lgMaxK lgMaxK
+   * @param lgMulK lgMulK
+   * @param uPPO uPPO
+   * @param incLgK incLgK
+   * @param pS pS
+   * @param pW pW
+   */
   public MergingValidation(final int lgMinK, final int lgMaxK, final int lgMulK, final int uPPO,
       final int incLgK, final PrintStream pS, final PrintWriter pW) {
     this.lgMinK = lgMinK;
@@ -64,6 +74,9 @@ public class MergingValidation {
     assembleFormats();
   }
 
+  /**
+   *
+   */
   public void start() {
     printf(hfmt, (Object[]) hStrArr); //print header
     doRangeOfLgK();

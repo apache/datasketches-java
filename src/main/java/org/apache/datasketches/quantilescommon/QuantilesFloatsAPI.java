@@ -204,7 +204,10 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
+   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
+   * getQuantile(rank, searchCrit) in a loop.}
    */
+  @Deprecated
   default float[] getQuantiles(double[] ranks) {
     return getQuantiles(ranks, INCLUSIVE);
   }
@@ -220,14 +223,20 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
    * the quantile directly corresponding to each rank.
    * @return an array of quantiles corresponding to the given array of normalized ranks.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
+   * getQuantile(rank, searchCrit) in a loop.}
    */
+  @Deprecated
   float[] getQuantiles(double[] ranks, QuantileSearchCriteria searchCrit);
 
   /**
    * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
    * @param numEvenlySpaced number of evenly spaced normalied ranks
    * @return an array of quantiles that are evenly spaced by their ranks.
+   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
+   * getQuantile(rank, searchCrit) in a loop.}
    */
+  @Deprecated
   default float[] getQuantiles(int numEvenlySpaced) {
     return getQuantiles(numEvenlySpaced, INCLUSIVE);
   }
@@ -254,7 +263,10 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
    * each rank.
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
+   * getQuantile(rank, searchCrit) in a loop.}
    */
+  @Deprecated
   float[] getQuantiles(int numEvenlySpaced, QuantileSearchCriteria searchCrit);
 
   /**
@@ -282,7 +294,10 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
    * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
+   * @deprecated Use {@link #getRank(float, QuantileSearchCriteria)
+   * getRank(quantile, searchCrit) in a loop.}
    */
+  @Deprecated
   default double[] getRanks(float[] quantiles) {
     return getRanks(quantiles, INCLUSIVE);
   }
@@ -297,7 +312,10 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given quantiles include the rank directly corresponding to each quantile.
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @deprecated Use {@link #getRank(float, QuantileSearchCriteria)
+   * getRank(quantile, searchCrit) in a loop.}
    */
+  @Deprecated
   double[] getRanks(float[] quantiles, QuantileSearchCriteria searchCrit);
 
   /**

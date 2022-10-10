@@ -83,9 +83,11 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Override
   public abstract float getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
+  @Deprecated
   @Override
   public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria searchCrit);
 
+  @Deprecated
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
@@ -114,6 +116,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
    */
   public abstract double getRankLowerBound(double rank, int numStdDev);
 
+  @Deprecated
   @Override
   public abstract double[] getRanks(float[] quantiles, QuantileSearchCriteria searchCrit);
 

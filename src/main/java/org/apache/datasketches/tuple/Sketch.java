@@ -152,6 +152,10 @@ public abstract class Sketch<S extends Summary> {
    */
   public abstract int getCountLessThanThetaLong(final long thetaLong);
 
+  /**
+   * Gets the Summary Factory class of type S
+   * @return the Summary Factory class of type S
+   */
   public SummaryFactory<S> getSummaryFactory() {
     return summaryFactory_;
   }
