@@ -24,6 +24,7 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 /**
  * The Quantiles API for item type <i>double</i>.
  * @see QuantilesAPI
+ *
  * @author Lee Rhodes
  */
 public interface QuantilesDoublesAPI extends QuantilesAPI {
@@ -31,7 +32,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   /**
    * This is equivalent to {@link #getCDF(double[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
-   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0).
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    */
   default double[] getCDF(double[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
@@ -45,7 +46,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <p>If the sketch is empty this returns null.</p>
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
+   * getNormalizedRankError(false) function.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
@@ -69,7 +70,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0).
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    */
   double[] getCDF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -96,7 +97,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   /**
    * This is equivalent to {@link #getPMF(double[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
-   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    */
   default double[] getPMF(double[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -108,7 +109,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * given a set of splitPoints.
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(true) function.
+   * getNormalizedRankError(true) function.</p>
    *
    * <p>If the sketch is empty this returns null.</p>
    *
@@ -141,12 +142,12 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    */
   double[] getPMF(double[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
+   * This is equivalent to {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
    */
@@ -173,6 +174,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * Gets the lower bound of the quantile confidence interval in which the quantile of the
    * given rank exists.
    *
+   * <p>If the sketch is empty this returns NaN.</p>
+   *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
@@ -188,6 +191,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * Gets the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
    *
+   * <p>If the sketch is empty this returns NaN.</p>
+   *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
@@ -200,7 +205,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double getQuantileUpperBound(double rank);
 
   /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
+   * This is equivalent to {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
@@ -230,7 +235,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double[] getQuantiles(double[] ranks, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
+   * This is equivalent to {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
    * @param numEvenlySpaced number of evenly spaced normalied ranks
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
@@ -245,7 +250,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * This is a version of getQuantiles() where the caller only specifies the number of of desired evenly spaced,
    * normalized ranks, and returns an array of the corresponding quantiles.
    *
-   * <p>If the sketch is empty this returns null.
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
    * This must be a positive integer greater than 0.
@@ -270,7 +275,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double[] getQuantiles(int numEvenlySpaced, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRank(double, QuantileSearchCriteria) getRank(quantile, INCLUSIVE)}
+   * This is equivalent to {@link #getRank(double, QuantileSearchCriteria) getRank(quantile, INCLUSIVE)}
    * @param quantile the given quantile
    * @return the normalized rank corresponding to the given quantile
    */
@@ -291,7 +296,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   double getRank(double quantile, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRanks(double[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
+   * This is equivalent to {@link #getRanks(double[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @deprecated Use {@link #getRank(double, QuantileSearchCriteria)
@@ -312,6 +317,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given quantiles include the rank directly corresponding to each quantile.
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @deprecated Use {@link #getRank(double, QuantileSearchCriteria)
+   * getRank(quantile, searchCrit) in a loop.}
    */
   @Deprecated
   double[] getRanks(double[] quantiles, QuantileSearchCriteria searchCrit);

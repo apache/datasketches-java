@@ -32,7 +32,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   /**
    * This is equivalent to {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
-   * @return a CDF array of m+1 double ranks (or probabilities) on the interval [0.0, 1.0).
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    */
   default double[] getCDF(T[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
@@ -46,7 +46,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * <p>If the sketch is empty this returns null.</p>
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
+   * getNormalizedRankError(false) function.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
@@ -70,7 +70,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0).
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    */
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -97,7 +97,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   /**
    * This is equivalent to {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
-   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    */
   default double[] getPMF(T[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -109,7 +109,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * given a set of splitPoints.
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(true) function.
+   * getNormalizedRankError(true) function.</p>
    *
    * <p>If the sketch is empty this returns null.</p>
    *
@@ -142,12 +142,12 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    */
   double[] getPMF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
+   * This is equivalent to {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
    */
@@ -174,6 +174,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * Gets the lower bound of the quantile confidence interval in which the quantile of the
    * given rank exists.
    *
+   * <p>If the sketch is empty this returns null.</p>
+   *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
@@ -189,6 +191,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * Gets the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
    *
+   * <p>If the sketch is empty this returns null.</p>
+   *
    * <p>Although it is possible to estimate the probablity that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
@@ -201,7 +205,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   T getQuantileUpperBound(double rank);
 
   /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
+   * This is equivalent to {@link #getQuantiles(double[], QuantileSearchCriteria) getQuantiles(ranks, INCLUSIVE)}
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
@@ -231,7 +235,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   T[] getQuantiles(double[] ranks, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
+   * This is equivalent to {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
    * @param numEvenlySpaced number of evenly spaced normalied ranks
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
@@ -246,7 +250,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * This is a version of getQuantiles() where the caller only specifies the number of of desired evenly spaced,
    * normalized ranks, and returns an array of the corresponding quantiles.
    *
-   * <p>If the sketch is empty this returns null.
+   * <p>If the sketch is empty this returns null.</p>
    *
    * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
    * This must be a positive integer greater than 0.
@@ -264,11 +268,14 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * each rank.
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
+   * getQuantile(rank, searchCrit) in a loop.}
    */
+  @Deprecated
   T[] getQuantiles(int numEvenlySpaced, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRank(Object, QuantileSearchCriteria) getRank(T quantile, INCLUSIVE)}
+   * This is equivalent to {@link #getRank(Object, QuantileSearchCriteria) getRank(T quantile, INCLUSIVE)}
    * @param quantile the given quantile
    * @return the normalized rank corresponding to the given quantile
    */
@@ -279,7 +286,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   /**
    * Gets the normalized rank corresponding to the given a quantile.
    *
-   * <p>If the sketch is empty this returns null.</p>
+   * <p>If the sketch is empty this returns NaN.</p>
    *
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
@@ -289,7 +296,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   double getRank(T quantile, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
+   * This is equivalent to {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @deprecated Use {@link #getRank(Object, QuantileSearchCriteria)
@@ -317,12 +324,6 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   double[] getRanks(T[] quantiles, QuantileSearchCriteria searchCrit);
 
   /**
-   * Returns the current number of bytes this Sketch would require if serialized.
-   * @return the number of bytes this sketch would require if serialized.
-   */
-  int getSerializedSizeBytes();
-
-  /**
    * Gets the sorted view of this sketch
    * @return the sorted view of this sketch
    */
@@ -335,14 +336,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   QuantilesGenericSketchIterator<T> iterator();
 
   /**
-   * Returns a byte array representation of this sketch.
-   * @return a byte array representation of this sketch.
-   */
-  byte[] toByteArray();
-
-  /**
    * Updates this sketch with the given item.
-   * @param item from a stream of items. nulls are ignored.
+   * @param item from a stream of items. Nulls are ignored.
    */
   void update(T item);
 }
