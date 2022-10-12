@@ -114,7 +114,7 @@ public interface QuantilesFloatsAPI extends QuantilesAPI {
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
-   * that divide the real number line into <i>m+1</i> consecutive, non-overlapping intervals.
+   * that divide the item input domain into <i>m+1</i> consecutive, non-overlapping intervals.
    *
    * <p>Each interval except for the end intervals starts with a split point and ends with the next split
    * point in sequence.</p>

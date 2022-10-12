@@ -63,7 +63,7 @@ public interface GenericSortedView<T> extends SortedView {
    * <p>If the sketch is empty this returns null.</p>
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(false) function.
+   * getNormalizedRankError(false) function.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
@@ -87,7 +87,7 @@ public interface GenericSortedView<T> extends SortedView {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0).
+   * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
    */
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -97,13 +97,13 @@ public interface GenericSortedView<T> extends SortedView {
    * given a set of splitPoints.
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
-   * getNormalizedRankError(true) function.
+   * getNormalizedRankError(true) function.</p>
    *
    * <p>If the sketch is empty this returns null.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
-   * that divide the real number line into <i>m+1</i> consecutive, non-overlapping intervals.
+   * that divide the item input domain into <i>m+1</i> consecutive, non-overlapping intervals.
    *
    * <p>Each interval except for the end intervals starts with a split point and ends with the next split
    * point in sequence.</p>
@@ -130,7 +130,7 @@ public interface GenericSortedView<T> extends SortedView {
    * <p>It is not recommended to include either the minimum or maximum items of the input stream.</p>
    *
    * @param searchCrit the desired search criteria.
-   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0).
+   * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
    */
   double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
 
