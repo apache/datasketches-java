@@ -21,14 +21,14 @@ package org.apache.datasketches.tuple.adouble;
 
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.theta.UpdateSketch;
 import org.apache.datasketches.theta.UpdateSketchBuilder;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
 import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Sketches;
 import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.UpdatableSketchBuilder;
@@ -107,7 +107,7 @@ public class AdoubleIntersectionTest {
     Assert.assertEquals(result.getEstimate(), 1.0);
     Assert.assertEquals(result.getLowerBound(1), 1.0);
     Assert.assertEquals(result.getUpperBound(1), 1.0);
-    final SketchIterator<DoubleSummary> it = result.iterator();
+    final TupleSketchIterator<DoubleSummary> it = result.iterator();
     Assert.assertTrue(it.next());
     Assert.assertTrue(it.getHash() > 0);
     Assert.assertEquals(it.getSummary().getValue(), 4.0);
@@ -182,7 +182,7 @@ public class AdoubleIntersectionTest {
     Assert.assertEquals(result.getEstimate(), 4096.0, 4096 * 0.03);
     Assert.assertTrue(result.getLowerBound(1) <= result.getEstimate());
     Assert.assertTrue(result.getUpperBound(1) > result.getEstimate());
-    final SketchIterator<DoubleSummary> it = result.iterator();
+    final TupleSketchIterator<DoubleSummary> it = result.iterator();
     while (it.next()) {
       Assert.assertEquals(it.getSummary().getValue(), 2.0);
     }

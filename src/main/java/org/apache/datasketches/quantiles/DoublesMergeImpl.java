@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.FLAGS_BYTE;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -37,8 +37,8 @@ final class DoublesMergeImpl {
   private DoublesMergeImpl() {}
 
   /**
-   * Merges the source sketch into the target sketch that can have a smaller value of K.
-   * However, it is required that the ratio of the two K values be a power of 2.
+   * Merges the source sketch into the target sketch that can have a smaller K parameter.
+   * However, it is required that the ratio of the two K parameters be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
    *
@@ -106,7 +106,7 @@ final class DoublesMergeImpl {
       }
     }
 
-    if (tgt.isDirect() && (nFinal > 0)) {
+    if (tgt.hasMemory() && (nFinal > 0)) {
       final WritableMemory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
@@ -116,23 +116,23 @@ final class DoublesMergeImpl {
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    double srcMax = src.getMaxValue();
+    double srcMax = src.getMaxItem();
     srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
-    double srcMin = src.getMinValue();
+    double srcMin = src.getMinItem();
     srcMin = Double.isNaN(srcMin) ? Double.POSITIVE_INFINITY : srcMin;
 
-    double tgtMax = tgt.getMaxValue();
+    double tgtMax = tgt.getMaxItem();
     tgtMax = Double.isNaN(tgtMax) ? Double.NEGATIVE_INFINITY : tgtMax;
-    double tgtMin = tgt.getMinValue();
+    double tgtMin = tgt.getMinItem();
     tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
-    tgt.putMaxValue(Math.max(srcMax, tgtMax));
-    tgt.putMinValue(Math.min(srcMin, tgtMin));
+    tgt.putMaxQuantile(Math.max(srcMax, tgtMax));
+    tgt.putMinQuantile(Math.min(srcMin, tgtMin));
   }
 
   /**
-   * Merges the source sketch into the target sketch that can have a smaller value of K.
-   * However, it is required that the ratio of the two K values be a power of 2.
+   * Merges the source sketch into the target sketch that can have a smaller K.
+   * However, it is required that the ratio of the two K's be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
    *
@@ -141,16 +141,16 @@ final class DoublesMergeImpl {
    */
   //also used by DoublesSketch, DoublesUnionImpl and HeapDoublesSketchTest
   static void downSamplingMergeInto(final DoublesSketch src, final UpdateDoublesSketch tgt) {
-    final int srcK = src.getK();
-    final int tgtK = tgt.getK();
+    final int sourceK = src.getK();
+    final int targetK = tgt.getK();
     final long tgtN = tgt.getN();
 
-    if ((srcK % tgtK) != 0) {
+    if ((sourceK % targetK) != 0) {
       throw new SketchesArgumentException(
           "source.getK() must equal target.getK() * 2^(nonnegative integer).");
     }
 
-    final int downFactor = srcK / tgtK;
+    final int downFactor = sourceK / targetK;
     checkIfIntPowerOf2(downFactor, "source.getK()/target.getK() ratio");
     final int lgDownFactor = Integer.numberOfTrailingZeros(downFactor);
 
@@ -163,15 +163,15 @@ final class DoublesMergeImpl {
       tgt.update(srcSketchBuf.get(i));
     }
 
-    final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(tgtK, nFinal);
+    final int spaceNeeded = DoublesUpdateImpl.getRequiredItemCapacity(targetK, nFinal);
     final int curCombBufCap = tgt.getCombinedBufferItemCapacity();
     if (spaceNeeded > curCombBufCap) { //copies base buffer plus current levels
       tgt.growCombinedBuffer(curCombBufCap, spaceNeeded);
     }
 
     //working scratch buffers
-    final DoublesArrayAccessor scratch2KAcc = DoublesArrayAccessor.initialize(2 * tgtK);
-    final DoublesArrayAccessor downScratchKAcc = DoublesArrayAccessor.initialize(tgtK);
+    final DoublesArrayAccessor scratch2KAcc = DoublesArrayAccessor.initialize(2 * targetK);
+    final DoublesArrayAccessor downScratchKAcc = DoublesArrayAccessor.initialize(targetK);
 
     final DoublesSketchAccessor tgtSketchBuf = DoublesSketchAccessor.wrap(tgt, true);
 
@@ -180,44 +180,44 @@ final class DoublesMergeImpl {
     for (int srcLvl = 0; srcBitPattern != 0L; srcLvl++, srcBitPattern >>>= 1) {
       if ((srcBitPattern & 1L) > 0L) {
         justZipWithStride(
-                srcSketchBuf.setLevel(srcLvl),
-                downScratchKAcc,
-                tgtK,
-                downFactor
+            srcSketchBuf.setLevel(srcLvl),
+            downScratchKAcc,
+            targetK,
+            downFactor
         );
         newTgtBitPattern = DoublesUpdateImpl.inPlacePropagateCarry(
-                srcLvl + lgDownFactor,    //starting level
-                downScratchKAcc,       //optSrcKBuf,
-                scratch2KAcc,          //size2KBuf,
-                false,                    //do mergeInto version
-                tgtK,
-                tgtSketchBuf,
-                newTgtBitPattern
+            srcLvl + lgDownFactor,    //starting level
+            downScratchKAcc,       //optSrcKBuf,
+            scratch2KAcc,          //size2KBuf,
+            false,                    //do mergeInto version
+            targetK,
+            tgtSketchBuf,
+            newTgtBitPattern
         );
 
         tgt.putBitPattern(newTgtBitPattern); //off-heap is a no-op
       }
     }
-    if (tgt.isDirect() && (nFinal > 0)) {
+    if (tgt.hasMemory() && (nFinal > 0)) {
       final WritableMemory mem = tgt.getMemory();
       mem.clearBits(FLAGS_BYTE, (byte) EMPTY_FLAG_MASK);
     }
     tgt.putN(nFinal);
 
-    assert (tgt.getN() / (2L * tgtK)) == newTgtBitPattern; // internal consistency check
+    assert (tgt.getN() / (2L * targetK)) == newTgtBitPattern; // internal consistency check
 
-    double srcMax = src.getMaxValue();
+    double srcMax = src.getMaxItem();
     srcMax = Double.isNaN(srcMax) ? Double.NEGATIVE_INFINITY : srcMax;
-    double srcMin = src.getMinValue();
+    double srcMin = src.getMinItem();
     srcMin = Double.isNaN(srcMin) ? Double.POSITIVE_INFINITY : srcMin;
 
-    double tgtMax = tgt.getMaxValue();
+    double tgtMax = tgt.getMaxItem();
     tgtMax = Double.isNaN(tgtMax) ? Double.NEGATIVE_INFINITY : tgtMax;
-    double tgtMin = tgt.getMinValue();
+    double tgtMin = tgt.getMinItem();
     tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
-    if (srcMax > tgtMax) { tgt.putMaxValue(srcMax); }
-    if (srcMin < tgtMin) { tgt.putMinValue(srcMin); }
+    if (srcMax > tgtMax) { tgt.putMaxQuantile(srcMax); }
+    if (srcMin < tgtMin) { tgt.putMinQuantile(srcMin); }
   }
 
   private static void justZipWithStride(

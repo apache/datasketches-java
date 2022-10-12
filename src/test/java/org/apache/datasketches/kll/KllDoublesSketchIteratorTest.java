@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -27,7 +28,7 @@ public class KllDoublesSketchIteratorTest {
   @Test
   public void emptySketch() {
     KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-    KllDoublesSketchIterator it = sketch.iterator();
+    QuantilesDoublesSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -35,9 +36,9 @@ public class KllDoublesSketchIteratorTest {
   public void oneItemSketch() {
     KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
     sketch.update(0);
-    KllDoublesSketchIterator it = sketch.iterator();
+    QuantilesDoublesSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getValue(), 0f);
+    Assert.assertEquals(it.getQuantile(), 0f);
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }
@@ -49,7 +50,7 @@ public class KllDoublesSketchIteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      KllDoublesSketchIterator it = sketch.iterator();
+      QuantilesDoublesSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

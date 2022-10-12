@@ -26,6 +26,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Jon Malkin
  */
 public abstract class UpdateDoublesSketch extends DoublesSketch {
+
   UpdateDoublesSketch(final int k) {
     super(k);
   }
@@ -43,14 +44,10 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   /**
    * Updates this sketch with the given double data item
    *
-   * @param dataItem an item from a stream of items.  NaNs are ignored.
+   * @param item an item from a stream of items.  NaNs are ignored.
    */
-  public abstract void update(double dataItem);
-
-  /**
-   * Resets this sketch to the empty state, but retains the original value of k.
-   */
-  public abstract void reset();
+  @Override
+  public abstract void update(double item);
 
   public static UpdateDoublesSketch heapify(final Memory srcMem) {
     return HeapUpdateDoublesSketch.heapifyInstance(srcMem);
@@ -84,23 +81,23 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   //Puts
 
   /**
-   * Puts the min value
+   * Puts the minimum quantile
    *
-   * @param minValue the given min value
+   * @param minQuantile the given minimum quantile
    */
-  abstract void putMinValue(double minValue);
+  abstract void putMinQuantile(double minQuantile);
 
   /**
-   * Puts the max value
+   * Puts the max quantile
    *
-   * @param maxValue the given max value
+   * @param maxQuantile the given maximum quantile
    */
-  abstract void putMaxValue(double maxValue);
+  abstract void putMaxQuantile(double maxQuantile);
 
   /**
-   * Puts the value of <i>n</i>
+   * Puts the long <i>n</i>
    *
-   * @param n the given value of <i>n</i>
+   * @param n the given long <i>n</i>
    */
   abstract void putN(long n);
 

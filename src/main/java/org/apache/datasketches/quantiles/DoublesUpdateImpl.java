@@ -30,16 +30,16 @@ final class DoublesUpdateImpl {
   private DoublesUpdateImpl() {}
 
   /**
-   * Returns item capacity needed based on new value of n and k, which may or may not be larger than
+   * Returns item capacity needed based on n and k, which may or may not be larger than
    * current space allocated.
-   * @param k current value of k
-   * @param newN the new value of n
-   * @return item capacity based on new value of n and k. It may not be different.
+   * @param k current k
+   * @param newN the new n
+   * @return item capacity based on n and k. It may or may not be different.
    */
   //important: newN might not equal n_
   // This only increases the size and does not touch or move any data.
   static int getRequiredItemCapacity(final int k, final long newN) {
-    final int numLevelsNeeded = Util.computeNumLevelsNeeded(k, newN);
+    final int numLevelsNeeded = ClassicUtil.computeNumLevelsNeeded(k, newN);
     if (numLevelsNeeded == 0) {
       // don't need any levels yet, and might have small base buffer; this can happen during a merge
       return 2 * k;
@@ -90,7 +90,7 @@ final class DoublesUpdateImpl {
    * @param optSrcKBuf optional, size k source, read only buffer
    * @param size2KBuf size 2k scratch buffer
    * @param doUpdateVersion true if update version
-   * @param k the target value of k
+   * @param k the target k
    * @param tgtSketchBuf the given DoublesSketchAccessor
    * @param bitPattern the current bitPattern, prior to this call
    * @return The updated bit pattern.  The updated combined buffer is output as a side effect.
@@ -103,7 +103,7 @@ final class DoublesUpdateImpl {
           final int k,
           final DoublesSketchAccessor tgtSketchBuf,
           final long bitPattern) {
-    final int endingLevel = Util.lowestZeroBitStartingAt(bitPattern, startingLevel);
+    final int endingLevel = ClassicUtil.lowestZeroBitStartingAt(bitPattern, startingLevel);
     tgtSketchBuf.setLevel(endingLevel);
     if (doUpdateVersion) { // update version of computation
       // its is okay for optSrcKBuf to be null in this case

@@ -19,19 +19,18 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.zeroPad;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 //@formatter:off
 
@@ -497,7 +496,7 @@ final class PreambleUtil {
 
   static final short checkMemorySeedHash(final Memory mem, final long seed) {
     final short seedHashMem = (short) extractSeedHash(mem);
-    checkSeedHashes(seedHashMem, computeSeedHash(seed)); //throws if bad seedHash
+    ThetaUtil.checkSeedHashes(seedHashMem, ThetaUtil.computeSeedHash(seed)); //throws if bad seedHash
     return seedHashMem;
   }
 

@@ -25,7 +25,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
@@ -79,7 +79,7 @@ public class KllHelperTest {
   @Test
   public void checkSuperLargeKandLevels() {
     //This is beyond what the sketch can be configured for.
-    final int size = KllHelper.computeTotalValueCapacity(1 << 29, 8, 61);
+    final int size = KllHelper.computeTotalItemCapacity(1 << 29, 8, 61);
     assertEquals(size, 1_610_612_846);
   }
 
@@ -161,7 +161,7 @@ public class KllHelperTest {
     int numLevels = 23;
     KllHelper.LevelStats lvlStats =
         KllHelper.getFinalSketchStatsAtNumLevels(k, m, numLevels, true);
-    assertEquals(lvlStats.values, 697);
+    assertEquals(lvlStats.numItems, 697);
     assertEquals(lvlStats.n, 1257766904);
   }
 
@@ -173,7 +173,7 @@ public class KllHelperTest {
     KllHelper.LevelStats lvlStats =
         KllHelper.getFinalSketchStatsAtNumLevels(k, KllSketch.DEFAULT_M, numLevels, true);
     assertEquals(lvlStats.numLevels, 2);
-    assertEquals(lvlStats.values, 33);
+    assertEquals(lvlStats.numItems, 33);
   }
 
   @Test
@@ -194,7 +194,7 @@ public class KllHelperTest {
     KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, DOUBLES_SKETCH, true);
     assertEquals(gStats.numLevels, 2);
-    assertEquals(gStats.maxValues, 333);
+    assertEquals(gStats.maxItems, 333);
 
   }
 }

@@ -25,10 +25,9 @@ import static org.apache.datasketches.hash.MurmurHash3Adaptor.hashToBytes;
 import static org.apache.datasketches.hash.MurmurHash3Adaptor.hashToLongs;
 import static org.apache.datasketches.hash.MurmurHash3Adaptor.modulo;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

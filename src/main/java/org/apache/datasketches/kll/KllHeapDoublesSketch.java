@@ -20,9 +20,9 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_VALUE;
+import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
@@ -39,24 +39,24 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes, Kevin Lang
  */
 final class KllHeapDoublesSketch extends KllDoublesSketch {
-  private final int k_;    // configured value of K.
-  private final int m_;    // configured value of M.
-  private long n_;        // number of values input into this sketch.
+  private final int k_;    // configured size of K.
+  private final int m_;    // configured size of M.
+  private long n_;        // number of items input into this sketch.
   private int minK_;    // dynamic minK for error estimation after merging with different k.
   private boolean isLevelZeroSorted_;
-  private double minDoubleValue_;
-  private double maxDoubleValue_;
-  private double[] doubleValues_;
+  private double minItem_;
+  private double maxItem_;
+  private double[] quantiles_;
 
   /**
    * New instance heap constructor with a given parameters <em>k</em> and <em>m</em>.
    *
    * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * <em>k</em> can be any value between <em>m</em> and 65535, inclusive.
+   * <em>k</em> can be between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
-   * Higher values of <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param m parameter controls the minimum level width in values. It can be 2, 4, 6 or 8.
-   * The DEFAULT_M, which is 8 is recommended. Other values of <em>m</em> should be considered
+   * Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * The DEFAULT_M, which is 8 is recommended. Other sizes of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
    */
   KllHeapDoublesSketch(final int k, final int m) {
@@ -69,53 +69,53 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     minK_ = k;
     isLevelZeroSorted_ = false;
     levelsArr = new int[] {k, k};
-    minDoubleValue_ = Double.NaN;
-    maxDoubleValue_ = Double.NaN;
-    doubleValues_ = new double[k];
+    minItem_ = Double.NaN;
+    maxItem_ = Double.NaN;
+    quantiles_ = new double[k];
   }
 
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryVaidate object
+   * @param memValidate the MemoryVaidate object
    */
-  private KllHeapDoublesSketch(final Memory srcMem, final KllMemoryValidate memVal) {
+  private KllHeapDoublesSketch(final Memory srcMem, final KllMemoryValidate memValidate) {
     super(null, null );
-    k_ = memVal.k;
-    m_ = memVal.m;
-    n_ = memVal.n;
-    minK_ = memVal.minK;
-    levelsArr = memVal.levelsArr;
-    isLevelZeroSorted_ = memVal.level0Sorted;
-    final boolean updatableMemFormat = memVal.updatableMemFormat;
+    k_ = memValidate.k;
+    m_ = memValidate.m;
+    n_ = memValidate.n;
+    minK_ = memValidate.minK;
+    levelsArr = memValidate.levelsArr;
+    isLevelZeroSorted_ = memValidate.level0Sorted;
+    final boolean updatableMemFormat = memValidate.updatableMemFormat;
 
-    if (memVal.empty && !updatableMemFormat) {
-      minDoubleValue_ = Double.NaN;
-      maxDoubleValue_ = Double.NaN;
-      doubleValues_ = new double[k_];
+    if (memValidate.empty && !updatableMemFormat) {
+      minItem_ = Double.NaN;
+      maxItem_ = Double.NaN;
+      quantiles_ = new double[k_];
     }
-    else if (memVal.singleValue && !updatableMemFormat) {
-      final double value = srcMem.getDouble(DATA_START_ADR_SINGLE_VALUE);
-      minDoubleValue_ = maxDoubleValue_ = value;
-      doubleValues_ = new double[k_];
-      doubleValues_[k_ - 1] = value;
+    else if (memValidate.singleItem && !updatableMemFormat) {
+      final double item = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
+      minItem_ = maxItem_ = item;
+      quantiles_ = new double[k_];
+      quantiles_[k_ - 1] = item;
     }
     else { //Full or updatableMemFormat
       int offsetBytes = DATA_START_ADR;
       offsetBytes += (updatableMemFormat ? levelsArr.length * Integer.BYTES : (levelsArr.length - 1) * Integer.BYTES);
-      minDoubleValue_ = srcMem.getDouble(offsetBytes);
+      minItem_ = srcMem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
-      maxDoubleValue_ = srcMem.getDouble(offsetBytes);
+      maxItem_ = srcMem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
-      final int capacityValues = levelsArr[getNumLevels()];
-      final int retainedValues = capacityValues - levelsArr[0];
-      doubleValues_ = new double[capacityValues];
+      final int capacityItems = levelsArr[getNumLevels()];
+      final int retainedItems = capacityItems - levelsArr[0];
+      quantiles_ = new double[capacityItems];
       final int shift = levelsArr[0];
       if (updatableMemFormat) {
         offsetBytes += shift * Double.BYTES;
-        srcMem.getDoubleArray(offsetBytes, doubleValues_, shift, retainedValues);
+        srcMem.getDoubleArray(offsetBytes, quantiles_, shift, retainedItems);
       } else {
-        srcMem.getDoubleArray(offsetBytes, doubleValues_, shift, retainedValues);
+        srcMem.getDoubleArray(offsetBytes, quantiles_, shift, retainedItems);
       }
     }
   }
@@ -134,25 +134,25 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   public long getN() { return n_; }
 
   @Override
-  double[] getDoubleValuesArray() { return doubleValues_; }
+  double[] getDoubleItemsArray() { return quantiles_; }
 
   @Override
-  double getDoubleSingleValue() {
-    if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_VALUE); return Double.NaN; }
-    return doubleValues_[k_ - 1];
+  double getDoubleSingleItem() {
+    if (n_ != 1L) { kllSketchThrow(NOT_SINGLE_ITEM); return Double.NaN; }
+    return quantiles_[k_ - 1];
   }
 
   @Override
-  float getFloatSingleValue() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
+  float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override
   int getM() { return m_; }
 
   @Override
-  double getMaxDoubleValue() { return maxDoubleValue_; }
+  double getMaxDoubleItem() { return maxItem_; }
 
   @Override
-  double getMinDoubleValue() { return minDoubleValue_; }
+  double getMinDoubleItem() { return minItem_; }
 
   @Override
   int getMinK() { return minK_; }
@@ -167,19 +167,19 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   boolean isLevelZeroSorted() { return isLevelZeroSorted_; }
 
   @Override
-  void setDoubleValuesArray(final double[] doubleValues) { doubleValues_ = doubleValues; }
+  void setDoubleItemsArray(final double[] doubleItems) { quantiles_ = doubleItems; }
 
   @Override
-  void setDoubleValuesArrayAt(final int index, final double value) { doubleValues_[index] = value; }
+  void setDoubleItemsArrayAt(final int index, final double item) { quantiles_[index] = item; }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }
 
   @Override
-  void setMaxDoubleValue(final double value) { maxDoubleValue_ = value; }
+  void setMaxDoubleItem(final double item) { maxItem_ = item; }
 
   @Override
-  void setMinDoubleValue(final double value) { minDoubleValue_ = value; }
+  void setMinDoubleItem(final double item) { minItem_ = item; }
 
   @Override
   void setMinK(final int minK) { minK_ = minK; }

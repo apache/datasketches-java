@@ -19,8 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Family.QUICKSELECT;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Family.QUICKSELECT;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -41,14 +40,15 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -189,14 +189,14 @@ public class DirectQuickSelectSketchTest {
     mem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
 
     //try to wrap the corrupted mem
-    DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test //(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int k = 512;
     long seed1 = 1021;
-    long seed2 = DEFAULT_UPDATE_SEED;
+    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
     try (WritableHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.getWritable();
 
@@ -217,7 +217,7 @@ public class DirectQuickSelectSketchTest {
       WritableMemory mem = h.getWritable();
       UpdateSketch.builder().setNominalEntries(k).build(mem);
       mem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-      Sketch.heapify(mem, DEFAULT_UPDATE_SEED);
+      Sketch.heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
     } catch (final Exception e) {
       if (e instanceof SketchesArgumentException) {}
       else { throw new RuntimeException(e); }
@@ -770,7 +770,7 @@ public class DirectQuickSelectSketchTest {
     UpdateSketch usk2;
     mem1.putByte(FAMILY_BYTE, (byte) 3); //corrupt Family by setting to Compact
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(mem1, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //Pass
@@ -778,7 +778,7 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(FAMILY_BYTE, (byte) 2); //fix Family
     mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 1); //corrupt preLongs
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(mem1, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -786,7 +786,7 @@ public class DirectQuickSelectSketchTest {
     mem1.putByte(PREAMBLE_LONGS_BYTE, (byte) 3); //fix preLongs
     mem1.putByte(SER_VER_BYTE, (byte) 2); //corrupt serVer
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(mem1, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -796,7 +796,7 @@ public class DirectQuickSelectSketchTest {
     mem1.putLong(THETA_LONG, Long.MAX_VALUE >>> 1); //corrupt theta and
     mem1.putByte(LG_ARR_LONGS_BYTE, (byte) 10); //corrupt lgArrLongs
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(mem1, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -806,7 +806,7 @@ public class DirectQuickSelectSketchTest {
     byte badFlags = (byte) (BIG_ENDIAN_FLAG_MASK | COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK | ORDERED_FLAG_MASK);
     mem1.putByte(FLAGS_BYTE, badFlags);
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(mem1, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(mem1, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -815,7 +815,7 @@ public class DirectQuickSelectSketchTest {
     byte[] arr2 = Arrays.copyOfRange(arr1, 0, bytes-1); //corrupt length
     WritableMemory mem2 = WritableMemory.writableWrap(arr2);
     try {
-      usk2 = DirectQuickSelectSketch.writableWrap(mem2, DEFAULT_UPDATE_SEED);
+      usk2 = DirectQuickSelectSketch.writableWrap(mem2, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail("Expected SketchesArgumentException");
     } catch (SketchesArgumentException e) {
       //pass
@@ -834,7 +834,7 @@ public class DirectQuickSelectSketchTest {
     usk.update(0);
 
     insertLgResizeFactor(mem, 0); // corrupt RF: X1
-    UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
+    UpdateSketch dqss = DirectQuickSelectSketch.writableWrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals(dqss.getResizeFactor(), ResizeFactor.X2); // force-promote to X2
   }
 
@@ -863,7 +863,7 @@ public class DirectQuickSelectSketchTest {
     WritableMemory mem = WritableMemory.writableWrap(new byte[(k*16) +24]);
     Sketches.updateSketchBuilder().setNominalEntries(k).build(mem);
     mem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(mem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test

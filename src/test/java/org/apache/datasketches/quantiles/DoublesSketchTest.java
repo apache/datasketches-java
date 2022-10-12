@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -29,9 +30,12 @@ import java.nio.ByteOrder;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("javadoc")
 public class DoublesSketchTest {
 
   @Test
@@ -42,8 +46,8 @@ public class DoublesSketchTest {
     }
     DoublesSketch directSketch = DoublesSketch.wrap(WritableMemory.writableWrap(heapSketch.toByteArray(false)));
 
-    assertEquals(directSketch.getMinValue(), 0.0);
-    assertEquals(directSketch.getMaxValue(), 999.0);
+    assertEquals(directSketch.getMinItem(), 0.0);
+    assertEquals(directSketch.getMaxItem(), 999.0);
     assertEquals(directSketch.getQuantile(0.5), 500.0, 4.0);
   }
 
@@ -59,8 +63,8 @@ public class DoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       heapSketch.update(i + 1000);
     }
-    assertEquals(heapSketch.getMinValue(), 0.0);
-    assertEquals(heapSketch.getMaxValue(), 1999.0);
+    assertEquals(heapSketch.getMinItem(), 0.0);
+    assertEquals(heapSketch.getMaxItem(), 1999.0);
     assertEquals(heapSketch.getQuantile(0.5), 1000.0, 10.0);
   }
 
@@ -70,7 +74,7 @@ public class DoublesSketchTest {
     ds.update(1);
     ds.update(2);
     byte[] arr = ds.toByteArray(false);
-    assertEquals(arr.length, ds.getUpdatableStorageBytes());
+    assertEquals(arr.length, ds.getCurrentUpdatableSerializedSizeBytes());
   }
 
   /**
@@ -85,8 +89,8 @@ public class DoublesSketchTest {
     assertEquals(sketch1.getK(), sketch2.getK());
     assertEquals(sketch1.getN(), sketch2.getN());
     assertEquals(sketch1.getBitPattern(), sketch2.getBitPattern());
-    assertEquals(sketch1.getMinValue(), sketch2.getMinValue());
-    assertEquals(sketch1.getMaxValue(), sketch2.getMaxValue());
+    assertEquals(sketch1.getMinItem(), sketch2.getMinItem());
+    assertEquals(sketch1.getMaxItem(), sketch2.getMaxItem());
 
     final DoublesSketchAccessor accessor1 = DoublesSketchAccessor.wrap(sketch1);
     final DoublesSketchAccessor accessor2 = DoublesSketchAccessor.wrap(sketch2);
@@ -124,6 +128,7 @@ public class DoublesSketchTest {
     assertFalse(uds.isSameResource(mem));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkEmptyNullReturns() {
     int k = 16;
@@ -187,47 +192,60 @@ public class DoublesSketchTest {
     sketch.update(3);
     sketch.update(1);
     sketch.update(2);
-    { // non-cumulative (inclusive does not matter in this case)
-      final DoublesSketchSortedView view = sketch.getSortedView(false, false);
-      final DoublesSketchSortedViewIterator it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), false);
-    }
-    { // cumulative non-inclusive
-      final DoublesSketchSortedView view = sketch.getSortedView(true, false);
-      final DoublesSketchSortedViewIterator it = view.iterator();
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
-      Assert.assertEquals(it.getWeight(), 0);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 1);
-      Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 2);
-      Assert.assertEquals(it.next(), false);
-    }
     { // cumulative inclusive
-      final DoublesSketchSortedView view = sketch.getSortedView(true, true);
-      final DoublesSketchSortedViewIterator it = view.iterator();
+      final DoublesSortedView view = sketch.getSortedView();
+      final DoublesSortedViewIterator it = view.iterator();
       Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 1);
+      Assert.assertEquals(it.getQuantile(), 1);
       Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 1);
       Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 2);
-      Assert.assertEquals(it.getWeight(), 2);
+      Assert.assertEquals(it.getQuantile(), 2);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 2);
       Assert.assertEquals(it.next(), true);
-      Assert.assertEquals(it.getValue(), 3);
-      Assert.assertEquals(it.getWeight(), 3);
+      Assert.assertEquals(it.getQuantile(), 3);
+      Assert.assertEquals(it.getWeight(), 1);
+      Assert.assertEquals(it.getCumulativeWeight(INCLUSIVE), 3);
       Assert.assertEquals(it.next(), false);
+    }
+  }
+
+  @Test
+  public void checkRankLBError() {
+    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final double eps = sk.getNormalizedRankError(false);
+    println("" + (2 * eps));
+    for (int i = 1; i <= 10000; i++) { sk.update(i); }
+    double rlb = sk.getRankLowerBound(.5);
+    println(.5 - rlb);
+    assertTrue(.5 - rlb <= 2* eps);
+  }
+
+  @Test
+  public void checkRankUBError() {
+    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    final double eps = sk.getNormalizedRankError(false);
+    println(""+ (2 * eps));
+    for (int i = 1; i <= 10000; i++) { sk.update(i); }
+    double rub = sk.getRankUpperBound(.5);
+    println(rub -.5);
+    assertTrue(rub -.5 <= 2 * eps);
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  public void checkGetRanks() {
+    final UpdateDoublesSketch sk = DoublesSketch.builder().build();
+    for (int i = 1; i <= 10000; i++) { sk.update(i); }
+    final double[] qArr = {1000,2000,3000,4000,5000,6000,7000,8000,9000,10000};
+    final double[] ranks = sk.getRanks(qArr, INCLUSIVE);
+    for (int i = 0; i < qArr.length; i++) {
+      final double rLB = sk.getRankLowerBound(ranks[i]);
+      final double rUB = sk.getRankUpperBound(ranks[i]);
+      assertTrue(rLB <= ranks[i]);
+      assertTrue(rUB >= ranks[i]);
+      println(rLB + ", " + ranks[i] + ", " + rUB);
     }
   }
 
@@ -237,10 +255,10 @@ public class DoublesSketchTest {
   }
 
   /**
-   * @param s value to print
+   * @param o value to print
    */
-  static void println(String s) {
-    //System.out.println(s); //disable here
+  static void println(Object o) {
+    //System.out.println(o.toString()); //disable here
   }
 
 }

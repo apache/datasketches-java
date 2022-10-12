@@ -19,11 +19,9 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.DEFAULT_NOMINAL_ENTRIES;
-import static org.apache.datasketches.Util.checkNomLongs;
-
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * For building a new generic tuple UpdatableSketch
@@ -45,7 +43,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @param summaryFactory An instance of SummaryFactory.
    */
   public UpdatableSketchBuilder(final SummaryFactory<S> summaryFactory) {
-    nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
+    nomEntries_ = ThetaUtil.DEFAULT_NOMINAL_ENTRIES;
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
     summaryFactory_ = summaryFactory;
@@ -58,7 +56,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * @return this UpdatableSketchBuilder
    */
   public UpdatableSketchBuilder<U, S> setNominalEntries(final int nomEntries) {
-    nomEntries_ = 1 << checkNomLongs(nomEntries);
+    nomEntries_ = 1 << ThetaUtil.checkNomLongs(nomEntries);
     return this;
   }
 
@@ -102,7 +100,7 @@ public class UpdatableSketchBuilder<U, S extends UpdatableSummary<U>> {
    * The assignment of <i>U</i> and <i>S</i> remain the same.
    */
   public void reset() {
-    nomEntries_ = DEFAULT_NOMINAL_ENTRIES;
+    nomEntries_ = ThetaUtil.DEFAULT_NOMINAL_ENTRIES;
     resizeFactor_ = DEFAULT_RESIZE_FACTOR;
     samplingProbability_ = DEFAULT_SAMPLING_PROBABILITY;
   }

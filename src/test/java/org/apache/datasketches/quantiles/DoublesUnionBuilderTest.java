@@ -34,7 +34,7 @@ public class DoublesUnionBuilderTest {
     UpdateDoublesSketch qs1 = DoublesSketch.builder().build();
     for (int i=0; i<1000; i++) { qs1.update(i); }
 
-    int bytes = qs1.getCompactStorageBytes();
+    int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem);
     Memory srcMem = dstMem;
@@ -45,11 +45,11 @@ public class DoublesUnionBuilderTest {
 
     union = DoublesUnion.heapify(srcMem);
     DoublesSketch qs2 = union.getResult();
-    assertEquals(qs1.getCompactStorageBytes(), qs2.getCompactStorageBytes());
+    assertEquals(qs1.getCurrentCompactSerializedSizeBytes(), qs2.getCurrentCompactSerializedSizeBytes());
 
     union = DoublesUnion.heapify(qs2);
     DoublesSketch qs3 = union.getResult();
-    assertEquals(qs2.getCompactStorageBytes(), qs3.getCompactStorageBytes());
+    assertEquals(qs2.getCurrentCompactSerializedSizeBytes(), qs3.getCurrentCompactSerializedSizeBytes());
     assertFalse(qs2 == qs3);
   }
 
@@ -61,7 +61,7 @@ public void checkDeprecated1() {
     qs1.update(i);
   }
 
-  int bytes = qs1.getCompactStorageBytes();
+  int bytes = qs1.getCurrentCompactSerializedSizeBytes();
   WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
   qs1.putMemory(dstMem);
   Memory srcMem = dstMem;
@@ -72,13 +72,13 @@ public void checkDeprecated1() {
 
   union = DoublesUnion.heapify(srcMem); //heapify
   DoublesSketch qs2 = union.getResult();
-  assertEquals(qs1.getCompactStorageBytes(), qs2.getCompactStorageBytes());
-  assertEquals(qs1.getUpdatableStorageBytes(), qs2.getUpdatableStorageBytes());
+  assertEquals(qs1.getCurrentCompactSerializedSizeBytes(), qs2.getCurrentCompactSerializedSizeBytes());
+  assertEquals(qs1.getCurrentUpdatableSerializedSizeBytes(), qs2.getCurrentUpdatableSerializedSizeBytes());
 
   union = DoublesUnion.heapify(qs2);  //heapify again
   DoublesSketch qs3 = union.getResult();
-  assertEquals(qs2.getCompactStorageBytes(), qs3.getCompactStorageBytes());
-  assertEquals(qs2.getUpdatableStorageBytes(), qs3.getUpdatableStorageBytes());
+  assertEquals(qs2.getCurrentCompactSerializedSizeBytes(), qs3.getCurrentCompactSerializedSizeBytes());
+  assertEquals(qs2.getCurrentUpdatableSerializedSizeBytes(), qs3.getCurrentUpdatableSerializedSizeBytes());
   assertFalse(qs2 == qs3); //different objects
 }
 

@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -58,12 +58,12 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public void update(final DoublesSketch sketchIn) {
+  public void union(final DoublesSketch sketchIn) {
     throw new SketchesReadOnlyException("Call to update() on read-only Union");
   }
 
   @Override
-  public void update(final Memory mem) {
+  public void union(final Memory mem) {
     throw new SketchesReadOnlyException("Call to update() on read-only Union");
   }
 
@@ -113,13 +113,18 @@ class DoublesUnionImplR extends DoublesUnion {
   }
 
   @Override
-  public boolean isEmpty() {
-    return (gadget_ == null) || gadget_.isEmpty();
+  public boolean hasMemory() {
+    return (gadget_ != null) && gadget_.hasMemory();
   }
 
   @Override
   public boolean isDirect() {
     return (gadget_ != null) && gadget_.isDirect();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return (gadget_ == null) || gadget_.isEmpty();
   }
 
   @Override
@@ -143,7 +148,7 @@ class DoublesUnionImplR extends DoublesUnion {
     final String thisSimpleName = this.getClass().getSimpleName();
     final int maxK = getMaxK();
     final String kStr = String.format("%,d", maxK);
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
+    sb.append(ClassicUtil.LS).append("### Quantiles ").append(thisSimpleName).append(LS);
     sb.append("   maxK                         : ").append(kStr);
     if (gadget_ == null) {
       sb.append(HeapUpdateDoublesSketch.newInstance(maxK_).toString());

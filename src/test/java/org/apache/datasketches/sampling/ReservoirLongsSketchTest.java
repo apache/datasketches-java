@@ -36,11 +36,11 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesException;
+import org.apache.datasketches.common.SketchesStateException;
 
 public class ReservoirLongsSketchTest {
   private static final double EPS = 1e-8;
@@ -537,9 +537,9 @@ public class ReservoirLongsSketchTest {
     for (int i = 0; i < byteArr.length; i += 8) {
       for (int j = i + 7; j >= i; --j) {
         final String str = Integer.toHexString(byteArr[j] & 0XFF);
-        sb.append(org.apache.datasketches.Util.zeroPad(str, 2));
+        sb.append(org.apache.datasketches.common.Util.zeroPad(str, 2));
       }
-      sb.append(org.apache.datasketches.Util.LS);
+      sb.append(org.apache.datasketches.common.Util.LS);
 
     }
 

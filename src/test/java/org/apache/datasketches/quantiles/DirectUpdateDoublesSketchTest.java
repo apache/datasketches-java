@@ -19,10 +19,10 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -31,64 +31,19 @@ import java.nio.ByteOrder;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
 
+@SuppressWarnings("javadoc")
 public class DirectUpdateDoublesSketchTest {
+
 
   @BeforeMethod
   public void setUp() {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
-  @Test
-  public void checkBigMinMax () {
-    int k = 32;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
-    assertFalse(qs1.isEstimationMode());
-
-    for (int i = 999; i >= 1; i--) {
-      qs1.update(i);
-      qs2.update(1000+i);
-      qs3.update(i);
-    }
-    assertTrue(qs1.isEstimationMode());
-
-    assertTrue(qs1.getQuantile(0.0) == 1.0);
-    assertTrue(qs1.getQuantile(1.0) == 999.0);
-
-    assertTrue(qs2.getQuantile(0.0) == 1001.0);
-    assertTrue(qs2.getQuantile(1.0) == 1999.0);
-
-    assertTrue((qs3.getQuantile(0.0) == 1.0));
-    assertTrue(qs3.getQuantile(1.0) == 999.0);
-
-    double[] queries = {0.0, 1.0};
-
-    double[] resultsA = qs1.getQuantiles(queries);
-    assertTrue(resultsA[0] == 1.0);
-    assertTrue(resultsA[1] == 999.0);
-
-    DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
-    DoublesSketch result1 = union1.getResult();
-
-    DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
-    DoublesSketch result2 = union2.getResult();
-
-    double[] resultsB = result1.getQuantiles(queries);
-    assertTrue(resultsB[0] == 1.0);
-    assertTrue(resultsB[1] == 1999.0);
-
-    double[] resultsC = result2.getQuantiles(queries);
-    assertTrue(resultsC[0] == 1.0);
-    assertTrue(resultsC[1] == 1999.0);
-  }
-
+  @SuppressWarnings("deprecation")
   @Test
   public void checkSmallMinMax () {
     int k = 32;
@@ -102,43 +57,43 @@ public class DirectUpdateDoublesSketchTest {
       qs2.update(10+i);
       qs3.update(i);
     }
-    assert (qs1.getQuantile (0.0) == 1.0);
-    assert (qs1.getQuantile (0.5) == 5.0);
-    assert (qs1.getQuantile (1.0) == 8.0);
+    assertEquals(qs1.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs1.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs1.getQuantile (1.0, EXCLUSIVE), 8.0);
 
-    assert (qs2.getQuantile (0.0) == 11.0);
-    assert (qs2.getQuantile (0.5) == 15.0);
-    assert (qs2.getQuantile (1.0) == 18.0);
+    assertEquals(qs2.getQuantile (0.0, EXCLUSIVE), 11.0);
+    assertEquals(qs2.getQuantile (0.5, EXCLUSIVE), 15.0);
+    assertEquals(qs2.getQuantile (1.0, EXCLUSIVE), 18.0);
 
-    assert (qs3.getQuantile (0.0) == 1.0);
-    assert (qs3.getQuantile (0.5) == 5.0);
-    assert (qs3.getQuantile (1.0) == 8.0);
+    assertEquals(qs3.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs3.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), 8.0);
 
     double[] queries = {0.0, 0.5, 1.0};
 
-    double[] resultsA = qs1.getQuantiles(queries);
-    assert (resultsA[0] == 1.0);
-    assert (resultsA[1] == 5.0);
-    assert (resultsA[2] == 8.0);
+    double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsA[0], 1.0);
+    assertEquals(resultsA[1], 5.0);
+    assertEquals(resultsA[2], 8.0);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
+    union1.union(qs2);
     DoublesSketch result1 = union1.getResult();
 
     DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
+    union2.union(qs3);
     DoublesSketch result2 = union2.getResult();
 
-    double[] resultsB = result1.getQuantiles(queries);
+    double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
     printResults(resultsB);
-    assert (resultsB[0] == 1.0);
-    assert (resultsB[1] == 11.0);
-    assert (resultsB[2] == 18.0);
+    assertEquals(resultsB[0], 1.0);
+    assertEquals(resultsB[1], 11.0);
+    assertEquals(resultsB[2], 18.0);
 
-    double[] resultsC = result2.getQuantiles(queries);
-    assert (resultsC[0] == 1.0);
-    assert (resultsC[1] == 11.0);
-    assert (resultsC[2] == 18.0);
+    double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsC[0], 1.0);
+    assertEquals(resultsC[1], 11.0);
+    assertEquals(resultsC[2], 18.0);
   }
 
   static void printResults(double[] results) {
@@ -154,8 +109,8 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(s2.isEmpty());
 
     assertEquals(s2.getN(), 0);
-    assertTrue(Double.isNaN(s2.getMinValue()));
-    assertTrue(Double.isNaN(s2.getMaxValue()));
+    assertTrue(Double.isNaN(s2.getMinItem()));
+    assertTrue(Double.isNaN(s2.getMaxItem()));
 
     s2.reset(); // empty: so should be a no-op
     assertEquals(s2.getN(), 0);
@@ -184,8 +139,8 @@ public class DirectUpdateDoublesSketchTest {
     assertEquals(combBuf, data);
 
     // shouldn't have changed min/max values
-    assertTrue(Double.isNaN(qs.getMinValue()));
-    assertTrue(Double.isNaN(qs.getMaxValue()));
+    assertTrue(Double.isNaN(qs.getMinItem()));
+    assertTrue(Double.isNaN(qs.getMaxItem()));
   }
 
   @Test
@@ -271,15 +226,15 @@ public class DirectUpdateDoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
-    assertEquals(sketch2.getMinValue(), 0.0);
-    assertEquals(sketch2.getMaxValue(), 1999.0);
+    assertEquals(sketch2.getMinItem(), 0.0);
+    assertEquals(sketch2.getMaxItem(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
 
     byte[] arr2 = sketch2.toByteArray(false);
-    assertEquals(arr2.length, sketch2.getStorageBytes());
+    assertEquals(arr2.length, sketch2.getSerializedSizeBytes());
     DoublesSketch sketch3 = DoublesSketch.wrap(WritableMemory.writableWrap(arr2));
-    assertEquals(sketch3.getMinValue(), 0.0);
-    assertEquals(sketch3.getMaxValue(), 1999.0);
+    assertEquals(sketch3.getMinItem(), 0.0);
+    assertEquals(sketch3.getMaxItem(), 1999.0);
     assertEquals(sketch3.getQuantile(0.5), 1000.0, 10.0);
   }
 
@@ -288,8 +243,8 @@ public class DirectUpdateDoublesSketchTest {
     DoublesSketch dqs1 = buildAndLoadDQS(128, 256);
     DoublesSketch dqs2 = buildAndLoadDQS(128, 256, 256);
     DoublesUnion union = DoublesUnion.builder().setMaxK(128).build();
-    union.update(dqs1);
-    union.update(dqs2);
+    union.union(dqs1);
+    union.union(dqs2);
     DoublesSketch result = union.getResult();
     double median = result.getQuantile(0.5);
     println("Median: " + median);

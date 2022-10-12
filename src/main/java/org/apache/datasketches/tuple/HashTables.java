@@ -22,12 +22,13 @@ package org.apache.datasketches.tuple;
 import static java.lang.Math.ceil;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.HashOperations.hashInsertOnly;
-import static org.apache.datasketches.HashOperations.hashSearch;
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.thetacommon.HashOperations.hashInsertOnly;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.lang.reflect.Array;
+
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 @SuppressWarnings("unchecked")
 class HashTables<S extends Summary> {
@@ -44,7 +45,7 @@ class HashTables<S extends Summary> {
     lgTableSize = getLgTableSize(numKeys);
 
     hashTable = new long[1 << lgTableSize];
-    final SketchIterator<S> it = sketch.iterator();
+    final TupleSketchIterator<S> it = sketch.iterator();
     while (it.next()) {
       final long hash = it.getHash();
       final int index = hashInsertOnly(hashTable, lgTableSize, hash);
@@ -102,7 +103,7 @@ class HashTables<S extends Summary> {
     final long[] matchHashArr = new long[maxMatchSize];
     final S[] matchSummariesArr = Util.newSummaryArray(summaryTable, maxMatchSize);
     int matchCount = 0;
-    final SketchIterator<S> it = nextTupleSketch.iterator();
+    final TupleSketchIterator<S> it = nextTupleSketch.iterator();
 
     while (it.next()) {
       final long hash = it.getHash();
@@ -161,7 +162,7 @@ class HashTables<S extends Summary> {
   }
 
   static int getLgTableSize(final int count) {
-    final int tableSize = max(ceilingIntPowerOf2((int) ceil(count / 0.75)), 1 << MIN_LG_NOM_LONGS);
+    final int tableSize = max(ceilingIntPowerOf2((int) ceil(count / 0.75)), 1 << ThetaUtil.MIN_LG_NOM_LONGS);
     return Integer.numberOfTrailingZeros(tableSize);
   }
 

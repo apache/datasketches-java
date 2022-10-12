@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.quantiles.Util.LS;
-import static org.apache.datasketches.quantiles.Util.computeRetainedItems;
+import static org.apache.datasketches.common.Family.idToFamily;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
 import java.nio.ByteOrder;
 
@@ -99,7 +99,7 @@ final class PreambleUtil {
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
   /**
-   * Default value for about 1.7% normalized rank accuracy
+   * Default K for about 1.7% normalized rank accuracy
    */
   static final int DEFAULT_K = 128;
 
@@ -112,7 +112,7 @@ final class PreambleUtil {
    *
    * @param byteArr the given byte array.
    * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
-   * to output min and max value in the summary
+   * to output min and max quantiles in the summary
    * @return the summary string.
    */
   static String toString(final byte[] byteArr, final boolean isDoublesSketch) {
@@ -122,12 +122,12 @@ final class PreambleUtil {
 
   /**
    * Returns a human readable string summary of the Preamble of the given Memory. If this Memory
-   * image is from a DoublesSketch, the MinValue and MaxValue will also be output.
+   * image is from a DoublesSketch, the MinQuantile and MaxQuantile will also be output.
    * Used primarily in testing.
    *
    * @param mem the given Memory
    * @param isDoublesSketch flag to indicate that the byte array represents DoublesSketch
-   * to output min and max value in the summary
+   * to output min and max quantiles in the summary
    * @return the summary string.
    */
   static String toString(final Memory mem, final boolean isDoublesSketch) {
@@ -217,35 +217,35 @@ final class PreambleUtil {
     return mem.getDouble(MAX_DOUBLE);
   }
 
-  static void insertPreLongs(final WritableMemory wmem, final int value) {
-    wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) value);
+  static void insertPreLongs(final WritableMemory wmem, final int numPreLongs) {
+    wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) numPreLongs);
   }
 
-  static void insertSerVer(final WritableMemory wmem, final int value) {
-    wmem.putByte(SER_VER_BYTE, (byte) value);
+  static void insertSerVer(final WritableMemory wmem, final int serVer) {
+    wmem.putByte(SER_VER_BYTE, (byte) serVer);
   }
 
-  static void insertFamilyID(final WritableMemory wmem, final int value) {
-    wmem.putByte(FAMILY_BYTE, (byte) value);
+  static void insertFamilyID(final WritableMemory wmem, final int famId) {
+    wmem.putByte(FAMILY_BYTE, (byte) famId);
   }
 
-  static void insertFlags(final WritableMemory wmem, final int value) {
-    wmem.putByte(FLAGS_BYTE, (byte) value);
+  static void insertFlags(final WritableMemory wmem, final int flags) {
+    wmem.putByte(FLAGS_BYTE, (byte) flags);
   }
 
-  static void insertK(final WritableMemory wmem, final int value) {
-    wmem.putShort(K_SHORT, (short) value);
+  static void insertK(final WritableMemory wmem, final int k) {
+    wmem.putShort(K_SHORT, (short) k);
   }
 
-  static void insertN(final WritableMemory wmem, final long value) {
-    wmem.putLong(N_LONG, value);
+  static void insertN(final WritableMemory wmem, final long n) {
+    wmem.putLong(N_LONG, n);
   }
 
-  static void insertMinDouble(final WritableMemory wmem, final double value) {
-    wmem.putDouble(MIN_DOUBLE, value);
+  static void insertMinDouble(final WritableMemory wmem, final double minDouble) {
+    wmem.putDouble(MIN_DOUBLE, minDouble);
   }
 
-  static void insertMaxDouble(final WritableMemory wmem, final double value) {
-    wmem.putDouble(MAX_DOUBLE, value);
+  static void insertMaxDouble(final WritableMemory wmem, final double maxDouble) {
+    wmem.putDouble(MAX_DOUBLE, maxDouble);
   }
 }

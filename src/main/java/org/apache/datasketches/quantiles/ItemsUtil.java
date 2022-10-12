@@ -19,12 +19,12 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * Utility class for generic quantiles sketch.
@@ -54,21 +54,21 @@ final class ItemsUtil {
   }
 
   /**
-   * Checks the sequential validity of the given array of values.
+   * Checks the sequential validity of the given array of generic items.
    * They must be unique, monotonically increasing and not null.
    * @param <T> the data type
-   * @param values given array of values
-   * @param comparator the comparator for data type T
+   * @param items given array of generic items
+   * @param comparator the comparator for generic item data type T
    */
-  static final <T> void validateValues(final T[] values, final Comparator<? super T> comparator) {
-    final int lenM1 = values.length - 1;
+  static final <T> void validateItems(final T[] items, final Comparator<? super T> comparator) {
+    final int lenM1 = items.length - 1;
     for (int j = 0; j < lenM1; j++) {
-      if ((values[j] != null) && (values[j + 1] != null)
-          && (comparator.compare(values[j], values[j + 1]) < 0)) {
+      if ((items[j] != null) && (items[j + 1] != null)
+          && (comparator.compare(items[j], items[j + 1]) < 0)) {
         continue;
       }
       throw new SketchesArgumentException(
-          "Values must be unique, monotonically increasing and not null.");
+          "Items must be unique, monotonically increasing and not null.");
     }
   }
 
@@ -110,7 +110,7 @@ final class ItemsUtil {
     final long bitPattern = sketch.getBitPattern();
 
     if (dataDetail) {
-      sb.append(Util.LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(Util.LS);
+      sb.append(ClassicUtil.LS).append("### ").append(thisSimpleName).append(" DATA DETAIL: ").append(ClassicUtil.LS);
       final Object[] items  = sketch.getCombinedBuffer();
 
       //output the base buffer
@@ -120,7 +120,7 @@ final class ItemsUtil {
           sb.append(' ').append(items[i]);
         }
       }
-      sb.append(Util.LS);
+      sb.append(ClassicUtil.LS);
       //output all the levels
       final int numItems = combAllocCount;
       if (numItems > (2 * k)) {
@@ -130,44 +130,44 @@ final class ItemsUtil {
             final int levelNum = j > (2 * k) ? (j - (2 * k)) / k : 0;
             final String validLvl = ((1L << levelNum) & bitPattern) > 0 ? "    T  " : "    F  ";
             final String lvl = String.format("%5d", levelNum);
-            sb.append(Util.LS).append("   ").append(validLvl).append(" ").append(lvl).append(":");
+            sb.append(ClassicUtil.LS).append("   ").append(validLvl).append(" ").append(lvl).append(":");
           }
           sb.append(' ').append(items[j]);
         }
-        sb.append(Util.LS);
+        sb.append(ClassicUtil.LS);
       }
-      sb.append("### END DATA DETAIL").append(Util.LS);
+      sb.append("### END DATA DETAIL").append(ClassicUtil.LS);
     }
 
     if (sketchSummary) {
       final long n = sketch.getN();
       final String nStr = String.format("%,d", n);
-      final int numLevels = Util.computeNumLevelsNeeded(k, n);
+      final int numLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
       final String bufCntStr = String.format("%,d", combAllocCount);
       final int preBytes = sketch.isEmpty() ? Long.BYTES : 2 * Long.BYTES;
-      final double epsPmf = Util.getNormalizedRankError(k, true);
+      final double epsPmf = ClassicUtil.getNormalizedRankError(k, true);
       final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
-      final double eps =  Util.getNormalizedRankError(k, false);
+      final double eps =  ClassicUtil.getNormalizedRankError(k, false);
       final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-      final int numSamples = sketch.getRetainedItems();
+      final int numSamples = sketch.getNumRetained();
       final String numSampStr = String.format("%,d", numSamples);
-      sb.append(Util.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(Util.LS);
-      sb.append("   K                            : ").append(k).append(Util.LS);
-      sb.append("   N                            : ").append(nStr).append(Util.LS);
-      sb.append("   BaseBufferCount              : ").append(bbCount).append(Util.LS);
-      sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(Util.LS);
-      sb.append("   Total Levels                 : ").append(numLevels).append(Util.LS);
-      sb.append("   Valid Levels                 : ").append(Util.computeValidLevels(bitPattern))
-        .append(Util.LS);
+      sb.append(ClassicUtil.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(ClassicUtil.LS);
+      sb.append("   K                            : ").append(k).append(ClassicUtil.LS);
+      sb.append("   N                            : ").append(nStr).append(ClassicUtil.LS);
+      sb.append("   BaseBufferCount              : ").append(bbCount).append(ClassicUtil.LS);
+      sb.append("   CombinedBufferAllocatedCount : ").append(bufCntStr).append(ClassicUtil.LS);
+      sb.append("   Total Levels                 : ").append(numLevels).append(ClassicUtil.LS);
+      sb.append("   Valid Levels                 : ").append(ClassicUtil.computeValidLevels(bitPattern))
+        .append(ClassicUtil.LS);
       sb.append("   Level Bit Pattern            : ").append(Long.toBinaryString(bitPattern))
-        .append(Util.LS);
-      sb.append("   Valid Samples                : ").append(numSampStr).append(Util.LS);
-      sb.append("   Preamble Bytes               : ").append(preBytes).append(Util.LS);
+        .append(ClassicUtil.LS);
+      sb.append("   Valid Samples                : ").append(numSampStr).append(ClassicUtil.LS);
+      sb.append("   Preamble Bytes               : ").append(preBytes).append(ClassicUtil.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
       sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-      sb.append("   Min Value                    : ").append(sketch.getMinValue()).append(Util.LS);
-      sb.append("   Max Value                    : ").append(sketch.getMaxValue()).append(Util.LS);
-      sb.append("### END SKETCH SUMMARY").append(Util.LS);
+      sb.append("   Min Quantile                 : ").append(sketch.getMinItem()).append(ClassicUtil.LS);
+      sb.append("   Max Quantile                 : ").append(sketch.getMaxItem()).append(ClassicUtil.LS);
+      sb.append("### END SKETCH SUMMARY").append(ClassicUtil.LS);
     }
     return sb.toString();
   }

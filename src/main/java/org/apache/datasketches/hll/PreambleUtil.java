@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.exactLog2OfLong;
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.exactLog2OfLong;
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
 import static org.apache.datasketches.hll.HllUtil.LG_INIT_SET_SIZE;
 import static org.apache.datasketches.hll.HllUtil.RESIZE_DENOM;
@@ -29,7 +29,7 @@ import static org.apache.datasketches.hll.HllUtil.RESIZE_NUMER;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

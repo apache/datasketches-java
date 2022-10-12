@@ -19,18 +19,18 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.exactLog2OfLong;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.HashOperations;
 import org.apache.datasketches.tuple.SerializerDeserializer;
 import org.apache.datasketches.tuple.Util;
 

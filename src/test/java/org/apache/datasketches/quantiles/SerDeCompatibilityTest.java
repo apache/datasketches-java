@@ -21,8 +21,8 @@ package org.apache.datasketches.quantiles;
 
 import java.util.Comparator;
 
-import org.apache.datasketches.ArrayOfDoublesSerDe;
-import org.apache.datasketches.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.ArrayOfDoublesSerDe;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -33,7 +33,7 @@ public class SerDeCompatibilityTest {
 
   @Test
   public void itemsToDoubles() {
-    final ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(Comparator.naturalOrder());
+    final ItemsSketch<Double> sketch1 = ItemsSketch.getInstance(Double.class, Comparator.naturalOrder());
     for (int i = 1; i <= 500; i++) { sketch1.update((double) i); }
 
     final byte[] bytes = sketch1.toByteArray(serDe);
@@ -42,9 +42,9 @@ public class SerDeCompatibilityTest {
 
     for (int i = 501; i <= 1000; i++) { sketch2.update(i); }
     Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals(sketch2.getMinValue(), 1.0);
-    Assert.assertEquals(sketch2.getMaxValue(), 1000.0);
+    Assert.assertTrue(sketch2.getNumRetained() < 1000);
+    Assert.assertEquals(sketch2.getMinItem(), 1.0);
+    Assert.assertEquals(sketch2.getMaxItem(), 1000.0);
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch2.getQuantile(0.5), 500.0, 17);
   }
@@ -60,14 +60,14 @@ public class SerDeCompatibilityTest {
     final byte[] bytes = cs.toByteArray(); // must be compact
 
     //reconstruct with ItemsSketch
-    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Memory.wrap(bytes),
+    final ItemsSketch<Double> sketch2 = ItemsSketch.getInstance(Double.class, Memory.wrap(bytes),
         Comparator.naturalOrder(), serDe);
 
     for (int i = 501; i <= 1000; i++) { sketch2.update((double) i); }
     Assert.assertEquals(sketch2.getN(), 1000);
-    Assert.assertTrue(sketch2.getRetainedItems() < 1000);
-    Assert.assertEquals((double)sketch2.getMinValue(), 1.0);
-    Assert.assertEquals((double)sketch2.getMaxValue(), 1000.0);
+    Assert.assertTrue(sketch2.getNumRetained() < 1000);
+    Assert.assertEquals((double)sketch2.getMinItem(), 1.0);
+    Assert.assertEquals((double)sketch2.getMaxItem(), 1000.0);
     // based on ~1.7% normalized rank error for this particular case
     Assert.assertEquals(sketch2.getQuantile(0.5), 500.0, 17);
   }

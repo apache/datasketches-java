@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.frequencies;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.isIntPowerOf2;
-import static org.apache.datasketches.Util.exactLog2OfInt;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.exactLog2OfInt;
+import static org.apache.datasketches.common.Util.isIntPowerOf2;
 import static org.apache.datasketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.frequencies.PreambleUtil.SER_VER;
 import static org.apache.datasketches.frequencies.PreambleUtil.extractActiveItems;
@@ -44,9 +44,9 @@ import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
 import java.util.ArrayList;
 import java.util.Comparator;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

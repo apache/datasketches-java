@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.checkSeedHashes;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
 import static org.apache.datasketches.theta.CompactOperations.memoryToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.ORDERED_FLAG_MASK;
@@ -32,6 +31,7 @@ import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingle
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * An off-heap (Direct), compact, read-only sketch. The internal hash array can be either ordered
@@ -65,7 +65,7 @@ class DirectCompactSketch extends CompactSketch {
    * @return this sketch
    */
   static DirectCompactSketch wrapInstance(final Memory srcMem, final short seedHash) {
-    checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
+    ThetaUtil.checkSeedHashes((short) extractSeedHash(srcMem), seedHash);
     return new DirectCompactSketch(srcMem);
   }
 

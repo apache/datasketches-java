@@ -21,14 +21,13 @@ package org.apache.datasketches.tuple;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.BoundsOnRatiosInTupleSketchedSets.getEstimateOfBoverA;
-import static org.apache.datasketches.BoundsOnRatiosInTupleSketchedSets.getLowerBoundForBoverA;
-import static org.apache.datasketches.BoundsOnRatiosInTupleSketchedSets.getUpperBoundForBoverA;
-import static org.apache.datasketches.Util.MAX_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getEstimateOfBoverA;
+import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getLowerBoundForBoverA;
+import static org.apache.datasketches.thetacommon.BoundsOnRatiosInTupleSketchedSets.getUpperBoundForBoverA;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Jaccard similarity of two Tuple Sketches, or alternatively, of a Tuple and Theta Sketch.
@@ -73,8 +72,8 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries();
 
     //Create the Union
-    final int minK = 1 << MIN_LG_NOM_LONGS;
-    final int maxK = 1 << MAX_LG_NOM_LONGS;
+    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
+    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
     final int newK = max(min(ceilingIntPowerOf2(countA + countB), maxK), minK);
     final Union<S> union = new Union<>(newK, summarySetOps);
     union.union(sketchA);
@@ -141,8 +140,8 @@ public final class JaccardSimilarity {
     final int countB = sketchB.getRetainedEntries(true);
 
     //Create the Union
-    final int minK = 1 << MIN_LG_NOM_LONGS;
-    final int maxK = 1 << MAX_LG_NOM_LONGS;
+    final int minK = 1 << ThetaUtil.MIN_LG_NOM_LONGS;
+    final int maxK = 1 << ThetaUtil.MAX_LG_NOM_LONGS;
     final int newK = max(min(ceilingIntPowerOf2(countA + countB), maxK), minK);
     final Union<S> union = new Union<>(newK, summarySetOps);
     union.union(sketchA);

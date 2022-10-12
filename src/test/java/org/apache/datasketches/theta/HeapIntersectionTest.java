@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.RETAINED_ENTRIES_INT;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
@@ -28,11 +27,12 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -376,7 +376,7 @@ public class HeapIntersectionTest {
 
 
   /**
-   * This proves that the hash of 7 is < 0.5. This fact will be used in other tests involving P.
+   * This proves that the hash of 7 is &lt; 0.5. This fact will be used in other tests involving P.
    */
   @Test
   public void checkPreject() {
@@ -505,7 +505,7 @@ public class HeapIntersectionTest {
 
   @Test
   public void checkFamily() {
-    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(DEFAULT_UPDATE_SEED);
+    final IntersectionImpl impl = IntersectionImpl.initNewHeapInstance(ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals(impl.getFamily(), Family.INTERSECTION);
   }
 

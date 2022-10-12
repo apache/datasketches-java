@@ -22,11 +22,8 @@ package org.apache.datasketches.cpc;
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.checkSeedHashes;
-import static org.apache.datasketches.Util.computeSeedHash;
-import static org.apache.datasketches.Util.invPow2;
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.invPow2;
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.CpcUtil.bitMatrixOfSketch;
 import static org.apache.datasketches.cpc.CpcUtil.checkLgK;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
@@ -34,9 +31,10 @@ import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This is a unique-counting sketch that implements the
@@ -90,7 +88,7 @@ public final class CpcSketch {
    * Constructor with default log_base2 of k
    */
   public CpcSketch() {
-    this(DEFAULT_LG_K, DEFAULT_UPDATE_SEED);
+    this(DEFAULT_LG_K, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -98,7 +96,7 @@ public final class CpcSketch {
    * @param lgK the given log_base2 of k
    */
   public CpcSketch(final int lgK) {
-    this(lgK, DEFAULT_UPDATE_SEED);
+    this(lgK, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -234,7 +232,7 @@ public final class CpcSketch {
    * @return the given Memory as a CpcSketch on the Java heap.
    */
   public static CpcSketch heapify(final Memory mem) {
-    return heapify(mem, DEFAULT_UPDATE_SEED);
+    return heapify(mem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -243,7 +241,7 @@ public final class CpcSketch {
    * @return the given byte array as a CpcSketch on the Java heap.
    */
   public static CpcSketch heapify(final byte[] byteArray) {
-    return heapify(byteArray, DEFAULT_UPDATE_SEED);
+    return heapify(byteArray, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   /**
@@ -651,7 +649,7 @@ public final class CpcSketch {
 
   //also used in test
   static CpcSketch uncompress(final CompressedState source, final long seed) {
-    checkSeedHashes(computeSeedHash(seed), source.seedHash);
+    ThetaUtil.checkSeedHashes(ThetaUtil.computeSeedHash(seed), source.seedHash);
     final CpcSketch sketch = new CpcSketch(source.lgK, seed);
     sketch.numCoupons = source.numCoupons;
     sketch.windowOffset = source.getWindowOffset();
@@ -712,7 +710,7 @@ public final class CpcSketch {
    */
   public String toString(final boolean detail) {
     final int numPairs = (pairTable == null) ? 0 : pairTable.getNumPairs();
-    final int seedHash = Short.toUnsignedInt(computeSeedHash(seed));
+    final int seedHash = Short.toUnsignedInt(ThetaUtil.computeSeedHash(seed));
     final double errConst = mergeFlag ? log(2) : sqrt(log(2) / 2.0);
     final double rse = errConst / Math.sqrt(1 << lgK);
     final StringBuilder sb = new StringBuilder();

@@ -19,10 +19,9 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-
 import org.apache.datasketches.hash.MurmurHash3;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * An extension of QuickSelectSketch&lt;S&gt;, which can be updated with many types of keys.
@@ -133,7 +132,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final byte[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -145,7 +144,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final int[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   /**
@@ -157,7 +156,7 @@ public class UpdatableSketch<U, S extends UpdatableSummary<U>> extends QuickSele
    */
   public void update(final long[] key, final U value) {
     if ((key == null) || (key.length == 0)) { return; }
-    insertOrIgnore(MurmurHash3.hash(key, DEFAULT_UPDATE_SEED)[0] >>> 1, value);
+    insertOrIgnore(MurmurHash3.hash(key, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1, value);
   }
 
   void insertOrIgnore(final long hash, final U value) {

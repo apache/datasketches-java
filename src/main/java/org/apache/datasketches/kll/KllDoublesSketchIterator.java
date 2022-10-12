@@ -19,12 +19,13 @@
 
 package org.apache.datasketches.kll;
 
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+
 /**
  * Iterator over KllDoublesSketch. The order is not defined.
  */
-public class KllDoublesSketchIterator {
-
-  private final double[] values;
+public class KllDoublesSketchIterator implements QuantilesDoublesSketchIterator {
+  private final double[] quantiles;
   private final int[] levels;
   private final int numLevels;
   private int level;
@@ -32,39 +33,24 @@ public class KllDoublesSketchIterator {
   private long weight;
   private boolean isInitialized;
 
-  KllDoublesSketchIterator(final double[] values, final int[] levels, final int numLevels) {
-    this.values = values;
+  KllDoublesSketchIterator(final double[] quantiles, final int[] levels, final int numLevels) {
+    this.quantiles = quantiles;
     this.levels = levels;
     this.numLevels = numLevels;
     this.isInitialized = false;
   }
 
-  /**
-   * Gets a value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
-  public double getValue() {
-    return values[index];
+  @Override
+  public double getQuantile() {
+    return quantiles[index];
   }
 
-  /**
-   * Gets a weight for the value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
+  @Override
   public long getWeight() {
     return weight;
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
+  @Override
   public boolean next() {
     if (!isInitialized) {
       level = 0;

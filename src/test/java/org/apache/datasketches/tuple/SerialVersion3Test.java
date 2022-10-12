@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.getResourceBytes;
+import static org.apache.datasketches.common.Util.getResourceBytes;
 
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;

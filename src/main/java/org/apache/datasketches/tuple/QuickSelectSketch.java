@@ -19,22 +19,21 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.HashOperations.count;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.exactLog2OfLong;
+import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.ByteArrayUtil;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
-import org.apache.datasketches.QuickSelect;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.ByteArrayUtil;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon.QuickSelect;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * A generic tuple sketch using the QuickSelect algorithm.
@@ -523,9 +522,9 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
 
   private void setRebuildThreshold() {
     if (hashTable_.length > nomEntries_) {
-      rebuildThreshold_ = (int) (hashTable_.length * REBUILD_THRESHOLD);
+      rebuildThreshold_ = (int) (hashTable_.length * ThetaUtil.REBUILD_THRESHOLD);
     } else {
-      rebuildThreshold_ = (int) (hashTable_.length * RESIZE_THRESHOLD);
+      rebuildThreshold_ = (int) (hashTable_.length * ThetaUtil.RESIZE_THRESHOLD);
     }
   }
 
@@ -538,8 +537,8 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
   }
 
   @Override
-  public SketchIterator<S> iterator() {
-    return new SketchIterator<>(hashTable_, summaryTable_);
+  public TupleSketchIterator<S> iterator() {
+    return new TupleSketchIterator<>(hashTable_, summaryTable_);
   }
 
 }

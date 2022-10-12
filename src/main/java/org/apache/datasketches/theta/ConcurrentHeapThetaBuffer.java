@@ -25,8 +25,8 @@ import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.datasketches.HashOperations;
-import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.thetacommon.HashOperations;
 
 /**
  * This is a theta filtering, bounded size buffer that operates in the context of a single writing

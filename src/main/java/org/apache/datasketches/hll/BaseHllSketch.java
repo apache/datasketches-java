@@ -20,7 +20,6 @@
 package org.apache.datasketches.hll;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
@@ -28,6 +27,7 @@ import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import java.nio.ByteBuffer;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Although this class is package-private, it provides a single place to define and document
@@ -291,7 +291,7 @@ abstract class BaseHllSketch {
    */
   public void update(final long datum) {
     final long[] data = { datum };
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -306,7 +306,7 @@ abstract class BaseHllSketch {
   public void update(final double datum) {
     final double d = (datum == 0.0) ? 0.0 : datum; // canonicalize -0.0, 0.0
     final long[] data = { Double.doubleToLongBits(d) };// canonicalize all NaN forms
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -326,7 +326,7 @@ abstract class BaseHllSketch {
   public void update(final String datum) {
     if ((datum == null) || datum.isEmpty()) { return; }
     final byte[] data = datum.getBytes(UTF_8);
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -343,7 +343,7 @@ abstract class BaseHllSketch {
    */
   public void update(final ByteBuffer data) {
     if ((data == null) || (data.remaining() == 0)) { return; }
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -354,7 +354,7 @@ abstract class BaseHllSketch {
    */
   public void update(final byte[] data) {
     if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -368,7 +368,7 @@ abstract class BaseHllSketch {
    */
   public void update(final char[] data) {
     if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -379,7 +379,7 @@ abstract class BaseHllSketch {
    */
   public void update(final int[] data) {
     if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   /**
@@ -390,7 +390,7 @@ abstract class BaseHllSketch {
    */
   public void update(final long[] data) {
     if ((data == null) || (data.length == 0)) { return; }
-    couponUpdate(coupon(hash(data, DEFAULT_UPDATE_SEED)));
+    couponUpdate(coupon(hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)));
   }
 
   private static final int coupon(final long[] hash) {

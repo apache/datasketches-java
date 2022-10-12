@@ -20,7 +20,6 @@
 package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.insertLgArrLongs;
@@ -31,13 +30,13 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -95,15 +94,15 @@ public class UpdateSketchTest {
   @Test
   public void checkStartingSubMultiple() {
     int lgSubMul;
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X1.lg(), 5);
+    lgSubMul = ThetaUtil.startingSubMultiple(10, ResizeFactor.X1.lg(), 5);
     assertEquals(lgSubMul, 10);
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X2.lg(), 5);
+    lgSubMul = ThetaUtil.startingSubMultiple(10, ResizeFactor.X2.lg(), 5);
     assertEquals(lgSubMul, 5);
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X4.lg(), 5);
+    lgSubMul = ThetaUtil.startingSubMultiple(10, ResizeFactor.X4.lg(), 5);
     assertEquals(lgSubMul, 6);
-    lgSubMul = Util.startingSubMultiple(10, ResizeFactor.X8.lg(), 5);
+    lgSubMul = ThetaUtil.startingSubMultiple(10, ResizeFactor.X8.lg(), 5);
     assertEquals(lgSubMul, 7);
-    lgSubMul = Util.startingSubMultiple(4, ResizeFactor.X1.lg(), 5);
+    lgSubMul = ThetaUtil.startingSubMultiple(4, ResizeFactor.X1.lg(), 5);
     assertEquals(lgSubMul, 5);
   }
 
@@ -158,7 +157,7 @@ public class UpdateSketchTest {
     UpdateSketch sk = Sketches.updateSketchBuilder().build();
     sk.update(1);
     WritableMemory wmem = WritableMemory.writableWrap(sk.compact().toByteArray());
-    UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
+    UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -168,13 +167,13 @@ public class UpdateSketchTest {
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     try {
       wmem.putByte(SER_VER_BYTE, (byte) 2);
-      UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
+      UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
     try {
       wmem.putByte(SER_VER_BYTE, (byte) 3);
       wmem.putByte(PREAMBLE_LONGS_BYTE, (byte) 2);
-      UpdateSketch.wrap(wmem, DEFAULT_UPDATE_SEED);
+      UpdateSketch.wrap(wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
       fail();
     } catch (SketchesArgumentException e) { }
   }

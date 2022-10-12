@@ -25,7 +25,7 @@ import static org.testng.Assert.fail;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.testng.Assert;
 import org.testng.annotations.Test;

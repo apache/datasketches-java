@@ -24,9 +24,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.SketchesArgumentException;
 import org.apache.datasketches.tuple.DeserializeResult;
 
 /**

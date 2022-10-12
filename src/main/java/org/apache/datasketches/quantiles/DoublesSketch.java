@@ -21,50 +21,31 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.quantiles.Util.checkIsCompactMemory;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory;
 
 import java.util.Random;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
 /**
- * This is a stochastic streaming sketch that enables near-real time analysis of the
- * approximate distribution of real values from a very large stream in a single pass.
- * The analysis is obtained using a getQuantiles(*) function or its inverse functions the
- * Probability Mass Function from getPMF(*) and the Cumulative Distribution Function from getCDF(*).
+ * This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using doubles,
+ * described in section 3.2 of the journal version of the paper "Mergeable Summaries"
+ * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi:
  *
- * <p>Consider a large stream of one million values such as packet sizes coming into a network node.
- * The absolute rank of any specific size value is simply its index in the hypothetical sorted
- * array of values.
- * The normalized rank (or fractional rank) is the absolute rank divided by the stream size,
- * in this case one million.
- * The value corresponding to the normalized rank of 0.5 represents the 50th percentile or median
- * value of the distribution, or getQuantile(0.5).  Similarly, the 95th percentile is obtained from
- * getQuantile(0.95). Using the getQuantiles(0.0, 1.0) will return the min and max values seen by
- * the sketch.</p>
+ * <p>Reference: <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
  *
- * <p>From the min and max values, for example, 1 and 1000 bytes,
- * you can obtain the PMF from getPMF(100, 500, 900) that will result in an array of
- * 4 fractional values such as {.4, .3, .2, .1}, which means that
- * <ul>
- * <li>40% of the values were &lt; 100,</li>
- * <li>30% of the values were &ge; 100 and &lt; 500,</li>
- * <li>20% of the values were &ge; 500 and &lt; 900, and</li>
- * <li>10% of the values were &ge; 900.</li>
- * </ul>
- * A frequency histogram can be obtained by simply multiplying these fractions by getN(),
- * which is the total count of values received.
- * The getCDF(*) works similarly, but produces the cumulative distribution instead.
- *
- * <p>The accuracy of this sketch is a function of the configured value <i>k</i>, which also affects
- * the overall size of the sketch. Accuracy of this quantile sketch is always with respect to
- * the normalized rank.  A <i>k</i> of 128 produces a normalized, rank error of about 1.7%.
- * For example, the median value returned from getQuantile(0.5) will be between the actual values
- * from the hypothetically sorted array of input values at normalized ranks of 0.483 and 0.517, with
+ * <p>A <i>k</i> of 128 produces a normalized, rank error of about 1.7%.
+ * For example, the median returned from getQuantile(0.5) will be between the actual quantiles
+ * from the hypothetically sorted array of input quantiles at normalized ranks of 0.483 and 0.517, with
  * a confidence of about 99%.</p>
  *
  * <pre>
@@ -106,41 +87,18 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  1,073,741,823 |   3,496   6,696  12,840  24,616  47,144  90,152 172,072
  2,147,483,647 |   3,624   6,952  13,352  25,640  49,192  94,248 180,264
  4,294,967,295 |   3,752   7,208  13,864  26,664  51,240  98,344 188,456
-
  * </pre>
-
- * <p>There is more documentation available on
- * <a href="https://datasketches.apache.org">datasketches.apache.org</a>.</p>
  *
- * <p>This is an implementation of the Low Discrepancy Mergeable Quantiles Sketch, using double
- * values, described in section 3.2 of the journal version of the paper "Mergeable Summaries"
- * by Agarwal, Cormode, Huang, Phillips, Wei, and Yi.
- * <a href="http://dblp.org/rec/html/journals/tods/AgarwalCHPWY13"></a></p>
- *
- * <p>This algorithm is independent of the distribution of values, which can be anywhere in the
- * range of the IEEE-754 64-bit doubles.
- *
- * <p>This algorithm intentionally inserts randomness into the sampling process for values that
- * ultimately get retained in the sketch. The results produced by this algorithm are not
- * deterministic. For example, if the same stream is inserted into two different instances of this
- * sketch, the answers obtained from the two sketches may not be be identical.</p>
- *
- * <p>Similarly, there may be directional inconsistencies. For example, the resulting array of
- * values obtained from getQuantiles(fractions[]) input into the reverse directional query
- * getPMF(splitPoints[]) may not result in the original fractional values.</p>
- *
- * @author Kevin Lang
- * @author Lee Rhodes
- * @author Jon Malkin
+ * @see QuantilesAPI
  */
-public abstract class DoublesSketch {
+public abstract class DoublesSketch implements QuantilesDoublesAPI {
   static final int DOUBLES_SER_VER = 3;
   static final int MAX_PRELONGS = Family.QUANTILES.getMaxPreLongs();
   static final int MIN_K = 2;
   static final int MAX_K = 1 << 15;
 
   /**
-   * Setting the seed makes the results of the sketch deterministic if the input values are
+   * Setting the seed makes the results of the sketch deterministic if the input quantiles are
    * received in exactly the same order. This is only useful when performing test comparisons,
    * otherwise is not recommended.
    */
@@ -151,8 +109,10 @@ public abstract class DoublesSketch {
    */
   final int k_;
 
+  DoublesSketchSortedView classicQdsSV = null;
+
   DoublesSketch(final int k) {
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     k_ = k;
   }
 
@@ -183,7 +143,9 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * Wrap this sketch around the given Memory image of a DoublesSketch, compact or non-compact.
+   * Wrap this sketch around the given Memory image of a DoublesSketch, compact or updatable.
+   * A DirectUpdateDoublesSketch can only wrap an updatable array, and a
+   * DirectCompactDoublesSketch can only wrap a compact array.
    *
    * @param srcMem the given Memory image of a DoublesSketch that may have data,
    * @return a sketch that wraps the given srcMem
@@ -195,313 +157,140 @@ public abstract class DoublesSketch {
     return DirectUpdateDoublesSketchR.wrapInstance(srcMem);
   }
 
-  /**
-   * This returns an approximation to the value of the data item
-   * that would be preceded by the given fraction of a hypothetical sorted
-   * version of the input stream so far.
-   *
-   * <p>We note that this method has a fairly large overhead (microseconds instead of nanoseconds)
-   * so it should not be called multiple times to get different quantiles from the same
-   * sketch. Instead use getQuantiles(), which pays the overhead only once.
-   *
-   * <p>If the sketch is empty this returns Double.NaN.
-   *
-   * @param fraction the specified fractional position in the hypothetical sorted stream.
-   * These are also called normalized ranks or fractional ranks.
-   * If fraction = 0.0, the true minimum value of the stream is returned.
-   * If fraction = 1.0, the true maximum value of the stream is returned.
-   *
-   * @param inclusive if true, the given fraction (rank) is considered inclusive
-   * 
-   * @return the approximation to the value at the above fraction
-   */
-  public double getQuantile(final double fraction, final boolean inclusive) {
+  @Override
+  public abstract double getMaxItem();
+
+  @Override
+  public abstract double getMinItem();
+
+  @Override
+  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    return classicQdsSV.getCDF(splitPoints, searchCrit);
+  }
+
+  @Override
+  public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    return classicQdsSV.getPMF(splitPoints, searchCrit);
+  }
+
+  @Override
+  public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return Double.NaN; }
-    if (fraction < 0.0 || fraction > 1.0) {
-      throw new SketchesArgumentException("Fraction cannot be less than zero or greater than 1.0");
-    }
-    if      (fraction == 0.0) { return getMinValue(); }
-    if (fraction == 1.0) { return getMaxValue(); }
-    final DoublesSketchSortedView aux = new DoublesSketchSortedView(this, true, inclusive);
-    return aux.getQuantile(fraction);
+    refreshSortedView();
+    return classicQdsSV.getQuantile(rank, searchCrit);
   }
 
-  /**
-   * Same as {@link #getQuantile(double, boolean) getQuantile(double fraction, false)}
-   * @param fraction fractional rank
-   * @return quantile
-   */
-  public double getQuantile(final double fraction) {
-    return getQuantile(fraction, false);
-  }
-
-  /**
-   * Gets the upper bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
-   * @return the upper bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
-   */
-  public double getQuantileUpperBound(final double fraction) {
-    return getQuantile(min(1.0, fraction + Util.getNormalizedRankError(k_, false)));
-  }
-
-  /**
-   * Gets the lower bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%.
-   * @param fraction the given normalized rank as a fraction
-   * @return the lower bound of the value interval in which the true quantile of the given rank
-   * exists with a confidence of at least 99%. Returns NaN if the sketch is empty.
-   */
-  public double getQuantileLowerBound(final double fraction) {
-    return getQuantile(max(0, fraction - Util.getNormalizedRankError(k_, false)));
-  }
-
-  /**
-   * This is a more efficient multiple-query version of getQuantile().
-   *
-   * <p>This returns an array that could have been generated by using getQuantile() with many
-   * different fractional ranks, but would be very inefficient.
-   * This method incurs the internal set-up overhead once and obtains multiple quantile values in
-   * a single query.  It is strongly recommend that this method be used instead of multiple calls
-   * to getQuantile().
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param fRanks the given array of fractional (or normalized) ranks in the hypothetical
-   * sorted stream of all the input values seen so far.
-   * These fRanks must all be in the interval [0.0, 1.0] inclusively.
-   *
-   * @param inclusive if true, the given fractional ranks are considered inclusive
-   * 
-   * @return array of approximate quantiles of the given fRanks in the same order as in the given
-   * fRanks array.
-   */
-  public double[] getQuantiles(final double[] fRanks, final boolean inclusive) {
+  @Deprecated
+  @Override
+  public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    DoublesSketchSortedView aux = null;
-    final double[] quantiles = new double[fRanks.length];
-    for (int i = 0; i < fRanks.length; i++) {
-      final double fRank = fRanks[i];
-      if      (fRank == 0.0) { quantiles[i] = getMinValue(); }
-      else if (fRank == 1.0) { quantiles[i] = getMaxValue(); }
-      else {
-        if (aux == null) {
-          aux = new DoublesSketchSortedView(this, true, inclusive);
-        }
-        quantiles[i] = aux.getQuantile(fRank);
-      }
+    refreshSortedView();
+    final int len = ranks.length;
+    final double[] quantiles = new double[len];
+    for (int i = 0; i < len; i++) {
+      quantiles[i] = classicQdsSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
   }
 
-  /**
-   * Same as {@link #getQuantiles(double[], boolean) getQuantiles(double[] fRanks, false)}
-   * @param fRanks fractional ranks
-   * @return quantiles
-   */
-  public double[] getQuantiles(final double[] fRanks) {
-    return getQuantiles(fRanks, false);
-  }
-
-  /**
-   * This is also a more efficient multiple-query version of getQuantile() and allows the caller to
-   * specify the number of evenly spaced fractional ranks.
-   *
-   * <p>If the sketch is empty this returns null.
-   *
-   * @param numEvenlySpaced an integer that specifies the number of evenly spaced fractional ranks.
-   * This must be a positive integer greater than 1.
-   * A value of 2 will return the min and the max value. A value of 3 will return the min,
-   * the median and the max value, etc.
-   *
-   * @param inclusive if true, fractional ranks are considered inclusive
-   * 
-   * @return array of approximations to the given fractions in the same order as given fractions
-   * array.
-   */
-  public double[] getQuantiles(final int numEvenlySpaced, final boolean inclusive) {
+  @Deprecated
+  @Override
+  public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
-    return getQuantiles(org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, numEvenlySpaced));
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+        searchCrit);
   }
 
   /**
-   * Same as {@link #getQuantiles(int, boolean) getQuantiles(int numEvenlySpaced, false)}
-   * @param numEvenlySpaced number of evenly spaced fractional ranks
-   * @return quantiles
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is within the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
-  public double[] getQuantiles(final int numEvenlySpaced) {
-    return getQuantiles(numEvenlySpaced, false);
+  @Override
+  public double getQuantileLowerBound(final double rank) {
+    return getQuantile(max(0, rank - ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
   /**
-   * Returns an approximation to the normalized (fractional) rank of the given value from 0 to 1
-   * inclusive.
-   *
-   * <p>The resulting approximation has a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError(false) function.
-   *
-   * <p>If the sketch is empty this returns NaN.</p>
-   *
-   * @param value to be ranked
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * @return an approximate rank of the given value
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is within the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.99.
    */
-  public double getRank(final double value, final boolean inclusive) {
+  @Override
+  public double getQuantileUpperBound(final double rank) {
+    return getQuantile(min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false)));
+  }
+
+  @Override
+  public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return Double.NaN; }
-    final DoublesSketchAccessor samples = DoublesSketchAccessor.wrap(this);
-    long total = 0;
-    int weight = 1;
-    samples.setLevel(DoublesSketchAccessor.BB_LVL_IDX);
-    for (int i = 0; i < samples.numItems(); i++) {
-      if (inclusive ? samples.get(i) <= value : samples.get(i) < value) {
-        total += weight;
-      }
+    refreshSortedView();
+    return classicQdsSV.getRank(quantile, searchCrit);
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.99.
+   */
+  @Override
+  public double getRankLowerBound(final double rank) {
+    return max(0.0, rank - ClassicUtil.getNormalizedRankError(k_, false));
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.99.
+   */
+  @Override
+  public double getRankUpperBound(final double rank) {
+    return min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false));
+  }
+
+  @Deprecated
+  @Override
+  public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {
+    if (this.isEmpty()) { return null; }
+    refreshSortedView();
+    final int len = quantiles.length;
+    final double[] ranks = new double[len];
+    for (int i = 0; i < len; i++) {
+      ranks[i] = classicQdsSV.getRank(quantiles[i], searchCrit);
     }
-    long bitPattern = getBitPattern();
-    for (int lvl = 0; bitPattern != 0L; lvl++, bitPattern >>>= 1) {
-      weight *= 2;
-      if ((bitPattern & 1L) > 0) { // level is not empty
-        samples.setLevel(lvl);
-        for (int i = 0; i < samples.numItems(); i++) {
-          if (inclusive ? samples.get(i) <= value : samples.get(i) < value) {
-            total += weight;
-          } else {
-            break; // levels are sorted, no point comparing further
-          }
-        }
-      }
-    }
-    return (double) total / getN();
+    return ranks;
   }
 
-  /**
-   * Same as {@link #getRank(double, boolean) getRank(double value, false)}
-   * @param value value to be ranked
-   * @return fractional rank
-   */
-  public double getRank(final double value) {
-    return getRank(value, false);
-  }
-
-  /**
-   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * given a set of splitPoints (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError(true) function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
-   *
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * 
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include maximum value.
-   */
-  public double[] getPMF(final double[] splitPoints, final boolean inclusive) {
-    if (isEmpty()) { return null; }
-    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, false, inclusive);
-  }
-
-  /**
-   * Same as {@link #getPMF(double[], boolean) getPMF(double[] splitPoints, false)}
-   * @param splitPoints splitPoints
-   * @return PMF
-   */
-  public double[] getPMF(final double[] splitPoints) {
-    return getPMF(splitPoints, false);
-  }
-
-  /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
-   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained from the
-   * getNormalizedRankError(false) function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
-   *
-   * @param inclusive if true the weight of the given value is included into the rank.
-   * 
-   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
-   * of the input stream given the splitPoints. The value at array position j of the returned
-   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
-   * array.
-   */
-  public double[] getCDF(final double[] splitPoints, final boolean inclusive) {
-    if (isEmpty()) { return null; }
-    return DoublesPmfCdfImpl.getPMFOrCDF(this, splitPoints, true, inclusive);
-  }
-
-  /**
-   * Same as {@link #getCDF(double[], boolean) getCDF(double[] splitPoints, false)}
-   * @param splitPoints splitPoints
-   * @return CDF
-   */
-  public double[] getCDF(final double[] splitPoints) {
-    return getCDF(splitPoints, false);
-  }
-
-  /**
-   * Returns the configured value of K
-   * @return the configured value of K
-   */
+  @Override
   public int getK() {
     return k_;
   }
 
-  /**
-   * Returns the min value of the stream.
-   * If the sketch is empty this returns Double.NaN.
-   *
-   * @return the min value of the stream
-   */
-  public abstract double getMinValue();
-
-  /**
-   * Returns the max value of the stream.
-   * If the sketch is empty this returns Double.NaN.
-   *
-   * @return the max value of the stream
-   */
-  public abstract double getMaxValue();
-
-  /**
-   * Returns the length of the input stream so far.
-   * @return the length of the input stream so far
-   */
+  @Override
   public abstract long getN();
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, returns the normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return Util.getNormalizedRankError(k_, pmf);
+    return ClassicUtil.getNormalizedRankError(k_, pmf);
   }
 
   /**
    * Gets the normalized rank error given k and pmf.
-   * Static method version of the {@link #getNormalizedRankError(boolean)}.
+   * Static method version of the <i>getNormalizedRankError(boolean)</i>.
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -509,43 +298,40 @@ public abstract class DoublesSketch {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public static double getNormalizedRankError(final int k, final boolean pmf) {
-    return Util.getNormalizedRankError(k, pmf);
+    return ClassicUtil.getNormalizedRankError(k, pmf);
   }
 
   /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * @param pmf if true, this function returns <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * returns <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   * @return the value of <i>k</i> given a value of epsilon.
+   * @return <i>k</i> given epsilon.
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
-    return Util.getKFromEpsilon(epsilon, pmf);
+    return ClassicUtil.getKFromEpsilon(epsilon, pmf);
   }
 
-  /**
-   * Returns true if this sketch is empty
-   * @return true if this sketch is empty
-   */
+  @Override
+  public abstract boolean hasMemory();
+
+  @Override
+  public abstract boolean isDirect();
+
+  @Override
   public boolean isEmpty() {
     return getN() == 0;
   }
 
-  /**
-   * Returns true if this sketch is direct
-   * @return true if this sketch is direct
-   */
-  public abstract boolean isDirect();
-
-  /**
-   * Returns true if this sketch is in estimation mode.
-   * @return true if this sketch is in estimation mode.
-   */
+  @Override
   public boolean isEstimationMode() {
     return getN() >= 2L * k_;
   }
+
+  @Override
+  public abstract boolean isReadOnly();
 
   /**
    * Returns true if the backing resource of <i>this</i> is identical with the backing resource
@@ -559,14 +345,7 @@ public abstract class DoublesSketch {
     return false;
   }
 
-  /**
-   * Serialize this sketch to a byte array. An UpdateDoublesSketch will be serialized in
-   * an unordered, non-compact form; a CompactDoublesSketch will be serialized in ordered,
-   * compact form. A DirectUpdateDoublesSketch can only wrap a non-compact array, and a
-   * DirectCompactDoublesSketch can only wrap a compact array.
-   *
-   * @return byte array of this sketch
-   */
+  @Override
   public byte[] toByteArray() {
     if (isCompact()) {
       return toByteArray(true);
@@ -577,17 +356,14 @@ public abstract class DoublesSketch {
   /**
    * Serialize this sketch in a byte array form.
    * @param compact if true the sketch will be serialized in compact form.
-   *                DirectCompactDoublesSketch can wrap() only a compact byte array;
-   *                DirectUpdateDoublesSketch can wrap() only a non-compact byte array.
+   * DirectCompactDoublesSketch can wrap() only a compact byte array;
+   * DirectUpdateDoublesSketch can wrap() only a updatable byte array.
    * @return this sketch in a byte array form.
    */
   public byte[] toByteArray(final boolean compact) {
     return DoublesByteArrayImpl.toByteArray(this, compact, compact);
   }
 
-  /**
-   * Returns summary information about this sketch.
-   */
   @Override
   public String toString() {
     return toString(true, false);
@@ -622,11 +398,11 @@ public abstract class DoublesSketch {
   }
 
   /**
-   * From an source sketch, create a new sketch that must have a smaller value of K.
+   * From an source sketch, create a new sketch that must have a smaller K.
    * The original sketch is not modified.
    *
    * @param srcSketch the sourcing sketch
-   * @param smallerK the new sketch's value of K that must be smaller than this value of K.
+   * @param smallerK the new sketch's K that must be smaller than this K.
    * It is required that this.getK() = smallerK * 2^(nonnegative integer).
    * @param dstMem the destination Memory.  It must not overlap the Memory of this sketch.
    * If null, a heap sketch will be returned, otherwise it will be off-heap.
@@ -634,71 +410,62 @@ public abstract class DoublesSketch {
    * @return the new sketch.
    */
   public DoublesSketch downSample(final DoublesSketch srcSketch, final int smallerK,
-                                  final WritableMemory dstMem) {
+        final WritableMemory dstMem) {
     return downSampleInternal(srcSketch, smallerK, dstMem);
   }
 
-  /**
-   * Computes the number of retained items (samples) in the sketch
-   * @return the number of retained items (samples) in the sketch
-   */
-  public int getRetainedItems() {
-    return Util.computeRetainedItems(getK(), getN());
+  @Override
+  public int getNumRetained() {
+    return ClassicUtil.computeRetainedItems(getK(), getN());
   }
 
   /**
-   * Returns the number of bytes this sketch would require to store in compact form, which is not
-   * updatable.
-   * @return the number of bytes this sketch would require to store in compact form.
+   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
    */
-  public int getCompactStorageBytes() {
-    return getCompactStorageBytes(getK(), getN());
+  public int getCurrentCompactSerializedSizeBytes() {
+    return getCompactSerialiedSizeBytes(getK(), getN());
   }
 
   /**
    * Returns the number of bytes a DoublesSketch would require to store in compact form
-   * given the values of <i>k</i> and <i>n</i>. The compact form is not updatable.
+   * given <i>k</i> and <i>n</i>. The compact form is not updatable.
    * @param k the size configuration parameter for the sketch
-   * @param n the number of items input into the sketch
+   * @param n the number of quantiles input into the sketch
    * @return the number of bytes required to store this sketch in compact form.
    */
-  public static int getCompactStorageBytes(final int k, final long n) {
+  public static int getCompactSerialiedSizeBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    return metaPreLongs + Util.computeRetainedItems(k, n) << 3;
+    return metaPreLongs + ClassicUtil.computeRetainedItems(k, n) << 3;
+  }
+
+  @Override
+  public int getSerializedSizeBytes() {
+    if (isCompact()) { return getCurrentCompactSerializedSizeBytes(); }
+    return getCurrentUpdatableSerializedSizeBytes();
   }
 
   /**
-   * Returns the number of bytes this sketch would require to store in native form: compact for
-   * a CompactDoublesSketch, non-compact for an UpdateDoublesSketch.
-   * @return the number of bytes this sketch would require to store in compact form.
+   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
    */
-  public int getStorageBytes() {
-    if (isCompact()) { return getCompactStorageBytes(); }
-    return getUpdatableStorageBytes();
-  }
-
-  /**
-   * Returns the number of bytes this sketch would require to store in updatable form.
-   * This uses roughly 2X the storage of the compact form.
-   * @return the number of bytes this sketch would require to store in updatable form.
-   */
-  public int getUpdatableStorageBytes() {
+  public int getCurrentUpdatableSerializedSizeBytes() {
     return getUpdatableStorageBytes(getK(), getN());
   }
 
   /**
    * Returns the number of bytes a sketch would require to store in updatable form.
    * This uses roughly 2X the storage of the compact form
-   * given the values of <i>k</i> and <i>n</i>.
+   * given <i>k</i> and <i>n</i>.
    * @param k the size configuration parameter for the sketch
-   * @param n the number of items input into the sketch
+   * @param n the number of quantiles input into the sketch
    * @return the number of bytes this sketch would require to store in updatable form.
    */
   public static int getUpdatableStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
     final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    final int totLevels = Util.computeNumLevelsNeeded(k, n);
+    final int totLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
     if (n <= k) {
       final int ceil = Math.max(ceilingIntPowerOf2((int)n), DoublesSketch.MIN_K * 2);
       return metaPre + ceil << 3;
@@ -725,27 +492,37 @@ public abstract class DoublesSketch {
    *                performance at the cost of slightly increased serialization time.
    */
   public void putMemory(final WritableMemory dstMem, final boolean compact) {
-    if (isDirect() && isCompact() == compact) {
+    if (hasMemory() && isCompact() == compact) {
       final Memory srcMem = getMemory();
-      srcMem.copyTo(0, dstMem, 0, getStorageBytes());
+      srcMem.copyTo(0, dstMem, 0, getSerializedSizeBytes());
     } else {
       final byte[] byteArr = toByteArray(compact);
       final int arrLen = byteArr.length;
       final long memCap = dstMem.getCapacity();
       if (memCap < arrLen) {
         throw new SketchesArgumentException(
-                "Destination Memory not large enough: " + memCap + " < " + arrLen);
+           "Destination Memory not large enough: " + memCap + " < " + arrLen);
       }
       dstMem.putByteArray(0, byteArr, 0, arrLen);
     }
   }
 
-  /**
-   * @return the iterator for this class
-   */
-  public DoublesSketchIterator iterator() {
+  @Override
+  public QuantilesDoublesSketchIterator iterator() {
     return new DoublesSketchIterator(this, getBitPattern());
   }
+
+  @Override
+  public DoublesSortedView getSortedView() {
+    return new DoublesSketchSortedView(this);
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
+   */
+  @Override
+  public abstract void reset();
 
   //Restricted
 
@@ -765,16 +542,9 @@ public abstract class DoublesSketch {
     return newSketch;
   }
 
-  /**
-   * Sorted view of the sketch.
-   * Complexity: linear merge of sorted levels plus sorting of the level 0.
-   * @param cumulative if true weights are cumulative
-   * @param inclusive if true cumulative weight of an item includes its own weight
-   * @return sorted view object
-   */
-  public DoublesSketchSortedView getSortedView(final boolean cumulative, final boolean inclusive) {
-    return new DoublesSketchSortedView(this, cumulative, inclusive);
-  }
+private final void refreshSortedView() {
+  classicQdsSV = (classicQdsSV == null) ? new DoublesSketchSortedView(this) : classicQdsSV;
+}
 
   //Restricted abstract
 
@@ -797,8 +567,8 @@ public abstract class DoublesSketch {
   abstract long getBitPattern();
 
   /**
-   * Returns the item capacity for the combined base buffer
-   * @return the item capacity for the combined base buffer
+   * Returns the capacity for the combined base buffer
+   * @return the capacity for the combined base buffer
    */
   abstract int getCombinedBufferItemCapacity();
 

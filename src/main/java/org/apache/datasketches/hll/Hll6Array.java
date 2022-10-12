@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.ByteArrayUtil.getShortLE;
-import static org.apache.datasketches.ByteArrayUtil.putShortLE;
+import static org.apache.datasketches.common.ByteArrayUtil.getShortLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putShortLE;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**

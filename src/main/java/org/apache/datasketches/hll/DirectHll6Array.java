@@ -23,7 +23,7 @@ import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.HllUtil.noWriteAccess;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

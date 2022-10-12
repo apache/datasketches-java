@@ -19,10 +19,9 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.apache.datasketches.tuple.Util;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -69,7 +68,7 @@ public class DirectArrayOfDoublesCompactSketchTest {
     Assert.assertEquals(sketch.getRetainedEntries(), 3);
     Assert.assertEquals(sketch.getThetaLong(), Long.MAX_VALUE);
     Assert.assertEquals(sketch.getTheta(), 1.0);
-    Assert.assertEquals(sketch.getSeedHash(), Util.computeSeedHash(DEFAULT_UPDATE_SEED));
+    Assert.assertEquals(sketch.getSeedHash(), Util.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED));
     double[][] values = sketch.getValues();
     Assert.assertEquals(values.length, 3);
     for (double[] array: values) {

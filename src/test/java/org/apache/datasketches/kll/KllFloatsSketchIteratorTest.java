@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -32,7 +34,7 @@ public class KllFloatsSketchIteratorTest {
   @Test
   public void emptySketch() {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    KllFloatsSketchIterator it = sketch.iterator();
+    QuantilesFloatsSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -41,15 +43,15 @@ public class KllFloatsSketchIteratorTest {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
     sketch.update(2);;
-    KllFloatsSketchIterator itr = sketch.iterator();
+    QuantilesFloatsSketchIterator itr = sketch.iterator();
     assertTrue(itr.next());
 
-    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getQuantile(), 2f);
     assertEquals(itr.getWeight(), 1);
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getQuantile(), 1f);
     assertEquals(itr.getWeight(), 1);
   }
 
@@ -58,24 +60,24 @@ public class KllFloatsSketchIteratorTest {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
     sketch.update(2);;
-    KllFloatsSketchSortedViewIterator itr = sketch.getSortedView().iterator();
+    FloatsSortedViewIterator itr = sketch.getSortedView().iterator();
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getValue(), 1f);
+    assertEquals(itr.getQuantile(), 1f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
-    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0);
+    assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 0.5);
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getValue(), 2f);
+    assertEquals(itr.getQuantile(), 2f);
     assertEquals(itr.getWeight(), 1);
-    assertEquals(itr.getCumulativeWeight(NON_INCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
-    assertEquals(itr.getNormalizedRank(NON_INCLUSIVE), 0.5);
+    assertEquals(itr.getNormalizedRank(EXCLUSIVE), 0.5);
     assertEquals(itr.getNormalizedRank(INCLUSIVE), 1.0);
   }
 
@@ -86,7 +88,7 @@ public class KllFloatsSketchIteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      KllFloatsSketchIterator it = sketch.iterator();
+      QuantilesFloatsSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

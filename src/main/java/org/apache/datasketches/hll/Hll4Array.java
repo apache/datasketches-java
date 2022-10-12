@@ -29,7 +29,7 @@ import static org.apache.datasketches.hll.PreambleUtil.extractAuxCount;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**

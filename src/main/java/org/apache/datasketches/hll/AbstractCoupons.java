@@ -25,7 +25,7 @@ import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 import static org.apache.datasketches.hll.ToByteArrayImpl.toCouponByteArray;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

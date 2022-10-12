@@ -23,7 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.datasketches.ResizeFactor;
+import org.apache.datasketches.common.ResizeFactor;
 
 /**
  * A concurrent shared sketch that is based on HeapQuickSelectSketch.

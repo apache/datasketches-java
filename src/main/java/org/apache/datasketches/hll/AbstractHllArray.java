@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.hll;
 
-import static org.apache.datasketches.Util.invPow2;
+import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_6;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 
 /**
  * @author Lee Rhodes

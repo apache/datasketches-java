@@ -25,9 +25,8 @@ import static org.apache.datasketches.hll.CubicInterpolation.usingXAndYTables;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.testng.annotations.Test;
-
-import org.apache.datasketches.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

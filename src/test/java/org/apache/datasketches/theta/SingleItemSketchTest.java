@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -28,17 +26,17 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
  * @author Lee Rhodes
  */
 public class SingleItemSketchTest {
-  final static short DEFAULT_SEED_HASH = (short) (computeSeedHash(DEFAULT_UPDATE_SEED) & 0XFFFFL);
+  final static short DEFAULT_SEED_HASH = (short) (ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED) & 0XFFFFL);
 
   @Test
   public void check1() {
@@ -81,7 +79,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void check2() {
-    long seed = DEFAULT_UPDATE_SEED;
+    long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
     Union union = Sketches.setOperationBuilder().buildUnion();
     union.union(SingleItemSketch.create(1, seed));
     union.union(SingleItemSketch.create(1.0, seed));
@@ -137,7 +135,7 @@ public class SingleItemSketchTest {
   public void checkLessThanThetaLong() {
     for (int i = 0; i < 10; i++) {
       long[] data = { i };
-      long h = hash(data, DEFAULT_UPDATE_SEED)[0] >>> 1;
+      long h = hash(data, ThetaUtil.DEFAULT_UPDATE_SEED)[0] >>> 1;
       SingleItemSketch sis = SingleItemSketch.create(i);
       long halfMax = Long.MAX_VALUE >> 1;
       int count = sis.getCountLessThanThetaLong(halfMax);
@@ -150,7 +148,7 @@ public class SingleItemSketchTest {
     SingleItemSketch sis = SingleItemSketch.create(1);
     byte[] byteArr = sis.toByteArray();
     Memory mem = Memory.wrap(byteArr);
-    final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED);
+    final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
     SingleItemSketch sis2 = SingleItemSketch.heapify(mem, defaultSeedHash);
     assertEquals(sis2.getEstimate(), 1.0);
 
@@ -306,7 +304,7 @@ public class SingleItemSketchTest {
 
   @Test
   public void checkSingleItemBadFlags() {
-    final short defaultSeedHash = Util.computeSeedHash(DEFAULT_UPDATE_SEED);
+    final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
     UpdateSketch sk1 = new UpdateSketchBuilder().build();
     sk1.update(1);
     WritableMemory wmem = WritableMemory.allocate(16);

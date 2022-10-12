@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.sampling;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 
 /**
  * This class provides a compact representation of reservoir size by encoding it into a

@@ -19,16 +19,16 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashSet;
 
 import org.testng.annotations.Test;
-
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
 /**
  * @author Lee Rhodes
@@ -54,7 +54,7 @@ public class DebugUnionTest {
     //loads the on heap union
     DoublesSketch.setRandom(1); //make deterministic for test
     DoublesUnion hUnion = DoublesUnion.builder().setMaxK(unionK).build();
-    for (int s = 0; s < numSketches; s++) { hUnion.update(sketchArr[s]); }
+    for (int s = 0; s < numSketches; s++) { hUnion.union(sketchArr[s]); }
     DoublesSketch hSketch = hUnion.getResult();
 
     //loads the direct union
@@ -64,29 +64,29 @@ public class DebugUnionTest {
     try ( WritableHandle wdh = WritableMemory.allocateDirect(10_000_000) ) {
       WritableMemory wmem = wdh.getWritable();
       dUnion = DoublesUnion.builder().setMaxK(8).build(wmem);
-      for (int s = 0; s < numSketches; s++) { dUnion.update(sketchArr[s]); }
+      for (int s = 0; s < numSketches; s++) { dUnion.union(sketchArr[s]); }
       dSketch = dUnion.getResult(); //result is on heap
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
 
     //iterates and counts errors
-    int hCount = hSketch.getRetainedItems();
-    int dCount = dSketch.getRetainedItems();
+    int hCount = hSketch.getNumRetained();
+    int dCount = dSketch.getNumRetained();
 
     assertEquals(hCount, dCount); //Retained items must be the same
 
     int hErrors = 0;
     int dErrors = 0;
 
-    DoublesSketchIterator hit = hSketch.iterator();
-    DoublesSketchIterator dit = dSketch.iterator();
+    QuantilesDoublesSketchIterator hit = hSketch.iterator();
+    QuantilesDoublesSketchIterator dit = dSketch.iterator();
 
     while (hit.next() && dit.next()) {
-      double v = hit.getValue();
+      double v = hit.getQuantile();
       if (!set.contains(v)) { hErrors++; }
 
-      double w = dit.getValue();
+      double w = dit.getQuantile();
       if (!set.contains(w)) { dErrors++; }
       assertEquals(v, w, 0); //Items must be returned in same order and be equal
     }

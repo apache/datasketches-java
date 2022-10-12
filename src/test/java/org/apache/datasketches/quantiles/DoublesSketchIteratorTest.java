@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -27,7 +28,7 @@ public class DoublesSketchIteratorTest {
   @Test
   public void emptySketch() {
     DoublesSketch sketch = DoublesSketch.builder().build();
-    DoublesSketchIterator it = sketch.iterator();
+    QuantilesDoublesSketchIterator it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
@@ -35,9 +36,9 @@ public class DoublesSketchIteratorTest {
   public void oneItemSketch() {
     UpdateDoublesSketch sketch = DoublesSketch.builder().build();
     sketch.update(0);
-    DoublesSketchIterator it = sketch.iterator();
+    QuantilesDoublesSketchIterator it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getValue(), 0.0);
+    Assert.assertEquals(it.getQuantile(), 0.0);
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }
@@ -49,14 +50,14 @@ public class DoublesSketchIteratorTest {
       for (int i = 0; i < n; i++) {
         sketch.update(i);
       }
-      DoublesSketchIterator it = sketch.iterator();
+      QuantilesDoublesSketchIterator it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {
         count++;
         weight += (int)it.getWeight();
       }
-      Assert.assertEquals(count, sketch.getRetainedItems());
+      Assert.assertEquals(count, sketch.getNumRetained());
       Assert.assertEquals(weight, n);
     }
   }

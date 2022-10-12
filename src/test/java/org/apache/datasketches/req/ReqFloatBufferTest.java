@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -65,7 +65,7 @@ public class ReqFloatBufferTest {
     final FloatBuffer out = buf.getEvensOrOdds(0, cap/2, odds);
     //println("odds: " + odds + ", spaceAtBottom: " + spaceAtBottom);
     for (int i = 0; i < out.getCount(); i++) {
-      final int v = (int)out.getValue(i);
+      final int v = (int)out.getItem(i);
       if (odds) { assertTrue((v & 1) == 1); }
       else { assertTrue((v & 1) == 0); }
       //print(v + " ");
@@ -111,9 +111,9 @@ public class ReqFloatBufferTest {
     buf.append(3);
     buf.ensureCapacity(8);
     buf.sort();
-    assertEquals(buf.getValue(0), 1.0f);
-    assertEquals(buf.getValue(1), 2.0f);
-    assertEquals(buf.getValue(2), 3.0f);
+    assertEquals(buf.getItem(0), 1.0f);
+    assertEquals(buf.getItem(1), 2.0f);
+    assertEquals(buf.getItem(2), 3.0f);
   }
 
   @Test
@@ -127,9 +127,9 @@ public class ReqFloatBufferTest {
     final FloatBuffer buf = FloatBuffer.wrap(sortedArr, true, spaceAtBottom);
     final FloatBuffer buf2 = new FloatBuffer(7,0, spaceAtBottom);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountWithCriterion(4, NON_INCLUSIVE), 3);
+    assertEquals(buf2.getCountWithCriterion(4, EXCLUSIVE), 3);
     buf2.mergeSortIn(buf);
-    assertEquals(buf2.getCountWithCriterion(4, NON_INCLUSIVE), 6);
+    assertEquals(buf2.getCountWithCriterion(4, EXCLUSIVE), 6);
     assertEquals(buf2.getCount(), 14);
     buf2.trimCount(12);
     assertEquals(buf2.getCount(), 12);
@@ -155,7 +155,7 @@ public class ReqFloatBufferTest {
   //@Test
   public void checkCount() {
     final FloatBuffer buf = createSortedFloatBuffer(120, 0, true, 100);
-    println("LT: " + buf.getCountWithCriterion(100, NON_INCLUSIVE));
+    println("LT: " + buf.getCountWithCriterion(100, EXCLUSIVE));
     println("LE: " + buf.getCountWithCriterion(100, INCLUSIVE));
   }
 
@@ -163,12 +163,20 @@ public class ReqFloatBufferTest {
     int count;
     final int len = buf.getCount();
     final int iv = (int) v;
-    count = buf.getCountWithCriterion(v, NON_INCLUSIVE);
+    count = buf.getCountWithCriterion(v, EXCLUSIVE);
     assertEquals(count, v > len ? len : v <= 1 ? 0 : iv == v? iv - 1 : iv);
     count = buf.getCountWithCriterion(v, INCLUSIVE);
     assertEquals(count, v >= len ? len : v < 1 ? 0 : iv);
   }
 
+  /**
+   * Creates a FloatBuffer with data
+   * @param cap size of the buffer
+   * @param delta incremental growth size
+   * @param sab space-at-bottom T/F
+   * @param len number of values to load, starting at 1.0f.
+   * @return FloatBuffer
+   */
   private static FloatBuffer createSortedFloatBuffer(final int cap, final int delta,
       final boolean sab, final int len) {
     final FloatBuffer buf = new FloatBuffer(cap, delta, sab);
@@ -204,7 +212,7 @@ public class ReqFloatBufferTest {
     assertEquals(len, 8);
 
     for (int i = 0; i < len; i++) {
-      final int item = (int)buf1.getValue(i);
+      final int item = (int)buf1.getItem(i);
       assertEquals(item, i+1);
       //print(item + " ");
     }
@@ -234,7 +242,7 @@ public class ReqFloatBufferTest {
     assertEquals(buf.getCount(), 3);
     final int cnt = buf.getCountWithCriterion(3.0f, INCLUSIVE);
     assertEquals(cnt, 3);
-    assertEquals(buf.getValueFromIndex(2), 3.0f);
+    assertEquals(buf.getItemFromIndex(2), 3.0f);
     try { buf.getEvensOrOdds(0, 3, false); fail(); } catch (final SketchesArgumentException e) {}
   }
 
@@ -245,7 +253,7 @@ public class ReqFloatBufferTest {
     assertEquals(buf.getCapacity(), 201);
     assertEquals(buf.getCount(), 101);
     buf.trimCapacity();
-    assertEquals(buf.getValueFromIndex(0), 100f);
+    assertEquals(buf.getItemFromIndex(0), 100f);
     assertEquals(buf.getCapacity(), 101);
     assertEquals(buf.getCount(), 101);
   }
@@ -264,8 +272,8 @@ public class ReqFloatBufferTest {
     final int delta = buf.getDelta();
     final boolean sorted = buf.isSorted();
     final boolean sab = buf.isSpaceAtBottom();
-    assertEquals(buf.getValueFromIndex(100), 100.0f);
-    assertEquals(buf.getValueFromIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(buf.getItemFromIndex(100), 100.0f);
+    assertEquals(buf.getItemFromIndex(hra ? 199 : 1), 1.0f);
     assertEquals(buf.isSpaceAtBottom(), hra);
     //uses the serialization method
     final WritableMemory wmem = WritableMemory.writableWrap(buf.floatsToBytes());
@@ -277,8 +285,8 @@ public class ReqFloatBufferTest {
     assertEquals(buf2.getCount(), count);
     assertEquals(buf2.getDelta(), delta);
     assertEquals(buf2.isSorted(), sorted);
-    assertEquals(buf2.getValueFromIndex(100), 100.0f);
-    assertEquals(buf2.getValueFromIndex(hra ? 199 : 1), 1.0f);
+    assertEquals(buf2.getItemFromIndex(100), 100.0f);
+    assertEquals(buf2.getItemFromIndex(hra ? 199 : 1), 1.0f);
     assertEquals(buf2.isSpaceAtBottom(), sab);
   }
 

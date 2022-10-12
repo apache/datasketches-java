@@ -19,52 +19,61 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+
 /**
  * Iterator over ItemsSketchSortedView.
  * @param <T> type of item
  */
-public class ItemsSketchSortedViewIterator<T> {
+public class ItemsSketchSortedViewIterator<T> implements GenericSortedViewIterator<T> {
 
-  private Object[] items_;
-  private long[] weights_;
-  private int i_;
+  private final Object[] items;
+  private final long[] cumWeights;
+  private final long totalN;
+  private int index;
 
-  ItemsSketchSortedViewIterator(final Object[] items, final long[] weights) {
-    items_ = items;
-    weights_ = weights;
-    i_ = -1;
+  ItemsSketchSortedViewIterator(final Object[] items, final long[] cumWeights) {
+    this.items = items;
+    this.cumWeights = cumWeights;
+    this.totalN = (cumWeights.length > 0) ? cumWeights[cumWeights.length - 1] : 0;
+    index = -1;
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
-  public boolean next() {
-    i_++;
-    return i_ < items_.length;
+  @Override
+  public long getCumulativeWeight(final QuantileSearchCriteria searchCrit) {
+    if (searchCrit == INCLUSIVE) { return cumWeights[index]; }
+    return (index == 0) ? 0 : cumWeights[index - 1];
   }
 
-  /**
-   * Gets a value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
   @SuppressWarnings("unchecked")
-  public T getValue() {
-    return (T) items_[i_];
+  @Override
+  public T getQuantile() {
+    return (T) items[index];
   }
 
-  /**
-   * Gets a weight for the value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
+  @Override
+  public long getN() {
+    return totalN;
+  }
+
+  @Override
+  public double getNormalizedRank(final QuantileSearchCriteria searchCrit) {
+    return (double) getCumulativeWeight(searchCrit) / totalN;
+  }
+
+  @Override
   public long getWeight() {
-    return weights_[i_];
+    if (index == 0) { return cumWeights[0]; }
+    return cumWeights[index] - cumWeights[index - 1];
+  }
+
+  @Override
+  public boolean next() {
+    index++;
+    return index < items.length;
   }
 
 }

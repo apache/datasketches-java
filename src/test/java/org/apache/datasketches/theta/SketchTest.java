@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Family.ALPHA;
-import static org.apache.datasketches.Family.COMPACT;
-import static org.apache.datasketches.Family.QUICKSELECT;
-import static org.apache.datasketches.ResizeFactor.X1;
-import static org.apache.datasketches.ResizeFactor.X2;
-import static org.apache.datasketches.ResizeFactor.X4;
-import static org.apache.datasketches.ResizeFactor.X8;
-import static org.apache.datasketches.Util.*;
+import static org.apache.datasketches.common.Family.ALPHA;
+import static org.apache.datasketches.common.Family.COMPACT;
+import static org.apache.datasketches.common.Family.QUICKSELECT;
+import static org.apache.datasketches.common.ResizeFactor.X1;
+import static org.apache.datasketches.common.ResizeFactor.X2;
+import static org.apache.datasketches.common.ResizeFactor.X4;
+import static org.apache.datasketches.common.ResizeFactor.X8;
+import static org.apache.datasketches.common.Util.*;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer1;
 import static org.apache.datasketches.theta.BackwardConversions.convertSerVer3toSerVer2;
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
@@ -39,12 +39,12 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
@@ -137,8 +137,8 @@ public class SketchTest {
     sk1 = UpdateSketch.builder().build();
     nameS1 = sk1.getClass().getSimpleName();
     assertEquals(nameS1, "HeapQuickSelectSketch");
-    assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(DEFAULT_NOMINAL_ENTRIES));
-    assertEquals(sk1.getSeed(), DEFAULT_UPDATE_SEED);
+    assertEquals(sk1.getLgNomLongs(), Integer.numberOfTrailingZeros(ThetaUtil.DEFAULT_NOMINAL_ENTRIES));
+    assertEquals(sk1.getSeed(), ThetaUtil.DEFAULT_UPDATE_SEED);
     assertEquals(sk1.getP(), (float)1.0);
     assertEquals(sk1.getResizeFactor(), ResizeFactor.X8);
   }
@@ -310,7 +310,7 @@ public class SketchTest {
     assertFalse(csk2.hasMemory());
     assertEquals(uest1, csk2.getEstimate(), 0.0);
 
-    Memory v2mem = convertSerVer3toSerVer2(csk, Util.DEFAULT_UPDATE_SEED);
+    Memory v2mem = convertSerVer3toSerVer2(csk, ThetaUtil.DEFAULT_UPDATE_SEED);
     csk2 = Sketch.wrap(v2mem);
     assertFalse(csk2.isDirect());
     assertFalse(csk2.hasMemory());

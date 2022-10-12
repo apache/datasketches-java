@@ -23,10 +23,11 @@ import static java.lang.Math.floor;
 import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
-import static org.apache.datasketches.quantiles.Util.LS;
-import static org.apache.datasketches.quantiles.Util.computeCombinedBufferItemCapacity;
-import static org.apache.datasketches.quantiles.Util.computeNumLevelsNeeded;
-import static org.apache.datasketches.quantiles.Util.lg;
+import static org.apache.datasketches.common.Util.log2;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -35,13 +36,15 @@ import static org.testng.Assert.fail;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesUtil;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("deprecation")
 public class HeapUpdateDoublesSketchTest {
 
   @BeforeMethod
@@ -68,7 +71,7 @@ public class HeapUpdateDoublesSketchTest {
     }
     assertEquals(qs.getN() + qs2.getN(), n);
     DoublesUnion union = DoublesUnion.heapify(qs);
-    union.update(qs2);
+    union.union(qs2);
     DoublesSketch result = union.getResult();
 
     int numPhiValues = 99;
@@ -111,91 +114,6 @@ public class HeapUpdateDoublesSketchTest {
   }
 
   @Test
-  public void checkConstructAuxiliary() {
-    for (int k = 2; k <= 32; k *= 2) {
-      HeapUpdateDoublesSketch qs = HeapUpdateDoublesSketch.newInstance(k);
-      for (int numItemsSoFar = 0; numItemsSoFar < 1000; numItemsSoFar++) {
-        DoublesSketchSortedView aux = new DoublesSketchSortedView(qs, true, false);
-        int numSamples = qs.getRetainedItems();
-        double[] auxItems = aux.auxSamplesArr_;
-        long[] auxAccum = aux.auxCumWtsArr_;
-
-        assertTrue(qs.getN() == aux.auxN_);
-        assertTrue(numItemsSoFar == aux.auxN_);
-
-        assertTrue(auxItems.length == numSamples);
-        assertTrue(auxAccum.length == (numSamples + 1));
-
-        double mqSumOfSamples = sumOfSamplesInSketch(qs);
-        double auSumOfSamples = sumOfDoublesInSubArray(auxItems, 0, numSamples);
-
-        // the following test might be able to detect errors in handling the samples
-        // e.g. accidentally dropping or duplicating a sample
-        assertTrue(Math.floor(0.5 + mqSumOfSamples) == Math.floor(0.5 + auSumOfSamples));
-
-        // the following test might be able to detect errors in handling the sample weights
-        assertTrue(auxAccum[numSamples] == numItemsSoFar);
-
-        for (int i = 0; i < (numSamples-1); i++) {
-          assertTrue(auxItems[i] <= auxItems[i+1]); // assert sorted order
-          assertTrue(auxAccum[i] <  auxAccum[i+1]); // assert cumulative property
-        }
-
-        // This is a better test when the items are inserted in reverse order
-        // as follows, but the negation seems kind of awkward.
-        qs.update (-1.0 * (numItemsSoFar + 1) );
-      } // end of loop over test stream
-    } // end of loop over values of k
-  }
-
-  @Test
-  public void checkBigMinMax () {
-    int k = 32;
-    UpdateDoublesSketch qs1 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs2 = DoublesSketch.builder().setK(k).build();
-    UpdateDoublesSketch qs3 = DoublesSketch.builder().setK(k).build();
-    assertFalse(qs1.isEstimationMode());
-
-    for (int i = 999; i >= 1; i--) {
-      qs1.update(i);
-      qs2.update(1000+i);
-      qs3.update(i);
-    }
-    assertTrue(qs1.isEstimationMode());
-
-    assertTrue(qs1.getQuantile(0.0) == 1.0);
-    assertTrue(qs1.getQuantile(1.0) == 999.0);
-
-    assertTrue(qs2.getQuantile(0.0) == 1001.0);
-    assertTrue(qs2.getQuantile(1.0) == 1999.0);
-
-    assertTrue((qs3.getQuantile(0.0) == 1.0));
-    assertTrue(qs3.getQuantile(1.0) == 999.0);
-
-    double[] queries = {0.0, 1.0};
-
-    double[] resultsA = qs1.getQuantiles(queries);
-    assertTrue(resultsA[0] == 1.0);
-    assertTrue(resultsA[1] == 999.0);
-
-    DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
-    DoublesSketch result1 = union1.getResult();
-
-    DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
-    DoublesSketch result2 = union2.getResult();
-
-    double[] resultsB = result1.getQuantiles(queries);
-    assertTrue(resultsB[0] == 1.0);
-    assertTrue(resultsB[1] == 1999.0);
-
-    double[] resultsC = result2.getQuantiles(queries);
-    assertTrue(resultsC[0] == 1.0);
-    assertTrue(resultsC[1] == 1999.0);
-  }
-
-  @Test
   public void checkSmallMinMax () {
     int k = 32;
     int n = 8;
@@ -208,42 +126,42 @@ public class HeapUpdateDoublesSketchTest {
       qs2.update(10+i);
       qs3.update(i);
     }
-    assert (qs1.getQuantile (0.0) == 1.0);
-    assert (qs1.getQuantile (0.5) == 5.0);
-    assert (qs1.getQuantile (1.0) == 8.0);
+    assertEquals(qs1.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs1.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs1.getQuantile (1.0, EXCLUSIVE), 8.0);
 
-    assert (qs2.getQuantile (0.0) == 11.0);
-    assert (qs2.getQuantile (0.5) == 15.0);
-    assert (qs2.getQuantile (1.0) == 18.0);
+    assertEquals(qs2.getQuantile (0.0, EXCLUSIVE), 11.0);
+    assertEquals(qs2.getQuantile (0.5, EXCLUSIVE), 15.0);
+    assertEquals(qs2.getQuantile (1.0, EXCLUSIVE), 18.0);
 
-    assert (qs3.getQuantile (0.0) == 1.0);
-    assert (qs3.getQuantile (0.5) == 5.0);
-    assert (qs3.getQuantile (1.0) == 8.0);
+    assertEquals(qs3.getQuantile (0.0, EXCLUSIVE), 1.0);
+    assertEquals(qs3.getQuantile (0.5, EXCLUSIVE), 5.0);
+    assertEquals(qs3.getQuantile (1.0, EXCLUSIVE), 8.0);
 
     double[] queries = {0.0, 0.5, 1.0};
 
-    double[] resultsA = qs1.getQuantiles(queries);
-    assert (resultsA[0] == 1.0);
-    assert (resultsA[1] == 5.0);
-    assert (resultsA[2] == 8.0);
+    double[] resultsA = qs1.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsA[0], 1.0);
+    assertEquals(resultsA[1], 5.0);
+    assertEquals(resultsA[2], 8.0);
 
     DoublesUnion union1 = DoublesUnion.heapify(qs1);
-    union1.update(qs2);
+    union1.union(qs2);
     DoublesSketch result1 = union1.getResult();
 
     DoublesUnion union2 = DoublesUnion.heapify(qs2);
-    union2.update(qs3);
+    union2.union(qs3);
     DoublesSketch result2 = union2.getResult();
 
-    double[] resultsB = result1.getQuantiles(queries);
-    assert (resultsB[0] == 1.0);
-    assert (resultsB[1] == 11.0);
-    assert (resultsB[2] == 18.0);
+    double[] resultsB = result1.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsB[0], 1.0);
+    assertEquals(resultsB[1], 11.0);
+    assertEquals(resultsB[2], 18.0);
 
-    double[] resultsC = result2.getQuantiles(queries);
-    assert (resultsC[0] == 1.0);
-    assert (resultsC[1] == 11.0);
-    assert (resultsC[2] == 18.0);
+    double[] resultsC = result2.getQuantiles(queries, EXCLUSIVE);
+    assertEquals(resultsC[0], 1.0);
+    assertEquals(resultsC[1], 11.0);
+    assertEquals(resultsC[2], 18.0);
   }
 
   @Test
@@ -362,7 +280,7 @@ public class HeapUpdateDoublesSketchTest {
     int n = 1 << 20;
     int k = PreambleUtil.DEFAULT_K;
     int lvls1 = computeNumLevelsNeeded(k, n);
-    int lvls2 = (int)Math.max(floor(lg((double)n/k)),0);
+    int lvls2 = (int)Math.max(floor(log2((double)n/k)),0);
     assertEquals(lvls1, lvls2);
   }
 
@@ -370,32 +288,32 @@ public class HeapUpdateDoublesSketchTest {
   public void checkComputeBitPattern() {
     int n = 1 << 20;
     int k = PreambleUtil.DEFAULT_K;
-    long bitP = Util.computeBitPattern(k, n);
+    long bitP = ClassicUtil.computeBitPattern(k, n);
     assertEquals(bitP, n/(2L*k));
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkValidateSplitPointsOrder() {
     double[] arr = {2, 1};
-    Util.checkSplitPointsOrder(arr);
+    QuantilesUtil.checkDoublesSplitPointsOrder(arr);
   }
 
   @Test
   public void checkGetStorageBytes() {
     int k = PreambleUtil.DEFAULT_K; //128
     DoublesSketch qs = buildAndLoadQS(k, 0); //k, n
-    int stor = qs.getCompactStorageBytes();
+    int stor = qs.getCurrentCompactSerializedSizeBytes();
     assertEquals(stor, 8);
 
     qs = buildAndLoadQS(k, 2*k); //forces one level
-    stor = qs.getCompactStorageBytes();
+    stor = qs.getCurrentCompactSerializedSizeBytes();
 
-    int retItems = Util.computeRetainedItems(k, 2*k);
+    int retItems = ClassicUtil.computeRetainedItems(k, 2*k);
     assertEquals(stor, 32 + (retItems << 3));
 
     qs = buildAndLoadQS(k, (2*k)-1); //just Base Buffer
-    stor = qs.getCompactStorageBytes();
-    retItems = Util.computeRetainedItems(k, (2*k)-1);
+    stor = qs.getCurrentCompactSerializedSizeBytes();
+    retItems = ClassicUtil.computeRetainedItems(k, (2*k)-1);
     assertEquals(stor, 32 + (retItems << 3));
   }
 
@@ -410,7 +328,7 @@ public class HeapUpdateDoublesSketchTest {
 //        qs.update(v++);
 //      }
       byte[] byteArr = qs.toByteArray(false);
-      assertEquals(byteArr.length, qs.getUpdatableStorageBytes());
+      assertEquals(byteArr.length, qs.getCurrentUpdatableSerializedSizeBytes());
     }
   }
 
@@ -421,7 +339,7 @@ public class HeapUpdateDoublesSketchTest {
     DoublesSketch qs1 = buildAndLoadQS(k,n,0);
     DoublesSketch qs2 = buildAndLoadQS(k,0,0); //empty
     DoublesUnion union = DoublesUnion.heapify(qs2);
-    union.update(qs1);
+    union.union(qs1);
     DoublesSketch result = union.getResult();
     double med1 = qs1.getQuantile(0.5);
     double med2 = result.getQuantile(0.5);
@@ -435,7 +353,7 @@ public class HeapUpdateDoublesSketchTest {
     DoublesSketch qs1 = buildAndLoadQS(k,  1000, 0);
     DoublesSketch qs2 = buildAndLoadQS(2*k,1000, 1000);
     DoublesUnion union = DoublesUnion.heapify(qs2);
-    union.update(qs1); //attempt merge into larger k
+    union.union(qs1); //attempt merge into larger k
     DoublesSketch result = union.getResult();
     assertEquals(result.getK(), k);
   }
@@ -463,7 +381,7 @@ public class HeapUpdateDoublesSketchTest {
   public void checkComputeBaseBufferCount() {
     int n = 1 << 20;
     int k = PreambleUtil.DEFAULT_K;
-    long bbCnt = Util.computeBaseBufferItems(k, n);
+    long bbCnt = ClassicUtil.computeBaseBufferItems(k, n);
     assertEquals(bbCnt, n % (2L*k));
   }
 
@@ -543,7 +461,7 @@ public class HeapUpdateDoublesSketchTest {
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFamilyID() {
-    Util.checkFamilyID(3);
+    ClassicUtil.checkFamilyID(3);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -574,7 +492,7 @@ public class HeapUpdateDoublesSketchTest {
     int preLongs = 5;
     int flags = EMPTY_FLAG_MASK;
     int memCap = 8;
-    Util.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
+    ClassicUtil.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -582,13 +500,13 @@ public class HeapUpdateDoublesSketchTest {
     int preLongs = 5;
     int flags = 0;
     int memCap = 8;
-    Util.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
+    ClassicUtil.checkPreLongsFlagsCap(preLongs, flags,  memCap); //corrupt
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkFlags() {
     int flags = 1;
-    Util.checkHeapFlags(flags);
+    ClassicUtil.checkHeapFlags(flags);
   }
 
   @Test
@@ -633,7 +551,7 @@ public class HeapUpdateDoublesSketchTest {
     println(LS+"Sk2"+LS);
     s2 = sketch2.toString(true, true);
     println(s2);
-    assertEquals(downSketch.getRetainedItems(), sketch2.getRetainedItems());
+    assertEquals(downSketch.getNumRetained(), sketch2.getNumRetained());
   }
 
   @Test
@@ -760,8 +678,8 @@ public class HeapUpdateDoublesSketchTest {
   static String getRanksTable(DoublesSketch qs, double[] ranks) {
     double rankError = qs.getNormalizedRankError(false);
     double[] values = qs.getQuantiles(ranks);
-    double maxV = qs.getMaxValue();
-    double minV = qs.getMinValue();
+    double maxV = qs.getMaxItem();
+    double minV = qs.getMinItem();
     double delta = maxV - minV;
     println("Note: This prints the relative value errors for illustration.");
     println("The quantiles sketch does not and can not guarantee relative value errors");
@@ -805,10 +723,10 @@ public class HeapUpdateDoublesSketchTest {
     double err = qs1.getNormalizedRankError(false);
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 0));
     qs1.update(1.0);
     arr = qs1.toByteArray(true); //40
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 1));
   }
 
   @Test
@@ -818,12 +736,12 @@ public class HeapUpdateDoublesSketchTest {
     double err = qs1.getNormalizedRankError(false);
     assertTrue(err < 1.0);
     byte[] arr = qs1.toByteArray(true); //8
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 0));
-    assertEquals(arr.length, qs1.getCompactStorageBytes());
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 0));
+    assertEquals(arr.length, qs1.getCurrentCompactSerializedSizeBytes());
     qs1.update(1.0);
     arr = qs1.toByteArray(true); //40
-    assertEquals(arr.length, DoublesSketch.getCompactStorageBytes(k, 1));
-    assertEquals(arr.length, qs1.getCompactStorageBytes());
+    assertEquals(arr.length, DoublesSketch.getCompactSerialiedSizeBytes(k, 1));
+    assertEquals(arr.length, qs1.getCurrentCompactSerializedSizeBytes());
   }
 
   @Test
@@ -832,13 +750,13 @@ public class HeapUpdateDoublesSketchTest {
     for (int i=0; i<1000; i++) {
       qs1.update(i);
     }
-    int bytes = qs1.getUpdatableStorageBytes();
+    int bytes = qs1.getCurrentUpdatableSerializedSizeBytes();
     WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes]);
     qs1.putMemory(dstMem, false);
     Memory srcMem = dstMem;
     DoublesSketch qs2 = DoublesSketch.heapify(srcMem);
-    assertEquals(qs1.getMinValue(), qs2.getMinValue(), 0.0);
-    assertEquals(qs1.getMaxValue(), qs2.getMaxValue(), 0.0);
+    assertEquals(qs1.getMinItem(), qs2.getMinItem(), 0.0);
+    assertEquals(qs1.getMaxItem(), qs2.getMaxItem(), 0.0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -847,18 +765,9 @@ public class HeapUpdateDoublesSketchTest {
     for (int i=0; i<1000; i++) {
       qs1.update(i);
     }
-    int bytes = qs1.getCompactStorageBytes();
+    int bytes = qs1.getCurrentCompactSerializedSizeBytes();
     WritableMemory dstMem = WritableMemory.writableWrap(new byte[bytes-1]); //too small
     qs1.putMemory(dstMem);
-  }
-
-  @SuppressWarnings("deprecation")
-  @Test
-  public void checkAuxPosOfRank() throws Exception {
-    long n = 10;
-    long returnValue = ClassicQuantilesHelper.posOfRank(1.0, 10);
-    //println("" + returnValue);
-    assertEquals(returnValue, n-1);
   }
 
   //Himanshu's case
@@ -880,11 +789,10 @@ public class HeapUpdateDoublesSketchTest {
   public void checkEvenlySpacedQuantiles() {
     DoublesSketch qsk = buildAndLoadQS(32, 1001);
     double[] values = qsk.getQuantiles(11);
-//    for (int i = 0; i<values.length; i++) {
-//      println(""+values[i]);
-//    }
-    assertEquals(values[0], 1.0, 0.0);
-    assertEquals(values[10], 1001.0, 0.0);
+    for (int i = 0; i<values.length; i++) {
+      println(""+values[i]);
+    }
+    assertEquals(values.length, 11);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -897,7 +805,7 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkEvenlySpaced() {
     int n = 11;
-    double[] es = org.apache.datasketches.Util.evenlySpaced(0.0, 1.0, n);
+    double[] es = org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
@@ -955,8 +863,8 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i + 1000);
     }
-    assertEquals(sketch2.getMinValue(), 0.0);
-    assertEquals(sketch2.getMaxValue(), 1999.0);
+    assertEquals(sketch2.getMinItem(), 0.0);
+    assertEquals(sketch2.getMaxItem(), 1999.0);
     assertEquals(sketch2.getQuantile(0.5), 1000.0, 10.0);
   }
 
@@ -964,14 +872,14 @@ public class HeapUpdateDoublesSketchTest {
   public void serializeDeserializeEmptyNonCompact() {
     UpdateDoublesSketch sketch1 = DoublesSketch.builder().build();
     byte[] byteArr = sketch1.toByteArray(false); //Ordered, Not Compact, Empty
-    assertEquals(byteArr.length, sketch1.getStorageBytes());
+    assertEquals(byteArr.length, sketch1.getSerializedSizeBytes());
     Memory mem = Memory.wrap(byteArr);
     UpdateDoublesSketch sketch2 = (UpdateDoublesSketch) DoublesSketch.heapify(mem);
     for (int i = 0; i < 1000; i++) {
       sketch2.update(i);
     }
-    assertEquals(sketch2.getMinValue(), 0.0);
-    assertEquals(sketch2.getMaxValue(), 999.0);
+    assertEquals(sketch2.getMinItem(), 0.0);
+    assertEquals(sketch2.getMaxItem(), 999.0);
     assertEquals(sketch2.getQuantile(0.5), 500.0, 4.0);
   }
 
@@ -991,9 +899,9 @@ public class HeapUpdateDoublesSketchTest {
       }
     }
     { // inclusive = true
-      final double[] ranks = sketch.getCDF(values, true);
+      final double[] ranks = sketch.getCDF(values, INCLUSIVE);
       for (int i = 0; i < n; i++) {
-        assertEquals(ranks[i], sketch.getRank(values[i], true), 0.00001, "CDF vs rank for value " + i);
+        assertEquals(ranks[i], sketch.getRank(values[i], INCLUSIVE), 0.00001, "CDF vs rank for value " + i);
       }
     }
   }
@@ -1039,36 +947,36 @@ public class HeapUpdateDoublesSketchTest {
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
-    assertEquals(sketch.getRetainedItems(), 10);
+    assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
-      assertEquals(sketch.getRank(i), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, false), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, true), i / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
     // inclusive = false (default)
-    assertEquals(sketch.getQuantile(0), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1), 2);
-    assertEquals(sketch.getQuantile(0.2), 3);
-    assertEquals(sketch.getQuantile(0.3), 4);
-    assertEquals(sketch.getQuantile(0.4), 5);
-    assertEquals(sketch.getQuantile(0.5), 6);
-    assertEquals(sketch.getQuantile(0.6), 7);
-    assertEquals(sketch.getQuantile(0.7), 8);
-    assertEquals(sketch.getQuantile(0.8), 9);
-    assertEquals(sketch.getQuantile(0.9), 10);
-    assertEquals(sketch.getQuantile(1), 10); // always max value
+    assertEquals(sketch.getQuantile(0, EXCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.1, EXCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.2, EXCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.3, EXCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.4, EXCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.6, EXCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
+    assertEquals(sketch.getQuantile(1, EXCLUSIVE), 10);
     // inclusive = true
-    assertEquals(sketch.getQuantile(0, true), 1); // always min value
-    assertEquals(sketch.getQuantile(0.1, true), 1);
-    assertEquals(sketch.getQuantile(0.2, true), 2);
-    assertEquals(sketch.getQuantile(0.3, true), 3);
-    assertEquals(sketch.getQuantile(0.4, true), 4);
-    assertEquals(sketch.getQuantile(0.5, true), 5);
-    assertEquals(sketch.getQuantile(0.6, true), 6);
-    assertEquals(sketch.getQuantile(0.7, true), 7);
-    assertEquals(sketch.getQuantile(0.8, true), 8);
-    assertEquals(sketch.getQuantile(0.9, true), 9);
-    assertEquals(sketch.getQuantile(1, true), 10); // always max value
+    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
+    assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
+    assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
+    assertEquals(sketch.getQuantile(0.4, INCLUSIVE), 4);
+    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 5);
+    assertEquals(sketch.getQuantile(0.6, INCLUSIVE), 6);
+    assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
+    assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
+    assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
+    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10);
 
     // getQuantile() and getQuantiles() equivalence
     {
@@ -1082,9 +990,9 @@ public class HeapUpdateDoublesSketchTest {
     {
       // inclusive = true
       final double[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, true);
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, true), quantiles[i]);
+        assertEquals(sketch.getQuantile(i / 10.0, INCLUSIVE), quantiles[i]);
       }
     }
   }
@@ -1113,52 +1021,23 @@ public class HeapUpdateDoublesSketchTest {
     }
   }
 
-  /**
-   * Computes a checksum of all the samples in the sketch. Used in testing the Auxiliary
-   * @param sketch the given quantiles sketch
-   * @return a checksum of all the samples in the sketch
-   */
-  private static double sumOfSamplesInSketch(HeapUpdateDoublesSketch sketch) {
-    double[] combinedBuffer = sketch.getCombinedBuffer();
-    int bbCount = sketch.getBaseBufferCount();
-    double total = sumOfDoublesInSubArray(combinedBuffer, 0, bbCount);
-    long bits = sketch.getBitPattern();
-    int k = sketch.getK();
-    assert bits == (sketch.getN() / (2L * k)); // internal consistency check
-    for (int lvl = 0; bits != 0L; lvl++, bits >>>= 1) {
-      if ((bits & 1L) > 0L) {
-        total += sumOfDoublesInSubArray(combinedBuffer, ((2+lvl) * k), k);
-      }
-    }
-    return total;
-  }
-
-  private static double sumOfDoublesInSubArray(double[] arr, int subArrayStart, int subArrayLength) {
-    double total = 0.0;
-    int subArrayStop = subArrayStart + subArrayLength;
-    for (int i = subArrayStart; i < subArrayStop; i++) {
-      total += arr[i];
-    }
-    return total;
-  }
-
   private static boolean sameStructurePredicate(final DoublesSketch mq1, final DoublesSketch mq2) {
     final boolean b1 =
       ( (mq1.getK() == mq2.getK())
         && (mq1.getN() == mq2.getN())
         && (mq1.getCombinedBufferItemCapacity()
-            >= Util.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN()))
+            >= ClassicUtil.computeCombinedBufferItemCapacity(mq1.getK(), mq1.getN()))
         && (mq2.getCombinedBufferItemCapacity()
-            >= Util.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN()))
+            >= ClassicUtil.computeCombinedBufferItemCapacity(mq2.getK(), mq2.getN()))
         && (mq1.getBaseBufferCount() == mq2.getBaseBufferCount())
         && (mq1.getBitPattern() == mq2.getBitPattern()) );
 
     final boolean b2;
     if (mq1.isEmpty()) {
-      b2 = (Double.isNaN(mq1.getMinValue())) && (Double.isNaN(mq2.getMinValue())
-        &&  Double.isNaN(mq1.getMaxValue())) && (Double.isNaN(mq2.getMaxValue()));
+      b2 = (Double.isNaN(mq1.getMinItem())) && (Double.isNaN(mq2.getMinItem())
+        &&  Double.isNaN(mq1.getMaxItem())) && (Double.isNaN(mq2.getMaxItem()));
     } else {
-      b2 =  (mq1.getMinValue() == mq2.getMinValue()) && (mq1.getMaxValue() == mq2.getMaxValue());
+      b2 =  (mq1.getMinItem() == mq2.getMinItem()) && (mq1.getMaxItem() == mq2.getMaxItem());
     }
     return b1 && b2;
   }

@@ -25,6 +25,8 @@ package org.apache.datasketches.quantiles;
  */
 final class KolmogorovSmirnov {
 
+  //TODO This KS test will have to be redesigned to accomodate REQ sketches.
+
   /**
    * Computes the raw delta area between two quantile sketches for the
    * <i>kolmogorovSmirnovTest(DoublesSketch, DoublesSketch, double)</i>
@@ -34,25 +36,25 @@ final class KolmogorovSmirnov {
    * @return the raw delta area between two quantile sketches
    */
   public static double computeKSDelta(final DoublesSketch sketch1, final DoublesSketch sketch2) {
-    final DoublesSketchSortedView p = new DoublesSketchSortedView(sketch1, true, false);
-    final DoublesSketchSortedView q = new DoublesSketchSortedView(sketch2, true, false);
+    final DoublesSketchSortedView p = new DoublesSketchSortedView(sketch1);
+    final DoublesSketchSortedView q = new DoublesSketchSortedView(sketch2);
 
-    final double[] pSamplesArr = p.auxSamplesArr_;
-    final double[] qSamplesArr = q.auxSamplesArr_;
-    final long[] pCumWtsArr = p.auxCumWtsArr_;
-    final long[] qCumWtsArr = q.auxCumWtsArr_;
+    final double[] pSamplesArr = p.getQuantiles();
+    final double[] qSamplesArr = q.getQuantiles();
+    final long[] pCumWtsArr = p.getCumulativeWeights();
+    final long[] qCumWtsArr = q.getCumulativeWeights();
     final int pSamplesArrLen = pSamplesArr.length;
     final int qSamplesArrLen = qSamplesArr.length;
 
     final double n1 = sketch1.getN();
     final double n2 = sketch2.getN();
 
-    double deltaArea = 0;
+    double deltaHeight = 0;
     int i = 0;
     int j = 0;
 
-    while ((i < pSamplesArrLen) && (j < qSamplesArrLen)) {
-      deltaArea = Math.max(deltaArea, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
+    while ((i < pSamplesArrLen - 1) && (j < qSamplesArrLen - 1)) {
+      deltaHeight = Math.max(deltaHeight, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
       if (pSamplesArr[i] < qSamplesArr[j]) {
         i++;
       } else if (qSamplesArr[j] < pSamplesArr[i]) {
@@ -63,12 +65,12 @@ final class KolmogorovSmirnov {
       }
     }
 
-    deltaArea = Math.max(deltaArea, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
-    return deltaArea;
+    deltaHeight = Math.max(deltaHeight, Math.abs(pCumWtsArr[i] / n1 - qCumWtsArr[j] / n2));
+    return deltaHeight;
   }
 
   /**
-   * Computes the adjusted delta area threshold for the
+   * Computes the adjusted delta height threshold for the
    * <i>kolmogorovSmirnovTest(DoublesSketch, DoublesSketch, double)</i>
    * method.
    * This adjusts the computed threshold by the error epsilons of the two given sketches.
@@ -80,8 +82,8 @@ final class KolmogorovSmirnov {
   public static double computeKSThreshold(final DoublesSketch sketch1,
                                           final DoublesSketch sketch2,
                                           final double tgtPvalue) {
-    final double r1 = sketch1.getRetainedItems();
-    final double r2 = sketch2.getRetainedItems();
+    final double r1 = sketch1.getNumRetained();
+    final double r2 = sketch2.getNumRetained();
     final double alpha = tgtPvalue;
     final double alphaFactor = Math.sqrt(-0.5 * Math.log(0.5 * alpha));
     final double deltaAreaThreshold = alphaFactor * Math.sqrt((r1 + r2) / (r1 * r2));

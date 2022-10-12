@@ -24,7 +24,7 @@ import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.VAL_MASK_6;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**

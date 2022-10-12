@@ -24,7 +24,7 @@ import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**

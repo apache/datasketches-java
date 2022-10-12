@@ -34,7 +34,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -56,7 +56,7 @@ final class DoublesByteArrayImpl {
         | (ordered ? ORDERED_FLAG_MASK : 0)
         | (compact ? (COMPACT_FLAG_MASK | READ_ONLY_FLAG_MASK) : 0);
 
-    if (empty && !sketch.isDirect()) { //empty & on-heap
+    if (empty && !sketch.hasMemory()) { //empty & has Memory
       final byte[] outByteArr = new byte[Long.BYTES];
       final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
       final int preLongs = 1;
@@ -78,7 +78,7 @@ final class DoublesByteArrayImpl {
   private static byte[] convertToByteArray(final DoublesSketch sketch, final int flags,
                                            final boolean ordered, final boolean compact) {
     final int preLongs = 2;
-    final int extra = 2; // extra space for min and max values
+    final int extra = 2; // extra space for min and max quantiles
     final int prePlusExtraBytes = (preLongs + extra) << 3;
     final int k = sketch.getK();
     final long n = sketch.getN();
@@ -87,7 +87,8 @@ final class DoublesByteArrayImpl {
     // whether to copy data out.
     final DoublesSketchAccessor dsa = DoublesSketchAccessor.wrap(sketch, !compact);
 
-    final int outBytes = (compact ? sketch.getCompactStorageBytes() : sketch.getUpdatableStorageBytes());
+    final int outBytes = (compact ? sketch.getCurrentCompactSerializedSizeBytes()
+        : sketch.getCurrentUpdatableSerializedSizeBytes());
 
     final byte[] outByteArr = new byte[outBytes];
     final WritableMemory memOut = WritableMemory.writableWrap(outByteArr);
@@ -97,13 +98,13 @@ final class DoublesByteArrayImpl {
     if (sketch.isEmpty()) { return outByteArr; }
 
     insertN(memOut, n);
-    insertMinDouble(memOut, sketch.getMinValue());
-    insertMaxDouble(memOut, sketch.getMaxValue());
+    insertMinDouble(memOut, sketch.getMinItem());
+    insertMaxDouble(memOut, sketch.getMaxItem());
 
     long memOffsetBytes = prePlusExtraBytes;
 
     // might need to sort base buffer but don't want to change input sketch
-    final int bbCnt = Util.computeBaseBufferItems(k, n);
+    final int bbCnt = ClassicUtil.computeBaseBufferItems(k, n);
     if (bbCnt > 0) { //Base buffer items only
       final double[] bbItemsArr = dsa.getArray(0, bbCnt);
       if (ordered) { Arrays.sort(bbItemsArr); }
@@ -114,7 +115,7 @@ final class DoublesByteArrayImpl {
 
     // If serializing from a compact sketch to a non-compact form, we may end up copying data for a
     // higher level one or more times into an unused level. A bit wasteful, but not incorrect.
-    final int totalLevels = Util.computeTotalLevels(sketch.getBitPattern());
+    final int totalLevels = ClassicUtil.computeTotalLevels(sketch.getBitPattern());
     for (int lvl = 0; lvl < totalLevels; ++lvl) {
       dsa.setLevel(lvl);
       if (dsa.numItems() > 0) {

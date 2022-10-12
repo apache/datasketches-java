@@ -32,8 +32,8 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import org.apache.datasketches.ArrayOfItemsSerDe;
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -91,14 +91,14 @@ final class ItemsByteArrayImpl {
   @SuppressWarnings("unchecked")
   private static <T> T[] combinedBufferToItemsArray(final ItemsSketch<T> sketch,
       final boolean ordered) {
-    final int extra = 2; // extra space for min and max values
-    final int outArrCap = sketch.getRetainedItems();
-    final T minValue = sketch.getMinValue();
-    final T[] outArr = (T[]) Array.newInstance(minValue.getClass(), outArrCap + extra);
+    final int extra = 2; // extra space for min and max items
+    final int outArrCap = sketch.getNumRetained();
+    final T minItem = sketch.getMinItem();
+    final T[] outArr = (T[]) Array.newInstance(minItem.getClass(), outArrCap + extra);
 
     //Load min, max
-    outArr[0] = minValue;
-    outArr[1] = sketch.getMaxValue();
+    outArr[0] = minItem;
+    outArr[1] = sketch.getMaxItem();
     final int baseBufferCount = sketch.getBaseBufferCount();
     final Object[] combinedBuffer = sketch.getCombinedBuffer();
 

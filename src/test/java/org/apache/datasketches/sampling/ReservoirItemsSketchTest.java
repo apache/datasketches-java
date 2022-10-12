@@ -37,14 +37,14 @@ import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.ArrayOfLongsSerDe;
-import org.apache.datasketches.ArrayOfNumbersSerDe;
-import org.apache.datasketches.ArrayOfStringsSerDe;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
+import org.apache.datasketches.common.ArrayOfNumbersSerDe;
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesException;
+import org.apache.datasketches.common.SketchesStateException;
 
 public class ReservoirItemsSketchTest {
   private static final double EPS = 1e-8;

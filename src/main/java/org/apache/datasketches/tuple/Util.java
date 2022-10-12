@@ -20,16 +20,15 @@
 package org.apache.datasketches.tuple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.startingSubMultiple;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.memory.XxHash.hashCharArr;
 import static org.apache.datasketches.memory.XxHash.hashString;
 
 import java.lang.reflect.Array;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Common utility functions for Tuples
@@ -96,11 +95,11 @@ public final class Util {
    * @return the starting capacity
    */
   public static int getStartingCapacity(final int nomEntries, final int lgResizeFactor) {
-    return 1 << startingSubMultiple(
+    return 1 << ThetaUtil.startingSubMultiple(
       // target table size is twice the number of nominal entries
       Integer.numberOfTrailingZeros(ceilingIntPowerOf2(nomEntries) * 2),
       lgResizeFactor,
-      MIN_LG_ARR_LONGS
+      ThetaUtil.MIN_LG_ARR_LONGS
     );
   }
 
@@ -154,7 +153,7 @@ public final class Util {
     return tmpSummaryArr;
   }
 
-  @SuppressWarnings("unchecked")
+  @SuppressWarnings({"unchecked", "javadoc"})
   public static <S extends Summary> S[] newSummaryArray(final S[] summaryArr, final int length) {
     final Class<S> summaryType = (Class<S>) summaryArr.getClass().getComponentType();
     final S[] tmpSummaryArr = (S[]) Array.newInstance(summaryType, length);

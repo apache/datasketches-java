@@ -48,9 +48,9 @@ package org.apache.datasketches.hll;
  * terms of update time, but has the smallest storage footprint of about
  * <i>K/2 * 1.03</i> bytes.</li>
  * </ul>
-
  * @author Lee Rhodes
  */
+@SuppressWarnings("javadoc")
 public enum TgtHllType { HLL_4, HLL_6, HLL_8;
 
   private static final TgtHllType values[] = values();

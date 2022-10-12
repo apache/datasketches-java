@@ -26,8 +26,8 @@ import org.testng.annotations.Test;
 
 /**
  * Issue #368, from Mikhail Lavrinovich 12 OCT 2021
- * The failure was AnotB(estimating {<1.0,1,F}, Intersect(estimating{<1.0,1,F}, newDegenerative{<1.0,0,T},
- * Which should be equal to AnotB(estimating{<1.0,1,F}, new{1.0,0,T} = estimating{<1.0, 1, F}. The AnotB
+ * The failure was AnotB(estimating {&lt;1.0,1,F}, Intersect(estimating{&lt;1.0,1,F}, newDegenerative{&lt;1.0,0,T},
+ * Which should be equal to AnotB(estimating{&lt;1.0,1,F}, new{1.0,0,T} = estimating{&lt;1.0, 1, F}. The AnotB
  * threw a null pointer exception because it was not properly handling sketches with zero entries.
  */
 public class MikhailsBugTupleTest {

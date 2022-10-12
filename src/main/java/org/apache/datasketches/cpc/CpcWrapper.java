@@ -31,7 +31,7 @@ import static org.apache.datasketches.cpc.PreambleUtil.hasHip;
 import static org.apache.datasketches.cpc.PreambleUtil.isCompressed;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.Memory;
 
 /**

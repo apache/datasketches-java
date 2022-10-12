@@ -26,7 +26,7 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.tuple.AnotB;
 import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
 import org.testng.annotations.Test;
 
@@ -79,8 +79,8 @@ public class ArrayOfStringsSketchTest {
   }
 
   private static void checkSummaries(ArrayOfStringsSketch sk1, ArrayOfStringsSketch sk2) {
-    SketchIterator<ArrayOfStringsSummary> it1 = sk1.iterator();
-    SketchIterator<ArrayOfStringsSummary> it2 = sk2.iterator();
+    TupleSketchIterator<ArrayOfStringsSummary> it1 = sk1.iterator();
+    TupleSketchIterator<ArrayOfStringsSummary> it2 = sk2.iterator();
     while(it1.next() && it2.next()) {
       ArrayOfStringsSummary sum1 = it1.getSummary();
       ArrayOfStringsSummary sum2 = it2.getSummary();
@@ -88,7 +88,7 @@ public class ArrayOfStringsSketchTest {
     }
   }
 
-  static void printSummaries(SketchIterator<ArrayOfStringsSummary> it) {
+  static void printSummaries(TupleSketchIterator<ArrayOfStringsSummary> it) {
     while (it.next()) {
       String[] strArr = it.getSummary().getValue();
       for (String s : strArr) {

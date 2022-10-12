@@ -19,9 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.LONG_MAX_VALUE_AS_DOUBLE;
-import static org.apache.datasketches.Util.MIN_LG_ARR_LONGS;
-import static org.apache.datasketches.Util.computeSeedHash;
+import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FLAGS_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.PREAMBLE_LONGS_BYTE;
@@ -55,12 +53,13 @@ import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountIncre
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The default Theta Sketch using the QuickSelect algorithm.
@@ -123,7 +122,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
 
     //Choose RF, minReqBytes, lgArrLongs.
     final int lgRF = rf.lg();
-    final int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : MIN_LG_ARR_LONGS;
+    final int lgArrLongs = (lgRF == 0) ? lgNomLongs + 1 : ThetaUtil.MIN_LG_ARR_LONGS;
     final int minReqBytes = getMemBytes(lgArrLongs, preambleLongs);
 
     //Make sure Memory is large enough
@@ -143,7 +142,7 @@ class DirectQuickSelectSketch extends DirectQuickSelectSketchR {
     insertLgArrLongs(dstMem, lgArrLongs);                  //byte 4
     //flags: bigEndian = readOnly = compact = ordered = false; empty = true : 00100 = 4
     insertFlags(dstMem, EMPTY_FLAG_MASK);                  //byte 5
-    insertSeedHash(dstMem, computeSeedHash(seed));    //bytes 6,7
+    insertSeedHash(dstMem, ThetaUtil.computeSeedHash(seed));    //bytes 6,7
     insertCurCount(dstMem, 0);                             //bytes 8-11
     insertP(dstMem, p);                                    //bytes 12-15
     final long thetaLong = (long)(p * LONG_MAX_VALUE_AS_DOUBLE);

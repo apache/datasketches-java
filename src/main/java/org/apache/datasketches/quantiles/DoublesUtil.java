@@ -19,11 +19,11 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -48,13 +48,13 @@ final class DoublesUtil {
     final HeapUpdateDoublesSketch qsCopy;
     qsCopy = HeapUpdateDoublesSketch.newInstance(sketch.getK());
     qsCopy.putN(sketch.getN());
-    qsCopy.putMinValue(sketch.getMinValue());
-    qsCopy.putMaxValue(sketch.getMaxValue());
+    qsCopy.putMinQuantile(sketch.getMinItem());
+    qsCopy.putMaxQuantile(sketch.getMaxItem());
     qsCopy.putBaseBufferCount(sketch.getBaseBufferCount());
     qsCopy.putBitPattern(sketch.getBitPattern());
 
     if (sketch.isCompact()) {
-      final int combBufItems = Util.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
+      final int combBufItems = ClassicUtil.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
       final double[] combBuf = new double[combBufItems];
       qsCopy.putCombinedBuffer(combBuf);
       final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
@@ -120,22 +120,22 @@ final class DoublesUtil {
     final String bbCntStr = String.format("%,d", sk.getBaseBufferCount());
     final String combBufCapStr = String.format("%,d", sk.getCombinedBufferItemCapacity());
     final long bitPattern = sk.getBitPattern();
-    final int neededLevels = Util.computeNumLevelsNeeded(k, n);
-    final int totalLevels = Util.computeTotalLevels(bitPattern);
-    final int validLevels = Util.computeValidLevels(bitPattern);
-    final String retItemsStr = String.format("%,d", sk.getRetainedItems());
-    final String cmptBytesStr = String.format("%,d", sk.getCompactStorageBytes());
-    final String updtBytesStr = String.format("%,d", sk.getUpdatableStorageBytes());
-    final double epsPmf = Util.getNormalizedRankError(k, true);
+    final int neededLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
+    final int totalLevels = ClassicUtil.computeTotalLevels(bitPattern);
+    final int validLevels = ClassicUtil.computeValidLevels(bitPattern);
+    final String retItemsStr = String.format("%,d", sk.getNumRetained());
+    final String cmptBytesStr = String.format("%,d", sk.getCurrentCompactSerializedSizeBytes());
+    final String updtBytesStr = String.format("%,d", sk.getCurrentUpdatableSerializedSizeBytes());
+    final double epsPmf = ClassicUtil.getNormalizedRankError(k, true);
     final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
-    final double eps =  Util.getNormalizedRankError(k, false);
+    final double eps =  ClassicUtil.getNormalizedRankError(k, false);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
-    final String memCap = sk.isDirect() ? Long.toString(sk.getMemory().getCapacity()) : "";
+    final String memCap = sk.hasMemory() ? Long.toString(sk.getMemory().getCapacity()) : "";
 
-    sb.append(Util.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
+    sb.append(ClassicUtil.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
       .append(LS);
     sb.append("   Empty                        : ").append(sk.isEmpty()).append(LS);
-    sb.append("   Direct, Capacity bytes       : ").append(sk.isDirect())
+    sb.append("   Memory, Capacity bytes       : ").append(sk.hasMemory())
       .append(", ").append(memCap).append(LS);
     sb.append("   Estimation Mode              : ").append(sk.isEstimationMode()).append(LS);
     sb.append("   K                            : ").append(kStr).append(LS);
@@ -151,10 +151,10 @@ final class DoublesUtil {
     sb.append("   Updatable Storage Bytes      : ").append(updtBytesStr).append(LS);
     sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
     sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-    sb.append("   Min Value                    : ")
-      .append(String.format("%12.6e", sk.getMinValue())).append(LS);
-    sb.append("   Max Value                    : ")
-      .append(String.format("%12.6e", sk.getMaxValue())).append(LS);
+    sb.append("   Min Quantile                 : ")
+      .append(String.format("%12.6e", sk.getMinItem())).append(LS);
+    sb.append("   Max Quantile                 : ")
+      .append(String.format("%12.6e", sk.getMaxItem())).append(LS);
     sb.append("### END SKETCH SUMMARY").append(LS);
     return sb.toString();
   }

@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.cpc.PreambleUtil.COMPRESSED_FLAG_MASK;
 import static org.apache.datasketches.cpc.PreambleUtil.SER_VER;
 import static org.apache.datasketches.cpc.PreambleUtil.getDefinedPreInts;
@@ -56,16 +54,17 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.thetacommon.ThetaUtil;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.cpc.PreambleUtil.HiField;
 
 /**
  * @author Lee Rhodes
  */
 public class PreambleUtilTest {
-  static final short defaultSeedHash = computeSeedHash(DEFAULT_UPDATE_SEED) ;
+  static final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED) ;
 
   private static void checkFirst8(WritableMemory wmem, Format format, int lgK, int fiCol) {
     assertEquals(getFormat(wmem), format);

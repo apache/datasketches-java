@@ -20,13 +20,13 @@
 package org.apache.datasketches.hash;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 
 import java.nio.ByteBuffer;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 
 /**
  * A general purpose wrapper for the MurmurHash3.

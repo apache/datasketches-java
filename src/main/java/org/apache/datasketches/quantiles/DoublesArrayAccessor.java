@@ -48,11 +48,11 @@ final class DoublesArrayAccessor extends DoublesBufferAccessor {
   }
 
   @Override
-  double set(final int index, final double value) {
+  double set(final int index, final double quantile) {
     assert index >= 0 && index < numItems_;
 
     final double retVal = buffer_[index];
-    buffer_[index] = value;
+    buffer_[index] = quantile;
     return retVal;
   }
 

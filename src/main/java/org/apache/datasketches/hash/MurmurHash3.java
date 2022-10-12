@@ -24,8 +24,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Objects;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 
 /**

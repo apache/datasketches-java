@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.Util.LS;
-import static org.apache.datasketches.Util.TAB;
+import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.TAB;
 
 /**
  * For building a new ReqSketch
@@ -31,7 +31,6 @@ public class ReqSketchBuilder {
   private final static int DEFAULT_K = 12;
   private int bK = DEFAULT_K;
   private boolean bHRA;
-  private boolean bLtEq;
   private ReqDebug bReqDebug;
 
   /**
@@ -40,7 +39,6 @@ public class ReqSketchBuilder {
   public ReqSketchBuilder() {
     bK = DEFAULT_K;
     bHRA = true;
-    bLtEq = false;
     bReqDebug = null;
   }
 
@@ -50,37 +48,28 @@ public class ReqSketchBuilder {
    */
   public ReqSketch build() {
     final ReqSketch sk = new ReqSketch(bK, bHRA, bReqDebug);
-    sk.setLessThanOrEqual(bLtEq);
     return sk;
   }
 
   /**
-   * Gets the builder confibured value of High Rank Accuracy.
-   * @return the builder confibured value of High Rank Accuracy.
+   * Gets the builder configured High Rank Accuracy.
+   * @return the builder configured High Rank Accuracy.
    */
   public boolean getHighRankAccuracy() {
     return bHRA;
   }
 
   /**
-   * Gets the builder configured value of k.
-   * @return the builder configured value of k.
+   * Gets the builder configured k.
+   * @return the builder configured k.
    */
   public int getK() {
     return bK;
   }
 
   /**
-   * Gets the builder configured value of Less-Than-Or-Equal.
-   * @return the builder confibured value of Less-Than-Or-Equal
-   */
-  public boolean getLessThanOrEqual() {
-    return bLtEq;
-  }
-
-  /**
-   * Gets the builder configured value of ReqDebug
-   * @return the builder configured value of ReqDebug, or null.
+   * Gets the builder configured ReqDebug
+   * @return the builder configured ReqDebug, or null.
    */
   public ReqDebug getReqDebug() {
     return bReqDebug;
@@ -107,17 +96,6 @@ public class ReqSketchBuilder {
   }
 
   /**
-   * Sets the parameter lessThanOrEquals. This parameter can also be modified after the sketch has
-   * been constructed. It is included here for convenience.
-   * @param ltEq See {@link ReqSketch#setLessThanOrEqual(boolean)}
-   * @return this
-   */
-  public ReqSketchBuilder setLessThanOrEqual(final boolean ltEq) {
-    bLtEq = ltEq;
-    return this;
-  }
-
-  /**
    * This sets the parameter reqDebug.
    * @param reqDebug See <i>ReqSketch#ReqSketch(int, boolean, ReqDebug)</i>
    * @return this
@@ -133,7 +111,6 @@ public class ReqSketchBuilder {
     sb.append("ReqSketchBuilder configuration:").append(LS);
     sb.append("K:").append(TAB).append(bK).append(LS);
     sb.append("HRA:").append(TAB).append(bHRA).append(LS);
-    sb.append("LtEq").append(TAB).append(bLtEq).append(LS);
     final String valid = bReqDebug != null ? "valid" : "invalid";
     sb.append("ReqDebug:").append(TAB).append(valid).append(LS);
     return sb.toString();

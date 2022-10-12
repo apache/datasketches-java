@@ -19,7 +19,10 @@
 
 package org.apache.datasketches.req;
 
-import org.apache.datasketches.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsAPI;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
  * This abstract class provides a single place to define and document the public API
@@ -30,38 +33,13 @@ import org.apache.datasketches.QuantileSearchCriteria;
  *
  * @author Lee Rhodes
  */
-abstract class BaseReqSketch {
+abstract class BaseReqSketch implements QuantilesFloatsAPI {
+  static final byte INIT_NUMBER_OF_SECTIONS = 3;
+  //These two factors are used by upper and lower bounds
+  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
+  private static final double fixRseFactor = .084;
 
-  /**
-   * Same as {@link #getCDF(float[], QuantileSearchCriteria) getCDF(float[] splitPoints, QuantileSearchCriteria)}
-   * @param splitPoints splitPoints
-   * @return CDF
-   */
-  public abstract double[] getCDF(float[] splitPoints);
-
-  /**
-   * Returns an approximation to the Cumulative Distribution Function (CDF), which is the
-   * cumulative analog of the PMF, of the input stream given a set of splitPoint (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained, a priori,
-   * from the <i>getRSE(int, double, boolean, long)</i> function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the largest value retained by the sketch.
-   * It is not necessary to include either the min or max values in these split points.
-   *
-   * @param searchCrit if true, the weight of a given value is included into its rank.
-   *
-   * @return an array of m+1 double values, which are a consecutive approximation to the CDF
-   * of the input stream given the splitPoints. The value at array position j of the returned
-   * CDF array is the sum of the returned values in positions 0 through j of the returned PMF
-   * array.
-   */
+  @Override
   public abstract double[] getCDF(float[] splitPoints, QuantileSearchCriteria searchCrit);
 
   /**
@@ -70,199 +48,118 @@ abstract class BaseReqSketch {
    * construction.
    * @return the high ranks accuracy state.
    */
-  public abstract boolean getHighRankAccuracy();
+  public abstract boolean getHighRankAccuracyMode();
 
-  /**
-   * Gets the largest value seen by this sketch
-   * @return the largest value seen by this sketch
-   */
-  public abstract float getMaxValue();
+  @Override
+  public abstract int getK();
 
-  /**
-   * Gets the smallest value seen by this sketch
-   * @return the smallest value seen by this sketch
-   */
-  public abstract float getMinValue();
+  @Override
+  public abstract float getMaxItem();
+
+  @Override
+  public abstract float getMinItem();
 
   /**
    * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    * Derived from Lemma 12 in https://arxiv.org/abs/2004.01668v2, but the constant factors were
-   * modified based on empirical measurements.
+   * adjusted based on empirical measurements.
    *
-   * @param k the given value of k
+   * @param k the given size of k
    * @param rank the given normalized rank, a number in [0,1].
    * @param hra if true High Rank Accuracy mode is being selected, otherwise, Low Rank Accuracy.
-   * @param totalN an estimate of the total number of values submitted to the sketch.
+   * @param totalN an estimate of the total number of items submitted to the sketch.
    * @return an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    */
-  public abstract double getRSE(int k, double rank, boolean hra, long totalN);
+  public static double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
+    return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
+  }
 
-  /**
-   * Gets the total number of values offered to the sketch.
-   * @return the total number of values offered to the sketch.
-   */
+  @Override
   public abstract long getN();
 
-  /**
-   * Returns an approximation to the Probability Mass Function (PMF) of the input stream
-   * given a set of splitPoints (values).
-   *
-   * <p>The resulting approximations have a probabilistic guarantee that be obtained, a priori,
-   * from the <i>getRSE(int, double, boolean, long)</i> function.
-   *
-   * <p>If the sketch is empty this returns null.</p>
-   *
-   * @param splitPoints an array of <i>m</i> unique, monotonically increasing double values
-   * that divide the real number line into <i>m+1</i> consecutive disjoint intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint (or minimum value) and
-   * exclusive of the right splitPoint, with the exception that the last interval will include
-   * the maximum value.
-   * It is not necessary to include either the min or max values in these splitpoints.
-   *
-   * @param searchCrit if INCLUSIVE the weight of a given value is included into its rank.
-   *
-   * @return an array of m+1 doubles each of which is an approximation
-   * to the fraction of the input stream values (the mass) that fall into one of those intervals.
-   * The definition of an "interval" is inclusive of the left splitPoint and exclusive of the right
-   * splitPoint, with the exception that the last interval will include the largest value retained by the sketch.
-   */
+  @Override
   public abstract double[] getPMF(float[] splitPoints, QuantileSearchCriteria searchCrit);
 
-  /**
-   * Same as {@link #getPMF(float[], QuantileSearchCriteria) getPMF(float[] splitPoints, QuantileSearchCriteria)}
-   * @param splitPoints splitPoints
-   * @return PMF
-   */
-  public abstract double[] getPMF(float[] splitPoints);
+  @Override
+  public abstract float getQuantile(double rank, QuantileSearchCriteria searchCrit);
 
-  /**
-   * Gets the approximate quantile of the given normalized rank based on the given criterion.
-   * The normalized rank must be in the range [0.0, 1.0].
-   * @param normRank the given normalized rank.
-   * @param searchCrit is INCLUSIVE, the given rank includes all values &le; the value directly
-   * corresponding to the given rank.
-   * @return the approximate quantile given the normalized rank.
-   */
-  public abstract float getQuantile(double normRank, QuantileSearchCriteria searchCrit);
-
-  /**
-   * Same as {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(double fraction, QuantileSearchCriteria)}
-   * @param normRank fractional rank
-   * @return quantile
-   */
-  public abstract float getQuantile(double normRank);
-
-  /**
-   * Gets an array of quantiles that correspond to the given array of normalized ranks.
-   * @param normRanks the given array of normalized ranks.
-   * @param searchCrit if INCLUSIVE, the given ranks are considered inclusive.
-   * @return the array of quantiles that correspond to the given array of normalized ranks.
-   * See <i>getQuantile(double)</i>
-   */
+  @Deprecated
+  @Override
   public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria searchCrit);
 
-  /**
-   * Same as {@link #getQuantiles(double[], QuantileSearchCriteria)
-   * getQuantiles(double[] fractions, QuantileSearchCriteria)}
-   * @param normRanks normalized ranks
-   * @return quantiles
-   */
-  public abstract float[] getQuantiles(double[] normRanks);
+  @Deprecated
+  @Override
+  public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { return null; }
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+        searchCrit);
+  }
+
+  @Override
+  public abstract float getQuantileLowerBound(double rank);
+
+  public abstract float getQuantileLowerBound(double rank, int numStdDev);
+
+  @Override
+  public abstract float getQuantileUpperBound(double rank);
+
+  public abstract float getQuantileUpperBound(double rank, int numStdDev);
+
+  @Override
+  public abstract double getRank(float quantile, QuantileSearchCriteria searchCrit);
 
   /**
-   * Computes the normalized rank of the given value in the stream.
-   * The normalized rank is the fraction of values less than the given value;
-   * or if searchCrit is INCLUSIVE, the fraction of values less than or equal to the given value.
-   * @param value the given value.
-   * @param searchCrit if INCLUSIVE the weight of the given value is included into its rank.
-   * @return the normalized rank of the given value in the stream.
-   */
-  public abstract double getRank(float value, QuantileSearchCriteria searchCrit);
-
-  /**
-   * Same as {@link #getRank(float, QuantileSearchCriteria) getRank(float value, QuantileSearchCriteria)}
-   * @param value value to be ranked
-   * @return normalized rank
-   */
-  public abstract double getRank(float value);
-
-  /**
-   * returns an approximate lower bound rank of the given normalized rank.
-   * @param rank the given rank, a value between 0 and 1.0.
+   * Gets an approximate lower bound rank of the given normalized rank.
+   * @param rank the given rank, a number between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate lower bound rank.
    */
   public abstract double getRankLowerBound(double rank, int numStdDev);
 
-  /**
-   * Gets an array of normalized ranks that correspond to the given array of values.
-   * @param values the given array of values.
-   * @param searchCrit if INCLUSIVE the weight of the given value is included into its rank.
-   * @return the array of normalized ranks that correspond to the given array of values.
-   * See <i>getRank(float)</i>
-   */
-  public abstract double[] getRanks(float[] values, QuantileSearchCriteria searchCrit);
+  @Deprecated
+  @Override
+  public abstract double[] getRanks(float[] quantiles, QuantileSearchCriteria searchCrit);
 
   /**
-   * Same as {@link #getRanks(float[], QuantileSearchCriteria) getRanks(float[] values, QuantileSearchCriteria)}
-   * @param values the given array of values to be ranked
-   * @return array of normalized ranks
-   */
-  public abstract double[] getRanks(float[] values);
-
-  /**
-   * Returns an approximate upper bound rank of the given rank.
-   * @param rank the given rank, a value between 0 and 1.0.
+   * Gets an approximate upper bound rank of the given rank.
+   * @param rank the given rank, a number between 0 and 1.0.
    * @param numStdDev the number of standard deviations. Must be 1, 2, or 3.
    * @return an approximate upper bound rank.
    */
   public abstract double getRankUpperBound(double rank, int numStdDev);
 
-  /**
-   * Gets the number of retained values of this sketch
-   * @return the number of retained entries of this sketch
-   */
-  public abstract int getRetainedValues();
+  @Override
+  public abstract int getNumRetained();
 
-  /**
-   * Gets the number of bytes when serialized.
-   * @return the number of bytes when serialized.
-   */
-  public abstract int getSerializationBytes();
+  @Override
+  public abstract int getSerializedSizeBytes();
 
-  /**
-   * Gets the sorted view of the current state of this sketch
-   * @return the sorted view of the current state of this sketch
-   */
-  public abstract ReqSketchSortedView getSortedView();
+  @Override
+  public abstract FloatsSortedView getSortedView();
 
-  /**
-   * Returns true if this sketch is empty.
-   * @return empty flag
-   */
+  @Override
+  public boolean hasMemory() {
+    return false;
+  }
+
+  @Override
+  public boolean isDirect() {
+    return false;
+  }
+
+  @Override
   public abstract boolean isEmpty();
 
-  /**
-   * Returns true if this sketch is in estimation mode.
-   * @return estimation mode flag
-   */
+  @Override
   public abstract boolean isEstimationMode();
 
-  /**
-   * Returns the current comparison criterion. If true the value comparison criterion is
-   * &le;, otherwise it will be the default, which is &lt;.
-   * @return the current comparison criterion
-   * @deprecated in the future the ltEq comparison parameter will not be saved at the class level in preference to
-   * the comparison parameter being specified for each API call. This method will be removed.
-   */
-  @Deprecated
-  public abstract boolean isLessThanOrEqual();
+  @Override
+  public boolean isReadOnly() {
+    return false;
+  }
 
-  /**
-   * Returns an iterator for all the values in this sketch.
-   * @return an iterator for all the values in this sketch.
-   */
-  public abstract ReqIterator iterator();
+  @Override
+  public abstract QuantilesFloatsSketchIterator iterator();
 
   /**
    * Merge other sketch into this one. The other sketch is not modified.
@@ -272,54 +169,58 @@ abstract class BaseReqSketch {
   public abstract ReqSketch merge(final ReqSketch other);
 
   /**
-   * Resets this sketch by removing all data and setting all data related variables to their
-   * virgin state.
-   * The parameters k, highRankAccuracy, reqDebug and LessThanOrEqual will not change.
-   * @return this
+   * {@inheritDoc}
+   * <p>The parameters k, highRankAccuracy, and reqDebug will not change.</p>
    */
-  public abstract ReqSketch reset();
+  @Override
+  public abstract void reset();
 
-  /**
-   * Sets the chosen criterion for value comparison
-   * @param ltEq (Less-than-or Equals) If true, the sketch will use the &le; criterion for comparing
-   * values.  Otherwise, the criterion is strictly &lt;, the default.
-   * This can be set anytime prior to a <i>getRank(float)</i> or <i>getQuantile(double)</i> or
-   * equivalent query.
-   * @return this
-   * @deprecated 4.0.0. In the future the ltEq comparison parameter will not be saved at the class level in preference to
-   * the comparison parameter being specified for each API call. This method will be removed.
-   */
-  @Deprecated
-  public abstract ReqSketch setLessThanOrEqual(final boolean ltEq);
-
-  /**
-   * Returns a byte array representation of this sketch.
-   * @return a byte array representation of this sketch.
-   */
+  @Override
   public abstract byte[] toByteArray();
 
-  /**
-   * Returns a summary of the key parameters of the sketch.
-   * @return a summary of the key parameters of the sketch.
-   */
   @Override
   public abstract String toString();
 
-  /**
-   * Updates this sketch with the given value.
-   * @param value the given value
-   */
-  public abstract void update(final float value);
+  @Override
+  public abstract void update(final float item);
 
   /**
    * A detailed, human readable view of the sketch compactors and their data.
    * Each compactor string is prepended by the compactor lgWeight, the current number of retained
-   * values of the compactor and the current nominal capacity of the compactor.
-   * @param fmt the format string for the data values; example: "%4.0f".
-   * @param allData all the retained values for the sketch will be output by
+   * quantiles of the compactor and the current nominal capacity of the compactor.
+   * @param fmt the format string for the quantiles; example: "%4.0f".
+   * @param allData all the retained quantiles for the sketch will be output by
    * compactor level.  Otherwise, just a summary will be output.
    * @return a detailed view of the compactors and their data
    */
   public abstract String viewCompactorDetail(String fmt, boolean allData);
+
+  static boolean exactRank(final int k, final int levels, final double rank,
+      final boolean hra, final long totalN) {
+    final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
+    if (levels == 1 || totalN <= baseCap) { return true; }
+    final double exactRankThresh = (double)baseCap / totalN;
+    return hra && rank >= 1.0 - exactRankThresh || !hra && rank <= exactRankThresh;
+  }
+
+  static double getRankLB(final int k, final int levels, final double rank,
+      final int numStdDev, final boolean hra, final long totalN) {
+    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
+    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double fixed = fixRseFactor / k;
+    final double lbRel = rank - numStdDev * relative;
+    final double lbFix = rank - numStdDev * fixed;
+    return Math.max(lbRel, lbFix);
+  }
+
+  static double getRankUB(final int k, final int levels, final double rank,
+      final int numStdDev, final boolean hra, final long totalN) {
+    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
+    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
+    final double fixed = fixRseFactor / k;
+    final double ubRel = rank + numStdDev * relative;
+    final double ubFix = rank + numStdDev * fixed;
+    return Math.min(ubRel, ubFix);
+  }
 
 }

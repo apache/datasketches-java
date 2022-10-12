@@ -19,13 +19,12 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.testng.Assert.assertTrue;
 
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
-
-import static org.apache.datasketches.Util.zeroPad;
 
 public class CornerCaseArrayOfDoublesSetOperationsTest {
   //Stateful Intersection with intersect(sketch A, combiner), followed by getResult()
@@ -552,13 +551,13 @@ public class CornerCaseArrayOfDoublesSetOperationsTest {
 
     println(LS + "Longs");
     for (long v = 1L; v < 10; v++) {
-      long hash = (hash(v, DEFAULT_UPDATE_SEED)[0]) >>> 1;
+      long hash = (hash(v, ThetaUtil.DEFAULT_UPDATE_SEED)[0]) >>> 1;
       printLong(v, hash);
     }
   }
 
   static long getLongHash(long v) {
-    return (hash(v, DEFAULT_UPDATE_SEED)[0]) >>> 1;
+    return (hash(v, ThetaUtil.DEFAULT_UPDATE_SEED)[0]) >>> 1;
   }
 
   static void printLong(long v, long hash) {

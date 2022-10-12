@@ -45,7 +45,7 @@ import static org.apache.datasketches.hll.PreambleUtil.insertNumAtCurMin;
 import static org.apache.datasketches.hll.PreambleUtil.insertOooFlag;
 import static org.apache.datasketches.hll.PreambleUtil.insertRebuildCurMinNumKxQFlag;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

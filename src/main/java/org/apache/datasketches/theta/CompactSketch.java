@@ -19,8 +19,7 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Family.idToFamily;
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
+import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.theta.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
@@ -31,11 +30,11 @@ import static org.apache.datasketches.theta.PreambleUtil.SER_VER_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.extractSeedHash;
 import static org.apache.datasketches.theta.SingleItemSketch.otherCheckForSingleItem;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The parent class of all the CompactSketches. CompactSketches are never created directly.
@@ -51,7 +50,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes
  */
 public abstract class CompactSketch extends Sketch {
-  private static final short defaultSeedHash = Util.computeSeedHash(DEFAULT_UPDATE_SEED);
+  private static final short defaultSeedHash = ThetaUtil.computeSeedHash(ThetaUtil.DEFAULT_UPDATE_SEED);
 
   /**
    * Heapify takes a CompactSketch image in Memory and instantiates an on-heap CompactSketch.
@@ -123,7 +122,7 @@ public abstract class CompactSketch extends Sketch {
       return CompactOperations.memoryToCompact(srcMem, srcOrdered, null);
     }
     //not SerVer 3, assume compact stored form
-    final short seedHash = Util.computeSeedHash(expectedSeed);
+    final short seedHash = ThetaUtil.computeSeedHash(expectedSeed);
     if (serVer == 1) {
       return ForwardCompatibility.heapify1to3(srcMem, seedHash);
     }
@@ -226,7 +225,7 @@ public abstract class CompactSketch extends Sketch {
     if (family != Family.COMPACT) {
       throw new IllegalArgumentException("Corrupted: " + family + " is not Compact!");
     }
-    final short seedHash = Util.computeSeedHash(expectedSeed);
+    final short seedHash = ThetaUtil.computeSeedHash(expectedSeed);
 
     if (serVer == 3) {
       if (PreambleUtil.isEmptyFlag(srcMem)) {

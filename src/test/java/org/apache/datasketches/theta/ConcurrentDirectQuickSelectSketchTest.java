@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
 import static org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketchTest.waitForBgPropagationToComplete;
 import static org.apache.datasketches.theta.PreambleUtil.FAMILY_BYTE;
 import static org.apache.datasketches.theta.PreambleUtil.LG_NOM_LONGS_BYTE;
@@ -28,19 +27,20 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.HashOperations;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.theta.ConcurrentHeapQuickSelectSketchTest.SharedLocal;
+import org.apache.datasketches.thetacommon.HashOperations;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 import org.testng.annotations.Test;
 
 /**
  * @author eshcar
  */
 public class ConcurrentDirectQuickSelectSketchTest {
-  private static final long SEED = DEFAULT_UPDATE_SEED;
+  private static final long SEED = ThetaUtil.DEFAULT_UPDATE_SEED;
 
   @Test
   public void checkDirectCompactConversion() {
@@ -567,7 +567,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     boolean useMem = true;
     SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
     sl.wmem.putByte(LG_NOM_LONGS_BYTE, (byte) 3); //Corrupt LgNomLongs byte
-    DirectQuickSelectSketch.writableWrap(sl.wmem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(sl.wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test
@@ -649,14 +649,14 @@ public class ConcurrentDirectQuickSelectSketchTest {
 
     sl.wmem.putByte(FAMILY_BYTE, (byte) 0); //corrupt the Sketch ID byte
     //try to wrap the corrupted mem
-    DirectQuickSelectSketch.writableWrap(sl.wmem, DEFAULT_UPDATE_SEED);
+    DirectQuickSelectSketch.writableWrap(sl.wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkHeapifySeedConflict() {
     int lgK = 9;
     long seed1 = 1021;
-    long seed2 = DEFAULT_UPDATE_SEED;
+    long seed2 = ThetaUtil.DEFAULT_UPDATE_SEED;
     boolean useMem = true;
     SharedLocal sl = new SharedLocal(lgK, lgK, seed1, useMem, true, 1);
     UpdateSketch shared = sl.shared;
@@ -672,7 +672,7 @@ public class ConcurrentDirectQuickSelectSketchTest {
     SharedLocal sl = new SharedLocal(lgK, lgK, useMem);
 
     sl.wmem.putByte(LG_NOM_LONGS_BYTE, (byte)2); //corrupt
-    Sketch.heapify(sl.wmem, DEFAULT_UPDATE_SEED);
+    Sketch.heapify(sl.wmem, ThetaUtil.DEFAULT_UPDATE_SEED);
   }
 
   @Test(expectedExceptions = UnsupportedOperationException.class)

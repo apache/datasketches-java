@@ -29,25 +29,31 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("deprecation")
 public class KllMiscDirectFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
   public void checkBounds() {
-    final KllFloatsSketch sk = getDFSketch(200, 0);
+    final KllFloatsSketch kll = getDFSketch(200, 0);
     for (int i = 0; i < 1000; i++) {
-      sk.update(i);
+      kll.update(i);
     }
-    final double eps = sk.getNormalizedRankError(false);
-    final float est = sk.getQuantile(0.5);
-    final float ub = sk.getQuantileUpperBound(0.5);
-    final float lb = sk.getQuantileLowerBound(0.5);
-    assertEquals(ub, sk.getQuantile(.5 + eps));
-    assertEquals(lb, sk.getQuantile(0.5 - eps));
+    final double eps = kll.getNormalizedRankError(false);
+    final float est = kll.getQuantile(0.5);
+    final float ub = kll.getQuantileUpperBound(0.5);
+    final float lb = kll.getQuantileLowerBound(0.5);
+    assertEquals(ub, kll.getQuantile(.5 + eps));
+    assertEquals(lb, kll.getQuantile(0.5 - eps));
     println("Ext     : " + est);
     println("UB      : " + ub);
     println("LB      : " + lb);
+    final double rest = kll.getRank(est);
+    final double restUB = kll.getRankUpperBound(rest);
+    final double restLB = kll.getRankLowerBound(rest);
+    assertTrue(restUB - rest < (2 * eps));
+    assertTrue(rest - restLB < (2 * eps));
   }
 
   @Test
@@ -58,7 +64,7 @@ public class KllMiscDirectFloatsTest {
     for (int i = 0; i < 20; i++) { sk.update(i); }
     //sk.toString(true, true);
     //sk.toByteArray();
-    final float[] items = sk.getFloatValuesArray();
+    final float[] items = sk.getFloatItemsArray();
     assertEquals(items.length, 16);
     final int[] levels = sk.getLevelsArray();
     assertEquals(levels.length, 3);
@@ -119,10 +125,10 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 33);
+    assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatItem(), 21.0F);
+    assertEquals(sk.getMinFloatItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -135,10 +141,10 @@ public class KllMiscDirectFloatsTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatItem(), Float.NaN);
+    assertEquals(sk.getMinFloatItem(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -152,10 +158,10 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatItem(), 1.0F);
+    assertEquals(sk.getMinFloatItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -182,10 +188,10 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 33);
+    assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0f);
+    assertEquals(sk.getMaxFloatItem(), 21.0F);
+    assertEquals(sk.getMinFloatItem(), 1.0f);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -202,10 +208,10 @@ public class KllMiscDirectFloatsTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatItem(), Float.NaN);
+    assertEquals(sk.getMinFloatItem(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -223,10 +229,10 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatItem(), 1.0F);
+    assertEquals(sk.getMinFloatItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -253,10 +259,10 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 33);
+    assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatValue(), 21.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatItem(), 21.0F);
+    assertEquals(sk.getMinFloatItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -273,10 +279,10 @@ public class KllMiscDirectFloatsTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), Float.NaN);
-    assertEquals(sk.getMinFloatValue(), Float.NaN);
+    assertEquals(sk.getMaxFloatItem(), Float.NaN);
+    assertEquals(sk.getMinFloatItem(), Float.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -294,10 +300,10 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getFloatValuesArray().length, 20);
+    assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatValue(), 1.0F);
-    assertEquals(sk.getMinFloatValue(), 1.0F);
+    assertEquals(sk.getMaxFloatItem(), 1.0F);
+    assertEquals(sk.getMinFloatItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -377,8 +383,8 @@ public class KllMiscDirectFloatsTest {
     println(sk2.toString(true, true));
     sk1.merge(sk2);
     println(sk1.toString(true, true));
-    assertEquals(sk1.getMaxValue(), 121.0F);
-    assertEquals(sk1.getMinValue(), 1.0F);
+    assertEquals(sk1.getMaxItem(), 121.0F);
+    assertEquals(sk1.getMinItem(), 1.0F);
   }
 
   @Test
@@ -400,8 +406,8 @@ public class KllMiscDirectFloatsTest {
     WritableMemory dstMem = WritableMemory.allocate(3000);
     KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, dstMem, memReqSvr);
     for (int i = 1; i <= 10_000; i++) {sk.update(i); }
-    assertEquals(sk.getMinValue(), 1.0F);
-    assertEquals(sk.getMaxValue(), 10000.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 10000.0F);
     //println(sk.toString(true, true));
   }
 
@@ -412,8 +418,8 @@ public class KllMiscDirectFloatsTest {
     WritableMemory dstMem = WritableMemory.allocate(1000);
     KllFloatsSketch sk = KllDirectFloatsSketch.newDirectInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
-    assertEquals(sk.getMinValue(), 1.0);
-    assertEquals(sk.getMaxValue(), 200.0);
+    assertEquals(sk.getMinItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 200.0);
   }
 
   private static KllFloatsSketch getDFSketch(final int k, final int n) {

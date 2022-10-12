@@ -24,8 +24,8 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 
 /**
  * Note: Definition of

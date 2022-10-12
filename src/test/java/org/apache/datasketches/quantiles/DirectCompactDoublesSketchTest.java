@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
 import static org.testng.Assert.assertNull;
@@ -31,10 +31,9 @@ import java.nio.ByteOrder;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
 
 public class DirectCompactDoublesSketchTest {
 
@@ -64,7 +63,7 @@ public class DirectCompactDoublesSketchTest {
     for (int i = n; i > 0; --i) {
       qs.update(i);
     }
-    final WritableMemory dstMem = WritableMemory.writableWrap(new byte[qs.getCompactStorageBytes()]);
+    final WritableMemory dstMem = WritableMemory.writableWrap(new byte[qs.getCurrentCompactSerializedSizeBytes()]);
     final DirectCompactDoublesSketch compactQs
             = DirectCompactDoublesSketch.createFromUpdateSketch(qs, dstMem);
 
@@ -88,7 +87,7 @@ public class DirectCompactDoublesSketchTest {
 
     final DirectCompactDoublesSketch compactQs = DirectCompactDoublesSketch.wrapInstance(qsMem);
     DoublesSketchTest.testSketchEquality(qs, compactQs);
-    assertEquals(qsBytes.length, compactQs.getStorageBytes());
+    assertEquals(qsBytes.length, compactQs.getSerializedSizeBytes());
 
     final double[] combinedBuffer = compactQs.getCombinedBuffer();
     assertEquals(combinedBuffer.length, compactQs.getCombinedBufferItemCapacity());
@@ -102,10 +101,11 @@ public class DirectCompactDoublesSketchTest {
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
-    assertTrue(Double.isNaN(s2.getMinValue()));
-    assertTrue(Double.isNaN(s2.getMaxValue()));
+    assertTrue(Double.isNaN(s2.getMinItem()));
+    assertTrue(Double.isNaN(s2.getMaxItem()));
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
@@ -151,7 +151,7 @@ public class DirectCompactDoublesSketchTest {
     for (int i = 1; i <= n; i++) {
       qs.update(startV + i);
     }
-    final byte[] byteArr = new byte[qs.getCompactStorageBytes()];
+    final byte[] byteArr = new byte[qs.getCurrentCompactSerializedSizeBytes()];
     final WritableMemory mem = WritableMemory.writableWrap(byteArr);
     return (DirectCompactDoublesSketch) qs.compact(mem);
   }

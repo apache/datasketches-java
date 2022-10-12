@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
@@ -26,12 +27,13 @@ import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
+@SuppressWarnings("deprecation")
 public class KllDirectDoublesSketchTest {
 
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
@@ -48,8 +50,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
     assertTrue(Double.isNaN(sketch.getRank(0)));
-    assertTrue(Double.isNaN(sketch.getMinValue()));
-    assertTrue(Double.isNaN(sketch.getMaxValue()));
+    assertTrue(Double.isNaN(sketch.getMinItem()));
+    assertTrue(Double.isNaN(sketch.getMaxItem()));
     assertTrue(Double.isNaN(sketch.getQuantile(0.5)));
     assertNull(sketch.getQuantiles(new double[] {0}));
     assertNull(sketch.getPMF(new double[] {0}));
@@ -78,11 +80,11 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getRank(1), 0.0);
-    assertEquals(sketch.getRank(2), 1.0);
-    assertEquals(sketch.getMinValue(), 1.0);
-    assertEquals(sketch.getMaxValue(), 1.0);
-    assertEquals(sketch.getQuantile(0.5), 1.0);
+    assertEquals(sketch.getRank(1, EXCLUSIVE), 0.0);
+    assertEquals(sketch.getRank(2, EXCLUSIVE), 1.0);
+    assertEquals(sketch.getMinItem(), 1.0);
+    assertEquals(sketch.getMaxItem(), 1.0);
+    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 1.0);
   }
 
   @Test
@@ -107,8 +109,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
 
-    assertEquals(sketch.getMinValue(), 0f); // min value is exact
-    assertEquals(sketch.getMaxValue(), n - 1f); // max value is exact
+    assertEquals(sketch.getMinItem(), 0f); // min value is exact
+    assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
 
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
@@ -162,18 +164,18 @@ public class KllDirectDoublesSketchTest {
       sketch2.update((2 * n - i - 1) * 1.0);
     }
 
-    assertEquals(sketch1.getMinValue(), 0.0);
-    assertEquals(sketch1.getMaxValue(), (n - 1) * 1.0);
+    assertEquals(sketch1.getMinItem(), 0.0);
+    assertEquals(sketch1.getMaxItem(), (n - 1) * 1.0);
 
-    assertEquals(sketch2.getMinValue(), n * 1.0);
-    assertEquals(sketch2.getMaxValue(), (2 * n - 1) * 1.0);
+    assertEquals(sketch2.getMinItem(), n * 1.0);
+    assertEquals(sketch2.getMaxItem(), (2 * n - 1) * 1.0);
 
     sketch1.merge(sketch2);
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2L * n);
-    assertEquals(sketch1.getMinValue(), 0.0);
-    assertEquals(sketch1.getMaxValue(), (2 * n - 1) * 1.0);
+    assertEquals(sketch1.getMinItem(), 0.0);
+    assertEquals(sketch1.getMaxItem(), (2 * n - 1) * 1.0);
     assertEquals(sketch1.getQuantile(0.5), n * 1.0, n * PMF_EPS_FOR_K_256);
   }
 
@@ -187,11 +189,11 @@ public class KllDirectDoublesSketchTest {
       sketch2.update(2 * n - i - 1);
     }
 
-    assertEquals(sketch1.getMinValue(), 0.0f);
-    assertEquals(sketch1.getMaxValue(), n - 1f);
+    assertEquals(sketch1.getMinItem(), 0.0f);
+    assertEquals(sketch1.getMaxItem(), n - 1f);
 
-    assertEquals(sketch2.getMinValue(), n);
-    assertEquals(sketch2.getMaxValue(), 2f * n - 1f);
+    assertEquals(sketch2.getMinItem(), n);
+    assertEquals(sketch2.getMaxItem(), 2f * n - 1f);
 
     assertTrue(sketch1.getNormalizedRankError(false) < sketch2.getNormalizedRankError(false));
     assertTrue(sketch1.getNormalizedRankError(true) < sketch2.getNormalizedRankError(true));
@@ -203,8 +205,8 @@ public class KllDirectDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
-    assertEquals(sketch1.getMinValue(), 0);
-    assertEquals(sketch1.getMaxValue(), 2.0 * n - 1.0);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), 2.0 * n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_128);
   }
 
@@ -224,16 +226,16 @@ public class KllDirectDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinValue(), 0);
-    assertEquals(sketch1.getMaxValue(), n - 1.0);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
 
     //merge the other way
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinValue(), 0);
-    assertEquals(sketch1.getMaxValue(), n - 1.0);
+    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMaxItem(), n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
   }
 
@@ -260,7 +262,7 @@ public class KllDirectDoublesSketchTest {
     sketch1.update(1);
     sketch2.update(2);
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 1.0);
+    assertEquals(sketch2.getMinItem(), 1.0);
   }
 
   @Test
@@ -271,8 +273,8 @@ public class KllDirectDoublesSketchTest {
       sketch1.update(i);
     }
     sketch2.merge(sketch1);
-    assertEquals(sketch2.getMinValue(), 1);
-    assertEquals(sketch2.getMaxValue(), 1_000_000);
+    assertEquals(sketch2.getMinItem(), 1);
+    assertEquals(sketch2.getMaxItem(), 1_000_000);
   }
 
   @SuppressWarnings("unused")
@@ -317,8 +319,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isNaN(sketch2.getMinValue()));
-    assertTrue(Double.isNaN(sketch2.getMaxValue()));
+    assertTrue(Double.isNaN(sketch2.getMinItem()));
+    assertTrue(Double.isNaN(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -333,8 +335,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isNaN(sketch2.getMinValue()));
-    assertTrue(Double.isNaN(sketch2.getMaxValue()));
+    assertTrue(Double.isNaN(sketch2.getMinItem()));
+    assertTrue(Double.isNaN(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -349,8 +351,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinValue()));
-    assertFalse(Double.isNaN(sketch2.getMaxValue()));
+    assertFalse(Double.isNaN(sketch2.getMinItem()));
+    assertFalse(Double.isNaN(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 
@@ -366,8 +368,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinValue()));
-    assertFalse(Double.isNaN(sketch2.getMaxValue()));
+    assertFalse(Double.isNaN(sketch2.getMinItem()));
+    assertFalse(Double.isNaN(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 
@@ -383,8 +385,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinValue(), sketch1.getMinValue());
-    assertEquals(sketch2.getMaxValue(), sketch1.getMaxValue());
+    assertEquals(sketch2.getMinItem(), sketch1.getMinItem());
+    assertEquals(sketch2.getMaxItem(), sketch1.getMaxItem());
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -403,8 +405,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinValue(), sketch1.getMinValue());
-    assertEquals(sketch2.getMaxValue(), sketch1.getMaxValue());
+    assertEquals(sketch2.getMinItem(), sketch1.getMinItem());
+    assertEquals(sketch2.getMaxItem(), sketch1.getMaxItem());
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -428,8 +430,8 @@ public class KllDirectDoublesSketchTest {
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
-    final double[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1});
-    final double[] quantiles2 = sketch.getQuantiles(3);
+    final double[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1}, EXCLUSIVE);
+    final double[] quantiles2 = sketch.getQuantiles(3, EXCLUSIVE);
     assertEquals(quantiles1, quantiles2);
     assertEquals(quantiles1[0], 1.0);
     assertEquals(quantiles1[1], 2.0);
@@ -486,10 +488,10 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sk.isEmpty());
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 33);
+    assertEquals(sk.getDoubleItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxDoubleValue(), 21.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 21.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -506,10 +508,10 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), Double.NaN);
-    assertEquals(sk.getMinDoubleValue(), Double.NaN);
+    assertEquals(sk.getMaxDoubleItem(), Double.NaN);
+    assertEquals(sk.getMinDoubleItem(), Double.NaN);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -527,10 +529,10 @@ public class KllDirectDoublesSketchTest {
     assertFalse(sk.isEmpty());
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
-    assertEquals(sk.getDoubleValuesArray().length, 20);
+    assertEquals(sk.getDoubleItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxDoubleValue(), 1.0);
-    assertEquals(sk.getMinDoubleValue(), 1.0);
+    assertEquals(sk.getMaxDoubleItem(), 1.0);
+    assertEquals(sk.getMinDoubleItem(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -565,13 +567,13 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
     long n1 = sk.getN();
-    double min1 = sk.getMinValue();
-    double max1 = sk.getMaxValue();
+    double min1 = sk.getMinItem();
+    double max1 = sk.getMaxItem();
     sk.reset();
     for (int i = 1; i <= 100; i++) { sk.update(i); }
     long n2 = sk.getN();
-    double min2 = sk.getMinValue();
-    double max2 = sk.getMaxValue();
+    double min2 = sk.getMinItem();
+    double max2 = sk.getMaxItem();
     assertEquals(n2, n1);
     assertEquals(min2, min1);
     assertEquals(max2, max1);
@@ -583,8 +585,8 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
     KllDoublesSketch sk2 = KllHeapDoublesSketch.heapifyImpl(dstMem);
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 100.0);
+    assertEquals(sk2.getMinItem(), 1.0);
+    assertEquals(sk2.getMaxItem(), 100.0);
   }
 
   @Test
@@ -595,8 +597,8 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk2.update(i + 100); }
     sk.merge(sk2);
-    assertEquals(sk.getMinValue(), 1.0);
-    assertEquals(sk.getMaxValue(), 121.0);
+    assertEquals(sk.getMinItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 121.0);
   }
 
   @Test
@@ -607,8 +609,8 @@ public class KllDirectDoublesSketchTest {
     KllDoublesSketch sk2 = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++ ) { sk2.update(i + 100); }
     sk2.merge(sk);
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 121.0);
+    assertEquals(sk2.getMinItem(), 1.0);
+    assertEquals(sk2.getMaxItem(), 121.0);
   }
 
   @Test
@@ -617,8 +619,8 @@ public class KllDirectDoublesSketchTest {
     for (int i = 1; i <= 21; i++ ) { sk.update(i); }
     WritableMemory srcMem = WritableMemory.writableWrap(sk.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(srcMem, memReqSvr);
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 21.0);
+    assertEquals(sk2.getMinItem(), 1.0);
+    assertEquals(sk2.getMaxItem(), 21.0);
   }
 
   @Test
@@ -630,17 +632,17 @@ public class KllDirectDoublesSketchTest {
     boolean bool = true;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    try { sk2.incN();                           fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.incNumLevels();                   fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setDoubleValuesArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setDoubleValuesArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setLevelZeroSorted(bool);         fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxDoubleValue(dblV);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinDoubleValue(dblV);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinK(idx);                     fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setN(idx);                        fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setNumLevels(idx);                fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.getFloatSingleValue();             fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incN();                            fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.incNumLevels();                    fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArray(dblArr);      fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setDoubleItemsArrayAt(idx, dblV); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setLevelZeroSorted(bool);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxDoubleItem(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinDoubleItem(dblV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinK(idx);                      fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setN(idx);                         fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setNumLevels(idx);                 fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getFloatSingleItem();             fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

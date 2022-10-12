@@ -31,7 +31,7 @@ class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
                               final boolean forceSize,
                               final int level) {
     super(ds, forceSize, level);
-    assert ds.isDirect();
+    assert ds.hasMemory();
   }
 
   @Override
@@ -49,7 +49,7 @@ class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
   }
 
   @Override
-  double set(final int index, final double value) {
+  double set(final int index, final double quantile) {
     assert index >= 0 && index < numItems_;
     assert n_ == ds_.getN();
     assert !ds_.isCompact(); // can't write to a compact sketch
@@ -57,7 +57,7 @@ class DirectDoublesSketchAccessor extends DoublesSketchAccessor {
     final int idxOffset = offset_ + (index << 3);
     final WritableMemory mem = ds_.getMemory();
     final double oldVal = mem.getDouble(idxOffset);
-    mem.putDouble(idxOffset, value);
+    mem.putDouble(idxOffset, quantile);
     return oldVal;
   }
 

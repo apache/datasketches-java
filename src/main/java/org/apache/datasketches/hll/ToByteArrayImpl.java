@@ -44,7 +44,7 @@ import static org.apache.datasketches.hll.PreambleUtil.insertRebuildCurMinNumKxQ
 import static org.apache.datasketches.hll.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.hll.PreambleUtil.insertTgtHllType;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

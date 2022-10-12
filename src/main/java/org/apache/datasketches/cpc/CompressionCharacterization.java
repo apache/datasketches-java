@@ -19,11 +19,10 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.DEFAULT_UPDATE_SEED;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.Util.iGoldenU64;
-import static org.apache.datasketches.Util.log2;
-import static org.apache.datasketches.Util.powerSeriesNextDouble;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.log2;
+import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
@@ -32,6 +31,7 @@ import java.io.PrintWriter;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * This code is used both by unit tests, for short running tests,
@@ -66,7 +66,7 @@ public class CompressionCharacterization {
   private CompressedState[] compressedStates2;
   private CpcSketch[] unCompressedSketches;
 
-  public CompressionCharacterization(
+  CompressionCharacterization(
       final int lgMinK,
       final int lgMaxK,
       final int lgMinT,
@@ -88,7 +88,7 @@ public class CompressionCharacterization {
     assembleFormats();
   }
 
-  public void start() {
+  void start() {
     printf(hfmt, (Object[]) hStrArr); //print header
     doRangeOfLgK();
   }
@@ -204,7 +204,7 @@ public class CompressionCharacterization {
       for (int trial = 0; trial < trialsPerWave; trial++) {
         final CompressedState state = compressedStates2[trial];
         CpcSketch uncSk = null;
-        uncSk = CpcSketch.uncompress(state, DEFAULT_UPDATE_SEED);
+        uncSk = CpcSketch.uncompress(state, ThetaUtil.DEFAULT_UPDATE_SEED);
         unCompressedSketches[trial] = uncSk;
       }
 

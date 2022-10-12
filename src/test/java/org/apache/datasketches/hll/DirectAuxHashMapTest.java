@@ -29,13 +29,13 @@ import static org.testng.Assert.fail;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.testng.annotations.Test;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesStateException;
 
 
 /**

@@ -19,15 +19,15 @@
 
 package org.apache.datasketches.fdt;
 
-import static org.apache.datasketches.HashOperations.hashSearchOrInsert;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearchOrInsert;
 import static org.apache.datasketches.tuple.Util.stringHash;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
 
 /**
@@ -99,7 +99,7 @@ public class PostProcessor {
    * @param priKeyIndices identifies the primary key indices
    */
   private void populateMap(final int[] priKeyIndices) {
-    final SketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
+    final TupleSketchIterator<ArrayOfStringsSummary> it = sketch.iterator();
     Arrays.fill(hashArr, 0L);
     Arrays.fill(priKeyArr, null);
     Arrays.fill(counterArr, 0);

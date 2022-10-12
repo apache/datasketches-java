@@ -35,7 +35,7 @@ import static org.apache.datasketches.hll.PreambleUtil.extractLgArr;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
 
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 
 /**

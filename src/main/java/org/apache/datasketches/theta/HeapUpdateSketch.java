@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.MIN_LG_NOM_LONGS;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
 import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
 import static org.apache.datasketches.theta.PreambleUtil.EMPTY_FLAG_MASK;
@@ -36,9 +35,9 @@ import static org.apache.datasketches.theta.PreambleUtil.insertSeedHash;
 import static org.apache.datasketches.theta.PreambleUtil.insertSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The parent class for Heap Updatable Theta Sketches.
@@ -52,7 +51,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   private final ResizeFactor rf_;
 
   HeapUpdateSketch(final int lgNomLongs, final long seed, final float p, final ResizeFactor rf) {
-    lgNomLongs_ = Math.max(lgNomLongs, MIN_LG_NOM_LONGS);
+    lgNomLongs_ = Math.max(lgNomLongs, ThetaUtil.MIN_LG_NOM_LONGS);
     seed_ = seed;
     p_ = p;
     rf_ = rf;
@@ -103,7 +102,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
 
   @Override
   short getSeedHash() {
-    return Util.computeSeedHash(getSeed());
+    return ThetaUtil.computeSeedHash(getSeed());
   }
 
   //Used by HeapAlphaSketch and HeapQuickSelectSketch

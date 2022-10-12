@@ -21,7 +21,7 @@ package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 
-import org.apache.datasketches.Family;
+import org.apache.datasketches.common.Family;
 
 /**
  * This allows access to package-private levels and data in whatever quantiles sketch you give
@@ -39,9 +39,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   int numItems_;
   int offset_;
 
-  DoublesSketchAccessor(final DoublesSketch ds,
-                        final boolean forceSize,
-                        final int level) {
+  DoublesSketchAccessor(final DoublesSketch ds, final boolean forceSize, final int level) {
     ds_ = ds;
     forceSize_ = forceSize;
 
@@ -52,10 +50,9 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
     return wrap(ds, false);
   }
 
-  static DoublesSketchAccessor wrap(final DoublesSketch ds,
-                                    final boolean forceSize) {
+  static DoublesSketchAccessor wrap(final DoublesSketch ds, final boolean forceSize) {
 
-    if (ds.isDirect()) {
+    if (ds.hasMemory()) {
       return new DirectDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
     }
     return new HeapDoublesSketchAccessor(ds, forceSize, BB_LVL_IDX);
@@ -67,7 +64,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
     currLvl_ = lvl;
     if (lvl == BB_LVL_IDX) {
       numItems_ = (forceSize_ ? ds_.getK() * 2 : ds_.getBaseBufferCount());
-      offset_ = (ds_.isDirect() ? COMBINED_BUFFER : 0);
+      offset_ = (ds_.hasMemory() ? COMBINED_BUFFER : 0);
     } else {
       assert lvl >= 0;
       if (((ds_.getBitPattern() & (1L << lvl)) > 0) || forceSize_) {
@@ -86,7 +83,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
         levelStart = (2 + currLvl_) * ds_.getK();
       }
 
-      if (ds_.isDirect()) {
+      if (ds_.hasMemory()) {
         final int preLongsAndExtra = Family.QUANTILES.getMaxPreLongs() + 2; // +2 for min, max vals
         offset_ = (preLongsAndExtra + levelStart) << 3;
       } else {
@@ -115,7 +112,7 @@ abstract class DoublesSketchAccessor extends DoublesBufferAccessor {
   // setters/modifying methods
 
   @Override
-  abstract double set(final int index, final double value);
+  abstract double set(final int index, final double quantile);
 
   @Override
   abstract void putArray(final double[] srcArray, final int srcIndex,

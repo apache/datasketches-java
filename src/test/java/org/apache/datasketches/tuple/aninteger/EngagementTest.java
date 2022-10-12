@@ -26,7 +26,7 @@ import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Always
 import static org.apache.datasketches.tuple.aninteger.IntegerSummary.Mode.Sum;
 
 import org.apache.datasketches.tuple.CompactSketch;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
 import org.testng.annotations.Test;
 
@@ -81,7 +81,7 @@ public class EngagementTest {
       union.union(isk);
     }
     final CompactSketch<IntegerSummary> result = union.getResult();
-    final SketchIterator<IntegerSummary> itr = result.iterator();
+    final TupleSketchIterator<IntegerSummary> itr = result.iterator();
 
     final int[] numDaysArr = new int[len + 1]; //zero index is ignored
 

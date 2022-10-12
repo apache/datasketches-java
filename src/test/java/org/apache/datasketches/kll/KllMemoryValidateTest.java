@@ -21,8 +21,8 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.*;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
@@ -52,7 +52,7 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_VALUE_BIT_MASK);
+    setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem);
   }
 

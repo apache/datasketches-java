@@ -19,75 +19,62 @@
 
 package org.apache.datasketches.quantiles;
 
+import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
+
 /**
  * Iterator over DoublesSketch. The order is not defined.
  */
-public class DoublesSketchIterator {
+public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
 
-  private final DoublesSketch sketch_;
-  private DoublesSketchAccessor sketchAccessor_;
-  private long bits_;
-  private int level_;
-  private long weight_;
-  private int i_;
+  private final DoublesSketch sketch;
+  private DoublesSketchAccessor sketchAccessor;
+  private long bitPattern;
+  private int level;
+  private long weight;
+  private int index;
 
   DoublesSketchIterator(final DoublesSketch sketch, final long bitPattern) {
-    sketch_ = sketch;
-    bits_ = bitPattern;
-    level_ = -1;
-    weight_ = 1;
-    i_ = 0;
+    this.sketch = sketch;
+    this.bitPattern = bitPattern;
+    this.level = -1;
+    this.weight = 1;
+    this.index = 0;
   }
 
-  /**
-   * Advancing the iterator and checking existence of the next entry
-   * is combined here for efficiency. This results in an undefined
-   * state of the iterator before the first call of this method.
-   * @return true if the next element exists
-   */
+  @Override
+  public double getQuantile() {
+    return sketchAccessor.get(index);
+  }
+
+  @Override
+  public long getWeight() {
+    return weight;
+  }
+
+  @Override
   public boolean next() {
-    if (sketchAccessor_ == null) { // initial setup
-      sketchAccessor_ = DoublesSketchAccessor.wrap(sketch_);
+    if (sketchAccessor == null) { // initial setup
+      sketchAccessor = DoublesSketchAccessor.wrap(sketch);
     } else { // advance index within the current level
-      i_++;
+      index++;
     }
-    if (i_ < sketchAccessor_.numItems()) {
+    if (index < sketchAccessor.numItems()) {
       return true;
     }
     // go to the next non-empty level
     do {
-      level_++;
-      if (level_ > 0) {
-        bits_ >>>= 1;
+      level++;
+      if (level > 0) {
+        bitPattern >>>= 1;
       }
-      if (bits_ == 0L) {
+      if (bitPattern == 0L) {
         return false; // run out of levels
       }
-      weight_ *= 2;
-    } while ((bits_ & 1L) == 0L);
-    i_ = 0;
-    sketchAccessor_.setLevel(level_);
+      weight *= 2;
+    } while ((bitPattern & 1L) == 0L);
+    index = 0;
+    sketchAccessor.setLevel(level);
     return true;
-  }
-
-  /**
-   * Gets a value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return value from the current entry
-   */
-  public double getValue() {
-    return sketchAccessor_.get(i_);
-  }
-
-  /**
-   * Gets a weight for the value from the current entry in the sketch.
-   * Don't call this before calling next() for the first time
-   * or after getting false from next().
-   * @return weight for the value from the current entry
-   */
-  public long getWeight() {
-    return weight_;
   }
 
 }

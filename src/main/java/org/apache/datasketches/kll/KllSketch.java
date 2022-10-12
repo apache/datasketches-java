@@ -20,7 +20,7 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_VALUE;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
@@ -31,30 +31,31 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import java.util.Random;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /*
  * Sampled stream data (floats or doubles) is stored as an array or as part of a Memory object.
- * This array is partitioned into sections called levels and the indices into the array of values
+ * This array is partitioned into sections called levels and the indices into the array of quantiles
  * are tracked by a small integer array called levels or levels array.
  * The data for level i lies in positions levelsArray[i] through levelsArray[i + 1] - 1 inclusive.
  * Hence, the levelsArray must contain (numLevels + 1) indices.
- * The valid portion of values array is completely packed and sorted, except for level 0,
- * which is filled from the top down. Any values below the index levelsArray[0] is garbage and will be
+ * The valid portion of the quantiles array is completely packed and sorted, except for level 0,
+ * which is filled from the top down. Any quantiles below the index levelsArray[0] is garbage and will be
  * overwritten by subsequent updates.
  *
  * Invariants:
  * 1) After a compaction, or an update, or a merge, every level is sorted except for level zero.
- * 2) After a compaction, (sum of capacities) - (sum of values) >= 1,
- *  so there is room for least 1 more value in level zero.
+ * 2) After a compaction, (sum of capacities) - (sum of quantiles) >= 1,
+ *  so there is room for least 1 more quantile in level zero.
  * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
- *  the sketch is exactly filled to capacity and must be compacted or the valuesArray and levelsArray
+ *  the sketch is exactly filled to capacity and must be compacted or the quantiles array and levels array
  *  must be expanded to include more levels.
- * 4) Sum of weights of all retained values == N.
- * 5) Current total value capacity = valuesArray.length = levelsArray[numLevels].
+ * 4) Sum of weights of all retained quantiles == N.
+ * 5) Current total quantile capacity = itemsArray.length = levelsArray[numLevels].
  */
 
 /**
@@ -62,23 +63,22 @@ import org.apache.datasketches.memory.WritableMemory;
  * of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
  * heap or Direct (off-heap).
  *
+ * <p>KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme
+ * and nearly optimal accuracy per retained quantile.</p>
  *
+ * <p>Reference <a href="https://arxiv.org/abs/1603.05346v2">Optimal Quantile Approximation in Streams</a>.</p>
+ *
+ * <p>The default <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
+ * "double-sided" (PMF) epsilon of about 1.65%, with a confidence of 99%.</p>
  * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
- * @see <a href="https://datasketches.apache.org/api/java/snapshot/apidocs/org/apache/datasketches/kll/package-summary.html">
- * KLL package summary</a>
- * @see <a href="https://datasketches.apache.org/docs/Quantiles/SketchingQuantilesAndRanksTutorial.html">
- * Sketching Quantiles and Ranks, Tutorial</a>
- * @see org.apache.datasketches.QuantileSearchCriteria
- *
- * @author Lee Rhodes
- * @author Kevin Lang
- * @author Alexander Saydakov
+ * @see QuantilesAPI
  */
-public abstract class KllSketch {
+public abstract class KllSketch implements QuantilesAPI {
 
   /**
    * Used to define the variable type of the current instance of this class.
    */
+  @SuppressWarnings("javadoc")
   public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   enum Error {
@@ -86,9 +86,9 @@ public abstract class KllSketch {
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
-    SINGLE_VALUE_IMPROPER_CALL("Improper method use for single-value sketch"),
+    SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_VALUE("Sketch is not single value."),
+    NOT_SINGLE_ITEM("Sketch is not single item."),
     MUST_NOT_BE_UPDATABLE_FORMAT("Given Memory object must not be in updatableFormat.");
 
     private String msg;
@@ -107,24 +107,24 @@ public abstract class KllSketch {
   }
 
   /**
-   * The default value of K
+   * The default K
    */
   public static final int DEFAULT_K = 200;
 
   /**
-   * The maximum value of K
+   * The maximum K
    */
   public static final int MAX_K = (1 << 16) - 1; // serialized as an unsigned short
 
   /**
-   * The default value of M. The parameter <i>m</i> is the minimum level size in number of values.
+   * The default M. The parameter <i>m</i> is the minimum level size in number of quantiles.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
-   * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
-   * Choosing smaller values of <i>m</i> less than 8 will make the sketch slower.
+   * 2, 4, 6 or 8, and the sketch works just fine.  The number 8 was chosen as a compromise between speed and size.
+   * Choosing a smaller <i>m</i> less than 8 will make the sketch slower.
    */
   static final int DEFAULT_M = 8;
-  static final int MAX_M = 8; //The maximum value of M
-  static final int MIN_M = 2; //The minimum value of M
+  static final int MAX_M = 8; //The maximum M
+  static final int MIN_M = 2; //The minimum M
   static final Random random = new Random();
   final SketchType sketchType;
   final boolean updatableMemFormat;
@@ -162,38 +162,16 @@ public abstract class KllSketch {
   }
 
   /**
-   * Gets the approximate value of <em>k</em> to use given epsilon, the normalized rank error.
+   * Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.
    * @param epsilon the normalized rank error between zero and one.
-   * @param pmf if true, this function returns the value of <em>k</em> assuming the input epsilon
+   * @param pmf if true, this function returns the <em>k</em> assuming the input epsilon
    * is the desired "double-sided" epsilon for the getPMF() function. Otherwise, this function
-   * returns the value of <em>k</em> assuming the input epsilon is the desired "single-sided"
+   * returns <em>k</em> assuming the input epsilon is the desired "single-sided"
    * epsilon for all the other queries.
-   *
-   * <p>Please refer to the documentation in the package-info:<br>
-   * {@link org.apache.datasketches.kll}</p>
-   * @return the value of <i>k</i> given a value of epsilon.
+   * @return <i>k</i> given epsilon.
    */
   public static int getKFromEpsilon(final double epsilon, final boolean pmf) {
     return KllHelper.getKFromEpsilon(epsilon, pmf);
-  }
-
-  /**
-   * Returns upper bound on the compact serialized size of a FloatsSketch given a parameter
-   * <em>k</em> and stream length. This method can be used if allocation of storage
-   * is necessary beforehand.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @return upper bound on the compact serialized size
-   * @deprecated Instead use getMaxSerializedSizeBytes(int, long, boolean)
-   * from the descendants of this class, or
-   * getMaxSerializedSizeBytes(int, long, SketchType, boolean) from this class.
-   * Version 3.2.0
-   */
-  @Deprecated
-  public static int getMaxSerializedSizeBytes(final int k, final long n) {
-    final KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, FLOATS_SKETCH, false);
-    return gStats.compactBytes;
   }
 
   /**
@@ -214,6 +192,8 @@ public abstract class KllSketch {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the <i>getNormalizedRankError(boolean)</i>.
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
@@ -224,25 +204,27 @@ public abstract class KllSketch {
     return KllHelper.getNormalizedRankError(k, pmf);
   }
 
-  //numValues can be either numRetained, or current max capacity at given K and numLevels.
-  static int getCurrentSerializedSizeBytes(final int numLevels, final int numValues,
+  //numQuantiles can be either numRetained, or current max capacity at given K and numLevels.
+  static int getCurrentSerializedSizeBytes(final int numLevels, final int numQuantiles,
       final SketchType sketchType, final boolean updatableMemFormat) {
     final int typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
     int levelsBytes = 0;
     if (updatableMemFormat) {
       levelsBytes = (numLevels + 1) * Integer.BYTES;
     } else {
-      if (numValues == 0) { return N_LONG_ADR; }
-      if (numValues == 1) { return DATA_START_ADR_SINGLE_VALUE + typeBytes; }
+      if (numQuantiles == 0) { return N_LONG_ADR; }
+      if (numQuantiles == 1) { return DATA_START_ADR_SINGLE_ITEM + typeBytes; }
       levelsBytes = numLevels * Integer.BYTES;
     }
-    return DATA_START_ADR + levelsBytes + (numValues + 2) * typeBytes; //+2 is for min & max
+    return DATA_START_ADR + levelsBytes + (numQuantiles + 2) * typeBytes; //+2 is for min & max
   }
 
   /**
    * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
    * @return the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
    */
+  @Deprecated
   public final int getCurrentCompactSerializedSizeBytes() {
     return getCurrentSerializedSizeBytes(getNumLevels(), getNumRetained(), sketchType, false);
   }
@@ -250,44 +232,34 @@ public abstract class KllSketch {
   /**
    * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
    * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
    */
+  @Deprecated
   public final int getCurrentUpdatableSerializedSizeBytes() {
-    final int valuesCap = KllHelper.computeTotalValueCapacity(getK(), getM(), getNumLevels());
-    return getCurrentSerializedSizeBytes(getNumLevels(), valuesCap, sketchType, true);
+    final int quantilesCap = KllHelper.computeTotalItemCapacity(getK(), getM(), getNumLevels());
+    return getCurrentSerializedSizeBytes(getNumLevels(), quantilesCap, sketchType, true);
   }
 
-  /**
-   * Returns the user configured parameter k
-   * @return the user configured parameter k
-   */
+  @Override
   public abstract int getK();
 
-  /**
-   * Returns the length of the input stream in values.
-   * @return stream length
-   */
+  @Override
   public abstract long getN();
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
+   * The epsilon returned is a best fit to 99 percent confidence empirically measured max error
+   * in thousands of trials.
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   * The epsilon value returned is a best fit to 99 percentile empirically measured max error in
-   * thousands of trials
-   * @return if pmf is true, returns the normalized rank error for the getPMF() function.
+   * @return if pmf is true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
-   *
-   * <p>Please refer to the documentation in the package-info:<br>
-   * {@link org.apache.datasketches.kll}</p>
    */
   public final double getNormalizedRankError(final boolean pmf) {
     return getNormalizedRankError(getMinK(), pmf);
   }
 
-  /**
-   * Returns the number of retained values (samples) in the sketch.
-   * @return the number of retained values (samples) in the sketch
-   */
+  @Override
   public final int getNumRetained() {
     return levelsArr[getNumLevels()] - levelsArr[0];
   }
@@ -311,38 +283,22 @@ public abstract class KllSketch {
     return wmem;
   }
 
-  /**
-   * Returns true if this sketch's data structure is backed by Memory or WritableMemory.
-   * @return true if this sketch's data structure is backed by Memory or WritableMemory.
-   */
+  @Override
   public boolean hasMemory() {
     return (wmem != null);
   }
 
-  /**
-   * Returns true if the backing resource is direct, i.e., actually allocated in off-heap memory.
-   * This is the case for off-heap memory and memory mapped files.
-   * This backing resource could be either Memory(read-only) or WritableMemory.
-   * However, if the backing Memory or WritabelMemory resource is allocated on-heap,
-   * this will return false.
-   * @return true if the backing resource is off-heap memory.
-   */
+  @Override
   public boolean isDirect() {
-    return wmem.isDirect();
+    return (wmem != null) ? wmem.isDirect() : false;
   }
 
-  /**
-   * Returns true if this sketch is empty.
-   * @return empty flag
-   */
+  @Override
   public final boolean isEmpty() {
     return getN() == 0;
   }
 
-  /**
-   * Returns true if this sketch is in estimation mode.
-   * @return estimation mode flag
-   */
+  @Override
   public final boolean isEstimationMode() {
     return getNumLevels() > 1;
   }
@@ -355,10 +311,7 @@ public abstract class KllSketch {
     return hasMemory() && updatableMemFormat;
   }
 
-  /**
-   * Returns true if this sketch is read only.
-   * @return true if this sketch is read only.
-   */
+  @Override
   public final boolean isReadOnly() {
     return readOnly;
   }
@@ -393,10 +346,10 @@ public abstract class KllSketch {
   }
 
   /**
-   * This resets the current sketch back to zero entries.
-   * It retains key parameters such as <i>k</i> and
-   * <i>SketchType (double or float)</i>.
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
    */
+  @Override
   public final void reset() {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int k = getK();
@@ -406,22 +359,14 @@ public abstract class KllSketch {
     setLevelZeroSorted(false);
     setLevelsArray(new int[] {k, k});
     if (sketchType == DOUBLES_SKETCH) {
-      setMinDoubleValue(Double.NaN);
-      setMaxDoubleValue(Double.NaN);
-      setDoubleValuesArray(new double[k]);
+      setMinDoubleItem(Double.NaN);
+      setMaxDoubleItem(Double.NaN);
+      setDoubleItemsArray(new double[k]);
     } else {
-      setMinFloatValue(Float.NaN);
-      setMaxFloatValue(Float.NaN);
-      setFloatValuesArray(new float[k]);
+      setMinFloatItem(Float.NaN);
+      setMaxFloatItem(Float.NaN);
+      setFloatItemsArray(new float[k]);
     }
-  }
-
-  /**
-   * Returns serialized sketch in a compact byte array form.
-   * @return serialized sketch in a compact byte array form.
-   */
-  public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this);
   }
 
   @Override
@@ -440,44 +385,44 @@ public abstract class KllSketch {
   }
 
   /**
-   * @return full size of internal values array including garbage.
+   * @return full size of internal items array including garbage.
    */
-  abstract double[] getDoubleValuesArray();
+  abstract double[] getDoubleItemsArray();
 
-  abstract double getDoubleSingleValue();
+  abstract double getDoubleSingleItem();
 
   /**
-   * @return full size of internal values array including garbage.
+   * @return full size of internal items array including garbage.
    */
-  abstract float[] getFloatValuesArray();
+  abstract float[] getFloatItemsArray();
 
-  abstract float getFloatSingleValue();
+  abstract float getFloatSingleItem();
 
   final int[] getLevelsArray() {
     return levelsArr;
   }
 
   /**
-   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of values.
+   * Returns the configured parameter <i>m</i>, which is the minimum level size in number of items.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
-   * 2, 4, 6 or 8, and the sketch works just fine.  The value 8 was chosen as a compromise between speed and size.
-   * Choosing smaller values of <i>m</i> will make the sketch much slower.
+   * 2, 4, 6 or 8, and the sketch works just fine.  The number 8 was chosen as a compromise between speed and size.
+   * Choosing smaller <i>m</i> will make the sketch much slower.
    * @return the configured parameter m
    */
   abstract int getM();
 
-  abstract double getMaxDoubleValue();
+  abstract double getMaxDoubleItem();
 
-  abstract float getMaxFloatValue();
+  abstract float getMaxFloatItem();
 
-  abstract double getMinDoubleValue();
+  abstract double getMinDoubleItem();
 
-  abstract float getMinFloatValue();
+  abstract float getMinFloatItem();
 
   /**
-   * MinK is the value of K that results from a merge with a sketch configured with a value of K lower than
-   * the k of this sketch. This value is then used in computing the estimated upper and lower bounds of error.
-   * @return The minimum K as a result of merging with lower values of k.
+   * MinK is the K that results from a merge with a sketch configured with a K lower than
+   * the K of this sketch. This is then used in computing the estimated upper and lower bounds of error.
+   * @return The minimum K as a result of merging sketches with lower k.
    */
   abstract int getMinK();
 
@@ -489,7 +434,7 @@ public abstract class KllSketch {
 
   abstract void incNumLevels();
 
-  final boolean isCompactSingleValue() {
+  final boolean isCompactSingleItem() {
     return hasMemory() && !updatableMemFormat && (getN() == 1);
   }
 
@@ -500,18 +445,18 @@ public abstract class KllSketch {
   abstract boolean isLevelZeroSorted();
 
   /**
-   * First determine that this is a singleValue sketch before calling this.
-   * @return the value of the single value
+   * First determine that this is a single item sketch before calling this.
+   * @return the single item
    */
-  boolean isSingleValue() { return getN() == 1; }
+  boolean isSingleItem() { return getN() == 1; }
 
-  abstract void setDoubleValuesArray(double[] floatValues);
+  abstract void setDoubleItemsArray(double[] doubleItems);
 
-  abstract void setDoubleValuesArrayAt(int index, double value);
+  abstract void setDoubleItemsArrayAt(int index, double item);
 
-  abstract void setFloatValuesArray(float[] floatValues);
+  abstract void setFloatItemsArray(float[] floatItems);
 
-  abstract void setFloatValuesArrayAt(int index, float value);
+  abstract void setFloatItemsArrayAt(int index, float item);
 
   final void setLevelsArray(final int[] levelsArr) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
@@ -521,24 +466,24 @@ public abstract class KllSketch {
     }
   }
 
-  final void setLevelsArrayAt(final int index, final int value) {
+  final void setLevelsArrayAt(final int index, final int idxVal) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    this.levelsArr[index] = value;
+    this.levelsArr[index] = idxVal;
     if (wmem != null) {
       final int offset = DATA_START_ADR + index * Integer.BYTES;
-      wmem.putInt(offset, value);
+      wmem.putInt(offset, idxVal);
     }
   }
 
   abstract void setLevelZeroSorted(boolean sorted);
 
-  abstract void setMaxDoubleValue(double value);
+  abstract void setMaxDoubleItem(double item);
 
-  abstract void setMaxFloatValue(float value);
+  abstract void setMaxFloatItem(float item);
 
-  abstract void setMinDoubleValue(double value);
+  abstract void setMinDoubleItem(double item);
 
-  abstract void setMinFloatValue(float value);
+  abstract void setMinFloatItem(float item);
 
   abstract void setMinK(int minK);
 

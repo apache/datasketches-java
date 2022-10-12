@@ -22,9 +22,8 @@ package org.apache.datasketches.theta;
 import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.Family;
 
 /**
  * @author Lee Rhodes

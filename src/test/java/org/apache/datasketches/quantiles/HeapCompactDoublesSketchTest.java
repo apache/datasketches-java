@@ -20,17 +20,16 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
-import static org.apache.datasketches.quantiles.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
-import org.apache.datasketches.SketchesArgumentException;
 
 public class HeapCompactDoublesSketchTest {
 
@@ -103,6 +102,7 @@ public class HeapCompactDoublesSketchTest {
     checkBaseBufferIsSorted(qs2);
   }
 
+  @SuppressWarnings("deprecation")
   @Test
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
@@ -112,7 +112,7 @@ public class HeapCompactDoublesSketchTest {
     final Memory mem = Memory.wrap(byteArr);
     final HeapCompactDoublesSketch qs2 = HeapCompactDoublesSketch.heapifyInstance(mem);
     assertTrue(qs2.isEmpty());
-    assertEquals(byteArr.length, qs1.getStorageBytes());
+    assertEquals(byteArr.length, qs1.getSerializedSizeBytes());
     assertEquals(byteArr, byteArr2);
     assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
     assertTrue(Double.isNaN(qs2.getQuantile(1.0)));

@@ -20,19 +20,19 @@
 package org.apache.datasketches.tuple;
 
 import static java.lang.Math.min;
-import static org.apache.datasketches.HashOperations.convertToHashTable;
-import static org.apache.datasketches.HashOperations.hashSearch;
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.exactLog2OfLong;
+import static org.apache.datasketches.common.Util.exactLog2OfLong;
+import static org.apache.datasketches.thetacommon.HashOperations.convertToHashTable;
+import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import org.apache.datasketches.SetOperationCornerCases;
-import org.apache.datasketches.SetOperationCornerCases.AnotbAction;
-import org.apache.datasketches.SetOperationCornerCases.CornerCase;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
+import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Computes a set difference, A-AND-NOT-B, of two generic tuple sketches.
@@ -511,7 +511,7 @@ public final class AnotB<S extends Summary> {
     if (skB instanceof CompactSketch) {
       final CompactSketch<S> cskB = (CompactSketch<S>) skB;
       final int countB = skB.getRetainedEntries();
-      hashTableB = convertToHashTable(cskB.getHashArr(), countB, minThetaLong, REBUILD_THRESHOLD);
+      hashTableB = convertToHashTable(cskB.getHashArr(), countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {
       final QuickSelectSketch<S> qskB = (QuickSelectSketch<S>) skB;
       hashTableB = qskB.getHashTable();
@@ -558,7 +558,7 @@ public final class AnotB<S extends Summary> {
 
     if (skB instanceof org.apache.datasketches.theta.CompactSketch) {
       final int countB = skB.getRetainedEntries(true);
-      hashTableB = convertToHashTable(hashCacheB, countB, minThetaLong, REBUILD_THRESHOLD);
+      hashTableB = convertToHashTable(hashCacheB, countB, minThetaLong, ThetaUtil.REBUILD_THRESHOLD);
     } else {
       hashTableB = hashCacheB;
     }

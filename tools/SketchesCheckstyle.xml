@@ -36,9 +36,19 @@ under the License.
   <property name="charset" value="UTF-8"/>
   <property name="severity" value="warning"/>
   <property name="fileExtensions" value="java"/>
+  <property name="basedir" value=""/>
 
   <module name="BeforeExecutionExclusionFileFilter">
     <property name="fileNamePattern" value="src[\\/]test[\\/]java[\\/].+$|module\-info\.java.+$"/>
+  </module>
+  
+  <!-- Be able to ignore violations with @SuppressWarnings -->
+  <!-- See https://checkstyle.org/config_filters.html#SuppressWarningsFilter -->
+  <module name="SuppressWarningsFilter"/>
+  
+  <module name="SuppressionFilter">
+    <property name="file" value="${config_loc}/suppressions.xml"/>
+    <property name="optional" value="false"/>
   </module>
 
   <module name="FileTabCharacter">

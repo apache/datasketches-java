@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.zeroPad;
 
-import org.apache.datasketches.Util;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -45,7 +45,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * A serialized, non-empty KllFloatsSketch requires at least 12 bytes of preamble.</p>
  *
  * <pre>{@code
- * Serialized float sketch layout, more than one value:
+ * Serialized float sketch layout, more than one item:
  *  Adr:
  *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
@@ -56,20 +56,20 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||         |       |        |        |        |         |        |              |
  *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
  *      ||         |       |        |        |        |         |        |              |
- *  ?   ||<----Float Valuess Arr Start------]|[<---------Min/Max Arr End----------------|
+ *  ?   ||<------Float Items Arr Start------]|[<---------Min/Max Arr End----------------|
  *      ||         |       |        |        |        |         |        |              |
- *  ?   ||         |       |        |        |[<------Float Values Arr End--------------|
+ *  ?   ||         |       |        |        |[<-------Float Items Arr End--------------|
  *
- * Serialized float sketch layout, Empty (8 bytes) and Single Value (12 bytes):
+ * Serialized float sketch layout, Empty (8 bytes) and Single Item (12 bytes):
  *  Adr:
  *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
  *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
- *  1   ||                                   |-------------Single Value------------------|
+ *  1   ||                                   |-------------Single Item------------------|
  *
  *
  *
- * Serialized double sketch layout, more than one value:
+ * Serialized double sketch layout, more than one item:
  *  Adr:
  *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
@@ -80,41 +80,41 @@ import org.apache.datasketches.memory.WritableMemory;
  *      ||         |       |        |        |        |         |        |              |
  *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
  *      ||         |       |        |        |        |         |        |              |
- *  ?   ||<----Double Values Arr Start------]|[<---------Min/Max Arr End----------------|
+ *  ?   ||<-----Double Items Arr Start------]|[<---------Min/Max Arr End----------------|
  *      ||         |       |        |        |        |         |        |              |
- *  ?   ||         |       |        |        |[<------Double Values Arr End-------------|
+ *  ?   ||         |       |        |        |[<------Double Items-Arr End--------------|
  *
- * Serialized double sketch layout, Empty (8 bytes) and Single Value (16 bytes):
+ * Serialized double sketch layout, Empty (8 bytes) and Single Item (16 bytes):
  *  Adr:
  *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
  *      ||                                                               |      8       |
- *  1   ||------------------------------Single Value-------------------------------------|
+ *  1   ||------------------------------Single Item-------------------------------------|
  *
  * The structure of the data block depends on Layout:
  *
  *   For FLOAT_SINGLE_COMPACT or DOUBLE_SINGLE_COMPACT:
- *     The single data value is at offset DATA_START_ADR_SINGLE_VALUe = 8
+ *     The single data item is at offset DATA_START_ADR_SINGLE_ITEM = 8
  *
  *   For FLOAT_FULL_COMPACT:
  *     The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of numLevels integers;
- *     Followed by Float Min_Value, then Float Max_Value
- *     Followed by an array of Floats of length retainedValues()
+ *     Followed by Float Min_Item, then Float Max_Item
+ *     Followed by an array of Floats of length retainedItems()
  *
  *   For DOUBLE_FULL_COMPACT
  *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 20 with a length of numLevels integers;
- *     Followed by Double Min_Value, then Double Max_Value
- *     Followed by an array of Doubles of length retainedValues()
+ *     Followed by Double Min_Item, then Double Max_Item
+ *     Followed by an array of Doubles of length retainedItems()
  *
  *   For FLOAT_UPDATABLE
  *     The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of (numLevels + 1) integers;
- *     Followed by Float Min_Value, then Float Max_Value
- *     Followed by an array of Floats of length KllHelper.computeTotalValueCapacity(...).
+ *     Followed by Float Min_Item, then Float Max_Item
+ *     Followed by an array of Floats of length KllHelper.computeTotalItemCapacity(...).
  *
  *   For DOUBLE_UPDATABLE
  *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 20 with a length of (numLevels + 1) integers;
- *     Followed by Double Min_Value, then Double Max_Value
- *     Followed by an array of Doubles of length KllHelper.computeTotalValueCapacity(...).
+ *     Followed by Double Min_Item, then Double Max_Item
+ *     Followed by an array of Doubles of length KllHelper.computeTotalItemCapacity(...).
  *
  * }</pre>
  *
@@ -134,29 +134,29 @@ final class KllPreambleUtil {
   static final int K_SHORT_ADR                = 4;  // to 5
   static final int M_BYTE_ADR                 = 6;
   //                                            7 is reserved for future use
-  // SINGLE VALUE ONLY
-  static final int DATA_START_ADR_SINGLE_VALUE = 8;
+  // SINGLE ITEM ONLY
+  static final int DATA_START_ADR_SINGLE_ITEM = 8;
 
-  // MULTI-VALUE
+  // MULTI-ITEM
   static final int N_LONG_ADR                 = 8;  // to 15
   static final int MIN_K_SHORT_ADR            = 16; // to 17
   static final int NUM_LEVELS_BYTE_ADR        = 18;
 
   //                                                19 is reserved for future use
-  static final int DATA_START_ADR             = 20; // Full Sketch, not single value
+  static final int DATA_START_ADR             = 20; // Full Sketch, not single item
 
-  // Other static values
-  static final byte SERIAL_VERSION_EMPTY_FULL  = 1; // Empty or full preamble, NOT single value format
-  static final byte SERIAL_VERSION_SINGLE      = 2; // only single-value format
+  // Other static members
+  static final byte SERIAL_VERSION_EMPTY_FULL  = 1; // Empty or full preamble, NOT single item format
+  static final byte SERIAL_VERSION_SINGLE      = 2; // only single-item format
   static final byte SERIAL_VERSION_UPDATABLE   = 3; //
-  static final byte PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single value
-  static final byte PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single value
+  static final byte PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
+  static final byte PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item
   static final byte KLL_FAMILY                 = 15;
 
   // Flag bit masks
   static final int EMPTY_BIT_MASK             = 1;
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
-  static final int SINGLE_VALUE_BIT_MASK       = 4;
+  static final int SINGLE_ITEM_BIT_MASK       = 4;
   static final int DOUBLES_SKETCH_BIT_MASK    = 8;
   static final int UPDATABLE_BIT_MASK         = 16;
 
@@ -190,7 +190,7 @@ final class KllPreambleUtil {
     final boolean doublesSketch = memVal.doublesSketch;
     final boolean updatableMemFormat = memVal.updatableMemFormat;
     final boolean empty = memVal.empty;
-    final boolean singleValue = memVal.singleValue;
+    final boolean singleItem = memVal.singleItem;
     final int sketchBytes = memVal.sketchBytes;
     final int typeBytes = memVal.typeBytes;
 
@@ -204,7 +204,7 @@ final class KllPreambleUtil {
     sb.append("         Bit Flag Name").append(LS);
     sb.append("           0 EMPTY COMPACT       : ").append(empty).append(LS);
     sb.append("           1 LEVEL_ZERO_SORTED   : ").append(memVal.level0Sorted).append(LS);
-    sb.append("           2 SINGLE_VALUE COMPACT: ").append(singleValue).append(LS);
+    sb.append("           2 SINGLE_ITEM COMPACT : ").append(singleItem).append(LS);
     sb.append("           3 DOUBLES_SKETCH      : ").append(doublesSketch).append(LS);
     sb.append("           4 UPDATABLE           : ").append(updatableMemFormat).append(LS);
     sb.append("Bytes  4-5 : K                   : ").append(memVal.k).append(LS);
@@ -214,7 +214,7 @@ final class KllPreambleUtil {
     final long n = memVal.n;
     final int minK = memVal.minK;
     final int numLevels = memVal.numLevels;
-    if (updatableMemFormat || (!updatableMemFormat && !empty && !singleValue)) {
+    if (updatableMemFormat || (!updatableMemFormat && !empty && !singleItem)) {
         sb.append("Bytes  8-15: N                   : ").append(n).append(LS);
         sb.append("Bytes 16-17: MinK                : ").append(minK).append(LS);
         sb.append("Byte  18   : NumLevels           : ").append(numLevels).append(LS);
@@ -253,21 +253,21 @@ final class KllPreambleUtil {
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         }
-        sb.append("VALUES DATA").append(LS);
-        final int valueSpace = (sketchBytes - offsetBytes) / typeBytes;
+        sb.append("ITEMS DATA").append(LS);
+        final int itemsSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (doublesSketch) {
-          for (int i = 0; i < valueSpace; i++) {
+          for (int i = 0; i < itemsSpace; i++) {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //floats
-          for (int i = 0; i < valueSpace; i++) {
+          for (int i = 0; i < itemsSpace; i++) {
             sb.append(mem.getFloat(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         }
 
-      } else if (!empty && !singleValue) { //compact full
+      } else if (!empty && !singleItem) { //compact full
         sb.append("LEVELS ARR:").append(LS);
         offsetBytes = DATA_START_ADR;
         for (int i = 0; i < numLevels; i++) {
@@ -287,26 +287,26 @@ final class KllPreambleUtil {
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         }
-        sb.append("VALUES DATA").append(LS);
-        final int valueSpace = (sketchBytes - offsetBytes) / typeBytes;
+        sb.append("ITEMS DATA").append(LS);
+        final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (doublesSketch) {
-          for (int i = 0; i < valueSpace; i++) {
+          for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         } else { //floats
-          for (int i = 0; i < valueSpace; i++) {
+          for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + mem.getFloat(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
         }
 
-      } else { //single value
-        if (singleValue) {
-          sb.append("SINGLE VALUE DATA").append(LS);
+      } else { //single item
+        if (singleItem) {
+          sb.append("SINGLE ITEM DATA").append(LS);
           sb.append(doublesSketch
-              ? mem.getDouble(DATA_START_ADR_SINGLE_VALUE)
-              : mem.getFloat(DATA_START_ADR_SINGLE_VALUE)).append(LS);
+              ? mem.getDouble(DATA_START_ADR_SINGLE_ITEM)
+              : mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
         }
       }
       sb.append("### END KLL DATA:").append(LS);
@@ -338,8 +338,8 @@ final class KllPreambleUtil {
     return (getMemoryFlags(mem) & LEVEL_ZERO_SORTED_BIT_MASK) != 0;
   }
 
-  static boolean getMemorySingleValueFlag(final Memory mem) {
-    return (getMemoryFlags(mem) & SINGLE_VALUE_BIT_MASK) != 0;
+  static boolean getMemorySingleItemFlag(final Memory mem) {
+    return (getMemoryFlags(mem) & SINGLE_ITEM_BIT_MASK) != 0;
   }
 
   static boolean getMemoryDoubleSketchFlag(final Memory mem) {
@@ -370,20 +370,20 @@ final class KllPreambleUtil {
     return mem.getByte(NUM_LEVELS_BYTE_ADR) & 0XFF;
   }
 
-  static void setMemoryPreInts(final WritableMemory wmem, final int value) {
-    wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte) value);
+  static void setMemoryPreInts(final WritableMemory wmem, final int numPreInts) {
+    wmem.putByte(PREAMBLE_INTS_BYTE_ADR, (byte) numPreInts);
   }
 
-  static void setMemorySerVer(final WritableMemory wmem, final int value) {
-    wmem.putByte(SER_VER_BYTE_ADR, (byte) value);
+  static void setMemorySerVer(final WritableMemory wmem, final int serVer) {
+    wmem.putByte(SER_VER_BYTE_ADR, (byte) serVer);
   }
 
-  static void setMemoryFamilyID(final WritableMemory wmem, final int value) {
-    wmem.putByte(FAMILY_BYTE_ADR, (byte) value);
+  static void setMemoryFamilyID(final WritableMemory wmem, final int famId) {
+    wmem.putByte(FAMILY_BYTE_ADR, (byte) famId);
   }
 
-  static void setMemoryFlags(final WritableMemory wmem, final int value) {
-    wmem.putByte(FLAGS_BYTE_ADR, (byte) value);
+  static void setMemoryFlags(final WritableMemory wmem, final int flags) {
+    wmem.putByte(FLAGS_BYTE_ADR, (byte) flags);
   }
 
   static void setMemoryEmptyFlag(final WritableMemory wmem,  final boolean empty) {
@@ -396,9 +396,9 @@ final class KllPreambleUtil {
     setMemoryFlags(wmem, levelZeroSorted ? flags | LEVEL_ZERO_SORTED_BIT_MASK : flags & ~LEVEL_ZERO_SORTED_BIT_MASK);
   }
 
-  static void setMemorySingleValueFlag(final WritableMemory wmem,  final boolean singleValue) {
+  static void setMemorySingleItemFlag(final WritableMemory wmem,  final boolean singleItem) {
     final int flags = getMemoryFlags(wmem);
-    setMemoryFlags(wmem, singleValue ? flags | SINGLE_VALUE_BIT_MASK : flags & ~SINGLE_VALUE_BIT_MASK);
+    setMemoryFlags(wmem, singleItem ? flags | SINGLE_ITEM_BIT_MASK : flags & ~SINGLE_ITEM_BIT_MASK);
   }
 
   static void setMemoryDoubleSketchFlag(final WritableMemory wmem,  final boolean doubleSketch) {
@@ -411,24 +411,24 @@ final class KllPreambleUtil {
     setMemoryFlags(wmem, updatable ? flags | UPDATABLE_BIT_MASK : flags & ~UPDATABLE_BIT_MASK);
   }
 
-  static void setMemoryK(final WritableMemory wmem, final int value) {
-    wmem.putShort(K_SHORT_ADR, (short) value);
+  static void setMemoryK(final WritableMemory wmem, final int memK) {
+    wmem.putShort(K_SHORT_ADR, (short) memK);
   }
 
-  static void setMemoryM(final WritableMemory wmem, final int value) {
-    wmem.putByte(M_BYTE_ADR, (byte) value);
+  static void setMemoryM(final WritableMemory wmem, final int memM) {
+    wmem.putByte(M_BYTE_ADR, (byte) memM);
   }
 
-  static void setMemoryN(final WritableMemory wmem, final long value) {
-    wmem.putLong(N_LONG_ADR, value);
+  static void setMemoryN(final WritableMemory wmem, final long memN) {
+    wmem.putLong(N_LONG_ADR, memN);
   }
 
-  static void setMemoryMinK(final WritableMemory wmem, final int value) {
-    wmem.putShort(MIN_K_SHORT_ADR, (short) value);
+  static void setMemoryMinK(final WritableMemory wmem, final int memMinK) {
+    wmem.putShort(MIN_K_SHORT_ADR, (short) memMinK);
   }
 
-  static void setMemoryNumLevels(final WritableMemory wmem, final int value) {
-    wmem.putByte(NUM_LEVELS_BYTE_ADR, (byte) value);
+  static void setMemoryNumLevels(final WritableMemory wmem, final int memNumLevels) {
+    wmem.putByte(NUM_LEVELS_BYTE_ADR, (byte) memNumLevels);
   }
 
 }

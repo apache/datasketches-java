@@ -20,15 +20,15 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.System.arraycopy;
-import static org.apache.datasketches.Util.checkIfIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
- * Down-sampling and merge algorithms for items quantiles.
+ * Down-sampling and merge algorithms
  *
  * @author Lee Rhodes
  * @author Alexander Saydakov
@@ -39,8 +39,8 @@ final class ItemsMergeImpl {
   private ItemsMergeImpl() {}
 
   /**
-     * Merges the source sketch into the target sketch that can have a smaller value of K.
-     * However, it is required that the ratio of the two K values be a power of 2.
+     * Merges the source sketch into the target sketch that can have a smaller K parameter.
+     * However, it is required that the ratio of the two K parameters be a power of 2.
      * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
      * The source is not modified.
      *
@@ -104,29 +104,29 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxValue();
-    final T srcMin = src.getMinValue();
-    final T tgtMax = tgt.getMaxValue();
-    final T tgtMin = tgt.getMinValue();
+    final T srcMax = src.getMaxItem();
+    final T srcMin = src.getMinItem();
+    final T tgtMax = tgt.getMaxItem();
+    final T tgtMin = tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
-      tgt.maxValue_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+      tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
     } //only one could be null
     else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
-      tgt.maxValue_ = srcMax;
+      tgt.maxItem_ = srcMax;
     }
 
     if ((srcMin != null) && (tgtMin != null)) {
-      tgt.minValue_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+      tgt.minItem_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
     } //only one could be null
     else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
-      tgt.minValue_ = srcMin;
+      tgt.minItem_ = srcMin;
     }
   }
 
   /**
-   * Merges the source sketch into the target sketch that can have a smaller value of K.
-   * However, it is required that the ratio of the two K values be a power of 2.
+   * Merges the source sketch into the target sketch that can have a smaller parameter K.
+   * However, it is required that the ratio of the two K parameters be a power of 2.
    * I.e., source.getK() = target.getK() * 2^(nonnegative integer).
    * The source is not modified.
    * @param <T> the data type
@@ -135,8 +135,8 @@ final class ItemsMergeImpl {
    */
   @SuppressWarnings("unchecked") //also used by ItemsSketch and ItemsUnion
   static <T> void downSamplingMergeInto(final ItemsSketch<T> src, final ItemsSketch<T> tgt) {
-    final int targetK = tgt.getK();
     final int sourceK = src.getK();
+    final int targetK = tgt.getK();
 
     if ((sourceK % targetK) != 0) {
       throw new SketchesArgumentException(
@@ -168,12 +168,14 @@ final class ItemsMergeImpl {
             sourceLevels, (2 + srcLvl) * sourceK,
             downBuf, 0,
             targetK,
-            downFactor);
+            downFactor
+        );
         ItemsUpdateImpl.inPlacePropagateCarry(
             srcLvl + lgDownFactor,
             (T[]) downBuf, 0,
             (T[]) scratchBuf, 0,
-            false, tgt);
+            false, tgt
+        );
         // won't update target.n_ until the very end
       }
     }
@@ -181,23 +183,23 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * targetK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxValue();
-    final T srcMin = src.getMinValue();
-    final T tgtMax = tgt.getMaxValue();
-    final T tgtMin = tgt.getMinValue();
+    final T srcMax = src.getMaxItem();
+    final T srcMin = src.getMinItem();
+    final T tgtMax = tgt.getMaxItem();
+    final T tgtMin = tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
-      tgt.maxValue_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
+      tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
     } //only one could be null
     else if (tgtMax == null) { //if srcMax were null we would leave tgt alone
-      tgt.maxValue_ = srcMax;
+      tgt.maxItem_ = srcMax;
     }
 
     if ((srcMin != null) && (tgtMin != null)) {
-      tgt.minValue_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
+      tgt.minItem_ = (src.getComparator().compare(srcMin, tgtMin) > 0) ? tgtMin : srcMin;
     } //only one could be null
     else if (tgtMin == null) { //if srcMin were null we would leave tgt alone
-      tgt.minValue_ = srcMin;
+      tgt.minItem_ = srcMin;
     }
   }
 
@@ -220,14 +222,14 @@ final class ItemsMergeImpl {
    * merge tree remains to be executed. Also, two arrays are sorted in tandem,
    * as discussed above.
    * @param <T> the data type
-   * @param keyArr array of keys
-   * @param valArr array of values
-   * @param arrLen length of keyArr and valArr
+   * @param quantiles array of quantiles
+   * @param cumWts array of cum weights
+   * @param arrLen length of quantiles array and cumWts array
    * @param blkSize size of internal sorted blocks
    * @param comparator the comparator for data type T
    */
-  //also used by ItemsAuxiliary
-  static <T> void blockyTandemMergeSort(final T[] keyArr, final long[] valArr, final int arrLen,
+  //also used by ItemsSketchSortedView
+  static <T> void blockyTandemMergeSort(final T[] quantiles, final long[] cumWts, final int arrLen,
       final int blkSize, final Comparator<? super T> comparator) {
     assert blkSize >= 1;
     if (arrLen <= blkSize) { return; }
@@ -236,11 +238,11 @@ final class ItemsMergeImpl {
     assert ((numblks * blkSize) >= arrLen);
 
     // duplicate the input is preparation for the "ping-pong" copy reduction strategy.
-    final T[] keyTmp = Arrays.copyOf(keyArr, arrLen);
-    final long[] valTmp = Arrays.copyOf(valArr, arrLen);
+    final T[] keyTmp = Arrays.copyOf(quantiles, arrLen);
+    final long[] valTmp = Arrays.copyOf(cumWts, arrLen);
 
     blockyTandemMergeSortRecursion(keyTmp, valTmp,
-                                   keyArr, valArr,
+                                   quantiles, cumWts,
                                    0, numblks,
                                    blkSize, arrLen, comparator);
   }
@@ -252,18 +254,18 @@ final class ItemsMergeImpl {
    *  It also maps the input's pre-sorted blocks into the subarrays
    *  that are processed by tandemMerge().
    * @param <T> the data type
-   * @param keySrc key source
-   * @param valSrc value source
-   * @param keyDst key destination
-   * @param valDst value destination
+   * @param qSrc source array of quantiles
+   * @param cwSrc source weights array
+   * @param qDst destination quantiles array
+   * @param cwDest destination weights array
    * @param grpStart group start, refers to pre-sorted blocks such as block 0, block 1, etc.
    * @param grpLen group length, refers to pre-sorted blocks such as block 0, block 1, etc.
    * @param blkSize block size
    * @param arrLim array limit
    * @param comparator to compare keys
    */
-  private static <T> void blockyTandemMergeSortRecursion(final T[] keySrc, final long[] valSrc,
-      final T[] keyDst, final long[] valDst, final int grpStart, final int grpLen, // block indices
+  private static <T> void blockyTandemMergeSortRecursion(final T[] qSrc, final long[] cwSrc,
+      final T[] qDst, final long[] cwDest, final int grpStart, final int grpLen, // block indices
       final int blkSize, final int arrLim, final Comparator<? super T> comparator) {
     // Important note: grpStart and grpLen do NOT refer to positions in the underlying array.
     // Instead, they refer to the pre-sorted blocks, such as block 0, block 1, etc.
@@ -279,13 +281,13 @@ final class ItemsMergeImpl {
     final int grpStart2 = grpStart + grpLen1;
 
     //swap roles of src and dst
-    blockyTandemMergeSortRecursion(keyDst, valDst,
-                           keySrc, valSrc,
+    blockyTandemMergeSortRecursion(qDst, cwDest,
+                           qSrc, cwSrc,
                            grpStart1, grpLen1, blkSize, arrLim, comparator);
 
     //swap roles of src and dst
-    blockyTandemMergeSortRecursion(keyDst, valDst,
-                           keySrc, valSrc,
+    blockyTandemMergeSortRecursion(qDst, cwDest,
+                           qSrc, cwSrc,
                            grpStart2, grpLen2, blkSize, arrLim, comparator);
 
     // here we convert indices of blocks into positions in the underlying array.
@@ -299,10 +301,10 @@ final class ItemsMergeImpl {
       arrLen2 = arrLim - arrStart2;
     }
 
-    tandemMerge(keySrc, valSrc,
+    tandemMerge(qSrc, cwSrc,
                 arrStart1, arrLen1,
                 arrStart2, arrLen2,
-                keyDst, valDst,
+                qDst, cwDest,
                 arrStart1, comparator); // which will be arrStart3
   }
 
@@ -310,21 +312,21 @@ final class ItemsMergeImpl {
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.
    * @param <T> the data type
-   * @param keySrc key source
-   * @param valSrc value source
+   * @param qSrc quantiles source
+   * @param cwSrc cum wts source
    * @param arrStart1 Array 1 start offset
    * @param arrLen1 Array 1 length
    * @param arrStart2 Array 2 start offset
    * @param arrLen2 Array 2 length
-   * @param keyDst key destination
-   * @param valDst value destination
+   * @param qDst quantiles destination
+   * @param cwDst cum wts destination
    * @param arrStart3 Array 3 start offset
    * @param comparator to compare keys
    */
-  private static <T> void tandemMerge(final T[] keySrc, final long[] valSrc,
+  private static <T> void tandemMerge(final T[] qSrc, final long[] cwSrc,
                                   final int arrStart1, final int arrLen1,
                                   final int arrStart2, final int arrLen2,
-                                  final T[] keyDst, final long[] valDst,
+                                  final T[] qDst, final long[] cwDst,
                                   final int arrStart3, final Comparator<? super T> comparator) {
     final int arrStop1 = arrStart1 + arrLen1;
     final int arrStop2 = arrStart2 + arrLen2;
@@ -333,24 +335,24 @@ final class ItemsMergeImpl {
     int i2 = arrStart2;
     int i3 = arrStart3;
     while ((i1 < arrStop1) && (i2 < arrStop2)) {
-      if (comparator.compare(keySrc[i2], keySrc[i1]) < 0) {
-        keyDst[i3] = keySrc[i2];
-        valDst[i3] = valSrc[i2];
+      if (comparator.compare(qSrc[i2], qSrc[i1]) < 0) {
+        qDst[i3] = qSrc[i2];
+        cwDst[i3] = cwSrc[i2];
         i3++; i2++;
       } else {
-        keyDst[i3] = keySrc[i1];
-        valDst[i3] = valSrc[i1];
+        qDst[i3] = qSrc[i1];
+        cwDst[i3] = cwSrc[i1];
         i3++; i1++;
       }
     }
 
     if (i1 < arrStop1) {
-      arraycopy(keySrc, i1, keyDst, i3, arrStop1 - i1);
-      arraycopy(valSrc, i1, valDst, i3, arrStop1 - i1);
+      arraycopy(qSrc, i1, qDst, i3, arrStop1 - i1);
+      arraycopy(cwSrc, i1, cwDst, i3, arrStop1 - i1);
     } else {
       assert i2 < arrStop2;
-      arraycopy(keySrc, i2, keyDst, i3, arrStop2 - i2);
-      arraycopy(valSrc, i2, valDst, i3, arrStop2 - i2);
+      arraycopy(qSrc, i2, qDst, i3, arrStop2 - i2);
+      arraycopy(cwSrc, i2, cwDst, i3, arrStop2 - i2);
     }
   }
 

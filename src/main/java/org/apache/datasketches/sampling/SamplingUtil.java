@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.sampling;
 
-import static org.apache.datasketches.BoundsOnBinomialProportions.approximateLowerBoundOnP;
-import static org.apache.datasketches.BoundsOnBinomialProportions.approximateUpperBoundOnP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.approximateLowerBoundOnP;
+import static org.apache.datasketches.common.BoundsOnBinomialProportions.approximateUpperBoundOnP;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;

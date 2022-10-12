@@ -19,20 +19,24 @@
 
 package org.apache.datasketches.req;
 
-import static org.apache.datasketches.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.QuantileSearchCriteria.NON_INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.datasketches.QuantileSearchCriteria;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.quantilescommon.FloatsSortedView;
+import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
+import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 
 /**
  * This Relative Error Quantiles Sketch is the Java implementation based on the paper
- * "Relative Error Streaming Quantiles", https://arxiv.org/abs/2004.01668, and loosely derived from
- * a Python prototype written by Pavel Vesely.
+ * "Relative Error Streaming Quantiles" by Graham Cormode, Zohar Karnin, Edo Liberty,
+ * Justin Thaler, Pavel Veselý, and loosely derived from a Python prototype written by Pavel Vesely.
+ *
+ * <p>Reference: https://arxiv.org/abs/2004.01668</p>
  *
  * <p>This implementation differs from the algorithm described in the paper in the following:</p>
  *
@@ -46,7 +50,7 @@ import org.apache.datasketches.memory.Memory;
  * never exceeds the number of compactions, the guarantees of the sketch remain valid.</li>
  *
  * <li>The size of each section (variable k and sectionSize in the code and parameter k in
- * the paper) is initialized with a value set by the user via variable k.
+ * the paper) is initialized with a number set by the user via variable k.
  * When the number of sections doubles, we decrease sectionSize by a factor of sqrt(2).
  * This is applied at each level separately. Thus, when we double the number of sections, the
  * nominal compactor size increases by a factor of approx. sqrt(2) (+/- rounding).</li>
@@ -57,15 +61,18 @@ import org.apache.datasketches.memory.Memory;
  *
  * <p>This implementation provides a number of capabilities not discussed in the paper or provided
  * in the Python prototype.</p>
+ *
  * <ul><li>The Python prototype only implemented high accuracy for low ranks. This implementation
  * provides the user with the ability to choose either high rank accuracy or low rank accuracy at
  * the time of sketch construction.</li>
- * <li>The Python prototype only implemented a comparison criterion of "&le;". This implementation
- * allows the user to switch back and forth between the "&le;" criterion and the "&lt;" criterion.</li>
+ * <li>The Python prototype only implemented a comparison criterion of "INCLUSIVE". This implementation
+ * allows the user to switch back and forth between the "INCLUSIVE" criterion and the "EXCLUSIVE" criterion.</li>
  * <li>This implementation provides extensive debug visibility into the operation of the sketch with
  * two levels of detail output. This is not only useful for debugging, but is a powerful tool to
  * help users understand how the sketch works.</li>
  * </ul>
+ *
+ * @see QuantilesAPI
  *
  * @author Edo Liberty
  * @author Pavel Vesely
@@ -74,27 +81,24 @@ import org.apache.datasketches.memory.Memory;
 public class ReqSketch extends BaseReqSketch {
 
   static class CompactorReturn {
-    int deltaRetValues;
+    int deltaRetItems;
     int deltaNomSize;
   }
+
   //static finals
   private static final String LS = System.getProperty("line.separator");
-  static final byte INIT_NUMBER_OF_SECTIONS = 3;
   static final byte MIN_K = 4;
   static final byte NOM_CAP_MULT = 2;
-  //These two factors are used by upper and lower bounds
-  private static final double relRseFactor = Math.sqrt(0.0512 / INIT_NUMBER_OF_SECTIONS);
-  private static final double fixRseFactor = .084;
+
   //finals
   private final int k; //default is 12 (1% @ 95% Conf)
   private final boolean hra; //default is true
   //state variables
-  private boolean ltEq = false; //default: LT, can be set after construction
   private long totalN = 0;
-  private float minValue = Float.NaN;
-  private float maxValue = Float.NaN;
+  private float minItem = Float.NaN;
+  private float maxItem = Float.NaN;
   //computed from compactors
-  private int retValues = 0; //number of retained values in the sketch
+  private int retItems = 0; //number of retained items in the sketch
   private int maxNomSize = 0; //sum of nominal capacities of all compactors
   //Objects
   private ReqSketchSortedView reqSV = null;
@@ -104,17 +108,17 @@ public class ReqSketch extends BaseReqSketch {
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
 
   /**
-   * Construct from elements. After sketch is constructed, retValues and maxNomSize must be computed.
+   * Construct from elements. After sketch is constructed, retItems and maxNomSize must be computed.
    * Used by ReqSerDe.
    */
-  ReqSketch(final int k, final boolean hra, final long totalN, final float minValue,
-      final float maxValue, final List<ReqCompactor> compactors) {
+  ReqSketch(final int k, final boolean hra, final long totalN, final float minItem,
+      final float maxItem, final List<ReqCompactor> compactors) {
     checkK(k);
     this.k = k;
     this.hra = hra;
     this.totalN = totalN;
-    this.minValue = minValue;
-    this.maxValue = maxValue;
+    this.minItem = minItem;
+    this.maxItem = maxItem;
     this.compactors = compactors;
   }
 
@@ -122,7 +126,7 @@ public class ReqSketch extends BaseReqSketch {
    * Normal Constructor used by ReqSketchBuilder.
    * @param k Controls the size and error of the sketch. It must be even and in the range
    * [4, 1024].
-   * The default value of 12 roughly corresponds to 1% relative error guarantee at 95% confidence.
+   * The default number 12 roughly corresponds to 1% relative error guarantee at 95% confidence.
    * @param highRankAccuracy if true, the default, the high ranks are prioritized for better
    * accuracy. Otherwise the low ranks are prioritized for better accuracy.
    * @param reqDebug the debug handler. It may be null.
@@ -143,11 +147,10 @@ public class ReqSketch extends BaseReqSketch {
     k = other.k;
     hra = other.hra;
     totalN = other.totalN;
-    retValues = other.retValues;
+    retItems = other.retItems;
     maxNomSize = other.maxNomSize;
-    minValue = other.minValue;
-    maxValue = other.maxValue;
-    ltEq = other.ltEq;
+    minItem = other.minItem;
+    maxItem = other.maxItem;
     reqDebug = other.reqDebug;
     reqSV = null;
 
@@ -173,16 +176,14 @@ public class ReqSketch extends BaseReqSketch {
     return ReqSerDe.heapify(mem);
   }
 
-  private static void checkK(final int k) {
-    if ((k & 1) > 0 || k < 4 || k > 1024) {
-      throw new SketchesArgumentException(
-          "<i>K</i> must be even and in the range [4, 1024]: " + k );
-    }
+  @Override
+  public int getK() {
+    return k;
   }
 
   /**
-   * This checks the given float array to make sure that it contains only finite values
-   * and is monotonically increasing in value.
+   * This checks the given float array to make sure that it contains only finite numbers
+   * and is monotonically increasing.
    * @param splits the given array
    */
   static void validateSplits(final float[] splits) {
@@ -190,68 +191,35 @@ public class ReqSketch extends BaseReqSketch {
     for (int i = 0; i < len; i++) {
       final float v = splits[i];
       if (!Float.isFinite(v)) {
-        throw new SketchesArgumentException("Values must be finite");
+        throw new SketchesArgumentException("Numbers must be finite");
       }
       if (i < len - 1 && v >= splits[i + 1]) {
         throw new SketchesArgumentException(
-          "Values must be unique and monotonically increasing");
+          "Numbers must be unique and monotonically increasing");
       }
     }
-  }
-
-  private static boolean exactRank(final int k, final int levels, final double rank,
-      final boolean hra, final long totalN) {
-    final int baseCap = k * INIT_NUMBER_OF_SECTIONS;
-    if (levels == 1 || totalN <= baseCap) { return true; }
-    final double exactRankThresh = (double)baseCap / totalN;
-    return hra && rank >= 1.0 - exactRankThresh || !hra && rank <= exactRankThresh;
-  }
-
-  private static double getRankLB(final int k, final int levels, final double rank,
-      final int numStdDev, final boolean hra, final long totalN) {
-    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
-    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
-    final double fixed = fixRseFactor / k;
-    final double lbRel = rank - numStdDev * relative;
-    final double lbFix = rank - numStdDev * fixed;
-    return Math.max(lbRel, lbFix);
-  }
-
-  private static double getRankUB(final int k, final int levels, final double rank,
-      final int numStdDev, final boolean hra, final long totalN) {
-    if (exactRank(k, levels, rank, hra, totalN)) { return rank; }
-    final double relative = relRseFactor / k * (hra ? 1.0 - rank : rank);
-    final double fixed = fixRseFactor / k;
-    final double ubRel = rank + numStdDev * relative;
-    final double ubFix = rank + numStdDev * fixed;
-    return Math.min(ubRel, ubFix);
-  }
-
-  @Override
-  public double[] getCDF(final float[] splitPoints) {
-    return getCDF(splitPoints, QuantileSearchCriteria.NON_INCLUSIVE);
   }
 
   @Override
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
-    return reqSV.getPmfOrCdf(splitPoints, true, searchCrit);
+    return reqSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
-  public boolean getHighRankAccuracy() {
+  public boolean getHighRankAccuracyMode() {
     return hra;
   }
 
   @Override
-  public float getMaxValue() {
-    return maxValue;
+  public float getMaxItem() {
+    return maxItem;
   }
 
   @Override
-  public float getMinValue() {
-    return minValue;
+  public float getMinItem() {
+    return minItem;
   }
 
   @Override
@@ -260,20 +228,10 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public double[] getPMF(final float[] splitPoints) {
-    return getPMF(splitPoints, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
-  }
-
-  @Override
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
     refreshSortedView();
-    return reqSV.getPmfOrCdf(splitPoints, false, searchCrit);
-  }
-
-  @Override
-  public float getQuantile(final double normRank) {
-    return getQuantile(normRank, ltEq == true ? INCLUSIVE : NON_INCLUSIVE );
+    return reqSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
@@ -287,11 +245,7 @@ public class ReqSketch extends BaseReqSketch {
     return reqSV.getQuantile(normRank, searchCrit);
   }
 
-  @Override
-  public float[] getQuantiles(final double[] normRanks) {
-    return getQuantiles(normRanks, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
-  }
-
+  @Deprecated
   @Override
   public float[] getQuantiles(final double[] normRanks, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return null; }
@@ -304,16 +258,51 @@ public class ReqSketch extends BaseReqSketch {
     return qArr;
   }
 
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is within the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.95.
+   */
   @Override
-  public double getRank(final float value) {
-    return getRank(value, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
+  public float getQuantileLowerBound(final double rank) {
+    return getQuantile(getRankLowerBound(rank, 2), INCLUSIVE);
   }
 
   @Override
-  public double getRank(final float value, final QuantileSearchCriteria searchCrit) {
+  public float getQuantileLowerBound(final double rank, final int numStdDev) {
+    return getQuantile(getRankLowerBound(rank, numStdDev), INCLUSIVE);
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true quantile is within the confidence interval
+   * specified by the upper and lower quantile bounds for this sketch is 0.95.
+   */
+  @Override
+  public float getQuantileUpperBound(final double rank) {
+    return getQuantile(getRankUpperBound(rank, 2), INCLUSIVE);
+  }
+
+  @Override
+  public float getQuantileUpperBound(final double rank, final int numStdDev) {
+    return getQuantile(getRankUpperBound(rank, numStdDev), INCLUSIVE);
+  }
+
+  @Override
+  public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
     if (this.isEmpty()) { return Double.NaN; }
     refreshSortedView();
-    return reqSV.getRank(value, searchCrit);
+    return reqSV.getRank(quantile, searchCrit);
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.95.
+   */
+  @Override
+  public double getRankLowerBound(final double rank) {
+    return getRankLB(k, getNumLevels(), rank, 2, hra, getN());
   }
 
   @Override
@@ -321,21 +310,27 @@ public class ReqSketch extends BaseReqSketch {
     return getRankLB(k, getNumLevels(), rank, numStdDev, hra, getN());
   }
 
+  @Deprecated
   @Override
-  public double[] getRanks(final float[] values) {
-    return getRanks(values, ltEq == true ? INCLUSIVE : NON_INCLUSIVE);
-  }
-
-  @Override
-  public double[] getRanks(final float[] values, final QuantileSearchCriteria searchCrit) {
+  public double[] getRanks(final float[] quantiles, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { return null; }
     refreshSortedView();
-    final int numValues = values.length;
-    final double[] retArr = new double[numValues];
-    for (int i = 0; i < numValues; i++) {
-      retArr[i] = reqSV.getRank(values[i], searchCrit); //already normalized
+    final int numQuantiles = quantiles.length;
+    final double[] retArr = new double[numQuantiles];
+    for (int i = 0; i < numQuantiles; i++) {
+      retArr[i] = reqSV.getRank(quantiles[i], searchCrit); //already normalized
     }
     return retArr;
+  }
+
+  /**
+   * {@inheritDoc}
+   * The approximate probability that the true rank is within the confidence interval
+   * specified by the upper and lower rank bounds for this sketch is 0.95.
+   */
+  @Override
+  public double getRankUpperBound(final double rank) {
+    return getRankUB(k, getNumLevels(), rank, 2, hra, getN());
   }
 
   @Override
@@ -344,21 +339,16 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public int getRetainedValues() { return retValues; }
+  public int getNumRetained() { return retItems; }
 
   @Override
-  public double getRSE(final int k, final double rank, final boolean hra, final long totalN) {
-    return getRankUB(k, 2, rank, 1, hra, totalN); //more conservative to assume > 1 level
-  }
-
-  @Override
-  public int getSerializationBytes() {
+  public int getSerializedSizeBytes() {
     final ReqSerDe.SerDeFormat serDeFormat = ReqSerDe.getSerFormat(this);
     return ReqSerDe.getSerBytes(this, serDeFormat);
   }
 
   @Override
-  public ReqSketchSortedView getSortedView() {
+  public FloatsSortedView getSortedView() {
     refreshSortedView();
     return reqSV;
   }
@@ -374,13 +364,8 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public boolean isLessThanOrEqual() {
-    return ltEq;
-  }
-
-  @Override
-  public ReqIterator iterator() {
-    return new ReqIterator(this);
+  public QuantilesFloatsSketchIterator iterator() {
+    return new ReqSketchIterator(this);
   }
 
   @Override
@@ -391,42 +376,35 @@ public class ReqSketch extends BaseReqSketch {
           "Both sketches must have the same HighRankAccuracy setting.");
     }
     totalN += other.totalN;
-    //update min, max values, n
-    if (Float.isNaN(minValue) || other.minValue < minValue) { minValue = other.minValue; }
-    if (Float.isNaN(maxValue) || other.maxValue > maxValue) { maxValue = other.maxValue; }
+    //update min, max items, n
+    if (Float.isNaN(minItem) || other.minItem < minItem) { minItem = other.minItem; }
+    if (Float.isNaN(maxItem) || other.maxItem > maxItem) { maxItem = other.maxItem; }
     //Grow until self has at least as many compactors as other
     while (getNumLevels() < other.getNumLevels()) { grow(); }
-    //Merge the values in all height compactors
+    //Merge the items in all height compactors
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.get(i).merge(other.compactors.get(i));
     }
     maxNomSize = computeMaxNomSize();
-    retValues = computeTotalRetainedValues();
-    if (retValues >= maxNomSize) {
+    retItems = computeTotalRetainedItems();
+    if (retItems >= maxNomSize) {
       compress();
     }
-    assert retValues < maxNomSize;
+    assert retItems < maxNomSize;
     reqSV = null;
     return this;
   }
 
   @Override
-  public ReqSketch reset() {
+  public void reset() {
     totalN = 0;
-    retValues = 0;
+    retItems = 0;
     maxNomSize = 0;
-    minValue = Float.NaN;
-    maxValue = Float.NaN;
+    minItem = Float.NaN;
+    maxItem = Float.NaN;
     reqSV = null;
     compactors = new ArrayList<>();
     grow();
-    return this;
-  }
-
-  @Override
-  public ReqSketch setLessThanOrEqual(final boolean ltEq) {
-    this.ltEq = ltEq;
-    return this;
   }
 
   @Override
@@ -440,11 +418,10 @@ public class ReqSketch extends BaseReqSketch {
     sb.append("**********Relative Error Quantiles Sketch Summary**********").append(LS);
     sb.append("  K               : " + k).append(LS);
     sb.append("  N               : " + totalN).append(LS);
-    sb.append("  Retained Values : " + retValues).append(LS);
-    sb.append("  Min Value       : " + minValue).append(LS);
-    sb.append("  Max Value       : " + maxValue).append(LS);
+    sb.append("  Retained Items  : " + retItems).append(LS);
+    sb.append("  Min Item        : " + minItem).append(LS);
+    sb.append("  Max Item        : " + maxItem).append(LS);
     sb.append("  Estimation Mode : " + isEstimationMode()).append(LS);
-    sb.append("  LtEQ            : " + ltEq).append(LS);
     sb.append("  High Rank Acc   : " + hra).append(LS);
     sb.append("  Levels          : " + compactors.size()).append(LS);
     sb.append("************************End Summary************************").append(LS);
@@ -452,20 +429,20 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   @Override
-  public void update(final float value) {
-    if (Float.isNaN(value)) { return; }
+  public void update(final float item) {
+    if (Float.isNaN(item)) { return; }
     if (isEmpty()) {
-      minValue = value;
-      maxValue = value;
+      minItem = item;
+      maxItem = item;
     } else {
-      if (value < minValue) { minValue = value; }
-      if (value > maxValue) { maxValue = value; }
+      if (item < minItem) { minItem = item; }
+      if (item > maxItem) { maxItem = item; }
     }
     final FloatBuffer buf = compactors.get(0).getBuffer();
-    buf.append(value);
-    retValues++;
+    buf.append(item);
+    retItems++;
     totalN++;
-    if (retValues >= maxNomSize) {
+    if (retItems >= maxNomSize) {
       buf.sort();
       compress();
     }
@@ -476,7 +453,7 @@ public class ReqSketch extends BaseReqSketch {
   public String viewCompactorDetail(final String fmt, final boolean allData) {
     final StringBuilder sb = new StringBuilder();
     sb.append("*********Relative Error Quantiles Compactor Detail*********").append(LS);
-    sb.append("Compactor Detail: Ret Values: ").append(getRetainedValues())
+    sb.append("Compactor Detail: Ret Items: ").append(getNumRetained())
       .append("  N: ").append(getN());
     sb.append(LS);
     for (int i = 0; i < getNumLevels(); i++) {
@@ -498,9 +475,9 @@ public class ReqSketch extends BaseReqSketch {
   }
 
   /**
-   * Computes the retValues for the sketch.
+   * Computes the retained Items for the sketch.
    */
-  int computeTotalRetainedValues() {
+  int computeTotalRetainedItems() {
     int count = 0;
     for (final ReqCompactor c : compactors) {
       count += c.getBuffer().getCount();
@@ -510,19 +487,6 @@ public class ReqSketch extends BaseReqSketch {
 
   List<ReqCompactor> getCompactors() {
     return compactors;
-  }
-
-  int getK() {
-    return k;
-  }
-
-  /**
-   * @return ltEq flag
-   * @deprecated
-   */
-  @Deprecated
-  boolean getLtEq() {
-    return ltEq;
   }
 
   int getMaxNomSize() {
@@ -541,25 +505,32 @@ public class ReqSketch extends BaseReqSketch {
     this.maxNomSize = maxNomSize;
   }
 
-  void setRetainedValues(final int retValues) {
-    this.retValues = retValues;
+  void setRetainedItems(final int retItems) {
+    this.retItems = retItems;
+  }
+
+  private static void checkK(final int k) {
+    if ((k & 1) > 0 || k < 4 || k > 1024) {
+      throw new SketchesArgumentException(
+          "<i>K</i> must be even and in the range [4, 1024]: " + k );
+    }
   }
 
   private void compress() {
     if (reqDebug != null) { reqDebug.emitStartCompress(); }
     for (int h = 0; h < compactors.size(); h++) {
       final ReqCompactor c = compactors.get(h);
-      final int compRetValues = c.getBuffer().getCount();
+      final int compRetItems = c.getBuffer().getCount();
       final int compNomCap = c.getNomCapacity();
 
-      if (compRetValues >= compNomCap) {
+      if (compRetItems >= compNomCap) {
         if (h + 1 >= getNumLevels()) { //at the top?
           if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
         }
         final FloatBuffer promoted = c.compact(cReturn);
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
-        retValues += cReturn.deltaRetValues;
+        retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;
         //we specifically decided not to do lazy compression.
       }

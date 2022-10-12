@@ -41,14 +41,14 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertMinDouble;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
-import static org.apache.datasketches.quantiles.Util.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.Util.computeBitPattern;
-import static org.apache.datasketches.quantiles.Util.computeRetainedItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -96,8 +96,8 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     } else {
       insertFlags(dstMem, flags);
       insertN(dstMem, n);
-      insertMinDouble(dstMem, sketch.getMinValue());
-      insertMaxDouble(dstMem, sketch.getMaxValue());
+      insertMinDouble(dstMem, sketch.getMinItem());
+      insertMaxDouble(dstMem, sketch.getMaxItem());
 
       final int bbCount = computeBaseBufferItems(k, n);
 
@@ -148,10 +148,10 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
     //VALIDITY CHECKS
     DirectUpdateDoublesSketchR.checkPreLongs(preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkCompact(serVer, flags);
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     checkDirectMemCapacity(k, n, memCap);
     DirectUpdateDoublesSketchR.checkEmptyAndN(empty, n);
 
@@ -161,12 +161,12 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
-  public double getMaxValue() {
+  public double getMaxItem() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
-  public double getMinValue() {
+  public double getMinItem() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
   }
 
@@ -176,8 +176,13 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return (mem_ != null);
+  }
+
+  @Override
   public boolean isDirect() {
-    return true;
+    return (mem_ != null) ? mem_.isDirect() : false;
   }
 
   @Override
@@ -225,12 +230,12 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
   /**
    * Checks the validity of the direct memory capacity assuming n, k.
-   * @param k the given value of k
-   * @param n the given value of n
+   * @param k the given k
+   * @param n the given n
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {
-    final int reqBufBytes = getCompactStorageBytes(k, n);
+    final int reqBufBytes = getCompactSerialiedSizeBytes(k, n);
 
     if (memCapBytes < reqBufBytes) {
       throw new SketchesArgumentException("Possible corruption: Memory capacity too small: "

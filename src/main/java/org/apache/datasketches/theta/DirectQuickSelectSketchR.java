@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.theta;
 
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
 import static org.apache.datasketches.theta.CompactOperations.checkIllegalCurCountAndEmpty;
 import static org.apache.datasketches.theta.CompactOperations.computeCompactPreLongs;
 import static org.apache.datasketches.theta.CompactOperations.correctThetaOnCompact;
@@ -38,11 +37,12 @@ import static org.apache.datasketches.theta.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.ResizeFactor;
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * The default Theta Sketch using the QuickSelect algorithm.
@@ -277,7 +277,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
     //FindBugs may complain (DB_DUPLICATE_BRANCHES) if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD,
     //but this allows us to tune these constants for different sketches.
-    final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : REBUILD_THRESHOLD;
+    final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));
   }
 

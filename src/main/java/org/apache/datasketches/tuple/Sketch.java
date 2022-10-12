@@ -19,9 +19,9 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.Util.LS;
+import static org.apache.datasketches.common.Util.LS;
 
-import org.apache.datasketches.BinomialBoundsN;
+import org.apache.datasketches.thetacommon.BinomialBoundsN;
 
 /**
  * This is an equivalent to org.apache.datasketches.theta.Sketch with
@@ -152,6 +152,10 @@ public abstract class Sketch<S extends Summary> {
    */
   public abstract int getCountLessThanThetaLong(final long thetaLong);
 
+  /**
+   * Gets the Summary Factory class of type S
+   * @return the Summary Factory class of type S
+   */
   public SummaryFactory<S> getSummaryFactory() {
     return summaryFactory_;
   }
@@ -178,7 +182,7 @@ public abstract class Sketch<S extends Summary> {
    * Returns a SketchIterator
    * @return a SketchIterator
    */
-  public abstract SketchIterator<S> iterator();
+  public abstract TupleSketchIterator<S> iterator();
 
   /**
    * Returns Theta as a long

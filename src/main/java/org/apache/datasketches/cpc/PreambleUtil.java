@@ -19,15 +19,15 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.zeroPad;
+import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesStateException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 

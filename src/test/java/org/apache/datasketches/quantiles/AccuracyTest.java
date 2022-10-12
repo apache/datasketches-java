@@ -27,7 +27,7 @@ import org.testng.annotations.Test;
  * @author Lee Rhodes
  */
 public class AccuracyTest {
-  static Random rand = new Random();
+  static Random rand = new Random(1);
 
   @Test
   public void baseTest() {
@@ -78,7 +78,7 @@ public class AccuracyTest {
   public void getEpsilon() {
     for (int lgK = 4; lgK < 15; lgK++) {
       int k = 1 << lgK;
-      double eps = Util.getNormalizedRankError(k, false);
+      double eps = ClassicUtil.getNormalizedRankError(k, false);
       println(k + "\t" + eps);
     }
   }

@@ -42,8 +42,7 @@ public class ReqCompactorTest {
   public void checkGetters() {
     final boolean up = true;
     final boolean hra = true;
-    final boolean ltEq = true;
-    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra,  ltEq, 0);
+    final ReqSketch sk = reqSketchTest.loadSketch( 20,   1, 120,  up,  hra, 0);
     final ReqCompactor c = sk.getCompactors().get(0);
 
     c.getCoin();
@@ -83,8 +82,8 @@ public class ReqCompactorTest {
     final Buffer buff = Memory.wrap(c1ser).asBuffer();
     final Compactor compactor = ReqSerDe.extractCompactor(buff, sorted, c1hra);
     final ReqCompactor c2 = compactor.reqCompactor;
-    assertEquals(compactor.minVal, minV);
-    assertEquals(compactor.maxVal, maxV);
+    assertEquals(compactor.minItem, minV);
+    assertEquals(compactor.maxItem, maxV);
     assertEquals(compactor.count, nomCap);
     assertEquals(c2.getSectionSizeFlt(), sectionSizeFlt);
     assertEquals(c2.getSectionSize(), sectionSize);

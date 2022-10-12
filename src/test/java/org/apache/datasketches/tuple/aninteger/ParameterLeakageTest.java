@@ -27,7 +27,7 @@ import org.apache.datasketches.tuple.CompactSketch;
 import org.apache.datasketches.tuple.Intersection;
 //import org.apache.datasketches.tuple.UpdatableSketch;
 import org.apache.datasketches.tuple.Sketch;
-import org.apache.datasketches.tuple.SketchIterator;
+import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.Union;
 import org.testng.annotations.Test;
 
@@ -163,7 +163,7 @@ public class ParameterLeakageTest {
     int entries = sk.getRetainedEntries();
     IntegerSummary[] intSumArr = new IntegerSummary[entries];
     int cnt = 0;
-    SketchIterator<IntegerSummary> it = sk.iterator();
+    TupleSketchIterator<IntegerSummary> it = sk.iterator();
     while (it.next()) {
       intSumArr[cnt] = it.getSummary();
       cnt++;

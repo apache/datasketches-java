@@ -39,10 +39,10 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertMinDouble;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
-import static org.apache.datasketches.quantiles.Util.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -114,10 +114,10 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     checkCompact(serVer, flags);
     checkDirectMemCapacity(k, n, memCap);
     checkEmptyAndN(empty, n);
@@ -125,6 +125,11 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final DirectUpdateDoublesSketch dds = new DirectUpdateDoublesSketch(k);
     dds.mem_ = srcMem;
     return dds;
+  }
+
+  @Override
+  public boolean isReadOnly() {
+    return false;
   }
 
   @Override
@@ -144,12 +149,12 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     final long curN = getN();
     final long newN = curN + 1;
 
-    if (curN == 0) { //set min and max values
-      putMaxValue(dataItem);
-      putMinValue(dataItem);
+    if (curN == 0) { //set min and max quantiles
+      putMaxQuantile(dataItem);
+      putMinQuantile(dataItem);
     } else {
-      if (dataItem > getMaxValue()) { putMaxValue(dataItem); }
-      if (dataItem < getMinValue()) { putMinValue(dataItem); }
+      if (dataItem > getMaxItem()) { putMaxQuantile(dataItem); }
+      if (dataItem < getMinItem()) { putMinQuantile(dataItem); }
     }
 
     mem_.putDouble(COMBINED_BUFFER + ((long) curBBCount * Double.BYTES), dataItem); //put the item
@@ -185,6 +190,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
       //bit pattern on direct is always derived, no need to save it.
     }
     putN(newN);
+    classicQdsSV = null;
   }
 
   @Override
@@ -201,15 +207,15 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
   //Puts
 
   @Override
-  void putMinValue(final double minValue) {
+  void putMinQuantile(final double minQuantile) {
     assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putDouble(MIN_DOUBLE, minValue);
+    mem_.putDouble(MIN_DOUBLE, minQuantile);
   }
 
   @Override
-  void putMaxValue(final double maxValue) {
+  void putMaxQuantile(final double maxQuantile) {
     assert (mem_.getCapacity() >= COMBINED_BUFFER);
-    mem_.putDouble(MAX_DOUBLE, maxValue);
+    mem_.putDouble(MAX_DOUBLE, maxQuantile);
   }
 
   @Override

@@ -83,16 +83,22 @@ public abstract class DoublesUnion {
   }
 
   /**
+   * Returns true if this union's data structure is backed by Memory or WritableMemory.
+   * @return true if this union's data structure is backed by Memory or WritableMemory.
+   */
+  public abstract boolean hasMemory();
+
+  /**
+ * Returns true if this union is off-heap (direct)
+ * @return true if this union is off-heap (direct)
+   */
+  public abstract boolean isDirect();
+
+  /**
    * Returns true if this union is empty
    * @return true if this union is empty
    */
   public abstract boolean isEmpty();
-
-  /**
-   * Returns true if this union is direct
-   * @return true if this union is direct
-   */
-  public abstract boolean isDirect();
 
   /**
    * Returns the configured <i>maxK</i> of this Union.
@@ -110,8 +116,8 @@ public abstract class DoublesUnion {
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given sketch into this union object.
    * The given sketch is not modified.
-   * It is required that the ratio of the two K values be a power of 2.
-   * This is easily satisfied if each of the K values is already a power of 2.
+   * It is required that the ratio of the two K's be a power of 2.
+   * This is easily satisfied if each of the K's are already a power of 2.
    * If the given sketch is null or empty it is ignored.
    *
    * <p>It is required that the results of the union operation, which can be obtained at any time,
@@ -119,14 +125,14 @@ public abstract class DoublesUnion {
    *
    * @param sketchIn the sketch to be merged into this one.
    */
-  public abstract void update(DoublesSketch sketchIn);
+  public abstract void union(DoublesSketch sketchIn);
 
   /**
    * Iterative union operation, which means this method can be repeatedly called.
    * Merges the given Memory image of a DoublesSketch into this union object.
    * The given Memory object is not modified and a link to it is not retained.
-   * It is required that the ratio of the two K values be a power of 2.
-   * This is easily satisfied if each of the K values is already a power of 2.
+   * It is required that the ratio of the two K's be a power of 2.
+   * This is easily satisfied if each of the K's are already a power of 2.
    * If the given sketch is null or empty it is ignored.
    *
    * <p>It is required that the results of the union operation, which can be obtained at any time,
@@ -134,7 +140,7 @@ public abstract class DoublesUnion {
    *
    * @param mem Memory image of sketch to be merged
    */
-  public abstract void update(Memory mem);
+  public abstract void union(Memory mem);
 
   /**
    * Update this union with the given double (or float) data Item.

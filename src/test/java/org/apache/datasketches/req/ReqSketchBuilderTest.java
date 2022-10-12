@@ -33,10 +33,9 @@ public class ReqSketchBuilderTest {
   public void checkBldr() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
     final ReqDebugImpl rdi = new ReqDebugImpl(2, "%4.0f");
-    bldr.setK(50).setHighRankAccuracy(true).setLessThanOrEqual(false).setReqDebug(rdi);
+    bldr.setK(50).setHighRankAccuracy(true).setReqDebug(rdi);
     assertEquals(bldr.getK(), 50);
     assertEquals(bldr.getHighRankAccuracy(), true);
-    assertEquals(bldr.getLessThanOrEqual(), false);
     assertTrue(bldr.getReqDebug() != null);
     println(bldr.toString());
     bldr.setReqDebug(null);

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.hll;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 
 /**
  * @author Lee Rhodes

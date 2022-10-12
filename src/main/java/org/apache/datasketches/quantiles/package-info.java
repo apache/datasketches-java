@@ -18,10 +18,10 @@
  */
 
 /**
- * <p>The quantiles package contains stochastic streaming algorithms that enable single-pass 
- * analysis of the distribution of a stream of real (double) values or generic items. 
+ * <p>The quantiles package contains stochastic streaming algorithms that enable single-pass
+ * analysis of the distribution of a stream of quantiles.
  * </p>
- * 
+ *
  * @see org.apache.datasketches.quantiles.DoublesSketch
  * @author Lee Rhodes
  */

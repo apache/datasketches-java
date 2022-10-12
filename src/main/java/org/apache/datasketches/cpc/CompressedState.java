@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.Util.computeSeedHash;
 import static org.apache.datasketches.cpc.PreambleUtil.checkCapacity;
 import static org.apache.datasketches.cpc.PreambleUtil.checkLoPreamble;
 import static org.apache.datasketches.cpc.PreambleUtil.getDefinedPreInts;
@@ -49,6 +48,7 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * @author Lee Rhodes
@@ -82,7 +82,7 @@ final class CompressedState {
   }
 
   static CompressedState compress(final CpcSketch source) {
-    final short seedHash = computeSeedHash(source.seed);
+    final short seedHash = ThetaUtil.computeSeedHash(source.seed);
     final CompressedState target = new CompressedState(source.lgK, seedHash);
     target.fiCol = source.fiCol;
     target.mergeFlag = source.mergeFlag;

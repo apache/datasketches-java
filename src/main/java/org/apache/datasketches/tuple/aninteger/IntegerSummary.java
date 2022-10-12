@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.tuple.aninteger;
 
-import org.apache.datasketches.ByteArrayUtil;
+import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.tuple.DeserializeResult;
 import org.apache.datasketches.tuple.UpdatableSummary;

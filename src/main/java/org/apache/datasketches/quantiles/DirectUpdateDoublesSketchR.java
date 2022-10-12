@@ -34,8 +34,8 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
 
-import org.apache.datasketches.SketchesArgumentException;
-import org.apache.datasketches.SketchesReadOnlyException;
+import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesReadOnlyException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -75,10 +75,10 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
-    Util.checkFamilyID(familyID);
+    ClassicUtil.checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
-    Util.checkK(k);
+    ClassicUtil.checkK(k);
     checkCompact(serVer, flags);
     checkDirectMemCapacity(k, n, memCap);
     checkEmptyAndN(empty, n);
@@ -89,12 +89,12 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
-  public double getMaxValue() {
+  public double getMaxItem() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
-  public double getMinValue() {
+  public double getMinItem() {
     return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
   }
 
@@ -104,7 +104,17 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   }
 
   @Override
+  public boolean hasMemory() {
+    return (mem_ != null);
+  }
+
+  @Override
   public boolean isDirect() {
+    return (mem_ != null) ? mem_.isDirect() : false;
+  }
+
+  @Override
+  public boolean isReadOnly() {
     return true;
   }
 
@@ -128,7 +138,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   @Override
   int getBaseBufferCount() {
-    return Util.computeBaseBufferItems(getK(), getN());
+    return ClassicUtil.computeBaseBufferItems(getK(), getN());
   }
 
   @Override
@@ -141,7 +151,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
     final int k = getK();
     if (isEmpty()) { return new double[k << 1]; } //2K
     final long n = getN();
-    final int itemCap = Util.computeCombinedBufferItemCapacity(k, n);
+    final int itemCap = ClassicUtil.computeCombinedBufferItemCapacity(k, n);
     final double[] combinedBuffer = new double[itemCap];
     mem_.getDoubleArray(COMBINED_BUFFER, combinedBuffer, 0, itemCap);
     return combinedBuffer;
@@ -151,7 +161,7 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   long getBitPattern() {
     final int k = getK();
     final long n = getN();
-    return Util.computeBitPattern(k, n);
+    return ClassicUtil.computeBitPattern(k, n);
   }
 
   @Override
@@ -162,13 +172,13 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   //Puts
 
   @Override
-  void putMinValue(final double minValue) {
-    throw new SketchesReadOnlyException("Call to putMinValue() on read-only buffer");
+  void putMinQuantile(final double minQuantile) {
+    throw new SketchesReadOnlyException("Call to putMinQuantile() on read-only buffer");
   }
 
   @Override
-  void putMaxValue(final double maxValue) {
-    throw new SketchesReadOnlyException("Call to putMaxValue() on read-only buffer");
+  void putMaxQuantile(final double maxQuantile) {
+    throw new SketchesReadOnlyException("Call to putMaxQuantile() on read-only buffer");
   }
 
   @Override
@@ -200,8 +210,8 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   /**
    * Checks the validity of the direct memory capacity assuming n, k.
-   * @param k the given value of k
-   * @param n the given value of n
+   * @param k the given k
+   * @param n the given n
    * @param memCapBytes the current memory capacity in bytes
    */
   static void checkDirectMemCapacity(final int k, final long n, final long memCapBytes) {

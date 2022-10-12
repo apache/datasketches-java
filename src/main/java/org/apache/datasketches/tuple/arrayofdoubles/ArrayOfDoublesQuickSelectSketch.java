@@ -19,13 +19,12 @@
 
 package org.apache.datasketches.tuple.arrayofdoubles;
 
-import static org.apache.datasketches.Util.REBUILD_THRESHOLD;
-import static org.apache.datasketches.Util.RESIZE_THRESHOLD;
-import static org.apache.datasketches.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 
-import org.apache.datasketches.QuickSelect;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.thetacommon.QuickSelect;
+import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
  * Top level class for hash table based implementations of tuple sketch of type
@@ -159,9 +158,9 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
 
   void setRebuildThreshold() {
     if (getCurrentCapacity() > getNominalEntries()) {
-      rebuildThreshold_ = (int) (getCurrentCapacity() * REBUILD_THRESHOLD);
+      rebuildThreshold_ = (int) (getCurrentCapacity() * ThetaUtil.REBUILD_THRESHOLD);
     } else {
-      rebuildThreshold_ = (int) (getCurrentCapacity() * RESIZE_THRESHOLD);
+      rebuildThreshold_ = (int) (getCurrentCapacity() * ThetaUtil.RESIZE_THRESHOLD);
     }
   }
 

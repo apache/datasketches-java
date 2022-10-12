@@ -23,7 +23,7 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -40,8 +40,8 @@ public class KllDirectCompactDoublesSketchTest {
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     Memory srcMem = Memory.wrap(byteArr);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 21.0);
+    assertEquals(sk2.getMinItem(), 1.0);
+    assertEquals(sk2.getMaxItem(), 21.0);
   }
 
   @Test
@@ -52,12 +52,12 @@ public class KllDirectCompactDoublesSketchTest {
     Memory srcMem = Memory.wrap(sk.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
     println(sk2.toString(true, true));
-    assertEquals(sk2.getMinValue(), 1.0);
-    assertEquals(sk2.getMaxValue(), 21.0);
+    assertEquals(sk2.getMinItem(), 1.0);
+    assertEquals(sk2.getMaxItem(), 21.0);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
     KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null);
-    assertEquals(sk3.getMinValue(), 1.0F);
-    assertEquals(sk3.getMaxValue(), 21.0F);
+    assertEquals(sk3.getMinItem(), 1.0F);
+    assertEquals(sk3.getMaxItem(), 21.0F);
   }
 
   @Test
@@ -66,12 +66,12 @@ public class KllDirectCompactDoublesSketchTest {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     sk.update(1);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getDoubleSingleValue(), 1.0);
+    assertEquals(sk2.getDoubleSingleItem(), 1.0);
     sk.update(2);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getN(), 2);
     try {
-      sk2.getDoubleSingleValue();
+      sk2.getDoubleSingleItem();
       fail();
     } catch (SketchesArgumentException e) { }
   }
@@ -82,18 +82,18 @@ public class KllDirectCompactDoublesSketchTest {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
 
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    double[] valuesArr = sk2.getDoubleValuesArray();
+    double[] valuesArr = sk2.getDoubleItemsArray();
     for (int i = 0; i < 20; i++) { assertEquals(valuesArr[i], 0F); }
 
     sk.update(1);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    valuesArr = sk2.getDoubleValuesArray();
+    valuesArr = sk2.getDoubleItemsArray();
     for (int i = 0; i < 19; i++) { assertEquals(valuesArr[i], 0F); }
     assertEquals(valuesArr[19], 1F);
 
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    valuesArr = sk2.getDoubleValuesArray();
+    valuesArr = sk2.getDoubleItemsArray();
     assertEquals(valuesArr.length, 33);
     assertEquals(valuesArr[22], 21);
     //for (int i = 0; i < valuesArr.length; i++) {
@@ -106,16 +106,16 @@ public class KllDirectCompactDoublesSketchTest {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertTrue(Double.isNaN(sk2.getMaxValue()));
-    assertTrue(Double.isNaN(sk2.getMinValue()));
+    assertTrue(Double.isNaN(sk2.getMaxItem()));
+    assertTrue(Double.isNaN(sk2.getMinItem()));
     sk.update(1);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),1.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
+    assertEquals(sk2.getMaxItem(),1.0F);
+    assertEquals(sk2.getMinItem(),1.0F);
     for (int i = 2; i <= 21; i++) { sk.update(i); }
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertEquals(sk2.getMaxValue(),21.0F);
-    assertEquals(sk2.getMinValue(),1.0F);
+    assertEquals(sk2.getMaxItem(),21.0F);
+    assertEquals(sk2.getMinItem(),1.0F);
   }
 
   @Test

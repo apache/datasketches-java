@@ -17,8 +17,4 @@
  * under the License.
  */
 
-/**
- * @author Lee Rhodes
- */
-
 package org.apache.datasketches.fdt;

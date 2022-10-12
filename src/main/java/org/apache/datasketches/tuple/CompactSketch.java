@@ -19,14 +19,14 @@
 
 package org.apache.datasketches.tuple;
 
-import static org.apache.datasketches.HashOperations.count;
+import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
 
-import org.apache.datasketches.ByteArrayUtil;
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.ByteArrayUtil;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -239,8 +239,8 @@ public class CompactSketch<S extends Summary> extends Sketch<S> {
   }
 
   @Override
-  public SketchIterator<S> iterator() {
-    return new SketchIterator<>(hashArr_, summaryArr_);
+  public TupleSketchIterator<S> iterator() {
+    return new TupleSketchIterator<>(hashArr_, summaryArr_);
   }
 
 }

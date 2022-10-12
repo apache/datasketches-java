@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.tuple;
 
-import org.apache.datasketches.Family;
-import org.apache.datasketches.SketchesArgumentException;
+import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -31,6 +31,7 @@ public final class SerializerDeserializer {
   /**
    * Defines the sketch classes that this SerializerDeserializer can handle.
    */
+  @SuppressWarnings("javadoc")
   public static enum SketchType { QuickSelectSketch, CompactSketch, ArrayOfDoublesQuickSelectSketch,
     ArrayOfDoublesCompactSketch, ArrayOfDoublesUnion }
 
