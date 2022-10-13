@@ -14,15 +14,15 @@ jobs:
         strategy:
           fail-fast: false
           matrix:
-              jdk: [ 8,11,12,13 ]
-	      os: [ windows-latest, ubuntu-latest ]
-	      include:
-	        - os: windows-latest
-		  skip_javadoc: `-Dmaven`.javadoc`.skip=true
-		  skip_gpg: `-Dgpg`.skip=true
-	        - os: ubuntu-latest
-		  skip_javadoc: -Dmaven.javadoc.skip=true
-		  skip_gpg: -Dgpg.skip=true
+            jdk: [ 8,11,12,13 ]
+            os: [ windows-latest, ubuntu-latest ]
+            include:
+              - os: windows-latest
+                skip_javadoc: `-Dmaven`.javadoc`.skip=true
+                skip_gpg: `-Dgpg`.skip=true
+              - os: ubuntu-latest
+                skip_javadoc: -Dmaven.javadoc.skip=true
+                skip_gpg: -Dgpg.skip=true
 
         env:
           JDK_VERSION: ${{ matrix.jdk }}
