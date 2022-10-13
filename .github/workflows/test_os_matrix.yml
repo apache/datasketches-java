@@ -10,11 +10,25 @@ env:
 jobs:
     build:
         name: Build, Test, Coverage
-        runs-on: windows-latest
+        runs-on: ${{matrix.os.os_name}}
         strategy:
           fail-fast: false
           matrix:
               jdk: [ 8,11,12,13 ]
+	      os:
+	      - {
+	          name: "Windows",
+		  os_name: windows-latest
+		  skip_javadoc: `-Dmaven`.javadoc`.skip=true
+		  skip_gpg: `-Dgpg`.skip=true
+		}
+	      - {
+	          name: "Ubuntu",
+		  os_name: ubuntu-latest
+		  skip_javadoc: -Dmaven.javadoc.skip=true
+		  skip_gpg: -Dgpg.skip=true
+		}
+	          
 
         env:
           JDK_VERSION: ${{ matrix.jdk }}
@@ -47,19 +61,19 @@ jobs:
         - name: Test
           run: >
               mvn clean test
-              -Dmaven.javadoc.skip=true
-              -Dgpg.skip=true
+              ${{matrix.os.skip_javadoc}}
+              ${{matrix.os.skip_gpg}}
 
         - name: Install Dependencies
           run: >
               mvn clean install -B -V -q
-              -DskipTests=true
-              -Dgpg.skip=true
+              -D skipTests=true
+              ${{matrix.os.skip_gpg}}
 
         - name: Report
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
               mvn verify coveralls:report -B -V -q
-              -Dcoveralls-repo-token=${repo_token}
-              -Dmaven.javadoc.skip=true
-              -Dgpg.skip=true
+              -D coveralls-repo-token=${repo_token}
+              ${{matrix.os.skip_javadoc}}
+              ${{matrix.os.skip_gpg}}
