@@ -10,25 +10,19 @@ env:
 jobs:
     build:
         name: Build, Test, Coverage
-        runs-on: ${{matrix.os.os_name}}
+        runs-on: ${{matrix.os}}
         strategy:
           fail-fast: false
           matrix:
               jdk: [ 8,11,12,13 ]
-	      os:
-	      - {
-	          name: "Windows",
-		  os_name: windows-latest
+	      os: [ windows-latest, ubuntu-latest ]
+	      include:
+	        - os: windows-latest
 		  skip_javadoc: `-Dmaven`.javadoc`.skip=true
 		  skip_gpg: `-Dgpg`.skip=true
-		}
-	      - {
-	          name: "Ubuntu",
-		  os_name: ubuntu-latest
+	        - os: ubuntu-latest
 		  skip_javadoc: -Dmaven.javadoc.skip=true
 		  skip_gpg: -Dgpg.skip=true
-		}
-	          
 
         env:
           JDK_VERSION: ${{ matrix.jdk }}
