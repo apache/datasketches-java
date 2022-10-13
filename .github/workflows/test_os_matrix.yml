@@ -1,0 +1,65 @@
+name: Test Java with OS Matrix
+
+on:
+    workflow_dispatch:
+        
+env:
+    MAVEN_OPTS: -Xmx4g -Xms1g
+    repo_token: ${{secrets.coveralls_token}}
+
+jobs:
+    build:
+        name: Build, Test, Coverage
+        runs-on: windows-latest
+        strategy:
+          fail-fast: false
+          matrix:
+              jdk: [ 8,11,12,13 ]
+
+        env:
+          JDK_VERSION: ${{ matrix.jdk }}
+
+        steps:
+        - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
+          uses: actions/checkout@v2
+          with:
+              persist-credentials: false
+
+        - name: Cache local Maven repository
+          uses: actions/cache@v2
+          with:
+              path: ~/.m2/repository
+              key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+              restore-keys: build-${{ runner.os }}-maven-
+
+        - name: Install Matrix JDK
+          uses: AdoptOpenJDK/install-jdk@v1
+          with:
+              version: ${{ matrix.jdk }}
+              architecture: x64
+              impl: hotspot
+              targets: 'JAVA_HOME'
+
+        - name: Echo Java Version
+          run: >
+              java -version
+
+        - name: Test
+          run: >
+              mvn clean test
+              -Dmaven.javadoc.skip=true
+              -Dgpg.skip=true
+
+        - name: Install Dependencies
+          run: >
+              mvn clean install -B -V -q
+              -DskipTests=true
+              -Dgpg.skip=true
+
+        - name: Report
+          if: ${{ matrix.jdk == 8 && success() }}
+          run: >
+              mvn verify coveralls:report -B -V -q
+              -Dcoveralls-repo-token=${repo_token}
+              -Dmaven.javadoc.skip=true
+              -Dgpg.skip=true
