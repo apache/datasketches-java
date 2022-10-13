@@ -5,7 +5,7 @@ on:
         
 env:
     MAVEN_OPTS: -Xmx4g -Xms1g
-    repo_token: ${{secrets.coveralls_token}}
+    #repo_token: ${{secrets.coveralls_token}}
 
 jobs:
     build:
@@ -69,6 +69,6 @@ jobs:
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
               mvn verify coveralls:report -B -V -q
-              -D coveralls-repo-token=${{secrets.coveralls_token}}
+              -DrepoToken=${{secrets.coveralls_token}}
               ${{matrix.os.skip_javadoc}}
               ${{matrix.os.skip_gpg}}
