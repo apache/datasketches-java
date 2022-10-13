@@ -14,7 +14,8 @@ jobs:
         strategy:
           fail-fast: false
           matrix:
-            jdk: [ 8,11,12,13 ]
+            #jdk: [ 8,11,12,13 ]
+            jdk: [ 8 ]
             os: [ windows-latest, ubuntu-latest ]
             include:
               - os: windows-latest
@@ -68,6 +69,6 @@ jobs:
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
               mvn verify coveralls:report -B -V -q
-              -D coveralls-repo-token=${repo_token}
+              -D coveralls-repo-token=${{repo_token}}
               ${{matrix.os.skip_javadoc}}
               ${{matrix.os.skip_gpg}}
