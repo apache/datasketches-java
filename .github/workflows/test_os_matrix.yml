@@ -69,6 +69,6 @@ jobs:
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
               mvn verify coveralls:report -B -V -q
-              -D coveralls-repo-token=${{repo_token}}
+              -D coveralls-repo-token="${repo_token}"
               ${{matrix.os.skip_javadoc}}
               ${{matrix.os.skip_gpg}}
