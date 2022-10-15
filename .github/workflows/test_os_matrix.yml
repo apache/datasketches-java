@@ -5,7 +5,6 @@ on:
         
 env:
     MAVEN_OPTS: -Xmx4g -Xms1g
-    #repo_token: ${{secrets.coveralls_token}}
 
 jobs:
     build:
@@ -16,12 +15,16 @@ jobs:
           matrix:
             #jdk: [ 8,11,12,13 ]
             jdk: [ 8 ]
-            os: [ windows-latest, ubuntu-latest ]
+            # OS options: windows-latest, ubuntu-latest, macos-latest
+            os: [ windows-latest, ubuntu-latest, macos-latest ]
             include:
               - os: windows-latest
                 skip_javadoc: "`-Dmaven`.javadoc`.skip=true"
                 skip_gpg: "`-Dgpg`.skip=true"
               - os: ubuntu-latest
+                skip_javadoc: -Dmaven.javadoc.skip=true
+                skip_gpg: -Dgpg.skip=true
+              - os: macos-latest
                 skip_javadoc: -Dmaven.javadoc.skip=true
                 skip_gpg: -Dgpg.skip=true
 
@@ -30,12 +33,12 @@ jobs:
 
         steps:
         - name: "Checkout ${{ github.ref }} ( ${{ github.sha }} )"
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
           with:
               persist-credentials: false
 
         - name: Cache local Maven repository
-          uses: actions/cache@v2
+          uses: actions/cache@v3
           with:
               path: ~/.m2/repository
               key: build-${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
@@ -61,6 +64,7 @@ jobs:
 
         - name: Install Dependencies
           run: >
+              #-B batch mode, -V show Version without stoppping, -q quiet, only show errors
               mvn clean install -B -V -q
               -D skipTests=true
               ${{matrix.os.skip_gpg}}
@@ -68,6 +72,9 @@ jobs:
         - name: Report
           if: ${{ matrix.jdk == 8 && success() }}
           run: >
+              #Lifecycle:validate,compile,test,package,verify,install,deploy
+              #test and coverage reports are available after the verify phase
+              #Javadocs are available after compile
               mvn verify coveralls:report -B -V -q
               -DrepoToken=${{secrets.coveralls_token}}
               ${{matrix.os.skip_javadoc}}
