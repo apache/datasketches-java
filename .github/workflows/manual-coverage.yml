@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
 
 env:
-    MAVEN_OPTS: -Xmx4g -Xms1g #for JVM
+    MAVEN_OPTS: -Xmx4g -Xms1g # for JVM
 
 jobs:
     build:
@@ -13,18 +13,18 @@ jobs:
         strategy:
           fail-fast: false
           matrix:
-            jdk: [ 8 ] # must include 8
+            jdk: [ 8 ]
             os: [ ubuntu-latest ]
             include:
-              - os: macos-latest
-                skip_javadoc: -Dmaven.javadoc.skip=true
-                skip_gpg: -Dgpg.skip=true
+#              - os: windows-latest
+#                skip_javadoc: "`-Dmaven`.javadoc`.skip=true"
+#                skip_gpg: "`-Dgpg`.skip=true"
               - os: ubuntu-latest
                 skip_javadoc: -Dmaven.javadoc.skip=true
                 skip_gpg: -Dgpg.skip=true
-              - os: windows-latest
-                skip_javadoc: "`-Dmaven`.javadoc`.skip=true"
-                skip_gpg: "`-Dgpg`.skip=true"
+#              - os: macos-latest
+#                skip_javadoc: -Dmaven.javadoc.skip=true
+#                skip_gpg: -Dgpg.skip=true
 
         env:
           JDK_VERSION: ${{ matrix.jdk }}
@@ -48,8 +48,8 @@ jobs:
               java-version: ${{ matrix.jdk }}
               distribution: 'temurin'
               java-package: jdk
-              architecture: x64 #options: x86, x64, armv7, aarch64, ppc64le
-              #cache #option
+              architecture: x64 # options: x86, x64, armv7, aarch64, ppc64le
+              # cache #option
 
         - name: Echo Java Version
           run: >
