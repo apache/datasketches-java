@@ -1,21 +1,19 @@
-name: Test Java with OS Matrix
+name: DataSketches-Java Manual OS Matrix Test & Install
 
 on:
     workflow_dispatch:
-        
+
 env:
-    MAVEN_OPTS: -Xmx4g -Xms1g
+    MAVEN_OPTS: -Xmx4g -Xms1g #for JVM
 
 jobs:
     build:
-        name: Build, Test, Coverage
+        name: Build, Test, Install
         runs-on: ${{matrix.os}}
         strategy:
           fail-fast: false
           matrix:
-            #jdk: [ 8,11,12,13 ]
             jdk: [ 8 ]
-            # OS options: windows-latest, ubuntu-latest, macos-latest
             os: [ windows-latest, ubuntu-latest, macos-latest ]
             include:
               - os: windows-latest
@@ -45,12 +43,13 @@ jobs:
               restore-keys: build-${{ runner.os }}-maven-
 
         - name: Install Matrix JDK
-          uses: AdoptOpenJDK/install-jdk@v1
+          uses: actions/setup-java@v3
           with:
-              version: ${{ matrix.jdk }}
-              architecture: x64
-              impl: hotspot
-              targets: 'JAVA_HOME'
+              java-version: ${{ matrix.jdk }}
+              distribution: 'temurin'
+              java-package: jdk
+              architecture: x64 #options: x86, x64, armv7, aarch64, ppc64le
+              #cache #option
 
         - name: Echo Java Version
           run: >
@@ -62,20 +61,13 @@ jobs:
               ${{matrix.os.skip_javadoc}}
               ${{matrix.os.skip_gpg}}
 
-        - name: Install Dependencies
+        - name: Install
           run: >
-              #-B batch mode, -V show Version without stoppping, -q quiet, only show errors
-              mvn clean install -B -V -q
+              # -B batch mode
+              # -V show Version without stoppping
+              # -q quiet, only show errors
+              mvn clean install -B -q
+              ${{matrix.os.skip_javadoc}}
               -D skipTests=true
               ${{matrix.os.skip_gpg}}
 
-        - name: Report
-          if: ${{ matrix.jdk == 8 && success() }}
-          run: >
-              #Lifecycle:validate,compile,test,package,verify,install,deploy
-              #test and coverage reports are available after the verify phase
-              #Javadocs are available after compile
-              mvn verify coveralls:report -B -V -q
-              -DrepoToken=${{secrets.coveralls_token}}
-              ${{matrix.os.skip_javadoc}}
-              ${{matrix.os.skip_gpg}}

@@ -1,4 +1,4 @@
-name: Java Test Coverage with Maven, Coveralls
+name: DataSketches-Java Auto JDK Matrix Test & Install
 
 on:
     pull_request:
@@ -7,18 +7,16 @@ on:
     workflow_dispatch:
 
 env:
-    MAVEN_OPTS: -Xmx4g -Xms1g
-    repo_token: ${{secrets.coveralls_token}}
+    MAVEN_OPTS: -Xmx4g -Xms1g #for JVM
 
 jobs:
     build:
-        name: Build, Test, Coverage
+        name: Build, Test, Install
         runs-on: ubuntu-latest
         strategy:
           fail-fast: false
           matrix:
-              #jdk: [ 8,11,12,13 ]
-              jdk: [ 8 ]
+              jdk: [ 8,11 ]
         env:
           JDK_VERSION: ${{ matrix.jdk }}
 
@@ -43,8 +41,6 @@ jobs:
               java-package: jdk
               architecture: x64 #options: x86, x64, armv7, aarch64, ppc64le
               #cache #option
-              #impl: hotspot #deprecated
-              #targets: 'JAVA_HOME' #deprecated
 
         - name: Echo Java Version
           run: >
@@ -56,16 +52,9 @@ jobs:
               -Dmaven.javadoc.skip=true
               -Dgpg.skip=true
 
-        - name: Install Dependencies
+        - name: Install
           run: >
-              mvn clean install -B -V -q
+              mvn clean install -B -q
               -DskipTests=true
               -Dgpg.skip=true
 
-        - name: Report
-          if: ${{ matrix.jdk == 8 && success() }}
-          run: >
-              mvn verify coveralls:report -B -V -q
-              -Dcoveralls-repo-token=${repo_token}
-              -Dmaven.javadoc.skip=true
-              -Dgpg.skip=true
