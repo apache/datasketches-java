@@ -13,7 +13,7 @@ jobs:
         strategy:
           fail-fast: false
           matrix:
-            jdk: [ 8 ]
+            jdk: [ 8, 11 ]
             os: [ windows-latest, ubuntu-latest, macos-latest ]
             include:
               - os: windows-latest
