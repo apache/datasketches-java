@@ -55,7 +55,7 @@ jobs:
 
         - name: Install
           run: >
-              mvn clean install -B -q
+              mvn clean install -B
               -DskipTests=true
               -Dgpg.skip=true
 

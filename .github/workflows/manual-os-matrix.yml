@@ -64,7 +64,7 @@ jobs:
 
         - name: Install
           run: >
-              mvn clean install -B -q
+              mvn clean install -B
               ${{matrix.os.skip_javadoc}}
               -D skipTests=true
               ${{matrix.os.skip_gpg}}
