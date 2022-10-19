@@ -581,7 +581,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQisSV.getRank(quantile, searchCrit);
   }
@@ -634,7 +634,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    */
   @Deprecated
   public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     final int len = quantiles.length;
     final double[] ranks = new double[len];
