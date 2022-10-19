@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.req;
 
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesFloatsAPI;
@@ -90,7 +92,7 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Deprecated
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
         searchCrit);
   }

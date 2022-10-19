@@ -24,8 +24,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.util.Objects;
-
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -108,7 +106,7 @@ public class KllMiscDoublesTest {
   @Test
   public void checkMisc() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(8);
-    assertTrue(Objects.isNull(sk.getQuantiles(10)));
+    try { sk.getQuantiles(10); fail(); } catch (IllegalArgumentException e) {}
     sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
     sk.toString(true, true);

@@ -29,12 +29,11 @@ import static org.testng.Assert.fail;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class DirectUpdateDoublesSketchTest {
 
 
@@ -109,8 +108,8 @@ public class DirectUpdateDoublesSketchTest {
     assertTrue(s2.isEmpty());
 
     assertEquals(s2.getN(), 0);
-    assertTrue(Double.isNaN(s2.getMinItem()));
-    assertTrue(Double.isNaN(s2.getMaxItem()));
+    assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));
+    assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMaxItem()));
 
     s2.reset(); // empty: so should be a no-op
     assertEquals(s2.getN(), 0);

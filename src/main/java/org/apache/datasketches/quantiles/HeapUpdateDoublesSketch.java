@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.MAX_DOUBLE;
@@ -29,10 +33,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Arrays;
 
@@ -51,14 +52,14 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
-   * The smallest quantile ever seen in the stream.
+   * The smallest item ever seen in the stream.
    */
-  private double minQuantile_;
+  private double minItem_;
 
   /**
-   * The largest quantile ever seen in the stream.
+   * The largest item ever seen in the stream.
    */
-  private double maxQuantile_;
+  private double maxItem_;
 
   /**
    * The total count of items seen.
@@ -66,7 +67,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   private long n_;
 
   /**
-   * Number of quantiles currently in base buffer.
+   * Number of items currently in base buffer.
    *
    * <p>Count = N % (2*K)</p>
    */
@@ -85,7 +86,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    * A level is of size K and is either full and sorted, or not used. A "not used" buffer may have
    * garbage. Whether a level buffer used or not is indicated by the bitPattern_.
    * The base buffer has length 2*K but might not be full and isn't necessarily sorted.
-   * The base buffer precedes the level buffers. This buffer does not include the min, max quantiles.
+   * The base buffer precedes the level buffers. This buffer does not include the min, max items.
    *
    * <p>The levels arrays require quite a bit of explanation, which we defer until later.</p>
    */
@@ -110,8 +111,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     hqs.combinedBuffer_ = new double[baseBufAlloc];
     hqs.baseBufferCount_ = 0;
     hqs.bitPattern_ = 0;
-    hqs.minQuantile_ = Double.NaN;
-    hqs.maxQuantile_ = Double.NaN;
+    hqs.minItem_ = Double.NaN;
+    hqs.maxItem_ = Double.NaN;
     return hqs;
   }
 
@@ -164,12 +165,14 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
   @Override
   public double getMaxItem() {
-    return maxQuantile_;
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return maxItem_;
   }
 
   @Override
   public double getMinItem() {
-    return minQuantile_;
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return minItem_;
   }
 
   @Override
@@ -199,8 +202,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     combinedBuffer_ = new double[combinedBufferItemCapacity];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
-    minQuantile_ = Double.NaN;
-    maxQuantile_ = Double.NaN;
+    minItem_ = Double.NaN;
+    maxItem_ = Double.NaN;
   }
 
   @Override
@@ -208,11 +211,11 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     if (Double.isNaN(dataItem)) { return; }
 
     if (n_ == 0) {
-      putMaxQuantile(dataItem);
-      putMinQuantile(dataItem);
+      putMaxItem(dataItem);
+      putMinItem(dataItem);
     } else {
-      if (dataItem > getMaxItem()) { putMaxQuantile(dataItem); }
-      if (dataItem < getMinItem()) { putMinQuantile(dataItem); }
+      if (dataItem > getMaxItem()) { putMaxItem(dataItem); }
+      if (dataItem < getMinItem()) { putMinItem(dataItem); }
     }
 
     //don't increment n_ and baseBufferCount_ yet
@@ -284,8 +287,8 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final long n = getN();
     final double[] combinedBuffer = new double[combBufCap]; //always non-compact
     //Load min, max
-    putMinQuantile(srcMem.getDouble(MIN_DOUBLE));
-    putMaxQuantile(srcMem.getDouble(MAX_DOUBLE));
+    putMinItem(srcMem.getDouble(MIN_DOUBLE));
+    putMaxItem(srcMem.getDouble(MAX_DOUBLE));
 
     if (srcIsCompact) {
       //Load base buffer
@@ -345,13 +348,13 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   //Puts
 
   @Override
-  void putMinQuantile(final double minQuantile) {
-    minQuantile_ = minQuantile;
+  void putMinItem(final double minItem) {
+    minItem_ = minItem;
   }
 
   @Override
-  void putMaxQuantile(final double maxQuantile) {
-    maxQuantile_ = maxQuantile;
+  void putMaxItem(final double maxItem) {
+    maxItem_ = maxItem;
   }
 
   @Override

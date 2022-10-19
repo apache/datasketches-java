@@ -23,10 +23,10 @@ import static org.apache.datasketches.quantilescommon.InequalitySearch.GE;
 import static org.apache.datasketches.quantilescommon.InequalitySearch.GT;
 import static org.apache.datasketches.quantilescommon.InequalitySearch.LE;
 import static org.apache.datasketches.quantilescommon.InequalitySearch.LT;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"unused","javadoc"})
+@SuppressWarnings("unused")
 public class ReqSketchOtherTest {
   final ReqSketchTest reqSketchTest = new ReqSketchTest();
   static InequalitySearch critLT = LT;
@@ -177,12 +177,12 @@ public class ReqSketchOtherTest {
   public void checkEmpty() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
     final ReqSketch sk = bldr.build();
-    assertEquals(sk.getRank(1f), Double.NaN);
-    assertNull(sk.getRanks(new float[] { 1f }));
-    assertEquals(sk.getQuantile(0.5), Float.NaN);
-    assertNull(sk.getQuantiles(new double[] {0.5}));
-    assertNull(sk.getPMF(new float[] { 1f }));
-    assertNull(sk.getCDF(new float[] { 1f }));
+    try { sk.getRank(1f); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getRanks(new float[] {1f}); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getQuantiles(new double[] {0.5}); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getPMF(new float[] {1f}); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getCDF(new float[] {1f}); fail(); } catch (IllegalArgumentException e) {}
     assertTrue(BaseReqSketch.getRSE(50, 0.5, true, 0) > 0);
     assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
   }

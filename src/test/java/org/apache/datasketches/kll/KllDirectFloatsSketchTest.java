@@ -23,7 +23,6 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXC
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -49,12 +48,13 @@ public class KllDirectFloatsSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    assertTrue(Double.isNaN(sketch.getRank(0)));
-    assertTrue(Float.isNaN(sketch.getMinItem()));
-    assertTrue(Float.isNaN(sketch.getMaxItem()));
-    assertTrue(Float.isNaN(sketch.getQuantile(0.5)));
-    assertNull(sketch.getQuantiles(new double[] {0}));
-    assertNull(sketch.getPMF(new float[] {0}));
+    try { sketch.getRank(0.5f); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0.0, 1.0}); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getPMF(new float[0]); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getCDF(new float[0]); fail(); } catch (IllegalArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
@@ -112,17 +112,17 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
 
     // check at every 0.1 percentage point
-    final double[] fractions = new double[1001];
-    final double[] reverseFractions = new double[1001]; // check that ordering doesn't matter
+    final double[] ranks = new double[1001];
+    final double[] reverseRanks = new double[1001]; // check that ordering doesn't matter
     for (int i = 0; i <= 1000; i++) {
-      fractions[i] = (double) i / 1000;
-      reverseFractions[1000 - i] = fractions[i];
+      ranks[i] = (double) i / 1000;
+      reverseRanks[1000 - i] = ranks[i];
     }
-    final float[] quantiles = sketch.getQuantiles(fractions);
-    final float[] reverseQuantiles = sketch.getQuantiles(reverseFractions);
-    double previousQuantile = 0;
+    final float[] quantiles = sketch.getQuantiles(ranks);
+    final float[] reverseQuantiles = sketch.getQuantiles(reverseRanks);
+    float previousQuantile = 0f;
     for (int i = 0; i <= 1000; i++) {
-      final double quantile = sketch.getQuantile(fractions[i]);
+      final float quantile = sketch.getQuantile(ranks[i]);
       assertEquals(quantile, quantiles[i]);
       assertEquals(quantile, reverseQuantiles[1000 - i]);
       assertTrue(previousQuantile <= quantile);
@@ -318,8 +318,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isNaN(sketch2.getMinItem()));
-    assertTrue(Double.isNaN(sketch2.getMaxItem()));
+    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -334,8 +334,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isNaN(sketch2.getMinItem()));
-    assertTrue(Double.isNaN(sketch2.getMaxItem()));
+    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -350,8 +350,9 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinItem()));
-    assertFalse(Double.isNaN(sketch2.getMaxItem()));
+    assertTrue(Float.isFinite(sketch2.getMinItem()));
+    assertTrue(Float.isFinite(sketch2.getMinItem()));
+    assertTrue(Float.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Float.BYTES);
   }
 
@@ -367,8 +368,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinItem()));
-    assertFalse(Double.isNaN(sketch2.getMaxItem()));
+    assertTrue(Float.isFinite(sketch2.getMinItem()));
+    assertTrue(Float.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Float.BYTES);
   }
 
@@ -466,14 +467,14 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void checkSketchInitializeDirectDoubleUpdatableMem() {
+  public void checkSketchInitializeDirectFloatUpdatableMem() {
     int k = 20; //don't change this
     KllFloatsSketch sk;
     KllFloatsSketch sk2;
     byte[] compBytes;
     WritableMemory wmem;
 
-    println("#### CASE: DOUBLE FULL DIRECT FROM UPDATABLE");
+    println("#### CASE: FLOAT FULL DIRECT FROM UPDATABLE");
     sk2 = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
@@ -494,7 +495,7 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: DOUBLE EMPTY HEAPIFIED FROM UPDATABLE");
+    println("#### CASE: FLOAT EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = KllFloatsSketch.newHeapInstance(k);
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
@@ -509,12 +510,12 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), Double.NaN);
-    assertEquals(sk.getMinFloatItem(), Double.NaN);
+    try { sk.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
-    println("#### CASE: DOUBLE SINGLE HEAPIFIED FROM UPDATABLE");
+    println("#### CASE: FLOAT SINGLE HEAPIFIED FROM UPDATABLE");
     sk2 = KllFloatsSketch.newHeapInstance(k);
     sk2.update(1);
     //println(sk.toString(true, true));
@@ -636,8 +637,8 @@ public class KllDirectFloatsSketchTest {
     try { sk2.setFloatItemsArray(fltArr);      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setFloatItemsArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);        fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxFloatItem(fltV);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinFloatItem(fltV);          fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxFloatItem(fltV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinFloatItem(fltV);           fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }

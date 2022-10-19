@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
@@ -41,9 +44,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertMinDouble;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Arrays;
 
@@ -162,12 +163,14 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
   @Override
   public double getMaxItem() {
-    return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
   public double getMinItem() {
-    return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return mem_.getDouble(MIN_DOUBLE);
   }
 
   @Override

@@ -23,7 +23,6 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXC
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -37,7 +36,7 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings({"unused","javadoc"})
+@SuppressWarnings("unused")
 public class ReqSketchTest {
   private static final String LS = System.getProperty("line.separator");
 
@@ -289,8 +288,14 @@ public class ReqSketchTest {
     final Memory mem = Memory.wrap(sk1Arr);
     final ReqSketch sk2 = ReqSketch.heapify(mem);
     assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
-    assertEquals(sk2.getMinItem(), sk1.getMinItem());
-    assertEquals(sk2.getMaxItem(), sk1.getMaxItem());
+    assertEquals(sk1.isEmpty(), sk2.isEmpty());
+    if (sk2.isEmpty()) {
+      try { sk2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+      try { sk2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    } else {
+      assertEquals(sk2.getMinItem(), sk1.getMinItem());
+      assertEquals(sk2.getMaxItem(), sk1.getMaxItem());
+    }
     assertEquals(sk2.getN(), sk1.getN());
     assertEquals(sk2.getHighRankAccuracyMode(),sk1.getHighRankAccuracyMode());
     assertEquals(sk2.getK(), sk1.getK());

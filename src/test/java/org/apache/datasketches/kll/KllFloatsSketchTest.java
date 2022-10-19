@@ -25,7 +25,6 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -52,12 +51,13 @@ public class KllFloatsSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    assertTrue(Double.isNaN(sketch.getRank(0)));
-    assertTrue(Float.isNaN(sketch.getMinItem()));
-    assertTrue(Float.isNaN(sketch.getMaxItem()));
-    assertTrue(Float.isNaN(sketch.getQuantile(0.5)));
-    assertNull(sketch.getQuantiles(new double[] {0}));
-    assertNull(sketch.getPMF(new float[] {0}));
+    try { sketch.getRank(0); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getPMF(new float[] {0}); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getCDF(new float[] {0}); fail(); } catch (IllegalArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
@@ -405,8 +405,8 @@ public class KllFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Float.isNaN(sketch2.getMinItem()));
-    assertTrue(Float.isNaN(sketch2.getMaxItem()));
+    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 

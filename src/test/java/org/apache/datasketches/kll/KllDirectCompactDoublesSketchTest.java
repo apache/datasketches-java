@@ -20,7 +20,6 @@
 package org.apache.datasketches.kll;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -106,8 +105,8 @@ public class KllDirectCompactDoublesSketchTest {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    assertTrue(Double.isNaN(sk2.getMaxItem()));
-    assertTrue(Double.isNaN(sk2.getMinItem()));
+    try { sk2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sk2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     sk.update(1);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getMaxItem(),1.0F);

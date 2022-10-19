@@ -151,6 +151,8 @@ final class ItemsUtil {
       final String epsPctStr = String.format("%.3f%%", eps * 100.0);
       final int numSamples = sketch.getNumRetained();
       final String numSampStr = String.format("%,d", numSamples);
+      final T minItem = sketch.isEmpty() ? null : sketch.getMinItem();
+      final T maxItem = sketch.isEmpty() ? null : sketch.getMaxItem();
       sb.append(ClassicUtil.LS).append("### ").append(thisSimpleName).append(" SUMMARY: ").append(ClassicUtil.LS);
       sb.append("   K                            : ").append(k).append(ClassicUtil.LS);
       sb.append("   N                            : ").append(nStr).append(ClassicUtil.LS);
@@ -165,8 +167,8 @@ final class ItemsUtil {
       sb.append("   Preamble Bytes               : ").append(preBytes).append(ClassicUtil.LS);
       sb.append("   Normalized Rank Error        : ").append(epsPctStr).append(LS);
       sb.append("   Normalized Rank Error (PMF)  : ").append(epsPmfPctStr).append(LS);
-      sb.append("   Min Quantile                 : ").append(sketch.getMinItem()).append(ClassicUtil.LS);
-      sb.append("   Max Quantile                 : ").append(sketch.getMaxItem()).append(ClassicUtil.LS);
+      sb.append("   Min Quantile                 : ").append(minItem).append(ClassicUtil.LS);
+      sb.append("   Max Quantile                 : ").append(maxItem).append(ClassicUtil.LS);
       sb.append("### END SKETCH SUMMARY").append(ClassicUtil.LS);
     }
     return sb.toString();

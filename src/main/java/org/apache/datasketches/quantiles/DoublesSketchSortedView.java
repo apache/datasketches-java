@@ -22,6 +22,7 @@ package org.apache.datasketches.quantiles;
 import static java.lang.System.arraycopy;
 import static org.apache.datasketches.quantiles.DoublesSketchAccessor.BB_LVL_IDX;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Arrays;
 
@@ -79,6 +80,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
@@ -93,6 +95,7 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
 
   @Override
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     final int len = quantiles.length;
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
@@ -110,6 +113,11 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
   @Override
   public double[] getQuantiles() {
     return quantiles.clone();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return totalN == 0;
   }
 
   @Override

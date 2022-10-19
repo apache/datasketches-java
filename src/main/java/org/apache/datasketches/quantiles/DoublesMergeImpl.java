@@ -126,8 +126,8 @@ final class DoublesMergeImpl {
     double tgtMin = tgt.getMinItem();
     tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
-    tgt.putMaxQuantile(Math.max(srcMax, tgtMax));
-    tgt.putMinQuantile(Math.min(srcMin, tgtMin));
+    tgt.putMaxItem(Math.max(srcMax, tgtMax));
+    tgt.putMinItem(Math.min(srcMin, tgtMin));
   }
 
   /**
@@ -216,8 +216,8 @@ final class DoublesMergeImpl {
     double tgtMin = tgt.getMinItem();
     tgtMin = Double.isNaN(tgtMin) ? Double.POSITIVE_INFINITY : tgtMin;
 
-    if (srcMax > tgtMax) { tgt.putMaxQuantile(srcMax); }
-    if (srcMin < tgtMin) { tgt.putMinQuantile(srcMin); }
+    if (srcMax > tgtMax) { tgt.putMaxItem(srcMax); }
+    if (srcMin < tgtMin) { tgt.putMinItem(srcMin); }
   }
 
   private static void justZipWithStride(

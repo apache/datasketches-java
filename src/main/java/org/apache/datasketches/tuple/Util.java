@@ -153,7 +153,7 @@ public final class Util {
     return tmpSummaryArr;
   }
 
-  @SuppressWarnings({"unchecked", "javadoc"})
+  @SuppressWarnings("unchecked")
   public static <S extends Summary> S[] newSummaryArray(final S[] summaryArr, final int length) {
     final Class<S> summaryType = (Class<S>) summaryArr.getClass().getComponentType();
     final S[] tmpSummaryArr = (S[]) Array.newInstance(summaryType, length);

@@ -20,14 +20,15 @@
 package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.floor;
-import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
-import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
-import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
+import static org.apache.datasketches.quantiles.HeapUpdateDoublesSketch.checkPreLongsFlagsSerVer;
+import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
+import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -436,13 +437,9 @@ public class HeapUpdateDoublesSketchTest {
     assertTrue(qs2.isEmpty());
     final int expectedSizeBytes = 8; //COMBINED_BUFFER + ((2 * MIN_K) << 3);
     assertEquals(byteArr.length, expectedSizeBytes);
-    assertTrue(Double.isNaN(qs2.getQuantile(0.0)));
-    assertTrue(Double.isNaN(qs2.getQuantile(1.0)));
-    assertTrue(Double.isNaN(qs2.getQuantile(0.5)));
-    double[] quantiles = qs2.getQuantiles(new double[] {0.0, 0.5, 1.0});
-    assertNull(quantiles);
-    assertTrue(Double.isNaN(qs2.getRank(0)));
-    //println(qs1.toString(true, true));
+    try { qs2.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) { }
+    try { qs2.getQuantiles(new double[] {0.0, 0.5, 1.0}); fail(); } catch (IllegalArgumentException e) { }
+    try { qs2.getRank(0); fail(); } catch (IllegalArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -567,7 +564,7 @@ public class HeapUpdateDoublesSketchTest {
     HeapUpdateDoublesSketch sketch2 = HeapUpdateDoublesSketch.newInstance(2);
     DoublesSketch downSketch;
     downSketch = sketch1.downSample(sketch1, 2, null);
-    assertTrue(sameStructurePredicate (sketch2, downSketch));
+    assertTrue(sameStructurePredicate(sketch2, downSketch));
     for (int i = 0; i < 50; i++) {
       sketch1.update (i);
       sketch2.update (i);
@@ -1034,8 +1031,7 @@ public class HeapUpdateDoublesSketchTest {
 
     final boolean b2;
     if (mq1.isEmpty()) {
-      b2 = (Double.isNaN(mq1.getMinItem())) && (Double.isNaN(mq2.getMinItem())
-        &&  Double.isNaN(mq1.getMaxItem())) && (Double.isNaN(mq2.getMaxItem()));
+      b2 = mq2.isEmpty();
     } else {
       b2 =  (mq1.getMinItem() == mq2.getMinItem()) && (mq1.getMaxItem() == mq2.getMaxItem());
     }

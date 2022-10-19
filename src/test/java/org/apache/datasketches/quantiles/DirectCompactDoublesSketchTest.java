@@ -22,18 +22,17 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.quantiles.ClassicUtil.LS;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotEquals;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 public class DirectCompactDoublesSketchTest {
 
@@ -101,8 +100,8 @@ public class DirectCompactDoublesSketchTest {
     final DoublesSketch s2 = DoublesSketch.wrap(mem);
     assertTrue(s2.isEmpty());
     assertEquals(s2.getN(), 0);
-    assertTrue(Double.isNaN(s2.getMinItem()));
-    assertTrue(Double.isNaN(s2.getMaxItem()));
+    assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMinItem()));
+    assertTrue(Double.isNaN(s2.isEmpty() ? Double.NaN : s2.getMaxItem()));
   }
 
   @SuppressWarnings("deprecation")
@@ -110,12 +109,8 @@ public class DirectCompactDoublesSketchTest {
   public void checkEmpty() {
     final int k = PreambleUtil.DEFAULT_K;
     final DirectCompactDoublesSketch qs1 = buildAndLoadDCQS(k, 0);
-    assertTrue(Double.isNaN(qs1.getQuantile(0.0)));
-    assertTrue(Double.isNaN(qs1.getQuantile(1.0)));
-    assertTrue(Double.isNaN(qs1.getQuantile(0.5)));
-    final double[] quantiles = qs1.getQuantiles(new double[] {0.0, 0.5, 1.0});
-    assertNull(quantiles);
-
+    try { qs1.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
+    try { qs1.getQuantiles(new double[] {0.0, 0.5, 1.0}); fail(); } catch (IllegalArgumentException e) {}
     final double[] combinedBuffer = qs1.getCombinedBuffer();
     assertEquals(combinedBuffer.length, 2 * k);
     assertNotEquals(combinedBuffer.length, qs1.getCombinedBufferItemCapacity());

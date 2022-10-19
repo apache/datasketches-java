@@ -19,11 +19,10 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.*;
+import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -49,12 +48,12 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    assertTrue(Double.isNaN(sketch.getRank(0)));
-    assertTrue(Double.isNaN(sketch.getMinItem()));
-    assertTrue(Double.isNaN(sketch.getMaxItem()));
-    assertTrue(Double.isNaN(sketch.getQuantile(0.5)));
-    assertNull(sketch.getQuantiles(new double[] {0}));
-    assertNull(sketch.getPMF(new double[] {0}));
+    try { sketch.getRank(0); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getPMF(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
@@ -319,8 +318,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isNaN(sketch2.getMinItem()));
-    assertTrue(Double.isNaN(sketch2.getMaxItem()));
+    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 
@@ -335,8 +334,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isNaN(sketch2.getMinItem()));
-    assertTrue(Double.isNaN(sketch2.getMaxItem()));
+    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), sketch1.getCurrentCompactSerializedSizeBytes());
   }
 

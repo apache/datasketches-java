@@ -40,15 +40,22 @@ package org.apache.datasketches.quantilescommon;
 public interface SortedView {
 
   /**
+   * Returns the array of cumulative weights
+   * @return the array of cumulative weights
+   */
+  long[] getCumulativeWeights();
+
+  /**
+   * Returns true if this sorted view is empty.
+   * @return true if this sorted view is empty.
+   */
+  boolean isEmpty();
+
+  /**
    * Returns an iterator for this Sorted View.
    * @return an iterator for this Sorted View.
    */
   SortedViewIterator iterator();
 
-  /**
-   * Returns the array of cumulative weights
-   * @return the array of cumulative weights
-   */
-  long[] getCumulativeWeights();
 }
 

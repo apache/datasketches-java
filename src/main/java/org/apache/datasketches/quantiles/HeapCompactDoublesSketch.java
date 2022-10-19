@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.MAX_DOUBLE;
@@ -30,9 +33,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Arrays;
 
@@ -50,14 +51,14 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   static final int MIN_HEAP_DOUBLES_SER_VER = 1;
 
   /**
-   * The smallest quantile ever seen in the stream.
+   * The smallest item ever seen in the stream.
    */
-  private double minQuantile_;
+  private double minItem_;
 
   /**
-   * The largest quantile ever seen in the stream.
+   * The largest item ever seen in the stream.
    */
-  private double maxQuantile_;
+  private double maxItem_;
 
   /**
    * The total count of items seen.
@@ -65,7 +66,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   private long n_;
 
   /**
-   * Number of quantiles currently in base buffer.
+   * Number of item currently in base buffer.
    *
    * <p>Count = N % (2*K)
    */
@@ -83,7 +84,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
    * A level is of size K and is either full and sorted.
    * Whether a level buffer is present is indicated by the bitPattern_.
    * The base buffer is sorted and has max length 2*K but uses only baseBufferCount_ items.
-   * The base buffer precedes the level buffers. This buffer does not include the min, max quantiles.
+   * The base buffer precedes the level buffers. This buffer does not include the min, max items.
    *
    * <p>The levels arrays require quite a bit of explanation, which we defer until later.</p>
    */
@@ -110,8 +111,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     hcds.bitPattern_ = computeBitPattern(k, n);
     assert hcds.bitPattern_ == sketch.getBitPattern();
 
-    hcds.minQuantile_ = sketch.getMinItem();
-    hcds.maxQuantile_ = sketch.getMaxItem();
+    hcds.minItem_ = sketch.isEmpty() ? Double.NaN : sketch.getMinItem();
+    hcds.maxItem_ = sketch.isEmpty() ? Double.NaN : sketch.getMaxItem();
     hcds.baseBufferCount_ = computeBaseBufferItems(k, n);
     assert hcds.baseBufferCount_ == sketch.getBaseBufferCount();
 
@@ -181,8 +182,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
       hds.combinedBuffer_ = null;
       hds.baseBufferCount_ = 0;
       hds.bitPattern_ = 0;
-      hds.minQuantile_ = Double.NaN;
-      hds.maxQuantile_ = Double.NaN;
+      hds.minItem_ = Double.NaN;
+      hds.maxItem_ = Double.NaN;
       return hds;
     }
 
@@ -196,8 +197,8 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
     hds.n_ = n;
     hds.baseBufferCount_ = computeBaseBufferItems(k, n);
     hds.bitPattern_ = computeBitPattern(k, n);
-    hds.minQuantile_ = srcMem.getDouble(MIN_DOUBLE);
-    hds.maxQuantile_ = srcMem.getDouble(MAX_DOUBLE);
+    hds.minItem_ = srcMem.getDouble(MIN_DOUBLE);
+    hds.maxItem_ = srcMem.getDouble(MAX_DOUBLE);
 
     final int totItems = ClassicUtil.computeRetainedItems(k, n);
     hds.srcMemoryToCombinedBuffer(srcMem, serVer, srcIsCompact, totItems);
@@ -222,12 +223,14 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
 
   @Override
   public double getMinItem() {
-    return minQuantile_;
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return minItem_;
   }
 
   @Override
   public double getMaxItem() {
-    return maxQuantile_;
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return maxItem_;
   }
 
   /**

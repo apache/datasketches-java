@@ -78,7 +78,6 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Used to define the variable type of the current instance of this class.
    */
-  @SuppressWarnings("javadoc")
   public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   enum Error {

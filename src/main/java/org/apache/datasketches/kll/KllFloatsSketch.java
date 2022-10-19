@@ -26,6 +26,7 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Objects;
 
@@ -167,28 +168,34 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
-  public float getMaxItem() { return getMaxFloatItem(); }
+  public float getMaxItem() {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return getMaxFloatItem();
+  }
 
   @Override
-  public float getMinItem() { return getMinFloatItem(); }
+  public float getMinItem() {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return getMinFloatItem();
+  }
 
   @Override
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return kllFloatsSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return kllFloatsSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return Float.NaN; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return kllFloatsSV.getQuantile(rank, searchCrit);
   }
@@ -196,7 +203,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Deprecated
   @Override
   public float[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     final int len = ranks.length;
     final float[] quantiles = new float[len];
@@ -209,7 +216,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Deprecated
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
         searchCrit);
   }
@@ -236,7 +243,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return Double.NaN; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return kllFloatsSV.getRank(quantile, searchCrit);
   }
@@ -264,7 +271,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Deprecated
   @Override
   public double[] getRanks(final float[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     final int len = quantiles.length;
     final double[] ranks = new double[len];

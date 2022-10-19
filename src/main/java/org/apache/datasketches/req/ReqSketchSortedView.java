@@ -20,6 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.List;
 
@@ -61,6 +62,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
 
   @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
@@ -75,6 +77,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
 
   @Override
   public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     final int len = quantiles.length;
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.LE : InequalitySearch.LT;
     final int index = InequalitySearch.find(quantiles,  0, len - 1, quantile, crit);
@@ -95,6 +98,11 @@ public class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
+  public boolean isEmpty() {
+    return totalN == 0;
+  }
+
+  @Override
   public ReqSketchSortedViewIterator iterator() {
     return new ReqSketchSortedViewIterator(quantiles, cumWeights);
   }
@@ -105,7 +113,7 @@ public class ReqSketchSortedView implements FloatsSortedView {
     final List<ReqCompactor> compactors = sk.getCompactors();
     final int numComp = compactors.size();
     final int totalQuantiles = sk.getNumRetained();
-    quantiles = new float[totalQuantiles];
+    quantiles = new float[totalQuantiles]; //could have zero entries
     cumWeights = new long[totalQuantiles];
     int count = 0;
     for (int i = 0; i < numComp; i++) {

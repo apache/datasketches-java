@@ -20,15 +20,16 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantiles.PreambleUtil.DEFAULT_K;
+import static org.testng.Assert.fail;
 
 import java.util.Comparator;
 
-import org.testng.Assert;
-import org.testng.annotations.Test;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.memory.Memory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
 
 public class ItemsUnionTest {
 
@@ -52,8 +53,8 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     union.union(validSk);
 
     union.reset();
@@ -62,16 +63,16 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
 
     // internal sketch is not null again because getResult() instantiated it
     union.union(ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder()));
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
 
     union.reset();
     // internal sketch is null again
@@ -79,8 +80,8 @@ public class ItemsUnionTest {
     result = union.getResult();
     Assert.assertTrue(result.isEmpty());
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
   }
 
   @Test
@@ -127,8 +128,8 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 128, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) { }
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) { }
 
     for (int i = 1; i <= 1000; i++) { union.update((long) i); }
     result = union.getResult();
@@ -159,8 +160,8 @@ public class ItemsUnionTest {
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) { }
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) { }
   }
 
   @Test
@@ -168,8 +169,8 @@ public class ItemsUnionTest {
     final ItemsUnion<Long> union = ItemsUnion.getInstance(Long.class, 512, Comparator.naturalOrder());
     ItemsSketch<Long> result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
 
     for (int i = 1; i <= 10000; i++) { union.update((long) i); }
     result = union.getResult();
@@ -203,8 +204,8 @@ public class ItemsUnionTest {
 
     result = union.getResult();
     Assert.assertEquals(result.getN(), 0);
-    Assert.assertNull(result.getMinItem());
-    Assert.assertNull(result.getMaxItem());
+    try { result.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { result.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
   }
 
   @Test
@@ -311,8 +312,8 @@ public class ItemsUnionTest {
     final ItemsSketch<Long> skEmpty1 = buildIS(32, 0);
     final ItemsSketch<Long> skEmpty2 = buildIS(32, 0);
     ItemsMergeImpl.mergeInto(skEmpty1, skEmpty2);
-    Assert.assertNull(skEmpty2.getMaxItem());
-    Assert.assertNull(skEmpty2.getMaxItem());
+    try { skEmpty2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { skEmpty2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
 
     ItemsSketch<Long> skValid1, skValid2;
     int n = 64;

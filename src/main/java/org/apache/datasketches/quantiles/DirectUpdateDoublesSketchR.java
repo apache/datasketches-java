@@ -33,6 +33,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesReadOnlyException;
@@ -90,12 +91,14 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
 
   @Override
   public double getMaxItem() {
-    return isEmpty() ? Double.NaN : mem_.getDouble(MAX_DOUBLE);
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return mem_.getDouble(MAX_DOUBLE);
   }
 
   @Override
   public double getMinItem() {
-    return isEmpty() ? Double.NaN : mem_.getDouble(MIN_DOUBLE);
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    return mem_.getDouble(MIN_DOUBLE);
   }
 
   @Override
@@ -172,12 +175,12 @@ class DirectUpdateDoublesSketchR extends UpdateDoublesSketch {
   //Puts
 
   @Override
-  void putMinQuantile(final double minQuantile) {
+  void putMinItem(final double minQuantile) {
     throw new SketchesReadOnlyException("Call to putMinQuantile() on read-only buffer");
   }
 
   @Override
-  void putMaxQuantile(final double maxQuantile) {
+  void putMaxItem(final double maxQuantile) {
     throw new SketchesReadOnlyException("Call to putMaxQuantile() on read-only buffer");
   }
 

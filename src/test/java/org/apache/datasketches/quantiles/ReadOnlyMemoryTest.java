@@ -124,14 +124,14 @@ public class ReadOnlyMemoryTest {
 
     // ensure the various put calls fail
     try {
-      s2.putMinQuantile(-1.0);
+      s2.putMinItem(-1.0);
       fail();
     } catch (final SketchesReadOnlyException e) {
       // expected
     }
 
     try {
-      s2.putMaxQuantile(1.0);
+      s2.putMaxItem(1.0);
       fail();
     } catch (final SketchesReadOnlyException e) {
       // expected
