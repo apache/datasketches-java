@@ -21,6 +21,8 @@ package org.apache.datasketches.quantiles;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractFlags;
@@ -28,9 +30,8 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractK;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -247,8 +248,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   static <T> ItemsSketch<T> copy(final ItemsSketch<T> sketch) {
     final ItemsSketch<T> qsCopy = ItemsSketch.getInstance(sketch.clazz, sketch.k_, sketch.comparator_);
     qsCopy.n_ = sketch.n_;
-    qsCopy.minItem_ = sketch.getMinItem();
-    qsCopy.maxItem_ = sketch.getMaxItem();
+    qsCopy.minItem_ = sketch.isEmpty() ? null : sketch.getMinItem();
+    qsCopy.maxItem_ = sketch.isEmpty() ? null : sketch.getMaxItem();
     qsCopy.combinedBufferItemCapacity_ = sketch.getCombinedBufferAllocatedCount();
     qsCopy.baseBufferCount_ = sketch.getBaseBufferCount();
     qsCopy.bitPattern_ = sketch.getBitPattern();
@@ -261,6 +262,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * This is equivalent to {@link #getCDF(Object[], QuantileSearchCriteria) getCDF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public double[] getCDF(final T[] splitPoints) {
     return getCDF(splitPoints, INCLUSIVE);
@@ -299,9 +301,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * @param searchCrit the desired search criteria.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQisSV.getCDF(splitPoints, searchCrit);
   }
@@ -318,8 +321,12 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @return the maximum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
    */
-  public T getMaxItem() { return maxItem_; }
+  public T getMaxItem() {
+	  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+	  return maxItem_;
+  }
 
   /**
    * Returns the minimum item of the stream. This is provided for convenience, but is distinct from the smallest
@@ -328,13 +335,18 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * <p>If the sketch is empty this returns null.</p>
    *
    * @return the minimum item of the stream
+   * @throws IllegalArgumentException if sketch is empty.
    */
-  public T getMinItem() { return minItem_; }
+  public T getMinItem() {
+	  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+	  return minItem_;
+  }
 
   /**
    * This is equivalent to {@link #getPMF(Object[], QuantileSearchCriteria) getPMF(splitPoints, INCLUSIVE)}
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public double[] getPMF(final T[] splitPoints) {
     return getPMF(splitPoints, INCLUSIVE);
@@ -380,9 +392,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * @param searchCrit the desired search criteria.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return null; }
+	if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQisSV.getPMF(splitPoints, searchCrit);
   }
@@ -391,6 +404,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * This is equivalent to {@link #getQuantile(double, QuantileSearchCriteria) getQuantile(rank, INCLUSIVE)}
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @return the approximate quantile given the normalized rank.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public T getQuantile(final double rank) {
     return getQuantile(rank, INCLUSIVE);
@@ -407,10 +421,11 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * If EXCLUSIVE, he given rank includes all quantiles &lt;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
+   * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return null; }
+	if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQisSV.getQuantile(rank, searchCrit);
   }
@@ -421,7 +436,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * <p>Although it is possible to estimate the probablity that the true quantile
+   * <p>Although it is possible to estimate the probability that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
    * as an additive or multiplicative percent of the true quantile.</p>
@@ -429,8 +444,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param rank the given normalized rank
    * @return the lower bound of the quantile confidence interval in which the quantile of the
    * given rank exists.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public T getQuantileLowerBound(final double rank) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getQuantile(max(0, rank - ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
@@ -440,7 +457,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    *
    * <p>If the sketch is empty this returns null.</p>
    *
-   * <p>Although it is possible to estimate the probablity that the true quantile
+   * <p>Although it is possible to estimate the probability that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
    * as an additive or multiplicative percent of the true quantile.</p>
@@ -448,8 +465,10 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param rank the given normalized rank
    * @return the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public T getQuantileUpperBound(final double rank) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getQuantile(min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false)));
   }
 
@@ -458,6 +477,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param ranks the given array of normalized ranks, each of which must be
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
+   * @throws IllegalArgumentException if sketch is empty.
    * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
    * getQuantile(rank, searchCrit) in a loop.}
    */
@@ -476,6 +496,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le;
    * the quantile directly corresponding to each rank.
    * @return an array of quantiles corresponding to the given array of normalized ranks.
+   * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
    * getQuantile(rank, searchCrit) in a loop.}
@@ -483,7 +504,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   @Deprecated
   @SuppressWarnings("unchecked")
   public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return null; }
+	if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     final int len = ranks.length;
     final T[] quantiles = (T[]) Array.newInstance(minItem_.getClass(), len);
@@ -495,8 +516,9 @@ public final class ItemsSketch<T> implements QuantilesAPI {
 
   /**
    * This is equivalent to {@link #getQuantiles(int, QuantileSearchCriteria) getQuantiles(numEvenlySpaced, INCLUSIVE)}
-   * @param numEvenlySpaced number of evenly spaced normalied ranks
+   * @param numEvenlySpaced number of evenly spaced normalized ranks
    * @return an array of quantiles that are evenly spaced by their ranks.
+   * @throws IllegalArgumentException if sketch is empty.
    * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
    * getQuantile(rank, searchCrit) in a loop.}
    */
@@ -526,13 +548,14 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le; the quantile directly corresponding to
    * each rank.
    * @return an array of quantiles that are evenly spaced by their ranks.
+   * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
    * getQuantile(rank, searchCrit) in a loop.}
    */
   @Deprecated
   public T[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
         searchCrit);
   }
@@ -540,7 +563,8 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * This is equivalent to {@link #getRank(Object, QuantileSearchCriteria) getRank(quantile, INCLUSIVE)}
    * @param quantile the given quantile
-   * @return the normalized rank corresponding to the given quantile
+   * @return the normalized rank corresponding to the given quantile.
+   * @throws IllegalArgumentException if sketch is empty.
    */
   public double getRank(final T quantile) {
     return getRank(quantile, INCLUSIVE);
@@ -549,16 +573,15 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * Gets the normalized rank corresponding to the given a quantile.
    *
-   * <p>If the sketch is empty this returns NaN.</p>
-   *
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
-   * @return the normalized rank corresponding to the given quantile
+   * @return the normalized rank corresponding to the given quantile.
+   * @throws IllegalArgumentException if sketch is empty.
+   * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
-  public double getRank(final T quantile,
-      final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { return Double.NaN; }
+  public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQisSV.getRank(quantile, searchCrit);
   }
@@ -587,6 +610,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * This is equivalent to {@link #getRanks(Object[], QuantileSearchCriteria) getRanks(quantiles, INCLUSIVE)}
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
+   * @throws IllegalArgumentException if sketch is empty.
    * @deprecated Use {@link #getRank(Object, QuantileSearchCriteria)
    * getRank(quantile, searchCrit) in a loop.}
    */
@@ -599,18 +623,18 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    * Gets an array of normalized ranks corresponding to the given array of quantiles and the given
    * search criterion.
    *
-   * <p>If the sketch is empty this returns null.</p>
-   *
    * @param quantiles the given array of quantiles
    * @param searchCrit if INCLUSIVE, the given quantiles include the rank directly corresponding to each quantile.
    * @return an array of normalized ranks corresponding to the given array of quantiles.
+   * @throws IllegalArgumentException if sketch is empty.
+   *
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    * @deprecated Use {@link #getRank(Object, QuantileSearchCriteria)
    * getRank(quantile, searchCrit) in a loop.}
    */
   @Deprecated
   public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (this.isEmpty()) { return null; }
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     final int len = quantiles.length;
     final double[] ranks = new double[len];
@@ -652,7 +676,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
   /**
    * Gets the normalized rank error given k and pmf.
    * Static method version of the {@link #getNormalizedRankError(boolean)}.
-   * @param k the configuation parameter
+   * @param k the configuration parameter
    * @param pmf if true, returns the "double-sided" normalized rank error for the getPMF() function.
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    * @return if pmf is true, the normalized rank error for the getPMF() function.

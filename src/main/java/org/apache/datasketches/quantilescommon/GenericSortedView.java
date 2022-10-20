@@ -31,14 +31,13 @@ public interface GenericSortedView<T> extends SortedView {
   /**
    * Gets the approximate quantile of the given normalized rank and the given search criterion.
    *
-   * <p>If the sketch is empty this returns null.</p>
-   *
    * @param rank the given normalized rank, a double in the range [0.0, 1.0].
    * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
    * the quantile directly corresponding to the given rank.
    * If EXCLUSIVE, he given rank includes all quantiles &lt;
    * the quantile directly corresponding to the given rank.
    * @return the approximate quantile given the normalized rank.
+   * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   T getQuantile(double rank, QuantileSearchCriteria searchCrit);
@@ -46,11 +45,10 @@ public interface GenericSortedView<T> extends SortedView {
   /**
    * Gets the normalized rank corresponding to the given a quantile.
    *
-   * <p>If the sketch is empty this returns null.</p>
-   *
    * @param quantile the given quantile
    * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
-   * @return the normalized rank corresponding to the given quantile
+   * @return the normalized rank corresponding to the given quantile.
+   * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double getRank(T quantile, QuantileSearchCriteria searchCrit);
@@ -88,6 +86,7 @@ public interface GenericSortedView<T> extends SortedView {
    *
    * @param searchCrit the desired search criteria.
    * @return a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].
+   * @throws IllegalArgumentException if sketch is empty.
    */
   double[] getCDF(T[] splitPoints, QuantileSearchCriteria searchCrit);
 
@@ -98,8 +97,6 @@ public interface GenericSortedView<T> extends SortedView {
    *
    * <p>The resulting approximations have a probabilistic guarantee that can be obtained from the
    * getNormalizedRankError(true) function.</p>
-   *
-   * <p>If the sketch is empty this returns null.</p>
    *
    * @param splitPoints an array of <i>m</i> unique, monotonically increasing items
    * (of the same type as the input items)
@@ -131,6 +128,7 @@ public interface GenericSortedView<T> extends SortedView {
    *
    * @param searchCrit the desired search criteria.
    * @return a PMF array of m+1 probability masses as doubles on the interval [0.0, 1.0].
+   * @throws IllegalArgumentException if sketch is empty.
    */
   double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
 

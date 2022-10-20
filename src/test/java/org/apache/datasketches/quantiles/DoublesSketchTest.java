@@ -22,8 +22,8 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.nio.ByteOrder;
 
@@ -35,7 +35,6 @@ import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("javadoc")
 public class DoublesSketchTest {
 
   @Test
@@ -133,9 +132,12 @@ public class DoublesSketchTest {
   public void checkEmptyNullReturns() {
     int k = 16;
     UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
-    assertNull(uds.getQuantiles(5));
-    assertNull(uds.getPMF(new double[] { 0, 0.5, 1.0 }));
-    assertNull(uds.getCDF(new double[] { 0, 0.5, 1.0 }));
+    try { uds.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { uds.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { uds.getRank(1.0); fail(); } catch (IllegalArgumentException e) {}
+    try { uds.getQuantiles(5); fail(); } catch (IllegalArgumentException e) {}
+    try { uds.getPMF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
+    try { uds.getCDF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
   }
 
   @Test

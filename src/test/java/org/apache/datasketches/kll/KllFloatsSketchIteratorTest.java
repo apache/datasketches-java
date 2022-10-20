@@ -42,7 +42,7 @@ public class KllFloatsSketchIteratorTest {
   public void twoItemSketchForIterator() {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
-    sketch.update(2);;
+    sketch.update(2);
     QuantilesFloatsSketchIterator itr = sketch.iterator();
     assertTrue(itr.next());
 
@@ -59,7 +59,7 @@ public class KllFloatsSketchIteratorTest {
   public void twoItemSketchForSortedViewIterator() {
     KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
     sketch.update(1);
-    sketch.update(2);;
+    sketch.update(2);
     FloatsSortedViewIterator itr = sketch.getSortedView().iterator();
 
     assertTrue(itr.next());

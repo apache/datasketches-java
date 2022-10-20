@@ -104,10 +104,10 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * tgtK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxItem();
-    final T srcMin = src.getMinItem();
-    final T tgtMax = tgt.getMaxItem();
-    final T tgtMin = tgt.getMinItem();
+    final T srcMax = src.isEmpty() ? null : src.getMaxItem();
+    final T srcMin = src.isEmpty() ? null : src.getMinItem();
+    final T tgtMax = tgt.isEmpty() ? null : tgt.getMaxItem();
+    final T tgtMin = tgt.isEmpty() ? null : tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
       tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;
@@ -183,10 +183,10 @@ final class ItemsMergeImpl {
 
     assert (tgt.getN() / (2L * targetK)) == tgt.getBitPattern(); // internal consistency check
 
-    final T srcMax = src.getMaxItem();
-    final T srcMin = src.getMinItem();
-    final T tgtMax = tgt.getMaxItem();
-    final T tgtMin = tgt.getMinItem();
+    final T srcMax = src.isEmpty() ? null : src.getMaxItem();
+    final T srcMin = src.isEmpty() ? null : src.getMinItem();
+    final T tgtMax = tgt.isEmpty() ? null : tgt.getMaxItem();
+    final T tgtMin = tgt.isEmpty() ? null : tgt.getMinItem();
 
     if ((srcMax != null) && (tgtMax != null)) {
       tgt.maxItem_ = (src.getComparator().compare(srcMax, tgtMax) > 0) ? srcMax : tgtMax;

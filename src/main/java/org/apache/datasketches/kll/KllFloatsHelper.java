@@ -43,8 +43,8 @@ final class KllFloatsHelper {
     final int[] otherLevelsArr = other.getLevelsArray();
     final float[] otherFloatItemsArr;
     //capture my min & max, minK
-    final float myMin = sketch.getMinFloatItem();
-    final float myMax = sketch.getMaxFloatItem();
+    final float myMin = sketch.isEmpty() ? Float.NaN : sketch.getMinFloatItem();
+    final float myMax = sketch.isEmpty() ? Float.NaN : sketch.getMaxFloatItem();
     final int myMinK = sketch.getMinK();
 
     //update this sketch with level0 items from the other sketch

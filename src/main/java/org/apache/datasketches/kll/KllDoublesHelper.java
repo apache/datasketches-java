@@ -43,8 +43,8 @@ final class KllDoublesHelper {
     final int[] otherLevelsArr = other.getLevelsArray();
     final double[] otherDoubleItemsArr;
     //capture my min & max, minK
-    final double myMin = sketch.getMinDoubleItem();
-    final double myMax = sketch.getMaxDoubleItem();
+    final double myMin = sketch.isEmpty() ? Double.NaN : sketch.getMinDoubleItem();
+    final double myMax = sketch.isEmpty() ? Double.NaN : sketch.getMaxDoubleItem();
     final int myMinK = sketch.getMinK();
 
     //update this sketch with level0 items from the other sketch

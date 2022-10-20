@@ -81,18 +81,18 @@ public abstract class UpdateDoublesSketch extends DoublesSketch {
   //Puts
 
   /**
-   * Puts the minimum quantile
+   * Puts the minimum item
    *
-   * @param minQuantile the given minimum quantile
+   * @param minItem the given minimum item
    */
-  abstract void putMinQuantile(double minQuantile);
+  abstract void putMinItem(double minItem);
 
   /**
-   * Puts the max quantile
+   * Puts the max item
    *
-   * @param maxQuantile the given maximum quantile
+   * @param maxItem the given maximum item
    */
-  abstract void putMaxQuantile(double maxQuantile);
+  abstract void putMaxItem(double maxItem);
 
   /**
    * Puts the long <i>n</i>

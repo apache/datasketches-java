@@ -24,8 +24,8 @@ import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INC
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -43,7 +43,7 @@ import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-@SuppressWarnings({"javadoc","deprecation"})
+@SuppressWarnings("deprecation")
 public class ItemsSketchTest {
 
   @BeforeMethod
@@ -59,16 +59,18 @@ public class ItemsSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    assertNull(sketch.getMinItem());
-    assertNull(sketch.getMaxItem());
-    assertNull(sketch.getQuantile(0.5));
-    assertNull(sketch.getQuantiles(2));
-    assertNull(sketch.getQuantiles(new double[] {0.0, 1.0}));
+    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+
+    try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantiles(2); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0.0, 1.0}); fail(); } catch (IllegalArgumentException e) {}
+
     final byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
     assertEquals(byteArr.length, 8);
-    assertNull(sketch.getPMF(new String[0]));
-    assertNull(sketch.getCDF(new String[0]));
-    assertTrue(Double.isNaN(sketch.getRank("a")));
+    try { sketch.getPMF(new String[0]); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getCDF(new String[0]); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getRank("a"); fail(); } catch (IllegalArgumentException e) {}
   }
 
   @Test
@@ -112,9 +114,9 @@ public class ItemsSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    assertNull(sketch.getMinItem());
-    assertNull(sketch.getMaxItem());
-    assertNull(sketch.getQuantile(0.5));
+    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
   }
 
   @Test

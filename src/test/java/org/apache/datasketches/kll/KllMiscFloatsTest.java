@@ -24,8 +24,6 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.util.Objects;
-
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -38,7 +36,6 @@ import org.testng.annotations.Test;
 /**
  * @author Lee Rhodes
  */
-@SuppressWarnings("javadoc")
 public class KllMiscFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
@@ -134,7 +131,7 @@ public class KllMiscFloatsTest {
   @Test
   public void checkMisc() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(8);
-    assertTrue(Objects.isNull(sk.getQuantiles(10)));
+    try { sk.getQuantiles(10); fail(); } catch (IllegalArgumentException e) {}
     sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }
     sk.toString(true, true);

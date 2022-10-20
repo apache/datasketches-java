@@ -20,6 +20,7 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
@@ -27,11 +28,11 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
+import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
-import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 
 /**
  * The SortedView of the Classic Quantiles ItemsSketch.
@@ -92,6 +93,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (int)(rank * totalN);
@@ -105,6 +107,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     final int len = quantiles.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
     final int index = GenericInequalitySearch.find(quantiles,  0, len - 1, quantile, crit, comparator);
@@ -116,6 +119,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override //implemented here because it needs the comparator
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     ItemsUtil.validateItems(splitPoints, comparator);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -128,6 +132,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override //implemented here because it needs the comparator
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     ItemsUtil.validateItems(splitPoints, comparator);
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
@@ -145,6 +150,11 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   @Override
   public T[] getQuantiles() {
     return quantiles.clone();
+  }
+
+  @Override
+  public boolean isEmpty() {
+    return totalN == 0;
   }
 
   @Override
