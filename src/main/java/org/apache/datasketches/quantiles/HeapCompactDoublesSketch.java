@@ -66,7 +66,7 @@ final class HeapCompactDoublesSketch extends CompactDoublesSketch {
   private long n_;
 
   /**
-   * Number of item currently in base buffer.
+   * Number of items currently in base buffer.
    *
    * <p>Count = N % (2*K)
    */
