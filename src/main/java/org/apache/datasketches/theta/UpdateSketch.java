@@ -21,6 +21,7 @@ package org.apache.datasketches.theta;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
 import static org.apache.datasketches.theta.CompactOperations.componentsToCompact;
 import static org.apache.datasketches.theta.PreambleUtil.BIG_ENDIAN_FLAG_MASK;
@@ -40,6 +41,8 @@ import static org.apache.datasketches.theta.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.theta.PreambleUtil.extractThetaLong;
 import static org.apache.datasketches.theta.PreambleUtil.getMemBytes;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedNullOrEmpty;
+
+import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -66,6 +69,7 @@ public abstract class UpdateSketch extends Sketch {
   * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
   * <a href="{@docRoot}/resources/dictionary.html#defaultUpdateSeed">Default Update Seed</a>.
   * @param srcMem an image of a Sketch where the image seed hash matches the default seed hash.
+  * It must have a size of at least 24 bytes.
   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
   * @return a Sketch backed by the given Memory
   */
@@ -80,6 +84,7 @@ public abstract class UpdateSketch extends Sketch {
   * An attempt to "wrap" earlier version sketches will result in a "heapified", normal
   * Java Heap version of the sketch where all data will be copied to the heap.
   * @param srcMem an image of a Sketch where the image seed hash matches the given seed hash.
+  * It must have a size of at least 24 bytes.
   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
   * @param expectedSeed the seed used to validate the given Memory image.
   * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
@@ -87,6 +92,8 @@ public abstract class UpdateSketch extends Sketch {
   * @return a UpdateSketch backed by the given Memory
   */
   public static UpdateSketch wrap(final WritableMemory srcMem, final long expectedSeed) {
+    Objects.requireNonNull(srcMem, "Source Memory must not be null");
+    checkBounds(0, 24, srcMem.getCapacity()); //need min 24 bytes
     final int  preLongs = srcMem.getByte(PREAMBLE_LONGS_BYTE) & 0X3F;
     final int serVer = srcMem.getByte(SER_VER_BYTE) & 0XFF;
     final int familyID = srcMem.getByte(FAMILY_BYTE) & 0XFF;
@@ -99,7 +106,7 @@ public abstract class UpdateSketch extends Sketch {
       return DirectQuickSelectSketch.writableWrap(srcMem, expectedSeed);
     } else {
       throw new SketchesArgumentException(
-        "Corrupted: An UpdateSketch image: must have SerVer = 3 and preLongs = 3");
+        "Corrupted: An UpdateSketch image must have SerVer = 3 and preLongs = 3");
     }
   }
 
@@ -107,6 +114,7 @@ public abstract class UpdateSketch extends Sketch {
    * Instantiates an on-heap UpdateSketch from Memory. This method assumes the
    * {@link org.apache.datasketches.thetacommon.ThetaUtil#DEFAULT_UPDATE_SEED}.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * It must have a size of at least 24 bytes.
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final Memory srcMem) {
@@ -116,11 +124,14 @@ public abstract class UpdateSketch extends Sketch {
   /**
    * Instantiates an on-heap UpdateSketch from Memory.
    * @param srcMem <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * It must have a size of at least 24 bytes.
    * @param expectedSeed the seed used to validate the given Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See Update Hash Seed</a>.
    * @return an UpdateSketch
    */
   public static UpdateSketch heapify(final Memory srcMem, final long expectedSeed) {
+    Objects.requireNonNull(srcMem, "Source Memory must not be null");
+    checkBounds(0, 24, srcMem.getCapacity()); //need min 24 bytes
     final Family family = Family.idToFamily(srcMem.getByte(FAMILY_BYTE));
     if (family.equals(Family.ALPHA)) {
       return HeapAlphaSketch.heapifyInstance(srcMem, expectedSeed);

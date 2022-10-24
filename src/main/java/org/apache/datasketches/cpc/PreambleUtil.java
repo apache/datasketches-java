@@ -19,11 +19,13 @@
 
 package org.apache.datasketches.cpc;
 
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
 import java.nio.ByteOrder;
+import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -807,6 +809,8 @@ final class PreambleUtil {
 
   //basic checks of SerVer, Format, preInts, Family, fiCol, lgK.
   static void checkLoPreamble(final Memory mem) {
+    Objects.requireNonNull(mem, "Source Memory must not be null");
+    checkBounds(0, 8, mem.getCapacity()); //need min 8 bytes
     rtAssertEquals(getSerVer(mem), SER_VER & 0XFF);
     final Format fmt = getFormat(mem);
     final int preIntsDef = getDefinedPreInts(fmt) & 0XFF;

@@ -21,6 +21,7 @@ package org.apache.datasketches.hll;
 
 import static java.lang.Math.log;
 import static java.lang.Math.sqrt;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hll.PreambleUtil.HASH_SET_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_PREINTS;
 import static org.apache.datasketches.hll.PreambleUtil.LIST_PREINTS;
@@ -94,7 +95,9 @@ final class HllUtil {
   }
 
   static CurMode checkPreamble(final Memory mem) {
+    checkBounds(0, 8, mem.getCapacity()); //need min 8 bytes
     final int preInts = extractPreInts(mem);
+    checkBounds(0, preInts * Integer.BYTES, mem.getCapacity());
     final int serVer = extractSerVer(mem);
     final int famId = extractFamilyId(mem);
     final CurMode curMode = extractCurMode(mem);

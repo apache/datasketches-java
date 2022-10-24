@@ -23,6 +23,7 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
 import static org.apache.datasketches.common.Util.LONG_MAX_VALUE_AS_DOUBLE;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.theta.PreambleUtil.extractCurCount;
 import static org.apache.datasketches.theta.PreambleUtil.extractFamilyID;
 import static org.apache.datasketches.theta.PreambleUtil.extractLgArrLongs;
@@ -36,6 +37,8 @@ import static org.apache.datasketches.theta.UpdateReturnState.InsertedCountNotIn
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedDuplicate;
 import static org.apache.datasketches.theta.UpdateReturnState.RejectedOverTheta;
 import static org.apache.datasketches.thetacommon.HashOperations.STRIDE_MASK;
+
+import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -113,11 +116,14 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
    * Heapify a sketch from a Memory object containing sketch data.
    * @param srcMem The source Memory object.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * It must have a size of at least 24 bytes.
    * @param expectedSeed the seed used to validate the given Memory image.
    * <a href="{@docRoot}/resources/dictionary.html#seed">See seed</a>
    * @return instance of this sketch
    */
   static HeapAlphaSketch heapifyInstance(final Memory srcMem, final long expectedSeed) {
+    Objects.requireNonNull(srcMem, "Source Memory must not be null");
+    checkBounds(0, 24, srcMem.getCapacity());
     final int preambleLongs = extractPreLongs(srcMem);            //byte 0
     final int lgNomLongs = extractLgNomLongs(srcMem);             //byte 3
     final int lgArrLongs = extractLgArrLongs(srcMem);             //byte 4
@@ -224,6 +230,22 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
   public boolean isEmpty() {
     return empty_;
   }
+
+  /*
+   * Alpha Sketch Preamble Layout ( same as Theta UpdateSketch )
+   * <pre>
+   * Long || Start Byte Adr:
+   * Adr:
+   *      ||    7   |    6   |    5   |    4   |    3   |    2   |    1   |        0           |
+   *  0   ||    Seed Hash    | Flags  |  LgArr | LgNom  | FamID  | SerVer | lgRF | PreLongs=3  |
+   *
+   *      ||   15   |   14   |   13   |   12   |   11   |   10   |    9   |     8              |
+   *  1   ||-----------------p-----------------|----------Retained Entries Count---------------|
+   *
+   *      ||   23   |   22   |   21    |  20   |   19   |   18   |   17   |    16              |
+   *  2   ||---------------------------------Theta---------------------------------------------|
+   * </pre>
+   */
 
   @Override
   public byte[] toByteArray() {

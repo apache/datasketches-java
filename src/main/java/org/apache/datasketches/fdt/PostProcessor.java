@@ -26,6 +26,7 @@ import static org.apache.datasketches.tuple.Util.stringHash;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.datasketches.tuple.TupleSketchIterator;
 import org.apache.datasketches.tuple.strings.ArrayOfStringsSummary;
@@ -58,6 +59,8 @@ public class PostProcessor {
    * @param sep the separator character
    */
   public PostProcessor(final FdtSketch sketch, final Group group, final char sep) {
+    Objects.requireNonNull(sketch, "sketch must me non-null");
+    Objects.requireNonNull(group, "group must be non-null");
     this.sketch = sketch.copy();
     this.sep = sep;
     final int numEntries = sketch.getRetainedEntries();
