@@ -20,11 +20,13 @@
 package org.apache.datasketches.tuple;
 
 import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.thetacommon.HashOperations.count;
 
 import java.lang.reflect.Array;
 import java.nio.ByteOrder;
+import java.util.Objects;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
@@ -165,30 +167,34 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
       final Memory mem,
       final SummaryDeserializer<S> deserializer,
       final SummaryFactory<S> summaryFactory) {
+    Objects.requireNonNull(mem, "SourceMemory must not be null.");
+    Objects.requireNonNull(deserializer, "Deserializer must not be null.");
+    checkBounds(0, 8, mem.getCapacity());
     summaryFactory_ = summaryFactory;
     int offset = 0;
-    final byte preambleLongs = mem.getByte(offset++);
-    final byte version = mem.getByte(offset++);
-    final byte familyId = mem.getByte(offset++);
+    final byte preambleLongs = mem.getByte(offset++); //byte 0 PreLongs
+    final byte version = mem.getByte(offset++);       //byte 1 SerVer
+    final byte familyId = mem.getByte(offset++);      //byte 2 FamID
     SerializerDeserializer.validateFamily(familyId, preambleLongs);
     if (version > serialVersionUID) {
       throw new SketchesArgumentException(
           "Unsupported serial version. Expected: " + serialVersionUID + " or lower, actual: "
               + version);
     }
-    SerializerDeserializer.validateType(mem.getByte(offset++),
+    SerializerDeserializer.validateType(mem.getByte(offset++), //byte 3
         SerializerDeserializer.SketchType.QuickSelectSketch);
-    final byte flags = mem.getByte(offset++);
+    final byte flags = mem.getByte(offset++); //byte 4
     final boolean isBigEndian = (flags & 1 << Flags.IS_BIG_ENDIAN.ordinal()) > 0;
     if (isBigEndian ^ ByteOrder.nativeOrder().equals(ByteOrder.BIG_ENDIAN)) {
       throw new SketchesArgumentException("Endian byte order mismatch");
     }
-    nomEntries_ = 1 << mem.getByte(offset++);
-    lgCurrentCapacity_ = mem.getByte(offset++);
-    lgResizeFactor_ = mem.getByte(offset++);
+    nomEntries_ = 1 << mem.getByte(offset++); //byte 5
+    lgCurrentCapacity_ = mem.getByte(offset++); //byte 6
+    lgResizeFactor_ = mem.getByte(offset++); //byte 7
 
+    checkBounds(0, preambleLongs * 8, mem.getCapacity());
     final boolean isInSamplingMode = (flags & 1 << Flags.IS_IN_SAMPLING_MODE.ordinal()) > 0;
-    samplingProbability_ = isInSamplingMode ? mem.getFloat(offset) : 1f;
+    samplingProbability_ = isInSamplingMode ? mem.getFloat(offset) : 1f; //bytes 8 - 11
     if (isInSamplingMode) {
       offset += Float.BYTES;
     }

@@ -46,7 +46,8 @@ public final class Sketches {
    * @return Sketch created from its Memory representation
    */
   @SuppressWarnings("deprecation")
-  public static <S extends Summary> Sketch<S> heapifySketch(final Memory mem,
+  public static <S extends Summary> Sketch<S> heapifySketch(
+      final Memory mem,
       final SummaryDeserializer<S> deserializer) {
     final SerializerDeserializer.SketchType sketchType = SerializerDeserializer.getSketchType(mem);
     if (sketchType == SerializerDeserializer.SketchType.QuickSelectSketch) {
@@ -69,7 +70,9 @@ public final class Sketches {
    */
   @Deprecated
   public static <U, S extends UpdatableSummary<U>> UpdatableSketch<U, S> heapifyUpdatableSketch(
-      final Memory mem, final SummaryDeserializer<S> deserializer, final SummaryFactory<S> summaryFactory) {
+      final Memory mem,
+      final SummaryDeserializer<S> deserializer,
+      final SummaryFactory<S> summaryFactory) {
     return new UpdatableSketch<U, S>(mem, deserializer, summaryFactory);
   }
 

@@ -20,6 +20,7 @@
 package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
 import static org.apache.datasketches.common.Util.isIntPowerOf2;
 import static org.apache.datasketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
@@ -44,6 +45,7 @@ import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Family;
@@ -226,6 +228,9 @@ public class ItemsSketch<T> {
    */
   public static <T> ItemsSketch<T> getInstance(final Memory srcMem,
       final ArrayOfItemsSerDe<T> serDe) {
+    Objects.requireNonNull(srcMem, "srcMem must not be null.");
+    Objects.requireNonNull(serDe, "serDe must not be null.");
+
     final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
@@ -270,11 +275,15 @@ public class ItemsSketch<T> {
 
     final int preBytes = preLongs << 3;
     final int activeItems = extractActiveItems(preArr[1]);
+
     //Get countArray
     final long[] countArray = new long[activeItems];
+    int reqBytes = preBytes + activeItems * Long.BYTES; //count Arr only
+    checkBounds(0, reqBytes, srcMem.getCapacity()); //check Memory capacity
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
+
     //Get itemArray
-    final int itemsOffset = preBytes + (8 * activeItems);
+    final int itemsOffset = preBytes + (Long.BYTES * activeItems);
     final T[] itemArray = serDe.deserializeFromMemory(
         srcMem.region(itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
     //update the sketch

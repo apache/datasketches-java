@@ -673,8 +673,8 @@ public final class Util {
    */
   public static void checkBounds(final long reqOff, final long reqLen, final long allocSize) {
     if ((reqOff | reqLen | (reqOff + reqLen) | (allocSize - (reqOff + reqLen))) < 0) {
-      throw new SketchesArgumentException(
-          "reqOffset: " + reqOff + ", reqLength: " + reqLen
+      throw new SketchesArgumentException("Bounds Violation: "
+          + "reqOffset: " + reqOff + ", reqLength: " + reqLen
               + ", (reqOff + reqLen): " + (reqOff + reqLen) + ", allocSize: " + allocSize);
     }
   }
