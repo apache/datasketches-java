@@ -59,7 +59,7 @@ public class PostProcessor {
    * @param sep the separator character
    */
   public PostProcessor(final FdtSketch sketch, final Group group, final char sep) {
-    Objects.requireNonNull(sketch, "sketch must me non-null");
+    Objects.requireNonNull(sketch, "sketch must be non-null");
     Objects.requireNonNull(group, "group must be non-null");
     this.sketch = sketch.copy();
     this.sep = sep;
