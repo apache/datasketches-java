@@ -105,24 +105,24 @@ abstract class HeapUpdateSketch extends UpdateSketch {
     return ThetaUtil.computeSeedHash(getSeed());
   }
 
-  //Used by HeapAlphaSketch and HeapQuickSelectSketch
+  //Used by HeapAlphaSketch and HeapQuickSelectSketch / Theta UpdateSketch
   byte[] toByteArray(final int preLongs, final byte familyID) {
     if (isDirty()) { rebuild(); }
     checkIllegalCurCountAndEmpty(isEmpty(), getRetainedEntries(true));
-    final int preBytes = (preLongs << 3) & 0X3F;
+    final int preBytes = (preLongs << 3) & 0X3F; //24 bytes
     final int dataBytes = getCurrentDataLongs() << 3;
     final byte[] byteArrOut = new byte[preBytes + dataBytes];
     final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
 
     //preamble first 8 bytes. Note: only compact can be reduced to 8 bytes.
     final int lgRf = getResizeFactor().lg() & 0x3;
-    insertPreLongs(memOut, preLongs);
-    insertLgResizeFactor(memOut, lgRf);
-    insertSerVer(memOut, SER_VER);
-    insertFamilyID(memOut, familyID);
-    insertLgNomLongs(memOut, getLgNomLongs());
-    insertLgArrLongs(memOut, getLgArrLongs());
-    insertSeedHash(memOut, getSeedHash());
+    insertPreLongs(memOut, preLongs);          //byte 0 low  6 bits
+    insertLgResizeFactor(memOut, lgRf);        //byte 0 high 2 bits
+    insertSerVer(memOut, SER_VER);             //byte 1
+    insertFamilyID(memOut, familyID);          //byte 2
+    insertLgNomLongs(memOut, getLgNomLongs()); //byte 3
+    insertLgArrLongs(memOut, getLgArrLongs()); //byte 4
+    insertSeedHash(memOut, getSeedHash());     //bytes 6 & 7
 
     insertCurCount(memOut, this.getRetainedEntries(true));
     insertP(memOut, getP());

@@ -20,6 +20,7 @@
 package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
 import static org.apache.datasketches.common.Util.isIntPowerOf2;
 import static org.apache.datasketches.frequencies.PreambleUtil.EMPTY_FLAG_MASK;
@@ -43,6 +44,7 @@ import static org.apache.datasketches.frequencies.Util.SAMPLE_SIZE;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Objects;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -220,7 +222,8 @@ public class LongsSketch {
    * @return a sketch instance of this class.
    */
   public static LongsSketch getInstance(final Memory srcMem) {
-    final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //make sure preamble will fit
+    Objects.requireNonNull(srcMem, "Source Memory must not be null.");
+    final long pre0 = PreambleUtil.checkPreambleSize(srcMem); //check Memory capacity
     final int maxPreLongs = Family.FREQUENCY.getMaxPreLongs();
 
     final int preLongs = extractPreLongs(pre0);         //Byte 0
@@ -264,11 +267,15 @@ public class LongsSketch {
 
     final int preBytes = preLongs << 3;
     final int activeItems = extractActiveItems(preArr[1]);
+
     //Get countArray
     final long[] countArray = new long[activeItems];
+    final int reqBytes = preBytes + 2 * activeItems * Long.BYTES; //count Arr + Items Arr
+    checkBounds(0, reqBytes, srcMem.getCapacity()); //check Memory capacity
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
+
     //Get itemArray
-    final int itemsOffset = preBytes + (8 * activeItems);
+    final int itemsOffset = preBytes + (Long.BYTES * activeItems);
     final long[] itemArray = new long[activeItems];
     srcMem.getLongArray(itemsOffset, itemArray, 0, activeItems);
     //update the sketch
@@ -287,6 +294,7 @@ public class LongsSketch {
    * @return a sketch instance of this class.
    */
   public static LongsSketch getInstance(final String string) {
+    Objects.requireNonNull(string, "string must not be null.");
     final String[] tokens = string.split(",");
     if (tokens.length < (STR_PREAMBLE_TOKENS + 2)) {
       throw new SketchesArgumentException(

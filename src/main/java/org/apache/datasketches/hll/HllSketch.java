@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.hll;
 
+import static org.apache.datasketches.common.Util.checkBounds;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.LG_AUX_ARR_INTS;
@@ -27,6 +28,8 @@ import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractCompactFlag;
 import static org.apache.datasketches.hll.PreambleUtil.extractLgK;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
+
+import java.util.Objects;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -119,6 +122,7 @@ public class HllSketch extends BaseHllSketch {
    * @param dstMem the destination memory for the sketch.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory dstMem) {
+    Objects.requireNonNull(dstMem, "Destination Memory must not be null");
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
     final long capBytes = dstMem.getCapacity();
     HllUtil.checkMemSize(minBytes, capBytes);
@@ -163,6 +167,8 @@ public class HllSketch extends BaseHllSketch {
 
   //used by union and above
   static final HllSketch heapify(final Memory srcMem, final boolean checkRebuild) {
+    Objects.requireNonNull(srcMem, "Source Memory must not be null");
+    checkBounds(0, 8, srcMem.getCapacity()); //need min 8 bytes
     final CurMode curMode = checkPreamble(srcMem);
     final HllSketch heapSketch;
     if (curMode == CurMode.HLL) {
@@ -197,16 +203,18 @@ public class HllSketch extends BaseHllSketch {
    * @return an HllSketch where the sketch data is in the given dstMem.
    */
   public static final HllSketch writableWrap(final WritableMemory srcWmem) {
-    if (extractCompactFlag(srcWmem)) {
-      throw new SketchesArgumentException(
-          "Cannot perform a writableWrap of a writable sketch image that is in compact form. "
-          + "Compact sketches are by definition immutable.");
-    }
     return writableWrap(srcWmem, true);
   }
 
   //used by union and above
   static final HllSketch writableWrap( final WritableMemory srcWmem, final boolean checkRebuild) {
+    Objects.requireNonNull(srcWmem, "Source Memory must not be null");
+    checkBounds(0, 8, srcWmem.getCapacity()); //need min 8 bytes
+    if (extractCompactFlag(srcWmem)) {
+      throw new SketchesArgumentException(
+          "Cannot perform a writableWrap of a writable sketch image that is in compact form. "
+          + "Compact sketches are by definition immutable.");
+    }
     final int lgConfigK = extractLgK(srcWmem);
     final TgtHllType tgtHllType = extractTgtHllType(srcWmem);
     final long minBytes = getMaxUpdatableSerializationBytes(lgConfigK, tgtHllType);
@@ -244,6 +252,8 @@ public class HllSketch extends BaseHllSketch {
    *
    */
   public static final HllSketch wrap(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Source Memory must not be null");
+    checkBounds(0, 8, srcMem.getCapacity()); //need min 8 bytes
     final int lgConfigK = extractLgK(srcMem);
     final TgtHllType tgtHllType = extractTgtHllType(srcMem);
 
