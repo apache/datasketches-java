@@ -71,5 +71,5 @@ jobs:
 
 # Lifecycle: validate, compile, test, package, verify, install, deploy
 # -B batch mode
-# -V show Version without stoppping
+# -V show Version without stopping
 # -q quiet, only show errors

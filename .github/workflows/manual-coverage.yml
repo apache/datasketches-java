@@ -67,5 +67,5 @@ jobs:
 # Lifecycle: validate, compile, test, package, verify, install, deploy
 # Coverage reports are available after the verify phase
 # -B batch mode
-# -V show Version without stoppping
+# -V show Version without stopping
 # -q quiet, only show errors
