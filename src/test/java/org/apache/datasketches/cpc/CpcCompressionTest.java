@@ -178,7 +178,7 @@ public class CpcCompressionTest {
     int bb; // numBaseBits
 
     for (bb = 0; bb <= 11; bb++) {
-      final Long numWordsWritten =
+      final long numWordsWritten =
         lowLevelCompressPairs(pairArray, numPairs, bb, compressedWords);
         println("numWordsWritten = " + numWordsWritten + ", bb = " + bb);
 

@@ -32,15 +32,14 @@ import static org.testng.Assert.fail;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import org.testng.annotations.Test;
-
-import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.testng.annotations.Test;
 
 public class ReservoirLongsSketchTest {
   private static final double EPS = 1e-8;
@@ -530,20 +529,6 @@ public class ReservoirLongsSketchTest {
     for (int i = 0; i < samples1.length; ++i) {
       assertEquals(samples1[i], samples2[i]);
     }
-  }
-
-  static String printBytesAsLongs(final byte[] byteArr) {
-    final StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < byteArr.length; i += 8) {
-      for (int j = i + 7; j >= i; --j) {
-        final String str = Integer.toHexString(byteArr[j] & 0XFF);
-        sb.append(org.apache.datasketches.common.Util.zeroPad(str, 2));
-      }
-      sb.append(org.apache.datasketches.common.Util.LS);
-
-    }
-
-    return sb.toString();
   }
 
   /**

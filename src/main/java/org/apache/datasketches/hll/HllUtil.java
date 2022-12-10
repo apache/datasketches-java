@@ -97,7 +97,7 @@ final class HllUtil {
   static CurMode checkPreamble(final Memory mem) {
     checkBounds(0, 8, mem.getCapacity()); //need min 8 bytes
     final int preInts = extractPreInts(mem);
-    checkBounds(0, preInts * Integer.BYTES, mem.getCapacity());
+    checkBounds(0, (long)preInts * Integer.BYTES, mem.getCapacity());
     final int serVer = extractSerVer(mem);
     final int famId = extractFamilyId(mem);
     final CurMode curMode = extractCurMode(mem);

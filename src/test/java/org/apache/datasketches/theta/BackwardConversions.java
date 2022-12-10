@@ -226,7 +226,7 @@ public class BackwardConversions {
       wmem.putLong(16, skV3.getThetaLong());
     }
     final long[] arr = skV3.getCache();
-    wmem.putLongArray(preLongs * 8, arr, 0, entries);
+    wmem.putLongArray(preLongs * 8L, arr, 0, entries);
     return wmem;
   }
 }

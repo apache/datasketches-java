@@ -298,7 +298,7 @@ public class CpcUnion {
     final int state = ((sourceFlavorOrd - 1) << 1) | ((union.bitMatrix != null) ? 1 : 0);
     switch (state) {
       case 0 : { //A: Sparse, bitMatrix == null, accumulator valid
-        if ((union.accumulator.getFlavor() == EMPTY) //lgtm [java/dereferenced-value-may-be-null]
+        if ((union.accumulator.getFlavor() == EMPTY)
             && (union.lgK == source.lgK)) {
           union.accumulator = source.copy();
           break;

@@ -790,7 +790,7 @@ final class PreambleUtil {
     final long memCap = mem.getCapacity();
     final long expectedCap = offsetBytes + (4L * lengthInts);
     checkCapacity(memCap, expectedCap);
-    for (int i = 0; i < lengthInts; i++) {
+    for (long i = 0; i < lengthInts; i++) {
       sb.append(String.format(fmt, i, mem.getInt(offsetBytes + (4L * i)))).append(LS);
     }
   }

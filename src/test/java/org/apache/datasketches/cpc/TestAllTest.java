@@ -57,7 +57,7 @@ public class TestAllTest {
     int len = 16;
     long[] arr = new long[len];
     Arrays.fill(arr, pat);
-    long trueCount = len * Long.bitCount(pat);
+    long trueCount = (long)len * Long.bitCount(pat);
     long testCount = BitMatrix.countCoupons(arr);
     assertEquals(testCount, trueCount);
   }

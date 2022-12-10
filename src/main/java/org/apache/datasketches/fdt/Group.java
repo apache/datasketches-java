@@ -21,8 +21,7 @@ package org.apache.datasketches.fdt;
 
 /**
  * Defines a Group from a Frequent Distinct Tuple query. This class is called internally during
- * post processing and is not inteded to be called by the user.
- * Note: this class has a natural ordering that is inconsistent with equals.
+ * post processing and is not intended to be called by the user.
  * @author Lee Rhodes
  */
 public class Group implements Comparable<Group> {
@@ -49,7 +48,7 @@ public class Group implements Comparable<Group> {
    * @param count the number of retained rows associated with this group
    * @param estimate the estimate of the original population associated with this group
    * @param ub the upper bound of the estimate
-   * @param lb the lower bound of the extimate
+   * @param lb the lower bound of the estimate
    * @param fraction the fraction of all retained rows of the sketch associated with this group
    * @param rse the estimated Relative Standard Error for this group.
    * @return return this
@@ -114,13 +113,18 @@ public class Group implements Comparable<Group> {
   }
 
   /**
-   * Note: this class has a natural ordering that is inconsistent with equals.
-   * Ignore FindBugs EQ_COMPARETO_USE_OBJECT_EQUALS warning.
    * @param that The Group to compare to
    */
   @Override
   public int compareTo(final Group that) {
     return that.count - count; //decreasing
+  }
+
+  @Override
+  public boolean equals(Object that) {
+    if (this == that) { return true; }
+    if (!(that instanceof Group)) { return false; }
+    return ((Group)that).count == count;
   }
 
 }

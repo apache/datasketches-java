@@ -296,7 +296,7 @@ public class DirectUpdateDoublesSketchTest {
 
   static UpdateDoublesSketch buildAndLoadDQS(int k, long n, int startV) {
     UpdateDoublesSketch qs = buildDQS(k, n);
-    for (int i=1; i<=n; i++) {
+    for (long i = 1; i <= n; i++) {
       qs.update(startV + i);
     }
     return qs;

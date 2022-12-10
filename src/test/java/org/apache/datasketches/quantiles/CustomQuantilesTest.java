@@ -19,7 +19,8 @@
 
 package org.apache.datasketches.quantiles;
 
-import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.*;
+import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.getTrueDoubleQuantile;
+import static org.apache.datasketches.quantilescommon.LinearRanksAndQuantiles.getTrueDoubleRank;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -80,7 +81,7 @@ public class CustomQuantilesTest {
     println("  Q of the smallest rank > r. If r = 1.0 => null or NaN");
     printf("%12s%12s%12s\n", "Ranks",  "Quantiles", "CompRank");
     double inc = 1.0 / (2 * N);
-    for (int j = 0; j <= (2 * N); j++) {
+    for (long j = 0; j <= (2 * N); j++) {
       double nr = (j * inc);
       double q = sk.getQuantile(nr, EXCLUSIVE);
       double qTrue = getTrueDoubleQuantile(cumWtsArr, quantilesArr, nr, EXCLUSIVE);
@@ -105,7 +106,7 @@ public class CustomQuantilesTest {
     println("  Q of the smallest rank >= r.");
     printf("%12s%12s%12s\n", "Ranks", "Quantiles", "CompRank");
     inc = 1.0 / (2 * N);
-    for (int j = 0; j <= (2 * N); j++) {
+    for (long j = 0; j <= (2 * N); j++) {
       double nr = (j * inc);
       double q = sk.getQuantile(nr, INCLUSIVE);
       double qTrue = getTrueDoubleQuantile(cumWtsArr, quantilesArr, nr, INCLUSIVE);

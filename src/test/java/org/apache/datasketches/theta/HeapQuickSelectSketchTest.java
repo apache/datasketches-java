@@ -179,9 +179,8 @@ public class HeapQuickSelectSketchTest {
   @Test
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
-    int u = 2*k;
+    int u = 2*k; //thus estimating
     long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    boolean estimating = (u > k);
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed).setNominalEntries(k).build();
 
     for (int i=0; i<u; i++) {
@@ -191,7 +190,7 @@ public class HeapQuickSelectSketchTest {
     double sk1est = sk1.getEstimate();
     double sk1lb  = sk1.getLowerBound(2);
     double sk1ub  = sk1.getUpperBound(2);
-    assertEquals(sk1.isEstimationMode(), estimating);
+    assertTrue(sk1.isEstimationMode());
 
     byte[] byteArray = sk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
@@ -202,15 +201,14 @@ public class HeapQuickSelectSketchTest {
     assertEquals(sk2.getLowerBound(2), sk1lb);
     assertEquals(sk2.getUpperBound(2), sk1ub);
     assertEquals(sk2.isEmpty(), false);
-    assertEquals(sk2.isEstimationMode(), estimating);
+    assertTrue(sk2.isEstimationMode());
     assertEquals(sk2.getClass().getSimpleName(), sk1.getClass().getSimpleName());
   }
 
   @Test
   public void checkHQStoCompactForms() {
     int k = 512;
-    int u = 4*k;
-    boolean estimating = (u > k);
+    int u = 4*k; //thus estimating
 
     //boolean compact = false;
     int maxBytes = (k << 4) + (Family.QUICKSELECT.getMinPreLongs() << 3);
@@ -237,7 +235,7 @@ public class HeapQuickSelectSketchTest {
     int uskBytes = usk.getCurrentBytes();    //size stored as UpdateSketch
     int uskCompBytes = usk.getCompactBytes(); //size stored as CompactSketch
     assertEquals(uskBytes, maxBytes);
-    assertEquals(usk.isEstimationMode(), estimating);
+    assertTrue(usk.isEstimationMode());
 
     CompactSketch comp1, comp2, comp3, comp4;
 
@@ -247,7 +245,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(comp1.getLowerBound(2), uskLB);
     assertEquals(comp1.getUpperBound(2), uskUB);
     assertEquals(comp1.isEmpty(), false);
-    assertEquals(comp1.isEstimationMode(), estimating);
+    assertTrue(comp1.isEstimationMode());
     assertEquals(comp1.getCompactBytes(), uskCompBytes);
     assertEquals(comp1.getClass().getSimpleName(), "HeapCompactSketch");
 
@@ -257,7 +255,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(comp2.getLowerBound(2), uskLB);
     assertEquals(comp2.getUpperBound(2), uskUB);
     assertEquals(comp2.isEmpty(), false);
-    assertEquals(comp2.isEstimationMode(), estimating);
+    assertTrue(comp2.isEstimationMode());
     assertEquals(comp2.getCompactBytes(), uskCompBytes);
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
 
@@ -270,7 +268,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(comp3.getLowerBound(2), uskLB);
     assertEquals(comp3.getUpperBound(2), uskUB);
     assertEquals(comp3.isEmpty(), false);
-    assertEquals(comp3.isEstimationMode(), estimating);
+    assertTrue(comp3.isEstimationMode());
     assertEquals(comp3.getCompactBytes(), uskCompBytes);
     assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
 
@@ -281,7 +279,7 @@ public class HeapQuickSelectSketchTest {
     assertEquals(comp4.getLowerBound(2), uskLB);
     assertEquals(comp4.getUpperBound(2), uskUB);
     assertEquals(comp4.isEmpty(), false);
-    assertEquals(comp4.isEstimationMode(), estimating);
+    assertTrue(comp4.isEstimationMode());
     assertEquals(comp4.getCompactBytes(), uskCompBytes);
     assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");
     comp4.toString(false, true, 0, false);

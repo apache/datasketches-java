@@ -437,7 +437,7 @@ public class UnionTest {
   public void checkUnionHeapifyRebuildAfterMerge() {
     int lgK = 12;
     //Build 2 sketches in HLL (dense) mode.
-    int u = (lgK < 8) ? 16 : 1 << (lgK - 3);
+    int u = (lgK < 8) ? 16 : 1 << (lgK - 3); //allows changing lgK above
     HllSketch sk1 = new HllSketch(lgK);
     HllSketch sk2 = new HllSketch(lgK);
     for (int i = 0; i < u; i++) {
@@ -467,7 +467,7 @@ public class UnionTest {
    WritableMemory wmem = WritableMemory.allocate(bytes);
    new Union(lgK, wmem); // result is unused, relying on side effect
    int trueCount = 0;
-   int delta = (lgK < 8) ? 16 : 1 << (lgK - 3);
+   int delta = (lgK < 8) ? 16 : 1 << (lgK - 3); //allows to vary lgK above
    for (int i = 0; i < 3; i++) {
     Union.writableWrap(wmem).update(buildSketch(trueCount, delta));
     trueCount += delta;

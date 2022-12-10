@@ -43,7 +43,7 @@ public class GenericInequalitySearchTest {
 
   private final Comparator<Float> comparator = Comparator.naturalOrder();
 
-
+  //CodeQL may complain about boxed values, but Java Generics require objects.
   private static Float[] buildRandFloatArr(final int len) {
     final Float[] arr = new Float[len];
     Float v = 1.0f;
@@ -54,18 +54,18 @@ public class GenericInequalitySearchTest {
     return arr;
   }
 
-  @Test //visual testing only
-  //@SuppressWarnings("unused")
-  private static void checkBuildRandArr() {
-    final int len = 10;
-    for (int i = 0; i < 10; i++) {
-      final Float[] tarr = buildRandFloatArr(len);
-      for (int j = 0; j < len; j++) {
-        printf("%4.1f,", tarr[j]);
-      }
-      println("");
-    }
-  }
+//  @Test //visual testing only
+//  //@SuppressWarnings("unused")
+//  private static void viewBuildRandArr() {
+//    final int len = 10;
+//    for (int i = 0; i < 10; i++) {
+//      final Float[] tarr = buildRandFloatArr(len);
+//      for (int j = 0; j < len; j++) {
+//        printf("%4.1f,", tarr[j]);
+//      }
+//      println("");
+//    }
+//  }
 
   @Test
   public void checkBinSearchFltLimits() {
@@ -287,7 +287,7 @@ public class GenericInequalitySearchTest {
     return "";
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format
