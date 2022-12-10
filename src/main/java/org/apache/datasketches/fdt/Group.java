@@ -127,5 +127,10 @@ public class Group implements Comparable<Group> {
     return ((Group)that).count == count;
   }
 
+  @Override
+  public int hashCode() {
+    return Integer.MAX_VALUE - count; //MAX_VALUE is a Double Mersenne Prime = 2^31 - 1 = M_M_5
+  }
+
 }
 

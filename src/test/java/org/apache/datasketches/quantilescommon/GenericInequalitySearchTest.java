@@ -46,7 +46,7 @@ public class GenericInequalitySearchTest {
   //CodeQL may complain about boxed values, but Java Generics require objects.
   private static Float[] buildRandFloatArr(final int len) {
     final Float[] arr = new Float[len];
-    Float v = 1.0f;
+    float v = 1.0f;
     for (int i = 0; i < len; i++) {
       arr[i] = v;
       v += randDelta();
