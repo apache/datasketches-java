@@ -37,11 +37,11 @@ public class DistTest {
     // the zeta function, used by the below zipf function
     // (this is not often called from outside this library)
     // ... but have made it public now to speed things up
-    int i;
+    long i;
     double ans = 0.0;
 
     for (i = 1; i <= n; i++) {
-      ans += Math.pow(1. / i, theta);
+      ans += Math.pow(1.0 / i, theta);
     }
     return (ans);
   }

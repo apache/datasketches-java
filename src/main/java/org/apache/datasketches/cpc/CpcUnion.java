@@ -298,7 +298,11 @@ public class CpcUnion {
     final int state = ((sourceFlavorOrd - 1) << 1) | ((union.bitMatrix != null) ? 1 : 0);
     switch (state) {
       case 0 : { //A: Sparse, bitMatrix == null, accumulator valid
-        if ((union.accumulator.getFlavor() == EMPTY) //lgtm [java/dereferenced-value-may-be-null]
+        if (union.accumulator == null) {
+          //CodeQL could not figure this out so I have to insert this.
+          throw new SketchesStateException("union.accumulator can never be null here.");
+        }
+        if ((union.accumulator.getFlavor() == EMPTY)
             && (union.lgK == source.lgK)) {
           union.accumulator = source.copy();
           break;

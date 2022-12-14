@@ -136,6 +136,34 @@ public final class Util {
     return arr;
   }
 
+  //Byte array conversions
+
+  static long[] convertToLongArray(final byte[] byteArr, final boolean littleEndian) {
+    int len = byteArr.length;
+    long[] longArr = new long[len / 8 + (len % 8 != 0 ? 1 : 0)];
+    int off = 0;
+    int longArrIdx = 0;
+    while (off < len) {
+      int rem = Math.min(len - 1 - off, 7);
+      long tgt = 0;
+      if (littleEndian) {
+        for (int j = off + rem, k = 0; j >= off; --j, k++) {
+          tgt |= (byteArr[j] & 0XFFL) << (k * 8);
+        }
+      } else { //BE
+        for (int j = off + rem, k = rem; j >= off; --j, k--) {
+          tgt |= (byteArr[j] & 0XFFL) << (k * 8);
+        }
+      }
+      off += 8;
+      longArr[longArrIdx++] = tgt;
+    }
+    return longArr;
+  }
+
+
+
+
   //String Related
 
   /**
@@ -562,7 +590,7 @@ public final class Util {
     return pow(base, floor(logBaseOfX(base, x)));
   }
 
-  // Logrithm related
+  // Logarithm related
 
   /**
    * The log base 2 of the value

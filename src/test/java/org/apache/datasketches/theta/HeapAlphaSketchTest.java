@@ -185,9 +185,8 @@ public class HeapAlphaSketchTest {
   @Test
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
-    int u = 2*k;
+    int u = 2*k; //thus estimating
     long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
-    boolean estimating = (u > k);
     //int maxBytes = (k << 4) + (Family.ALPHA.getLowPreLongs());
 
     UpdateSketch sk1 = UpdateSketch.builder().setFamily(fam_).setSeed(seed)
@@ -200,7 +199,7 @@ public class HeapAlphaSketchTest {
     double sk1est = sk1.getEstimate();
     double sk1lb  = sk1.getLowerBound(2);
     double sk1ub  = sk1.getUpperBound(2);
-    assertEquals(sk1.isEstimationMode(), estimating);
+    assertTrue(sk1.isEstimationMode());
 
     byte[] byteArray = sk1.toByteArray();
     Memory mem = Memory.wrap(byteArray);
@@ -211,15 +210,14 @@ public class HeapAlphaSketchTest {
     assertEquals(sk2.getLowerBound(2), sk1lb);
     assertEquals(sk2.getUpperBound(2), sk1ub);
     assertEquals(sk2.isEmpty(), false);
-    assertEquals(sk2.isEstimationMode(), estimating);
+    assertTrue(sk2.isEstimationMode());
     assertEquals(sk2.getClass().getSimpleName(), sk1.getClass().getSimpleName());
   }
 
   @Test
   public void checkAlphaToCompactForms() {
     int k = 512;
-    int u = 4*k;
-    boolean estimating = (u > k);
+    int u = 4*k; //thus estimating
 
     UpdateSketch usk = UpdateSketch.builder().setFamily(fam_).setNominalEntries(k).build();
     HeapAlphaSketch sk1 = (HeapAlphaSketch)usk; //for internal checks
@@ -233,7 +231,7 @@ public class HeapAlphaSketchTest {
 
     //Alpha is more accurate, and size is a statistical variable about k
     // so cannot be directly compared to the compact forms
-    assertEquals(usk.isEstimationMode(), estimating);
+    assertTrue(usk.isEstimationMode());
 
     CompactSketch comp1, comp2, comp3, comp4;
 
@@ -249,7 +247,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp1bytes, (comp1curCount << 3) + (Family.COMPACT.getMaxPreLongs() << 3));
 
     assertEquals(comp1.isEmpty(), false);
-    assertEquals(comp1.isEstimationMode(), estimating);
+    assertTrue(comp1.isEstimationMode());
     assertEquals(comp1.getClass().getSimpleName(), "HeapCompactSketch");
 
     comp2 = usk.compact(true,  null);
@@ -258,7 +256,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp2.getLowerBound(2), comp1lb);
     assertEquals(comp2.getUpperBound(2), comp1ub);
     assertEquals(comp2.isEmpty(), false);
-    assertEquals(comp2.isEstimationMode(), estimating);
+    assertTrue(comp2.isEstimationMode());
     assertEquals(comp1bytes, comp2.getCompactBytes());
     assertEquals(comp1curCount, comp2.getRetainedEntries(true));
     assertEquals(comp2.getClass().getSimpleName(), "HeapCompactSketch");
@@ -275,7 +273,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp3.getLowerBound(2), comp1lb);
     assertEquals(comp3.getUpperBound(2), comp1ub);
     assertEquals(comp3.isEmpty(), false);
-    assertEquals(comp3.isEstimationMode(), estimating);
+    assertTrue(comp3.isEstimationMode());
     assertEquals(comp1bytes, comp3.getCompactBytes());
     assertEquals(comp1curCount, comp3.getRetainedEntries(true));
     assertEquals(comp3.getClass().getSimpleName(), "DirectCompactSketch");
@@ -287,7 +285,7 @@ public class HeapAlphaSketchTest {
     assertEquals(comp4.getLowerBound(2), comp1lb);
     assertEquals(comp4.getUpperBound(2), comp1ub);
     assertEquals(comp4.isEmpty(), false);
-    assertEquals(comp4.isEstimationMode(), estimating);
+    assertTrue(comp4.isEstimationMode());
     assertEquals(comp1bytes, comp4.getCompactBytes());
     assertEquals(comp1curCount, comp4.getRetainedEntries(true));
     assertEquals(comp4.getClass().getSimpleName(), "DirectCompactSketch");

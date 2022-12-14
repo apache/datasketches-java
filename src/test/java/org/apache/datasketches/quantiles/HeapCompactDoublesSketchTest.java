@@ -94,7 +94,7 @@ public class HeapCompactDoublesSketchTest {
     // modify to make v2, clear compact flag, and insert a -1 in the middle of the base buffer
     PreambleUtil.insertSerVer(mem, 2);
     PreambleUtil.insertFlags(mem, 0);
-    final long tgtAddr = COMBINED_BUFFER + ((Double.BYTES * k) / 2);
+    final long tgtAddr = COMBINED_BUFFER + ((Double.BYTES * (long)k) / 2);
     mem.putDouble(tgtAddr, -1.0);
     assert mem.getDouble(tgtAddr - Double.BYTES) > mem.getDouble(tgtAddr);
 

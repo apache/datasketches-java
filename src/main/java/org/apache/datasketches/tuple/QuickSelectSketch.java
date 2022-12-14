@@ -192,7 +192,7 @@ class QuickSelectSketch<S extends Summary> extends Sketch<S> {
     lgCurrentCapacity_ = mem.getByte(offset++); //byte 6
     lgResizeFactor_ = mem.getByte(offset++); //byte 7
 
-    checkBounds(0, preambleLongs * 8, mem.getCapacity());
+    checkBounds(0, preambleLongs * 8L, mem.getCapacity());
     final boolean isInSamplingMode = (flags & 1 << Flags.IS_IN_SAMPLING_MODE.ordinal()) > 0;
     samplingProbability_ = isInSamplingMode ? mem.getFloat(offset) : 1f; //bytes 8 - 11
     if (isInSamplingMode) {

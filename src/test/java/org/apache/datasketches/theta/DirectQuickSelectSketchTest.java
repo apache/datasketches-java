@@ -122,8 +122,7 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkHeapifyMemoryEstimating() {
     int k = 512;
-    int u = 2*k;
-    boolean estimating = (u > k);
+    int u = 2*k; //thus estimating
 
     try (WritableHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.getWritable();
@@ -134,7 +133,7 @@ public class DirectQuickSelectSketchTest {
       double sk1est = sk1.getEstimate();
       double sk1lb  = sk1.getLowerBound(2);
       double sk1ub  = sk1.getUpperBound(2);
-      assertEquals(sk1.isEstimationMode(), estimating);
+      assertTrue(sk1.isEstimationMode());
       assertEquals(sk1.getClass().getSimpleName(), "DirectQuickSelectSketch");
       int curCount1 = sk1.getRetainedEntries(true);
       assertTrue(sk1.isDirect());
@@ -148,7 +147,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(sk2.getLowerBound(2), sk1lb);
       assertEquals(sk2.getUpperBound(2), sk1ub);
       assertEquals(sk2.isEmpty(), false);
-      assertEquals(sk2.isEstimationMode(), estimating);
+      assertTrue(sk2.isEstimationMode());
       assertEquals(sk2.getClass().getSimpleName(), "HeapQuickSelectSketch");
       int curCount2 = sk2.getRetainedEntries(true);
       long[] cache = sk2.getCache();
@@ -288,8 +287,7 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkWrapMemoryEst() {
     int k = 512;
-    int u = 2*k;
-    boolean estimating = (u > k);
+    int u = 2*k; //thus estimating
 
     try (WritableHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.getWritable();
@@ -299,7 +297,7 @@ public class DirectQuickSelectSketchTest {
       double sk1est = sk1.getEstimate();
       double sk1lb  = sk1.getLowerBound(2);
       double sk1ub  = sk1.getUpperBound(2);
-      assertEquals(sk1.isEstimationMode(), estimating);
+      assertTrue(sk1.isEstimationMode());
 
       Sketch sk2 = Sketch.wrap(mem);
 
@@ -307,7 +305,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(sk2.getLowerBound(2), sk1lb);
       assertEquals(sk2.getUpperBound(2), sk1ub);
       assertEquals(sk2.isEmpty(), false);
-      assertEquals(sk2.isEstimationMode(), estimating);
+      assertTrue(sk2.isEstimationMode());
     } catch (final Exception e) {
       throw new RuntimeException(e);
     }
@@ -316,8 +314,7 @@ public class DirectQuickSelectSketchTest {
   @Test
   public void checkDQStoCompactForms() {
     int k = 512;
-    int u = 4*k;
-    boolean estimating = (u > k);
+    int u = 4*k; //thus estimating
     try (WritableHandle h = makeNativeMemory(k)) {
       WritableMemory mem = h.getWritable();
 
@@ -338,7 +335,7 @@ public class DirectQuickSelectSketchTest {
       double uskEst = usk.getEstimate();
       double uskLB  = usk.getLowerBound(2);
       double uskUB  = usk.getUpperBound(2);
-      assertEquals(usk.isEstimationMode(), estimating);
+      assertTrue(usk.isEstimationMode());
 
       CompactSketch csk;
 
@@ -347,7 +344,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getLowerBound(2), uskLB);
       assertEquals(csk.getUpperBound(2), uskUB);
       assertEquals(csk.isEmpty(), false);
-      assertEquals(csk.isEstimationMode(), estimating);
+      assertTrue(csk.isEstimationMode());
       assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       csk = usk.compact(true, null);
@@ -355,7 +352,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getLowerBound(2), uskLB);
       assertEquals(csk.getUpperBound(2), uskUB);
       assertEquals(csk.isEmpty(), false);
-      assertEquals(csk.isEstimationMode(), estimating);
+      assertTrue(csk.isEstimationMode());
       assertEquals(csk.getClass().getSimpleName(), "HeapCompactSketch");
 
       int bytes = usk.getCompactBytes();
@@ -368,7 +365,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getLowerBound(2), uskLB);
       assertEquals(csk.getUpperBound(2), uskUB);
       assertEquals(csk.isEmpty(), false);
-      assertEquals(csk.isEstimationMode(), estimating);
+      assertTrue(csk.isEstimationMode());
       assertEquals(csk.getClass().getSimpleName(), "DirectCompactSketch");
 
       mem2.clear();
@@ -377,7 +374,7 @@ public class DirectQuickSelectSketchTest {
       assertEquals(csk.getLowerBound(2), uskLB);
       assertEquals(csk.getUpperBound(2), uskUB);
       assertEquals(csk.isEmpty(), false);
-      assertEquals(csk.isEstimationMode(), estimating);
+      assertTrue(csk.isEstimationMode());
       assertEquals(csk.getClass().getSimpleName(), "DirectCompactSketch");
       csk.toString(false, true, 0, false);
     } catch (final Exception e) {

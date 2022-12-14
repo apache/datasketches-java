@@ -32,6 +32,7 @@ import static org.apache.datasketches.common.Util.checkIfIntPowerOf2;
 import static org.apache.datasketches.common.Util.checkIfLongPowerOf2;
 import static org.apache.datasketches.common.Util.checkIfMultipleOf8AndGT0;
 import static org.apache.datasketches.common.Util.checkProbability;
+import static org.apache.datasketches.common.Util.convertToLongArray;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
 import static org.apache.datasketches.common.Util.exactLog2OfLong;
 import static org.apache.datasketches.common.Util.floorPowerBaseOfDouble;
@@ -432,6 +433,23 @@ public class UtilTest {
       exactLog2OfInt(0,"0");
       fail();
     } catch (final SketchesArgumentException e) { }
+  }
+
+  @Test
+  static void checkConvertToLongArray() {
+    byte[] arr = {1,2,3,4,5,6,7,8,9,10,11,12};
+
+    long[] out = convertToLongArray(arr, false);
+    String s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[0]), 16);
+    assertEquals(s, "0807060504030201");
+    s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[1]), 16);
+    assertEquals(s, "000000000c0b0a09");
+
+    out = convertToLongArray(arr, true);
+    s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[0]), 16);
+    assertEquals(s, "0102030405060708");
+    s = org.apache.datasketches.common.Util.zeroPad(Long.toHexString(out[1]), 16);
+    assertEquals(s, "00000000090a0b0c");
   }
 
   //Resources

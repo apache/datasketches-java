@@ -517,7 +517,7 @@ public final class ReservoirItemsSketch<T> {
       return new SampleSubsetSummary(0.0, 0.0, 0.0, 0.0);
     }
 
-    final long numSamples = getNumSamples();
+    final int numSamples = getNumSamples();
     final double samplingRate = numSamples / (double) itemsSeen_;
     assert samplingRate >= 0.0;
     assert samplingRate <= 1.0;

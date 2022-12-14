@@ -64,7 +64,7 @@ public class InequalitySearchTest {
     long v = 1L;
     for (int i = 0; i < len; i++) {
       arr[i] = v;
-      v += 2 * randDelta();
+      v += 2L * randDelta();
     }
     return arr;
   }
