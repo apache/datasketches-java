@@ -320,7 +320,7 @@ final class SingleItemSketch extends CompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new HeapHashIterator(new long[] { hash_ }, Long.MAX_VALUE);
+    return new HeapCompactHashIterator(new long[] { hash_ });
   }
 
   @Override
