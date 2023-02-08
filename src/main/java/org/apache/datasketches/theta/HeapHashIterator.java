@@ -24,14 +24,12 @@ package org.apache.datasketches.theta;
  */
 class HeapHashIterator implements HashIterator {
   private long[] cache;
-  private int arrLongs;
   private long thetaLong;
   private int index;
   private long hash;
 
-  HeapHashIterator(final long[] cache, final int arrLongs, final long thetaLong) {
+  HeapHashIterator(final long[] cache, final long thetaLong) {
     this.cache = cache;
-    this.arrLongs = arrLongs;
     this.thetaLong = thetaLong;
     index = -1;
     hash = 0;
@@ -44,7 +42,7 @@ class HeapHashIterator implements HashIterator {
 
   @Override
   public boolean next() {
-    while (++index < arrLongs) {
+    while (++index < cache.length) {
       hash = cache[index];
       if ((hash != 0) && (hash < thetaLong)) {
         return true;
