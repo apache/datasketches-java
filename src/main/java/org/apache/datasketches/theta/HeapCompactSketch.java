@@ -123,7 +123,7 @@ class HeapCompactSketch extends CompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new HeapHashIterator(cache_, cache_.length, thetaLong_);
+    return new HeapCompactHashIterator(cache_);
   }
 
   //restricted methods
