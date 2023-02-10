@@ -297,7 +297,7 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public void union(final Sketch sketchIn) { //Only valid for theta Sketches using SerVer >= 3
+  public void union(final Sketch sketchIn) {
     //UNION Empty Rule: AND the empty states.
 
     if (sketchIn == null || sketchIn.isEmpty()) {
