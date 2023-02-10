@@ -411,7 +411,7 @@ final class PreambleUtil {
   }
 
   static long extractThetaLongV4(final Memory mem) {
-    return mem.getLong(THETA_LONG);
+    return mem.getLong(THETA_LONG_V4);
   }
 
   /**
