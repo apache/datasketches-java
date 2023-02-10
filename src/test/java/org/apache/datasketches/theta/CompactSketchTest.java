@@ -406,6 +406,40 @@ public class CompactSketchTest {
     assertEquals(csk2.getCompactBytes(), 24 + (curCount * 8));
   }
 
+  @Test
+  public void serializeDeserializeHeapV4() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    CompactSketch cs1 = sk.compact();
+    byte[] bytes = cs1.toByteArrayCompressed();
+    CompactSketch cs2 = CompactSketch.heapify(Memory.wrap(bytes));
+    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+    HashIterator it1 = cs1.iterator();
+    HashIterator it2 = cs2.iterator();
+    while (it1.next() && it2.next()) {
+      assertEquals(it2.get(), it2.get());
+    }
+  }
+
+  @Test
+  public void serializeDeserializeDirectV4() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    CompactSketch cs1 = sk.compact(true, WritableMemory.allocate(sk.getCompactBytes()));
+    byte[] bytes = cs1.toByteArrayCompressed();
+    CompactSketch cs2 = CompactSketch.wrap(Memory.wrap(bytes));
+    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+    HashIterator it1 = cs1.iterator();
+    HashIterator it2 = cs2.iterator();
+    while (it1.next() && it2.next()) {
+      assertEquals(it2.get(), it2.get());
+    }
+  }
+
   private static class State {
     String classType = null;
     int count = 0;

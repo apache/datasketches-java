@@ -297,7 +297,7 @@ final class UnionImpl extends Union {
   }
 
   @Override
-  public void union(final Sketch sketchIn) { //Only valid for theta Sketches using SerVer = 3
+  public void union(final Sketch sketchIn) { //Only valid for theta Sketches using SerVer >= 3
     //UNION Empty Rule: AND the empty states.
 
     if (sketchIn == null || sketchIn.isEmpty()) {
@@ -364,6 +364,14 @@ final class UnionImpl extends Union {
     final int serVer = extractSerVer(skMem);
     final int fam = extractFamilyID(skMem);
 
+    if (serVer == 4) { // compressed ordered compact
+      // performance can be improved by decompression while performing the union
+      // potentially only partial decompression might be needed
+      ThetaUtil.checkSeedHashes(expectedSeedHash_, (short) extractSeedHash(skMem));
+      final CompactSketch csk = CompactSketch.wrap(skMem);
+      union(csk);
+      return;
+    }
     if (serVer == 3) { //The OpenSource sketches (Aug 4, 2015) starts with serVer = 3
       if (fam < 1 || fam > 3) {
         throw new SketchesArgumentException(
@@ -372,14 +380,12 @@ final class UnionImpl extends Union {
       processVer3(skMem);
       return;
     }
-
     if (serVer == 2) { //older Sketch, which is compact and ordered
       ThetaUtil.checkSeedHashes(expectedSeedHash_, (short)extractSeedHash(skMem));
-      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem,expectedSeedHash_);
+      final CompactSketch csk = ForwardCompatibility.heapify2to3(skMem, expectedSeedHash_);
       union(csk);
       return;
     }
-
     if (serVer == 1) { //much older Sketch, which is compact and ordered, no seedHash
       final CompactSketch csk = ForwardCompatibility.heapify1to3(skMem, expectedSeedHash_);
       union(csk);

@@ -98,6 +98,23 @@ public class UnionImplTest {
   }
 
   @Test
+  public void checkUpdateWithMemV4Exact() {
+    int n = 1000;
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < n; i++) {
+      sk.update(i);
+    }
+    CompactSketch cs = sk.compact();
+    assertFalse(cs.isEstimationMode());
+
+    byte[] bytes = cs.toByteArrayCompressed();
+
+    final Union union = Sketches.setOperationBuilder().buildUnion();
+    union.union(Memory.wrap(bytes));
+    assertEquals(union.getResult().getEstimate(), n, 0.0);
+  }
+
+  @Test
   public void checkFastWrap() {
     final int k = 16;
     final long seed = ThetaUtil.DEFAULT_UPDATE_SEED;
