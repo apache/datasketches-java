@@ -39,7 +39,7 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  */
 public final class DoublesSketchSortedView implements DoublesSortedView {
   private final double[] quantiles;
-  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights at the end
+  private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
 
   /**
@@ -266,13 +266,13 @@ public final class DoublesSketchSortedView implements DoublesSortedView {
    *  Performs two merges in tandem. One of them provides the sort keys
    *  while the other one passively undergoes the same data motion.
    * @param qSrc quantiles source
-   * @param cwSrc cum wts source
+   * @param cwSrc cumulative weights source
    * @param arrStart1 Array 1 start offset
    * @param arrLen1 Array 1 length
    * @param arrStart2 Array 2 start offset
    * @param arrLen2 Array 2 length
    * @param qDst quantiles destination
-   * @param cwDst cum wts destination
+   * @param cwDst cumulative weights destination
    * @param arrStart3 Array 3 start offset
    */
   private static void tandemMerge(final double[] qSrc, final long[] cwSrc,

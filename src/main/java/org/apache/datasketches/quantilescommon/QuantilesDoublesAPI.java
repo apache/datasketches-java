@@ -172,7 +172,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * Gets the lower bound of the quantile confidence interval in which the quantile of the
    * given rank exists.
    *
-   * <p>Although it is possible to estimate the probablity that the true quantile
+   * <p>Although it is possible to estimate the probability that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile confidence interval
    * as an additive or multiplicative percent of the true quantile.</p>
@@ -188,7 +188,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * Gets the upper bound of the quantile confidence interval in which the true quantile of the
    * given rank exists.
    *
-   * <p>Although it is possible to estimate the probablity that the true quantile
+   * <p>Although it is possible to estimate the probability that the true quantile
    * exists within the quantile confidence interval specified by the upper and lower quantile bounds,
    * it is not possible to guarantee the width of the quantile interval
    * as an additive or multiplicative percent of the true quantile.</p>
