@@ -216,3135 +216,3135 @@ public class BitPacking {
   }
 
   static void packBits2(long[] values, int i, byte[] buf, int off) {
-    buf[off] = (byte) (values[0] << 6);
-    buf[off] |= values[1] << 4;
-    buf[off] |= values[2] << 2;
-    buf[off++] |= values[3];
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off] |= values[i + 1] << 4;
+    buf[off] |= values[i + 2] << 2;
+    buf[off++] |= values[i + 3];
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off] |= values[5] << 4;
-    buf[off] |= values[6] << 2;
-    buf[off] |= values[7];
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off] |= values[i + 5] << 4;
+    buf[off] |= values[i + 6] << 2;
+    buf[off] |= values[i + 7];
   }
 
   static void packBits3(long[] values, int i, byte[] buf, int off) {
-    buf[off] = (byte) (values[0] << 5);
-    buf[off] |= values[1] << 2;
-    buf[off++] |= values[2] >>> 1;
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off] |= values[i + 1] << 2;
+    buf[off++] |= values[i + 2] >>> 1;
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off] |= values[3] << 4;
-    buf[off] |= values[4] << 1;
-    buf[off++] |= values[5] >>> 2;
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off] |= values[i + 3] << 4;
+    buf[off] |= values[i + 4] << 1;
+    buf[off++] |= values[i + 5] >>> 2;
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off] |= values[6] << 3;
-    buf[off] |= values[7];
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off] |= values[i + 6] << 3;
+    buf[off] |= values[i + 7];
   }
 
   static void packBits4(long[] values, int i, byte[] buf, int off) {
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1];
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1];
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3];
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3];
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5];
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5];
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off] |= values[7];
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off] |= values[i + 7];
   }
 
   static void packBits5(long[] values, int i, byte[] buf, int off) {
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 2;
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 2;
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off] |= values[2] << 1;
-    buf[off++] |= values[3] >>> 4;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off] |= values[i + 2] << 1;
+    buf[off++] |= values[i + 3] >>> 4;
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 1;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 1;
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off] |= values[5] << 2;
-    buf[off++] |= values[6] >>> 3;
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off] |= values[i + 5] << 2;
+    buf[off++] |= values[i + 6] >>> 3;
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off] |= values[7];
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off] |= values[i + 7];
   }
 
   static void packBits6(long[] values, int i, byte[] buf, int off) {
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 4;
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 4;
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 2;
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 2;
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3];
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3];
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 4;
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 4;
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 2;
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 2;
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off] |= values[7];
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off] |= values[i + 7];
   }
 
   static void packBits7(long[] values, int i, byte[] buf, int off) {
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 6;
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 6;
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 5;
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 5;
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 4;
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 4;
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 3;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 3;
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 2;
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 2;
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 1;
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 1;
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off] |= values[7];
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off] |= values[i + 7];
   }
 
   static void packBits8(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0]);
-    buf[off++] = (byte) (values[1]);
-    buf[off++] = (byte) (values[2]);
-    buf[off++] = (byte) (values[3]);
-    buf[off++] = (byte) (values[4]);
-    buf[off++] = (byte) (values[5]);
-    buf[off++] = (byte) (values[6]);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 0]);
+    buf[off++] = (byte) (values[i + 1]);
+    buf[off++] = (byte) (values[i + 2]);
+    buf[off++] = (byte) (values[i + 3]);
+    buf[off++] = (byte) (values[i + 4]);
+    buf[off++] = (byte) (values[i + 5]);
+    buf[off++] = (byte) (values[i + 6]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits9(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 2;
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 2;
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 3;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 3;
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 4;
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 4;
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 5;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 5;
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 6;
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 6;
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 7;
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 7;
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits10(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 4;
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 4;
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 6;
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 6;
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 8;
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 8;
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 4;
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 4;
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 6;
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 6;
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits11(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 6;
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 6;
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 9;
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 9;
 
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 4;
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 4;
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 7;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 7;
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 10;
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 10;
 
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 5;
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 5;
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits12(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 4);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
 
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 8;
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 8;
 
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 4);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 8;
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 8;
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 4);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 8;
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 8;
 
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 4);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits13(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 10;
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 10;
 
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 7;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 7;
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 12;
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 12;
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] >>> 4);
-    buf[off++] |= values[4] >>> 9;
+    buf[off] = (byte) (values[i + 3] >>> 4);
+    buf[off++] |= values[i + 4] >>> 9;
 
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 6;
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 6;
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 11;
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 11;
 
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits14(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 12;
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 12;
 
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 10;
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 10;
 
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 8;
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 8;
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 12;
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 12;
 
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 10;
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 10;
 
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits15(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 14;
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 14;
 
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 13;
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 13;
 
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 12;
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 12;
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 11;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 11;
 
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 10;
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 10;
 
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 9;
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 9;
 
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 8;
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 8;
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits16(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 8);
-    buf[off++] = (byte) (values[0]);
+    buf[off++] = (byte) (values[i + 0] >>> 8);
+    buf[off++] = (byte) (values[i + 0]);
 
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 8);
-    buf[off++] = (byte) (values[2]);
+    buf[off++] = (byte) (values[i + 2] >>> 8);
+    buf[off++] = (byte) (values[i + 2]);
 
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 8);
-    buf[off++] = (byte) (values[4]);
+    buf[off++] = (byte) (values[i + 4] >>> 8);
+    buf[off++] = (byte) (values[i + 4]);
 
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 8);
-    buf[off++] = (byte) (values[6]);
+    buf[off++] = (byte) (values[i + 6] >>> 8);
+    buf[off++] = (byte) (values[i + 6]);
 
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits17(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 9);
+    buf[off++] = (byte) (values[i + 0] >>> 9);
 
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 10;
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 10;
 
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 11;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 11;
 
-    buf[off++] = (byte) (values[2] >>> 3);
+    buf[off++] = (byte) (values[i + 2] >>> 3);
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 12;
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 12;
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 13;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 13;
 
-    buf[off++] = (byte) (values[4] >>> 5);
+    buf[off++] = (byte) (values[i + 4] >>> 5);
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 14;
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 14;
 
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 15;
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 15;
 
-    buf[off++] = (byte) (values[6] >>> 7);
+    buf[off++] = (byte) (values[i + 6] >>> 7);
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits18(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 10);
+    buf[off++] = (byte) (values[i + 0] >>> 10);
 
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 12;
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 12;
 
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 14;
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 14;
 
-    buf[off++] = (byte) (values[2] >>> 6);
+    buf[off++] = (byte) (values[i + 2] >>> 6);
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 16;
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 16;
 
-    buf[off++] = (byte) (values[3] >>> 8);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 10);
+    buf[off++] = (byte) (values[i + 4] >>> 10);
 
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 12;
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 12;
 
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 14;
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 14;
 
-    buf[off++] = (byte) (values[6] >>> 6);
+    buf[off++] = (byte) (values[i + 6] >>> 6);
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits19(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 11);
+    buf[off++] = (byte) (values[i + 0] >>> 11);
 
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 14;
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 14;
 
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 17;
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 17;
 
-    buf[off++] = (byte) (values[2] >>> 9);
+    buf[off++] = (byte) (values[i + 2] >>> 9);
 
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 12;
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 12;
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 15;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 15;
 
-    buf[off++] |= values[4] >>> 7;
+    buf[off++] |= values[i + 4] >>> 7;
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 18;
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 18;
 
-    buf[off++] = (byte) (values[5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
 
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 13;
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 13;
 
-    buf[off++] = (byte) (values[6] >>> 5);
+    buf[off++] = (byte) (values[i + 6] >>> 5);
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits20(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 12);
+    buf[off++] = (byte) (values[i + 0] >>> 12);
 
-    buf[off++] = (byte) (values[0] >>> 4);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
 
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 16;
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 16;
 
-    buf[off++] = (byte) (values[1] >>> 8);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
 
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 12);
+    buf[off++] = (byte) (values[i + 2] >>> 12);
 
-    buf[off++] = (byte) (values[2] >>> 4);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 16;
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 16;
 
-    buf[off++] = (byte) (values[3] >>> 8);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 12);
+    buf[off++] = (byte) (values[i + 4] >>> 12);
 
-    buf[off++] = (byte) (values[4] >>> 4);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 16;
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 16;
 
-    buf[off++] = (byte) (values[5] >>> 8);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
 
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 12);
+    buf[off++] = (byte) (values[i + 6] >>> 12);
 
-    buf[off++] = (byte) (values[6] >>> 4);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits21(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 13);
+    buf[off++] = (byte) (values[i + 0] >>> 13);
 
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 18;
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 18;
 
-    buf[off++] = (byte) (values[1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
 
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 15;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 15;
 
-    buf[off++] = (byte) (values[2] >>> 7);
+    buf[off++] = (byte) (values[i + 2] >>> 7);
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 20;
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 20;
 
-    buf[off++] = (byte) (values[3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 17;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 17;
 
-    buf[off++] = (byte) (values[4] >>> 9);
+    buf[off++] = (byte) (values[i + 4] >>> 9);
 
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 14;
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 14;
 
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 19;
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 19;
 
-    buf[off++] = (byte) (values[6] >>> 11);
+    buf[off++] = (byte) (values[i + 6] >>> 11);
 
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits22(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 14);
+    buf[off++] = (byte) (values[i + 0] >>> 14);
 
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 20;
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 20;
 
-    buf[off++] = (byte) (values[1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
 
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 18;
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 18;
 
-    buf[off++] = (byte) (values[2] >>> 10);
+    buf[off++] = (byte) (values[i + 2] >>> 10);
 
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 16;
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 16;
 
-    buf[off++] = (byte) (values[3] >>> 8);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 14);
+    buf[off++] = (byte) (values[i + 4] >>> 14);
 
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 20;
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 20;
 
-    buf[off++] = (byte) (values[5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
 
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 18;
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 18;
 
-    buf[off++] = (byte) (values[6] >>> 10);
+    buf[off++] = (byte) (values[i + 6] >>> 10);
 
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits23(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 15);
+    buf[off++] = (byte) (values[i + 0] >>> 15);
 
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 22;
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 22;
 
-    buf[off++] = (byte) (values[1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
 
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 21;
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 21;
 
-    buf[off++] = (byte) (values[2] >>> 13);
+    buf[off++] = (byte) (values[i + 2] >>> 13);
 
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 20;
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 20;
 
-    buf[off++] = (byte) (values[3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 19;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 19;
 
-    buf[off++] = (byte) (values[4] >>> 11);
+    buf[off++] = (byte) (values[i + 4] >>> 11);
 
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 18;
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 18;
 
-    buf[off++] = (byte) (values[5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
 
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 17;
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 17;
 
-    buf[off++] = (byte) (values[6] >>> 9);
+    buf[off++] = (byte) (values[i + 6] >>> 9);
 
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 16;
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 16;
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits24(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 16);
-    buf[off++] = (byte) (values[0] >>> 8);
-    buf[off++] = (byte) (values[0]);
+    buf[off++] = (byte) (values[i + 0] >>> 16);
+    buf[off++] = (byte) (values[i + 0] >>> 8);
+    buf[off++] = (byte) (values[i + 0]);
 
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 16);
-    buf[off++] = (byte) (values[2] >>> 8);
-    buf[off++] = (byte) (values[2]);
+    buf[off++] = (byte) (values[i + 2] >>> 16);
+    buf[off++] = (byte) (values[i + 2] >>> 8);
+    buf[off++] = (byte) (values[i + 2]);
 
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 16);
-    buf[off++] = (byte) (values[4] >>> 8);
-    buf[off++] = (byte) (values[4]);
+    buf[off++] = (byte) (values[i + 4] >>> 16);
+    buf[off++] = (byte) (values[i + 4] >>> 8);
+    buf[off++] = (byte) (values[i + 4]);
 
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 16);
-    buf[off++] = (byte) (values[6] >>> 8);
-    buf[off++] = (byte) (values[6]);
+    buf[off++] = (byte) (values[i + 6] >>> 16);
+    buf[off++] = (byte) (values[i + 6] >>> 8);
+    buf[off++] = (byte) (values[i + 6]);
 
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits25(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 17);
+    buf[off++] = (byte) (values[i + 0] >>> 17);
 
-    buf[off++] = (byte) (values[0] >>> 9);
+    buf[off++] = (byte) (values[i + 0] >>> 9);
 
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 18;
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 18;
 
-    buf[off++] = (byte) (values[1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
 
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 19;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 19;
 
-    buf[off++] = (byte) (values[2] >>> 11);
+    buf[off++] = (byte) (values[i + 2] >>> 11);
 
-    buf[off++] = (byte) (values[2] >>> 3);
+    buf[off++] = (byte) (values[i + 2] >>> 3);
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 20;
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 20;
 
-    buf[off++] = (byte) (values[3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 21;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 21;
 
-    buf[off++] = (byte) (values[4] >>> 13);
+    buf[off++] = (byte) (values[i + 4] >>> 13);
 
-    buf[off++] = (byte) (values[4] >>> 5);
+    buf[off++] = (byte) (values[i + 4] >>> 5);
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 22;
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 22;
 
-    buf[off++] = (byte) (values[5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
 
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 23;
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 23;
 
-    buf[off++] = (byte) (values[6] >>> 15);
+    buf[off++] = (byte) (values[i + 6] >>> 15);
 
-    buf[off++] = (byte) (values[6] >>> 7);
+    buf[off++] = (byte) (values[i + 6] >>> 7);
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 24;
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 24;
 
-    buf[off++] = (byte) (values[7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits26(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 18);
+    buf[off++] = (byte) (values[i + 0] >>> 18);
 
-    buf[off++] = (byte) (values[0] >>> 10);
+    buf[off++] = (byte) (values[i + 0] >>> 10);
 
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 20;
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 20;
 
-    buf[off++] = (byte) (values[1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
 
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 22;
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 22;
 
-    buf[off++] = (byte) (values[2] >>> 14);
+    buf[off++] = (byte) (values[i + 2] >>> 14);
 
-    buf[off++] = (byte) (values[2] >>> 6);
+    buf[off++] = (byte) (values[i + 2] >>> 6);
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 24;
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 24;
 
-    buf[off++] = (byte) (values[3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
 
-    buf[off++] = (byte) (values[3] >>> 8);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
 
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 18);
+    buf[off++] = (byte) (values[i + 4] >>> 18);
 
-    buf[off++] = (byte) (values[4] >>> 10);
+    buf[off++] = (byte) (values[i + 4] >>> 10);
 
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 20;
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 20;
 
-    buf[off++] = (byte) (values[5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
 
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 22;
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 22;
 
-    buf[off++] = (byte) (values[6] >>> 14);
+    buf[off++] = (byte) (values[i + 6] >>> 14);
 
-    buf[off++] = (byte) (values[6] >>> 6);
+    buf[off++] = (byte) (values[i + 6] >>> 6);
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 24;
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 24;
 
-    buf[off++] = (byte) (values[7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits27(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 19);
+    buf[off++] = (byte) (values[i + 0] >>> 19);
 
-    buf[off++] = (byte) (values[0] >>> 11);
+    buf[off++] = (byte) (values[i + 0] >>> 11);
 
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 22;
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 22;
 
-    buf[off++] = (byte) (values[1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
 
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 25;
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 25;
 
-    buf[off++] = (byte) (values[2] >>> 17);
+    buf[off++] = (byte) (values[i + 2] >>> 17);
 
-    buf[off++] = (byte) (values[2] >>> 9);
+    buf[off++] = (byte) (values[i + 2] >>> 9);
 
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 20;
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 20;
 
-    buf[off++] = (byte) (values[3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 23;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 23;
 
-    buf[off++] = (byte) (values[4] >>> 15);
+    buf[off++] = (byte) (values[i + 4] >>> 15);
 
-    buf[off++] = (byte) (values[4] >>> 7);
+    buf[off++] = (byte) (values[i + 4] >>> 7);
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 26;
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 26;
 
-    buf[off++] = (byte) (values[5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
 
-    buf[off++] = (byte) (values[5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
 
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 21;
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 21;
 
-    buf[off++] = (byte) (values[6] >>> 13);
+    buf[off++] = (byte) (values[i + 6] >>> 13);
 
-    buf[off++] = (byte) (values[6] >>> 5);
+    buf[off++] = (byte) (values[i + 6] >>> 5);
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 24;
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 24;
 
-    buf[off++] = (byte) (values[7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits28(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 20);
-    buf[off++] = (byte) (values[0] >>> 12);
-    buf[off++] = (byte) (values[0] >>> 4);
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 24;
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
-    buf[off++] = (byte) (values[2] >>> 20);
-    buf[off++] = (byte) (values[2] >>> 12);
-    buf[off++] = (byte) (values[2] >>> 4);
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 24;
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
-    buf[off++] = (byte) (values[4] >>> 20);
-    buf[off++] = (byte) (values[4] >>> 12);
-    buf[off++] = (byte) (values[4] >>> 4);
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 24;
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
-    buf[off++] = (byte) (values[6] >>> 20);
-    buf[off++] = (byte) (values[6] >>> 12);
-    buf[off++] = (byte) (values[6] >>> 4);
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 24;
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 0] >>> 20);
+    buf[off++] = (byte) (values[i + 0] >>> 12);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 24;
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
+    buf[off++] = (byte) (values[i + 2] >>> 20);
+    buf[off++] = (byte) (values[i + 2] >>> 12);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 24;
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
+    buf[off++] = (byte) (values[i + 4] >>> 20);
+    buf[off++] = (byte) (values[i + 4] >>> 12);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 24;
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
+    buf[off++] = (byte) (values[i + 6] >>> 20);
+    buf[off++] = (byte) (values[i + 6] >>> 12);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 24;
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits29(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 21);
+    buf[off++] = (byte) (values[i + 0] >>> 21);
 
-    buf[off++] = (byte) (values[0] >>> 13);
+    buf[off++] = (byte) (values[i + 0] >>> 13);
 
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 26;
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 26;
 
-    buf[off++] = (byte) (values[1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
 
-    buf[off++] = (byte) (values[1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
 
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 23;
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 23;
 
-    buf[off++] = (byte) (values[2] >>> 15);
+    buf[off++] = (byte) (values[i + 2] >>> 15);
 
-    buf[off++] = (byte) (values[2] >>> 7);
+    buf[off++] = (byte) (values[i + 2] >>> 7);
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 28;
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 28;
 
-    buf[off++] = (byte) (values[3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
 
-    buf[off++] = (byte) (values[3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
 
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 25;
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 25;
 
-    buf[off++] = (byte) (values[4] >>> 17);
+    buf[off++] = (byte) (values[i + 4] >>> 17);
 
-    buf[off++] = (byte) (values[4] >>> 9);
+    buf[off++] = (byte) (values[i + 4] >>> 9);
 
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 22;
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 22;
 
-    buf[off++] = (byte) (values[5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
 
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 27;
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 27;
 
-    buf[off++] = (byte) (values[6] >>> 19);
+    buf[off++] = (byte) (values[i + 6] >>> 19);
 
-    buf[off++] = (byte) (values[6] >>> 11);
+    buf[off++] = (byte) (values[i + 6] >>> 11);
 
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 24;
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 24;
 
-    buf[off++] = (byte) (values[7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
 
-    buf[off++] = (byte) (values[7] >>> 8);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
 
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits30(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 22);
-    buf[off++] = (byte) (values[0] >>> 14);
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 22);
+    buf[off++] = (byte) (values[i + 0] >>> 14);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 28;
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 28;
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 26;
-    buf[off++] = (byte) (values[2] >>> 18);
-    buf[off++] = (byte) (values[2] >>> 10);
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 26;
+    buf[off++] = (byte) (values[i + 2] >>> 18);
+    buf[off++] = (byte) (values[i + 2] >>> 10);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 24;
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 24;
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 22);
-    buf[off++] = (byte) (values[4] >>> 14);
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 22);
+    buf[off++] = (byte) (values[i + 4] >>> 14);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 28;
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 28;
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 26;
-    buf[off++] = (byte) (values[6] >>> 18);
-    buf[off++] = (byte) (values[6] >>> 10);
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 26;
+    buf[off++] = (byte) (values[i + 6] >>> 18);
+    buf[off++] = (byte) (values[i + 6] >>> 10);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 24;
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 24;
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits31(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 23);
-    buf[off++] = (byte) (values[0] >>> 15);
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 23);
+    buf[off++] = (byte) (values[i + 0] >>> 15);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 30;
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 30;
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 29;
-    buf[off++] = (byte) (values[2] >>> 21);
-    buf[off++] = (byte) (values[2] >>> 13);
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 29;
+    buf[off++] = (byte) (values[i + 2] >>> 21);
+    buf[off++] = (byte) (values[i + 2] >>> 13);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 28;
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 28;
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 27;
-    buf[off++] = (byte) (values[4] >>> 19);
-    buf[off++] = (byte) (values[4] >>> 11);
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 27;
+    buf[off++] = (byte) (values[i + 4] >>> 19);
+    buf[off++] = (byte) (values[i + 4] >>> 11);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 26;
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 26;
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 25;
-    buf[off++] = (byte) (values[6] >>> 17);
-    buf[off++] = (byte) (values[6] >>> 9);
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 25;
+    buf[off++] = (byte) (values[i + 6] >>> 17);
+    buf[off++] = (byte) (values[i + 6] >>> 9);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 24;
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 24;
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits32(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 24);
-    buf[off++] = (byte) (values[0] >>> 16);
-    buf[off++] = (byte) (values[0] >>> 8);
-    buf[off++] = (byte) (values[0]);
+    buf[off++] = (byte) (values[i + 0] >>> 24);
+    buf[off++] = (byte) (values[i + 0] >>> 16);
+    buf[off++] = (byte) (values[i + 0] >>> 8);
+    buf[off++] = (byte) (values[i + 0]);
 
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 24);
-    buf[off++] = (byte) (values[2] >>> 16);
-    buf[off++] = (byte) (values[2] >>> 8);
-    buf[off++] = (byte) (values[2]);
+    buf[off++] = (byte) (values[i + 2] >>> 24);
+    buf[off++] = (byte) (values[i + 2] >>> 16);
+    buf[off++] = (byte) (values[i + 2] >>> 8);
+    buf[off++] = (byte) (values[i + 2]);
 
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 24);
-    buf[off++] = (byte) (values[4] >>> 16);
-    buf[off++] = (byte) (values[4] >>> 8);
-    buf[off++] = (byte) (values[4]);
+    buf[off++] = (byte) (values[i + 4] >>> 24);
+    buf[off++] = (byte) (values[i + 4] >>> 16);
+    buf[off++] = (byte) (values[i + 4] >>> 8);
+    buf[off++] = (byte) (values[i + 4]);
 
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 24);
-    buf[off++] = (byte) (values[6] >>> 16);
-    buf[off++] = (byte) (values[6] >>> 8);
-    buf[off++] = (byte) (values[6]);
+    buf[off++] = (byte) (values[i + 6] >>> 24);
+    buf[off++] = (byte) (values[i + 6] >>> 16);
+    buf[off++] = (byte) (values[i + 6] >>> 8);
+    buf[off++] = (byte) (values[i + 6]);
 
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits33(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 25);
-    buf[off++] = (byte) (values[0] >>> 17);
-    buf[off++] = (byte) (values[0] >>> 9);
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 25);
+    buf[off++] = (byte) (values[i + 0] >>> 17);
+    buf[off++] = (byte) (values[i + 0] >>> 9);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 26;
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 26;
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 27;
-    buf[off++] = (byte) (values[2] >>> 19);
-    buf[off++] = (byte) (values[2] >>> 11);
-    buf[off++] = (byte) (values[2] >>> 3);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 27;
+    buf[off++] = (byte) (values[i + 2] >>> 19);
+    buf[off++] = (byte) (values[i + 2] >>> 11);
+    buf[off++] = (byte) (values[i + 2] >>> 3);
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 28;
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 28;
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 29;
-    buf[off++] = (byte) (values[4] >>> 21);
-    buf[off++] = (byte) (values[4] >>> 13);
-    buf[off++] = (byte) (values[4] >>> 5);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 29;
+    buf[off++] = (byte) (values[i + 4] >>> 21);
+    buf[off++] = (byte) (values[i + 4] >>> 13);
+    buf[off++] = (byte) (values[i + 4] >>> 5);
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 30;
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 30;
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 31;
-    buf[off++] = (byte) (values[6] >>> 23);
-    buf[off++] = (byte) (values[6] >>> 15);
-    buf[off++] = (byte) (values[6] >>> 7);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 31;
+    buf[off++] = (byte) (values[i + 6] >>> 23);
+    buf[off++] = (byte) (values[i + 6] >>> 15);
+    buf[off++] = (byte) (values[i + 6] >>> 7);
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits34(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 26);
-    buf[off++] = (byte) (values[0] >>> 18);
-    buf[off++] = (byte) (values[0] >>> 10);
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 26);
+    buf[off++] = (byte) (values[i + 0] >>> 18);
+    buf[off++] = (byte) (values[i + 0] >>> 10);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 28;
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 28;
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 30;
-    buf[off++] = (byte) (values[2] >>> 22);
-    buf[off++] = (byte) (values[2] >>> 14);
-    buf[off++] = (byte) (values[2] >>> 6);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 30;
+    buf[off++] = (byte) (values[i + 2] >>> 22);
+    buf[off++] = (byte) (values[i + 2] >>> 14);
+    buf[off++] = (byte) (values[i + 2] >>> 6);
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 32;
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 32;
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 26);
-    buf[off++] = (byte) (values[4] >>> 18);
-    buf[off++] = (byte) (values[4] >>> 10);
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 26);
+    buf[off++] = (byte) (values[i + 4] >>> 18);
+    buf[off++] = (byte) (values[i + 4] >>> 10);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 28;
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 28;
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 30;
-    buf[off++] = (byte) (values[6] >>> 22);
-    buf[off++] = (byte) (values[6] >>> 14);
-    buf[off++] = (byte) (values[6] >>> 6);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 30;
+    buf[off++] = (byte) (values[i + 6] >>> 22);
+    buf[off++] = (byte) (values[i + 6] >>> 14);
+    buf[off++] = (byte) (values[i + 6] >>> 6);
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits35(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 27);
-    buf[off++] = (byte) (values[0] >>> 19);
-    buf[off++] = (byte) (values[0] >>> 11);
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 27);
+    buf[off++] = (byte) (values[i + 0] >>> 19);
+    buf[off++] = (byte) (values[i + 0] >>> 11);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 30;
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 30;
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 33;
-    buf[off++] = (byte) (values[2] >>> 25);
-    buf[off++] = (byte) (values[2] >>> 17);
-    buf[off++] = (byte) (values[2] >>> 9);
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 33;
+    buf[off++] = (byte) (values[i + 2] >>> 25);
+    buf[off++] = (byte) (values[i + 2] >>> 17);
+    buf[off++] = (byte) (values[i + 2] >>> 9);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 28;
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 28;
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 31;
-    buf[off++] = (byte) (values[4] >>> 23);
-    buf[off++] = (byte) (values[4] >>> 15);
-    buf[off++] = (byte) (values[4] >>> 7);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 31;
+    buf[off++] = (byte) (values[i + 4] >>> 23);
+    buf[off++] = (byte) (values[i + 4] >>> 15);
+    buf[off++] = (byte) (values[i + 4] >>> 7);
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 34;
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 34;
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 29;
-    buf[off++] = (byte) (values[6] >>> 21);
-    buf[off++] = (byte) (values[6] >>> 13);
-    buf[off++] = (byte) (values[6] >>> 5);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 29;
+    buf[off++] = (byte) (values[i + 6] >>> 21);
+    buf[off++] = (byte) (values[i + 6] >>> 13);
+    buf[off++] = (byte) (values[i + 6] >>> 5);
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits36(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 28);
-    buf[off++] = (byte) (values[0] >>> 20);
-    buf[off++] = (byte) (values[0] >>> 12);
-    buf[off++] = (byte) (values[0] >>> 4);
+    buf[off++] = (byte) (values[i + 0] >>> 28);
+    buf[off++] = (byte) (values[i + 0] >>> 20);
+    buf[off++] = (byte) (values[i + 0] >>> 12);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
 
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 32;
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 32;
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 28);
-    buf[off++] = (byte) (values[2] >>> 20);
-    buf[off++] = (byte) (values[2] >>> 12);
-    buf[off++] = (byte) (values[2] >>> 4);
+    buf[off++] = (byte) (values[i + 2] >>> 28);
+    buf[off++] = (byte) (values[i + 2] >>> 20);
+    buf[off++] = (byte) (values[i + 2] >>> 12);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 32;
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 32;
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 28);
-    buf[off++] = (byte) (values[4] >>> 20);
-    buf[off++] = (byte) (values[4] >>> 12);
-    buf[off++] = (byte) (values[4] >>> 4);
+    buf[off++] = (byte) (values[i + 4] >>> 28);
+    buf[off++] = (byte) (values[i + 4] >>> 20);
+    buf[off++] = (byte) (values[i + 4] >>> 12);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 32;
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 32;
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 28);
-    buf[off++] = (byte) (values[6] >>> 20);
-    buf[off++] = (byte) (values[6] >>> 12);
-    buf[off++] = (byte) (values[6] >>> 4);
+    buf[off++] = (byte) (values[i + 6] >>> 28);
+    buf[off++] = (byte) (values[i + 6] >>> 20);
+    buf[off++] = (byte) (values[i + 6] >>> 12);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits37(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 29);
-    buf[off++] = (byte) (values[0] >>> 21);
-    buf[off++] = (byte) (values[0] >>> 13);
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 29);
+    buf[off++] = (byte) (values[i + 0] >>> 21);
+    buf[off++] = (byte) (values[i + 0] >>> 13);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 34;
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 34;
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 31;
-    buf[off++] = (byte) (values[2] >>> 23);
-    buf[off++] = (byte) (values[2] >>> 15);
-    buf[off++] = (byte) (values[2] >>> 7);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 31;
+    buf[off++] = (byte) (values[i + 2] >>> 23);
+    buf[off++] = (byte) (values[i + 2] >>> 15);
+    buf[off++] = (byte) (values[i + 2] >>> 7);
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 36;
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 36;
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 33;
-    buf[off++] = (byte) (values[4] >>> 25);
-    buf[off++] = (byte) (values[4] >>> 17);
-    buf[off++] = (byte) (values[4] >>> 9);
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 33;
+    buf[off++] = (byte) (values[i + 4] >>> 25);
+    buf[off++] = (byte) (values[i + 4] >>> 17);
+    buf[off++] = (byte) (values[i + 4] >>> 9);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 30;
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 30;
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 35;
-    buf[off++] = (byte) (values[6] >>> 27);
-    buf[off++] = (byte) (values[6] >>> 19);
-    buf[off++] = (byte) (values[6] >>> 11);
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 35;
+    buf[off++] = (byte) (values[i + 6] >>> 27);
+    buf[off++] = (byte) (values[i + 6] >>> 19);
+    buf[off++] = (byte) (values[i + 6] >>> 11);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits38(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 30);
-    buf[off++] = (byte) (values[0] >>> 22);
-    buf[off++] = (byte) (values[0] >>> 14);
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 30);
+    buf[off++] = (byte) (values[i + 0] >>> 22);
+    buf[off++] = (byte) (values[i + 0] >>> 14);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 36;
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 36;
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 34;
-    buf[off++] = (byte) (values[2] >>> 26);
-    buf[off++] = (byte) (values[2] >>> 18);
-    buf[off++] = (byte) (values[2] >>> 10);
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 34;
+    buf[off++] = (byte) (values[i + 2] >>> 26);
+    buf[off++] = (byte) (values[i + 2] >>> 18);
+    buf[off++] = (byte) (values[i + 2] >>> 10);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 32;
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 32;
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 30);
-    buf[off++] = (byte) (values[4] >>> 22);
-    buf[off++] = (byte) (values[4] >>> 14);
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 30);
+    buf[off++] = (byte) (values[i + 4] >>> 22);
+    buf[off++] = (byte) (values[i + 4] >>> 14);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 36;
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 36;
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 34;
-    buf[off++] = (byte) (values[6] >>> 26);
-    buf[off++] = (byte) (values[6] >>> 18);
-    buf[off++] = (byte) (values[6] >>> 10);
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 34;
+    buf[off++] = (byte) (values[i + 6] >>> 26);
+    buf[off++] = (byte) (values[i + 6] >>> 18);
+    buf[off++] = (byte) (values[i + 6] >>> 10);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits39(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 31);
-    buf[off++] = (byte) (values[0] >>> 23);
-    buf[off++] = (byte) (values[0] >>> 15);
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 31);
+    buf[off++] = (byte) (values[i + 0] >>> 23);
+    buf[off++] = (byte) (values[i + 0] >>> 15);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 38;
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 38;
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 37;
-    buf[off++] = (byte) (values[2] >>> 29);
-    buf[off++] = (byte) (values[2] >>> 21);
-    buf[off++] = (byte) (values[2] >>> 13);
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 37;
+    buf[off++] = (byte) (values[i + 2] >>> 29);
+    buf[off++] = (byte) (values[i + 2] >>> 21);
+    buf[off++] = (byte) (values[i + 2] >>> 13);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 36;
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 36;
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 35;
-    buf[off++] = (byte) (values[4] >>> 27);
-    buf[off++] = (byte) (values[4] >>> 19);
-    buf[off++] = (byte) (values[4] >>> 11);
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 35;
+    buf[off++] = (byte) (values[i + 4] >>> 27);
+    buf[off++] = (byte) (values[i + 4] >>> 19);
+    buf[off++] = (byte) (values[i + 4] >>> 11);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 34;
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 34;
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 33;
-    buf[off++] = (byte) (values[6] >>> 25);
-    buf[off++] = (byte) (values[6] >>> 17);
-    buf[off++] = (byte) (values[6] >>> 9);
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 33;
+    buf[off++] = (byte) (values[i + 6] >>> 25);
+    buf[off++] = (byte) (values[i + 6] >>> 17);
+    buf[off++] = (byte) (values[i + 6] >>> 9);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 32;
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 32;
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits40(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 32);
-    buf[off++] = (byte) (values[0] >>> 24);
-    buf[off++] = (byte) (values[0] >>> 16);
-    buf[off++] = (byte) (values[0] >>> 8);
-    buf[off++] = (byte) (values[0]);
+    buf[off++] = (byte) (values[i + 0] >>> 32);
+    buf[off++] = (byte) (values[i + 0] >>> 24);
+    buf[off++] = (byte) (values[i + 0] >>> 16);
+    buf[off++] = (byte) (values[i + 0] >>> 8);
+    buf[off++] = (byte) (values[i + 0]);
 
-    buf[off++] = (byte) (values[1] >>> 32);
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1] >>> 32);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 32);
-    buf[off++] = (byte) (values[2] >>> 24);
-    buf[off++] = (byte) (values[2] >>> 16);
-    buf[off++] = (byte) (values[2] >>> 8);
-    buf[off++] = (byte) (values[2]);
+    buf[off++] = (byte) (values[i + 2] >>> 32);
+    buf[off++] = (byte) (values[i + 2] >>> 24);
+    buf[off++] = (byte) (values[i + 2] >>> 16);
+    buf[off++] = (byte) (values[i + 2] >>> 8);
+    buf[off++] = (byte) (values[i + 2]);
 
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 32);
-    buf[off++] = (byte) (values[4] >>> 24);
-    buf[off++] = (byte) (values[4] >>> 16);
-    buf[off++] = (byte) (values[4] >>> 8);
-    buf[off++] = (byte) (values[4]);
+    buf[off++] = (byte) (values[i + 4] >>> 32);
+    buf[off++] = (byte) (values[i + 4] >>> 24);
+    buf[off++] = (byte) (values[i + 4] >>> 16);
+    buf[off++] = (byte) (values[i + 4] >>> 8);
+    buf[off++] = (byte) (values[i + 4]);
 
-    buf[off++] = (byte) (values[5] >>> 32);
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5] >>> 32);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 32);
-    buf[off++] = (byte) (values[6] >>> 24);
-    buf[off++] = (byte) (values[6] >>> 16);
-    buf[off++] = (byte) (values[6] >>> 8);
-    buf[off++] = (byte) (values[6]);
+    buf[off++] = (byte) (values[i + 6] >>> 32);
+    buf[off++] = (byte) (values[i + 6] >>> 24);
+    buf[off++] = (byte) (values[i + 6] >>> 16);
+    buf[off++] = (byte) (values[i + 6] >>> 8);
+    buf[off++] = (byte) (values[i + 6]);
 
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits41(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 33);
-    buf[off++] = (byte) (values[0] >>> 25);
-    buf[off++] = (byte) (values[0] >>> 17);
-    buf[off++] = (byte) (values[0] >>> 9);
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 33);
+    buf[off++] = (byte) (values[i + 0] >>> 25);
+    buf[off++] = (byte) (values[i + 0] >>> 17);
+    buf[off++] = (byte) (values[i + 0] >>> 9);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 34;
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 34;
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 35;
-    buf[off++] = (byte) (values[2] >>> 27);
-    buf[off++] = (byte) (values[2] >>> 19);
-    buf[off++] = (byte) (values[2] >>> 11);
-    buf[off++] = (byte) (values[2] >>> 3);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 35;
+    buf[off++] = (byte) (values[i + 2] >>> 27);
+    buf[off++] = (byte) (values[i + 2] >>> 19);
+    buf[off++] = (byte) (values[i + 2] >>> 11);
+    buf[off++] = (byte) (values[i + 2] >>> 3);
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 36;
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 36;
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 37;
-    buf[off++] = (byte) (values[4] >>> 29);
-    buf[off++] = (byte) (values[4] >>> 21);
-    buf[off++] = (byte) (values[4] >>> 13);
-    buf[off++] = (byte) (values[4] >>> 5);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 37;
+    buf[off++] = (byte) (values[i + 4] >>> 29);
+    buf[off++] = (byte) (values[i + 4] >>> 21);
+    buf[off++] = (byte) (values[i + 4] >>> 13);
+    buf[off++] = (byte) (values[i + 4] >>> 5);
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 38;
-    buf[off++] = (byte) (values[5] >>> 30);
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 38;
+    buf[off++] = (byte) (values[i + 5] >>> 30);
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 39;
-    buf[off++] = (byte) (values[6] >>> 31);
-    buf[off++] = (byte) (values[6] >>> 23);
-    buf[off++] = (byte) (values[6] >>> 15);
-    buf[off++] = (byte) (values[6] >>> 7);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 39;
+    buf[off++] = (byte) (values[i + 6] >>> 31);
+    buf[off++] = (byte) (values[i + 6] >>> 23);
+    buf[off++] = (byte) (values[i + 6] >>> 15);
+    buf[off++] = (byte) (values[i + 6] >>> 7);
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits42(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 34);
-    buf[off++] = (byte) (values[0] >>> 26);
-    buf[off++] = (byte) (values[0] >>> 18);
-    buf[off++] = (byte) (values[0] >>> 10);
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 34);
+    buf[off++] = (byte) (values[i + 0] >>> 26);
+    buf[off++] = (byte) (values[i + 0] >>> 18);
+    buf[off++] = (byte) (values[i + 0] >>> 10);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 36;
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 36;
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 38;
-    buf[off++] = (byte) (values[2] >>> 30);
-    buf[off++] = (byte) (values[2] >>> 22);
-    buf[off++] = (byte) (values[2] >>> 14);
-    buf[off++] = (byte) (values[2] >>> 6);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 38;
+    buf[off++] = (byte) (values[i + 2] >>> 30);
+    buf[off++] = (byte) (values[i + 2] >>> 22);
+    buf[off++] = (byte) (values[i + 2] >>> 14);
+    buf[off++] = (byte) (values[i + 2] >>> 6);
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 40;
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 40;
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 34);
-    buf[off++] = (byte) (values[4] >>> 26);
-    buf[off++] = (byte) (values[4] >>> 18);
-    buf[off++] = (byte) (values[4] >>> 10);
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 34);
+    buf[off++] = (byte) (values[i + 4] >>> 26);
+    buf[off++] = (byte) (values[i + 4] >>> 18);
+    buf[off++] = (byte) (values[i + 4] >>> 10);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 36;
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 36;
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 38;
-    buf[off++] = (byte) (values[6] >>> 30);
-    buf[off++] = (byte) (values[6] >>> 22);
-    buf[off++] = (byte) (values[6] >>> 14);
-    buf[off++] = (byte) (values[6] >>> 6);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 38;
+    buf[off++] = (byte) (values[i + 6] >>> 30);
+    buf[off++] = (byte) (values[i + 6] >>> 22);
+    buf[off++] = (byte) (values[i + 6] >>> 14);
+    buf[off++] = (byte) (values[i + 6] >>> 6);
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits43(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 35);
-    buf[off++] = (byte) (values[0] >>> 27);
-    buf[off++] = (byte) (values[0] >>> 19);
-    buf[off++] = (byte) (values[0] >>> 11);
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 35);
+    buf[off++] = (byte) (values[i + 0] >>> 27);
+    buf[off++] = (byte) (values[i + 0] >>> 19);
+    buf[off++] = (byte) (values[i + 0] >>> 11);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 38;
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 38;
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 41;
-    buf[off++] = (byte) (values[2] >>> 33);
-    buf[off++] = (byte) (values[2] >>> 25);
-    buf[off++] = (byte) (values[2] >>> 17);
-    buf[off++] = (byte) (values[2] >>> 9);
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 41;
+    buf[off++] = (byte) (values[i + 2] >>> 33);
+    buf[off++] = (byte) (values[i + 2] >>> 25);
+    buf[off++] = (byte) (values[i + 2] >>> 17);
+    buf[off++] = (byte) (values[i + 2] >>> 9);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 36;
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 36;
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 39;
-    buf[off++] = (byte) (values[4] >>> 31);
-    buf[off++] = (byte) (values[4] >>> 23);
-    buf[off++] = (byte) (values[4] >>> 15);
-    buf[off++] = (byte) (values[4] >>> 7);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 39;
+    buf[off++] = (byte) (values[i + 4] >>> 31);
+    buf[off++] = (byte) (values[i + 4] >>> 23);
+    buf[off++] = (byte) (values[i + 4] >>> 15);
+    buf[off++] = (byte) (values[i + 4] >>> 7);
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 42;
-    buf[off++] = (byte) (values[5] >>> 34);
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 42;
+    buf[off++] = (byte) (values[i + 5] >>> 34);
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 37;
-    buf[off++] = (byte) (values[6] >>> 29);
-    buf[off++] = (byte) (values[6] >>> 21);
-    buf[off++] = (byte) (values[6] >>> 13);
-    buf[off++] = (byte) (values[6] >>> 5);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 37;
+    buf[off++] = (byte) (values[i + 6] >>> 29);
+    buf[off++] = (byte) (values[i + 6] >>> 21);
+    buf[off++] = (byte) (values[i + 6] >>> 13);
+    buf[off++] = (byte) (values[i + 6] >>> 5);
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits44(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 36);
-    buf[off++] = (byte) (values[0] >>> 28);
-    buf[off++] = (byte) (values[0] >>> 20);
-    buf[off++] = (byte) (values[0] >>> 12);
-    buf[off++] = (byte) (values[0] >>> 4);
+    buf[off++] = (byte) (values[i + 0] >>> 36);
+    buf[off++] = (byte) (values[i + 0] >>> 28);
+    buf[off++] = (byte) (values[i + 0] >>> 20);
+    buf[off++] = (byte) (values[i + 0] >>> 12);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
 
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 40;
-    buf[off++] = (byte) (values[1] >>> 32);
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 40;
+    buf[off++] = (byte) (values[i + 1] >>> 32);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 36);
-    buf[off++] = (byte) (values[2] >>> 28);
-    buf[off++] = (byte) (values[2] >>> 20);
-    buf[off++] = (byte) (values[2] >>> 12);
-    buf[off++] = (byte) (values[2] >>> 4);
+    buf[off++] = (byte) (values[i + 2] >>> 36);
+    buf[off++] = (byte) (values[i + 2] >>> 28);
+    buf[off++] = (byte) (values[i + 2] >>> 20);
+    buf[off++] = (byte) (values[i + 2] >>> 12);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 40;
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 40;
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 36);
-    buf[off++] = (byte) (values[4] >>> 28);
-    buf[off++] = (byte) (values[4] >>> 20);
-    buf[off++] = (byte) (values[4] >>> 12);
-    buf[off++] = (byte) (values[4] >>> 4);
+    buf[off++] = (byte) (values[i + 4] >>> 36);
+    buf[off++] = (byte) (values[i + 4] >>> 28);
+    buf[off++] = (byte) (values[i + 4] >>> 20);
+    buf[off++] = (byte) (values[i + 4] >>> 12);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 40;
-    buf[off++] = (byte) (values[5] >>> 32);
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 40;
+    buf[off++] = (byte) (values[i + 5] >>> 32);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 36);
-    buf[off++] = (byte) (values[6] >>> 28);
-    buf[off++] = (byte) (values[6] >>> 20);
-    buf[off++] = (byte) (values[6] >>> 12);
-    buf[off++] = (byte) (values[6] >>> 4);
+    buf[off++] = (byte) (values[i + 6] >>> 36);
+    buf[off++] = (byte) (values[i + 6] >>> 28);
+    buf[off++] = (byte) (values[i + 6] >>> 20);
+    buf[off++] = (byte) (values[i + 6] >>> 12);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits45(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 37);
-    buf[off++] = (byte) (values[0] >>> 29);
-    buf[off++] = (byte) (values[0] >>> 21);
-    buf[off++] = (byte) (values[0] >>> 13);
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 37);
+    buf[off++] = (byte) (values[i + 0] >>> 29);
+    buf[off++] = (byte) (values[i + 0] >>> 21);
+    buf[off++] = (byte) (values[i + 0] >>> 13);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 42;
-    buf[off++] = (byte) (values[1] >>> 34);
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 42;
+    buf[off++] = (byte) (values[i + 1] >>> 34);
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 39;
-    buf[off++] = (byte) (values[2] >>> 31);
-    buf[off++] = (byte) (values[2] >>> 23);
-    buf[off++] = (byte) (values[2] >>> 15);
-    buf[off++] = (byte) (values[2] >>> 7);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 39;
+    buf[off++] = (byte) (values[i + 2] >>> 31);
+    buf[off++] = (byte) (values[i + 2] >>> 23);
+    buf[off++] = (byte) (values[i + 2] >>> 15);
+    buf[off++] = (byte) (values[i + 2] >>> 7);
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 44;
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 44;
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 41;
-    buf[off++] = (byte) (values[4] >>> 33);
-    buf[off++] = (byte) (values[4] >>> 25);
-    buf[off++] = (byte) (values[4] >>> 17);
-    buf[off++] = (byte) (values[4] >>> 9);
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 41;
+    buf[off++] = (byte) (values[i + 4] >>> 33);
+    buf[off++] = (byte) (values[i + 4] >>> 25);
+    buf[off++] = (byte) (values[i + 4] >>> 17);
+    buf[off++] = (byte) (values[i + 4] >>> 9);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 38;
-    buf[off++] = (byte) (values[5] >>> 30);
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 38;
+    buf[off++] = (byte) (values[i + 5] >>> 30);
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 43;
-    buf[off++] = (byte) (values[6] >>> 35);
-    buf[off++] = (byte) (values[6] >>> 27);
-    buf[off++] = (byte) (values[6] >>> 19);
-    buf[off++] = (byte) (values[6] >>> 11);
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 43;
+    buf[off++] = (byte) (values[i + 6] >>> 35);
+    buf[off++] = (byte) (values[i + 6] >>> 27);
+    buf[off++] = (byte) (values[i + 6] >>> 19);
+    buf[off++] = (byte) (values[i + 6] >>> 11);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits46(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 38);
-    buf[off++] = (byte) (values[0] >>> 30);
-    buf[off++] = (byte) (values[0] >>> 22);
-    buf[off++] = (byte) (values[0] >>> 14);
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 38);
+    buf[off++] = (byte) (values[i + 0] >>> 30);
+    buf[off++] = (byte) (values[i + 0] >>> 22);
+    buf[off++] = (byte) (values[i + 0] >>> 14);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 44;
-    buf[off++] = (byte) (values[1] >>> 36);
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 44;
+    buf[off++] = (byte) (values[i + 1] >>> 36);
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 42;
-    buf[off++] = (byte) (values[2] >>> 34);
-    buf[off++] = (byte) (values[2] >>> 26);
-    buf[off++] = (byte) (values[2] >>> 18);
-    buf[off++] = (byte) (values[2] >>> 10);
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 42;
+    buf[off++] = (byte) (values[i + 2] >>> 34);
+    buf[off++] = (byte) (values[i + 2] >>> 26);
+    buf[off++] = (byte) (values[i + 2] >>> 18);
+    buf[off++] = (byte) (values[i + 2] >>> 10);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 40;
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 40;
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 38);
-    buf[off++] = (byte) (values[4] >>> 30);
-    buf[off++] = (byte) (values[4] >>> 22);
-    buf[off++] = (byte) (values[4] >>> 14);
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 38);
+    buf[off++] = (byte) (values[i + 4] >>> 30);
+    buf[off++] = (byte) (values[i + 4] >>> 22);
+    buf[off++] = (byte) (values[i + 4] >>> 14);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 44;
-    buf[off++] = (byte) (values[5] >>> 36);
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 44;
+    buf[off++] = (byte) (values[i + 5] >>> 36);
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 42;
-    buf[off++] = (byte) (values[6] >>> 34);
-    buf[off++] = (byte) (values[6] >>> 26);
-    buf[off++] = (byte) (values[6] >>> 18);
-    buf[off++] = (byte) (values[6] >>> 10);
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 42;
+    buf[off++] = (byte) (values[i + 6] >>> 34);
+    buf[off++] = (byte) (values[i + 6] >>> 26);
+    buf[off++] = (byte) (values[i + 6] >>> 18);
+    buf[off++] = (byte) (values[i + 6] >>> 10);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits47(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 39);
-    buf[off++] = (byte) (values[0] >>> 31);
-    buf[off++] = (byte) (values[0] >>> 23);
-    buf[off++] = (byte) (values[0] >>> 15);
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 39);
+    buf[off++] = (byte) (values[i + 0] >>> 31);
+    buf[off++] = (byte) (values[i + 0] >>> 23);
+    buf[off++] = (byte) (values[i + 0] >>> 15);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 46;
-    buf[off++] = (byte) (values[1] >>> 38);
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 46;
+    buf[off++] = (byte) (values[i + 1] >>> 38);
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 45;
-    buf[off++] = (byte) (values[2] >>> 37);
-    buf[off++] = (byte) (values[2] >>> 29);
-    buf[off++] = (byte) (values[2] >>> 21);
-    buf[off++] = (byte) (values[2] >>> 13);
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 45;
+    buf[off++] = (byte) (values[i + 2] >>> 37);
+    buf[off++] = (byte) (values[i + 2] >>> 29);
+    buf[off++] = (byte) (values[i + 2] >>> 21);
+    buf[off++] = (byte) (values[i + 2] >>> 13);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 44;
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 44;
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 43;
-    buf[off++] = (byte) (values[4] >>> 35);
-    buf[off++] = (byte) (values[4] >>> 27);
-    buf[off++] = (byte) (values[4] >>> 19);
-    buf[off++] = (byte) (values[4] >>> 11);
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 43;
+    buf[off++] = (byte) (values[i + 4] >>> 35);
+    buf[off++] = (byte) (values[i + 4] >>> 27);
+    buf[off++] = (byte) (values[i + 4] >>> 19);
+    buf[off++] = (byte) (values[i + 4] >>> 11);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 42;
-    buf[off++] = (byte) (values[5] >>> 34);
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 42;
+    buf[off++] = (byte) (values[i + 5] >>> 34);
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 41;
-    buf[off++] = (byte) (values[6] >>> 33);
-    buf[off++] = (byte) (values[6] >>> 25);
-    buf[off++] = (byte) (values[6] >>> 17);
-    buf[off++] = (byte) (values[6] >>> 9);
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 41;
+    buf[off++] = (byte) (values[i + 6] >>> 33);
+    buf[off++] = (byte) (values[i + 6] >>> 25);
+    buf[off++] = (byte) (values[i + 6] >>> 17);
+    buf[off++] = (byte) (values[i + 6] >>> 9);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 40;
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 40;
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits48(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 40);
-    buf[off++] = (byte) (values[0] >>> 32);
-    buf[off++] = (byte) (values[0] >>> 24);
-    buf[off++] = (byte) (values[0] >>> 16);
-    buf[off++] = (byte) (values[0] >>> 8);
-    buf[off++] = (byte) (values[0]);
+    buf[off++] = (byte) (values[i + 0] >>> 40);
+    buf[off++] = (byte) (values[i + 0] >>> 32);
+    buf[off++] = (byte) (values[i + 0] >>> 24);
+    buf[off++] = (byte) (values[i + 0] >>> 16);
+    buf[off++] = (byte) (values[i + 0] >>> 8);
+    buf[off++] = (byte) (values[i + 0]);
 
-    buf[off++] = (byte) (values[1] >>> 40);
-    buf[off++] = (byte) (values[1] >>> 32);
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1] >>> 40);
+    buf[off++] = (byte) (values[i + 1] >>> 32);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 40);
-    buf[off++] = (byte) (values[2] >>> 32);
-    buf[off++] = (byte) (values[2] >>> 24);
-    buf[off++] = (byte) (values[2] >>> 16);
-    buf[off++] = (byte) (values[2] >>> 8);
-    buf[off++] = (byte) (values[2]);
+    buf[off++] = (byte) (values[i + 2] >>> 40);
+    buf[off++] = (byte) (values[i + 2] >>> 32);
+    buf[off++] = (byte) (values[i + 2] >>> 24);
+    buf[off++] = (byte) (values[i + 2] >>> 16);
+    buf[off++] = (byte) (values[i + 2] >>> 8);
+    buf[off++] = (byte) (values[i + 2]);
 
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 40);
-    buf[off++] = (byte) (values[4] >>> 32);
-    buf[off++] = (byte) (values[4] >>> 24);
-    buf[off++] = (byte) (values[4] >>> 16);
-    buf[off++] = (byte) (values[4] >>> 8);
-    buf[off++] = (byte) (values[4]);
+    buf[off++] = (byte) (values[i + 4] >>> 40);
+    buf[off++] = (byte) (values[i + 4] >>> 32);
+    buf[off++] = (byte) (values[i + 4] >>> 24);
+    buf[off++] = (byte) (values[i + 4] >>> 16);
+    buf[off++] = (byte) (values[i + 4] >>> 8);
+    buf[off++] = (byte) (values[i + 4]);
 
-    buf[off++] = (byte) (values[5] >>> 40);
-    buf[off++] = (byte) (values[5] >>> 32);
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5] >>> 40);
+    buf[off++] = (byte) (values[i + 5] >>> 32);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 40);
-    buf[off++] = (byte) (values[6] >>> 32);
-    buf[off++] = (byte) (values[6] >>> 24);
-    buf[off++] = (byte) (values[6] >>> 16);
-    buf[off++] = (byte) (values[6] >>> 8);
-    buf[off++] = (byte) (values[6]);
+    buf[off++] = (byte) (values[i + 6] >>> 40);
+    buf[off++] = (byte) (values[i + 6] >>> 32);
+    buf[off++] = (byte) (values[i + 6] >>> 24);
+    buf[off++] = (byte) (values[i + 6] >>> 16);
+    buf[off++] = (byte) (values[i + 6] >>> 8);
+    buf[off++] = (byte) (values[i + 6]);
 
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits49(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 41);
-    buf[off++] = (byte) (values[0] >>> 33);
-    buf[off++] = (byte) (values[0] >>> 25);
-    buf[off++] = (byte) (values[0] >>> 17);
-    buf[off++] = (byte) (values[0] >>> 9);
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 41);
+    buf[off++] = (byte) (values[i + 0] >>> 33);
+    buf[off++] = (byte) (values[i + 0] >>> 25);
+    buf[off++] = (byte) (values[i + 0] >>> 17);
+    buf[off++] = (byte) (values[i + 0] >>> 9);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 42;
-    buf[off++] = (byte) (values[1] >>> 34);
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 42;
+    buf[off++] = (byte) (values[i + 1] >>> 34);
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 43;
-    buf[off++] = (byte) (values[2] >>> 35);
-    buf[off++] = (byte) (values[2] >>> 27);
-    buf[off++] = (byte) (values[2] >>> 19);
-    buf[off++] = (byte) (values[2] >>> 11);
-    buf[off++] = (byte) (values[2] >>> 3);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 43;
+    buf[off++] = (byte) (values[i + 2] >>> 35);
+    buf[off++] = (byte) (values[i + 2] >>> 27);
+    buf[off++] = (byte) (values[i + 2] >>> 19);
+    buf[off++] = (byte) (values[i + 2] >>> 11);
+    buf[off++] = (byte) (values[i + 2] >>> 3);
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 44;
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 44;
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 45;
-    buf[off++] = (byte) (values[4] >>> 37);
-    buf[off++] = (byte) (values[4] >>> 29);
-    buf[off++] = (byte) (values[4] >>> 21);
-    buf[off++] = (byte) (values[4] >>> 13);
-    buf[off++] = (byte) (values[4] >>> 5);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 45;
+    buf[off++] = (byte) (values[i + 4] >>> 37);
+    buf[off++] = (byte) (values[i + 4] >>> 29);
+    buf[off++] = (byte) (values[i + 4] >>> 21);
+    buf[off++] = (byte) (values[i + 4] >>> 13);
+    buf[off++] = (byte) (values[i + 4] >>> 5);
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 46;
-    buf[off++] = (byte) (values[5] >>> 38);
-    buf[off++] = (byte) (values[5] >>> 30);
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 46;
+    buf[off++] = (byte) (values[i + 5] >>> 38);
+    buf[off++] = (byte) (values[i + 5] >>> 30);
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 47;
-    buf[off++] = (byte) (values[6] >>> 39);
-    buf[off++] = (byte) (values[6] >>> 31);
-    buf[off++] = (byte) (values[6] >>> 23);
-    buf[off++] = (byte) (values[6] >>> 15);
-    buf[off++] = (byte) (values[6] >>> 7);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 47;
+    buf[off++] = (byte) (values[i + 6] >>> 39);
+    buf[off++] = (byte) (values[i + 6] >>> 31);
+    buf[off++] = (byte) (values[i + 6] >>> 23);
+    buf[off++] = (byte) (values[i + 6] >>> 15);
+    buf[off++] = (byte) (values[i + 6] >>> 7);
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits50(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 42);
-    buf[off++] = (byte) (values[0] >>> 34);
-    buf[off++] = (byte) (values[0] >>> 26);
-    buf[off++] = (byte) (values[0] >>> 18);
-    buf[off++] = (byte) (values[0] >>> 10);
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 42);
+    buf[off++] = (byte) (values[i + 0] >>> 34);
+    buf[off++] = (byte) (values[i + 0] >>> 26);
+    buf[off++] = (byte) (values[i + 0] >>> 18);
+    buf[off++] = (byte) (values[i + 0] >>> 10);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 44;
-    buf[off++] = (byte) (values[1] >>> 36);
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 44;
+    buf[off++] = (byte) (values[i + 1] >>> 36);
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 46;
-    buf[off++] = (byte) (values[2] >>> 38);
-    buf[off++] = (byte) (values[2] >>> 30);
-    buf[off++] = (byte) (values[2] >>> 22);
-    buf[off++] = (byte) (values[2] >>> 14);
-    buf[off++] = (byte) (values[2] >>> 6);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 46;
+    buf[off++] = (byte) (values[i + 2] >>> 38);
+    buf[off++] = (byte) (values[i + 2] >>> 30);
+    buf[off++] = (byte) (values[i + 2] >>> 22);
+    buf[off++] = (byte) (values[i + 2] >>> 14);
+    buf[off++] = (byte) (values[i + 2] >>> 6);
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 48;
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 48;
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 42);
-    buf[off++] = (byte) (values[4] >>> 34);
-    buf[off++] = (byte) (values[4] >>> 26);
-    buf[off++] = (byte) (values[4] >>> 18);
-    buf[off++] = (byte) (values[4] >>> 10);
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 42);
+    buf[off++] = (byte) (values[i + 4] >>> 34);
+    buf[off++] = (byte) (values[i + 4] >>> 26);
+    buf[off++] = (byte) (values[i + 4] >>> 18);
+    buf[off++] = (byte) (values[i + 4] >>> 10);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 44;
-    buf[off++] = (byte) (values[5] >>> 36);
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 44;
+    buf[off++] = (byte) (values[i + 5] >>> 36);
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 46;
-    buf[off++] = (byte) (values[6] >>> 38);
-    buf[off++] = (byte) (values[6] >>> 30);
-    buf[off++] = (byte) (values[6] >>> 22);
-    buf[off++] = (byte) (values[6] >>> 14);
-    buf[off++] = (byte) (values[6] >>> 6);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 46;
+    buf[off++] = (byte) (values[i + 6] >>> 38);
+    buf[off++] = (byte) (values[i + 6] >>> 30);
+    buf[off++] = (byte) (values[i + 6] >>> 22);
+    buf[off++] = (byte) (values[i + 6] >>> 14);
+    buf[off++] = (byte) (values[i + 6] >>> 6);
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits51(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 43);
-    buf[off++] = (byte) (values[0] >>> 35);
-    buf[off++] = (byte) (values[0] >>> 27);
-    buf[off++] = (byte) (values[0] >>> 19);
-    buf[off++] = (byte) (values[0] >>> 11);
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 43);
+    buf[off++] = (byte) (values[i + 0] >>> 35);
+    buf[off++] = (byte) (values[i + 0] >>> 27);
+    buf[off++] = (byte) (values[i + 0] >>> 19);
+    buf[off++] = (byte) (values[i + 0] >>> 11);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 46;
-    buf[off++] = (byte) (values[1] >>> 38);
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 46;
+    buf[off++] = (byte) (values[i + 1] >>> 38);
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 49;
-    buf[off++] = (byte) (values[2] >>> 41);
-    buf[off++] = (byte) (values[2] >>> 33);
-    buf[off++] = (byte) (values[2] >>> 25);
-    buf[off++] = (byte) (values[2] >>> 17);
-    buf[off++] = (byte) (values[2] >>> 9);
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 49;
+    buf[off++] = (byte) (values[i + 2] >>> 41);
+    buf[off++] = (byte) (values[i + 2] >>> 33);
+    buf[off++] = (byte) (values[i + 2] >>> 25);
+    buf[off++] = (byte) (values[i + 2] >>> 17);
+    buf[off++] = (byte) (values[i + 2] >>> 9);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 44;
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 44;
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 47;
-    buf[off++] = (byte) (values[4] >>> 39);
-    buf[off++] = (byte) (values[4] >>> 31);
-    buf[off++] = (byte) (values[4] >>> 23);
-    buf[off++] = (byte) (values[4] >>> 15);
-    buf[off++] = (byte) (values[4] >>> 7);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 47;
+    buf[off++] = (byte) (values[i + 4] >>> 39);
+    buf[off++] = (byte) (values[i + 4] >>> 31);
+    buf[off++] = (byte) (values[i + 4] >>> 23);
+    buf[off++] = (byte) (values[i + 4] >>> 15);
+    buf[off++] = (byte) (values[i + 4] >>> 7);
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 50;
-    buf[off++] = (byte) (values[5] >>> 42);
-    buf[off++] = (byte) (values[5] >>> 34);
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 50;
+    buf[off++] = (byte) (values[i + 5] >>> 42);
+    buf[off++] = (byte) (values[i + 5] >>> 34);
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 45;
-    buf[off++] = (byte) (values[6] >>> 37);
-    buf[off++] = (byte) (values[6] >>> 29);
-    buf[off++] = (byte) (values[6] >>> 21);
-    buf[off++] = (byte) (values[6] >>> 13);
-    buf[off++] = (byte) (values[6] >>> 5);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 45;
+    buf[off++] = (byte) (values[i + 6] >>> 37);
+    buf[off++] = (byte) (values[i + 6] >>> 29);
+    buf[off++] = (byte) (values[i + 6] >>> 21);
+    buf[off++] = (byte) (values[i + 6] >>> 13);
+    buf[off++] = (byte) (values[i + 6] >>> 5);
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits52(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 44);
-    buf[off++] = (byte) (values[0] >>> 36);
-    buf[off++] = (byte) (values[0] >>> 28);
-    buf[off++] = (byte) (values[0] >>> 20);
-    buf[off++] = (byte) (values[0] >>> 12);
-    buf[off++] = (byte) (values[0] >>> 4);
+    buf[off++] = (byte) (values[i + 0] >>> 44);
+    buf[off++] = (byte) (values[i + 0] >>> 36);
+    buf[off++] = (byte) (values[i + 0] >>> 28);
+    buf[off++] = (byte) (values[i + 0] >>> 20);
+    buf[off++] = (byte) (values[i + 0] >>> 12);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
 
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 48;
-    buf[off++] = (byte) (values[1] >>> 40);
-    buf[off++] = (byte) (values[1] >>> 32);
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 48;
+    buf[off++] = (byte) (values[i + 1] >>> 40);
+    buf[off++] = (byte) (values[i + 1] >>> 32);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 44);
-    buf[off++] = (byte) (values[2] >>> 36);
-    buf[off++] = (byte) (values[2] >>> 28);
-    buf[off++] = (byte) (values[2] >>> 20);
-    buf[off++] = (byte) (values[2] >>> 12);
-    buf[off++] = (byte) (values[2] >>> 4);
+    buf[off++] = (byte) (values[i + 2] >>> 44);
+    buf[off++] = (byte) (values[i + 2] >>> 36);
+    buf[off++] = (byte) (values[i + 2] >>> 28);
+    buf[off++] = (byte) (values[i + 2] >>> 20);
+    buf[off++] = (byte) (values[i + 2] >>> 12);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 48;
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 48;
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 44);
-    buf[off++] = (byte) (values[4] >>> 36);
-    buf[off++] = (byte) (values[4] >>> 28);
-    buf[off++] = (byte) (values[4] >>> 20);
-    buf[off++] = (byte) (values[4] >>> 12);
-    buf[off++] = (byte) (values[4] >>> 4);
+    buf[off++] = (byte) (values[i + 4] >>> 44);
+    buf[off++] = (byte) (values[i + 4] >>> 36);
+    buf[off++] = (byte) (values[i + 4] >>> 28);
+    buf[off++] = (byte) (values[i + 4] >>> 20);
+    buf[off++] = (byte) (values[i + 4] >>> 12);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 48;
-    buf[off++] = (byte) (values[5] >>> 40);
-    buf[off++] = (byte) (values[5] >>> 32);
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 48;
+    buf[off++] = (byte) (values[i + 5] >>> 40);
+    buf[off++] = (byte) (values[i + 5] >>> 32);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 44);
-    buf[off++] = (byte) (values[6] >>> 36);
-    buf[off++] = (byte) (values[6] >>> 28);
-    buf[off++] = (byte) (values[6] >>> 20);
-    buf[off++] = (byte) (values[6] >>> 12);
-    buf[off++] = (byte) (values[6] >>> 4);
+    buf[off++] = (byte) (values[i + 6] >>> 44);
+    buf[off++] = (byte) (values[i + 6] >>> 36);
+    buf[off++] = (byte) (values[i + 6] >>> 28);
+    buf[off++] = (byte) (values[i + 6] >>> 20);
+    buf[off++] = (byte) (values[i + 6] >>> 12);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits53(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 45);
-    buf[off++] = (byte) (values[0] >>> 37);
-    buf[off++] = (byte) (values[0] >>> 29);
-    buf[off++] = (byte) (values[0] >>> 21);
-    buf[off++] = (byte) (values[0] >>> 13);
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 45);
+    buf[off++] = (byte) (values[i + 0] >>> 37);
+    buf[off++] = (byte) (values[i + 0] >>> 29);
+    buf[off++] = (byte) (values[i + 0] >>> 21);
+    buf[off++] = (byte) (values[i + 0] >>> 13);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 50;
-    buf[off++] = (byte) (values[1] >>> 42);
-    buf[off++] = (byte) (values[1] >>> 34);
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 50;
+    buf[off++] = (byte) (values[i + 1] >>> 42);
+    buf[off++] = (byte) (values[i + 1] >>> 34);
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 47;
-    buf[off++] = (byte) (values[2] >>> 39);
-    buf[off++] = (byte) (values[2] >>> 31);
-    buf[off++] = (byte) (values[2] >>> 23);
-    buf[off++] = (byte) (values[2] >>> 15);
-    buf[off++] = (byte) (values[2] >>> 7);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 47;
+    buf[off++] = (byte) (values[i + 2] >>> 39);
+    buf[off++] = (byte) (values[i + 2] >>> 31);
+    buf[off++] = (byte) (values[i + 2] >>> 23);
+    buf[off++] = (byte) (values[i + 2] >>> 15);
+    buf[off++] = (byte) (values[i + 2] >>> 7);
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 52;
-    buf[off++] = (byte) (values[3] >>> 44);
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 52;
+    buf[off++] = (byte) (values[i + 3] >>> 44);
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 49;
-    buf[off++] = (byte) (values[4] >>> 41);
-    buf[off++] = (byte) (values[4] >>> 33);
-    buf[off++] = (byte) (values[4] >>> 25);
-    buf[off++] = (byte) (values[4] >>> 17);
-    buf[off++] = (byte) (values[4] >>> 9);
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 49;
+    buf[off++] = (byte) (values[i + 4] >>> 41);
+    buf[off++] = (byte) (values[i + 4] >>> 33);
+    buf[off++] = (byte) (values[i + 4] >>> 25);
+    buf[off++] = (byte) (values[i + 4] >>> 17);
+    buf[off++] = (byte) (values[i + 4] >>> 9);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 46;
-    buf[off++] = (byte) (values[5] >>> 38);
-    buf[off++] = (byte) (values[5] >>> 30);
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 46;
+    buf[off++] = (byte) (values[i + 5] >>> 38);
+    buf[off++] = (byte) (values[i + 5] >>> 30);
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 51;
-    buf[off++] = (byte) (values[6] >>> 43);
-    buf[off++] = (byte) (values[6] >>> 35);
-    buf[off++] = (byte) (values[6] >>> 27);
-    buf[off++] = (byte) (values[6] >>> 19);
-    buf[off++] = (byte) (values[6] >>> 11);
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 51;
+    buf[off++] = (byte) (values[i + 6] >>> 43);
+    buf[off++] = (byte) (values[i + 6] >>> 35);
+    buf[off++] = (byte) (values[i + 6] >>> 27);
+    buf[off++] = (byte) (values[i + 6] >>> 19);
+    buf[off++] = (byte) (values[i + 6] >>> 11);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits54(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 46);
-    buf[off++] = (byte) (values[0] >>> 38);
-    buf[off++] = (byte) (values[0] >>> 30);
-    buf[off++] = (byte) (values[0] >>> 22);
-    buf[off++] = (byte) (values[0] >>> 14);
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 46);
+    buf[off++] = (byte) (values[i + 0] >>> 38);
+    buf[off++] = (byte) (values[i + 0] >>> 30);
+    buf[off++] = (byte) (values[i + 0] >>> 22);
+    buf[off++] = (byte) (values[i + 0] >>> 14);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 52;
-    buf[off++] = (byte) (values[1] >>> 44);
-    buf[off++] = (byte) (values[1] >>> 36);
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 52;
+    buf[off++] = (byte) (values[i + 1] >>> 44);
+    buf[off++] = (byte) (values[i + 1] >>> 36);
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 50;
-    buf[off++] = (byte) (values[2] >>> 42);
-    buf[off++] = (byte) (values[2] >>> 34);
-    buf[off++] = (byte) (values[2] >>> 26);
-    buf[off++] = (byte) (values[2] >>> 18);
-    buf[off++] = (byte) (values[2] >>> 10);
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 50;
+    buf[off++] = (byte) (values[i + 2] >>> 42);
+    buf[off++] = (byte) (values[i + 2] >>> 34);
+    buf[off++] = (byte) (values[i + 2] >>> 26);
+    buf[off++] = (byte) (values[i + 2] >>> 18);
+    buf[off++] = (byte) (values[i + 2] >>> 10);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 48;
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 48;
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 46);
-    buf[off++] = (byte) (values[4] >>> 38);
-    buf[off++] = (byte) (values[4] >>> 30);
-    buf[off++] = (byte) (values[4] >>> 22);
-    buf[off++] = (byte) (values[4] >>> 14);
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 46);
+    buf[off++] = (byte) (values[i + 4] >>> 38);
+    buf[off++] = (byte) (values[i + 4] >>> 30);
+    buf[off++] = (byte) (values[i + 4] >>> 22);
+    buf[off++] = (byte) (values[i + 4] >>> 14);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 52;
-    buf[off++] = (byte) (values[5] >>> 44);
-    buf[off++] = (byte) (values[5] >>> 36);
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 52;
+    buf[off++] = (byte) (values[i + 5] >>> 44);
+    buf[off++] = (byte) (values[i + 5] >>> 36);
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 50;
-    buf[off++] = (byte) (values[6] >>> 42);
-    buf[off++] = (byte) (values[6] >>> 34);
-    buf[off++] = (byte) (values[6] >>> 26);
-    buf[off++] = (byte) (values[6] >>> 18);
-    buf[off++] = (byte) (values[6] >>> 10);
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 50;
+    buf[off++] = (byte) (values[i + 6] >>> 42);
+    buf[off++] = (byte) (values[i + 6] >>> 34);
+    buf[off++] = (byte) (values[i + 6] >>> 26);
+    buf[off++] = (byte) (values[i + 6] >>> 18);
+    buf[off++] = (byte) (values[i + 6] >>> 10);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits55(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 47);
-    buf[off++] = (byte) (values[0] >>> 39);
-    buf[off++] = (byte) (values[0] >>> 31);
-    buf[off++] = (byte) (values[0] >>> 23);
-    buf[off++] = (byte) (values[0] >>> 15);
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 47);
+    buf[off++] = (byte) (values[i + 0] >>> 39);
+    buf[off++] = (byte) (values[i + 0] >>> 31);
+    buf[off++] = (byte) (values[i + 0] >>> 23);
+    buf[off++] = (byte) (values[i + 0] >>> 15);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 54;
-    buf[off++] = (byte) (values[1] >>> 46);
-    buf[off++] = (byte) (values[1] >>> 38);
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 54;
+    buf[off++] = (byte) (values[i + 1] >>> 46);
+    buf[off++] = (byte) (values[i + 1] >>> 38);
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 53;
-    buf[off++] = (byte) (values[2] >>> 45);
-    buf[off++] = (byte) (values[2] >>> 37);
-    buf[off++] = (byte) (values[2] >>> 29);
-    buf[off++] = (byte) (values[2] >>> 21);
-    buf[off++] = (byte) (values[2] >>> 13);
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 53;
+    buf[off++] = (byte) (values[i + 2] >>> 45);
+    buf[off++] = (byte) (values[i + 2] >>> 37);
+    buf[off++] = (byte) (values[i + 2] >>> 29);
+    buf[off++] = (byte) (values[i + 2] >>> 21);
+    buf[off++] = (byte) (values[i + 2] >>> 13);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 52;
-    buf[off++] = (byte) (values[3] >>> 44);
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 52;
+    buf[off++] = (byte) (values[i + 3] >>> 44);
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 51;
-    buf[off++] = (byte) (values[4] >>> 43);
-    buf[off++] = (byte) (values[4] >>> 35);
-    buf[off++] = (byte) (values[4] >>> 27);
-    buf[off++] = (byte) (values[4] >>> 19);
-    buf[off++] = (byte) (values[4] >>> 11);
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 51;
+    buf[off++] = (byte) (values[i + 4] >>> 43);
+    buf[off++] = (byte) (values[i + 4] >>> 35);
+    buf[off++] = (byte) (values[i + 4] >>> 27);
+    buf[off++] = (byte) (values[i + 4] >>> 19);
+    buf[off++] = (byte) (values[i + 4] >>> 11);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 50;
-    buf[off++] = (byte) (values[5] >>> 42);
-    buf[off++] = (byte) (values[5] >>> 34);
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 50;
+    buf[off++] = (byte) (values[i + 5] >>> 42);
+    buf[off++] = (byte) (values[i + 5] >>> 34);
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 49;
-    buf[off++] = (byte) (values[6] >>> 41);
-    buf[off++] = (byte) (values[6] >>> 33);
-    buf[off++] = (byte) (values[6] >>> 25);
-    buf[off++] = (byte) (values[6] >>> 17);
-    buf[off++] = (byte) (values[6] >>> 9);
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 49;
+    buf[off++] = (byte) (values[i + 6] >>> 41);
+    buf[off++] = (byte) (values[i + 6] >>> 33);
+    buf[off++] = (byte) (values[i + 6] >>> 25);
+    buf[off++] = (byte) (values[i + 6] >>> 17);
+    buf[off++] = (byte) (values[i + 6] >>> 9);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 48;
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 48;
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits56(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 48);
-    buf[off++] = (byte) (values[0] >>> 40);
-    buf[off++] = (byte) (values[0] >>> 32);
-    buf[off++] = (byte) (values[0] >>> 24);
-    buf[off++] = (byte) (values[0] >>> 16);
-    buf[off++] = (byte) (values[0] >>> 8);
-    buf[off++] = (byte) (values[0]);
+    buf[off++] = (byte) (values[i + 0] >>> 48);
+    buf[off++] = (byte) (values[i + 0] >>> 40);
+    buf[off++] = (byte) (values[i + 0] >>> 32);
+    buf[off++] = (byte) (values[i + 0] >>> 24);
+    buf[off++] = (byte) (values[i + 0] >>> 16);
+    buf[off++] = (byte) (values[i + 0] >>> 8);
+    buf[off++] = (byte) (values[i + 0]);
 
-    buf[off++] = (byte) (values[1] >>> 48);
-    buf[off++] = (byte) (values[1] >>> 40);
-    buf[off++] = (byte) (values[1] >>> 32);
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off++] = (byte) (values[i + 1] >>> 48);
+    buf[off++] = (byte) (values[i + 1] >>> 40);
+    buf[off++] = (byte) (values[i + 1] >>> 32);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 48);
-    buf[off++] = (byte) (values[2] >>> 40);
-    buf[off++] = (byte) (values[2] >>> 32);
-    buf[off++] = (byte) (values[2] >>> 24);
-    buf[off++] = (byte) (values[2] >>> 16);
-    buf[off++] = (byte) (values[2] >>> 8);
-    buf[off++] = (byte) (values[2]);
+    buf[off++] = (byte) (values[i + 2] >>> 48);
+    buf[off++] = (byte) (values[i + 2] >>> 40);
+    buf[off++] = (byte) (values[i + 2] >>> 32);
+    buf[off++] = (byte) (values[i + 2] >>> 24);
+    buf[off++] = (byte) (values[i + 2] >>> 16);
+    buf[off++] = (byte) (values[i + 2] >>> 8);
+    buf[off++] = (byte) (values[i + 2]);
 
-    buf[off++] = (byte) (values[3] >>> 48);
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off++] = (byte) (values[i + 3] >>> 48);
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 48);
-    buf[off++] = (byte) (values[4] >>> 40);
-    buf[off++] = (byte) (values[4] >>> 32);
-    buf[off++] = (byte) (values[4] >>> 24);
-    buf[off++] = (byte) (values[4] >>> 16);
-    buf[off++] = (byte) (values[4] >>> 8);
-    buf[off++] = (byte) (values[4]);
+    buf[off++] = (byte) (values[i + 4] >>> 48);
+    buf[off++] = (byte) (values[i + 4] >>> 40);
+    buf[off++] = (byte) (values[i + 4] >>> 32);
+    buf[off++] = (byte) (values[i + 4] >>> 24);
+    buf[off++] = (byte) (values[i + 4] >>> 16);
+    buf[off++] = (byte) (values[i + 4] >>> 8);
+    buf[off++] = (byte) (values[i + 4]);
 
-    buf[off++] = (byte) (values[5] >>> 48);
-    buf[off++] = (byte) (values[5] >>> 40);
-    buf[off++] = (byte) (values[5] >>> 32);
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off++] = (byte) (values[i + 5] >>> 48);
+    buf[off++] = (byte) (values[i + 5] >>> 40);
+    buf[off++] = (byte) (values[i + 5] >>> 32);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 48);
-    buf[off++] = (byte) (values[6] >>> 40);
-    buf[off++] = (byte) (values[6] >>> 32);
-    buf[off++] = (byte) (values[6] >>> 24);
-    buf[off++] = (byte) (values[6] >>> 16);
-    buf[off++] = (byte) (values[6] >>> 8);
-    buf[off++] = (byte) (values[6]);
+    buf[off++] = (byte) (values[i + 6] >>> 48);
+    buf[off++] = (byte) (values[i + 6] >>> 40);
+    buf[off++] = (byte) (values[i + 6] >>> 32);
+    buf[off++] = (byte) (values[i + 6] >>> 24);
+    buf[off++] = (byte) (values[i + 6] >>> 16);
+    buf[off++] = (byte) (values[i + 6] >>> 8);
+    buf[off++] = (byte) (values[i + 6]);
 
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits57(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 49);
-    buf[off++] = (byte) (values[0] >>> 41);
-    buf[off++] = (byte) (values[0] >>> 33);
-    buf[off++] = (byte) (values[0] >>> 25);
-    buf[off++] = (byte) (values[0] >>> 17);
-    buf[off++] = (byte) (values[0] >>> 9);
-    buf[off++] = (byte) (values[0] >>> 1);
+    buf[off++] = (byte) (values[i + 0] >>> 49);
+    buf[off++] = (byte) (values[i + 0] >>> 41);
+    buf[off++] = (byte) (values[i + 0] >>> 33);
+    buf[off++] = (byte) (values[i + 0] >>> 25);
+    buf[off++] = (byte) (values[i + 0] >>> 17);
+    buf[off++] = (byte) (values[i + 0] >>> 9);
+    buf[off++] = (byte) (values[i + 0] >>> 1);
 
-    buf[off] = (byte) (values[0] << 7);
-    buf[off++] |= values[1] >>> 50;
-    buf[off++] = (byte) (values[1] >>> 42);
-    buf[off++] = (byte) (values[1] >>> 34);
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 7);
+    buf[off++] |= values[i + 1] >>> 50;
+    buf[off++] = (byte) (values[i + 1] >>> 42);
+    buf[off++] = (byte) (values[i + 1] >>> 34);
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 51;
-    buf[off++] = (byte) (values[2] >>> 43);
-    buf[off++] = (byte) (values[2] >>> 35);
-    buf[off++] = (byte) (values[2] >>> 27);
-    buf[off++] = (byte) (values[2] >>> 19);
-    buf[off++] = (byte) (values[2] >>> 11);
-    buf[off++] = (byte) (values[2] >>> 3);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 51;
+    buf[off++] = (byte) (values[i + 2] >>> 43);
+    buf[off++] = (byte) (values[i + 2] >>> 35);
+    buf[off++] = (byte) (values[i + 2] >>> 27);
+    buf[off++] = (byte) (values[i + 2] >>> 19);
+    buf[off++] = (byte) (values[i + 2] >>> 11);
+    buf[off++] = (byte) (values[i + 2] >>> 3);
 
-    buf[off] = (byte) (values[2] << 5);
-    buf[off++] |= values[3] >>> 52;
-    buf[off++] = (byte) (values[3] >>> 44);
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 5);
+    buf[off++] |= values[i + 3] >>> 52;
+    buf[off++] = (byte) (values[i + 3] >>> 44);
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 53;
-    buf[off++] = (byte) (values[4] >>> 45);
-    buf[off++] = (byte) (values[4] >>> 37);
-    buf[off++] = (byte) (values[4] >>> 29);
-    buf[off++] = (byte) (values[4] >>> 21);
-    buf[off++] = (byte) (values[4] >>> 13);
-    buf[off++] = (byte) (values[4] >>> 5);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 53;
+    buf[off++] = (byte) (values[i + 4] >>> 45);
+    buf[off++] = (byte) (values[i + 4] >>> 37);
+    buf[off++] = (byte) (values[i + 4] >>> 29);
+    buf[off++] = (byte) (values[i + 4] >>> 21);
+    buf[off++] = (byte) (values[i + 4] >>> 13);
+    buf[off++] = (byte) (values[i + 4] >>> 5);
 
-    buf[off] = (byte) (values[4] << 3);
-    buf[off++] |= values[5] >>> 54;
-    buf[off++] = (byte) (values[5] >>> 46);
-    buf[off++] = (byte) (values[5] >>> 38);
-    buf[off++] = (byte) (values[5] >>> 30);
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 3);
+    buf[off++] |= values[i + 5] >>> 54;
+    buf[off++] = (byte) (values[i + 5] >>> 46);
+    buf[off++] = (byte) (values[i + 5] >>> 38);
+    buf[off++] = (byte) (values[i + 5] >>> 30);
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 55;
-    buf[off++] = (byte) (values[6] >>> 47);
-    buf[off++] = (byte) (values[6] >>> 39);
-    buf[off++] = (byte) (values[6] >>> 31);
-    buf[off++] = (byte) (values[6] >>> 23);
-    buf[off++] = (byte) (values[6] >>> 15);
-    buf[off++] = (byte) (values[6] >>> 7);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 55;
+    buf[off++] = (byte) (values[i + 6] >>> 47);
+    buf[off++] = (byte) (values[i + 6] >>> 39);
+    buf[off++] = (byte) (values[i + 6] >>> 31);
+    buf[off++] = (byte) (values[i + 6] >>> 23);
+    buf[off++] = (byte) (values[i + 6] >>> 15);
+    buf[off++] = (byte) (values[i + 6] >>> 7);
 
-    buf[off] = (byte) (values[6] << 1);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 1);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits58(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 50);
-    buf[off++] = (byte) (values[0] >>> 42);
-    buf[off++] = (byte) (values[0] >>> 34);
-    buf[off++] = (byte) (values[0] >>> 26);
-    buf[off++] = (byte) (values[0] >>> 18);
-    buf[off++] = (byte) (values[0] >>> 10);
-    buf[off++] = (byte) (values[0] >>> 2);
+    buf[off++] = (byte) (values[i + 0] >>> 50);
+    buf[off++] = (byte) (values[i + 0] >>> 42);
+    buf[off++] = (byte) (values[i + 0] >>> 34);
+    buf[off++] = (byte) (values[i + 0] >>> 26);
+    buf[off++] = (byte) (values[i + 0] >>> 18);
+    buf[off++] = (byte) (values[i + 0] >>> 10);
+    buf[off++] = (byte) (values[i + 0] >>> 2);
 
-    buf[off] = (byte) (values[0] << 6);
-    buf[off++] |= values[1] >>> 52;
-    buf[off++] = (byte) (values[1] >>> 44);
-    buf[off++] = (byte) (values[1] >>> 36);
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 6);
+    buf[off++] |= values[i + 1] >>> 52;
+    buf[off++] = (byte) (values[i + 1] >>> 44);
+    buf[off++] = (byte) (values[i + 1] >>> 36);
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 54;
-    buf[off++] = (byte) (values[2] >>> 46);
-    buf[off++] = (byte) (values[2] >>> 38);
-    buf[off++] = (byte) (values[2] >>> 30);
-    buf[off++] = (byte) (values[2] >>> 22);
-    buf[off++] = (byte) (values[2] >>> 14);
-    buf[off++] = (byte) (values[2] >>> 6);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 54;
+    buf[off++] = (byte) (values[i + 2] >>> 46);
+    buf[off++] = (byte) (values[i + 2] >>> 38);
+    buf[off++] = (byte) (values[i + 2] >>> 30);
+    buf[off++] = (byte) (values[i + 2] >>> 22);
+    buf[off++] = (byte) (values[i + 2] >>> 14);
+    buf[off++] = (byte) (values[i + 2] >>> 6);
 
-    buf[off] = (byte) (values[2] << 2);
-    buf[off++] |= values[3] >>> 56;
-    buf[off++] = (byte) (values[3] >>> 48);
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 2);
+    buf[off++] |= values[i + 3] >>> 56;
+    buf[off++] = (byte) (values[i + 3] >>> 48);
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 50);
-    buf[off++] = (byte) (values[4] >>> 42);
-    buf[off++] = (byte) (values[4] >>> 34);
-    buf[off++] = (byte) (values[4] >>> 26);
-    buf[off++] = (byte) (values[4] >>> 18);
-    buf[off++] = (byte) (values[4] >>> 10);
-    buf[off++] = (byte) (values[4] >>> 2);
+    buf[off++] = (byte) (values[i + 4] >>> 50);
+    buf[off++] = (byte) (values[i + 4] >>> 42);
+    buf[off++] = (byte) (values[i + 4] >>> 34);
+    buf[off++] = (byte) (values[i + 4] >>> 26);
+    buf[off++] = (byte) (values[i + 4] >>> 18);
+    buf[off++] = (byte) (values[i + 4] >>> 10);
+    buf[off++] = (byte) (values[i + 4] >>> 2);
 
-    buf[off] = (byte) (values[4] << 6);
-    buf[off++] |= values[5] >>> 52;
-    buf[off++] = (byte) (values[5] >>> 44);
-    buf[off++] = (byte) (values[5] >>> 36);
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 6);
+    buf[off++] |= values[i + 5] >>> 52;
+    buf[off++] = (byte) (values[i + 5] >>> 44);
+    buf[off++] = (byte) (values[i + 5] >>> 36);
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 54;
-    buf[off++] = (byte) (values[6] >>> 46);
-    buf[off++] = (byte) (values[6] >>> 38);
-    buf[off++] = (byte) (values[6] >>> 30);
-    buf[off++] = (byte) (values[6] >>> 22);
-    buf[off++] = (byte) (values[6] >>> 14);
-    buf[off++] = (byte) (values[6] >>> 6);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 54;
+    buf[off++] = (byte) (values[i + 6] >>> 46);
+    buf[off++] = (byte) (values[i + 6] >>> 38);
+    buf[off++] = (byte) (values[i + 6] >>> 30);
+    buf[off++] = (byte) (values[i + 6] >>> 22);
+    buf[off++] = (byte) (values[i + 6] >>> 14);
+    buf[off++] = (byte) (values[i + 6] >>> 6);
 
-    buf[off] = (byte) (values[6] << 2);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 2);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits59(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 51);
-    buf[off++] = (byte) (values[0] >>> 43);
-    buf[off++] = (byte) (values[0] >>> 35);
-    buf[off++] = (byte) (values[0] >>> 27);
-    buf[off++] = (byte) (values[0] >>> 19);
-    buf[off++] = (byte) (values[0] >>> 11);
-    buf[off++] = (byte) (values[0] >>> 3);
+    buf[off++] = (byte) (values[i + 0] >>> 51);
+    buf[off++] = (byte) (values[i + 0] >>> 43);
+    buf[off++] = (byte) (values[i + 0] >>> 35);
+    buf[off++] = (byte) (values[i + 0] >>> 27);
+    buf[off++] = (byte) (values[i + 0] >>> 19);
+    buf[off++] = (byte) (values[i + 0] >>> 11);
+    buf[off++] = (byte) (values[i + 0] >>> 3);
 
-    buf[off] = (byte) (values[0] << 5);
-    buf[off++] |= values[1] >>> 54;
-    buf[off++] = (byte) (values[1] >>> 46);
-    buf[off++] = (byte) (values[1] >>> 38);
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 5);
+    buf[off++] |= values[i + 1] >>> 54;
+    buf[off++] = (byte) (values[i + 1] >>> 46);
+    buf[off++] = (byte) (values[i + 1] >>> 38);
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 57;
-    buf[off++] = (byte) (values[2] >>> 49);
-    buf[off++] = (byte) (values[2] >>> 41);
-    buf[off++] = (byte) (values[2] >>> 33);
-    buf[off++] = (byte) (values[2] >>> 25);
-    buf[off++] = (byte) (values[2] >>> 17);
-    buf[off++] = (byte) (values[2] >>> 9);
-    buf[off++] = (byte) (values[2] >>> 1);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 57;
+    buf[off++] = (byte) (values[i + 2] >>> 49);
+    buf[off++] = (byte) (values[i + 2] >>> 41);
+    buf[off++] = (byte) (values[i + 2] >>> 33);
+    buf[off++] = (byte) (values[i + 2] >>> 25);
+    buf[off++] = (byte) (values[i + 2] >>> 17);
+    buf[off++] = (byte) (values[i + 2] >>> 9);
+    buf[off++] = (byte) (values[i + 2] >>> 1);
 
-    buf[off] = (byte) (values[2] << 7);
-    buf[off++] |= values[3] >>> 52;
-    buf[off++] = (byte) (values[3] >>> 44);
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 7);
+    buf[off++] |= values[i + 3] >>> 52;
+    buf[off++] = (byte) (values[i + 3] >>> 44);
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 55;
-    buf[off++] = (byte) (values[4] >>> 47);
-    buf[off++] = (byte) (values[4] >>> 39);
-    buf[off++] = (byte) (values[4] >>> 31);
-    buf[off++] = (byte) (values[4] >>> 23);
-    buf[off++] = (byte) (values[4] >>> 15);
-    buf[off++] = (byte) (values[4] >>> 7);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 55;
+    buf[off++] = (byte) (values[i + 4] >>> 47);
+    buf[off++] = (byte) (values[i + 4] >>> 39);
+    buf[off++] = (byte) (values[i + 4] >>> 31);
+    buf[off++] = (byte) (values[i + 4] >>> 23);
+    buf[off++] = (byte) (values[i + 4] >>> 15);
+    buf[off++] = (byte) (values[i + 4] >>> 7);
 
-    buf[off] = (byte) (values[4] << 1);
-    buf[off++] |= values[5] >>> 58;
-    buf[off++] = (byte) (values[5] >>> 50);
-    buf[off++] = (byte) (values[5] >>> 42);
-    buf[off++] = (byte) (values[5] >>> 34);
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 1);
+    buf[off++] |= values[i + 5] >>> 58;
+    buf[off++] = (byte) (values[i + 5] >>> 50);
+    buf[off++] = (byte) (values[i + 5] >>> 42);
+    buf[off++] = (byte) (values[i + 5] >>> 34);
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 53;
-    buf[off++] = (byte) (values[6] >>> 45);
-    buf[off++] = (byte) (values[6] >>> 37);
-    buf[off++] = (byte) (values[6] >>> 29);
-    buf[off++] = (byte) (values[6] >>> 21);
-    buf[off++] = (byte) (values[6] >>> 13);
-    buf[off++] = (byte) (values[6] >>> 5);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 53;
+    buf[off++] = (byte) (values[i + 6] >>> 45);
+    buf[off++] = (byte) (values[i + 6] >>> 37);
+    buf[off++] = (byte) (values[i + 6] >>> 29);
+    buf[off++] = (byte) (values[i + 6] >>> 21);
+    buf[off++] = (byte) (values[i + 6] >>> 13);
+    buf[off++] = (byte) (values[i + 6] >>> 5);
 
-    buf[off] = (byte) (values[6] << 3);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 3);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits60(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 52);
-    buf[off++] = (byte) (values[0] >>> 44);
-    buf[off++] = (byte) (values[0] >>> 36);
-    buf[off++] = (byte) (values[0] >>> 28);
-    buf[off++] = (byte) (values[0] >>> 20);
-    buf[off++] = (byte) (values[0] >>> 12);
-    buf[off++] = (byte) (values[0] >>> 4);
+    buf[off++] = (byte) (values[i + 0] >>> 52);
+    buf[off++] = (byte) (values[i + 0] >>> 44);
+    buf[off++] = (byte) (values[i + 0] >>> 36);
+    buf[off++] = (byte) (values[i + 0] >>> 28);
+    buf[off++] = (byte) (values[i + 0] >>> 20);
+    buf[off++] = (byte) (values[i + 0] >>> 12);
+    buf[off++] = (byte) (values[i + 0] >>> 4);
 
-    buf[off] = (byte) (values[0] << 4);
-    buf[off++] |= values[1] >>> 56;
-    buf[off++] = (byte) (values[1] >>> 48);
-    buf[off++] = (byte) (values[1] >>> 40);
-    buf[off++] = (byte) (values[1] >>> 32);
-    buf[off++] = (byte) (values[1] >>> 24);
-    buf[off++] = (byte) (values[1] >>> 16);
-    buf[off++] = (byte) (values[1] >>> 8);
-    buf[off++] = (byte) (values[1]);
+    buf[off] = (byte) (values[i + 0] << 4);
+    buf[off++] |= values[i + 1] >>> 56;
+    buf[off++] = (byte) (values[i + 1] >>> 48);
+    buf[off++] = (byte) (values[i + 1] >>> 40);
+    buf[off++] = (byte) (values[i + 1] >>> 32);
+    buf[off++] = (byte) (values[i + 1] >>> 24);
+    buf[off++] = (byte) (values[i + 1] >>> 16);
+    buf[off++] = (byte) (values[i + 1] >>> 8);
+    buf[off++] = (byte) (values[i + 1]);
 
-    buf[off++] = (byte) (values[2] >>> 52);
-    buf[off++] = (byte) (values[2] >>> 44);
-    buf[off++] = (byte) (values[2] >>> 36);
-    buf[off++] = (byte) (values[2] >>> 28);
-    buf[off++] = (byte) (values[2] >>> 20);
-    buf[off++] = (byte) (values[2] >>> 12);
-    buf[off++] = (byte) (values[2] >>> 4);
+    buf[off++] = (byte) (values[i + 2] >>> 52);
+    buf[off++] = (byte) (values[i + 2] >>> 44);
+    buf[off++] = (byte) (values[i + 2] >>> 36);
+    buf[off++] = (byte) (values[i + 2] >>> 28);
+    buf[off++] = (byte) (values[i + 2] >>> 20);
+    buf[off++] = (byte) (values[i + 2] >>> 12);
+    buf[off++] = (byte) (values[i + 2] >>> 4);
 
-    buf[off] = (byte) (values[2] << 4);
-    buf[off++] |= values[3] >>> 56;
-    buf[off++] = (byte) (values[3] >>> 48);
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 4);
+    buf[off++] |= values[i + 3] >>> 56;
+    buf[off++] = (byte) (values[i + 3] >>> 48);
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 52);
-    buf[off++] = (byte) (values[4] >>> 44);
-    buf[off++] = (byte) (values[4] >>> 36);
-    buf[off++] = (byte) (values[4] >>> 28);
-    buf[off++] = (byte) (values[4] >>> 20);
-    buf[off++] = (byte) (values[4] >>> 12);
-    buf[off++] = (byte) (values[4] >>> 4);
+    buf[off++] = (byte) (values[i + 4] >>> 52);
+    buf[off++] = (byte) (values[i + 4] >>> 44);
+    buf[off++] = (byte) (values[i + 4] >>> 36);
+    buf[off++] = (byte) (values[i + 4] >>> 28);
+    buf[off++] = (byte) (values[i + 4] >>> 20);
+    buf[off++] = (byte) (values[i + 4] >>> 12);
+    buf[off++] = (byte) (values[i + 4] >>> 4);
 
-    buf[off] = (byte) (values[4] << 4);
-    buf[off++] |= values[5] >>> 56;
-    buf[off++] = (byte) (values[5] >>> 48);
-    buf[off++] = (byte) (values[5] >>> 40);
-    buf[off++] = (byte) (values[5] >>> 32);
-    buf[off++] = (byte) (values[5] >>> 24);
-    buf[off++] = (byte) (values[5] >>> 16);
-    buf[off++] = (byte) (values[5] >>> 8);
-    buf[off++] = (byte) (values[5]);
+    buf[off] = (byte) (values[i + 4] << 4);
+    buf[off++] |= values[i + 5] >>> 56;
+    buf[off++] = (byte) (values[i + 5] >>> 48);
+    buf[off++] = (byte) (values[i + 5] >>> 40);
+    buf[off++] = (byte) (values[i + 5] >>> 32);
+    buf[off++] = (byte) (values[i + 5] >>> 24);
+    buf[off++] = (byte) (values[i + 5] >>> 16);
+    buf[off++] = (byte) (values[i + 5] >>> 8);
+    buf[off++] = (byte) (values[i + 5]);
 
-    buf[off++] = (byte) (values[6] >>> 52);
-    buf[off++] = (byte) (values[6] >>> 44);
-    buf[off++] = (byte) (values[6] >>> 36);
-    buf[off++] = (byte) (values[6] >>> 28);
-    buf[off++] = (byte) (values[6] >>> 20);
-    buf[off++] = (byte) (values[6] >>> 12);
-    buf[off++] = (byte) (values[6] >>> 4);
+    buf[off++] = (byte) (values[i + 6] >>> 52);
+    buf[off++] = (byte) (values[i + 6] >>> 44);
+    buf[off++] = (byte) (values[i + 6] >>> 36);
+    buf[off++] = (byte) (values[i + 6] >>> 28);
+    buf[off++] = (byte) (values[i + 6] >>> 20);
+    buf[off++] = (byte) (values[i + 6] >>> 12);
+    buf[off++] = (byte) (values[i + 6] >>> 4);
 
-    buf[off] = (byte) (values[6] << 4);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 4);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits61(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 53);
-    buf[off++] = (byte) (values[0] >>> 45);
-    buf[off++] = (byte) (values[0] >>> 37);
-    buf[off++] = (byte) (values[0] >>> 29);
-    buf[off++] = (byte) (values[0] >>> 21);
-    buf[off++] = (byte) (values[0] >>> 13);
-    buf[off++] = (byte) (values[0] >>> 5);
+    buf[off++] = (byte) (values[i + 0] >>> 53);
+    buf[off++] = (byte) (values[i + 0] >>> 45);
+    buf[off++] = (byte) (values[i + 0] >>> 37);
+    buf[off++] = (byte) (values[i + 0] >>> 29);
+    buf[off++] = (byte) (values[i + 0] >>> 21);
+    buf[off++] = (byte) (values[i + 0] >>> 13);
+    buf[off++] = (byte) (values[i + 0] >>> 5);
 
-    buf[off] = (byte) (values[0] << 3);
-    buf[off++] |= values[1] >>> 58;
-    buf[off++] = (byte) (values[1] >>> 50);
-    buf[off++] = (byte) (values[1] >>> 42);
-    buf[off++] = (byte) (values[1] >>> 34);
-    buf[off++] = (byte) (values[1] >>> 26);
-    buf[off++] = (byte) (values[1] >>> 18);
-    buf[off++] = (byte) (values[1] >>> 10);
-    buf[off++] = (byte) (values[1] >>> 2);
+    buf[off] = (byte) (values[i + 0] << 3);
+    buf[off++] |= values[i + 1] >>> 58;
+    buf[off++] = (byte) (values[i + 1] >>> 50);
+    buf[off++] = (byte) (values[i + 1] >>> 42);
+    buf[off++] = (byte) (values[i + 1] >>> 34);
+    buf[off++] = (byte) (values[i + 1] >>> 26);
+    buf[off++] = (byte) (values[i + 1] >>> 18);
+    buf[off++] = (byte) (values[i + 1] >>> 10);
+    buf[off++] = (byte) (values[i + 1] >>> 2);
 
-    buf[off] = (byte) (values[1] << 6);
-    buf[off++] |= values[2] >>> 55;
-    buf[off++] = (byte) (values[2] >>> 47);
-    buf[off++] = (byte) (values[2] >>> 39);
-    buf[off++] = (byte) (values[2] >>> 31);
-    buf[off++] = (byte) (values[2] >>> 23);
-    buf[off++] = (byte) (values[2] >>> 15);
-    buf[off++] = (byte) (values[2] >>> 7);
+    buf[off] = (byte) (values[i + 1] << 6);
+    buf[off++] |= values[i + 2] >>> 55;
+    buf[off++] = (byte) (values[i + 2] >>> 47);
+    buf[off++] = (byte) (values[i + 2] >>> 39);
+    buf[off++] = (byte) (values[i + 2] >>> 31);
+    buf[off++] = (byte) (values[i + 2] >>> 23);
+    buf[off++] = (byte) (values[i + 2] >>> 15);
+    buf[off++] = (byte) (values[i + 2] >>> 7);
 
-    buf[off] = (byte) (values[2] << 1);
-    buf[off++] |= values[3] >>> 60;
-    buf[off++] = (byte) (values[3] >>> 52);
-    buf[off++] = (byte) (values[3] >>> 44);
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 1);
+    buf[off++] |= values[i + 3] >>> 60;
+    buf[off++] = (byte) (values[i + 3] >>> 52);
+    buf[off++] = (byte) (values[i + 3] >>> 44);
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 57;
-    buf[off++] = (byte) (values[4] >>> 49);
-    buf[off++] = (byte) (values[4] >>> 41);
-    buf[off++] = (byte) (values[4] >>> 33);
-    buf[off++] = (byte) (values[4] >>> 25);
-    buf[off++] = (byte) (values[4] >>> 17);
-    buf[off++] = (byte) (values[4] >>> 9);
-    buf[off++] = (byte) (values[4] >>> 1);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 57;
+    buf[off++] = (byte) (values[i + 4] >>> 49);
+    buf[off++] = (byte) (values[i + 4] >>> 41);
+    buf[off++] = (byte) (values[i + 4] >>> 33);
+    buf[off++] = (byte) (values[i + 4] >>> 25);
+    buf[off++] = (byte) (values[i + 4] >>> 17);
+    buf[off++] = (byte) (values[i + 4] >>> 9);
+    buf[off++] = (byte) (values[i + 4] >>> 1);
 
-    buf[off] = (byte) (values[4] << 7);
-    buf[off++] |= values[5] >>> 54;
-    buf[off++] = (byte) (values[5] >>> 46);
-    buf[off++] = (byte) (values[5] >>> 38);
-    buf[off++] = (byte) (values[5] >>> 30);
-    buf[off++] = (byte) (values[5] >>> 22);
-    buf[off++] = (byte) (values[5] >>> 14);
-    buf[off++] = (byte) (values[5] >>> 6);
+    buf[off] = (byte) (values[i + 4] << 7);
+    buf[off++] |= values[i + 5] >>> 54;
+    buf[off++] = (byte) (values[i + 5] >>> 46);
+    buf[off++] = (byte) (values[i + 5] >>> 38);
+    buf[off++] = (byte) (values[i + 5] >>> 30);
+    buf[off++] = (byte) (values[i + 5] >>> 22);
+    buf[off++] = (byte) (values[i + 5] >>> 14);
+    buf[off++] = (byte) (values[i + 5] >>> 6);
 
-    buf[off] = (byte) (values[5] << 2);
-    buf[off++] |= values[6] >>> 59;
-    buf[off++] = (byte) (values[6] >>> 51);
-    buf[off++] = (byte) (values[6] >>> 43);
-    buf[off++] = (byte) (values[6] >>> 35);
-    buf[off++] = (byte) (values[6] >>> 27);
-    buf[off++] = (byte) (values[6] >>> 19);
-    buf[off++] = (byte) (values[6] >>> 11);
-    buf[off++] = (byte) (values[6] >>> 3);
+    buf[off] = (byte) (values[i + 5] << 2);
+    buf[off++] |= values[i + 6] >>> 59;
+    buf[off++] = (byte) (values[i + 6] >>> 51);
+    buf[off++] = (byte) (values[i + 6] >>> 43);
+    buf[off++] = (byte) (values[i + 6] >>> 35);
+    buf[off++] = (byte) (values[i + 6] >>> 27);
+    buf[off++] = (byte) (values[i + 6] >>> 19);
+    buf[off++] = (byte) (values[i + 6] >>> 11);
+    buf[off++] = (byte) (values[i + 6] >>> 3);
 
-    buf[off] = (byte) (values[6] << 5);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 5);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits62(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 54);
-    buf[off++] = (byte) (values[0] >>> 46);
-    buf[off++] = (byte) (values[0] >>> 38);
-    buf[off++] = (byte) (values[0] >>> 30);
-    buf[off++] = (byte) (values[0] >>> 22);
-    buf[off++] = (byte) (values[0] >>> 14);
-    buf[off++] = (byte) (values[0] >>> 6);
+    buf[off++] = (byte) (values[i + 0] >>> 54);
+    buf[off++] = (byte) (values[i + 0] >>> 46);
+    buf[off++] = (byte) (values[i + 0] >>> 38);
+    buf[off++] = (byte) (values[i + 0] >>> 30);
+    buf[off++] = (byte) (values[i + 0] >>> 22);
+    buf[off++] = (byte) (values[i + 0] >>> 14);
+    buf[off++] = (byte) (values[i + 0] >>> 6);
 
-    buf[off] = (byte) (values[0] << 2);
-    buf[off++] |= values[1] >>> 60;
-    buf[off++] = (byte) (values[1] >>> 52);
-    buf[off++] = (byte) (values[1] >>> 44);
-    buf[off++] = (byte) (values[1] >>> 36);
-    buf[off++] = (byte) (values[1] >>> 28);
-    buf[off++] = (byte) (values[1] >>> 20);
-    buf[off++] = (byte) (values[1] >>> 12);
-    buf[off++] = (byte) (values[1] >>> 4);
+    buf[off] = (byte) (values[i + 0] << 2);
+    buf[off++] |= values[i + 1] >>> 60;
+    buf[off++] = (byte) (values[i + 1] >>> 52);
+    buf[off++] = (byte) (values[i + 1] >>> 44);
+    buf[off++] = (byte) (values[i + 1] >>> 36);
+    buf[off++] = (byte) (values[i + 1] >>> 28);
+    buf[off++] = (byte) (values[i + 1] >>> 20);
+    buf[off++] = (byte) (values[i + 1] >>> 12);
+    buf[off++] = (byte) (values[i + 1] >>> 4);
 
-    buf[off] = (byte) (values[1] << 4);
-    buf[off++] |= values[2] >>> 58;
-    buf[off++] = (byte) (values[2] >>> 50);
-    buf[off++] = (byte) (values[2] >>> 42);
-    buf[off++] = (byte) (values[2] >>> 34);
-    buf[off++] = (byte) (values[2] >>> 26);
-    buf[off++] = (byte) (values[2] >>> 18);
-    buf[off++] = (byte) (values[2] >>> 10);
-    buf[off++] = (byte) (values[2] >>> 2);
+    buf[off] = (byte) (values[i + 1] << 4);
+    buf[off++] |= values[i + 2] >>> 58;
+    buf[off++] = (byte) (values[i + 2] >>> 50);
+    buf[off++] = (byte) (values[i + 2] >>> 42);
+    buf[off++] = (byte) (values[i + 2] >>> 34);
+    buf[off++] = (byte) (values[i + 2] >>> 26);
+    buf[off++] = (byte) (values[i + 2] >>> 18);
+    buf[off++] = (byte) (values[i + 2] >>> 10);
+    buf[off++] = (byte) (values[i + 2] >>> 2);
 
-    buf[off] = (byte) (values[2] << 6);
-    buf[off++] |= values[3] >>> 56;
-    buf[off++] = (byte) (values[3] >>> 48);
-    buf[off++] = (byte) (values[3] >>> 40);
-    buf[off++] = (byte) (values[3] >>> 32);
-    buf[off++] = (byte) (values[3] >>> 24);
-    buf[off++] = (byte) (values[3] >>> 16);
-    buf[off++] = (byte) (values[3] >>> 8);
-    buf[off++] = (byte) (values[3]);
+    buf[off] = (byte) (values[i + 2] << 6);
+    buf[off++] |= values[i + 3] >>> 56;
+    buf[off++] = (byte) (values[i + 3] >>> 48);
+    buf[off++] = (byte) (values[i + 3] >>> 40);
+    buf[off++] = (byte) (values[i + 3] >>> 32);
+    buf[off++] = (byte) (values[i + 3] >>> 24);
+    buf[off++] = (byte) (values[i + 3] >>> 16);
+    buf[off++] = (byte) (values[i + 3] >>> 8);
+    buf[off++] = (byte) (values[i + 3]);
 
-    buf[off++] = (byte) (values[4] >>> 54);
-    buf[off++] = (byte) (values[4] >>> 46);
-    buf[off++] = (byte) (values[4] >>> 38);
-    buf[off++] = (byte) (values[4] >>> 30);
-    buf[off++] = (byte) (values[4] >>> 22);
-    buf[off++] = (byte) (values[4] >>> 14);
-    buf[off++] = (byte) (values[4] >>> 6);
+    buf[off++] = (byte) (values[i + 4] >>> 54);
+    buf[off++] = (byte) (values[i + 4] >>> 46);
+    buf[off++] = (byte) (values[i + 4] >>> 38);
+    buf[off++] = (byte) (values[i + 4] >>> 30);
+    buf[off++] = (byte) (values[i + 4] >>> 22);
+    buf[off++] = (byte) (values[i + 4] >>> 14);
+    buf[off++] = (byte) (values[i + 4] >>> 6);
 
-    buf[off] = (byte) (values[4] << 2);
-    buf[off++] |= values[5] >>> 60;
-    buf[off++] = (byte) (values[5] >>> 52);
-    buf[off++] = (byte) (values[5] >>> 44);
-    buf[off++] = (byte) (values[5] >>> 36);
-    buf[off++] = (byte) (values[5] >>> 28);
-    buf[off++] = (byte) (values[5] >>> 20);
-    buf[off++] = (byte) (values[5] >>> 12);
-    buf[off++] = (byte) (values[5] >>> 4);
+    buf[off] = (byte) (values[i + 4] << 2);
+    buf[off++] |= values[i + 5] >>> 60;
+    buf[off++] = (byte) (values[i + 5] >>> 52);
+    buf[off++] = (byte) (values[i + 5] >>> 44);
+    buf[off++] = (byte) (values[i + 5] >>> 36);
+    buf[off++] = (byte) (values[i + 5] >>> 28);
+    buf[off++] = (byte) (values[i + 5] >>> 20);
+    buf[off++] = (byte) (values[i + 5] >>> 12);
+    buf[off++] = (byte) (values[i + 5] >>> 4);
 
-    buf[off] = (byte) (values[5] << 4);
-    buf[off++] |= values[6] >>> 58;
-    buf[off++] = (byte) (values[6] >>> 50);
-    buf[off++] = (byte) (values[6] >>> 42);
-    buf[off++] = (byte) (values[6] >>> 34);
-    buf[off++] = (byte) (values[6] >>> 26);
-    buf[off++] = (byte) (values[6] >>> 18);
-    buf[off++] = (byte) (values[6] >>> 10);
-    buf[off++] = (byte) (values[6] >>> 2);
+    buf[off] = (byte) (values[i + 5] << 4);
+    buf[off++] |= values[i + 6] >>> 58;
+    buf[off++] = (byte) (values[i + 6] >>> 50);
+    buf[off++] = (byte) (values[i + 6] >>> 42);
+    buf[off++] = (byte) (values[i + 6] >>> 34);
+    buf[off++] = (byte) (values[i + 6] >>> 26);
+    buf[off++] = (byte) (values[i + 6] >>> 18);
+    buf[off++] = (byte) (values[i + 6] >>> 10);
+    buf[off++] = (byte) (values[i + 6] >>> 2);
 
-    buf[off] = (byte) (values[6] << 6);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) (values[7]);
+    buf[off] = (byte) (values[i + 6] << 6);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) (values[i + 7]);
   }
 
   static void packBits63(long[] values, int i, byte[] buf, int off) {
-    buf[off++] = (byte) (values[0] >>> 55);
-    buf[off++] = (byte) (values[0] >>> 47);
-    buf[off++] = (byte) (values[0] >>> 39);
-    buf[off++] = (byte) (values[0] >>> 31);
-    buf[off++] = (byte) (values[0] >>> 23);
-    buf[off++] = (byte) (values[0] >>> 15);
-    buf[off++] = (byte) (values[0] >>> 7);
+    buf[off++] = (byte) (values[i + 0] >>> 55);
+    buf[off++] = (byte) (values[i + 0] >>> 47);
+    buf[off++] = (byte) (values[i + 0] >>> 39);
+    buf[off++] = (byte) (values[i + 0] >>> 31);
+    buf[off++] = (byte) (values[i + 0] >>> 23);
+    buf[off++] = (byte) (values[i + 0] >>> 15);
+    buf[off++] = (byte) (values[i + 0] >>> 7);
 
-    buf[off] = (byte) (values[0] << 1);
-    buf[off++] |= values[1] >>> 62;
-    buf[off++] = (byte) (values[1] >>> 54);
-    buf[off++] = (byte) (values[1] >>> 46);
-    buf[off++] = (byte) (values[1] >>> 38);
-    buf[off++] = (byte) (values[1] >>> 30);
-    buf[off++] = (byte) (values[1] >>> 22);
-    buf[off++] = (byte) (values[1] >>> 14);
-    buf[off++] = (byte) (values[1] >>> 6);
+    buf[off] = (byte) (values[i + 0] << 1);
+    buf[off++] |= values[i + 1] >>> 62;
+    buf[off++] = (byte) (values[i + 1] >>> 54);
+    buf[off++] = (byte) (values[i + 1] >>> 46);
+    buf[off++] = (byte) (values[i + 1] >>> 38);
+    buf[off++] = (byte) (values[i + 1] >>> 30);
+    buf[off++] = (byte) (values[i + 1] >>> 22);
+    buf[off++] = (byte) (values[i + 1] >>> 14);
+    buf[off++] = (byte) (values[i + 1] >>> 6);
 
-    buf[off] = (byte) (values[1] << 2);
-    buf[off++] |= values[2] >>> 61;
-    buf[off++] = (byte) (values[2] >>> 53);
-    buf[off++] = (byte) (values[2] >>> 45);
-    buf[off++] = (byte) (values[2] >>> 37);
-    buf[off++] = (byte) (values[2] >>> 29);
-    buf[off++] = (byte) (values[2] >>> 21);
-    buf[off++] = (byte) (values[2] >>> 13);
-    buf[off++] = (byte) (values[2] >>> 5);
+    buf[off] = (byte) (values[i + 1] << 2);
+    buf[off++] |= values[i + 2] >>> 61;
+    buf[off++] = (byte) (values[i + 2] >>> 53);
+    buf[off++] = (byte) (values[i + 2] >>> 45);
+    buf[off++] = (byte) (values[i + 2] >>> 37);
+    buf[off++] = (byte) (values[i + 2] >>> 29);
+    buf[off++] = (byte) (values[i + 2] >>> 21);
+    buf[off++] = (byte) (values[i + 2] >>> 13);
+    buf[off++] = (byte) (values[i + 2] >>> 5);
 
-    buf[off] = (byte) (values[2] << 3);
-    buf[off++] |= values[3] >>> 60;
-    buf[off++] = (byte) (values[3] >>> 52);
-    buf[off++] = (byte) (values[3] >>> 44);
-    buf[off++] = (byte) (values[3] >>> 36);
-    buf[off++] = (byte) (values[3] >>> 28);
-    buf[off++] = (byte) (values[3] >>> 20);
-    buf[off++] = (byte) (values[3] >>> 12);
-    buf[off++] = (byte) (values[3] >>> 4);
+    buf[off] = (byte) (values[i + 2] << 3);
+    buf[off++] |= values[i + 3] >>> 60;
+    buf[off++] = (byte) (values[i + 3] >>> 52);
+    buf[off++] = (byte) (values[i + 3] >>> 44);
+    buf[off++] = (byte) (values[i + 3] >>> 36);
+    buf[off++] = (byte) (values[i + 3] >>> 28);
+    buf[off++] = (byte) (values[i + 3] >>> 20);
+    buf[off++] = (byte) (values[i + 3] >>> 12);
+    buf[off++] = (byte) (values[i + 3] >>> 4);
 
-    buf[off] = (byte) (values[3] << 4);
-    buf[off++] |= values[4] >>> 59;
-    buf[off++] = (byte) (values[4] >>> 51);
-    buf[off++] = (byte) (values[4] >>> 43);
-    buf[off++] = (byte) (values[4] >>> 35);
-    buf[off++] = (byte) (values[4] >>> 27);
-    buf[off++] = (byte) (values[4] >>> 19);
-    buf[off++] = (byte) (values[4] >>> 11);
-    buf[off++] = (byte) (values[4] >>> 3);
+    buf[off] = (byte) (values[i + 3] << 4);
+    buf[off++] |= values[i + 4] >>> 59;
+    buf[off++] = (byte) (values[i + 4] >>> 51);
+    buf[off++] = (byte) (values[i + 4] >>> 43);
+    buf[off++] = (byte) (values[i + 4] >>> 35);
+    buf[off++] = (byte) (values[i + 4] >>> 27);
+    buf[off++] = (byte) (values[i + 4] >>> 19);
+    buf[off++] = (byte) (values[i + 4] >>> 11);
+    buf[off++] = (byte) (values[i + 4] >>> 3);
 
-    buf[off] = (byte) (values[4] << 5);
-    buf[off++] |= values[5] >>> 58;
-    buf[off++] = (byte) (values[5] >>> 50);
-    buf[off++] = (byte) (values[5] >>> 42);
-    buf[off++] = (byte) (values[5] >>> 34);
-    buf[off++] = (byte) (values[5] >>> 26);
-    buf[off++] = (byte) (values[5] >>> 18);
-    buf[off++] = (byte) (values[5] >>> 10);
-    buf[off++] = (byte) (values[5] >>> 2);
+    buf[off] = (byte) (values[i + 4] << 5);
+    buf[off++] |= values[i + 5] >>> 58;
+    buf[off++] = (byte) (values[i + 5] >>> 50);
+    buf[off++] = (byte) (values[i + 5] >>> 42);
+    buf[off++] = (byte) (values[i + 5] >>> 34);
+    buf[off++] = (byte) (values[i + 5] >>> 26);
+    buf[off++] = (byte) (values[i + 5] >>> 18);
+    buf[off++] = (byte) (values[i + 5] >>> 10);
+    buf[off++] = (byte) (values[i + 5] >>> 2);
 
-    buf[off] = (byte) (values[5] << 6);
-    buf[off++] |= values[6] >>> 57;
-    buf[off++] = (byte) (values[6] >>> 49);
-    buf[off++] = (byte) (values[6] >>> 41);
-    buf[off++] = (byte) (values[6] >>> 33);
-    buf[off++] = (byte) (values[6] >>> 25);
-    buf[off++] = (byte) (values[6] >>> 17);
-    buf[off++] = (byte) (values[6] >>> 9);
-    buf[off++] = (byte) (values[6] >>> 1);
+    buf[off] = (byte) (values[i + 5] << 6);
+    buf[off++] |= values[i + 6] >>> 57;
+    buf[off++] = (byte) (values[i + 6] >>> 49);
+    buf[off++] = (byte) (values[i + 6] >>> 41);
+    buf[off++] = (byte) (values[i + 6] >>> 33);
+    buf[off++] = (byte) (values[i + 6] >>> 25);
+    buf[off++] = (byte) (values[i + 6] >>> 17);
+    buf[off++] = (byte) (values[i + 6] >>> 9);
+    buf[off++] = (byte) (values[i + 6] >>> 1);
 
-    buf[off] = (byte) (values[6] << 7);
-    buf[off++] |= values[7] >>> 56;
-    buf[off++] = (byte) (values[7] >>> 48);
-    buf[off++] = (byte) (values[7] >>> 40);
-    buf[off++] = (byte) (values[7] >>> 32);
-    buf[off++] = (byte) (values[7] >>> 24);
-    buf[off++] = (byte) (values[7] >>> 16);
-    buf[off++] = (byte) (values[7] >>> 8);
-    buf[off] = (byte) values[7];
+    buf[off] = (byte) (values[i + 6] << 7);
+    buf[off++] |= values[i + 7] >>> 56;
+    buf[off++] = (byte) (values[i + 7] >>> 48);
+    buf[off++] = (byte) (values[i + 7] >>> 40);
+    buf[off++] = (byte) (values[i + 7] >>> 32);
+    buf[off++] = (byte) (values[i + 7] >>> 24);
+    buf[off++] = (byte) (values[i + 7] >>> 16);
+    buf[off++] = (byte) (values[i + 7] >>> 8);
+    buf[off] = (byte) values[i + 7];
   }
 
   static void unpackBits1(long[] values, int i, byte[] buf, int off) {
