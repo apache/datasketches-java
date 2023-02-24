@@ -21,6 +21,8 @@ package org.apache.datasketches.hll;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.datasketches.hash.MurmurHash3.hash;
+import static org.apache.datasketches.hll.HllUtil.HLL_HIP_RSE_FACTOR;
+import static org.apache.datasketches.hll.HllUtil.HLL_NON_HIP_RSE_FACTOR;
 import static org.apache.datasketches.hll.HllUtil.KEY_BITS_26;
 import static org.apache.datasketches.hll.HllUtil.KEY_MASK_26;
 
@@ -118,8 +120,14 @@ abstract class BaseHllSketch {
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
    * @return the current (approximate) RelativeError
    */
-  public double getRelErr(final boolean upperBound, final boolean unioned,
+  public static double getRelErr(final boolean upperBound, final boolean unioned,
       final int lgConfigK, final int numStdDev) {
+    HllUtil.checkLgK(lgConfigK);
+    if (lgConfigK > 12) {
+      final double rseFactor = unioned ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
+      final int configK = 1 << lgConfigK;
+      return (upperBound ? -1.0 : 1.0) * (numStdDev * rseFactor) / Math.sqrt(configK);
+    }
     return RelativeErrorTables.getRelErr(upperBound, unioned, lgConfigK, numStdDev);
   }
 

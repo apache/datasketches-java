@@ -122,7 +122,7 @@ abstract class AbstractHllArray extends HllSketchImpl {
    * <p>The paper Fig 2 defines</p>
    * <pre>Z := ( sum[j=1,m](2^(-M[j])) )^(-1).</pre>
    * But the HIP estimator requires a computation of the probability defined above.
-   * We accomplish both by redefing Z as
+   * We accomplish both by redefining Z as
    * <pre>Z := ( m + sum[j=1,m](2^(-M[j] - 1)) )^(-1).</pre>
    * They are mathematically equivalent since:
    * <pre>m + sum[j=1,m](2^(-M[j] - 1)) == m + sum[j=1,m](2^(-M[j])) - m == sum[j=1,m](2^(-M[j])).</pre>

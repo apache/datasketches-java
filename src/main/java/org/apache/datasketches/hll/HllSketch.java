@@ -102,7 +102,7 @@ public class HllSketch extends BaseHllSketch {
    * Constructs a new on-heap sketch with the type of HLL sketch to configure.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
-   * @param tgtHllType the desired Hll type.
+   * @param tgtHllType the desired HLL type.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType) {
     hllSketchImpl = new CouponList(HllUtil.checkLgK(lgConfigK), tgtHllType, CurMode.LIST);
@@ -118,7 +118,7 @@ public class HllSketch extends BaseHllSketch {
    * {@link #getMaxUpdatableSerializationBytes(int, TgtHllType)}.
    * @param lgConfigK The Log2 of K for the target HLL sketch. This value must be
    * between 4 and 21 inclusively.
-   * @param tgtHllType the desired Hll type.
+   * @param tgtHllType the desired HLL type.
    * @param dstMem the destination memory for the sketch.
    */
   public HllSketch(final int lgConfigK, final TgtHllType tgtHllType, final WritableMemory dstMem) {
