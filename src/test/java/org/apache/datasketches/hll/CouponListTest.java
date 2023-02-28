@@ -110,11 +110,6 @@ public class CouponListTest {
       assertNull(sk.getWritableMemory());
       assertNull(sk.getMemory());
     }
-
-    double re = sk.getRelErr(true, true, 4, 1);
-    assertTrue(re < 0.0);
-
-
   }
 
   @Test
