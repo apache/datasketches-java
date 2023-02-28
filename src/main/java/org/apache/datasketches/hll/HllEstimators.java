@@ -59,7 +59,7 @@ class HllEstimators {
     final double estimate = absHllArr.getEstimate();
     final boolean oooFlag = absHllArr.isOutOfOrder();
     final double relErr = BaseHllSketch.getRelErr(true, oooFlag, lgConfigK, numStdDev);
-    return estimate / (1.0 + relErr);
+    return estimate / (1.0 - relErr);
   }
 
   //THE HLL COMPOSITE ESTIMATOR

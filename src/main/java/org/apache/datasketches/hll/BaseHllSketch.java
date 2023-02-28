@@ -126,9 +126,9 @@ abstract class BaseHllSketch {
     if (lgConfigK > 12) {
       final double rseFactor = unioned ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
       final int configK = 1 << lgConfigK;
-      return (upperBound ? -1.0 : 1.0) * (numStdDev * rseFactor) / Math.sqrt(configK);
+      return (numStdDev * rseFactor) / Math.sqrt(configK);
     }
-    return RelativeErrorTables.getRelErr(upperBound, unioned, lgConfigK, numStdDev);
+    return Math.abs(RelativeErrorTables.getRelErr(upperBound, unioned, lgConfigK, numStdDev));
   }
 
   /**
