@@ -19,36 +19,23 @@
 
 package org.apache.datasketches.theta;
 
-/**
- * @author Lee Rhodes
- */
-class HeapHashIterator implements HashIterator {
+class HeapCompactHashIterator implements HashIterator {
   private long[] cache;
-  private long thetaLong;
   private int index;
-  private long hash;
 
-  HeapHashIterator(final long[] cache, final long thetaLong) {
+  HeapCompactHashIterator(final long[] cache) {
     this.cache = cache;
-    this.thetaLong = thetaLong;
     index = -1;
-    hash = 0;
   }
 
   @Override
   public long get() {
-    return hash;
+    return cache[index];
   }
 
   @Override
   public boolean next() {
-    while (++index < cache.length) {
-      hash = cache[index];
-      if ((hash != 0) && (hash < thetaLong)) {
-        return true;
-      }
-    }
-    return false;
+    return ++index < cache.length;
   }
 
 }

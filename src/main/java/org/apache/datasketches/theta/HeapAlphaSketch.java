@@ -163,7 +163,7 @@ final class HeapAlphaSketch extends HeapUpdateSketch {
 
   @Override
   public HashIterator iterator() {
-    return new HeapHashIterator(cache_, 1 << lgArrLongs_, thetaLong_);
+    return new HeapHashIterator(cache_, thetaLong_);
   }
 
   @Override

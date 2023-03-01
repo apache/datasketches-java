@@ -113,7 +113,7 @@ final class EmptyCompactSketch extends CompactSketch {
 
   @Override
   public HashIterator iterator() {
-    return new HeapHashIterator(new long[0], 0, Long.MAX_VALUE);
+    return new HeapCompactHashIterator(new long[0]);
   }
 
   /**
