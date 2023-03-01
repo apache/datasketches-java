@@ -287,7 +287,7 @@ public class GenericInequalitySearchTest {
     return "";
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format

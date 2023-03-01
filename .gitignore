@@ -6,7 +6,7 @@
 
 # IntelliJ project files
 *.idea
-*.iml
+**/*.iml
 *.ipr
 *.iws
 
@@ -14,7 +14,7 @@
 .clover/
 
 # OSX files
-.DS_Store
+**/.DS_Store
 
 # Compiler output, class files
 *.class
