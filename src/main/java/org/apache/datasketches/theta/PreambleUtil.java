@@ -188,6 +188,11 @@ final class PreambleUtil {
   //Other constants
   static final int SER_VER                    = 3;
 
+  // serial version 4 compressed ordered sketch, not empty, not single item
+  static final int ENTRY_BITS_BYTE_V4   = 3; // number of bits packed in deltas between hashes
+  static final int NUM_ENTRIES_BYTES_BYTE_V4 = 4; // number of bytes used for the number of entries
+  static final int THETA_LONG_V4             = 8; //8-byte aligned
+
   static final boolean NATIVE_ORDER_IS_BIG_ENDIAN  =
       (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 
@@ -395,6 +400,18 @@ final class PreambleUtil {
 
   static long extractUnionThetaLong(final Memory mem) {
     return mem.getLong(UNION_THETA_LONG);
+  }
+
+  static int extractEntryBitsV4(final Memory mem) {
+    return mem.getByte(ENTRY_BITS_BYTE_V4) & 0XFF;
+  }
+
+  static int extractNumEntriesBytesV4(final Memory mem) {
+    return mem.getByte(NUM_ENTRIES_BYTES_BYTE_V4) & 0XFF;
+  }
+
+  static long extractThetaLongV4(final Memory mem) {
+    return mem.getLong(THETA_LONG_V4);
   }
 
   /**

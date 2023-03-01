@@ -25,8 +25,12 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 
+import java.io.File;
+
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
+import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableHandle;
 import org.apache.datasketches.memory.WritableMemory;
@@ -404,6 +408,68 @@ public class CompactSketchTest {
     assertTrue(csk2.getSeedHash() != 0);  //has a seed hash
     int curCount = csk2.getRetainedEntries();
     assertEquals(csk2.getCompactBytes(), 24 + (curCount * 8));
+  }
+
+  @Test
+  public void serializeDeserializeHeapV4() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    CompactSketch cs1 = sk.compact();
+    byte[] bytes = cs1.toByteArrayCompressed();
+    CompactSketch cs2 = CompactSketch.heapify(Memory.wrap(bytes));
+    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+    HashIterator it1 = cs1.iterator();
+    HashIterator it2 = cs2.iterator();
+    while (it1.next() && it2.next()) {
+      assertEquals(it2.get(), it2.get());
+    }
+  }
+
+  @Test
+  public void serializeDeserializeDirectV4() {
+    UpdateSketch sk = Sketches.updateSketchBuilder().build();
+    for (int i = 0; i < 10000; i++) {
+      sk.update(i);
+    }
+    CompactSketch cs1 = sk.compact(true, WritableMemory.allocate(sk.getCompactBytes()));
+    byte[] bytes = cs1.toByteArrayCompressed();
+    CompactSketch cs2 = CompactSketch.wrap(Memory.wrap(bytes));
+    assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+    HashIterator it1 = cs1.iterator();
+    HashIterator it2 = cs2.iterator();
+    while (it1.next() && it2.next()) {
+      assertEquals(it2.get(), it2.get());
+    }
+  }
+
+  @Test
+  public void compatibilityWithCppEstimationModeV4() {
+    final File file = Util.getResourceFile("theta_estimation_mode_v4.sk");
+    try (MapHandle mh = Memory.map(file)) {
+      final Memory mem = mh.get();
+      CompactSketch cs1 = CompactSketch.heapify(mem);
+      
+      // construct sketch the same way
+      UpdateSketch sk = Sketches.updateSketchBuilder().build();
+      for (int i = 0; i < 10000; i++) {
+        sk.update(i);
+      }
+      CompactSketch cs2 = sk.compact();
+      assertEquals(cs1.isEmpty(), cs2.isEmpty());
+      assertEquals(cs1.isEstimationMode(), cs2.isEstimationMode());
+      assertEquals(cs1.getTheta(), cs2.getTheta());
+      assertEquals(cs1.getRetainedEntries(), cs2.getRetainedEntries());
+      HashIterator it1 = cs1.iterator();
+      HashIterator it2 = cs2.iterator();
+      while (it1.next()) {
+        assertTrue(it2.next());
+        assertEquals(it1.get(), it2.get());
+      }
+    } catch (final Exception e) {
+      e.printStackTrace();
+    }
   }
 
   private static class State {
