@@ -42,7 +42,6 @@ public class DirectUpdateDoublesSketchTest {
     DoublesSketch.rand.setSeed(32749); // make sketches deterministic for testing
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkSmallMinMax () {
     int k = 32;

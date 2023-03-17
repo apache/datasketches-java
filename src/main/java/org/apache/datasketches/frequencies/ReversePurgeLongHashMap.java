@@ -21,6 +21,7 @@ package org.apache.datasketches.frequencies;
 
 import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.exactLog2OfInt;
+import static org.apache.datasketches.common.Util.INVERSE_GOLDEN;
 import static org.apache.datasketches.frequencies.Util.hash;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -373,8 +374,6 @@ class ReversePurgeLongHashMap {
 
   // This iterator uses strides based on golden ratio to avoid clustering during merge
   static class Iterator {
-    private static final double GOLDEN_RATIO_RECIPROCAL = (Math.sqrt(5) - 1) / 2; //.618...
-
     private final long[] keys_;
     private final long[] values_;
     private final short[] states_;
@@ -389,7 +388,7 @@ class ReversePurgeLongHashMap {
       values_ = values;
       states_ = states;
       numActive_ = numActive;
-      stride_ = (int) (keys.length * GOLDEN_RATIO_RECIPROCAL) | 1;
+      stride_ = (int) (keys.length * INVERSE_GOLDEN) | 1;
       mask_ = keys.length - 1;
       i_ = -stride_;
       count_ = 0;

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.Util.iGolden;
+import static org.apache.datasketches.common.Util.INVERSE_GOLDEN;
 import static org.apache.datasketches.cpc.CpcUtil.countBitsSetInMatrix;
 import static org.apache.datasketches.cpc.Flavor.EMPTY;
 import static org.apache.datasketches.cpc.Flavor.SPARSE;
@@ -187,7 +187,7 @@ public class CpcUnion {
     /* Using the inverse golden ratio stride fixes the
      * <a href="{@docRoot}/resources/dictionary.html#SnowPlow">Snow Plow Effect</a>.
      */
-    int stride =  (int) (iGolden * numSlots);
+    int stride =  (int) (INVERSE_GOLDEN * numSlots);
     assert stride >= 2;
     if (stride == ((stride >>> 1) << 1)) { stride += 1; } //force the stride to be odd
     assert (stride >= 3) && (stride < numSlots);

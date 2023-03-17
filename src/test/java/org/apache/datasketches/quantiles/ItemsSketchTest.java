@@ -43,7 +43,6 @@ import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("deprecation")
 public class ItemsSketchTest {
 
   @BeforeMethod

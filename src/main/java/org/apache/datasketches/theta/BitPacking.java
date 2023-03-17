@@ -23,7 +23,8 @@ import org.apache.datasketches.common.SketchesArgumentException;
 
 public class BitPacking {
 
-  public static void packBits(long value, int bits, byte[] buffer, int bufOffset, int bitOffset) {
+  public static void packBits(final long value, int bits, final byte[] buffer, int bufOffset, 
+      final int bitOffset) {
     if (bitOffset > 0) {
       final int chunkBits = 8 - bitOffset;
       final int mask = (1 << chunkBits) - 1;
@@ -43,7 +44,8 @@ public class BitPacking {
     }
   }
 
-  public static void unpackBits(long[] value, int index, int bits, byte[] buffer, int bufOffset, int bitOffset) {
+  public static void unpackBits(final long[] value, final int index, int bits, final byte[] buffer, 
+      int bufOffset,final int bitOffset) {
     final int availBits = 8 - bitOffset;
     final int chunkBits = availBits <= bits ? availBits : bits;
     final int mask = (1 << chunkBits) - 1;
@@ -66,7 +68,7 @@ public class BitPacking {
   // we assume that higher bits (which we are not packing) are zeros
   // this assumption allows to avoid masking operations
 
-  static void packBitsBlock8(long[] values, int i, byte[] buf, int off, int bits) {
+  static void packBitsBlock8(final long[] values, final int i, final byte[] buf, final int off, final int bits) {
     switch (bits) {
       case 1: packBits1(values, i, buf, off); break;
       case 2: packBits2(values, i, buf, off); break;
@@ -135,7 +137,7 @@ public class BitPacking {
     }
   }
 
-  static void unpackBitsBlock8(long[] values, int i, byte[] buf, int off, int bits) {
+  static void unpackBitsBlock8(final long[] values, final int i, final byte[] buf, final int off, final int bits) {
     switch (bits) {
       case 1: unpackBits1(values, i, buf, off); break;
       case 2: unpackBits2(values, i, buf, off); break;
@@ -204,7 +206,7 @@ public class BitPacking {
     }
   }
 
-  static void packBits1(long[] values, int i, byte[] buf, int off) {
+  static void packBits1(final long[] values, final int i, final byte[] buf, final int off) {
     buf[off] = (byte) (values[i + 0] << 7);
     buf[off] |= values[i + 1] << 6;
     buf[off] |= values[i + 2] << 5;
@@ -215,7 +217,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits2(long[] values, int i, byte[] buf, int off) {
+  static void packBits2(final long[] values, final int i, final byte[] buf, int off) {
     buf[off] = (byte) (values[i + 0] << 6);
     buf[off] |= values[i + 1] << 4;
     buf[off] |= values[i + 2] << 2;
@@ -227,7 +229,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits3(long[] values, int i, byte[] buf, int off) {
+  static void packBits3(final long[] values, final int i, final byte[] buf, int off) {
     buf[off] = (byte) (values[i + 0] << 5);
     buf[off] |= values[i + 1] << 2;
     buf[off++] |= values[i + 2] >>> 1;
@@ -242,7 +244,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits4(long[] values, int i, byte[] buf, int off) {
+  static void packBits4(final long[] values, final int i, final byte[] buf, int off) {
     buf[off] = (byte) (values[i + 0] << 4);
     buf[off++] |= values[i + 1];
 
@@ -256,7 +258,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits5(long[] values, int i, byte[] buf, int off) {
+  static void packBits5(final long[] values, final int i, final byte[] buf, int off) {
     buf[off] = (byte) (values[i + 0] << 3);
     buf[off++] |= values[i + 1] >>> 2;
 
@@ -275,7 +277,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits6(long[] values, int i, byte[] buf, int off) {
+  static void packBits6(final long[] values, final int i, final byte[] buf, int off) {
     buf[off] = (byte) (values[i + 0] << 2);
     buf[off++] |= values[i + 1] >>> 4;
 
@@ -295,7 +297,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits7(long[] values, int i, byte[] buf, int off) {
+  static void packBits7(final long[] values, final int i, final byte[] buf, int off) {
     buf[off] = (byte) (values[i + 0] << 1);
     buf[off++] |= values[i + 1] >>> 6;
 
@@ -318,7 +320,7 @@ public class BitPacking {
     buf[off] |= values[i + 7];
   }
 
-  static void packBits8(long[] values, int i, byte[] buf, int off) {
+  static void packBits8(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0]);
     buf[off++] = (byte) (values[i + 1]);
     buf[off++] = (byte) (values[i + 2]);
@@ -329,7 +331,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits9(long[] values, int i, byte[] buf, int off) {
+  static void packBits9(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 1);
 
     buf[off] = (byte) (values[i + 0] << 7);
@@ -356,7 +358,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits10(long[] values, int i, byte[] buf, int off) {
+  static void packBits10(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 2);
 
     buf[off] = (byte) (values[i + 0] << 6);
@@ -384,7 +386,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits11(long[] values, int i, byte[] buf, int off) {
+  static void packBits11(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 3);
 
     buf[off] = (byte) (values[i + 0] << 5);
@@ -415,7 +417,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits12(long[] values, int i, byte[] buf, int off) {
+  static void packBits12(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 4);
 
     buf[off] = (byte) (values[i + 0] << 4);
@@ -445,7 +447,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits13(long[] values, int i, byte[] buf, int off) {
+  static void packBits13(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 5);
 
     buf[off] = (byte) (values[i + 0] << 3);
@@ -480,7 +482,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits14(long[] values, int i, byte[] buf, int off) {
+  static void packBits14(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 6);
 
     buf[off] = (byte) (values[i + 0] << 2);
@@ -516,7 +518,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits15(long[] values, int i, byte[] buf, int off) {
+  static void packBits15(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 7);
 
     buf[off] = (byte) (values[i + 0] << 1);
@@ -555,7 +557,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits16(long[] values, int i, byte[] buf, int off) {
+  static void packBits16(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 8);
     buf[off++] = (byte) (values[i + 0]);
 
@@ -581,7 +583,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits17(long[] values, int i, byte[] buf, int off) {
+  static void packBits17(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 9);
 
     buf[off++] = (byte) (values[i + 0] >>> 1);
@@ -624,7 +626,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits18(long[] values, int i, byte[] buf, int off) {
+  static void packBits18(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 10);
 
     buf[off++] = (byte) (values[i + 0] >>> 2);
@@ -668,7 +670,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits19(long[] values, int i, byte[] buf, int off) {
+  static void packBits19(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 11);
 
     buf[off++] = (byte) (values[i + 0] >>> 3);
@@ -715,7 +717,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits20(long[] values, int i, byte[] buf, int off) {
+  static void packBits20(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 12);
 
     buf[off++] = (byte) (values[i + 0] >>> 4);
@@ -761,7 +763,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits21(long[] values, int i, byte[] buf, int off) {
+  static void packBits21(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 13);
 
     buf[off++] = (byte) (values[i + 0] >>> 5);
@@ -812,7 +814,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits22(long[] values, int i, byte[] buf, int off) {
+  static void packBits22(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 14);
 
     buf[off++] = (byte) (values[i + 0] >>> 6);
@@ -864,7 +866,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits23(long[] values, int i, byte[] buf, int off) {
+  static void packBits23(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 15);
 
     buf[off++] = (byte) (values[i + 0] >>> 7);
@@ -919,7 +921,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits24(long[] values, int i, byte[] buf, int off) {
+  static void packBits24(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 16);
     buf[off++] = (byte) (values[i + 0] >>> 8);
     buf[off++] = (byte) (values[i + 0]);
@@ -953,7 +955,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits25(long[] values, int i, byte[] buf, int off) {
+  static void packBits25(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 17);
 
     buf[off++] = (byte) (values[i + 0] >>> 9);
@@ -1012,7 +1014,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits26(long[] values, int i, byte[] buf, int off) {
+  static void packBits26(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 18);
 
     buf[off++] = (byte) (values[i + 0] >>> 10);
@@ -1072,7 +1074,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits27(long[] values, int i, byte[] buf, int off) {
+  static void packBits27(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 19);
 
     buf[off++] = (byte) (values[i + 0] >>> 11);
@@ -1135,7 +1137,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits28(long[] values, int i, byte[] buf, int off) {
+  static void packBits28(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 20);
     buf[off++] = (byte) (values[i + 0] >>> 12);
     buf[off++] = (byte) (values[i + 0] >>> 4);
@@ -1170,7 +1172,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits29(long[] values, int i, byte[] buf, int off) {
+  static void packBits29(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 21);
 
     buf[off++] = (byte) (values[i + 0] >>> 13);
@@ -1237,7 +1239,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits30(long[] values, int i, byte[] buf, int off) {
+  static void packBits30(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 22);
     buf[off++] = (byte) (values[i + 0] >>> 14);
     buf[off++] = (byte) (values[i + 0] >>> 6);
@@ -1283,7 +1285,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits31(long[] values, int i, byte[] buf, int off) {
+  static void packBits31(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 23);
     buf[off++] = (byte) (values[i + 0] >>> 15);
     buf[off++] = (byte) (values[i + 0] >>> 7);
@@ -1331,7 +1333,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits32(long[] values, int i, byte[] buf, int off) {
+  static void packBits32(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 24);
     buf[off++] = (byte) (values[i + 0] >>> 16);
     buf[off++] = (byte) (values[i + 0] >>> 8);
@@ -1373,7 +1375,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits33(long[] values, int i, byte[] buf, int off) {
+  static void packBits33(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 25);
     buf[off++] = (byte) (values[i + 0] >>> 17);
     buf[off++] = (byte) (values[i + 0] >>> 9);
@@ -1423,7 +1425,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits34(long[] values, int i, byte[] buf, int off) {
+  static void packBits34(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 26);
     buf[off++] = (byte) (values[i + 0] >>> 18);
     buf[off++] = (byte) (values[i + 0] >>> 10);
@@ -1473,7 +1475,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits35(long[] values, int i, byte[] buf, int off) {
+  static void packBits35(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 27);
     buf[off++] = (byte) (values[i + 0] >>> 19);
     buf[off++] = (byte) (values[i + 0] >>> 11);
@@ -1525,7 +1527,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits36(long[] values, int i, byte[] buf, int off) {
+  static void packBits36(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 28);
     buf[off++] = (byte) (values[i + 0] >>> 20);
     buf[off++] = (byte) (values[i + 0] >>> 12);
@@ -1575,7 +1577,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits37(long[] values, int i, byte[] buf, int off) {
+  static void packBits37(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 29);
     buf[off++] = (byte) (values[i + 0] >>> 21);
     buf[off++] = (byte) (values[i + 0] >>> 13);
@@ -1629,7 +1631,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits38(long[] values, int i, byte[] buf, int off) {
+  static void packBits38(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 30);
     buf[off++] = (byte) (values[i + 0] >>> 22);
     buf[off++] = (byte) (values[i + 0] >>> 14);
@@ -1683,7 +1685,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits39(long[] values, int i, byte[] buf, int off) {
+  static void packBits39(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 31);
     buf[off++] = (byte) (values[i + 0] >>> 23);
     buf[off++] = (byte) (values[i + 0] >>> 15);
@@ -1739,7 +1741,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits40(long[] values, int i, byte[] buf, int off) {
+  static void packBits40(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 32);
     buf[off++] = (byte) (values[i + 0] >>> 24);
     buf[off++] = (byte) (values[i + 0] >>> 16);
@@ -1789,7 +1791,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits41(long[] values, int i, byte[] buf, int off) {
+  static void packBits41(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 33);
     buf[off++] = (byte) (values[i + 0] >>> 25);
     buf[off++] = (byte) (values[i + 0] >>> 17);
@@ -1847,7 +1849,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits42(long[] values, int i, byte[] buf, int off) {
+  static void packBits42(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 34);
     buf[off++] = (byte) (values[i + 0] >>> 26);
     buf[off++] = (byte) (values[i + 0] >>> 18);
@@ -1905,7 +1907,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits43(long[] values, int i, byte[] buf, int off) {
+  static void packBits43(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 35);
     buf[off++] = (byte) (values[i + 0] >>> 27);
     buf[off++] = (byte) (values[i + 0] >>> 19);
@@ -1965,7 +1967,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits44(long[] values, int i, byte[] buf, int off) {
+  static void packBits44(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 36);
     buf[off++] = (byte) (values[i + 0] >>> 28);
     buf[off++] = (byte) (values[i + 0] >>> 20);
@@ -2023,7 +2025,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits45(long[] values, int i, byte[] buf, int off) {
+  static void packBits45(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 37);
     buf[off++] = (byte) (values[i + 0] >>> 29);
     buf[off++] = (byte) (values[i + 0] >>> 21);
@@ -2085,7 +2087,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits46(long[] values, int i, byte[] buf, int off) {
+  static void packBits46(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 38);
     buf[off++] = (byte) (values[i + 0] >>> 30);
     buf[off++] = (byte) (values[i + 0] >>> 22);
@@ -2147,7 +2149,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits47(long[] values, int i, byte[] buf, int off) {
+  static void packBits47(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 39);
     buf[off++] = (byte) (values[i + 0] >>> 31);
     buf[off++] = (byte) (values[i + 0] >>> 23);
@@ -2211,7 +2213,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits48(long[] values, int i, byte[] buf, int off) {
+  static void packBits48(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 40);
     buf[off++] = (byte) (values[i + 0] >>> 32);
     buf[off++] = (byte) (values[i + 0] >>> 24);
@@ -2269,7 +2271,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits49(long[] values, int i, byte[] buf, int off) {
+  static void packBits49(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 41);
     buf[off++] = (byte) (values[i + 0] >>> 33);
     buf[off++] = (byte) (values[i + 0] >>> 25);
@@ -2335,7 +2337,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits50(long[] values, int i, byte[] buf, int off) {
+  static void packBits50(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 42);
     buf[off++] = (byte) (values[i + 0] >>> 34);
     buf[off++] = (byte) (values[i + 0] >>> 26);
@@ -2401,7 +2403,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits51(long[] values, int i, byte[] buf, int off) {
+  static void packBits51(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 43);
     buf[off++] = (byte) (values[i + 0] >>> 35);
     buf[off++] = (byte) (values[i + 0] >>> 27);
@@ -2469,7 +2471,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits52(long[] values, int i, byte[] buf, int off) {
+  static void packBits52(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 44);
     buf[off++] = (byte) (values[i + 0] >>> 36);
     buf[off++] = (byte) (values[i + 0] >>> 28);
@@ -2535,7 +2537,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits53(long[] values, int i, byte[] buf, int off) {
+  static void packBits53(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 45);
     buf[off++] = (byte) (values[i + 0] >>> 37);
     buf[off++] = (byte) (values[i + 0] >>> 29);
@@ -2605,7 +2607,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits54(long[] values, int i, byte[] buf, int off) {
+  static void packBits54(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 46);
     buf[off++] = (byte) (values[i + 0] >>> 38);
     buf[off++] = (byte) (values[i + 0] >>> 30);
@@ -2675,7 +2677,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits55(long[] values, int i, byte[] buf, int off) {
+  static void packBits55(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 47);
     buf[off++] = (byte) (values[i + 0] >>> 39);
     buf[off++] = (byte) (values[i + 0] >>> 31);
@@ -2747,7 +2749,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits56(long[] values, int i, byte[] buf, int off) {
+  static void packBits56(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 48);
     buf[off++] = (byte) (values[i + 0] >>> 40);
     buf[off++] = (byte) (values[i + 0] >>> 32);
@@ -2813,7 +2815,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits57(long[] values, int i, byte[] buf, int off) {
+  static void packBits57(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 49);
     buf[off++] = (byte) (values[i + 0] >>> 41);
     buf[off++] = (byte) (values[i + 0] >>> 33);
@@ -2887,7 +2889,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits58(long[] values, int i, byte[] buf, int off) {
+  static void packBits58(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 50);
     buf[off++] = (byte) (values[i + 0] >>> 42);
     buf[off++] = (byte) (values[i + 0] >>> 34);
@@ -2961,7 +2963,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits59(long[] values, int i, byte[] buf, int off) {
+  static void packBits59(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 51);
     buf[off++] = (byte) (values[i + 0] >>> 43);
     buf[off++] = (byte) (values[i + 0] >>> 35);
@@ -3037,7 +3039,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits60(long[] values, int i, byte[] buf, int off) {
+  static void packBits60(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 52);
     buf[off++] = (byte) (values[i + 0] >>> 44);
     buf[off++] = (byte) (values[i + 0] >>> 36);
@@ -3111,7 +3113,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits61(long[] values, int i, byte[] buf, int off) {
+  static void packBits61(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 53);
     buf[off++] = (byte) (values[i + 0] >>> 45);
     buf[off++] = (byte) (values[i + 0] >>> 37);
@@ -3189,7 +3191,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits62(long[] values, int i, byte[] buf, int off) {
+  static void packBits62(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 54);
     buf[off++] = (byte) (values[i + 0] >>> 46);
     buf[off++] = (byte) (values[i + 0] >>> 38);
@@ -3267,7 +3269,7 @@ public class BitPacking {
     buf[off] = (byte) (values[i + 7]);
   }
 
-  static void packBits63(long[] values, int i, byte[] buf, int off) {
+  static void packBits63(final long[] values, final int i, final byte[] buf, int off) {
     buf[off++] = (byte) (values[i + 0] >>> 55);
     buf[off++] = (byte) (values[i + 0] >>> 47);
     buf[off++] = (byte) (values[i + 0] >>> 39);
@@ -3347,7 +3349,7 @@ public class BitPacking {
     buf[off] = (byte) values[i + 7];
   }
 
-  static void unpackBits1(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits1(final long[] values, final int i, final byte[] buf, final int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off]) >>> 7) & 1;
     values[i + 1] = (Byte.toUnsignedLong(buf[off]) >>> 6) & 1;
     values[i + 2] = (Byte.toUnsignedLong(buf[off]) >>> 5) & 1;
@@ -3358,7 +3360,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 1;
   }
 
-  static void unpackBits2(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits2(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off]) >>> 6) & 3;
     values[i + 1] = (Byte.toUnsignedLong(buf[off]) >>> 4) & 3;
     values[i + 2] = (Byte.toUnsignedLong(buf[off]) >>> 2) & 3;
@@ -3369,7 +3371,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 3;
   }
 
-  static void unpackBits3(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits3(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off]) >>> 5;
     values[i + 1] = (Byte.toUnsignedLong(buf[off]) >>> 2) & 7;
     values[i + 2] = (Byte.toUnsignedLong(buf[off++]) & 3) << 1;
@@ -3382,7 +3384,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 7;
   }
 
-  static void unpackBits4(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits4(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off]) >>> 4;
     values[i + 1] = Byte.toUnsignedLong(buf[off++]) & 0xf;
     values[i + 2] = Byte.toUnsignedLong(buf[off]) >>> 4;
@@ -3393,7 +3395,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 0xf;
   }
 
-  static void unpackBits5(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits5(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off]) >>> 3;
 
     values[i + 1] = (Byte.toUnsignedLong(buf[off++]) & 7) << 2;
@@ -3415,7 +3417,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 0x1f;
   }
 
-  static void unpackBits6(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits6(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off]) >>> 2;
 
     values[i + 1] = (Byte.toUnsignedLong(buf[off++]) & 3) << 4;
@@ -3437,7 +3439,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 0x3f;
   }
 
-  static void unpackBits7(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits7(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off]) >>> 1;
 
     values[i + 1] = (Byte.toUnsignedLong(buf[off++]) & 1) << 6;
@@ -3461,7 +3463,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]) & 0x7f;
   }
 
-  static void unpackBits8(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits8(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]);
     values[i + 1] = Byte.toUnsignedLong(buf[off++]);
     values[i + 2] = Byte.toUnsignedLong(buf[off++]);
@@ -3472,7 +3474,7 @@ public class BitPacking {
     values[i + 7] = Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits9(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits9(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 1;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 7;
 
@@ -3498,7 +3500,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits10(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits10(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 2;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 6;
 
@@ -3524,7 +3526,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits11(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits11(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 3;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 5;
 
@@ -3552,7 +3554,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits12(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits12(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 4;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 4;
 
@@ -3578,7 +3580,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits13(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits13(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 5;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 3;
 
@@ -3608,7 +3610,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits14(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits14(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 6;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 2;
 
@@ -3638,7 +3640,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits15(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits15(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 7;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 1;
 
@@ -3670,7 +3672,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits16(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits16(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 8;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]);
     values[i + 1] = Byte.toUnsignedLong(buf[off++]) << 8;
@@ -3689,7 +3691,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits17(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits17(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 9;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 1;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 7;
@@ -3723,7 +3725,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits18(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits18(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 10;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 2;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 6;
@@ -3757,7 +3759,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits19(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits19(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 11;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 3;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 5;
@@ -3793,7 +3795,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits20(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits20(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 12;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 4;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 4;
@@ -3827,7 +3829,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits21(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits21(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 13;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 5;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 3;
@@ -3865,7 +3867,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits22(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits22(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 14;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 6;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 2;
@@ -3903,7 +3905,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits23(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits23(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 15;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 7;
     values[i + 0] |= Byte.toUnsignedLong(buf[off]) >>> 1;
@@ -3943,7 +3945,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits24(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits24(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 16;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 8;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]);
@@ -3970,7 +3972,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits25(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits25(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 17;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 9;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 1;
@@ -4012,7 +4014,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits26(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits26(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 18;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 10;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 2;
@@ -4054,7 +4056,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits27(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits27(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 19;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 11;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 3;
@@ -4098,7 +4100,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits28(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits28(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 20;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 12;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 4;
@@ -4140,7 +4142,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits29(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits29(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 21;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 13;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 5;
@@ -4186,7 +4188,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits30(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits30(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 22;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 14;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 6;
@@ -4232,7 +4234,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits31(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits31(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = Byte.toUnsignedLong(buf[off++]) << 23;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 15;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 7;
@@ -4280,7 +4282,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits32(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits32(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 24;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 16;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 8;
@@ -4315,7 +4317,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits33(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits33(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 25;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 17;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 9;
@@ -4365,7 +4367,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits34(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits34(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 26;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 18;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 10;
@@ -4415,7 +4417,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off++]);
   }
 
-  static void unpackBits35(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits35(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 27;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 19;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 11;
@@ -4467,7 +4469,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits36(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits36(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 28;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 20;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 12;
@@ -4517,7 +4519,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits37(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits37(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 29;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 21;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 13;
@@ -4571,7 +4573,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits38(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits38(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 30;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 22;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 14;
@@ -4625,7 +4627,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits39(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits39(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 31;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 23;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 15;
@@ -4681,7 +4683,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits40(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits40(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 32;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 24;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 16;
@@ -4724,7 +4726,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits41(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits41(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 33;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 25;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 17;
@@ -4782,7 +4784,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits42(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits42(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 34;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 26;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 18;
@@ -4840,7 +4842,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits43(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits43(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 35;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 27;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 19;
@@ -4900,7 +4902,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits44(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits44(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 36;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 28;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 20;
@@ -4958,7 +4960,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits45(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits45(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 37;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 29;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 21;
@@ -5020,7 +5022,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits46(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits46(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 38;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 30;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 22;
@@ -5082,7 +5084,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits47(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits47(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 39;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 31;
     values[i + 0] |= Byte.toUnsignedLong(buf[off++]) << 23;
@@ -5146,7 +5148,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits48(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits48(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 40;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 32;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 24;
@@ -5197,7 +5199,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits49(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits49(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 41;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 33;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 25;
@@ -5263,7 +5265,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits50(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits50(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 42;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 34;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 26;
@@ -5329,7 +5331,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits51(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits51(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 43;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 35;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 27;
@@ -5397,7 +5399,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits52(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits52(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 44;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 36;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 28;
@@ -5463,7 +5465,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits53(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits53(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 45;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 37;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 29;
@@ -5533,7 +5535,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits54(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits54(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 46;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 38;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 30;
@@ -5603,7 +5605,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off++]);
   }
 
-  static void unpackBits55(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits55(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 47;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 39;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 31;
@@ -5675,7 +5677,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits56(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits56(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 48;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 40;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 32;
@@ -5734,7 +5736,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits57(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits57(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 49;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 41;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 33;
@@ -5808,7 +5810,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits58(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits58(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 50;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 42;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 34;
@@ -5882,7 +5884,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off++]);
   }
 
-  static void unpackBits59(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits59(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 51;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 43;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 35;
@@ -5958,7 +5960,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits60(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits60(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 52;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 44;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 36;
@@ -6032,7 +6034,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits61(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits61(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 53;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 45;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 37;
@@ -6110,7 +6112,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits62(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits62(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 54;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 46;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 38;
@@ -6188,7 +6190,7 @@ public class BitPacking {
     values[i + 7] |= Byte.toUnsignedLong(buf[off]);
   }
 
-  static void unpackBits63(long[] values, int i, byte[] buf, int off) {
+  static void unpackBits63(final long[] values, final int i, final byte[] buf, int off) {
     values[i + 0] = (Byte.toUnsignedLong(buf[off++])) << 55;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 47;
     values[i + 0] |= (Byte.toUnsignedLong(buf[off++])) << 39;

@@ -278,7 +278,7 @@ public class ItemsSketch<T> {
 
     //Get countArray
     final long[] countArray = new long[activeItems];
-    int reqBytes = preBytes + activeItems * Long.BYTES; //count Arr only
+    final int reqBytes = preBytes + activeItems * Long.BYTES; //count Arr only
     checkBounds(0, reqBytes, srcMem.getCapacity()); //check Memory capacity
     srcMem.getLongArray(preBytes, countArray, 0, activeItems);
 

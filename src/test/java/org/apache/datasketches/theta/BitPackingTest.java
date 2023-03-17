@@ -34,7 +34,7 @@ public class BitPackingTest {
     for (int bits = 1; bits <= 63; bits++) {
       final long mask = (1 << bits) - 1;
       long[] input = new long[8];
-      final long golden64 = Util.iGoldenU64;
+      final long golden64 = Util.INVERSE_GOLDEN_U64;
       long value = 0xaa55aa55aa55aa55L; // arbitrary starting value
       for (int i = 0; i < 8; ++i) {
         input[i] = value & mask;
@@ -69,7 +69,7 @@ public class BitPackingTest {
       System.out.println("bits " + bits);
       final long mask = (1L << bits) - 1;
       long[] input = new long[8];
-      final long golden64 = Util.iGoldenU64;
+      final long golden64 = Util.INVERSE_GOLDEN_U64;
       long value = 0xaa55aa55aa55aa55L; // arbitrary starting value
       for (int i = 0; i < 8; ++i) {
         input[i] = value & mask;

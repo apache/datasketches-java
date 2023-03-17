@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssertEquals;
 
@@ -112,7 +112,7 @@ public class StreamingValidation {
       sketch.reset();
       matrix.reset();
       for (long i = 0; i < n; i++) {
-        final long in = (vIn += iGoldenU64);
+        final long in = (vIn += INVERSE_GOLDEN_U64);
         sketch.update(in);
         matrix.update(in);
       }

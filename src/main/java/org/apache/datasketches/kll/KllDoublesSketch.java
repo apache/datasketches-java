@@ -200,7 +200,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return kllDoublesSV.getQuantile(rank, searchCrit);
   }
 
-  @Deprecated
   @Override
   public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
@@ -213,7 +212,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return quantiles;
   }
 
-  @Deprecated
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
@@ -268,7 +266,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return min(1.0, rank + KllHelper.getNormalizedRankError(getMinK(), false));
   }
 
-  @Deprecated
   @Override
   public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }

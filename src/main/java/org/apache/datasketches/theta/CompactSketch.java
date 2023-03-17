@@ -261,7 +261,7 @@ public abstract class CompactSketch extends Sketch {
     // assumes ordered sketch
     long previous = 0;
     long ored = 0;
-    HashIterator it = iterator();
+    final HashIterator it = iterator();
     while (it.next()) {
       final long delta = it.get() - previous;
       ored |= delta;
@@ -270,7 +270,7 @@ public abstract class CompactSketch extends Sketch {
     return Long.numberOfLeadingZeros(ored);
   }
 
-  private static int wholeBytesToHoldBits(int bits) {
+  private static int wholeBytesToHoldBits(final int bits) {
     return (bits >>> 3) + ((bits & 7) > 0 ? 1 : 0);
   }
 
@@ -304,8 +304,8 @@ public abstract class CompactSketch extends Sketch {
       numEntries >>>= 8;
     }
     long previous = 0;
-    long[] deltas = new long[8];
-    HashIterator it = iterator();
+    final long[] deltas = new long[8];
+    final HashIterator it = iterator();
     int i;
     for (i = 0; i + 7 < getRetainedEntries(); i += 8) {
       for (int j = 0; j < 8; j++) {

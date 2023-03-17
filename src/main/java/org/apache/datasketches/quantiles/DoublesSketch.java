@@ -166,26 +166,25 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-	if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQdsSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override
   public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-	if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQdsSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-	if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return classicQdsSV.getQuantile(rank, searchCrit);
   }
 
-  @Deprecated
   @Override
   public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
@@ -198,7 +197,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return quantiles;
   }
 
-  @Deprecated
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
@@ -253,7 +251,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false));
   }
 
-  @Deprecated
   @Override
   public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }

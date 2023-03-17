@@ -206,10 +206,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * in the interval [0.0,1.0].
    * @return an array of quantiles corresponding to the given array of normalized ranks.
    * @throws IllegalArgumentException if sketch is empty.
-   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
-   * getQuantile(rank, searchCrit) in a loop.}
    */
-  @Deprecated
   default T[] getQuantiles(double[] ranks) {
     return getQuantiles(ranks, INCLUSIVE);
   }
@@ -224,10 +221,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * @return an array of quantiles corresponding to the given array of normalized ranks.
    * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
-   * getQuantile(rank, searchCrit) in a loop.}
    */
-  @Deprecated
   T[] getQuantiles(double[] ranks, QuantileSearchCriteria searchCrit);
 
   /**
@@ -235,10 +229,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * @param numEvenlySpaced number of evenly spaced normalized ranks
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @throws IllegalArgumentException if sketch is empty.
-   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
-   * getQuantile(rank, searchCrit) in a loop.}
    */
-  @Deprecated
   default T[] getQuantiles(int numEvenlySpaced) {
     return getQuantiles(numEvenlySpaced, INCLUSIVE);
   }
@@ -264,10 +255,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * @return an array of quantiles that are evenly spaced by their ranks.
    * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   * @deprecated Use {@link #getQuantile(double, QuantileSearchCriteria)
-   * getQuantile(rank, searchCrit) in a loop.}
    */
-  @Deprecated
   T[] getQuantiles(int numEvenlySpaced, QuantileSearchCriteria searchCrit);
 
   /**
@@ -296,10 +284,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * @param quantiles the given array of quantiles
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @throws IllegalArgumentException if sketch is empty.
-   * @deprecated Use {@link #getRank(Object, QuantileSearchCriteria)
-   * getRank(quantile, searchCrit) in a loop.}
    */
-  @Deprecated
   default double[] getRanks(T[] quantiles) {
     return getRanks(quantiles, INCLUSIVE);
   }
@@ -313,10 +298,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * @return an array of normalized ranks corresponding to the given array of quantiles.
    * @throws IllegalArgumentException if sketch is empty.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   * @deprecated Use {@link #getRank(Object, QuantileSearchCriteria)
-   * getRank(quantile, searchCrit) in a loop.}
    */
-  @Deprecated
   double[] getRanks(T[] quantiles, QuantileSearchCriteria searchCrit);
 
   /**
