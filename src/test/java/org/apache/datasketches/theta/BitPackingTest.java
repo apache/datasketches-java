@@ -25,7 +25,7 @@ import org.apache.datasketches.common.Util;
 import org.testng.annotations.Test;
 
 public class BitPackingTest {
-
+  private final static boolean enablePrinting = false;
 //for every number of bits from 1 to 63
 //generate pseudo-random data, pack, unpack and compare
 
@@ -66,7 +66,7 @@ public class BitPackingTest {
   @Test
   public void packUnpackBlocks() {
     for (int bits = 1; bits <= 63; bits++) {
-      System.out.println("bits " + bits);
+      if (enablePrinting) { System.out.println("bits " + bits); }
       final long mask = (1L << bits) - 1;
       long[] input = new long[8];
       final long golden64 = Util.INVERSE_GOLDEN_U64;
@@ -77,13 +77,13 @@ public class BitPackingTest {
       }
       byte[] bytes = new byte[8 * Long.BYTES];
       BitPacking.packBitsBlock8(input, 0, bytes, 0, bits);
-      hexDump(bytes);
+      if (enablePrinting) { hexDump(bytes); }
 
       long[] output = new long[8];
       BitPacking.unpackBitsBlock8(output, 0, bytes, 0, bits);
 
       for (int i = 0; i < 8; ++i) {
-        System.out.println("checking value " + i);
+        if (enablePrinting) { System.out.println("checking value " + i); }
         assertEquals(output[i], input[i]);
       }
     }
