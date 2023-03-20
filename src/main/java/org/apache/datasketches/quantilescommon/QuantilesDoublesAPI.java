@@ -253,7 +253,7 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le; the quantile directly corresponding to
    * each rank.
    * @return an array of quantiles that are evenly spaced by their ranks.
-   * @throws IllegalArgumentException if sketch is empty.
+   * @throws IllegalArgumentException if sketch is empty or if <i>numEvenlySpaced < 1</i>.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   double[] getQuantiles(int numEvenlySpaced, QuantileSearchCriteria searchCrit);
