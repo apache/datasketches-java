@@ -83,22 +83,24 @@ public final class QuantilesUtil {
    * Returns a double array of evenly spaced values between value1 and value2 inclusive.
    * If value2 &gt; value1, the resulting sequence will be increasing.
    * If value2 &lt; value1, the resulting sequence will be decreasing.
+   * If num == 1, value1 will be in index 0 of the returned array.
    * @param value1 will be in index 0 of the returned array
    * @param value2 will be in the highest index of the returned array
-   * @param num the total number of values including value1 and value2. Must be 2 or greater.
+   * @param num the total number of values including value1 and value2. Must be 1 or greater.
    * @return a double array of evenly spaced values between value1 and value2 inclusive.
+   * @throws IllegalArgumentException if <i>num</i> is less than 1.
    */
   public static double[] evenlySpaced(final double value1, final double value2, final int num) {
-    if (num < 2) {
-      throw new SketchesArgumentException("num must be >= 2");
+    if (num < 1) {
+      throw new IllegalArgumentException("num must be >= 1");
     }
     final double[] out = new double[num];
     out[0] = value1;
+    if (num == 1) { return out; }
     out[num - 1] = value2;
     if (num == 2) { return out; }
 
     final double delta = (value2 - value1) / (num - 1);
-
     for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
     return out;
   }

@@ -791,7 +791,7 @@ public class HeapUpdateDoublesSketchTest {
     assertEquals(values.length, 11);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void checkEvenlySpacedQuantilesException() {
     DoublesSketch qsk = buildAndLoadQS(32, 1001);
     qsk.getQuantiles(1);

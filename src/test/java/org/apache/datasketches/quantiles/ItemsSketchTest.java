@@ -378,7 +378,7 @@ public class ItemsSketchTest {
     sketch.downSample(32);
   }
 
-  @Test(expectedExceptions = SketchesArgumentException.class)
+  @Test(expectedExceptions = IllegalArgumentException.class)
   public void zeroEvenlySpacedMustThrow() {
     final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
     sketch.update("a");
