@@ -88,7 +88,7 @@ public final class QuantilesUtil {
    * @param value2 will be in the highest index of the returned array
    * @param num the total number of values including value1 and value2. Must be 1 or greater.
    * @return a double array of evenly spaced values between value1 and value2 inclusive.
-   * @throws IllegalArgumentException if <i>num</i> < 1.
+   * @throws IllegalArgumentException if <i>num</i> is less than 1.
    */
   public static double[] evenlySpaced(final double value1, final double value2, final int num) {
     if (num < 1) {
