@@ -173,7 +173,6 @@ public class ReqSketchOtherTest {
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void checkEmpty() {
     final ReqSketchBuilder bldr = new ReqSketchBuilder();
     final ReqSketch sk = bldr.build();
@@ -187,7 +186,6 @@ public class ReqSketchOtherTest {
     assertTrue(sk.getRankUpperBound(0.5, 1) > 0);
   }
 
-  @SuppressWarnings("deprecation")
   private void checkGetRank(final boolean hra, final boolean ltEq) {
     final int k = 12;
     final boolean up = true;

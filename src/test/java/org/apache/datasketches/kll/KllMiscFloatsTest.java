@@ -127,7 +127,6 @@ public class KllMiscFloatsTest {
     KllFloatsSketch.heapify(wmem);
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkMisc() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(8);

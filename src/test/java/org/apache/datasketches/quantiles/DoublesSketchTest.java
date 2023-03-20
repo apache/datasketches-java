@@ -127,7 +127,6 @@ public class DoublesSketchTest {
     assertFalse(uds.isSameResource(mem));
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkEmptyNullReturns() {
     int k = 16;
@@ -235,7 +234,6 @@ public class DoublesSketchTest {
     assertTrue(rub -.5 <= 2 * eps);
   }
 
-  @SuppressWarnings("deprecation")
   @Test
   public void checkGetRanks() {
     final UpdateDoublesSketch sk = DoublesSketch.builder().build();

@@ -20,7 +20,7 @@
 package org.apache.datasketches.cpc;
 
 import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
-import static org.apache.datasketches.common.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
 import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
@@ -157,7 +157,7 @@ public class CompressionCharacterization {
       for (int trial = 0; trial < trialsPerWave; trial++) {
         final CpcSketch sketch = streamSketches[trial];
         for (long i = 0; i < n; i++) { //increment loop
-          sketch.update(vIn += iGoldenU64);
+          sketch.update(vIn += INVERSE_GOLDEN_U64);
         }
       }
       nanoEnd = System.nanoTime();

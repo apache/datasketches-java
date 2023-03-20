@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
 import java.io.PrintStream;
@@ -102,13 +102,13 @@ public class QuickMergingValidation {
 
     t0 = System.nanoTime();
     while (skA.numCoupons < cA) {
-      final long in = vIn += iGoldenU64;
+      final long in = vIn += INVERSE_GOLDEN_U64;
       skA.update(in);
       skD.update(in);
     }
     t1 = System.nanoTime();
     while (skB.numCoupons < cB) {
-      final long in = vIn += iGoldenU64;
+      final long in = vIn += INVERSE_GOLDEN_U64;
       skB.update(in);
       skD.update(in);
     }

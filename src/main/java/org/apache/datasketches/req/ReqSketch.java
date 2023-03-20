@@ -248,7 +248,6 @@ public class ReqSketch extends BaseReqSketch {
     return reqSV.getQuantile(normRank, searchCrit);
   }
 
-  @Deprecated
   @Override
   public float[] getQuantiles(final double[] normRanks, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
@@ -313,7 +312,6 @@ public class ReqSketch extends BaseReqSketch {
     return getRankLB(k, getNumLevels(), rank, numStdDev, hra, getN());
   }
 
-  @Deprecated
   @Override
   public double[] getRanks(final float[] quantiles, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }

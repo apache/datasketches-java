@@ -136,7 +136,6 @@ public class ReqSketchTest {
     if (iDebug > 0) { println(""); }
   }
 
-  @SuppressWarnings("deprecation")
   private static void checkGetRanks(final ReqSketch sk, final int max, final int iDebug) {
     if (iDebug > 0) { println("GetRanks Test:"); }
     final float[] sp = QuantilesUtil.evenlySpacedFloats(0, max, 11);
@@ -165,7 +164,6 @@ public class ReqSketchTest {
     assertEquals(count, retainedCount);
   }
 
-  @SuppressWarnings("deprecation")
   private static void checkGetQuantiles(final ReqSketch sk, final int iDebug) {
     if (iDebug > 0) { println("GetQuantiles() Test"); }
     final double[] rArr = {0, .1F, .2F, .3F, .4F, .5F, .6F, .7F, .8F, .9F, 1.0F};
@@ -312,8 +310,6 @@ public class ReqSketchTest {
     } catch (final SketchesArgumentException e) {}
   }
 
-
-  @SuppressWarnings("deprecation")
   @Test
   public void tenValues() {
     final ReqSketch sketch = ReqSketch.builder().build();

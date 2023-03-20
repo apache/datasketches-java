@@ -59,13 +59,13 @@ public final class Util {
   /**
    * The inverse golden ratio as an unsigned long.
    */
-  public static final long iGoldenU64 = 0x9e3779b97f4a7c13L;
+  public static final long INVERSE_GOLDEN_U64 = 0x9e3779b97f4a7c13L;
 
   /**
    * The inverse golden ratio as a fraction.
    * This has more precision than using the formula: (Math.sqrt(5.0) - 1.0) / 2.0.
    */
-  public static final double iGolden = 0.6180339887498949025; // the inverse golden ratio
+  public static final double INVERSE_GOLDEN = 0.6180339887498949025;
 
   /**
    * Long.MAX_VALUE as a double.
@@ -139,12 +139,12 @@ public final class Util {
   //Byte array conversions
 
   static long[] convertToLongArray(final byte[] byteArr, final boolean littleEndian) {
-    int len = byteArr.length;
-    long[] longArr = new long[len / 8 + (len % 8 != 0 ? 1 : 0)];
+    final int len = byteArr.length;
+    final long[] longArr = new long[len / 8 + (len % 8 != 0 ? 1 : 0)];
     int off = 0;
     int longArrIdx = 0;
     while (off < len) {
-      int rem = Math.min(len - 1 - off, 7);
+      final int rem = Math.min(len - 1 - off, 7);
       long tgt = 0;
       if (littleEndian) {
         for (int j = off + rem, k = 0; j >= off; --j, k++) {
@@ -160,9 +160,6 @@ public final class Util {
     }
     return longArr;
   }
-
-
-
 
   //String Related
 

@@ -19,7 +19,7 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.Util.iGoldenU64;
+import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.IconEstimator.getIconEstimate;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
@@ -128,12 +128,12 @@ public class MergingValidation {
     final CpcSketch skB = new CpcSketch(lgKb);
 
     for (long i = 0; i < nA; i++) {
-      final long in = (vIn += iGoldenU64);
+      final long in = (vIn += INVERSE_GOLDEN_U64);
       skA.update(in);
       skD.update(in);
     }
     for (long i = 0; i < nB; i++) {
-      final long in = (vIn += iGoldenU64);
+      final long in = (vIn += INVERSE_GOLDEN_U64);
       skB.update(in);
       skD.update(in);
     }

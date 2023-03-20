@@ -109,7 +109,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  * <p>The UpdateSketch and AlphaSketch require 24 bytes of preamble followed by a non-compact
  * array of longs representing a hash table.</p>
  *
- * The following table applies to both the Theta UpdateSketch and the Alpha Sketch
+ * <p>The following table applies to both the Theta UpdateSketch and the Alpha Sketch</p>
  * <pre>
  * Long || Start Byte Adr:
  * Adr:

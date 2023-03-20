@@ -121,7 +121,7 @@ public class Group implements Comparable<Group> {
   }
 
   @Override
-  public boolean equals(Object that) {
+  public boolean equals(final Object that) {
     if (this == that) { return true; }
     if (!(that instanceof Group)) { return false; }
     return ((Group)that).count == count;
