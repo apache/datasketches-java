@@ -29,6 +29,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -800,12 +801,12 @@ public class HeapUpdateDoublesSketchTest {
 
   @Test
   public void checkEvenlySpaced() {
-    int n = 11;
-    double[] es = org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, n);
+    int n = 10;
+    double[] es = evenlySpacedRanks(n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
-      assertEquals(f, j/10.0, (j/10.0) * 0.001);
+      assertEquals(f, (j+1)/10.0, ((j+1)/10.0) * 0.001);
       print(es[j]+", ");
     }
     println("");

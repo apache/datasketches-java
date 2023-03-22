@@ -235,24 +235,25 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
   }
 
   /**
-   * This is a version of getQuantiles() where the caller only specifies the number of of desired evenly spaced,
-   * normalized ranks, and returns an array of the corresponding quantiles.
+   * This is a version of getQuantiles() where the caller only specifies the number of of desired quantile intervals 
+   * that are computed from an array of evenly spaced normalized ranks between 0 and 1.0 determined from the given
+   * <i>numEvenlySpaced</i> parameter.
    *
-   * @param numEvenlySpaced an integer that specifies the number of evenly spaced normalized ranks.
-   * This must be a positive integer greater than 0.
-   * <ul><li>Let <i>Smallest</i> and <i>Largest</i> be the smallest and largest quantiles
-   * retained by the sketch algorithm, respectively.
-   * (This should not to be confused with {@link #getMinItem} and {@link #getMaxItem},
-   * which are the smallest and largest quantiles of the stream.)</li>
-   * <li>A 1 will return the Smallest quantile.</li>
-   * <li>A 2 will return the Smallest and Largest quantiles.</li>
-   * <li>A 3 will return the Smallest, the Median, and the Largest quantiles.</li>
+   * @param numEvenlySpaced an integer that specifies the number of desired quantile intervals to be returned
+   * from the sketch. This must be a positive integer greater than 0.
+   * <ul><li>Let <i>Largest</i> be the largest quantile retained by the sketch algorithm.
+   * (This should not to be confused with {@link #getMaxItem},
+   * which is the largest quantile of the stream. They may be equal, but not necessarily.)</li>
+   * <li>A 1 will return the Largest quantile.</li>
+   * <li>A 2 will return 2 quantiles, including the Largest, dividing the quantile domain into two regions. 
+   * The first returned quantile should roughly correspond to the median quantile</li>
+   * <li>A 3 will return 3 quantiles, including the Largest, dividing the quantile domain into three regions.</li>
    * <li>Etc.</li>
    * </ul>
    *
    * @param searchCrit if INCLUSIVE, the given ranks include all quantiles &le; the quantile directly corresponding to
-   * each rank.
-   * @return an array of quantiles that are evenly spaced by their ranks.
+   * any given rank. In this case the ranks are generated internally by this method.
+   * @return an array of quantiles that divide the quantile domain into numEvenlySpaced quantile intervals.
    * @throws IllegalArgumentException if sketch is empty or if <i>numEvenlySpaced is less than 1</i>.
    * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */

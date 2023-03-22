@@ -31,6 +31,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.extractN;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.extractSerVer;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.lang.reflect.Array;
@@ -544,7 +545,7 @@ public final class ItemsSketch<T> implements QuantilesAPI {
    */
   public T[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
+    return getQuantiles(evenlySpacedRanks(numEvenlySpaced),
         searchCrit);
   }
 

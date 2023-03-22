@@ -474,12 +474,11 @@ public class KllDoublesSketchTest {
     sketch.update(1);
     sketch.update(2);
     sketch.update(3);
-    final double[] quantiles1 = sketch.getQuantiles(new double[] {0, 0.5, 1}, EXCLUSIVE);
-    final double[] quantiles2 = sketch.getQuantiles(3, EXCLUSIVE);
+    final double[] quantiles1 = sketch.getQuantiles(new double[] {0.5, 1}, EXCLUSIVE);
+    final double[] quantiles2 = sketch.getQuantiles(2, EXCLUSIVE);
     assertEquals(quantiles1, quantiles2);
-    assertEquals(quantiles1[0], 1.0);
-    assertEquals(quantiles1[1], 2.0);
-    assertEquals(quantiles1[2], 3.0);
+    assertEquals(quantiles1[0], 2.0);
+    assertEquals(quantiles1[1], 3.0);
   }
 
   @Test
