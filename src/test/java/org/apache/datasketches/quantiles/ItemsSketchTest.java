@@ -212,9 +212,9 @@ public class ItemsSketchTest {
 
 
 
-    quantiles = sketch.getQuantiles(2);
+    quantiles = sketch.getQuantiles(3);
 
-    assertEquals(quantiles[0], Integer.valueOf(500), 17); // median
+    assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
 
 
     final double normErr = sketch.getNormalizedRankError(true);

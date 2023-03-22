@@ -26,7 +26,6 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Objects;
@@ -216,7 +215,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Override
   public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(evenlySpacedRanks(numEvenlySpaced),
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
         searchCrit);
   }
 

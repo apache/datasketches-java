@@ -23,7 +23,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.Random;
@@ -201,7 +200,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   @Override
   public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(evenlySpacedRanks(numEvenlySpaced),
+    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
         searchCrit);
   }
 
