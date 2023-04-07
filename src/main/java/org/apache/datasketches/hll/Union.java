@@ -20,9 +20,12 @@
 package org.apache.datasketches.hll;
 
 import static org.apache.datasketches.common.Util.invPow2;
+import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
+import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
+import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -481,53 +484,49 @@ public class Union extends BaseHllSketch {
       final int srcLgK, final int tgtLgK, final boolean srcIsMem, final boolean tgtIsMem) {
       final int sw = (tgtIsMem ? 1 : 0) | (srcIsMem ? 2 : 0)
           | ((srcLgK > tgtLgK) ? 4 : 0) | ((src.getTgtHllType() != HLL_8) ? 8 : 0);
+      final int srcK = 1 << srcLgK;
       switch (sw) {
         case 0: { //HLL_8, srcLgK=tgtLgK, src=heap, tgt=heap
-          final int srcK = 1 << srcLgK;
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
           for (int i = 0; i < srcK; i++) {
             final byte srcV = srcArr[i];
             final byte tgtV = tgtArr[i];
-            tgtArr[i] = (srcV > tgtV) ? srcV : tgtV;
+            tgtArr[i] = (byte) Math.max(srcV, tgtV);
           }
           break;
         }
         case 1: { //HLL_8, srcLgK=tgtLgK, src=heap, tgt=mem
-          final int srcK = 1 << srcLgK;
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
           final WritableMemory tgtMem = tgt.getWritableMemory();
           for (int i = 0; i < srcK; i++) {
             final byte srcV = srcArr[i];
             final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + i);
-            tgtMem.putByte(HLL_BYTE_ARR_START + i, (srcV > tgtV) ? srcV : tgtV);
+            tgtMem.putByte(HLL_BYTE_ARR_START + i, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
         case 2: { //HLL_8, srcLgK=tgtLgK, src=mem,  tgt=heap
-          final int srcK = 1 << srcLgK;
           final Memory srcMem = src.getMemory();
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
           for (int i = 0; i < srcK; i++) {
             final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
             final byte tgtV = tgtArr[i];
-            tgtArr[i] = (srcV > tgtV) ? srcV : tgtV;
+            tgtArr[i] = (byte) Math.max(srcV, tgtV);
           }
           break;
         }
         case 3: { //HLL_8, srcLgK=tgtLgK, src=mem,  tgt=mem
-          final int srcK = 1 << srcLgK;
           final Memory srcMem = src.getMemory();
           final WritableMemory tgtMem = tgt.getWritableMemory();
           for (int i = 0; i < srcK; i++) {
             final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
             final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + i);
-            tgtMem.putByte(HLL_BYTE_ARR_START + i, (srcV > tgtV) ? srcV : tgtV);
+            tgtMem.putByte(HLL_BYTE_ARR_START + i, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
         case 4: { //HLL_8, srcLgK>tgtLgK, src=heap, tgt=heap
-          final int srcK = 1 << srcLgK;
           final int tgtKmask = (1 << tgtLgK) - 1;
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
@@ -535,12 +534,11 @@ public class Union extends BaseHllSketch {
             final byte srcV = srcArr[i];
             final int j = i & tgtKmask;
             final byte tgtV = tgtArr[j];
-            tgtArr[j] = (srcV > tgtV) ? srcV : tgtV;
+            tgtArr[j] = (byte) Math.max(srcV, tgtV);
           }
           break;
         }
         case 5: { //HLL_8, srcLgK>tgtLgK, src=heap, tgt=mem
-          final int srcK = 1 << srcLgK;
           final int tgtKmask = (1 << tgtLgK) - 1;
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
           final WritableMemory tgtMem = tgt.getWritableMemory();
@@ -548,12 +546,11 @@ public class Union extends BaseHllSketch {
             final byte srcV = srcArr[i];
             final int j = i & tgtKmask;
             final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + j);
-            tgtMem.putByte(HLL_BYTE_ARR_START + j, (srcV > tgtV) ? srcV : tgtV);
+            tgtMem.putByte(HLL_BYTE_ARR_START + j, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
         case 6: { //HLL_8, srcLgK>tgtLgK, src=mem,  tgt=heap
-          final int srcK = 1 << srcLgK;
           final int tgtKmask = (1 << tgtLgK) - 1;
           final Memory srcMem = src.getMemory();
           final byte[] tgtArr = ((Hll8Array) tgt.hllSketchImpl).hllByteArr;
@@ -561,12 +558,11 @@ public class Union extends BaseHllSketch {
             final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
             final int j = i & tgtKmask;
             final byte tgtV = tgtArr[j];
-            tgtArr[j] = (srcV > tgtV) ? srcV : tgtV;
+            tgtArr[j] = (byte) Math.max(srcV, tgtV);
           }
           break;
         }
         case 7: { //HLL_8, srcLgK>tgtLgK, src=mem,  tgt=mem
-          final int srcK = 1 << srcLgK;
           final int tgtKmask = (1 << tgtLgK) - 1;
           final Memory srcMem = src.getMemory();
           final WritableMemory tgtMem = tgt.getWritableMemory();
@@ -574,33 +570,173 @@ public class Union extends BaseHllSketch {
             final byte srcV = srcMem.getByte(HLL_BYTE_ARR_START + i);
             final int j = i & tgtKmask;
             final byte tgtV = tgtMem.getByte(HLL_BYTE_ARR_START + j);
-            tgtMem.putByte(HLL_BYTE_ARR_START + j, (srcV > tgtV) ? srcV : tgtV);
+            tgtMem.putByte(HLL_BYTE_ARR_START + j, (byte) Math.max(srcV, tgtV));
           }
           break;
         }
-        case 8: case 9: case 10: case 11:
+        case 8: case 9:
         {
-          //!HLL_8, srcLgK=tgtLgK, src=heap/mem, tgt=heap/mem
-          final int srcK = 1 << srcLgK;
-          final AbstractHllArray srcAbsHllArr = (AbstractHllArray)(src.hllSketchImpl);
+          //!HLL_8, srcLgK=tgtLgK, src=heap, tgt=heap/mem
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
-          for (int i = 0; i < srcK; i++) {
-            final int srcV = srcAbsHllArr.getSlotValue(i);
-            tgtAbsHllArr.updateSlotNoKxQ(i, srcV);
+          if (src.getTgtHllType() == HLL_4) {
+            final Hll4Array src4 = (Hll4Array) src.hllSketchImpl;
+            final AuxHashMap auxHashMap = src4.getAuxHashMap();
+            final int curMin = src4.getCurMin();
+            int i = 0;
+            int j = 0;
+            while (j < srcK) {
+              final byte b = src4.hllByteArr[i++];
+              int value = Byte.toUnsignedInt(b) & loNibbleMask;
+              tgtAbsHllArr.updateSlotNoKxQ(j, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+              value = Byte.toUnsignedInt(b) >>> 4;
+              tgtAbsHllArr.updateSlotNoKxQ(j, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+            }
+          } else {
+            final Hll6Array src6 = (Hll6Array) src.hllSketchImpl;
+            int i = 0;
+            int j = 0;
+            while (j < srcK) {
+              final byte b1 = src6.hllByteArr[i++];
+              final byte b2 = src6.hllByteArr[i++];
+              final byte b3 = src6.hllByteArr[i++];
+              int value = Byte.toUnsignedInt(b1) & 0x3f;
+              tgtAbsHllArr.updateSlotNoKxQ(j++, value);
+              value = Byte.toUnsignedInt(b1) >>> 6;
+              value |= (Byte.toUnsignedInt(b2) & 0x0f) << 2;
+              tgtAbsHllArr.updateSlotNoKxQ(j++, value);
+              value = Byte.toUnsignedInt(b2) >>> 4;
+              value |= (Byte.toUnsignedInt(b3) & 3) << 4;
+              tgtAbsHllArr.updateSlotNoKxQ(j++, value);
+              value = Byte.toUnsignedInt(b3) >>> 2;
+              tgtAbsHllArr.updateSlotNoKxQ(j++, value);
+            }
           }
           break;
         }
-        case 12: case 13: case 14: case 15:
+        case 10: case 11:
         {
-          //!HLL_8, srcLgK>tgtLgK, src=heap/mem, tgt=heap/mem
-          final int srcK = 1 << srcLgK;
+          //!HLL_8, srcLgK=tgtLgK, src=mem, tgt=heap/mem
+          final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
+          if (src.getTgtHllType() == HLL_4) {
+            final DirectHll4Array src4 = (DirectHll4Array) src.hllSketchImpl;
+            final AuxHashMap auxHashMap = src4.getAuxHashMap();
+            final int curMin = src4.getCurMin();
+            int i = 0;
+            int j = 0;
+            while (j < srcK) {
+              final byte b = src4.mem.getByte(HLL_BYTE_ARR_START + i++);
+              int value = Byte.toUnsignedInt(b) & loNibbleMask;
+              tgtAbsHllArr.updateSlotNoKxQ(j, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+              value = Byte.toUnsignedInt(b) >>> 4;
+              tgtAbsHllArr.updateSlotNoKxQ(j, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+            }
+          } else {
+            final DirectHll6Array src6 = (DirectHll6Array) src.hllSketchImpl;
+            int i = 0;
+            int offset = HLL_BYTE_ARR_START;
+            while (i < srcK) {
+              final byte b1 = src6.mem.getByte(offset++);
+              final byte b2 = src6.mem.getByte(offset++);
+              final byte b3 = src6.mem.getByte(offset++);
+              int value = Byte.toUnsignedInt(b1) & 0x3f;
+              tgtAbsHllArr.updateSlotNoKxQ(i++, value);
+              value = Byte.toUnsignedInt(b1) >>> 6;
+              value |= (Byte.toUnsignedInt(b2) & 0x0f) << 2;
+              tgtAbsHllArr.updateSlotNoKxQ(i++, value);
+              value = Byte.toUnsignedInt(b2) >>> 4;
+              value |= (Byte.toUnsignedInt(b3) & 3) << 4;
+              tgtAbsHllArr.updateSlotNoKxQ(i++, value);
+              value = Byte.toUnsignedInt(b3) >>> 2;
+              tgtAbsHllArr.updateSlotNoKxQ(i++, value);
+            }
+          }
+          break;
+        }
+        case 12: case 13:
+        {
+          //!HLL_8, srcLgK>tgtLgK, src=heap, tgt=heap/mem
           final int tgtKmask = (1 << tgtLgK) - 1;
-          final AbstractHllArray srcAbsHllArr = (AbstractHllArray)(src.hllSketchImpl);
           final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
-          for (int i = 0; i < srcK; i++) {
-            final int srcV = srcAbsHllArr.getSlotValue(i);
-            final int j = i & tgtKmask;
-            tgtAbsHllArr.updateSlotNoKxQ(j, srcV);
+          if (src.getTgtHllType() == HLL_4) {
+            final Hll4Array src4 = (Hll4Array) src.hllSketchImpl;
+            final AuxHashMap auxHashMap = src4.getAuxHashMap();
+            final int curMin = src4.getCurMin();
+            int i = 0;
+            int j = 0;
+            while (j < srcK) {
+              final byte b = src4.hllByteArr[i++];
+              int value = Byte.toUnsignedInt(b) & loNibbleMask;
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+              value = Byte.toUnsignedInt(b) >>> 4;
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+            }
+          } else {
+            final Hll6Array src6 = (Hll6Array) src.hllSketchImpl;
+            int i = 0;
+            int j = 0;
+            while (j < srcK) {
+              final byte b1 = src6.hllByteArr[i++];
+              final byte b2 = src6.hllByteArr[i++];
+              final byte b3 = src6.hllByteArr[i++];
+              int value = Byte.toUnsignedInt(b1) & 0x3f;
+              tgtAbsHllArr.updateSlotNoKxQ(j++ & tgtKmask, value);
+              value = Byte.toUnsignedInt(b1) >>> 6;
+              value |= (Byte.toUnsignedInt(b2) & 0x0f) << 2;
+              tgtAbsHllArr.updateSlotNoKxQ(j++ & tgtKmask, value);
+              value = Byte.toUnsignedInt(b2) >>> 4;
+              value |= (Byte.toUnsignedInt(b3) & 3) << 4;
+              tgtAbsHllArr.updateSlotNoKxQ(j++ & tgtKmask, value);
+              value = Byte.toUnsignedInt(b3) >>> 2;
+              tgtAbsHllArr.updateSlotNoKxQ(j++ & tgtKmask, value);
+            }
+          }
+          break;
+        }
+        case 14: case 15:
+        {
+          //!HLL_8, srcLgK>tgtLgK, src=mem, tgt=heap/mem
+          final int tgtKmask = (1 << tgtLgK) - 1;
+          final AbstractHllArray tgtAbsHllArr = (AbstractHllArray)(tgt.hllSketchImpl);
+          if (src.getTgtHllType() == HLL_4) {
+            final DirectHll4Array src4 = (DirectHll4Array) src.hllSketchImpl;
+            final AuxHashMap auxHashMap = src4.getAuxHashMap();
+            final int curMin = src4.getCurMin();
+            int i = 0;
+            int j = 0;
+            while (j < srcK) {
+              final byte b = src4.mem.getByte(HLL_BYTE_ARR_START + i++);
+              int value = Byte.toUnsignedInt(b) & loNibbleMask;
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+              value = Byte.toUnsignedInt(b) >>> 4;
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              j++;
+            }
+          } else {
+            final DirectHll6Array src6 = (DirectHll6Array) src.hllSketchImpl;
+            int i = 0;
+            int offset = HLL_BYTE_ARR_START;
+            while (i < srcK) {
+              final byte b1 = src6.mem.getByte(offset++);
+              final byte b2 = src6.mem.getByte(offset++);
+              final byte b3 = src6.mem.getByte(offset++);
+              int value = Byte.toUnsignedInt(b1) & 0x3f;
+              tgtAbsHllArr.updateSlotNoKxQ(i++ & tgtKmask, value);
+              value = Byte.toUnsignedInt(b1) >>> 6;
+              value |= (Byte.toUnsignedInt(b2) & 0x0f) << 2;
+              tgtAbsHllArr.updateSlotNoKxQ(i++ & tgtKmask, value);
+              value = Byte.toUnsignedInt(b2) >>> 4;
+              value |= (Byte.toUnsignedInt(b3) & 3) << 4;
+              tgtAbsHllArr.updateSlotNoKxQ(i++ & tgtKmask, value);
+              value = Byte.toUnsignedInt(b3) >>> 2;
+              tgtAbsHllArr.updateSlotNoKxQ(i++ & tgtKmask, value);
+            }
           }
           break;
         }
@@ -608,7 +744,7 @@ public class Union extends BaseHllSketch {
       tgt.hllSketchImpl.putRebuildCurMinNumKxQFlag(true);
   }
 
-  //Used by union operator.  Always copies or downsamples to Heap HLL_8.
+  //Used by union operator. Always copies or downsamples to Heap HLL_8.
   //Caller must ultimately manage oooFlag, as caller has more context.
   /**
    * Copies or downsamples the given candidate HLLmode sketch to tgtLgK, HLL_8, on the heap.
