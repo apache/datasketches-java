@@ -95,9 +95,7 @@ class Hll8Array extends HllArray {
   //Used by Union when source is not HLL8
   final void updateSlotNoKxQ(final int slotNo, final int newValue) {
     final int oldValue = getSlotValue(slotNo);
-    if (newValue > oldValue) {
-      hllByteArr[slotNo] = (byte) (newValue & VAL_MASK_6);
-    }
+    hllByteArr[slotNo] = (byte) Math.max(newValue, oldValue);
   }
 
   @Override
