@@ -140,7 +140,12 @@ public enum Family {
   /**
    * Relative Error Quantiles Sketch
    */
-  REQ(17, "REQ", 1, 2);
+  REQ(17, "REQ", 1, 2),
+
+  /**
+   * CountMin Sketch
+   */
+  COUNTMIN(18, "COUNTMIN", 2, 2);
 
   private static final Map<Integer, Family> lookupID = new HashMap<>();
   private static final Map<String, Family> lookupFamName = new HashMap<>();
