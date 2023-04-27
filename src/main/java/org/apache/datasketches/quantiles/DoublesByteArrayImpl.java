@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeTotalLevels;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
@@ -104,7 +107,7 @@ final class DoublesByteArrayImpl {
     long memOffsetBytes = prePlusExtraBytes;
 
     // might need to sort base buffer but don't want to change input sketch
-    final int bbCnt = ClassicUtil.computeBaseBufferItems(k, n);
+    final int bbCnt = computeBaseBufferItems(k, n);
     if (bbCnt > 0) { //Base buffer items only
       final double[] bbItemsArr = dsa.getArray(0, bbCnt);
       if (ordered) { Arrays.sort(bbItemsArr); }
@@ -115,7 +118,7 @@ final class DoublesByteArrayImpl {
 
     // If serializing from a compact sketch to a non-compact form, we may end up copying data for a
     // higher level one or more times into an unused level. A bit wasteful, but not incorrect.
-    final int totalLevels = ClassicUtil.computeTotalLevels(sketch.getBitPattern());
+    final int totalLevels = computeTotalLevels(sketch.getBitPattern());
     for (int lvl = 0; lvl < totalLevels; ++lvl) {
       dsa.setLevel(lvl);
       if (dsa.numItems() > 0) {
@@ -131,7 +134,7 @@ final class DoublesByteArrayImpl {
   private static void insertPre0(final WritableMemory wmem,
       final int preLongs, final int flags, final int k) {
     insertPreLongs(wmem, preLongs);
-    insertSerVer(wmem, DoublesSketch.DOUBLES_SER_VER);
+    insertSerVer(wmem, DOUBLES_SER_VER);
     insertFamilyID(wmem, Family.QUANTILES.getID());
     insertFlags(wmem, flags);
     insertK(wmem, k);

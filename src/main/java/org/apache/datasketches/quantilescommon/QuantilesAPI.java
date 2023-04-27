@@ -275,6 +275,8 @@ public interface QuantilesAPI {
   /**
    * Resets this sketch to the empty state.
    * If the sketch is <i>read only</i> this does nothing.
+   *
+   * <p>The parameter <i>k</i> will not change.</p>
    */
   void reset();
 

@@ -29,7 +29,6 @@ import static org.testng.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.function.Function;
 
 import org.apache.datasketches.common.ArrayOfDoublesSerDe;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
@@ -62,7 +61,6 @@ public class ItemsSketchTest {
     try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
 
     try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getQuantiles(2); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getQuantiles(new double[] {0.0, 1.0}); fail(); } catch (IllegalArgumentException e) {}
 
     final byte[] byteArr = sketch.toByteArray(new ArrayOfStringsSerDe());
@@ -203,19 +201,11 @@ public class ItemsSketchTest {
 
     assertEquals(quantiles[1], Integer.valueOf(500), 17); // median
 
-
     final double[] normRanks2 = {.25, 0.5, 0.75};
     final Integer[] quantiles2 = sketch.getQuantiles(normRanks2);
     assertEquals(quantiles2[0], Integer.valueOf(250), 17);
     assertEquals(quantiles2[1], Integer.valueOf(500), 17);
     assertEquals(quantiles2[2], Integer.valueOf(750), 17);
-
-
-
-    quantiles = sketch.getQuantiles(2);
-
-    assertEquals(quantiles[0], Integer.valueOf(500), 17); // median
-
 
     final double normErr = sketch.getNormalizedRankError(true);
     assertEquals(normErr, .0172, .001);
@@ -376,13 +366,6 @@ public class ItemsSketchTest {
       sketch.update(Integer.toString(i));
     }
     sketch.downSample(32);
-  }
-
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void zeroEvenlySpacedMustThrow() {
-    final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, Comparator.naturalOrder());
-    sketch.update("a");
-    sketch.getQuantiles(0);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -602,30 +585,6 @@ public class ItemsSketchTest {
   }
 
   @Test
-  public void testOrdering() {
-    final Comparator<String> natural = Comparator.naturalOrder();
-    final Comparator<String> reverse = natural.reversed();
-    final Comparator<String> numeric = natural.thenComparing(
-        new Function<String, Integer>() {
-          @Override
-          public Integer apply(final String s) {
-            return Integer.valueOf(s);
-          }
-        }
-    );
-    for (final Comparator<String> c : Arrays.asList(natural, reverse, numeric)) {
-      final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, 16, c);
-      for (int i = 0; i < 10000; i++) {
-        sketch.update(String.valueOf(ItemsSketch.rand.nextInt(1000000)));
-      }
-      final String[] quantiles = sketch.getQuantiles(100);
-      final String[] sorted = Arrays.copyOf(quantiles, quantiles.length);
-      Arrays.sort(sorted, c);
-      assertEquals(quantiles, sorted, c.toString());
-    }
-  }
-
-  @Test
   public void sortedView() {
     final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
     sketch.update(3);
@@ -668,6 +627,21 @@ public class ItemsSketchTest {
       assertEquals(quants[i], qArr[i]);
       assertEquals(cumWts[i], cwArr[i]);
     }
+  }
+
+  @Test
+  public void getQuantiles() {
+    final ItemsSketch<Integer> sketch = ItemsSketch.getInstance(Integer.class, Comparator.naturalOrder());
+    sketch.update(1);
+    sketch.update(2);
+    sketch.update(3);
+    sketch.update(4);
+    Integer[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
+    Integer[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
+    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
+    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
   }
 
   @Test

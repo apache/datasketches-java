@@ -58,7 +58,7 @@ public class KllMiscDirectFloatsTest {
   @Test
   public void checkMisc() {
     final KllFloatsSketch sk = getDFSketch(8, 0);
-    try { sk.getQuantiles(10); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getPartitionBoundaries(10); fail(); } catch (IllegalArgumentException e) {}
 
     //sk.toString(true, true);
     for (int i = 0; i < 20; i++) { sk.update(i); }

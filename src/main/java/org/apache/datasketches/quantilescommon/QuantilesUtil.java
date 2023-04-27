@@ -45,7 +45,7 @@ public final class QuantilesUtil {
   public static final void checkNormalizedRankBounds(final double nRank) {
     if ((nRank < 0.0) || (nRank > 1.0)) {
       throw new SketchesArgumentException(
-        "A normalized rank must be >= 0 and <= 1.0: " + nRank);
+          "A normalized rank must be >= 0 and <= 1.0: " + nRank);
     }
   }
 
@@ -80,31 +80,35 @@ public final class QuantilesUtil {
   }
 
   /**
-   * Returns a double array of evenly spaced values between 0.0, exclusive, and 1.0, inclusive.
-   * If num == 1, 1.0 will be in index 0 of the returned array.
-   * @param num the total number of values excluding 0 and including 1.0. Must be 1 or greater.
-   * @return a double array of evenly spaced values between 0.0, exclusive, and 1.0, inclusive.
+   * Returns a double array of ranks that defines equally weighted regions between 0.0, inclusive and 1.0, inclusive.
+   * The 0.0 and 1.0 end points are part of the returned array and are the getMinItem() and getMaxItem() values of the
+   * sketch.
+   * For example, if num == 2, three values will be returned: 0.0, .5, and 1, where the two equally weighted regions are
+   * 0.0 to 0.5, and 0.5 to 1.0.
+   * @param num the total number of equally weighted regions between 0.0 and 1.0 defined by the ranks in the returned
+   * array.  <i>num</i> must be 1 or greater.
+   * @return a double array of <i>num + 1</i> ranks that define the boundaries of <i>num</i> equally weighted
+   * regions between 0.0, inclusive and 1.0, inclusive.
    * @throws IllegalArgumentException if <i>num</i> is less than 1.
    */
-  public static double[] evenlySpacedRanks(final int num) {
+  public static double[] equallyWeightedRanks(final int num) {
     if (num < 1) { throw new IllegalArgumentException("num must be >= 1"); }
-    final double[] out = new double[num];
-    if (num == 1) { return new double[] { 1.0 }; }
-    out[num - 1] = 1.0;
-
+    final double[] out = new double[num + 1];
+    out[0] = 0.0;
+    out[num] = 1.0;
     final double delta = 1.0 / num;
-    for (int i = 0; i < num - 1; i++) { out[i] = (i + 1) * delta; }
+    for (int i = 1; i < num; i++) { out[i] = i * delta; }
     return out;
   }
 
   /**
-   * Returns a float array of evenly spaced values between value1 and value2 inclusive.
+   * Returns a float array of evenly spaced values between value1, inclusive, and value2 inclusive.
    * If value2 &gt; value1, the resulting sequence will be increasing.
    * If value2 &lt; value1, the resulting sequence will be decreasing.
    * @param value1 will be in index 0 of the returned array
    * @param value2 will be in the highest index of the returned array
    * @param num the total number of values including value1 and value2. Must be 2 or greater.
-   * @return a float array of evenly spaced values between value1 and value2 inclusive.
+   * @return a float array of evenly spaced values between value1, inclusive, and value2 inclusive.
    */
   public static float[] evenlySpacedFloats(final float value1, final float value2, final int num) {
     if (num < 2) {
@@ -128,7 +132,7 @@ public final class QuantilesUtil {
    * @param value1 will be in index 0 of the returned array
    * @param value2 will be in the highest index of the returned array
    * @param num the total number of values including value1 and value2. Must be 2 or greater.
-   * @return a float array of evenly spaced values between value1 and value2 inclusive.
+   * @return a float array of evenly spaced values between value1, inclusive, and value2 inclusive.
    */
   public static double[] evenlySpacedDoubles(final double value1, final double value2, final int num) {
     if (num < 2) {
@@ -144,7 +148,7 @@ public final class QuantilesUtil {
     for (int i = 1; i < num - 1; i++) { out[i] = i * delta + value1; }
     return out;
   }
-  
+
   /**
    * Returns a double array of values between min and max inclusive where the log of the
    * returned values are evenly spaced.

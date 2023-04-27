@@ -128,13 +128,13 @@ public class DoublesSketchTest {
   }
 
   @Test
-  public void checkEmptyNullReturns() {
+  public void checkEmptyExceptions() {
     int k = 16;
     UpdateDoublesSketch uds = DoublesSketch.builder().setK(k).build();
     try { uds.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getRank(1.0); fail(); } catch (IllegalArgumentException e) {}
-    try { uds.getQuantiles(5); fail(); } catch (IllegalArgumentException e) {}
+    try { uds.getPartitionBoundaries(5); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getPMF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
     try { uds.getCDF(new double[] { 0, 0.5, 1.0 }); fail(); } catch (IllegalArgumentException e) {}
   }

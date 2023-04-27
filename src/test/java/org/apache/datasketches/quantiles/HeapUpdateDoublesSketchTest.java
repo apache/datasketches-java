@@ -29,7 +29,7 @@ import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -785,28 +785,36 @@ public class HeapUpdateDoublesSketchTest {
   @Test
   public void checkEvenlySpacedQuantiles() {
     DoublesSketch qsk = buildAndLoadQS(32, 1001);
-    double[] values = qsk.getQuantiles(11);
+    double[] values = qsk.getPartitionBoundaries(10).boundaries;
     for (int i = 0; i<values.length; i++) {
       println(""+values[i]);
     }
     assertEquals(values.length, 11);
   }
 
-  @Test(expectedExceptions = IllegalArgumentException.class)
-  public void checkEvenlySpacedQuantilesException() {
-    DoublesSketch qsk = buildAndLoadQS(32, 1001);
-    qsk.getQuantiles(1);
-    qsk.getQuantiles(0);
+  @Test
+  public void getQuantiles() {
+    final DoublesSketch sketch = buildAndLoadQS(32,0);
+    sketch.update(1);
+    sketch.update(2);
+    sketch.update(3);
+    sketch.update(4);
+    double[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
+    double[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
+    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
+    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
   }
 
   @Test
-  public void checkEvenlySpaced() {
+  public void checkEquallySpacedRanks() {
     int n = 10;
-    double[] es = evenlySpacedRanks(n);
+    double[] es = equallyWeightedRanks(n);
     int len = es.length;
     for (int j=0; j<len; j++) {
       double f = es[j];
-      assertEquals(f, (j+1)/10.0, ((j+1)/10.0) * 0.001);
+      assertEquals(f, j/10.0, (j/10.0) * 0.001);
       print(es[j]+", ");
     }
     println("");

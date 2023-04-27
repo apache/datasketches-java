@@ -19,6 +19,10 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMBINED_BUFFER;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.FLAGS_BYTE;
@@ -39,7 +43,6 @@ import static org.apache.datasketches.quantiles.PreambleUtil.insertMinDouble;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertN;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertPreLongs;
 import static org.apache.datasketches.quantiles.PreambleUtil.insertSerVer;
-import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -78,7 +81,7 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
     //initialize dstMem
     dstMem.putLong(0, 0L); //clear pre0
     insertPreLongs(dstMem, 2);
-    insertSerVer(dstMem, DoublesSketch.DOUBLES_SER_VER);
+    insertSerVer(dstMem, DOUBLES_SER_VER);
     insertFamilyID(dstMem, Family.QUANTILES.getID());
     insertFlags(dstMem, EMPTY_FLAG_MASK);
     insertK(dstMem, k);
@@ -114,10 +117,10 @@ final class DirectUpdateDoublesSketch extends DirectUpdateDoublesSketchR {
 
     //VALIDITY CHECKS
     checkPreLongs(preLongs);
-    ClassicUtil.checkFamilyID(familyID);
+    checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkDirectFlags(flags); //Cannot be compact
-    ClassicUtil.checkK(k);
+    checkK(k);
     checkCompact(serVer, flags);
     checkDirectMemCapacity(k, n, memCap);
     checkEmptyAndN(empty, n);

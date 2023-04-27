@@ -232,6 +232,23 @@ public class ReqSketchTest {
     assertEquals(sk.getN(), 200);
   }
 
+  //specific tests
+
+  @Test
+  public void getQuantiles() {
+    final ReqSketch sketch = ReqSketch.builder().setK(12).build();
+    sketch.update(1);
+    sketch.update(2);
+    sketch.update(3);
+    sketch.update(4);
+    float[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
+    float[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
+    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
+    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
+  }
+
   @Test
   public void merge() {
     final ReqSketch s1 = ReqSketch.builder().setK(12).build();

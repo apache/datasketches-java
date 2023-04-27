@@ -58,11 +58,11 @@ public class KllMiscDirectDoublesTest {
   @Test
   public void checkMisc() {
     final KllDoublesSketch sk = getDDSketch(8, 0);
-    try { sk.getQuantiles(10); fail(); } catch (IllegalArgumentException e) {}
-    //sk.toString(true, true);
+    try { sk.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    println(sk.toString(true, true));
     for (int i = 0; i < 20; i++) { sk.update(i); }
-    //sk.toString(true, true);
-    //sk.toByteArray();
+    println(sk.toString(true, true));
+    sk.toByteArray();
     final double[] values = sk.getDoubleItemsArray();
     assertEquals(values.length, 16);
     final int[] levels = sk.getLevelsArray();
@@ -432,14 +432,26 @@ public class KllMiscDirectDoublesTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
+    String s = "PRINTING:  printf in " + this.getClass().getName();
+    println(s);
+    printf("%s\n", s);
+  }
+
+  private final static boolean enablePrinting = false;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  private static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
-   * @param s value to print
+   * @param o the Object to println
    */
-  static void println(final String s) {
-    //System.out.println(s); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

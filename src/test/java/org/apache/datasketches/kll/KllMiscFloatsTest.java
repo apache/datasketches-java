@@ -130,10 +130,10 @@ public class KllMiscFloatsTest {
   @Test
   public void checkMisc() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(8);
-    try { sk.getQuantiles(10); fail(); } catch (IllegalArgumentException e) {}
-    sk.toString(true, true);
+    try { sk.getMaxItem(); fail(); } catch (IllegalArgumentException e) {} //empty
+    println(sk.toString(true, true));
     for (int i = 0; i < 20; i++) { sk.update(i); }
-    sk.toString(true, true);
+    println(sk.toString(true, true));
     sk.toByteArray();
     final float[] items = sk.getFloatItemsArray();
     assertEquals(items.length, 16);
@@ -576,8 +576,8 @@ public class KllMiscFloatsTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: println in " + this.getClass().getName());
     String s = "PRINTING:  printf in " + this.getClass().getName();
+    println(s);
     printf("%s\n", s);
   }
 

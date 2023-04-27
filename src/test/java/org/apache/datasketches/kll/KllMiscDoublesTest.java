@@ -29,6 +29,8 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
+import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.annotations.Test;
 
 /**
@@ -105,10 +107,10 @@ public class KllMiscDoublesTest {
   @Test
   public void checkMisc() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(8);
-    try { sk.getQuantiles(10); fail(); } catch (IllegalArgumentException e) {}
-    sk.toString(true, true);
+    try { sk.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    println(sk.toString(true, true));
     for (int i = 0; i < 20; i++) { sk.update(i); }
-    sk.toString(true, true);
+    println(sk.toString(true, true));
     sk.toByteArray();
     final double[] values = sk.getDoubleItemsArray();
     assertEquals(values.length, 16);
@@ -150,6 +152,21 @@ public class KllMiscDoublesTest {
     show(sk, 97); //compaction 6
     show(sk, 108);
   }
+
+  @Test
+  public void viewCompactionAndSortedView() {
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
+    show(sk, 20);
+    DoublesSortedView sv = sk.getSortedView();
+    DoublesSortedViewIterator itr = sv.iterator();
+    printf("%12s%12s\n", "Value", "CumWeight");
+    while (itr.next()) {
+      double v = itr.getQuantile();
+      long wt = itr.getWeight();
+      printf("%12.1f%12d\n", v, wt);
+    }
+  }
+
 
   private static void show(final KllDoublesSketch sk, int limit) {
     int i = (int) sk.getN();
@@ -538,14 +555,26 @@ public class KllMiscDoublesTest {
 
   @Test
   public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
+    String s = "PRINTING:  printf in " + this.getClass().getName();
+    println(s);
+    printf("%s\n", s);
+  }
+
+  private final static boolean enablePrinting = false;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  private static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
   }
 
   /**
-   * @param o value to print
+   * @param o the Object to println
    */
-  static void println(final Object o) {
-    //System.out.println(o.toString()); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

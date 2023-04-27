@@ -19,9 +19,13 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkHeapFlags;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
@@ -106,7 +110,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
    */
   static HeapUpdateDoublesSketch newInstance(final int k) {
     final HeapUpdateDoublesSketch hqs = new HeapUpdateDoublesSketch(k);
-    final int baseBufAlloc = 2 * Math.min(DoublesSketch.MIN_K, k); //the min is important
+    final int baseBufAlloc = 2 * Math.min(MIN_K, k); //the min is important
     hqs.n_ = 0;
     hqs.combinedBuffer_ = new double[baseBufAlloc];
     hqs.baseBufferCount_ = 0;
@@ -140,9 +144,9 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
     //VALIDITY CHECKS
     DoublesUtil.checkDoublesSerVer(serVer, MIN_HEAP_DOUBLES_SER_VER);
-    ClassicUtil.checkHeapFlags(flags);
+    checkHeapFlags(flags);
     checkPreLongsFlagsSerVer(flags, serVer, preLongs);
-    ClassicUtil.checkFamilyID(familyID);
+    checkFamilyID(familyID);
 
     final HeapUpdateDoublesSketch hds = newInstance(k); //checks k
     if (empty) { return hds; }
@@ -198,7 +202,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
   @Override
   public void reset() {
     n_ = 0;
-    final int combinedBufferItemCapacity = 2 * Math.min(DoublesSketch.MIN_K, k_); //min is important
+    final int combinedBufferItemCapacity = 2 * Math.min(MIN_K, k_); //min is important
     combinedBuffer_ = new double[combinedBufferItemCapacity];
     baseBufferCount_ = 0;
     bitPattern_ = 0;
@@ -310,7 +314,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
 
       }
     } else { //srcMem not compact
-      final int levels = ClassicUtil.computeNumLevelsNeeded(k, n);
+      final int levels = computeNumLevelsNeeded(k, n);
       final int totItems = (levels == 0) ? bbCnt : (2 + levels) * k;
       srcMem.getDoubleArray(preBytes, combinedBuffer, 0, totItems);
     }
@@ -393,7 +397,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     final int oldSize = combinedBuffer_.length;
     assert oldSize < (2 * k_);
     final double[] baseBuffer = combinedBuffer_;
-    final int newSize = 2 * Math.max(Math.min(k_, oldSize), DoublesSketch.MIN_K);
+    final int newSize = 2 * Math.max(Math.min(k_, oldSize), MIN_K);
     combinedBuffer_ = Arrays.copyOf(baseBuffer, newSize);
   }
 
@@ -442,7 +446,7 @@ final class HeapUpdateDoublesSketch extends UpdateDoublesSketch {
     if (compact) {
       reqBufBytes = (metaPre + retainedItems) << 3;
     } else { //not compact
-      final int totLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
+      final int totLevels = computeNumLevelsNeeded(k, n);
       reqBufBytes = (totLevels == 0)
           ? (metaPre + retainedItems) << 3
           : (metaPre + ((2 + totLevels) * k)) << 3;

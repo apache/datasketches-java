@@ -26,8 +26,8 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.util.Objects;
 
@@ -169,6 +169,13 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
+  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    refreshSortedView();
+    return kllFloatsSV.getCDF(splitPoints, searchCrit);
+  }
+
+  @Override
   public float getMaxItem() {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getMaxFloatItem();
@@ -181,10 +188,18 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
-  public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
+  public FloatsPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    refreshSortedView();
-    return kllFloatsSV.getCDF(splitPoints, searchCrit);
+    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
+    final float[] boundaries = getQuantiles(ranks, searchCrit);
+    boundaries[0] = getMinItem();
+    boundaries[boundaries.length - 1] = getMaxItem();
+    final FloatsPartitionBoundaries fpb = new FloatsPartitionBoundaries();
+    fpb.N = this.getN();
+    fpb.ranks = ranks;
+    fpb.boundaries = boundaries;
+    return fpb;
   }
 
   @Override
@@ -211,13 +226,6 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       quantiles[i] = kllFloatsSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
-  }
-
-  @Override
-  public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(evenlySpacedRanks(numEvenlySpaced),
-        searchCrit);
   }
 
   /**

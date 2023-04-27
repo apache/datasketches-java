@@ -22,13 +22,17 @@ package org.apache.datasketches.quantiles;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
+import static org.apache.datasketches.quantiles.ClassicUtil.MAX_PRELONGS;
+import static org.apache.datasketches.quantiles.ClassicUtil.MIN_K;
 import static org.apache.datasketches.quantiles.ClassicUtil.checkIsCompactMemory;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpacedRanks;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.util.Random;
 
-import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -94,11 +98,6 @@ Table Guide for DoublesSketch Size in Bytes and Approximate Error:
  * @see QuantilesAPI
  */
 public abstract class DoublesSketch implements QuantilesDoublesAPI {
-  static final int DOUBLES_SER_VER = 3;
-  static final int MAX_PRELONGS = Family.QUANTILES.getMaxPreLongs();
-  static final int MIN_K = 2;
-  static final int MAX_K = 1 << 15;
-
   /**
    * Setting the seed makes the results of the sketch deterministic if the input quantiles are
    * received in exactly the same order. This is only useful when performing test comparisons,
@@ -114,7 +113,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   DoublesSketchSortedView classicQdsSV = null;
 
   DoublesSketch(final int k) {
-    ClassicUtil.checkK(k);
+    checkK(k);
     k_ = k;
   }
 
@@ -160,16 +159,31 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
   }
 
   @Override
+  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
+  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    refreshSortedView();
+    return classicQdsSV.getCDF(splitPoints, searchCrit);
+  }
+
+  @Override
   public abstract double getMaxItem();
 
   @Override
   public abstract double getMinItem();
 
   @Override
-  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-  if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    refreshSortedView();
-    return classicQdsSV.getCDF(splitPoints, searchCrit);
+  public DoublesPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
+    final double[] boundaries = getQuantiles(ranks, searchCrit);
+    boundaries[0] = getMinItem();
+    boundaries[boundaries.length - 1] = getMaxItem();
+    final DoublesPartitionBoundaries dpb = new DoublesPartitionBoundaries();
+    dpb.N = this.getN();
+    dpb.ranks = ranks;
+    dpb.boundaries = boundaries;
+    return dpb;
   }
 
   @Override
@@ -198,13 +212,6 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
     return quantiles;
   }
 
-  @Override
-  public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(evenlySpacedRanks(numEvenlySpaced),
-        searchCrit);
-  }
-
   /**
    * {@inheritDoc}
    * The approximate probability that the true quantile is within the confidence interval
@@ -212,7 +219,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getQuantileLowerBound(final double rank) {
-    return getQuantile(max(0, rank - ClassicUtil.getNormalizedRankError(k_, false)));
+    return getQuantile(max(0, rank - getNormalizedRankError(k_, false)));
   }
 
   /**
@@ -222,7 +229,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getQuantileUpperBound(final double rank) {
-    return getQuantile(min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false)));
+    return getQuantile(min(1.0, rank + getNormalizedRankError(k_, false)));
   }
 
   @Override
@@ -239,7 +246,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getRankLowerBound(final double rank) {
-    return max(0.0, rank - ClassicUtil.getNormalizedRankError(k_, false));
+    return max(0.0, rank - getNormalizedRankError(k_, false));
   }
 
   /**
@@ -249,7 +256,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   @Override
   public double getRankUpperBound(final double rank) {
-    return min(1.0, rank + ClassicUtil.getNormalizedRankError(k_, false));
+    return min(1.0, rank + getNormalizedRankError(k_, false));
   }
 
   @Override
@@ -282,7 +289,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    * Otherwise, it is the "single-sided" normalized rank error for all the other queries.
    */
   public double getNormalizedRankError(final boolean pmf) {
-    return ClassicUtil.getNormalizedRankError(k_, pmf);
+    return getNormalizedRankError(k_, pmf);
   }
 
   /**
@@ -415,7 +422,7 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
 
   @Override
   public int getNumRetained() {
-    return ClassicUtil.computeRetainedItems(getK(), getN());
+    return computeRetainedItems(getK(), getN());
   }
 
   /**
@@ -435,8 +442,8 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   public static int getCompactSerialiedSizeBytes(final int k, final long n) {
     if (n == 0) { return 8; }
-    final int metaPreLongs = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    return metaPreLongs + ClassicUtil.computeRetainedItems(k, n) << 3;
+    final int metaPreLongs = MAX_PRELONGS + 2; //plus min, max
+    return metaPreLongs + computeRetainedItems(k, n) << 3;
   }
 
   @Override
@@ -463,10 +470,10 @@ public abstract class DoublesSketch implements QuantilesDoublesAPI {
    */
   public static int getUpdatableStorageBytes(final int k, final long n) {
     if (n == 0) { return 8; }
-    final int metaPre = DoublesSketch.MAX_PRELONGS + 2; //plus min, max
-    final int totLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
+    final int metaPre = MAX_PRELONGS + 2; //plus min, max
+    final int totLevels = computeNumLevelsNeeded(k, n);
     if (n <= k) {
-      final int ceil = Math.max(ceilingIntPowerOf2((int)n), DoublesSketch.MIN_K * 2);
+      final int ceil = Math.max(ceilingIntPowerOf2((int)n), MIN_K * 2);
       return metaPre + ceil << 3;
     }
     return metaPre + (2 + totLevels) * k << 3;

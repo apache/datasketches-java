@@ -29,14 +29,14 @@ public class QuantilesUtilTest {
 
   @Test
   public void checkEvenlySpacedRanks() {
-    double[] arr = QuantilesUtil.evenlySpacedRanks(2);
-    assertEquals(arr[0], 0.5);
-    assertEquals(arr[1], 1.0);
-    arr = QuantilesUtil.evenlySpacedRanks(4);
-    assertEquals(arr[0], 0.25);
+    double[] arr = QuantilesUtil.equallyWeightedRanks(2);
     assertEquals(arr[1], 0.5);
-    assertEquals(arr[2], 0.75);
-    assertEquals(arr[3], 1.0);
+    arr = QuantilesUtil.equallyWeightedRanks(4);
+    assertEquals(arr[0], 0.0);
+    assertEquals(arr[1], 0.25);
+    assertEquals(arr[2], 0.5);
+    assertEquals(arr[3], 0.75);
+    assertEquals(arr[4], 1.0);
   }
 
   @Test
@@ -70,7 +70,7 @@ public class QuantilesUtilTest {
     assertEquals(arr[1], 1.0);
     try { QuantilesUtil.evenlySpacedDoubles(0, 1.0, 1); fail(); } catch (SketchesArgumentException e) {}
   }
-  
+
   @Test
   public void checkEvenlyLogSpaced() {
     final double[] arr = QuantilesUtil.evenlyLogSpaced(1, 8, 4);
