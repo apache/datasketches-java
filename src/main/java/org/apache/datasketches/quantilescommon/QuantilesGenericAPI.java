@@ -93,7 +93,8 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
   T getMinItem();
 
   /**
-   * This method returns an instance of {@link #GenericPartitionBoundaries GenericPartitionBoundaries} which provides
+   * This method returns an instance of
+   * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
    * sufficient information for the user to create the given number of equally weighted partitions.
    *
    * <p>This method is equivalent to
@@ -102,33 +103,33 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    *
    * @param numEquallyWeighted an integer that specifies the number of equally weighted partitions between
    * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than 0.
+   * This must be a positive integer greater than zero.
    * <ul>
    * <li>A 1 will return: minItem, maxItem.</li>
    * <li>A 2 will return: minItem, median quantile, maxItem.</li>
-   * <li>Etc.<li>
+   * <li>Etc.</li>
    * </ul>
    *
-   * @return an instance of {@link #GenericPartitionBoundaries GenericPartitionBoundaries}.
+   * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
    * @throws IllegalArgumentException if sketch is empty.
    * @throws IllegalArgumentException if <i>numEquallyWeighted</i> is less than 1.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   default GenericPartitionBoundaries<T> getPartitionBoundaries(int numEquallyWeighted) {
     return getPartitionBoundaries(numEquallyWeighted, INCLUSIVE);
   }
 
   /**
-   * This method returns an instance of {@link #GenericPartitionBoundaries GenericPartitionBoundaries} which provides
+   * This method returns an instance of
+   * {@link GenericPartitionBoundaries GenericPartitionBoundaries} which provides
    * sufficient information for the user to create the given number of equally weighted partitions.
    *
    * @param numEquallyWeighted an integer that specifies the number of equally weighted partitions between
    * {@link #getMinItem() getMinItem()} and {@link #getMaxItem() getMaxItem()}.
-   * This must be a positive integer greater than 0.
+   * This must be a positive integer greater than zero.
    * <ul>
    * <li>A 1 will return: minItem, maxItem.</li>
    * <li>A 2 will return: minItem, median quantile, maxItem.</li>
-   * <li>Etc.<li>
+   * <li>Etc.</li>
    * </ul>
    *
    * @param searchCrit
@@ -137,10 +138,9 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
    * If EXCLUSIVE, all the returned quantiles are the lower boundaries of the equally weighted partitions
    * with the exception of the highest returned quantile, which is the upper boundary of the highest ranked partition.
    *
-   * @return an instance of {@link #GenericPartitionBoundaries GenericPartitionBoundaries}.
+   * @return an instance of {@link GenericPartitionBoundaries GenericPartitionBoundaries}.
    * @throws IllegalArgumentException if sketch is empty.
    * @throws IllegalArgumentException if <i>numEquallyWeighted</i> is less than 1.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
    */
   GenericPartitionBoundaries<T> getPartitionBoundaries(int numEquallyWeighted, QuantileSearchCriteria searchCrit);
 
@@ -339,7 +339,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
 
   /**
    * This encapsulates the essential information needed to construct actual partitions and is returned from the
-   * {@link #getPartitionBoundaries(int, QuantileSearchCritera) getPartitionBoundaries(...)} method.
+   * {@link QuantilesGenericAPI#getPartitionBoundaries(int, QuantileSearchCritera) getPartitionBoundaries(...)} method.
    */
   static class GenericPartitionBoundaries<T> {
 
