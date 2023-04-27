@@ -349,7 +349,8 @@ public interface QuantilesDoublesAPI extends QuantilesAPI {
 
   /**
    * This encapsulates the essential information needed to construct actual partitions and is returned from the
-   * {@link #getPartitionBoundaries(int, QuantileSearchCritera) getPartitionBoundaries} method.
+   * {@link org.apache.datasketches.quantilescommon.QuantilesDoublesAPI#getPartitionBoundaries(int,
+   * QuantileSearchCritera) getPartitionBoundaries} method.
    */
   static class DoublesPartitionBoundaries {
 
