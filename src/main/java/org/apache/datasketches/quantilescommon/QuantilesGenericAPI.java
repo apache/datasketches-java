@@ -339,8 +339,7 @@ public interface QuantilesGenericAPI<T> extends QuantilesAPI {
 
   /**
    * This encapsulates the essential information needed to construct actual partitions and is returned from the
-   * {@link org.apache.datasketches.quantilescommon.QuantilesGenericAPI#getPartitionBoundaries(int,
-   * QuantileSearchCritera) getPartitionBoundaries} method.
+   * <i>getPartitionBoundaries(int, QuantileSearchCritera)</i> method.
    */
   static class GenericPartitionBoundaries<T> {
 
