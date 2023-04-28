@@ -20,6 +20,7 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -61,6 +62,21 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
   @Override
   public abstract float getMinItem();
 
+  @Override
+  public FloatsPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
+      final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
+    final float[] boundaries = getQuantiles(ranks, searchCrit);
+    boundaries[0] = getMinItem();
+    boundaries[boundaries.length - 1] = getMaxItem();
+    final FloatsPartitionBoundaries fpb = new FloatsPartitionBoundaries();
+    fpb.N = this.getN();
+    fpb.ranks = ranks;
+    fpb.boundaries = boundaries;
+    return fpb;
+  }
+
   /**
    * Returns an a priori estimate of relative standard error (RSE, expressed as a number in [0,1]).
    * Derived from Lemma 12 in https://arxiv.org/abs/2004.01668v2, but the constant factors were
@@ -87,13 +103,6 @@ abstract class BaseReqSketch implements QuantilesFloatsAPI {
 
   @Override
   public abstract float[] getQuantiles(double[] normRanks, QuantileSearchCriteria searchCrit);
-
-  @Override
-  public float[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
-        searchCrit);
-  }
 
   @Override
   public abstract float getQuantileLowerBound(double rank);

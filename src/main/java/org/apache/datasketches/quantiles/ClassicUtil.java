@@ -29,8 +29,6 @@ import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.common.Util.isIntPowerOf2;
-import static org.apache.datasketches.quantiles.DoublesSketch.MAX_K;
-import static org.apache.datasketches.quantiles.DoublesSketch.MIN_K;
 import static org.apache.datasketches.quantiles.PreambleUtil.COMPACT_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.EMPTY_FLAG_MASK;
 import static org.apache.datasketches.quantiles.PreambleUtil.ORDERED_FLAG_MASK;
@@ -42,22 +40,19 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 
 /**
- * Utilities for the classic quantiles sketches.
+ * Utilities for the classic quantiles sketches and independent of the type.
  *
  * @author Lee Rhodes
  */
 public final class ClassicUtil {
+  static final int DOUBLES_SER_VER = 3;
+  static final int MAX_PRELONGS = Family.QUANTILES.getMaxPreLongs();
+  static final int MIN_K = 2;
+  static final int MAX_K = 1 << 15;
 
   private ClassicUtil() {}
 
-  /**
-   * The java line separator character as a String.
-   */
   static final String LS = System.getProperty("line.separator");
-
-  /**
-   * The tab character
-   */
   static final char TAB = '\t';
 
   /**
@@ -166,7 +161,7 @@ public final class ClassicUtil {
     final int flagsMask = ~allowedFlags;
     if ((flags & flagsMask) > 0) {
       throw new SketchesArgumentException(
-         "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
+        "Possible corruption: Invalid flags field: " + Integer.toBinaryString(flags));
     }
   }
 
@@ -215,7 +210,7 @@ public final class ClassicUtil {
     final int totLevels = computeNumLevelsNeeded(k, n);
     if (totLevels == 0) {
       final int bbItems = computeBaseBufferItems(k, n);
-      return Math.max(2 * DoublesSketch.MIN_K, ceilingIntPowerOf2(bbItems));
+      return Math.max(2 * MIN_K, ceilingIntPowerOf2(bbItems));
     }
     return (2 + totLevels) * k;
   }

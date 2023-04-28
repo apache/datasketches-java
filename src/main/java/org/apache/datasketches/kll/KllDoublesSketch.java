@@ -27,6 +27,7 @@ import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.util.Objects;
 
@@ -168,6 +169,13 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
+  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    refreshSortedView();
+    return kllDoublesSV.getCDF(splitPoints, searchCrit);
+  }
+
+  @Override
   public double getMaxItem() {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     return getMaxDoubleItem();
@@ -180,10 +188,18 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
+  public DoublesPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
+      final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    refreshSortedView();
-    return kllDoublesSV.getCDF(splitPoints, searchCrit);
+    final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
+    final double[] boundaries = getQuantiles(ranks, searchCrit);
+    boundaries[0] = getMinItem();
+    boundaries[boundaries.length - 1] = getMaxItem();
+    final DoublesPartitionBoundaries dpb = new DoublesPartitionBoundaries();
+    dpb.N = this.getN();
+    dpb.ranks = ranks;
+    dpb.boundaries = boundaries;
+    return dpb;
   }
 
   @Override
@@ -210,13 +226,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       quantiles[i] = kllDoublesSV.getQuantile(ranks[i], searchCrit);
     }
     return quantiles;
-  }
-
-  @Override
-  public double[] getQuantiles(final int numEvenlySpaced, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getQuantiles(org.apache.datasketches.quantilescommon.QuantilesUtil.evenlySpaced(0.0, 1.0, numEvenlySpaced),
-        searchCrit);
   }
 
   /**

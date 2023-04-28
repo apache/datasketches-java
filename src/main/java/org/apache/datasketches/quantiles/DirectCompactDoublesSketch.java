@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
+import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkFamilyID;
+import static org.apache.datasketches.quantiles.ClassicUtil.checkK;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBaseBufferItems;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeBitPattern;
 import static org.apache.datasketches.quantiles.ClassicUtil.computeRetainedItems;
@@ -86,7 +89,7 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
     //initialize dstMem
     dstMem.putLong(0, 0L); //clear pre0
     insertPreLongs(dstMem, 2);
-    insertSerVer(dstMem, DoublesSketch.DOUBLES_SER_VER);
+    insertSerVer(dstMem, DOUBLES_SER_VER);
     insertFamilyID(dstMem, Family.QUANTILES.getID());
     insertK(dstMem, k);
 
@@ -149,10 +152,10 @@ final class DirectCompactDoublesSketch extends CompactDoublesSketch {
 
     //VALIDITY CHECKS
     DirectUpdateDoublesSketchR.checkPreLongs(preLongs);
-    ClassicUtil.checkFamilyID(familyID);
+    checkFamilyID(familyID);
     DoublesUtil.checkDoublesSerVer(serVer, MIN_DIRECT_DOUBLES_SER_VER);
     checkCompact(serVer, flags);
-    ClassicUtil.checkK(k);
+    checkK(k);
     checkDirectMemCapacity(k, n, memCap);
     DirectUpdateDoublesSketchR.checkEmptyAndN(empty, n);
 

@@ -28,15 +28,15 @@ import org.testng.annotations.Test;
 public class QuantilesUtilTest {
 
   @Test
-  public void checkEvenlySpaced() {
-    double[] arr = QuantilesUtil.evenlySpaced(0, 1, 3);
-    assertEquals(arr[0], 0.0);
+  public void checkEvenlySpacedRanks() {
+    double[] arr = QuantilesUtil.equallyWeightedRanks(2);
     assertEquals(arr[1], 0.5);
-    assertEquals(arr[2], 1.0);
-    arr = QuantilesUtil.evenlySpaced(3, 7, 3);
-    assertEquals(arr[0], 3.0);
-    assertEquals(arr[1], 5.0);
-    assertEquals(arr[2], 7.0);
+    arr = QuantilesUtil.equallyWeightedRanks(4);
+    assertEquals(arr[0], 0.0);
+    assertEquals(arr[1], 0.25);
+    assertEquals(arr[2], 0.5);
+    assertEquals(arr[3], 0.75);
+    assertEquals(arr[4], 1.0);
   }
 
   @Test
@@ -53,6 +53,22 @@ public class QuantilesUtilTest {
     assertEquals(arr[0], 0f);
     assertEquals(arr[1], 1f);
     try { QuantilesUtil.evenlySpacedFloats(0f, 1f, 1); fail(); } catch (SketchesArgumentException e) {}
+  }
+
+  @Test
+  public void checkEvenlySpacedDoubles() {
+    double[] arr = QuantilesUtil.evenlySpacedDoubles(0, 1, 3);
+    assertEquals(arr[0], 0.0);
+    assertEquals(arr[1], 0.5);
+    assertEquals(arr[2], 1.0);
+    arr = QuantilesUtil.evenlySpacedDoubles(3, 7, 3);
+    assertEquals(arr[0], 3.0);
+    assertEquals(arr[1], 5.0);
+    assertEquals(arr[2], 7.0);
+    arr = QuantilesUtil.evenlySpacedDoubles(0, 1.0, 2);
+    assertEquals(arr[0], 0);
+    assertEquals(arr[1], 1.0);
+    try { QuantilesUtil.evenlySpacedDoubles(0, 1.0, 1); fail(); } catch (SketchesArgumentException e) {}
   }
 
   @Test

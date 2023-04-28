@@ -20,6 +20,12 @@
 package org.apache.datasketches.quantiles;
 
 import static org.apache.datasketches.common.Util.LS;
+import static org.apache.datasketches.quantiles.ClassicUtil.DOUBLES_SER_VER;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeCombinedBufferItemCapacity;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeNumLevelsNeeded;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeTotalLevels;
+import static org.apache.datasketches.quantiles.ClassicUtil.computeValidLevels;
+import static org.apache.datasketches.quantiles.ClassicUtil.getNormalizedRankError;
 
 import java.util.Arrays;
 
@@ -54,7 +60,7 @@ final class DoublesUtil {
     qsCopy.putBitPattern(sketch.getBitPattern());
 
     if (sketch.isCompact()) {
-      final int combBufItems = ClassicUtil.computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
+      final int combBufItems = computeCombinedBufferItemCapacity(sketch.getK(), sketch.getN());
       final double[] combBuf = new double[combBufItems];
       qsCopy.putCombinedBuffer(combBuf);
       final DoublesSketchAccessor sketchAccessor = DoublesSketchAccessor.wrap(sketch);
@@ -85,7 +91,7 @@ final class DoublesUtil {
    * @param minSupportedSerVer the oldest serialization version supported
    */
   static void checkDoublesSerVer(final int serVer, final int minSupportedSerVer) {
-    final int max = DoublesSketch.DOUBLES_SER_VER;
+    final int max = DOUBLES_SER_VER;
     if ((serVer > max) || (serVer < minSupportedSerVer)) {
       throw new SketchesArgumentException(
           "Possible corruption: Unsupported Serialization Version: " + serVer);
@@ -120,21 +126,21 @@ final class DoublesUtil {
     final String bbCntStr = String.format("%,d", sk.getBaseBufferCount());
     final String combBufCapStr = String.format("%,d", sk.getCombinedBufferItemCapacity());
     final long bitPattern = sk.getBitPattern();
-    final int neededLevels = ClassicUtil.computeNumLevelsNeeded(k, n);
-    final int totalLevels = ClassicUtil.computeTotalLevels(bitPattern);
-    final int validLevels = ClassicUtil.computeValidLevels(bitPattern);
+    final int neededLevels = computeNumLevelsNeeded(k, n);
+    final int totalLevels = computeTotalLevels(bitPattern);
+    final int validLevels = computeValidLevels(bitPattern);
     final String retItemsStr = String.format("%,d", sk.getNumRetained());
     final String cmptBytesStr = String.format("%,d", sk.getCurrentCompactSerializedSizeBytes());
     final String updtBytesStr = String.format("%,d", sk.getCurrentUpdatableSerializedSizeBytes());
-    final double epsPmf = ClassicUtil.getNormalizedRankError(k, true);
+    final double epsPmf = getNormalizedRankError(k, true);
     final String epsPmfPctStr = String.format("%.3f%%", epsPmf * 100.0);
-    final double eps =  ClassicUtil.getNormalizedRankError(k, false);
+    final double eps =  getNormalizedRankError(k, false);
     final String epsPctStr = String.format("%.3f%%", eps * 100.0);
     final String memCap = sk.hasMemory() ? Long.toString(sk.getMemory().getCapacity()) : "";
     final double minItem = sk.isEmpty() ? Double.NaN : sk.getMinItem();
     final double maxItem = sk.isEmpty() ? Double.NaN : sk.getMaxItem();
 
-    sb.append(ClassicUtil.LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
+    sb.append(LS).append("### Quantiles ").append(thisSimpleName).append(" SUMMARY: ")
       .append(LS);
     sb.append("   Empty                        : ").append(sk.isEmpty()).append(LS);
     sb.append("   Memory, Capacity bytes       : ").append(sk.hasMemory())

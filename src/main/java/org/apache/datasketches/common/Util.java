@@ -527,11 +527,11 @@ public final class Util {
    * <pre>{@code
    *     double maxP = 1024.0;
    *     double minP = 1.0;
-   *     int ppo = 2;
+   *     int ppb = 2;
    *     double logBase = 2.0;
    *
-   *     for (double p = minP; p <= maxP; p = pwr2LawNextDouble(ppo, p, true, logBase)) {
-   *       System.out.print(Math.round(p) + " ");
+   *     for (double p = minP; p <= maxP; p = powerSeriesNextDouble(ppb, p, true, logBase)) {
+   *       System.out.print(p + " ");
    *     }
    *     //generates the following series:
    *     //1 2 3 4 6 8 11 16 23 32 45 64 91 128 181 256 362 512 724 1024

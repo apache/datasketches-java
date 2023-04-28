@@ -22,9 +22,9 @@ package org.apache.datasketches.hll;
 import static org.apache.datasketches.common.Util.invPow2;
 import static org.apache.datasketches.hll.HllUtil.AUX_TOKEN;
 import static org.apache.datasketches.hll.HllUtil.EMPTY;
+import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
 import static org.apache.datasketches.hll.PreambleUtil.HLL_BYTE_ARR_START;
 import static org.apache.datasketches.hll.PreambleUtil.extractTgtHllType;
-import static org.apache.datasketches.hll.HllUtil.loNibbleMask;
 import static org.apache.datasketches.hll.TgtHllType.HLL_4;
 import static org.apache.datasketches.hll.TgtHllType.HLL_8;
 
@@ -670,10 +670,12 @@ public class Union extends BaseHllSketch {
             while (j < srcK) {
               final byte b = src4.hllByteArr[i++];
               int value = Byte.toUnsignedInt(b) & loNibbleMask;
-              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN
+                  ? auxHashMap.mustFindValueFor(j) : value + curMin);
               j++;
               value = Byte.toUnsignedInt(b) >>> 4;
-              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN
+                  ? auxHashMap.mustFindValueFor(j) : value + curMin);
               j++;
             }
           } else {
@@ -712,10 +714,12 @@ public class Union extends BaseHllSketch {
             while (j < srcK) {
               final byte b = src4.mem.getByte(HLL_BYTE_ARR_START + i++);
               int value = Byte.toUnsignedInt(b) & loNibbleMask;
-              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN
+                  ? auxHashMap.mustFindValueFor(j) : value + curMin);
               j++;
               value = Byte.toUnsignedInt(b) >>> 4;
-              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN ? auxHashMap.mustFindValueFor(j) : value + curMin);
+              tgtAbsHllArr.updateSlotNoKxQ(j & tgtKmask, value == AUX_TOKEN
+                  ? auxHashMap.mustFindValueFor(j) : value + curMin);
               j++;
             }
           } else {
