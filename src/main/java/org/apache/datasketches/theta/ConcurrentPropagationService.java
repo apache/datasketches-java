@@ -22,6 +22,8 @@ package org.apache.datasketches.theta;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.datasketches.common.SuppressFBWarnings;
+
 /**
  * Pool of threads to serve <i>all</i> propagation tasks in the system.
  *
@@ -33,11 +35,13 @@ final class ConcurrentPropagationService {
   private static volatile ConcurrentPropagationService instance = null; // Singleton
   private static ExecutorService[] propagationExecutorService = null;
 
+  @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD", justification = "Fix later")
   private ConcurrentPropagationService() {
     propagationExecutorService = new ExecutorService[NUM_POOL_THREADS];
   }
 
   //Factory: Get the singleton
+  @SuppressFBWarnings(value = "SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA", justification = "Fix later")
   private static ConcurrentPropagationService getInstance() {
     if (instance == null) {
       synchronized (ConcurrentPropagationService.class) {

@@ -42,7 +42,7 @@ If you are interested in making contributions to this site please see our [Commu
 ## Maven Build Instructions
 __NOTE:__ This component accesses resource files for testing. As a result, the directory elements of the full absolute path of the target installation directory must qualify as Java identifiers. In other words, the directory elements must not have any space characters (or non-Java identifier characters) in any of the path elements. This is required by the Oracle Java Specification in order to ensure location-independent access to resources: [See Oracle Location-Independent Access to Resources](https://docs.oracle.com/javase/8/docs/technotes/guides/lang/resources.html)
 
-### A JDK8 with Hotspot through JDK13 with Hotspot is required to compile
+### A JDK8 with Hotspot or JDK11 with Hotspot is required to compile
 This component depends on the [datasketches-memory](https://github.com/apache/datasketches-memory) component, 
 and, as a result, must be compiled with one of the above JDKs. 
 If your application only relies on the APIs of this component no special JVM arguments are required.

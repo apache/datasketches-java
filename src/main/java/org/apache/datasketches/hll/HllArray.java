@@ -48,7 +48,6 @@ abstract class HllArray extends AbstractHllArray {
   double kxq0;
   double kxq1;
   byte[] hllByteArr = null; //init by sub-classes
-  final int configKmask;
 
   /**
    * Standard constructor for new instance
@@ -62,7 +61,6 @@ abstract class HllArray extends AbstractHllArray {
     hipAccum = 0;
     kxq0 = 1 << lgConfigK;
     kxq1 = 0;
-    configKmask = (1 << lgConfigK) - 1;
   }
 
   /**
@@ -85,7 +83,6 @@ abstract class HllArray extends AbstractHllArray {
     } else {
       putAuxHashMap(null, false);
     }
-    configKmask = (1 << lgConfigK) - 1;
   }
 
   static final HllArray newHeapHll(final int lgConfigK, final TgtHllType tgtHllType) {

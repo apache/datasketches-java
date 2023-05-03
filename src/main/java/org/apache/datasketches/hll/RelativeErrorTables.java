@@ -55,6 +55,7 @@ final class RelativeErrorTables {
         f = NON_HIP_UB[idx];
         break;
       }
+      default: f = 0;//can't happen
     }
     return f;
   }

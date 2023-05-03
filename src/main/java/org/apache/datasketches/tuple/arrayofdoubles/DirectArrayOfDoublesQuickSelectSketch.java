@@ -277,7 +277,7 @@ class DirectArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesQuickSelectSke
   }
 
   @Override
-  protected int getCurrentCapacity() {
+  protected final int getCurrentCapacity() {
     return 1 << mem_.getByte(LG_CUR_CAPACITY_BYTE);
   }
 

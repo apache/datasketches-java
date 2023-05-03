@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.quantiles;
 
+import java.util.Objects;
+
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 /**
@@ -26,8 +29,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  * @param <T> type of item
  */
 public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T> {
-
-  private final ItemsSketch<T> sketch;
+  //private final ItemsSketch<T> sketch;
   private Object[] combinedBuffer;
   private long bitPattern;
   private int level;
@@ -35,19 +37,24 @@ public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T>
   private int index;
   private int offset;
   private int num;
+  private int k;
 
   ItemsSketchIterator(final ItemsSketch<T> sketch, final long bitPattern) {
-    this.sketch = sketch;
+    Objects.requireNonNull(sketch, "sketch must not be null");
+    combinedBuffer = sketch.combinedBuffer_;
+    num = sketch.getBaseBufferCount();
+    this.k = sketch.getK();
     this.bitPattern = bitPattern;
     this.level = -1;
     this.weight = 1;
-    this.index = 0;
+    this.index = -1;
     this.offset = 0;
   }
 
   @Override
   @SuppressWarnings("unchecked")
   public T getQuantile() {
+    if (index < 0) { throw new SketchesStateException("index < 0; getQuantile() was called before next()"); }
     return (T) combinedBuffer[offset + index];
   }
 
@@ -58,12 +65,7 @@ public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T>
 
   @Override
   public boolean next() {
-    if (combinedBuffer == null) { // initial setup
-      combinedBuffer = sketch.combinedBuffer_;
-      num = sketch.getBaseBufferCount();
-    } else { // advance index within the current level
-      index++;
-    }
+    index++; // advance index within the current level
     if (index < num) {
       return true;
     }
@@ -79,8 +81,8 @@ public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T>
       weight *= 2;
     } while ((bitPattern & 1L) == 0L);
     index = 0;
-    offset = (2 + level) * sketch.getK();
-    num = sketch.getK();
+    offset = (2 + level) * k;
+    num = k;
     return true;
   }
 

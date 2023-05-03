@@ -40,6 +40,7 @@ import static org.apache.datasketches.theta.PreambleUtil.insertThetaLong;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesReadOnlyException;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -182,7 +183,7 @@ class DirectQuickSelectSketchR extends UpdateSketch {
   //UpdateSketch
 
   @Override
-  public int getLgNomLongs() {
+  public final int getLgNomLongs() {
     return PreambleUtil.extractLgNomLongs(wmem_);
   }
 
@@ -274,8 +275,9 @@ class DirectQuickSelectSketchR extends UpdateSketch {
    * @param lgArrLongs <a href="{@docRoot}/resources/dictionary.html#lgArrLongs">See lgArrLongs</a>.
    * @return the hash table threshold
    */
+  @SuppressFBWarnings(value = "DB_DUPLICATE_BRANCHES", justification = "False Positive, see the code comments")
   static final int setHashTableThreshold(final int lgNomLongs, final int lgArrLongs) {
-    //FindBugs may complain (DB_DUPLICATE_BRANCHES) if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD,
+    //SpotBugs may complain (DB_DUPLICATE_BRANCHES) if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD,
     //but this allows us to tune these constants for different sketches.
     final double fraction = (lgArrLongs <= lgNomLongs) ? DQS_RESIZE_THRESHOLD : ThetaUtil.REBUILD_THRESHOLD;
     return (int) Math.floor(fraction * (1 << lgArrLongs));

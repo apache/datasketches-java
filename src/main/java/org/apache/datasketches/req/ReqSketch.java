@@ -24,6 +24,7 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
@@ -79,7 +80,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  * @author Pavel Vesely
  * @author Lee Rhodes
  */
-public class ReqSketch extends BaseReqSketch {
+public final class ReqSketch extends BaseReqSketch {
 
   static class CompactorReturn {
     int deltaRetItems;
@@ -92,7 +93,7 @@ public class ReqSketch extends BaseReqSketch {
   static final byte NOM_CAP_MULT = 2;
 
   //finals
-  private final int k; //default is 12 (1% @ 95% Conf)
+  private final int k; //default is 12 (1% @ 95% Confidence)
   private final boolean hra; //default is true
   //state variables
   private long totalN = 0;
@@ -108,6 +109,8 @@ public class ReqSketch extends BaseReqSketch {
 
   private final CompactorReturn cReturn = new CompactorReturn(); //used in compress()
 
+  private final Random rand;
+
   /**
    * Construct from elements. After sketch is constructed, retItems and maxNomSize must be computed.
    * Used by ReqSerDe.
@@ -121,6 +124,7 @@ public class ReqSketch extends BaseReqSketch {
     this.minItem = minItem;
     this.maxItem = maxItem;
     this.compactors = compactors;
+    this.rand = new Random();
   }
 
   /**
@@ -135,8 +139,9 @@ public class ReqSketch extends BaseReqSketch {
   ReqSketch(final int k, final boolean highRankAccuracy, final ReqDebug reqDebug) {
     checkK(k);
     this.k = k;
-    hra = highRankAccuracy;
+    this.hra = highRankAccuracy;
     this.reqDebug = reqDebug;
+    this.rand = (reqDebug == null) ? new Random() : new Random(1);
     grow();
   }
 
@@ -145,15 +150,16 @@ public class ReqSketch extends BaseReqSketch {
    * @param other the other sketch to be deep copied into this one.
    */
   ReqSketch(final ReqSketch other) {
-    k = other.k;
-    hra = other.hra;
-    totalN = other.totalN;
-    retItems = other.retItems;
-    maxNomSize = other.maxNomSize;
-    minItem = other.minItem;
-    maxItem = other.maxItem;
-    reqDebug = other.reqDebug;
-    reqSV = null;
+    this.k = other.k;
+    this.hra = other.hra;
+    this.totalN = other.totalN;
+    this.retItems = other.retItems;
+    this.maxNomSize = other.maxNomSize;
+    this.minItem = other.minItem;
+    this.maxItem = other.maxItem;
+    this.reqDebug = other.reqDebug;
+    this.reqSV = null;
+    this.rand = (reqDebug == null) ? new Random() : new Random(1);
 
     for (int i = 0; i < other.getNumLevels(); i++) {
       compactors.add(new ReqCompactor(other.compactors.get(i)));
@@ -529,7 +535,7 @@ public class ReqSketch extends BaseReqSketch {
           if (reqDebug != null) { reqDebug.emitMustAddCompactor(); }
           grow(); //add a level, increases maxNomSize
         }
-        final FloatBuffer promoted = c.compact(cReturn);
+        final FloatBuffer promoted = c.compact(cReturn, this.rand);
         compactors.get(h + 1).getBuffer().mergeSortIn(promoted);
         retItems += cReturn.deltaRetItems;
         maxNomSize += cReturn.deltaNomSize;

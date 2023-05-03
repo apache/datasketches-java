@@ -170,6 +170,8 @@ class ToByteArrayImpl {
         }
         break;
       }
+
+      case 6:   //Src Heap,   Src Updatable, Dst Compact
       case 2: { //Src Memory, Src Updatable, Dst Compact
         final int dataStart = impl.getMemDataStart();
         final int bytesOut = dataStart + (srcCouponCount << 2);
@@ -195,26 +197,6 @@ class ToByteArrayImpl {
         final int bytesOut = impl.getMemDataStart() + (srcCouponArrInts << 2);
         byteArrOut = new byte[bytesOut];
         srcMem.getByteArray(0, byteArrOut, 0, bytesOut);
-        break;
-      }
-      case 6: { //Src Heap, Src Updatable, Dst Compact
-        final int dataStart = impl.getMemDataStart();
-        final int bytesOut = dataStart + (srcCouponCount << 2);
-        byteArrOut = new byte[bytesOut];
-        final WritableMemory memOut = WritableMemory.writableWrap(byteArrOut);
-        copyCommonListAndSet(impl, memOut);
-        insertCompactFlag(memOut, dstCompact);
-
-        final PairIterator itr = impl.iterator();
-        int cnt = 0;
-        while (itr.nextValid()) {
-          insertInt(memOut, dataStart + (cnt++ << 2), itr.getPair());
-        }
-        if (list) {
-          insertListCount(memOut, srcCouponCount);
-        } else {
-          insertHashSetCount(memOut, srcCouponCount);
-        }
         break;
       }
       case 7: { //Src Heap, Src Updatable, Dst Updatable

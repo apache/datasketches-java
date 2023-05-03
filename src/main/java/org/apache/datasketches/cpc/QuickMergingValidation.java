@@ -25,6 +25,8 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import org.apache.datasketches.common.SuppressFBWarnings;
+
 /**
  * This code is used both by unit tests, for short running tests,
  * and by the characterization repository for longer running, more exhaustive testing. To be
@@ -58,6 +60,7 @@ public class QuickMergingValidation {
    * @param ps ps
    * @param pw pw
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is OK here")
   public QuickMergingValidation(final int lgMinK, final int lgMaxK, final int incLgK,
       final PrintStream ps, final PrintWriter pw) {
     this.lgMinK = lgMinK;

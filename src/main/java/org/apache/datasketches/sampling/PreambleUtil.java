@@ -23,6 +23,7 @@ import static org.apache.datasketches.common.Util.LS;
 import static org.apache.datasketches.common.Util.zeroPad;
 
 import java.nio.ByteOrder;
+import java.util.Locale;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
@@ -239,7 +240,7 @@ final class PreambleUtil {
     final StringBuilder sb = new StringBuilder();
     sb.append(LS)
       .append("### END ")
-      .append(family.getFamilyName().toUpperCase())
+      .append(family.getFamilyName().toUpperCase(Locale.US))
       .append(" PREAMBLE SUMMARY").append(LS)
       .append("Byte  0: Preamble Longs       : ").append(preLongs).append(LS)
       .append("Byte  0: ResizeFactor         : ").append(rf.toString()).append(LS)
@@ -272,7 +273,7 @@ final class PreambleUtil {
       .append("  Preamble Bytes              : ").append(preLongs << 3).append(LS)
       .append("  Data Bytes                  : ").append(dataBytes).append(LS)
       .append("### END ")
-      .append(family.getFamilyName().toUpperCase())
+      .append(family.getFamilyName().toUpperCase(Locale.US))
       .append(" PREAMBLE SUMMARY").append(LS);
     return sb.toString();
   }
@@ -302,7 +303,7 @@ final class PreambleUtil {
     final long dataBytes = mem.getCapacity() - (preLongs << 3);
 
     return LS
-            + "### END " + family.getFamilyName().toUpperCase() + " PREAMBLE SUMMARY" + LS
+            + "### END " + family.getFamilyName().toUpperCase(Locale.US) + " PREAMBLE SUMMARY" + LS
             + "Byte  0: Preamble Longs           : " + preLongs + LS
             + "Byte  0: ResizeFactor             : " + rf.toString() + LS
             + "Byte  1: Serialization Version    : " + serVer + LS
@@ -316,7 +317,7 @@ final class PreambleUtil {
             + "TOTAL Sketch Bytes                : " + mem.getCapacity() + LS
             + "  Preamble Bytes                  : " + (preLongs << 3) + LS
             + "  Sketch Bytes                    : " + dataBytes + LS
-            + "### END " + family.getFamilyName().toUpperCase() + " PREAMBLE SUMMARY" + LS;
+            + "### END " + family.getFamilyName().toUpperCase(Locale.US) + " PREAMBLE SUMMARY" + LS;
   }
 
   // Extraction methods

@@ -26,6 +26,7 @@ import static org.apache.datasketches.common.Util.invPow2;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.hash.MurmurHash3;
 
 /**
@@ -46,6 +47,7 @@ import org.apache.datasketches.hash.MurmurHash3;
 final class HllMap extends Map {
   private static final double LOAD_FACTOR = 15.0 / 16.0;
   private static final int HLL_INIT_NUM_ENTRIES = 157;
+  private static final int HLL_INIT_NUM_ENTRIES_ARR_SIZE = (int) Math.ceil(HLL_INIT_NUM_ENTRIES / 8.0);
   private static final float HLL_RESIZE_FACTOR = 2.0F;
   private static final double RSE = sqrt(log(2.0)) / 32.0;
   private final int k_;
@@ -77,21 +79,20 @@ final class HllMap extends Map {
   }
 
   static HllMap getInstance(final int keySizeBytes, final int k) {
-    final int tableEntries = HLL_INIT_NUM_ENTRIES;
 
     final HllMap map = new HllMap(keySizeBytes, k);
-    map.tableEntries_ = tableEntries;
-    map.capacityEntries_ = (int)(tableEntries * LOAD_FACTOR);
+    map.tableEntries_ = HLL_INIT_NUM_ENTRIES;
+    map.capacityEntries_ = (int)(HLL_INIT_NUM_ENTRIES * LOAD_FACTOR);
     map.curCountEntries_ = 0;
     map.growthFactor_ = HLL_RESIZE_FACTOR;
     map.entrySizeBytes_ = updateEntrySizeBytes(map.tableEntries_, keySizeBytes, map.hllArrLongs_);
 
-    map.keysArr_ = new byte[tableEntries * map.keySizeBytes_];
-    map.arrOfHllArr_ = new long[tableEntries * map.hllArrLongs_];
-    map.invPow2SumHiArr_ = new double[tableEntries];
-    map.invPow2SumLoArr_ = new double[tableEntries];
-    map.hipEstAccumArr_ = new double[tableEntries];
-    map.stateArr_ = new byte[(int) Math.ceil(tableEntries / 8.0)];
+    map.keysArr_ = new byte[HLL_INIT_NUM_ENTRIES * map.keySizeBytes_];
+    map.arrOfHllArr_ = new long[HLL_INIT_NUM_ENTRIES * map.hllArrLongs_];
+    map.invPow2SumHiArr_ = new double[HLL_INIT_NUM_ENTRIES];
+    map.invPow2SumLoArr_ = new double[HLL_INIT_NUM_ENTRIES];
+    map.hipEstAccumArr_ = new double[HLL_INIT_NUM_ENTRIES];
+    map.stateArr_ = new byte[HLL_INIT_NUM_ENTRIES_ARR_SIZE];
     return map;
   }
 
@@ -263,6 +264,7 @@ final class HllMap extends Map {
   }
 
   //This method is specifically tied to the HLL array layout
+  @SuppressFBWarnings(value = "IM_MULTIPLYING_RESULT_OF_IREM", justification = "False Positive")
   private final boolean updateHll(final int entryIndex, final int coupon) {
     final int newValue = coupon16Value(coupon);
 

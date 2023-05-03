@@ -19,14 +19,15 @@
 
 package org.apache.datasketches.quantiles;
 
+import java.util.Objects;
+
+import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 
 /**
  * Iterator over DoublesSketch. The order is not defined.
  */
 public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
-
-  private final DoublesSketch sketch;
   private DoublesSketchAccessor sketchAccessor;
   private long bitPattern;
   private int level;
@@ -34,15 +35,17 @@ public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
   private int index;
 
   DoublesSketchIterator(final DoublesSketch sketch, final long bitPattern) {
-    this.sketch = sketch;
+    Objects.requireNonNull(sketch, "sketch must not be null");
+    sketchAccessor = DoublesSketchAccessor.wrap(sketch);
     this.bitPattern = bitPattern;
     this.level = -1;
     this.weight = 1;
-    this.index = 0;
+    this.index = -1;
   }
 
   @Override
   public double getQuantile() {
+    if (index < 0) { throw new SketchesStateException("index < 0; getQuantile() was called before next()"); }
     return sketchAccessor.get(index);
   }
 
@@ -53,11 +56,7 @@ public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
 
   @Override
   public boolean next() {
-    if (sketchAccessor == null) { // initial setup
-      sketchAccessor = DoublesSketchAccessor.wrap(sketch);
-    } else { // advance index within the current level
-      index++;
-    }
+    index++; // advance index within the current level
     if (index < sketchAccessor.numItems()) {
       return true;
     }

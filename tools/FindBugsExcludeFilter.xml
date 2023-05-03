@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -23,143 +24,24 @@ under the License.
     <Class name="~.*\.*Test" />
   </Match>
 
-  <!-- False positive.  FindBugs complains if DQS_RESIZE_THRESHOLD == REBUILD_THRESHOLD, 
-       but this allows us to tune these constants for different sketches. -->
+  <!-- Harmless, Too many False Positives May 2, 2023-->
   <Match>
-    <Bug pattern="DB_DUPLICATE_BRANCHES" />
-    <Class name="org.apache.datasketches.theta.DirectQuickSelectSketchR" />
-    <Method name="setHashTableThreshold" />
+    <Bug pattern="PZLA_PREFER_ZERO_LENGTH_ARRAYS" />
   </Match>
 
-  <Match>   <!-- Too many False Positives. -->
+  <!-- Harmless, Too many False Positives May 2, 2023-->
+  <Match>
+    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD" />
+  </Match>
+
+  <!-- Harmless, Too many False Positives May 2, 2023-->
+  <Match>
+    <Bug pattern="BIT_SIGNED_CHECK" />
+  </Match>
+
+  <!-- Harmless, Too many False Positives May 2, 2023 -->
+  <Match>   
     <Bug pattern="DLS_DEAD_LOCAL_STORE" />
   </Match>
 
-  <Match> <!-- Too many False Positives -->
-    <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE" />
-  </Match>
-  
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP" />
-    <Or>
-      <Class name= "org.apache.datasketches.kll.KllDoublesSketch" />
-      <Class name= "org.apache.datasketches.kll.KllFloatsSketch" />
-    </Or>
-    <Method name= "getSortedView" />
-  </Match>
-  
-  <Match>
-    <Bug pattern="EI_EXPOSE_REP2" /> <!-- False positive -->
-    <Or>
-      <Class name="org.apache.datasketches.cpc.CpcWrapper" />
-      <Class name="org.apache.datasketches.cpc.CompressionCharacterization" />
-      <Class name="org.apache.datasketches.cpc.MergingValidation" />
-      <Class name="org.apache.datasketches.cpc.QuickMergingValidation" />
-      <Class name="org.apache.datasketches.cpc.StreamingValidation" />
-      <Class name="org.apache.datasketches.req.ReqDebugImpl" />
-      <Class name="org.apache.datasketches.tuple.arrayofdoubles.ArrayOfDoublesAnotBImpl" />
-    </Or>
-  </Match>
-  
-  <Match>
-    <Bug pattern="EQ_COMPARETO_USE_OBJECT_EQUALS" />
-    <Class name="~.*\.Group" />
-  </Match>
-  
-  <!-- False positive.  In this case we want to ignore the exceptions -->
-  <Match>
-    <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS" />
-    <Class name="org.apache.datasketches.thetacommon.BinomialBoundsN" />
-  </Match>
-  
-  <!-- False positive.  In this case we want to ignore the exceptions -->
-  <Match>
-    <Bug pattern="FL_FLOATS_AS_LOOP_COUNTERS" />
-    <Class name="org.apache.datasketches.sampling.SamplingUtil" />
-    <Method name="nextDoubleExcludeZero" />
-  </Match>
-  
-  <!-- This is in the /test/ tree but doesn't end in "Test" -->
-  <Match>
-    <Bug pattern="REFLF_REFLECTION_MAY_INCREASE_ACCESSIBILITY_OF_FIELD" />
-    <Class name="org.apache.datasketches.quantilescommon.ReflectUtility" />
-  </Match>
-  
-  <!-- Too many false positives to be useful.  I could not make it happy :( -->
-  <Match>
-    <Bug pattern="SF_SWITCH_NO_DEFAULT" />
-  </Match>
-  
-  <!-- False positive.  In this case we want to ignore the exceptions -->
-  <Match>
-    <Bug pattern="SSD_DO_NOT_USE_INSTANCE_LOCK_ON_SHARED_STATIC_DATA" />
-    <Class name="org.apache.datasketches.theta.ConcurrentPropagationService" />
-    <Method name="getInstance" />
-  </Match>
-
-  <Match>   <!-- Harmless in the Builder -->
-    <Bug pattern="ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD" />
-    <Class name="org.apache.datasketches.theta.UpdateSketchBuilder" />
-  </Match>
-  
-  <Match>
-    <Bug pattern="VO_VOLATILE_INCREMENT" />
-    <Class name="~.*\.Concurrent.+QuickSelectSketch" />
-  </Match>
-  
 </FindBugsFilter>
-
-<!--  Examples: -->
-
-<!-- Exclude java.* classes -->
-  <!--
-  <Match>
-    <Package name="java\.*" />
-  </Match>
--->
-
-  <!-- Exclude test classes -->
-<!-- 
-  <Match>
-    <Class name="~.*\.*Test" />
-  </Match>
--->
-
-<!--
-     <Match>
-       <Class name="com.foobar.ClassNotToBeAnalyzed" />
-     </Match>
--->
-<!--
-     <Match>
-       <Class name="com.foobar.ClassWithSomeBugsMatched" />
-       <Bug code="DE,UrF,SIC" />
-     </Match>
--->
-     <!-- Match all XYZ violations. -->
-<!--
-     <Match>
-       <Bug code="XYZ" />
-     </Match>
--->
-     <!-- Match all doublecheck violations in these methods of "AnotherClass". -->
-<!--
-     <Match>
-       <Class name="com.foobar.AnotherClass" />
-       <Or>
-         <Method name="nonOverloadedMethod" />
-         <Method name="frob" params="int,java.lang.String" returns="void" />
-         <Method name="blat" params="" returns="boolean" />
-       </Or>
-       <Bug code="DC" />
-     </Match>
--->
-     <!-- A method with a dead local store false positive (medium priority). -->
-<!--
-     <Match>
-       <Class name="com.foobar.MyClass" />
-       <Method name="someMethod" />
-       <Bug pattern="DLS_DEAD_LOCAL_STORE" />
-       <Priority value="2" />
-     </Match>
--->

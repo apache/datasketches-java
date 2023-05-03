@@ -19,8 +19,8 @@
 
 package org.apache.datasketches.cpc;
 
-import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.common.Util.INVERSE_GOLDEN_U64;
+import static org.apache.datasketches.common.Util.ceilingIntPowerOf2;
 import static org.apache.datasketches.common.Util.log2;
 import static org.apache.datasketches.common.Util.powerSeriesNextDouble;
 import static org.apache.datasketches.cpc.CompressedState.importFromMemory;
@@ -29,6 +29,7 @@ import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.ThetaUtil;
@@ -66,6 +67,7 @@ public class CompressionCharacterization {
   private CompressedState[] compressedStates2;
   private CpcSketch[] unCompressedSketches;
 
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is OK here")
   public CompressionCharacterization(
       final int lgMinK,
       final int lgMaxK,

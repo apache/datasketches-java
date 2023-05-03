@@ -214,7 +214,7 @@ final class KllPreambleUtil {
     final long n = memVal.n;
     final int minK = memVal.minK;
     final int numLevels = memVal.numLevels;
-    if (updatableMemFormat || (!updatableMemFormat && !empty && !singleItem)) {
+    if (updatableMemFormat || (!empty && !singleItem)) {
         sb.append("Bytes  8-15: N                   : ").append(n).append(LS);
         sb.append("Bytes 16-17: MinK                : ").append(minK).append(LS);
         sb.append("Byte  18   : NumLevels           : ").append(numLevels).append(LS);

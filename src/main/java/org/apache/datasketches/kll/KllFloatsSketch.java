@@ -31,6 +31,7 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeigh
 
 import java.util.Objects;
 
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -305,6 +306,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public FloatsSortedView getSortedView() {
     refreshSortedView();
     return kllFloatsSV;
