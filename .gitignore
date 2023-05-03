@@ -52,7 +52,6 @@ target/
 out/
 build/
 jarsIn/
-*.jar
 build.xml
 *.properties
 *.releaseBackup

@@ -316,7 +316,7 @@ final class UnionImpl extends Union {
     unionEmpty_ = false;
     final int curCountIn = sketchIn.getRetainedEntries(true);
     if (curCountIn > 0) {
-      if (sketchIn.isOrdered()) { //Only true if Compact. Use early stop
+      if (sketchIn.isOrdered() && (sketchIn instanceof CompactSketch)) { //Use early stop
         //Ordered, thus compact
         if (sketchIn.hasMemory()) {
           final Memory skMem = ((CompactSketch) sketchIn).getMemory();

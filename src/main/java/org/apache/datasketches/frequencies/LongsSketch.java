@@ -49,6 +49,7 @@ import java.util.Objects;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -142,6 +143,7 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Justin Thaler
  * @author Lee Rhodes
  */
+@SuppressFBWarnings(value = "SIC_INNER_SHOULD_BE_STATIC_ANON", justification = "Harmless, fix later")
 public class LongsSketch {
 
   private static final int STR_PREAMBLE_TOKENS = 6;

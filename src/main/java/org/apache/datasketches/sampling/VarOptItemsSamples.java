@@ -22,6 +22,7 @@ package org.apache.datasketches.sampling;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * This class provides access to the samples contained in a VarOptItemsSketch. It provides two
@@ -184,6 +185,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
   }
 
   VarOptItemsSamples(final VarOptItemsSketch<T> sketch) {
+    Objects.requireNonNull(sketch, "sketch must not be null");
     sketch_ = sketch;
     n_ = sketch.getN();
     h_ = sketch.getHRegionCount();
@@ -224,7 +226,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    */
   public int getNumSamples() {
     loadArrays();
-    return (sampleLists == null ? 0 : sampleLists.weights.length);
+    return (sampleLists == null || sampleLists.weights == null ? 0 : sampleLists.weights.length);
   }
 
   /**
@@ -245,7 +247,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    */
   public T items(final int i) {
     loadArrays();
-    return (sampleLists == null ? null : sampleLists.items[i]);
+    return (sampleLists == null || sampleLists.items == null ? null : sampleLists.items[i]);
   }
 
   /**
@@ -266,7 +268,7 @@ public class VarOptItemsSamples<T> implements Iterable<VarOptItemsSamples<T>.Wei
    */
   public double weights(final int i) {
     loadArrays();
-    return (sampleLists == null ? Double.NaN : sampleLists.weights[i]);
+    return (sampleLists == null || sampleLists.weights == null ? Double.NaN : sampleLists.weights[i]);
   }
 
   private void loadArrays() {

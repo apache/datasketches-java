@@ -44,6 +44,7 @@ abstract class Map {
   static final double COUPON_MAP_SHRINK_TRIGGER_FACTOR = 0.5;
   static final double COUPON_MAP_GROW_TRIGGER_FACTOR = 15.0 / 16.0;
   static final double COUPON_MAP_TARGET_FILL_FACTOR = 2.0 / 3.0;
+  static final int COUPON_MAP_MIN_NUM_ENTRIES_ARR_SIZE = (int)Math.ceil(COUPON_MAP_MIN_NUM_ENTRIES / 8.0);
 
   final int keySizeBytes_;
 

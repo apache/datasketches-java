@@ -161,6 +161,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
     int sw1 = ((myQS  == null) ? 0 :  myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other == null) ? 0 : other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
+
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
       case 1:  outCase = 4; break; //myQS = null,  other = empty; create empty-heap(myMaxK)
@@ -171,9 +172,10 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
       case 8:  outCase = 1; break; //myQS = valid, other = null ; no-op
       case 9:  outCase = 1; break; //myQS = valid, other = empty: no-op
       case 10: outCase = 3; break; //myQS = valid, other = valid; merge
-      //default: //This cannot happen and cannot be tested
+      default: break; //This cannot happen
     }
     UpdateDoublesSketch ret = null;
+
     switch (outCase) {
       case 0: ret = null; break; //return null
       case 1: ret = myQS; break; //no-op
@@ -239,7 +241,7 @@ final class DoublesUnionImpl extends DoublesUnionImplR {
         ret = HeapUpdateDoublesSketch.newInstance(myMaxK);
         break;
       }
-      //default: //This cannot happen and cannot be tested
+      default: break; //This cannot happen
     }
     return ret;
   }

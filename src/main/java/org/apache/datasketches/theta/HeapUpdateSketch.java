@@ -79,7 +79,7 @@ abstract class HeapUpdateSketch extends UpdateSketch {
   //UpdateSketch
 
   @Override
-  public int getLgNomLongs() {
+  public final int getLgNomLongs() {
     return lgNomLongs_;
   }
 

@@ -49,7 +49,6 @@ class ReqCompactor {
   //objects
   private FloatBuffer buf;
   private final ReqDebug reqDebug = null;
-  private Random rand;
 
   /**
    * Normal Constructor
@@ -72,8 +71,6 @@ class ReqCompactor {
     numSections = INIT_NUMBER_OF_SECTIONS;
     final int nomCap = getNomCapacity();
     buf = new FloatBuffer(2 * nomCap, nomCap, hra);
-    if (reqDebug != null) { rand = new Random(1); }
-    else { rand = new Random(); }
   }
 
   /**
@@ -101,14 +98,13 @@ class ReqCompactor {
       final float sectionSizeFlt,
       final byte numSections,
       final FloatBuffer buf) {
-    rand = new Random();
     this.lgWeight = lgWeight;
     this.hra = hra;
     this.buf = buf;
     this.sectionSizeFlt = sectionSizeFlt;
     this.numSections = numSections;
     this.state = state;
-    coin = rand.nextDouble() < 0.5;
+    coin = false;
     sectionSize = nearestEven(sectionSizeFlt);
     //ReqDebug left at null
   }
@@ -117,7 +113,7 @@ class ReqCompactor {
    * Perform a compaction operation on this compactor
    * @return the array of items to be promoted to the next level compactor
    */
-  FloatBuffer compact(final CompactorReturn cReturn) {
+  FloatBuffer compact(final CompactorReturn cReturn, final Random rand) {
     if (reqDebug != null) { reqDebug.emitCompactingStart(lgWeight); }
     final int startRetItems = buf.getCount();
     final int startNomCap = getNomCapacity();
@@ -129,7 +125,7 @@ class ReqCompactor {
     assert compactionEnd - compactionStart >= 2;
 
     if ((state & 1L) == 1L) { coin = !coin; } //if numCompactions odd, flip coin;
-    else { coin = rand.nextDouble() < 0.5; }       //random coin flip
+    else { coin = rand.nextBoolean(); }       //random coin flip
 
     final FloatBuffer promote = buf.getEvensOrOdds(compactionStart, compactionEnd, coin);
 
@@ -166,10 +162,10 @@ class ReqCompactor {
   }
 
   /**
-   * Sets the current nominal capacity of this compactor.
+   * Gets the current nominal capacity of this compactor.
    * @return the current nominal capacity of this compactor.
    */
-  int getNomCapacity() {
+  final int getNomCapacity() { //called from constructor
     return NOM_CAP_MULT * numSections * sectionSize;
   }
 

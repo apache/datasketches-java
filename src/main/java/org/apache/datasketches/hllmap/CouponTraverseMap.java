@@ -38,6 +38,7 @@ import org.apache.datasketches.hash.MurmurHash3;
  */
 final class CouponTraverseMap extends Map {
   private static final double RSE = 0.408 / Math.sqrt(1024);
+  //private static int
   private final int maxCouponsPerKey_;
 
   private int tableEntries_;
@@ -73,7 +74,7 @@ final class CouponTraverseMap extends Map {
 
     map.keysArr_ = new byte[COUPON_MAP_MIN_NUM_ENTRIES * keySizeBytes];
     map.couponsArr_ = new short[COUPON_MAP_MIN_NUM_ENTRIES * maxCouponsPerKey];
-    map.stateArr_ = new byte[(int) Math.ceil(COUPON_MAP_MIN_NUM_ENTRIES / 8.0)];
+    map.stateArr_ = new byte[COUPON_MAP_MIN_NUM_ENTRIES_ARR_SIZE];
     return map;
   }
 

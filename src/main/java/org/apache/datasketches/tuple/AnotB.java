@@ -29,6 +29,7 @@ import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.CornerCase;
@@ -66,6 +67,7 @@ import org.apache.datasketches.thetacommon.ThetaUtil;
  *
  * @author Lee Rhodes
  */
+@SuppressFBWarnings(value = "DP_DO_INSIDE_DO_PRIVILEGED", justification = "Defer fix")
 public final class AnotB<S extends Summary> {
   private boolean empty_ = true;
   private long thetaLong_ = Long.MAX_VALUE;
@@ -308,6 +310,8 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as an unordered {@link CompactSketch}
    */
+  @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
+      justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
   public static <S extends Summary> CompactSketch<S> aNotB(
       final Sketch<S> skA,
       final Sketch<S> skB) {
@@ -399,6 +403,8 @@ public final class AnotB<S extends Summary> {
    * @param <S> Type of Summary
    * @return the result as an unordered {@link CompactSketch}
    */
+  @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
+      justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
   public static <S extends Summary> CompactSketch<S> aNotB(
       final Sketch<S> skA,
       final org.apache.datasketches.theta.Sketch skB) {
@@ -449,9 +455,11 @@ public final class AnotB<S extends Summary> {
         result = new CompactSketch<>(daA.hashArr, daA.summaryArr, thetaLongA, skA.empty_);
         break;
       }
-      case FULL_ANOTB: { //both A and B should have valid entries.
+      case FULL_ANOTB: { //both A and B have valid entries.
         final DataArrays<S> daA = getCopyOfDataArraysTuple(skA);
         final long minThetaLong = min(thetaLongA, thetaLongB);
+        @SuppressFBWarnings(value = "UWF_FIELD_NOT_INITIALIZED_IN_CONSTRUCTOR",
+            justification = "hashArr and summaryArr are guaranteed to be valid due to the switch on CornerCase")
         final DataArrays<S> daR =
             getCopyOfResultArraysTheta(minThetaLong, daA.hashArr.length, daA.hashArr, daA.summaryArr, skB);
         final int countR = (daR.hashArr == null) ? 0 : daR.hashArr.length;

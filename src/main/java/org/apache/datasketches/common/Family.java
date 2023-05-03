@@ -20,6 +20,7 @@
 package org.apache.datasketches.common;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -157,13 +158,13 @@ public enum Family {
   static {
     for (final Family f : values()) {
       lookupID.put(f.getID(), f);
-      lookupFamName.put(f.getFamilyName().toUpperCase(), f);
+      lookupFamName.put(f.getFamilyName().toUpperCase(Locale.US), f);
     }
   }
 
   private Family(final int id, final String famName, final int minPreLongs, final int maxPreLongs) {
     id_ = id;
-    famName_ = famName.toUpperCase();
+    famName_ = famName.toUpperCase(Locale.US);
     minPreLongs_ = minPreLongs;
     maxPreLongs_ = maxPreLongs;
   }
@@ -172,6 +173,7 @@ public enum Family {
    * Returns the byte ID for this family
    * @return the byte ID for this family
    */
+  @SuppressFBWarnings(value = "NM_CONFUSING", justification = "Harmless, will not fix")
   public int getID() {
     return id_;
   }
@@ -236,7 +238,7 @@ public enum Family {
    * @return the Family given the family name
    */
   public static Family stringToFamily(final String famName) {
-    final Family f = lookupFamName.get(famName.toUpperCase());
+    final Family f = lookupFamName.get(famName.toUpperCase(Locale.US));
     if (f == null) {
       throw new SketchesArgumentException("Possible Corruption: Illegal Family Name: " + famName);
     }

@@ -27,6 +27,7 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.ResizeFactor;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SketchesStateException;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -423,6 +424,8 @@ public class UpdateSketchBuilder {
    * @return a concurrent UpdateSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    */
+  @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
+      justification = "Harmless in Builder, fix later")
   public UpdateSketch buildShared(final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {
@@ -456,6 +459,8 @@ public class UpdateSketchBuilder {
    * @return a concurrent UpdateSketch with the current configuration of the Builder
    * and the given destination WritableMemory.
    */
+  @SuppressFBWarnings(value = "ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD",
+      justification = "Harmless in Builder, fix later")
   public UpdateSketch buildSharedFromSketch(final UpdateSketch sketch, final WritableMemory dstMem) {
     ConcurrentPropagationService.NUM_POOL_THREADS = bNumPoolThreads;
     if (dstMem == null) {

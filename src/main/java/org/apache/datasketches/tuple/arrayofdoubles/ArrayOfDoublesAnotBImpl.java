@@ -29,6 +29,7 @@ import static org.apache.datasketches.thetacommon.HashOperations.hashSearch;
 import java.util.Arrays;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases;
 import org.apache.datasketches.thetacommon.SetOperationCornerCases.AnotbAction;
@@ -63,6 +64,7 @@ public class ArrayOfDoublesAnotBImpl extends ArrayOfDoublesAnotB {
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is OK here")
   public void update(final ArrayOfDoublesSketch skA, final ArrayOfDoublesSketch skB) {
     if (skA == null || skB == null) {
       throw new SketchesArgumentException("Neither argument may be null.");

@@ -32,6 +32,7 @@ import static org.apache.datasketches.cpc.PreambleUtil.isCompressed;
 import static org.apache.datasketches.cpc.RuntimeAsserts.rtAssert;
 
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -47,6 +48,7 @@ public final class CpcWrapper {
    * Construct a read-only view of the given Memory that contains a CpcSketch
    * @param mem the given Memory
    */
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP2", justification = "This is OK here")
   public CpcWrapper(final Memory mem) {
     this.mem = mem;
     checkLoPreamble(mem);

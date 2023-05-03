@@ -118,6 +118,7 @@ final class KllMemoryValidate {
   void compactMemoryValidate(final Memory srcMem) { //FOR HEAPIFY
     if (empty && singleItem) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, flags); }
     final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0);
+
     switch (sw) {
       case 0: { //FULL_COMPACT
         if (preInts != PREAMBLE_INTS_FULL) { memoryValidateThrow(INVALID_PREINTS, preInts); }
@@ -156,7 +157,7 @@ final class KllMemoryValidate {
         sketchBytes = DATA_START_ADR_SINGLE_ITEM + typeBytes;
         break;
       }
-      default: //can not happen
+      default: break; //can not happen
     }
   }
 

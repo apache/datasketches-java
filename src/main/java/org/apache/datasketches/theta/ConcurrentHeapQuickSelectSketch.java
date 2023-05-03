@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.datasketches.common.ResizeFactor;
+import org.apache.datasketches.common.SuppressFBWarnings;
 
 /**
  * A concurrent shared sketch that is based on HeapQuickSelectSketch.
@@ -35,7 +36,7 @@ import org.apache.datasketches.common.ResizeFactor;
  * @author eshcar
  * @author Lee Rhodes
  */
-class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
+final class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
     implements ConcurrentSharedThetaSketch {
 
   // The propagation thread
@@ -246,13 +247,14 @@ class ConcurrentHeapQuickSelectSketch extends HeapQuickSelectSketch
   /**
    * Advances the epoch while there is no background propagation
    * This ensures a propagation invoked before the reset cannot affect the sketch after the reset
-   * is completed. Ignore VO_VOLATILE_INCREMENT findbugs warning, it is False Positive.
+   * is completed.
    */
+  @SuppressFBWarnings(value = "VO_VOLATILE_INCREMENT", justification = "Likely False Positive, Fix Later")
   private void advanceEpoch() {
     awaitBgPropagationTermination();
     startEagerPropagation();
     ConcurrentPropagationService.resetExecutorService(Thread.currentThread().getId());
-    //noinspection NonAtomicOperationOnVolatileField
+    //no inspection NonAtomicOperationOnVolatileField
     // this increment of a volatile field is done within the scope of the propagation
     // synchronization and hence is done by a single thread
     // Ignore a FindBugs warning

@@ -37,10 +37,10 @@ import org.apache.datasketches.memory.Memory;
  */
 public final class ItemsUnion<T> {
 
-  protected final int maxK_;
-  protected final Comparator<? super T> comparator_;
-  protected ItemsSketch<T> gadget_;
-  protected Class<T> clazz_;
+  final int maxK_;
+  final Comparator<? super T> comparator_;
+  ItemsSketch<T> gadget_;
+  Class<T> clazz_;
 
   private ItemsUnion(final int maxK, final Comparator<? super T> comparator, final ItemsSketch<T> gadget) {
     Objects.requireNonNull(gadget, "Gadjet sketch must not be null.");
@@ -272,6 +272,7 @@ public final class ItemsUnion<T> {
     int sw1 = ((myQS   == null) ? 0 :   myQS.isEmpty() ? 4 : 8);
     sw1 |=    ((other  == null) ? 0 :  other.isEmpty() ? 1 : 2);
     int outCase = 0; //0=null, 1=NOOP, 2=copy, 3=merge
+
     switch (sw1) {
       case 0:  outCase = 0; break; //myQS = null,  other = null ; return null
       case 1:  outCase = 4; break; //myQS = null,  other = empty; create empty-heap(myMaxK)
@@ -282,9 +283,10 @@ public final class ItemsUnion<T> {
       case 8:  outCase = 1; break; //myQS = valid, other = null ; no-op
       case 9:  outCase = 1; break; //myQS = valid, other = empty: no-op
       case 10: outCase = 3; break; //myQS = valid, other = valid; merge
-      //default: //This cannot happen and cannot be tested
+      default: break; //This cannot happen
     }
     ItemsSketch<T> ret = null;
+
     switch (outCase) {
       case 0: ret = null; break;
       case 1: ret = myQS; break;
@@ -334,7 +336,7 @@ public final class ItemsUnion<T> {
         ret = ItemsSketch.getInstance(other.getSketchType(), Math.min(myMaxK, other.getK()), comparator);
         break;
       }
-      //default: //This cannot happen and cannot be tested
+      default: break; //This cannot happen
     }
     return ret;
   }

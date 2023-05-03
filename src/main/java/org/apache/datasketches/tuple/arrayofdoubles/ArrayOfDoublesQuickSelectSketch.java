@@ -156,7 +156,7 @@ abstract class ArrayOfDoublesQuickSelectSketch extends ArrayOfDoublesUpdatableSk
     incrementCount();
   }
 
-  void setRebuildThreshold() {
+  final void setRebuildThreshold() {
     if (getCurrentCapacity() > getNominalEntries()) {
       rebuildThreshold_ = (int) (getCurrentCapacity() * ThetaUtil.REBUILD_THRESHOLD);
     } else {

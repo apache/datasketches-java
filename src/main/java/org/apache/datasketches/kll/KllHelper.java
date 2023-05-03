@@ -89,7 +89,7 @@ final class KllHelper {
 
   static class LevelStats {
     long n;
-    int numLevels;
+    public int numLevels;
     int numItems;
 
     LevelStats(final long n, final int numLevels, final int numItems) {

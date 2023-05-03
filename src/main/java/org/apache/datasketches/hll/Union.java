@@ -372,6 +372,7 @@ public class Union extends BaseHllSketch {
     final int bit4 = (srcLgK > lgMaxK) ? 16 : 0;
     final int sw = bit4 | bit3 | bits1_2 | bit0;
     HllSketchImpl hllSketchImpl = null; //never returned as null
+
     switch (sw) {
       case 0: //src <= max, src >= gdt, gdtLIST, gdtHeap
       case 8: //src <= max, src <  gdt, gdtLIST, gdtHeap
@@ -465,7 +466,7 @@ public class Union extends BaseHllSketch {
         hllSketchImpl = useGadgetMemory(gadget, srcHll8Heap, false).hllSketchImpl;
         break;
       }
-      //default: return gadget.hllSketchImpl; //not possible
+      default: return gadget.hllSketchImpl; //not possible
     }
     return hllSketchImpl;
   }
@@ -485,6 +486,7 @@ public class Union extends BaseHllSketch {
       final int sw = (tgtIsMem ? 1 : 0) | (srcIsMem ? 2 : 0)
           | ((srcLgK > tgtLgK) ? 4 : 0) | ((src.getTgtHllType() != HLL_8) ? 8 : 0);
       final int srcK = 1 << srcLgK;
+
       switch (sw) {
         case 0: { //HLL_8, srcLgK=tgtLgK, src=heap, tgt=heap
           final byte[] srcArr = ((Hll8Array) src.hllSketchImpl).hllByteArr;
@@ -744,6 +746,7 @@ public class Union extends BaseHllSketch {
           }
           break;
         }
+        default: break; //not possible
       }
       tgt.hllSketchImpl.putRebuildCurMinNumKxQFlag(true);
   }
