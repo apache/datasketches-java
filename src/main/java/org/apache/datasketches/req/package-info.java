@@ -18,7 +18,7 @@
  */
 
 /**
- * @author Lee Rhodes
+ * This package is for the implementation of the Relative Error Quantiles sketch algorithm.
+ * @see org.apache.datasketches.req.ReqSketch
  */
-
 package org.apache.datasketches.req;

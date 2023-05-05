@@ -72,6 +72,10 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * "double-sided" (PMF) epsilon of about 1.65%, with a confidence of 99%.</p>
  * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
  * @see QuantilesAPI
+ *
+ * @author Lee Rhodes
+ * @author Kevin Lang
+ * @author Alexander Saydakov
  */
 public abstract class KllSketch implements QuantilesAPI {
 

@@ -18,10 +18,7 @@
  */
 
 /**
- * Compressed Probabilistic Counting
- *
- * @author Lee Rhodes
- * @author Kevin Lang
+ * Compressed Probabilistic Counting sketch family
  */
 
 package org.apache.datasketches.cpc;

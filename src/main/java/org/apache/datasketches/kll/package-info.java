@@ -18,9 +18,8 @@
  */
 
 /**
- * @author Lee Rhodes
- * @author Kevin Lang
- * @author Alexander Saydakov
+ * This package is for the implementations of the sketch algorithm developed by Zohar Karnin, Kevin Lang,
+ * and Edo Liberty that is commonly referred to as the "KLL" sketch after the authors' last names.
  */
 
 package org.apache.datasketches.kll;

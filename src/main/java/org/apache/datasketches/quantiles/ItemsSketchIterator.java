@@ -29,7 +29,6 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
  * @param <T> type of item
  */
 public class ItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T> {
-  //private final ItemsSketch<T> sketch;
   private Object[] combinedBuffer;
   private long bitPattern;
   private int level;

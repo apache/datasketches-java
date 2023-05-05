@@ -113,22 +113,22 @@ abstract class BaseHllSketch {
    * Gets the current (approximate) Relative Error (RE) asymptotic values given several
    * parameters. This is used primarily for testing.
    * @param upperBound return the RE for the Upper Bound, otherwise for the Lower Bound.
-   * @param unioned set true if the sketch is the result of a union operation.
+   * @param oooFlag set true if the sketch is the result of a non qualifying union operation.
    * @param lgConfigK the configured value for the sketch.
    * @param numStdDev the given number of Standard Deviations. This must be an integer between
    * 1 and 3, inclusive.
    * <a href="{@docRoot}/resources/dictionary.html#numStdDev">Number of Standard Deviations</a>
    * @return the current (approximate) RelativeError
    */
-  public static double getRelErr(final boolean upperBound, final boolean unioned,
+  public static double getRelErr(final boolean upperBound, final boolean oooFlag,
       final int lgConfigK, final int numStdDev) {
     HllUtil.checkLgK(lgConfigK);
     if (lgConfigK > 12) {
-      final double rseFactor = unioned ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
+      final double rseFactor = oooFlag ? HLL_NON_HIP_RSE_FACTOR : HLL_HIP_RSE_FACTOR;
       final int configK = 1 << lgConfigK;
       return (numStdDev * rseFactor) / Math.sqrt(configK);
     }
-    return Math.abs(RelativeErrorTables.getRelErr(upperBound, unioned, lgConfigK, numStdDev));
+    return Math.abs(RelativeErrorTables.getRelErr(upperBound, oooFlag, lgConfigK, numStdDev));
   }
 
   /**

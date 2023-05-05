@@ -17,4 +17,7 @@
  * under the License.
  */
 
+/**
+ * This package is for common classes that may be used across all the sketch families.
+ */
 package org.apache.datasketches.common;

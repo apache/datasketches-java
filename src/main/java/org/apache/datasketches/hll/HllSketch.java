@@ -36,33 +36,71 @@ import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This is a high performance implementation of Phillipe Flajolet&#8217;s HLL sketch but with
- * significantly improved error behavior.  If the ONLY use case for sketching is counting
- * uniques and merging, the HLL sketch the HLL sketch is a reasonable choice, although the highest
- * performing in terms of accuracy for storage space consumed is CPC (Compressed Probabilistic Counting).
- * For large enough counts, this HLL version (with HLL_4) can be 2 to 16 times smaller than the
- * Theta sketch family for the same accuracy.
+ * The HllSketch is actually a collection of compact implementations of Phillipe Flajolet’s HyperLogLog (HLL)
+ * sketch but with significantly improved error behavior and excellent speed performance.
  *
- * <p>This implementation offers three different types of HLL sketch, each with different
- * trade-offs with accuracy, space and performance. These types are specified with the
- * {@link TgtHllType} parameter.
+ * <p>If the use case for sketching is primarily counting uniques and merging, the HLL sketch is the 2nd highest
+ * performing in terms of accuracy for storage space consumed in the DataSketches library
+ * (the new CPC sketch developed by Kevin J. Lang now beats HLL in terms of accuracy / space).
+ * For large counts, HLL sketches can be 2 to 8 times smaller for the same accuracy than the DataSketches Theta
+ * Sketches when serialized, but the Theta sketches can do set intersections and differences while HLL and CPC cannot.
+ * The CPC sketch and HLL share similar use cases, but the CPC sketch is about 30 to 40% smaller than the HLL sketch
+ * when serialized and larger than the HLL when active in memory.  Choose your weapons!</p>
  *
- * <p>In terms of accuracy, all three types, for the same <i>lgConfigK</i>, have the same error
- * distribution as a function of <i>n</i>, the number of unique values fed to the sketch.
- * The configuration parameter <i>lgConfigK</i> is the log-base-2 of <i>K</i>,
- * where <i>K</i> is the number of buckets or slots for the sketch.
+ * <p>A new HLL sketch is created with a simple constructor:</p>
+ * <pre>{@code
+ * int lgK = 12; //This is log-base2 of k, so k = 4096. lgK can be from 4 to 21
+ * HllSketch sketch = new HllSketch(lgK); //TgtHllType.HLL_4 is the default
+ * //OR
+ * HllSketch sketch = new HllSketch(lgK, TgtHllType.HLL_6);
+ * //OR
+ * HllSketch sketch = new HllSketch(lgK, TgtHllType.HLL_8);
+ * }</pre>
  *
- * <p>During warmup, when the sketch has only received a small number of unique items
- * (up to about 10% of <i>K</i>), this implementation leverages a new class of estimator
- * algorithms with significantly better accuracy.
+ * <p>All three different sketch types are targets in that the sketches start out in a warm-up mode that is small in
+ * size and gradually grows as needed until the full HLL array is allocated. The HLL_4, HLL_6 and HLL_8 represent
+ * different levels of compression of the final HLL array where the 4, 6 and 8 refer to the number of bits each
+ * bucket of the HLL array is compressed down to.
+ * The HLL_4 is the most compressed but generally slower than the other two, especially during union operations.</p>
  *
- * <p>This sketch also offers the capability of operating off-heap. Given a WritableMemory object
- * created by the user, the sketch will perform all of its updates and internal phase transitions
- * in that object, which can actually reside either on-heap or off-heap based on how it is
- * configured. In large systems that must update and merge many millions of sketches, having the
- * sketch operate off-heap avoids the serialization and deserialization costs of moving sketches
- * to and from off-heap memory-mapped files, for example, and eliminates big garbage collection
- * delays.
+ * <p>All three types share the same API. Updating the HllSketch is very simple:</p>
+ *
+ * <pre>{@code
+ * long n = 1000000;
+ * for (int i = 0; i < n; i++) {
+ *   sketch.update(i);
+ * }
+ * }</pre>
+ *
+ * <p>Each of the presented integers above are first hashed into 128-bit hash values that are used by the sketch
+ * HLL algorithm, so the above loop is essentially equivalent to using a random number generator initialized with a
+ * seed so that the sequence is deterministic and random.</p>
+ *
+ * <p>Obtaining the cardinality results from the sketch is also simple:</p>
+ *
+ * <pre>{@code
+ * double estimate = sketch.getEstimate();
+ * double estUB = sketch.getUpperBound(1.0); //the upper bound at 1 standard deviation.
+ * double estLB = sketch.getLowerBound(1.0); //the lower bound at 1 standard deviation.
+ * //OR
+ * System.out.println(sketch.toString()); //will output a summary of the sketch.
+ * }</pre>
+ *
+ * <p>Which produces a console output something like this:</p>
+ *
+ * <pre>{@code
+ * ### HLL SKETCH SUMMARY:
+ *   Log Config K   : 12
+ *   Hll Target     : HLL_4
+ *   Current Mode   : HLL
+ *   LB             : 977348.7024560181
+ *   Estimate       : 990116.6007366662
+ *   UB             : 1003222.5095308956
+ *   OutOfOrder Flag: false
+ *   CurMin         : 5
+ *   NumAtCurMin    : 1
+ *   HipAccum       : 990116.6007366662
+ * }</pre>
  *
  * @author Lee Rhodes
  * @author Kevin Lang

@@ -36,7 +36,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
 /**
  * This Relative Error Quantiles Sketch is the Java implementation based on the paper
  * "Relative Error Streaming Quantiles" by Graham Cormode, Zohar Karnin, Edo Liberty,
- * Justin Thaler, Pavel Veselý, and loosely derived from a Python prototype written by Pavel Vesely.
+ * Justin Thaler, Pavel Veselý, and loosely derived from a Python prototype written by Pavel Veselý.
  *
  * <p>Reference: https://arxiv.org/abs/2004.01668</p>
  *

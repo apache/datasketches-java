@@ -51,6 +51,18 @@ import org.apache.datasketches.memory.WritableMemory;
  * <p>Second, the user cannot specify the {@link TgtHllType} as an input parameter to the union.
  * Instead, it is specified for the sketch returned with {@link #getResult(TgtHllType)}.
  *
+ * <p>The following graph illustrates the HLL Merge speed.</p>
+ *
+ * <p><img src="doc-files/HLL_UnionTime4_6_8_Java_CPP.png" width="500" alt="HLL LgK12 Union Speed"></p>
+ * This graph illustrates the relative merging speed of the HLL 4,6,8 Java HLL sketches compared to
+ * the DataSketches C++ implementations of the same sketches. With this particular test (merging 32 relative large
+ * sketches together), the Java HLL 8 is the fastest and the Java HLL 4 the slowest, with a mixed cluster in the middle.
+ * Union / Merging speed is somewhat difficult to measure as the performance is very dependent on the mix of sketch
+ * sizes (and types) you are merging. So your mileage will vary!
+ *
+ * <p>For a complete example of using the Union operator
+ * see <a href="https://datasketches.apache.org/docs/HLL/HllJavaExample.html">Union Example</a>.</p>
+ *
  * @author Lee Rhodes
  * @author Kevin Lang
  */
