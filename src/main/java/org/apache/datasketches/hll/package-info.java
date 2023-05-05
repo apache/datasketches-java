@@ -19,8 +19,8 @@
 
 /**
  * <h1>The DataSketches&trade; HLL sketch family package</h1>
- * The {@link org.apache.datasketches.hll.HllSketch HllSketch} and {@link org.apache.datasketches.hll.Union Union}
- * are the public facing classes of a high performance implementation of Phillipe Flajolet's
+ * {@link org.apache.datasketches.hll.HllSketch HllSketch} and {@link org.apache.datasketches.hll.Union Union}
+ * are the public facing classes of this high performance implementation of Phillipe Flajolet's
  * HyperLogLog algorithm[1] but with significantly improved error behavior and important features that can be
  * essential for large production systems that must handle massive data.
  *
@@ -55,11 +55,12 @@
  * sketch once the statistical randomness is removed through multiple trials. This can be observed in the
  * following graph.</p>
  *
- * <p><img src="doc-files/HLL_HIP_K12T20U20.png" width="500" alt="HLL Accuracy">
- * </p>
+ * <p><img src="doc-files/HLL_HIP_K12T20U20.png" width="500" alt="HLL Accuracy">[6]</p>
+ *
  * <p>The above graph has 7 curves. At y = 0, is the median line that hugs the x-axis so closely that it can't be seen.
  * The two curves, just above and just below the x-axis, correspond to +/- 1 standard deviation (SD) of error.
- * The distance between either one of this pair and the x-axis is also known as the Relative Standard Error (RSE).</p>
+ * The distance between either one of this pair and the x-axis is also known as the Relative Standard Error (RSE).
+ * This type of graph for illustrating sketch error we call a "pitchfork plot".</p>
  *
  * <p>The next two curves above and below correspond to +/- 2 SD, and
  * the top-most and bottom-most curves correspond to +/- 3 SD.
@@ -127,27 +128,30 @@
  * This means it is possible to generate an HLL sketch on a C++ Windows platform and it can be used on a
  * Java or Python Unix platform.
  *
- * <p>[1]Philippe Flajolet, et al, <a href="https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf">
+ * <p>[1] Philippe Flajolet, et al, <a href="https://algo.inria.fr/flajolet/Publications/FlFuGaMe07.pdf">
 <i>HyperLogLog: the analysis of a near-optimal cardinality estimation algorithm.</i></a>
  * DMTCS proc. <b>AH</b>, 2007, 127-146.
  *
- * <p>[2]Edith Cohen, <a href="https://arxiv.org/pdf/1306.3284.pdf">
+ * <p>[2] Edith Cohen, <a href="https://arxiv.org/pdf/1306.3284.pdf">
 <i>All-Distances Sketches, Revisited: HIP Estimators for Massive Graphs Analysis.</i></a>
  * PODS'14, June 22-27, Snowbird, UT, USA.
  *
- * <p>[3]Daniel Ting,
+ * <p>[3] Daniel Ting,
  * <a href="https://research.facebook.com/publications/streamed-approximate-counting-of-distinct-elements">
 <i>Streamed Approximate Counting of Distinct Elements, Beating Optimal Batch Methods.</i></a>
  * KDD'14 August 24, 2014 New York, New York USA.
  *
- * <p>[4]Kevin Lang,
+ * <p>[4] Kevin Lang,
  * <a href="https://arxiv.org/abs/1708.06839">
 <i>Back to the Future: an Even More Nearly Optimal Cardinality Estimation Algorithm.</i></a>
  * arXiv 1708.06839, August 22, 2017, Yahoo Research.
  *
- * <p>[5]Memory Component,
+ * <p>[5] Memory Component,
  * <a href="https://datasketches.apache.org/docs/Memory/MemoryComponent.html">
 <i>DataSketches Memory Component</i></a>
+ *
+ * <p>[6] MacBook Pro 2.3 GHz 8-Core Intel Core i9
+ *
  * @see org.apache.datasketches.cpc.CpcSketch
  *
  * @author Lee Rhodes
