@@ -18,7 +18,6 @@
  */
 
 /**
- * @author Lee Rhodes
+ * This package is for a generic implementation of the Tuple sketch for single Integer value.
  */
-
 package org.apache.datasketches.tuple.aninteger;

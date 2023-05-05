@@ -17,4 +17,7 @@
  * under the License.
  */
 
+/**
+ * Frequent Distinct Tuples Sketch
+ */
 package org.apache.datasketches.fdt;

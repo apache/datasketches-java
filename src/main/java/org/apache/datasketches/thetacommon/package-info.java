@@ -19,6 +19,6 @@
 
 /**
  * This package contains common tools and methods for the <i>theta</i>,
- * <i>tuple</i>, <i>tuple/*</i> and <i>cpc</i> packages.
+ * <i>tuple</i>, <i>tuple/*</i> and <i>fdt</i> packages.
  */
 package org.apache.datasketches.thetacommon;

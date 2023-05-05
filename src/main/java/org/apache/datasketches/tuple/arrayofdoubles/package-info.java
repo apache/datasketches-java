@@ -18,7 +18,7 @@
  */
 
 /**
- * @author Lee Rhodes
+ * This package is for a concrete implementation of the Tuple sketch for an array of double values.
  */
 
 package org.apache.datasketches.tuple.arrayofdoubles;

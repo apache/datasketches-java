@@ -34,9 +34,5 @@
  * distribution of identifiers per key.
  *
  * @see org.apache.datasketches.hllmap.UniqueCountMap
- *
- * @author Lee Rhodes
- * @author Kevin Lang
- * @author Alexander Saydakov
  */
 package org.apache.datasketches.hllmap;

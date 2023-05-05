@@ -23,6 +23,6 @@
  * </p>
  *
  * @see org.apache.datasketches.quantiles.DoublesSketch
- * @author Lee Rhodes
+ * @see org.apache.datasketches.quantiles.ItemsSketch
  */
 package org.apache.datasketches.quantiles;
