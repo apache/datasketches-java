@@ -91,7 +91,7 @@ under the License.
     <testng.version>7.5.1</testng.version>
 
     <!-- System-wide properties -->
-    <maven.version>3.9.1</maven.version>
+    <maven.version>3.5.0</maven.version>
     <java.version>1.8</java.version>
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
