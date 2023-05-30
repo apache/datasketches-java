@@ -23,7 +23,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
@@ -45,22 +44,11 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  *
  * @see org.apache.datasketches.kll.KllSketch
  */
-public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
+public abstract class KllFloatsSketch extends KllFloatsProxy implements QuantilesFloatsAPI {
   private KllFloatsSketchSortedView kllFloatsSV = null;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
-  }
-
-  /**
-   * Returns upper bound on the serialized size of a KllFloatsSketch given the following parameters.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
-   * @return upper bound on the serialized size of a KllSketch.
-   */
-  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
-    return getMaxSerializedSizeBytes(k, n, SketchType.FLOATS_SKETCH, updatableMemoryFormat);
+    super(wmem, memReqSvr);
   }
 
   /**
@@ -167,6 +155,17 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     } else {
       return new KllDirectCompactFloatsSketch(srcMem, memVal);
     }
+  }
+
+  /**
+   * Returns upper bound on the serialized size of a KllFloatsSketch given the following parameters.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
+   * @return upper bound on the serialized size of a KllSketch.
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
+    return getMaxSerializedSizeBytes(k, n, SketchType.FLOATS_SKETCH, updatableMemoryFormat);
   }
 
   @Override
@@ -313,27 +312,6 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   void nullSortedView() { kllFloatsSV = null; }
-
-  @Override //Artifact of inheritance
-  double[] getDoubleItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
-
-  @Override //Artifact of inheritance
-  double getMaxDoubleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
-
-  @Override //Artifact of inheritance
-  double getMinDoubleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
-
-  @Override //Artifact of inheritance
-  void setDoubleItemsArray(final double[] doubleItems) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setDoubleItemsArrayAt(final int index, final double item) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setMaxDoubleItem(final double item) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setMinDoubleItem(final double item) { kllSketchThrow(MUST_NOT_CALL); }
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;

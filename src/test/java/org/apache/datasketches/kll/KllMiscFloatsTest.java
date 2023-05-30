@@ -562,18 +562,6 @@ public class KllMiscFloatsTest {
     assertEquals(skCompact.getFloatSingleItem(), 1.0F);
   }
 
-  //@Test
-  public void checkInheritanceArtifacts() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
-    try { sk.getDoubleItemsArray(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMaxDoubleItem(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMinDoubleItem(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setDoubleItemsArray(null); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setDoubleItemsArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMaxDoubleItem(0); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMinDoubleItem(0); fail();} catch (SketchesArgumentException e) {}
-  }
-
   @Test
   public void printlnTest() {
     String s = "PRINTING:  printf in " + this.getClass().getName();

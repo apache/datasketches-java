@@ -58,7 +58,7 @@ import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class performs all the error checking of an incoming Memory object and extracts the key fields in the process.
- * This is used by all sketches that read or import Memory objects.
+ * This is used by all KLL sketches that read or import Memory objects.
  *
  * @author lrhodes
  *

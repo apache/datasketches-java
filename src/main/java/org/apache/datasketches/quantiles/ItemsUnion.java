@@ -137,7 +137,7 @@ public final class ItemsUnion<T> {
    * @param srcMem Memory image of sketch to be merged
    * @param serDe an instance of ArrayOfItemsSerDe
    */
-  public void union(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) { //TODO rename merge
+  public void union(final Memory srcMem, final ArrayOfItemsSerDe<T> serDe) {
     final ItemsSketch<T> that = ItemsSketch.getInstance(this.clazz_, srcMem, comparator_, serDe);
     gadget_ = updateLogic(maxK_, comparator_, gadget_, that);
   }

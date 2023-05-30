@@ -542,18 +542,6 @@ public class KllMiscDoublesTest {
   }
 
   @Test
-  public void checkInheritanceArtifacts() {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    try { sk.getFloatItemsArray(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMaxFloatItem(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMinFloatItem(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setFloatItemsArray(null); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setFloatItemsArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMaxFloatItem(0); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMinFloatItem(0); fail();} catch (SketchesArgumentException e) {}
-  }
-
-  @Test
   public void printlnTest() {
     String s = "PRINTING:  printf in " + this.getClass().getName();
     println(s);

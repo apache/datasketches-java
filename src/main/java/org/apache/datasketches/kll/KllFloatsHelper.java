@@ -36,11 +36,12 @@ final class KllFloatsHelper {
 
   //Called from KllSketch
   static void mergeFloatImpl(final KllFloatsSketch sketch, final KllSketch other) {
-    if (other.isEmpty()) { return; }
+    final KllFloatsSketch otherFltSk = (KllFloatsSketch) other;
+    if (otherFltSk.isEmpty()) { return; }
     sketch.nullSortedView();
-    final long finalN = sketch.getN() + other.getN();
-    final int otherNumLevels = other.getNumLevels();
-    final int[] otherLevelsArr = other.getLevelsArray();
+    final long finalN = sketch.getN() + otherFltSk.getN();
+    final int otherNumLevels = otherFltSk.getNumLevels();
+    final int[] otherLevelsArr = otherFltSk.getLevelsArray();
     final float[] otherFloatItemsArr;
     //capture my min & max, minK
     final float myMin = sketch.isEmpty() ? Float.NaN : sketch.getMinFloatItem();
@@ -48,11 +49,11 @@ final class KllFloatsHelper {
     final int myMinK = sketch.getMinK();
 
     //update this sketch with level0 items from the other sketch
-    if (other.isCompactSingleItem()) {
-      updateFloat(sketch, other.getFloatSingleItem());
+    if (otherFltSk.isCompactSingleItem()) {
+      updateFloat(sketch, otherFltSk.getFloatSingleItem());
       otherFloatItemsArr = new float[0];
     } else {
-      otherFloatItemsArr = other.getFloatItemsArray();
+      otherFloatItemsArr = otherFltSk.getFloatItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
        updateFloat(sketch, otherFloatItemsArr[i]);
       }
@@ -66,7 +67,7 @@ final class KllFloatsHelper {
     int[] myNewLevelsArr = myCurLevelsArr;
     float[] myNewFloatItemsArr = myCurFloatItemsArr;
 
-    if (otherNumLevels > 1  && !other.isCompactSingleItem()) { //now merge higher levels if they exist
+    if (otherNumLevels > 1  && !otherFltSk.isCompactSingleItem()) { //now merge higher levels if they exist
       final int tmpSpaceNeeded = sketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final float[] workbuf = new float[tmpSpaceNeeded];
@@ -120,8 +121,8 @@ final class KllFloatsHelper {
 
     //Update Preamble:
     sketch.setN(finalN);
-    if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      sketch.setMinK(min(myMinK, other.getMinK()));
+    if (otherFltSk.isEstimationMode()) { //otherwise the merge brings over exact items.
+      sketch.setMinK(min(myMinK, otherFltSk.getMinK()));
     }
 
     //Update numLevels, levelsArray, items
@@ -130,8 +131,8 @@ final class KllFloatsHelper {
     sketch.setFloatItemsArray(myNewFloatItemsArr);
 
     //Update min, max items
-    final float otherMin = other.getMinFloatItem();
-    final float otherMax = other.getMaxFloatItem();
+    final float otherMin = otherFltSk.getMinFloatItem();
+    final float otherMax = otherFltSk.getMaxFloatItem();
     sketch.setMinFloatItem(resolveFloatMinItem(myMin, otherMin));
     sketch.setMaxFloatItem(resolveFloatMaxItem(myMax, otherMax));
     assert KllHelper.sumTheSampleWeights(sketch.getNumLevels(), sketch.getLevelsArray()) == sketch.getN();
@@ -212,20 +213,20 @@ final class KllFloatsHelper {
   }
 
   //Called from KllFloatsSketch, this.mergeFloatImpl(...)
-  static void updateFloat(final KllSketch sketch, final float item) {
+  static void updateFloat(final KllFloatsSketch fltSk, final float item) {
     if (Float.isNaN(item)) { return; }
-    final float prevMin = sketch.getMinFloatItem();
-    final float prevMax = sketch.getMaxFloatItem();
-    sketch.setMinFloatItem(resolveFloatMinItem(prevMin, item));
-    sketch.setMaxFloatItem(resolveFloatMaxItem(prevMax, item));
-    if (sketch.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(sketch); }
-    final int myLevelsArrAtZero = sketch.getLevelsArray()[0]; //LevelsArr could be expanded
-    sketch.incN();
-    sketch.setLevelZeroSorted(false);
+    final float prevMin = fltSk.getMinFloatItem();
+    final float prevMax = fltSk.getMaxFloatItem();
+    fltSk.setMinFloatItem(resolveFloatMinItem(prevMin, item));
+    fltSk.setMaxFloatItem(resolveFloatMaxItem(prevMax, item));
+    if (fltSk.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(fltSk); }
+    final int myLevelsArrAtZero = fltSk.getLevelsArray()[0]; //LevelsArr could be expanded
+    fltSk.incN();
+    fltSk.setLevelZeroSorted(false);
     final int nextPos = myLevelsArrAtZero - 1;
     assert myLevelsArrAtZero >= 0;
-    sketch.setLevelsArrayAt(0, nextPos);
-    sketch.setFloatItemsArrayAt(nextPos, item);
+    fltSk.setLevelsArrayAt(0, nextPos);
+    fltSk.setFloatItemsArrayAt(nextPos, item);
   }
 
   /**

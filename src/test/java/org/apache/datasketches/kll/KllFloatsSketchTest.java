@@ -502,21 +502,6 @@ public class KllFloatsSketchTest {
   }
 
   @Test
-  public void coverInheritanceArtifacts() {
-    double[] dblArr = new double[0];
-    double dblV = 1.0;
-    int idx = 1;
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
-    try { sk.getDoubleItemsArray();           fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMaxDoubleItem();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMinDoubleItem();             fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setDoubleItemsArray(dblArr);     fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setDoubleItemsArrayAt(idx,dblV); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMaxDoubleItem(dblV);         fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMinDoubleItem(dblV);         fail(); } catch (SketchesArgumentException e) { }
-  }
-
-  @Test
   public void checkReadOnlyUpdate() {
     KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
     Memory mem = Memory.wrap(sk1.toByteArray());

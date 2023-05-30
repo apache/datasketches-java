@@ -23,7 +23,6 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
@@ -45,11 +44,11 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
  *
  * @see org.apache.datasketches.kll.KllSketch
  */
-public abstract class KllDoublesSketch extends KllSketch implements QuantilesDoublesAPI {
+public abstract class KllDoublesSketch extends KllDoublesProxy implements QuantilesDoublesAPI {
   private KllDoublesSketchSortedView kllDoublesSV = null;
 
   KllDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
+    super(wmem, memReqSvr);
   }
 
   /**
@@ -83,7 +82,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new direct instance of this sketch
    */
-  public static KllDoublesSketch newDirectInstance(
+  public static KllDirectDoublesSketch newDirectInstance(
       final int k,
       final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
@@ -313,27 +312,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   void nullSortedView() { kllDoublesSV = null; }
-
-  @Override //Artifact of inheritance
-  float[] getFloatItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
-
-  @Override //Artifact of inheritance
-  float getMaxFloatItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
-
-  @Override //Artifact of inheritance
-  float getMinFloatItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
-
-  @Override //Artifact of inheritance
-  void setFloatItemsArray(final float[] floatItems) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setFloatItemsArrayAt(final int index, final float item) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setMaxFloatItem(final float item) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setMinFloatItem(final float item) { kllSketchThrow(MUST_NOT_CALL); }
 
   private final void refreshSortedView() {
     kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;

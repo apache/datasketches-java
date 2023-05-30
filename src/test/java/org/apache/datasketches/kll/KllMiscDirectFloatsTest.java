@@ -391,7 +391,7 @@ public class KllMiscDirectFloatsTest {
   public void checkSizes() {
     KllFloatsSketch sk = getDFSketch(20, 0);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
-    //println(sk.toString(true, true));
+    println(sk.toString(true, true)); //TODO
     byte[] byteArr1 = KllHelper.toUpdatableByteArrayImpl(sk);
     int size1 = sk.getCurrentUpdatableSerializedSizeBytes();
     assertEquals(size1, byteArr1.length);

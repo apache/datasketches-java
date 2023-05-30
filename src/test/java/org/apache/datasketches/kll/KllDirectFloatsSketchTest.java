@@ -644,7 +644,6 @@ public class KllDirectFloatsSketchTest {
     try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.getDoubleSingleItem();           fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -663,6 +662,7 @@ public class KllDirectFloatsSketchTest {
     try { sk2.merge(sk1); fail(); } catch (SketchesArgumentException e) { }
   }
 
+  // get Direct Floats Sketch
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }

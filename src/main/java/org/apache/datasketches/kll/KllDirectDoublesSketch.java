@@ -40,7 +40,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
@@ -127,9 +126,6 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     final int offset = DATA_START_ADR + 2 * Integer.BYTES + (2 + k - 1) * Double.BYTES;
     return wmem.getDouble(offset);
   }
-
-  @Override
-  float getFloatSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Float.NaN; }
 
   @Override
   int getM() {

@@ -21,7 +21,6 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
@@ -39,9 +38,9 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes, Kevin Lang
  */
 final class KllHeapFloatsSketch extends KllFloatsSketch {
-  private final int k_;    // configured size of K.
-  private final int m_;    // configured size of M.
-  private long n_;        // number of items input into this sketch.
+  private final int k_; // configured size of K.
+  private final int m_; // configured size of M.
+  private long n_;      // number of items input into this sketch.
   private int minK_;    // dynamic minK for error estimation after merging with different k.
   private boolean isLevelZeroSorted_;
   private float minFloatItem_;
@@ -132,9 +131,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   public long getN() { return n_; }
-
-  @Override
-  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override
   float[] getFloatItemsArray() { return floatItems_; }

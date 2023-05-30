@@ -159,6 +159,7 @@ final class KllPreambleUtil {
   static final int SINGLE_ITEM_BIT_MASK       = 4;
   static final int DOUBLES_SKETCH_BIT_MASK    = 8;
   static final int UPDATABLE_BIT_MASK         = 16;
+  static final int ITEMS_SKETCH_BIT_MASK      = 32;
 
   /**
    * Returns a human readable string summary of the internal state of the given sketch byte array.
