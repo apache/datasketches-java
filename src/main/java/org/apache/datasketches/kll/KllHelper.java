@@ -690,21 +690,18 @@ final class KllHelper {
     } else {
       sb.append("   Compact Storage Bytes  : ").append(sketch.getCurrentCompactSerializedSizeBytes()).append(Util.LS);
     }
-    KllDoublesSketch dblSk = null;
-    KllFloatsSketch fltSk = null;
-    //final KllItemsSketch itmSk = null;
 
     if (sketchType == DOUBLES_SKETCH) {
-      dblSk = (KllDoublesSketch) sketch;
+      final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
       sb.append("   Min Item               : ").append(dblSk.getMinDoubleItem()).append(Util.LS);
       sb.append("   Max Item               : ").append(dblSk.getMaxDoubleItem()).append(Util.LS);
     } else if (sketchType == FLOATS_SKETCH) {
-      fltSk = (KllFloatsSketch) sketch;
+      final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
       sb.append("   Min Item               : ").append(fltSk.getMinFloatItem()).append(Util.LS);
       sb.append("   Max Item               : ").append(fltSk.getMaxFloatItem()).append(Util.LS);
     }
 //    else {
-//      itmSk = (KllItemsSketch) sketch;
+//      KllItemsSketch itmSk = (KllItemsSketch) sketch;
 //      sb.append("   Min Item               : ").append(itmSk.getMinItem()).append(Util.LS);
 //      sb.append("   Max Item               : ").append(itmSk.getMaxItem()).append(Util.LS);
 //    }
@@ -719,9 +716,11 @@ final class KllHelper {
     }
     if (withData) {
       if (sketchType == DOUBLES_SKETCH) {
+        final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
         myDoubleItemsArr = dblSk.getDoubleItemsArray();
         sb.append(outputDoublesData(numLevels, levelsArr, myDoubleItemsArr));
       } else if (sketchType == FLOATS_SKETCH) {
+        final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
         myFloatItemsArr = fltSk.getFloatItemsArray();
         sb.append(outputFloatsData(numLevels, levelsArr, myFloatItemsArr));
       }
