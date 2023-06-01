@@ -544,35 +544,6 @@ final class KllHelper {
     return sb.toString();
   }
 
-  private static String outputGenericItemsData(final int numLevels, final int[] levelsArr, final Object[] itemsArr) {
-    final StringBuilder sb =  new StringBuilder();
-    sb.append("### KLL items data {index, item}:").append(Util.LS);
-    if (levelsArr[0] > 0) {
-      sb.append(" Garbage:" + Util.LS);
-      for (int i = 0; i < levelsArr[0]; i++) {
-        sb.append("   ").append(i + ", ").append(itemsArr[i].toString()).append(Util.LS);
-      }
-    }
-    int level = 0;
-    while (level < numLevels) {
-      final int fromIndex = levelsArr[level];
-      final int toIndex = levelsArr[level + 1]; // exclusive
-      if (fromIndex < toIndex) {
-        sb.append(" level[").append(level).append("]: offset: " + levelsArr[level] + " wt: " + (1 << level));
-        sb.append(Util.LS);
-      }
-
-      for (int i = fromIndex; i < toIndex; i++) {
-        sb.append("   ").append(i + ", ").append(itemsArr[i].toString()).append(Util.LS);
-      }
-      level++;
-    }
-    sb.append(" level[" + level + "]: offset: " + levelsArr[level] + " (Exclusive)");
-    sb.append(Util.LS);
-    sb.append("### End items data").append(Util.LS);
-    return sb.toString();
-  }
-
   static String outputLevels(final int k, final int m, final int numLevels, final int[] levelsArr) {
     final StringBuilder sb =  new StringBuilder();
     sb.append("### KLL levels array:").append(Util.LS)
@@ -602,59 +573,47 @@ final class KllHelper {
   static byte[] toCompactByteArrayImpl(final KllSketch sketch) {
     if (sketch.isEmpty()) { return fastEmptyCompactByteArray(sketch); }
     if (sketch.isSingleItem()) { return fastSingleItemCompactByteArray(sketch); }
-
+    //n > 1
     final byte[] byteArr = new byte[sketch.getCurrentCompactSerializedSizeBytes()];
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     loadFirst8Bytes(sketch, wmem, false);
-    if (sketch.getN() == 0) { return byteArr; } //empty
-    final KllDoublesSketch dblSk = (sketch.sketchType == DOUBLES_SKETCH) ? (KllDoublesSketch)sketch : null;
-    final KllFloatsSketch fltSk = (sketch.sketchType == FLOATS_SKETCH) ? (KllFloatsSketch)sketch : null;
-    //TODO add items
 
-    //load data
-    int offset = DATA_START_ADR_SINGLE_ITEM;
+    //remainder of preamble after first 8 bytes
+    setMemoryN(wmem, sketch.getN());
+    setMemoryMinK(wmem, sketch.getMinK());
+    setMemoryNumLevels(wmem, sketch.getNumLevels());
+
+    int offset = DATA_START_ADR;
+
+    //LOAD LEVELS ARR: the last integer in levels_ is NOT serialized
     final int[] myLevelsArr = sketch.getLevelsArray();
-    if (sketch.getN() == 1) { //single item
-      switch (sketch.sketchType) {
-        case DOUBLES_SKETCH : wmem.putDouble(offset,  dblSk.getDoubleItemsArray()[myLevelsArr[0]]); break;
-        case FLOATS_SKETCH  : wmem.putFloat(offset, fltSk.getFloatItemsArray()[myLevelsArr[0]]); break;
-        //case ITEMS_SKETCH : break; //TODO
-        default: throw new IllegalStateException("Unknown Sketch Type");
+    final int len = myLevelsArr.length - 1;
+    wmem.putIntArray(offset, myLevelsArr, 0, len);
+
+    offset += len * Integer.BYTES;
+
+    //LOAD MIN, MAX Items FOLLOWED BY ITEMS ARRAY
+    switch (sketch.sketchType) {
+      case DOUBLES_SKETCH : {
+        final KllDoublesSketch dblSk = (KllDoublesSketch)sketch;
+        wmem.putDouble(offset,dblSk.getMinDoubleItem());
+        offset += Double.BYTES;
+        wmem.putDouble(offset, dblSk.getMaxDoubleItem());
+        offset += Double.BYTES;
+        wmem.putDoubleArray(offset, dblSk.getDoubleItemsArray(), myLevelsArr[0], sketch.getNumRetained());
+        break;
       }
-    } else { // n > 1
-      //remainder of preamble after first 8 bytes
-      setMemoryN(wmem, sketch.getN());
-      setMemoryMinK(wmem, sketch.getMinK());
-      setMemoryNumLevels(wmem, sketch.getNumLevels());
-      offset = DATA_START_ADR;
-
-      //LOAD LEVELS ARR the last integer in levels_ is NOT serialized
-      final int len = myLevelsArr.length - 1;
-      wmem.putIntArray(offset, myLevelsArr, 0, len);
-      offset += len * Integer.BYTES;
-
-      //LOAD MIN, MAX Items FOLLOWED BY ITEMS ARRAY
-      switch (sketch.sketchType) {
-        case DOUBLES_SKETCH : {
-          wmem.putDouble(offset,dblSk.getMinDoubleItem());
-          offset += Double.BYTES;
-          wmem.putDouble(offset, dblSk.getMaxDoubleItem());
-          offset += Double.BYTES;
-          wmem.putDoubleArray(offset, dblSk.getDoubleItemsArray(), myLevelsArr[0], sketch.getNumRetained());
-          break;
-        }
-        case FLOATS_SKETCH  : {
-          wmem.putFloat(offset, fltSk.getMinFloatItem());
-          offset += Float.BYTES;
-          wmem.putFloat(offset, fltSk.getMaxFloatItem());
-          offset += Float.BYTES;
-          wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
-          break;
-        }
-        //case ITEMS_SKETCH : break; //TODO
-        default: throw new IllegalStateException("Unknown Sketch Type");
+      case FLOATS_SKETCH  : {
+        final KllFloatsSketch fltSk = (KllFloatsSketch)sketch;
+        wmem.putFloat(offset, fltSk.getMinFloatItem());
+        offset += Float.BYTES;
+        wmem.putFloat(offset, fltSk.getMaxFloatItem());
+        offset += Float.BYTES;
+        wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
+        break;
       }
-
+      //case ITEMS_SKETCH : break; //TODO
+      default: throw new IllegalStateException("Unknown Sketch Type");
     }
     return byteArr;
   }
@@ -753,7 +712,7 @@ final class KllHelper {
 
     double[] myDoubleItemsArr = null;
     float[] myFloatItemsArr = null;
-    Object[] myItemsArr = null;
+    //Object[] myItemsArr = null;
 
     if (withLevels) {
       sb.append(outputLevels(k, m, numLevels, levelsArr));
@@ -765,10 +724,11 @@ final class KllHelper {
       } else if (sketchType == FLOATS_SKETCH) {
         myFloatItemsArr = fltSk.getFloatItemsArray();
         sb.append(outputFloatsData(numLevels, levelsArr, myFloatItemsArr));
-      } else { //Items Sketch
-        myItemsArr = null;
-        sb.append(outputGenericItemsData(numLevels, levelsArr, myItemsArr));
       }
+//      else { //Items Sketch //TODO
+//        myItemsArr = null;
+//        sb.append(outputGenericItemsData(numLevels, levelsArr, myItemsArr));
+//      }
     }
     return sb.toString();
   }
