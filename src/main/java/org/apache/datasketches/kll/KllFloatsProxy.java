@@ -51,17 +51,6 @@ abstract class KllFloatsProxy extends KllSketch {
   abstract void setMinFloatItem(float item);
 
   /**
-   * Merges another sketch into this one.
-   * Attempting to merge a KllDoublesSketch with a KllFloatsSketch will
-   * throw an exception.
-   * @param other sketch to merge into this one
-   */
-  public final void merge(final KllFloatsSketch other) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    KllFloatsHelper.mergeFloatImpl((KllFloatsSketch)this, other);
-  }
-
-  /**
    * {@inheritDoc}
    * <p>The parameter <i>k</i> will not change.</p>
    */

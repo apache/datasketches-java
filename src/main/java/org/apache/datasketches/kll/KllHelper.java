@@ -821,17 +821,6 @@ final class KllHelper {
    */
   private static void addEmptyTopLevelToCompletelyFullSketch(final KllSketch sketch) {
     final SketchType sketchType = sketch.sketchType;
-    KllDoublesSketch dblSk = null;
-    KllFloatsSketch fltSk = null;
-    //KllItemsSketch itmSk = null; //TODO
-
-    if (sketchType == DOUBLES_SKETCH) {
-      dblSk = (KllDoublesSketch) sketch;
-    } else if (sketchType == FLOATS_SKETCH) {
-      fltSk = (KllFloatsSketch) sketch;
-    } else {
-      //itmSk = (KllItemsSketch) sketch; //TODO
-    }
     final int[] myCurLevelsArr = sketch.getLevelsArray();
     final int myCurNumLevels = sketch.getNumLevels();
     final int myCurTotalItemsCapacity = myCurLevelsArr[myCurNumLevels];
@@ -851,12 +840,14 @@ final class KllHelper {
     double[] myNewDoubleItemsArr = null;
 
     if (sketchType == DOUBLES_SKETCH) {
+      final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
       minDouble = dblSk.getMinDoubleItem();
       maxDouble = dblSk.getMaxDoubleItem();
       myCurDoubleItemsArr = dblSk.getDoubleItemsArray();
       //assert we are following a certain growth scheme
       assert myCurDoubleItemsArr.length == myCurTotalItemsCapacity;
     } else if (sketchType == FLOATS_SKETCH) {
+      final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
       minFloat = fltSk.getMinFloatItem();
       maxFloat = fltSk.getMaxFloatItem();
       myCurFloatItemsArr = fltSk.getFloatItemsArray();
@@ -913,10 +904,12 @@ final class KllHelper {
     sketch.setNumLevels(myNewNumLevels);
     sketch.setLevelsArray(myNewLevelsArr);
     if (sketchType == DOUBLES_SKETCH) {
+      final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
       dblSk.setMinDoubleItem(minDouble);
       dblSk.setMaxDoubleItem(maxDouble);
       dblSk.setDoubleItemsArray(myNewDoubleItemsArr);
     } else { //Float sketch
+      final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
       fltSk.setMinFloatItem(minFloat);
       fltSk.setMaxFloatItem(maxFloat);
       fltSk.setFloatItemsArray(myNewFloatItemsArr);
