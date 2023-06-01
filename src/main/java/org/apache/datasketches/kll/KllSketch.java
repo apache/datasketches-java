@@ -181,12 +181,16 @@ public abstract class KllSketch implements QuantilesAPI {
    * Returns upper bound on the serialized size of a KllSketch given the following parameters.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param n stream length
-   * @param sketchType either DOUBLES_SKETCH or FLOATS_SKETCH
+   * @param sketchType Only DOUBLES_SKETCH and FLOATS_SKETCH is supported for this operation.
    * @param updatableMemFormat true if updatable Memory format, otherwise the standard compact format.
    * @return upper bound on the serialized size of a KllSketch.
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatableMemFormat) {
+    if (sketchType != DOUBLES_SKETCH && sketchType != FLOATS_SKETCH) {
+      throw new UnsupportedOperationException(
+          "Only sketch types DOUBLES_SKETCH and FLOATS_SKETCH are supported for this operation.");
+    }
     final KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
     return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
@@ -345,9 +349,10 @@ public abstract class KllSketch implements QuantilesAPI {
     } else if (sketchType == FLOATS_SKETCH) {
       if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
       KllFloatsHelper.mergeFloatImpl((KllFloatsSketch)this, other);
-    } else {
-      //ITEMS_SKETCH //TODO
     }
+    //else {
+      //ITEMS_SKETCH //TODO
+    //}
   }
 
   @Override

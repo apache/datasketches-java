@@ -31,7 +31,8 @@ import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
-public class KllItemsSketch<T> extends KllGenericProxy<T> implements QuantilesGenericAPI<T> {
+@SuppressWarnings("unused")
+class KllItemsSketch<T> extends KllItemsProxy<T> implements QuantilesGenericAPI<T> { //TODO make public when ready
   private final int k_; // configured size of K.
   private final int m_; // configured size of M.
   private long n_;      // number of items input into this sketch.

@@ -22,9 +22,9 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
-abstract class KllGenericProxy<T> extends KllSketch {
+abstract class KllItemsProxy<T> extends KllSketch {
 
-  KllGenericProxy() {
+  KllItemsProxy() {
     super(SketchType.ITEMS_SKETCH, null, null);
   }
 

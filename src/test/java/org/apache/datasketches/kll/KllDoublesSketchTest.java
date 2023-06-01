@@ -415,7 +415,7 @@ public class KllDoublesSketchTest {
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
     final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
+    assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);

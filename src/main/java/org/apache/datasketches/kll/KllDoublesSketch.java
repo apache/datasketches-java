@@ -82,7 +82,7 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new direct instance of this sketch
    */
-  public static KllDirectDoublesSketch newDirectInstance(
+  public static KllDoublesSketch newDirectInstance(
       final int k,
       final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {

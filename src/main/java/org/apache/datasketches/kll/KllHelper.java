@@ -250,9 +250,10 @@ final class KllHelper {
         fltSk.setLevelsArrayAt(lvl, newIndex);
       }
       fltSk.setFloatItemsArray(myFloatItemsArr);
-    } else {
-      //ITEMS_SKETCH //TODO
     }
+    //else {
+      //ITEMS_SKETCH //TODO
+    //}
   }
 
   /**
@@ -337,7 +338,7 @@ final class KllHelper {
    * @param printGrowthScheme if true the entire growth scheme of the sketch will be printed.
    * @return GrowthStats with the final numItems of the growth scheme
    */
-  static GrowthStats getGrowthSchemeForGivenN(
+  static GrowthStats getGrowthSchemeForGivenN( //not applicable for generic types
       final int k,
       final int m,
       final long n,
@@ -360,7 +361,7 @@ final class KllHelper {
       printf("%10s %10s %20s %13s %15s\n", "NumLevels", "MaxItems", "MaxN", "CompactBytes", "UpdatableBytes");
     }
     final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES
-        : sketchType == FLOATS_SKETCH ? Float.BYTES : 0; //TODO
+        : sketchType == FLOATS_SKETCH ? Float.BYTES : 0;
     do {
       gStats.numLevels++; //
       lvlStats = getFinalSketchStatsAtNumLevels(gStats.k, gStats.m, gStats.numLevels, false);
@@ -473,8 +474,7 @@ final class KllHelper {
       final int newItemsArrLen) {
     final KllSketch.SketchType sketchType = sketch.sketchType;
     final WritableMemory oldWmem = sketch.wmem;
-    final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES
-        : sketchType == FLOATS_SKETCH ? Float.BYTES : 0; //TODO
+    final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES;
     final int requiredSketchBytes =  DATA_START_ADR
       + newLevelsArrLen * Integer.BYTES
       + 2 * typeBytes
@@ -859,9 +859,9 @@ final class KllHelper {
       final float[] floatItemsArr = fltSk.getFloatItemsArray();
       wmem.putFloatArray(offset, floatItemsArr, 0, floatItemsArr.length);
     }
-    else {
+    //else {
       //ITEMS_SKETCH //TODO
-    }
+    //}
     return byteArr;
   }
 
@@ -889,9 +889,10 @@ final class KllHelper {
       dblSk = (KllDoublesSketch) sketch;
     } else if (sketchType == FLOATS_SKETCH) {
       fltSk = (KllFloatsSketch) sketch;
-    } else {
-      //itmSk = (KllItemsSketch) sketch; //TODO
     }
+    //else {
+      //itmSk = (KllItemsSketch) sketch; //TODO
+    //}
     final int[] myCurLevelsArr = sketch.getLevelsArray();
     final int myCurNumLevels = sketch.getNumLevels();
     final int myCurTotalItemsCapacity = myCurLevelsArr[myCurNumLevels];
@@ -921,9 +922,10 @@ final class KllHelper {
       maxFloat = fltSk.getMaxFloatItem();
       myCurFloatItemsArr = fltSk.getFloatItemsArray();
       assert myCurFloatItemsArr.length == myCurTotalItemsCapacity;
-    } else {
-      //ITEMS_SKETCH //TODO
     }
+    //else {
+      //ITEMS_SKETCH //TODO
+    //}
     assert myCurLevelsArr[0] == 0; //definition of full is part of the growth scheme
 
     final int deltaItemsCap = levelCapacity(sketch.getK(), myCurNumLevels + 1, 0, sketch.getM());
@@ -959,9 +961,10 @@ final class KllHelper {
       myNewFloatItemsArr = new float[myNewTotalItemsCapacity];
       // copy and shift the current items data into the new array
       System.arraycopy(myCurFloatItemsArr, 0, myNewFloatItemsArr, deltaItemsCap, myCurTotalItemsCapacity);
-    } else {
-      //ITEMS_SKETCH // TODO
     }
+    //else {
+      //ITEMS_SKETCH // TODO
+    //}
 
     //MEMORY SPACE MANAGEMENT
     if (sketch.updatableMemFormat) {
