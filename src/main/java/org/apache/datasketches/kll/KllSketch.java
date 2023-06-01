@@ -345,9 +345,8 @@ public abstract class KllSketch implements QuantilesAPI {
     } else if (sketchType == FLOATS_SKETCH) {
       if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
       KllFloatsHelper.mergeFloatImpl((KllFloatsSketch)this, other);
-    } else {
-      //ITEMS_SKETCH //TODO
     }
+    //TODO items
   }
 
   @Override

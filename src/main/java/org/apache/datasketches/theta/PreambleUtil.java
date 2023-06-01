@@ -477,7 +477,6 @@ final class PreambleUtil {
     wmem.putLong(UNION_THETA_LONG, unionThetaLong);
   }
 
-  //TODO convert these to set/clear/any bits
   static void setEmpty(final WritableMemory wmem) {
     int flags = wmem.getByte(FLAGS_BYTE) & 0XFF;
     flags |= EMPTY_FLAG_MASK;
