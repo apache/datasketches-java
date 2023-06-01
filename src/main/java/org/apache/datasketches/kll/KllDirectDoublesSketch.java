@@ -20,7 +20,6 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
@@ -83,7 +82,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     setMemoryPreInts(dstMem, PREAMBLE_INTS_FULL);
     setMemorySerVer(dstMem, SERIAL_VERSION_UPDATABLE);
     setMemoryFamilyID(dstMem, Family.KLL.getID());
-    setMemoryFlags(dstMem, DOUBLES_SKETCH_BIT_MASK | UPDATABLE_BIT_MASK);
+    setMemoryFlags(dstMem, UPDATABLE_BIT_MASK);
     setMemoryK(dstMem, k);
     setMemoryM(dstMem, m);
     setMemoryN(dstMem, 0);
@@ -95,7 +94,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     dstMem.putDoubleArray(offset, new double[] {Double.NaN, Double.NaN}, 0, 2);
     offset += 2 * Double.BYTES;
     dstMem.putDoubleArray(offset, new double[k], 0, k);
-    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, SketchType.DOUBLES_SKETCH);
     return new KllDirectDoublesSketch(dstMem, memReqSvr, memVal);
   }
 

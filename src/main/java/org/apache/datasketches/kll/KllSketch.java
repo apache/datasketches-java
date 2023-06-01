@@ -82,7 +82,7 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Used to define the variable type of the current instance of this class.
    */
-  public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH, ITEMS_SKETCH }
+  public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH }
 
   enum Error {
     TGT_IS_READ_ONLY("Given sketch Memory is immutable, cannot write."),
@@ -145,7 +145,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @param wmem  the current WritableMemory or null
    * @param memReqSvr the given MemoryRequestServer or null
    */
-  public KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+  KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
    this.sketchType = sketchType;
    this.wmem = wmem;
    if (wmem != null) {

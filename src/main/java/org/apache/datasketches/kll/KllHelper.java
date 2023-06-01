@@ -31,11 +31,9 @@ import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.DOUBLES_SKETCH_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.FAMILY_BYTE_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.FLAGS_BYTE_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.ITEMS_SKETCH_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.KLL_FAMILY;
 import static org.apache.datasketches.kll.KllPreambleUtil.K_SHORT_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.M_BYTE_ADR;
@@ -48,7 +46,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATAB
 import static org.apache.datasketches.kll.KllPreambleUtil.SER_VER_BYTE_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryDoubleSketchFlag;
+//import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryDoubleSketchFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
@@ -63,7 +61,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySingleItemFla
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryUpdatableFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.util.Arrays;
 
@@ -663,14 +660,11 @@ final class KllHelper {
   }
 
   static byte[] fastEmptyCompactByteArray(final KllSketch sketch) {
-    final SketchType sketchType = sketch.sketchType;
-    final int typeFlagBit = sketchType == DOUBLES_SKETCH ? DOUBLES_SKETCH_BIT_MASK
-        : sketchType == ITEMS_SKETCH ? ITEMS_SKETCH_BIT_MASK : 0;
     final byte[] byteArr = new byte[8];
     byteArr[0] = PREAMBLE_INTS_EMPTY_SINGLE; //2
     byteArr[1] = SERIAL_VERSION_EMPTY_FULL;  //1
-    byteArr[2] = KLL_FAMILY; //15
-    byteArr[3] = (byte) (EMPTY_BIT_MASK | typeFlagBit);
+    byteArr[2] = KLL_FAMILY;                 //15
+    byteArr[3] = (byte) (EMPTY_BIT_MASK);
     ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)sketch.getK());
     byteArr[6] = (byte)sketch.getM();
     return byteArr;
@@ -682,25 +676,13 @@ final class KllHelper {
     switch (sketchType) {
       case FLOATS_SKETCH: {
         final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-        byteArr = new byte[8 + Float.BYTES];
-        byteArr[PREAMBLE_INTS_BYTE_ADR] = PREAMBLE_INTS_EMPTY_SINGLE; //2
-        byteArr[SER_VER_BYTE_ADR] = SERIAL_VERSION_SINGLE;            //2
-        byteArr[FAMILY_BYTE_ADR] = KLL_FAMILY;                        //15
-        byteArr[FLAGS_BYTE_ADR] = (byte) SINGLE_ITEM_BIT_MASK;        //4
-        ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)sketch.getK());
-        byteArr[M_BYTE_ADR] = (byte)sketch.getM();
+        byteArr = new byte[8 + Float.BYTES]; //12 bytes total
         ByteArrayUtil.putFloatLE(byteArr, DATA_START_ADR_SINGLE_ITEM, fltSk.getFloatSingleItem());
         break;
       }
       case DOUBLES_SKETCH: {
         final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-        byteArr = new byte[8 + Double.BYTES];
-        byteArr[PREAMBLE_INTS_BYTE_ADR] = PREAMBLE_INTS_EMPTY_SINGLE; //2
-        byteArr[SER_VER_BYTE_ADR] = SERIAL_VERSION_SINGLE;            //2
-        byteArr[FAMILY_BYTE_ADR] = KLL_FAMILY;                        //15
-        byteArr[FLAGS_BYTE_ADR] = (byte) (SINGLE_ITEM_BIT_MASK | DOUBLES_SKETCH_BIT_MASK); //12
-        ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)sketch.getK());
-        byteArr[M_BYTE_ADR] = (byte)sketch.getM();
+        byteArr = new byte[8 + Double.BYTES]; //16 bytes total
         ByteArrayUtil.putDoubleLE(byteArr, DATA_START_ADR_SINGLE_ITEM, dblSk.getDoubleSingleItem());
         break;
       }
@@ -710,6 +692,12 @@ final class KllHelper {
 //      }
       default: return null; //can't happen
     }
+    byteArr[PREAMBLE_INTS_BYTE_ADR] = PREAMBLE_INTS_EMPTY_SINGLE; //2
+    byteArr[SER_VER_BYTE_ADR] = SERIAL_VERSION_SINGLE;            //2
+    byteArr[FAMILY_BYTE_ADR] = KLL_FAMILY;                        //15
+    byteArr[FLAGS_BYTE_ADR] = (byte) SINGLE_ITEM_BIT_MASK;        //4
+    ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)sketch.getK());
+    byteArr[M_BYTE_ADR] = (byte)sketch.getM();
     return byteArr;
   }
 
@@ -793,16 +781,11 @@ final class KllHelper {
    * @return a byte array in an updatable form.
    */
   private static byte[] toUpdatableByteArrayFromUpdatableMemory(final KllSketch sketch) {
-    final SketchType sketchType = sketch.sketchType;
-    final int typeFlagBit = sketchType == DOUBLES_SKETCH ? DOUBLES_SKETCH_BIT_MASK
-        : sketchType == ITEMS_SKETCH ? ITEMS_SKETCH_BIT_MASK : 0;
-
     final int curBytes = sketch.getCurrentUpdatableSerializedSizeBytes();
     final long n = sketch.getN();
     final byte flags = (byte) (UPDATABLE_BIT_MASK
         | ((n == 0) ? EMPTY_BIT_MASK : 0)
-        | ((n == 1) ? SINGLE_ITEM_BIT_MASK : 0)
-        | typeFlagBit);
+        | ((n == 1) ? SINGLE_ITEM_BIT_MASK : 0));
     final byte[] byteArr = new byte[curBytes];
     sketch.wmem.getByteArray(0, byteArr, 0, curBytes);
     byteArr[FLAGS_BYTE_ADR] = flags;
@@ -1036,7 +1019,6 @@ final class KllHelper {
     final boolean empty = sk.getN() == 0;
     final boolean lvlZeroSorted = sk.isLevelZeroSorted();
     final boolean singleItem = sk.getN() == 1;
-    final boolean doubleType = (sk.sketchType == DOUBLES_SKETCH);
     final int preInts = updatableFormat
         ? PREAMBLE_INTS_FULL
         : (empty || singleItem) ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FULL;
@@ -1049,7 +1031,6 @@ final class KllHelper {
     setMemoryEmptyFlag(wmem, empty);
     setMemoryLevelZeroSortedFlag(wmem, lvlZeroSorted);
     setMemorySingleItemFlag(wmem, singleItem);
-    setMemoryDoubleSketchFlag(wmem, doubleType);
     setMemoryUpdatableFlag(wmem, updatableFormat);
     setMemoryK(wmem, sk.getK());
     setMemoryM(wmem, sk.getM());

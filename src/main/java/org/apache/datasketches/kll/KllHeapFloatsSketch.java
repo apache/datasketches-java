@@ -22,8 +22,8 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import java.util.Objects;
 
@@ -121,8 +121,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     return new KllHeapFloatsSketch(srcMem, memVal);
   }
 

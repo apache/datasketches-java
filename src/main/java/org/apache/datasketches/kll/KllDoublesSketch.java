@@ -25,6 +25,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableForm
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
@@ -52,20 +53,9 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
   }
 
   /**
-   * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
-   * @return upper bound on the serialized size of a KllSketch.
-   */
-  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
-    return getMaxSerializedSizeBytes(k, n, SketchType.DOUBLES_SKETCH, updatableMemoryFormat);
-  }
-
-  /**
-   * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
+   * Factory heapify takes the compact sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a sketch serialized by this sketch.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
@@ -131,14 +121,14 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
   }
 
   /**
-   * Wrap a sketch around the given read only source Memory containing sketch data
+   * Wrap a sketch around the given read only, compact source Memory containing sketch data
    * that originated from this sketch.
    * @param srcMem the read only source Memory
    * @return instance of this sketch
    */
   public static KllDoublesSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
     if (memVal.updatableMemFormat) {
       return new KllDirectDoublesSketch((WritableMemory) srcMem, null, memVal);
     } else {
@@ -157,7 +147,7 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
     if (memVal.updatableMemFormat) {
       if (!memVal.readOnly) {
         Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
@@ -166,6 +156,17 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
     } else {
       return new KllDirectCompactDoublesSketch(srcMem, memVal);
     }
+  }
+
+  /**
+   * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
+   * @return upper bound on the serialized size of a KllSketch.
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
+    return getMaxSerializedSizeBytes(k, n, SketchType.DOUBLES_SKETCH, updatableMemoryFormat);
   }
 
   @Override

@@ -25,6 +25,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableForm
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
@@ -52,9 +53,9 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
   }
 
   /**
-   * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a sketch serialized by this sketch.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
@@ -127,7 +128,7 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
    */
   public static KllFloatsSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     if (memVal.updatableMemFormat) {
       return new KllDirectFloatsSketch((WritableMemory) srcMem, null, memVal);
     } else {
@@ -146,7 +147,7 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     if (memVal.updatableMemFormat) {
       if (!memVal.readOnly) {
         Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
