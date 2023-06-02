@@ -45,11 +45,11 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  *
  * @see org.apache.datasketches.kll.KllSketch
  */
-public abstract class KllFloatsSketch extends KllFloatsProxy implements QuantilesFloatsAPI {
+public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
   private KllFloatsSketchSortedView kllFloatsSV = null;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(wmem, memReqSvr);
+    super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
   }
 
   /**
@@ -121,7 +121,7 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
   }
 
   /**
-   * Wrap a sketch around the given read only source Memory containing sketch data
+   * Wrap a sketch around the given read only compact source Memory containing sketch data
    * that originated from this sketch.
    * @param srcMem the read only source Memory
    * @return instance of this sketch
@@ -289,8 +289,33 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
+  public FloatsSortedView getSortedView() {
+    refreshSortedView();
+    return kllFloatsSV;
+  }
+
+  @Override
   public QuantilesFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
+   */
+  @Override
+  public final void reset() {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelZeroSorted(false);
+    setLevelsArray(new int[] {k, k});
+    setMinFloatItem(Float.NaN);
+    setMaxFloatItem(Float.NaN);
+    setFloatItemsArray(new float[k]);
   }
 
   @Override
@@ -305,17 +330,31 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
     kllFloatsSV = null;
   }
 
-  @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public FloatsSortedView getSortedView() {
-    refreshSortedView();
-    return kllFloatsSV;
-  }
+  //restricted
 
-  void nullSortedView() { kllFloatsSV = null; }
+  /**
+   * @return full size of internal items array including garbage.
+   */
+  abstract float[] getFloatItemsArray();
+
+  abstract float getFloatSingleItem();
+
+  abstract float getMaxFloatItem();
+
+  abstract float getMinFloatItem();
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
   }
+
+  abstract void setFloatItemsArray(float[] floatItems);
+
+  abstract void setFloatItemsArrayAt(int index, float item);
+
+  abstract void setMaxFloatItem(float item);
+
+  abstract void setMinFloatItem(float item);
+
+  void nullSortedView() { kllFloatsSV = null; }
 
 }

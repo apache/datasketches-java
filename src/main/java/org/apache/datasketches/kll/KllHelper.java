@@ -46,7 +46,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATAB
 import static org.apache.datasketches.kll.KllPreambleUtil.SER_VER_BYTE_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
-//import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryDoubleSketchFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
@@ -359,7 +358,7 @@ final class KllHelper {
     do {
       gStats.numLevels++; //
       lvlStats = getFinalSketchStatsAtNumLevels(gStats.k, gStats.m, gStats.numLevels, false);
-      gStats.maxItems = lvlStats.numItems; //
+      gStats.maxItems = lvlStats.numItems;
       gStats.maxN = lvlStats.n; //
       gStats.compactBytes =
           gStats.maxItems * typeBytes + gStats.numLevels * Integer.BYTES + 2 * typeBytes + DATA_START_ADR;

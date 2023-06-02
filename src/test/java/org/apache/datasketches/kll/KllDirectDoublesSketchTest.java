@@ -352,8 +352,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinItem()));
-    assertFalse(Double.isNaN(sketch2.getMaxItem()));
+    assertTrue(Double.isFinite(sketch2.getMinItem()));
+    assertTrue(Double.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 
@@ -369,8 +369,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinItem()));
-    assertFalse(Double.isNaN(sketch2.getMaxItem()));
+    assertTrue(Double.isFinite(sketch2.getMinItem()));
+    assertTrue(Double.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 
@@ -566,7 +566,7 @@ public class KllDirectDoublesSketchTest {
   @Test
   public void checkReset() {
     WritableMemory dstMem = WritableMemory.allocate(6000);
-    KllDirectDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
+    KllDoublesSketch sk = KllDoublesSketch.newDirectInstance(20, dstMem, memReqSvr);
     for (int i = 1; i <= 100; i++) { sk.update(i); }
     long n1 = sk.getN();
     double min1 = sk.getMinItem();

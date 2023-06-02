@@ -42,6 +42,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -94,7 +95,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     dstMem.putDoubleArray(offset, new double[] {Double.NaN, Double.NaN}, 0, 2);
     offset += 2 * Double.BYTES;
     dstMem.putDoubleArray(offset, new double[k], 0, k);
-    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, SketchType.DOUBLES_SKETCH);
+    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, DOUBLES_SKETCH);
     return new KllDirectDoublesSketch(dstMem, memReqSvr, memVal);
   }
 
@@ -178,7 +179,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   void setDoubleItemsArrayAt(final int index, final double item) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset =
-        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + 2 * Double.BYTES + index * Double.BYTES;
+        DATA_START_ADR + getLevelsArray().length * Integer.BYTES + (index + 2) * Double.BYTES;
     wmem.putDouble(offset, item);
   }
 

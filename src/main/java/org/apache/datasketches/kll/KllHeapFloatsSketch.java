@@ -54,7 +54,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    * <em>k</em> can be between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
    * Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param m parameter that controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
    * The DEFAULT_M, which is 8 is recommended. Other sizes of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
    */
@@ -76,24 +76,24 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryValidate object
+   * @param memValidate the MemoryValidate object
    */
-  private KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
+  private KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memValidate) {
     super(null, null);
-    k_ = memVal.k;
-    m_ = memVal.m;
-    n_ = memVal.n;
-    minK_ = memVal.minK;
-    levelsArr = memVal.levelsArr;
-    isLevelZeroSorted_ = memVal.level0Sorted;
-    final boolean updatableMemFormat = memVal.updatableMemFormat;
+    k_ = memValidate.k;
+    m_ = memValidate.m;
+    n_ = memValidate.n;
+    minK_ = memValidate.minK;
+    levelsArr = memValidate.levelsArr;
+    isLevelZeroSorted_ = memValidate.level0Sorted;
+    final boolean updatableMemFormat = memValidate.updatableMemFormat;
 
-    if (memVal.empty && !updatableMemFormat) {
+    if (memValidate.empty && !updatableMemFormat) {
       minFloatItem_ = Float.NaN;
       maxFloatItem_ = Float.NaN;
       floatItems_ = new float[k_];
     }
-    else if (memVal.singleItem && !updatableMemFormat) {
+    else if (memValidate.singleItem && !updatableMemFormat) {
       final float item = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
       minFloatItem_ = maxFloatItem_ = item;
       floatItems_ = new float[k_];

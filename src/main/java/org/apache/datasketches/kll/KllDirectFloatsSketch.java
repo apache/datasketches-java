@@ -48,7 +48,6 @@ import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
-//intentional extra line
 /**
  * This class implements an off-heap floats KllSketch via a WritableMemory instance of the sketch.
  *

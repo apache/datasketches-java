@@ -45,15 +45,15 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
  *
  * @see org.apache.datasketches.kll.KllSketch
  */
-public abstract class KllDoublesSketch extends KllDoublesProxy implements QuantilesDoublesAPI {
+public abstract class KllDoublesSketch extends KllSketch implements QuantilesDoublesAPI {
   private KllDoublesSketchSortedView kllDoublesSV = null;
 
   KllDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(wmem, memReqSvr);
+    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
   }
 
   /**
-   * Factory heapify takes the compact sketch image in Memory and instantiates an on-heap sketch.
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
    * @param srcMem a compact Memory image of a sketch serialized by this sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
@@ -72,7 +72,7 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new direct instance of this sketch
    */
-  public static KllDirectDoublesSketch newDirectInstance(
+  public static KllDoublesSketch newDirectInstance(
       final int k,
       final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
@@ -100,7 +100,7 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
   /**
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger of K will have smaller error but the sketch will be larger (and slower).
+   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
    * This will have a rank error of about 1.65%.
    * @return new KllDoublesSketch on the heap.
    */
@@ -112,7 +112,7 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
    * Create a new heap instance of this sketch with a given parameter <em>k</em>.
    * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger of K will have smaller error but the sketch will be larger (and slower).
+   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @return new KllDoublesSketch on the heap.
    */
@@ -121,7 +121,7 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
   }
 
   /**
-   * Wrap a sketch around the given read only, compact source Memory containing sketch data
+   * Wrap a sketch around the given read only compact source Memory containing sketch data
    * that originated from this sketch.
    * @param srcMem the read only source Memory
    * @return instance of this sketch
@@ -137,8 +137,8 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
   }
 
   /**
-   * Wrap a sketch around the given source Memory containing sketch data that originated from
-   * this sketch.
+   * Wrap a sketch around the given source Writable Memory containing sketch data
+   * that originated from this sketch.
    * @param srcMem a WritableMemory that contains data.
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return instance of this sketch
@@ -289,8 +289,33 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
+  public DoublesSortedView getSortedView() {
+    refreshSortedView();
+    return kllDoublesSV;
+  }
+
+  @Override
   public QuantilesDoublesSketchIterator iterator() {
     return new KllDoublesSketchIterator(getDoubleItemsArray(), getLevelsArray(), getNumLevels());
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
+   */
+  @Override
+  public final void reset() {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelZeroSorted(false);
+    setLevelsArray(new int[] {k, k});
+    setMinDoubleItem(Double.NaN);
+    setMaxDoubleItem(Double.NaN);
+    setDoubleItemsArray(new double[k]);
   }
 
   @Override
@@ -305,17 +330,31 @@ public abstract class KllDoublesSketch extends KllDoublesProxy implements Quanti
     kllDoublesSV = null;
   }
 
-  @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public DoublesSortedView getSortedView() {
-    refreshSortedView();
-    return kllDoublesSV;
-  }
+  //restricted
 
-  void nullSortedView() { kllDoublesSV = null; }
+  /**
+   * @return full size of internal items array including garbage.
+   */
+  abstract double[] getDoubleItemsArray();
+
+  abstract double getDoubleSingleItem();
+
+  abstract double getMaxDoubleItem();
+
+  abstract double getMinDoubleItem();
 
   private final void refreshSortedView() {
     kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
   }
+
+  abstract void setDoubleItemsArray(double[] doubleItems);
+
+  abstract void setDoubleItemsArrayAt(int index, double item);
+
+  abstract void setMaxDoubleItem(double item);
+
+  abstract void setMinDoubleItem(double item);
+
+  void nullSortedView() { kllDoublesSV = null; }
 
 }
