@@ -26,20 +26,11 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("unused")
 public class KllHelperTest {
-
-  /**
-   * Println Object o
-   * @param o object to print
-   */
-  static void println(Object o) {
-    //System.out.println(o.toString());
-  }
 
   @Test
   public void checkCheckM() {
@@ -195,6 +186,14 @@ public class KllHelperTest {
         KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, DOUBLES_SKETCH, true);
     assertEquals(gStats.numLevels, 2);
     assertEquals(gStats.maxItems, 333);
-
   }
+
+  /**
+   * Println Object o
+   * @param o object to print
+   */
+  static void println(Object o) {
+    //System.out.println(o.toString());
+  }
+
 }

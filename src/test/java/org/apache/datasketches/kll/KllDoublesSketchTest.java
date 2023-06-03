@@ -415,7 +415,7 @@ public class KllDoublesSketchTest {
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
     final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getCurrentCompactSerializedSizeBytes());
+    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
@@ -498,21 +498,6 @@ public class KllDoublesSketchTest {
     assertEquals(n2, n1);
     assertEquals(min2, min1);
     assertEquals(max2, max1);
-  }
-
-  @Test
-  public void coverInheritanceArtifacts() {
-    float[] fltArr = new float[0];
-    float fltV = 1.0f;
-    int idx = 1;
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    try { sk.getFloatItemsArray();           fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMaxFloatItem();              fail(); } catch (SketchesArgumentException e) { }
-    try { sk.getMinFloatItem();              fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatItemsArray(fltArr);     fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setFloatItemsArrayAt(idx,fltV); fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMaxFloatItem(fltV);          fail(); } catch (SketchesArgumentException e) { }
-    try { sk.setMinFloatItem(fltV);          fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test

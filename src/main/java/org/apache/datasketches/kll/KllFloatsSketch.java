@@ -23,9 +23,9 @@ import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
@@ -53,20 +53,9 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   /**
-   * Returns upper bound on the serialized size of a KllFloatsSketch given the following parameters.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
-   * @return upper bound on the serialized size of a KllSketch.
-   */
-  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
-    return getMaxSerializedSizeBytes(k, n, SketchType.FLOATS_SKETCH, updatableMemoryFormat);
-  }
-
-  /**
-   * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a sketch serialized by this sketch.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
@@ -132,14 +121,14 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   /**
-   * Wrap a sketch around the given read only source Memory containing sketch data
+   * Wrap a sketch around the given read only compact source Memory containing sketch data
    * that originated from this sketch.
    * @param srcMem the read only source Memory
    * @return instance of this sketch
    */
   public static KllFloatsSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     if (memVal.updatableMemFormat) {
       return new KllDirectFloatsSketch((WritableMemory) srcMem, null, memVal);
     } else {
@@ -158,7 +147,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     if (memVal.updatableMemFormat) {
       if (!memVal.readOnly) {
         Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
@@ -167,6 +156,17 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     } else {
       return new KllDirectCompactFloatsSketch(srcMem, memVal);
     }
+  }
+
+  /**
+   * Returns upper bound on the serialized size of a KllFloatsSketch given the following parameters.
+   * @param k parameter that controls size of the sketch and accuracy of estimates
+   * @param n stream length
+   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
+   * @return upper bound on the serialized size of a KllSketch.
+   */
+  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
+    return getMaxSerializedSizeBytes(k, n, SketchType.FLOATS_SKETCH, updatableMemoryFormat);
   }
 
   @Override
@@ -289,8 +289,33 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
+  public FloatsSortedView getSortedView() {
+    refreshSortedView();
+    return kllFloatsSV;
+  }
+
+  @Override
   public QuantilesFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
+   */
+  @Override
+  public final void reset() {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelZeroSorted(false);
+    setLevelsArray(new int[] {k, k});
+    setMinFloatItem(Float.NaN);
+    setMaxFloatItem(Float.NaN);
+    setFloatItemsArray(new float[k]);
   }
 
   @Override
@@ -305,38 +330,31 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     kllFloatsSV = null;
   }
 
-  @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public FloatsSortedView getSortedView() {
-    refreshSortedView();
-    return kllFloatsSV;
-  }
+  //restricted
 
-  void nullSortedView() { kllFloatsSV = null; }
+  /**
+   * @return full size of internal items array including garbage.
+   */
+  abstract float[] getFloatItemsArray();
 
-  @Override //Artifact of inheritance
-  double[] getDoubleItemsArray() { kllSketchThrow(MUST_NOT_CALL); return null; }
+  abstract float getFloatSingleItem();
 
-  @Override //Artifact of inheritance
-  double getMaxDoubleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
+  abstract float getMaxFloatItem();
 
-  @Override //Artifact of inheritance
-  double getMinDoubleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
-
-  @Override //Artifact of inheritance
-  void setDoubleItemsArray(final double[] doubleItems) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setDoubleItemsArrayAt(final int index, final double item) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setMaxDoubleItem(final double item) { kllSketchThrow(MUST_NOT_CALL); }
-
-  @Override //Artifact of inheritance
-  void setMinDoubleItem(final double item) { kllSketchThrow(MUST_NOT_CALL); }
+  abstract float getMinFloatItem();
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
   }
+
+  abstract void setFloatItemsArray(float[] floatItems);
+
+  abstract void setFloatItemsArrayAt(int index, float item);
+
+  abstract void setMaxFloatItem(float item);
+
+  abstract void setMinFloatItem(float item);
+
+  void nullSortedView() { kllFloatsSV = null; }
 
 }

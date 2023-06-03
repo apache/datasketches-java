@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -352,7 +353,6 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertTrue(Float.isFinite(sketch2.getMinItem()));
-    assertTrue(Float.isFinite(sketch2.getMinItem()));
     assertTrue(Float.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Float.BYTES);
   }
@@ -482,7 +482,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(compBytes, true));
+    println(KllPreambleUtil.toString(compBytes, FLOATS_SKETCH, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -502,7 +502,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(compBytes, true));
+    println(KllPreambleUtil.toString(compBytes, FLOATS_SKETCH, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -523,7 +523,7 @@ public class KllDirectFloatsSketchTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(compBytes, true));
+    println(KllPreambleUtil.toString(compBytes, FLOATS_SKETCH, true));
     sk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -644,7 +644,6 @@ public class KllDirectFloatsSketchTest {
     try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.getDoubleSingleItem();           fail(); } catch (SketchesArgumentException e) { }
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -663,6 +662,7 @@ public class KllDirectFloatsSketchTest {
     try { sk2.merge(sk1); fail(); } catch (SketchesArgumentException e) { }
   }
 
+  // get Direct Floats Sketch
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }

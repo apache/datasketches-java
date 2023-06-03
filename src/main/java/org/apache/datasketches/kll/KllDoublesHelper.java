@@ -35,39 +35,41 @@ import java.util.Random;
 final class KllDoublesHelper {
 
   //Called from KllSketch
-  static void mergeDoubleImpl(final KllDoublesSketch sketch, final KllSketch other) {
-    if (other.isEmpty()) { return; }
-    sketch.nullSortedView();
-    final long finalN = sketch.getN() + other.getN();
-    final int otherNumLevels = other.getNumLevels();
-    final int[] otherLevelsArr = other.getLevelsArray();
+  static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllSketch other) {
+    final KllDoublesSketch otherDblSk = (KllDoublesSketch) other;
+    if (otherDblSk.isEmpty()) { return; }
+    mySketch.nullSortedView();
+    final long finalN = mySketch.getN() + otherDblSk.getN();
+    final int otherNumLevels = otherDblSk.getNumLevels();
+    final int[] otherLevelsArr = otherDblSk.getLevelsArray();
     final double[] otherDoubleItemsArr;
     //capture my min & max, minK
-    final double myMin = sketch.isEmpty() ? Double.NaN : sketch.getMinDoubleItem();
-    final double myMax = sketch.isEmpty() ? Double.NaN : sketch.getMaxDoubleItem();
-    final int myMinK = sketch.getMinK();
+    final double myMin = mySketch.isEmpty() ? Double.NaN : mySketch.getMinDoubleItem();
+    final double myMax = mySketch.isEmpty() ? Double.NaN : mySketch.getMaxDoubleItem();
+    final int myMinK = mySketch.getMinK();
 
     //update this sketch with level0 items from the other sketch
-    if (other.isCompactSingleItem()) {
-      updateDouble(sketch, other.getDoubleSingleItem());
+
+    if (otherDblSk.isCompactSingleItem()) {
+      updateDouble(mySketch, otherDblSk.getDoubleSingleItem());
       otherDoubleItemsArr = new double[0];
     } else {
-      otherDoubleItemsArr = other.getDoubleItemsArray();
+      otherDoubleItemsArr = otherDblSk.getDoubleItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-        KllDoublesHelper.updateDouble(sketch, otherDoubleItemsArr[i]);
+        KllDoublesHelper.updateDouble(mySketch, otherDoubleItemsArr[i]);
       }
     }
     // after the level 0 update, we capture the state of levels and items arrays
-    final int myCurNumLevels = sketch.getNumLevels();
-    final int[] myCurLevelsArr = sketch.getLevelsArray();
-    final double[] myCurDoubleItemsArr = sketch.getDoubleItemsArray();
+    final int myCurNumLevels = mySketch.getNumLevels();
+    final int[] myCurLevelsArr = mySketch.getLevelsArray();
+    final double[] myCurDoubleItemsArr = mySketch.getDoubleItemsArray();
 
     int myNewNumLevels = myCurNumLevels;
     int[] myNewLevelsArr = myCurLevelsArr;
     double[] myNewDoubleItemsArr = myCurDoubleItemsArr;
 
-    if (otherNumLevels > 1 && !other.isCompactSingleItem()) { //now merge other levels if they exist
-      final int tmpSpaceNeeded = sketch.getNumRetained()
+    if (otherNumLevels > 1 && !otherDblSk.isCompactSingleItem()) { //now merge other levels if they exist
+      final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final double[] workbuf = new double[tmpSpaceNeeded];
       final int ub = KllHelper.ubOnNumLevels(finalN);
@@ -81,8 +83,8 @@ final class KllDoublesHelper {
           otherNumLevels, otherLevelsArr, otherDoubleItemsArr);
 
       // notice that workbuf is being used as both the input and output
-      final int[] result = generalDoublesCompress(sketch.getK(), sketch.getM(), provisionalNumLevels,
-          workbuf, worklevels, workbuf, outlevels, sketch.isLevelZeroSorted(), KllSketch.random);
+      final int[] result = generalDoublesCompress(mySketch.getK(), mySketch.getM(), provisionalNumLevels,
+          workbuf, worklevels, workbuf, outlevels, mySketch.isLevelZeroSorted(), KllSketch.random);
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
@@ -113,28 +115,28 @@ final class KllDoublesHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (sketch.updatableMemFormat) {
-        sketch.wmem = KllHelper.memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+      if (mySketch.updatableMemFormat) {
+        mySketch.wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
       }
     }
 
     //Update Preamble:
-    sketch.setN(finalN);
-    if (other.isEstimationMode()) { //otherwise the merge brings over exact items.
-      sketch.setMinK(min(myMinK, other.getMinK()));
+    mySketch.setN(finalN);
+    if (otherDblSk.isEstimationMode()) { //otherwise the merge brings over exact items.
+      mySketch.setMinK(min(myMinK, otherDblSk.getMinK()));
     }
 
     //Update numLevels, levelsArray, items
-    sketch.setNumLevels(myNewNumLevels);
-    sketch.setLevelsArray(myNewLevelsArr);
-    sketch.setDoubleItemsArray(myNewDoubleItemsArr);
+    mySketch.setNumLevels(myNewNumLevels);
+    mySketch.setLevelsArray(myNewLevelsArr);
+    mySketch.setDoubleItemsArray(myNewDoubleItemsArr);
 
     //Update min, max items
-    final double otherMin = other.getMinDoubleItem();
-    final double otherMax = other.getMaxDoubleItem();
-    sketch.setMinDoubleItem(resolveDoubleMinItem(myMin, otherMin));
-    sketch.setMaxDoubleItem(resolveDoubleMaxItem(myMax, otherMax));
-    assert KllHelper.sumTheSampleWeights(sketch.getNumLevels(), sketch.getLevelsArray()) == sketch.getN();
+    final double otherMin = otherDblSk.getMinDoubleItem();
+    final double otherMax = otherDblSk.getMaxDoubleItem();
+    mySketch.setMinDoubleItem(resolveDoubleMinItem(myMin, otherMin));
+    mySketch.setMaxDoubleItem(resolveDoubleMaxItem(myMax, otherMax));
+    assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.getLevelsArray()) == mySketch.getN();
   }
 
   //Called from KllHelper and this.generalDoublesCompress(...), this.populateDoubleWorkArrays(...)
@@ -170,13 +172,13 @@ final class KllDoublesHelper {
   }
 
   /**
-   * Validation Method. This must be modified to test validation
+   * Validation Method. This must be modified to use the validation test
    * @param buf the items array
    * @param start data start
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify.
+  //NOTE Validation Method: Need to modify to run.
   //Called from KllHelper, this.generalDoublesCompress(...)
   static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
@@ -191,13 +193,13 @@ final class KllDoublesHelper {
   }
 
   /**
-   * Validation Method. This must be modified to test validation
+   * Validation Method. This must be modified to use the validation test
    * @param buf the items array
    * @param start data start
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify.
+  //NOTE Validation Method: Need to modify to run.
   //Called from KllHelper, this.generalDoublesCompress(...)
   static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
@@ -212,20 +214,20 @@ final class KllDoublesHelper {
   }
 
   //Called from KllDoublesSketch, this.mergeDoubleImpl(...)
-  static void updateDouble(final KllSketch sketch, final double item) {
+  static void updateDouble(final KllDoublesSketch dblSk, final double item) {
     if (Double.isNaN(item)) { return; }
-    final double prevMin = sketch.getMinDoubleItem();
-    final double prevMax = sketch.getMaxDoubleItem();
-    sketch.setMinDoubleItem(resolveDoubleMinItem(prevMin, item));
-    sketch.setMaxDoubleItem(resolveDoubleMaxItem(prevMax, item));
-    if (sketch.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(sketch); }
-    final int myLevelsArrAtZero = sketch.getLevelsArray()[0]; //LevelsArr could be expanded
-    sketch.incN();
-    sketch.setLevelZeroSorted(false);
+    final double prevMin = dblSk.getMinDoubleItem();
+    final double prevMax = dblSk.getMaxDoubleItem();
+    dblSk.setMinDoubleItem(resolveDoubleMinItem(prevMin, item));
+    dblSk.setMaxDoubleItem(resolveDoubleMaxItem(prevMax, item));
+    if (dblSk.getLevelsArray()[0] == 0) { KllHelper.compressWhileUpdatingSketch(dblSk); }
+    final int myLevelsArrAtZero = dblSk.getLevelsArray()[0]; //LevelsArr could be expanded
+    dblSk.incN();
+    dblSk.setLevelZeroSorted(false);
     final int nextPos = myLevelsArrAtZero - 1;
     assert myLevelsArrAtZero >= 0;
-    sketch.setLevelsArrayAt(0, nextPos);
-    sketch.setDoubleItemsArrayAt(nextPos, item);
+    dblSk.setLevelsArrayAt(0, nextPos);
+    dblSk.setDoubleItemsArrayAt(nextPos, item);
   }
 
   /**
@@ -395,7 +397,7 @@ final class KllDoublesHelper {
    * The following must be enabled for use with the KllDoublesValidationTest,
    * which is only enabled for manual testing. In addition, two Validation Methods
    * above need to be modified.
-   */ //NOTE Validation Method: Need to uncomment
+   */ //NOTE Validation Method: Need to uncomment to use
   //    static int nextOffset = 0;
   //
   //    private static int deterministicOffset() {

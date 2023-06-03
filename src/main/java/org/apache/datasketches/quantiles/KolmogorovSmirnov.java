@@ -25,7 +25,7 @@ package org.apache.datasketches.quantiles;
  */
 final class KolmogorovSmirnov {
 
-  //TODO This KS test will have to be redesigned to accomodate REQ sketches.
+  //TODO This KS test will have to be redesigned to accommodate REQ sketches.
 
   /**
    * Computes the raw delta area between two quantile sketches for the

@@ -21,10 +21,9 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import java.util.Objects;
 
@@ -39,9 +38,9 @@ import org.apache.datasketches.memory.Memory;
  * @author Lee Rhodes, Kevin Lang
  */
 final class KllHeapFloatsSketch extends KllFloatsSketch {
-  private final int k_;    // configured size of K.
-  private final int m_;    // configured size of M.
-  private long n_;        // number of items input into this sketch.
+  private final int k_; // configured size of K.
+  private final int m_; // configured size of M.
+  private long n_;      // number of items input into this sketch.
   private int minK_;    // dynamic minK for error estimation after merging with different k.
   private boolean isLevelZeroSorted_;
   private float minFloatItem_;
@@ -55,7 +54,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    * <em>k</em> can be between <em>m</em> and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about 1.65%.
    * Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param m parameter that controls the minimum level width in items. It can be 2, 4, 6 or 8.
+   * @param m parameter controls the minimum level width in items. It can be 2, 4, 6 or 8.
    * The DEFAULT_M, which is 8 is recommended. Other sizes of <em>m</em> should be considered
    * experimental as they have not been as well characterized.
    */
@@ -77,24 +76,24 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
-   * @param memVal the MemoryValidate object
+   * @param memValidate the MemoryValidate object
    */
-  private KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
+  private KllHeapFloatsSketch(final Memory srcMem, final KllMemoryValidate memValidate) {
     super(null, null);
-    k_ = memVal.k;
-    m_ = memVal.m;
-    n_ = memVal.n;
-    minK_ = memVal.minK;
-    levelsArr = memVal.levelsArr;
-    isLevelZeroSorted_ = memVal.level0Sorted;
-    final boolean updatableMemFormat = memVal.updatableMemFormat;
+    k_ = memValidate.k;
+    m_ = memValidate.m;
+    n_ = memValidate.n;
+    minK_ = memValidate.minK;
+    levelsArr = memValidate.levelsArr;
+    isLevelZeroSorted_ = memValidate.level0Sorted;
+    final boolean updatableMemFormat = memValidate.updatableMemFormat;
 
-    if (memVal.empty && !updatableMemFormat) {
+    if (memValidate.empty && !updatableMemFormat) {
       minFloatItem_ = Float.NaN;
       maxFloatItem_ = Float.NaN;
       floatItems_ = new float[k_];
     }
-    else if (memVal.singleItem && !updatableMemFormat) {
+    else if (memValidate.singleItem && !updatableMemFormat) {
       final float item = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
       minFloatItem_ = maxFloatItem_ = item;
       floatItems_ = new float[k_];
@@ -122,8 +121,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_FLOAT); }
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     return new KllHeapFloatsSketch(srcMem, memVal);
   }
 
@@ -132,9 +130,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   public long getN() { return n_; }
-
-  @Override
-  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override
   float[] getFloatItemsArray() { return floatItems_; }

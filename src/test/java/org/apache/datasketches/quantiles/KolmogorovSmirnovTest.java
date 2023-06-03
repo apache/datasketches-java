@@ -43,7 +43,6 @@ public class KolmogorovSmirnovTest {
      s1.update(x + 500);
      s2.update(x);
    }
-   //TODO NEED TO FIX KS Algo, it assumed non-inclusive cumulative weight arrays
    //assertEquals(KolmogorovSmirnov.computeKSDelta(s1, s2), 1.0, 1E-6);
    println("D = " + KolmogorovSmirnov.computeKSDelta(s1, s2));
  }

@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -253,7 +254,7 @@ public class KllMiscDoublesTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, true));
+    println(KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true));
     sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -273,7 +274,7 @@ public class KllMiscDoublesTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, true));
+    println(KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true));
     sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -294,7 +295,7 @@ public class KllMiscDoublesTest {
     println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, true));
+    println(KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true));
     sk = KllDoublesSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -324,7 +325,7 @@ public class KllMiscDoublesTest {
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, true));
+    println(KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true));
     sk = KllHeapDoublesSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
@@ -344,7 +345,7 @@ public class KllMiscDoublesTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, true));
+    println(KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true));
     sk = KllHeapDoublesSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -365,7 +366,7 @@ public class KllMiscDoublesTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, true));
+    println(KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true));
     sk = KllHeapDoublesSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -396,13 +397,13 @@ public class KllMiscDoublesTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -411,13 +412,13 @@ public class KllMiscDoublesTest {
     sk = KllDoublesSketch.newHeapInstance(20);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -427,13 +428,13 @@ public class KllMiscDoublesTest {
     sk.update(1);
     compBytes = sk.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllDoublesSketch.heapify(wmem);
     compBytes2 = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(compBytes, compBytes2);
@@ -454,13 +455,13 @@ public class KllMiscDoublesTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllHeapDoublesSketch.heapifyImpl(wmem);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s); //note: heapify does not copy garbage, while toUpdatableByteArray does
     assertEquals(sk.getN(), sk2.getN());
@@ -472,13 +473,13 @@ public class KllMiscDoublesTest {
     sk = KllDoublesSketch.newHeapInstance(k);
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllHeapDoublesSketch.heapifyImpl(wmem);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -488,13 +489,13 @@ public class KllMiscDoublesTest {
     sk.update(1);
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllHeapDoublesSketch.heapifyImpl(wmem);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, DOUBLES_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -539,18 +540,6 @@ public class KllMiscDoublesTest {
     KllDoublesSketch skCompact = KllDoublesSketch.wrap(srcMem2);
     assertTrue(skCompact instanceof KllDirectCompactDoublesSketch);
     assertEquals(skCompact.getDoubleSingleItem(), 1.0);
-  }
-
-  @Test
-  public void checkInheritanceArtifacts() {
-    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
-    try { sk.getFloatItemsArray(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMaxFloatItem(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.getMinFloatItem(); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setFloatItemsArray(null); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setFloatItemsArrayAt(0, 0f); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMaxFloatItem(0); fail();} catch (SketchesArgumentException e) {}
-    try { sk.setMinFloatItem(0); fail();} catch (SketchesArgumentException e) {}
   }
 
   @Test

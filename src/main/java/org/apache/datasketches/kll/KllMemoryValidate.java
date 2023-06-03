@@ -36,7 +36,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryDoubleSketchFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryFlags;
@@ -50,15 +49,17 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class performs all the error checking of an incoming Memory object and extracts the key fields in the process.
- * This is used by all sketches that read or import Memory objects.
+ * This is used by all KLL sketches that read or import Memory objects.
  *
  * @author lrhodes
  *
@@ -73,7 +74,7 @@ final class KllMemoryValidate {
   boolean empty;
   boolean singleItem;
   final boolean level0Sorted;
-  final boolean doublesSketch;
+  final SketchType sketchType;
   boolean updatableMemFormat = false;
   final boolean readOnly;
   final int k;
@@ -90,7 +91,8 @@ final class KllMemoryValidate {
   int sketchBytes;
   int[] levelsArr; //adjusted to include top index
 
-  KllMemoryValidate(final Memory srcMem) {
+  KllMemoryValidate(final Memory srcMem, final SketchType sketchType) {
+    
     readOnly = srcMem.isReadOnly();
     preInts = getMemoryPreInts(srcMem);
     serVer = getMemorySerVer(srcMem);
@@ -103,13 +105,13 @@ final class KllMemoryValidate {
     empty = getMemoryEmptyFlag(srcMem);
     singleItem = getMemorySingleItemFlag(srcMem);
     level0Sorted  = getMemoryLevelZeroSortedFlag(srcMem);
-    doublesSketch = getMemoryDoubleSketchFlag(srcMem);
+    this.sketchType = sketchType;
     k = getMemoryK(srcMem);
     m = getMemoryM(srcMem);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     if ((serVer == SERIAL_VERSION_UPDATABLE) ^ updatableMemFormat) { memoryValidateThrow(UPDATABLEBIT_AND_SER_VER, 1); }
-    typeBytes = doublesSketch ? Double.BYTES : Float.BYTES;
+    typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
 
     if (updatableMemFormat) { updatableMemFormatValidate((WritableMemory) srcMem); }
     else { compactMemoryValidate(srcMem); }

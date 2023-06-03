@@ -19,7 +19,18 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.*;
+import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFlags;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
+import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -35,7 +46,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryFamilyID(wmem, Family.KLL.getID() - 1);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -44,7 +55,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL - 1);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -53,7 +64,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryFlags(wmem, EMPTY_BIT_MASK | SINGLE_ITEM_BIT_MASK);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -63,7 +74,7 @@ public class KllMemoryValidateTest {
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryFlags(wmem, UPDATABLE_BIT_MASK);
     setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -73,7 +84,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -83,7 +94,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -92,7 +103,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -102,7 +113,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -111,7 +122,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -121,7 +132,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -131,7 +142,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)
@@ -141,7 +152,7 @@ public class KllMemoryValidateTest {
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_FULL);//should be 2, single
-    KllMemoryValidate memVal = new KllMemoryValidate(wmem);
+    KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
   }
 
 }

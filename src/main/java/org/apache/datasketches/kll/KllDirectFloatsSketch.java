@@ -39,16 +39,15 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_CALL;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
-//intentional extra line
 /**
  * This class implements an off-heap floats KllSketch via a WritableMemory instance of the sketch.
  *
@@ -96,7 +95,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     dstMem.putFloatArray(offset, new float[] {Float.NaN, Float.NaN}, 0, 2);
     offset += 2 * Float.BYTES;
     dstMem.putFloatArray(offset, new float[k], 0, k);
-    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, FLOATS_SKETCH);
     return new KllDirectFloatsSketch(dstMem, memReqSvr, memVal);
   }
 
@@ -109,9 +108,6 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   public long getN() {
     return getMemoryN(wmem);
   }
-
-  @Override
-  double getDoubleSingleItem() { kllSketchThrow(MUST_NOT_CALL); return Double.NaN; }
 
   @Override //returns entire array including empty space at bottom
   float[] getFloatItemsArray() {
