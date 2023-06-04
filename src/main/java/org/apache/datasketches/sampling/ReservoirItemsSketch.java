@@ -223,7 +223,7 @@ public final class ReservoirItemsSketch<T> {
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR.getMaxPreLongs());
 
-    if (!preLongsEqMin & !preLongsEqMax) {
+    if (!preLongsEqMin && !preLongsEqMax) {
       throw new SketchesArgumentException(
               "Possible corruption: Non-empty sketch with only "
                       + Family.RESERVOIR.getMinPreLongs() + " preLong(s)");
