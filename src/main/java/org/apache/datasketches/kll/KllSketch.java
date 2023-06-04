@@ -143,7 +143,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @param wmem  the current WritableMemory or null
    * @param memReqSvr the given MemoryRequestServer or null
    */
-  public KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+  KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
    this.sketchType = sketchType;
    this.wmem = wmem;
    if (wmem != null) {

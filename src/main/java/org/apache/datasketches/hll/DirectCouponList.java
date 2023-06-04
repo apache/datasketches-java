@@ -122,7 +122,7 @@ class DirectCouponList extends AbstractCoupons {
         insertInt(wmem, LIST_INT_ARR_START + (i << 2), coupon);
         int couponCount = extractListCount(mem);
         insertListCount(wmem, ++couponCount);
-        insertEmptyFlag(wmem, false); //TODO only first time
+        insertEmptyFlag(wmem, false); //only first time
         if (couponCount >= len) { //array full
           if (lgConfigK < 8) {
             return promoteListOrSetToHll(this);//oooFlag = false

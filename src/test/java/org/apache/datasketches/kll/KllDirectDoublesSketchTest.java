@@ -352,8 +352,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinItem()));
-    assertFalse(Double.isNaN(sketch2.getMaxItem()));
+    assertTrue(Double.isFinite(sketch2.getMinItem()));
+    assertTrue(Double.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 
@@ -369,8 +369,8 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Double.isNaN(sketch2.getMinItem()));
-    assertFalse(Double.isNaN(sketch2.getMaxItem()));
+    assertTrue(Double.isFinite(sketch2.getMinItem()));
+    assertTrue(Double.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Double.BYTES);
   }
 

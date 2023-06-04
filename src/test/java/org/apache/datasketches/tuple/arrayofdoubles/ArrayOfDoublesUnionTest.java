@@ -467,7 +467,7 @@ public class ArrayOfDoublesUnionTest {
     WritableMemory mem2 = WritableMemory.writableWrap(new byte[1_000_000]);
     ArrayOfDoublesCompactSketch dcsk = sketch.compact(mem2);
     ArrayOfDoublesUnion union = ArrayOfDoublesSketches.wrapUnion(mem); //empty union
-    union.union(dcsk); //TODO est error
+    union.union(dcsk);
     //ArrayOfDoublesSketches.wrapUnion(mem).union(sketch.compact(WritableMemory.writableWrap(new byte[1_000_000])));
 
     final ArrayOfDoublesSketch result = ArrayOfDoublesUnion.wrap(mem).getResult();

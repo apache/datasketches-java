@@ -356,4 +356,5 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract void setMinDoubleItem(double item);
 
   void nullSortedView() { kllDoublesSV = null; }
+
 }

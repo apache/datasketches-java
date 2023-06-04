@@ -353,7 +353,6 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertTrue(Float.isFinite(sketch2.getMinItem()));
-    assertTrue(Float.isFinite(sketch2.getMinItem()));
     assertTrue(Float.isFinite(sketch2.getMaxItem()));
     assertEquals(sketch2.getCurrentCompactSerializedSizeBytes(), 8 + Float.BYTES);
   }

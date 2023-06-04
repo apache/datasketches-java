@@ -294,7 +294,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     refreshSortedView();
     return kllFloatsSV;
   }
-  
+
   @Override
   public QuantilesFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
@@ -356,5 +356,5 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract void setMinFloatItem(float item);
 
   void nullSortedView() { kllFloatsSV = null; }
-  
+
 }
