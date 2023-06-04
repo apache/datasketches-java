@@ -172,13 +172,13 @@ final class KllDoublesHelper {
   }
 
   /**
-   * Validation Method. This must be modified to test validation
+   * Validation Method. This must be modified to use the validation test
    * @param buf the items array
    * @param start data start
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify.
+  //NOTE Validation Method: Need to modify to run.
   //Called from KllHelper, this.generalDoublesCompress(...)
   static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
@@ -193,13 +193,13 @@ final class KllDoublesHelper {
   }
 
   /**
-   * Validation Method. This must be modified to test validation
+   * Validation Method. This must be modified to use the validation test
    * @param buf the items array
    * @param start data start
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify.
+  //NOTE Validation Method: Need to modify to run.
   //Called from KllHelper, this.generalDoublesCompress(...)
   static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length, final Random random) {
     assert isEven(length);
@@ -397,7 +397,7 @@ final class KllDoublesHelper {
    * The following must be enabled for use with the KllDoublesValidationTest,
    * which is only enabled for manual testing. In addition, two Validation Methods
    * above need to be modified.
-   */ //NOTE Validation Method: Need to uncomment
+   */ //NOTE Validation Method: Need to uncomment to use
   //    static int nextOffset = 0;
   //
   //    private static int deterministicOffset() {

@@ -82,7 +82,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
-      return quantiles[quantiles.length - 1]; ///EXCLUSIVE (GT) case: normRank == 1.0;
+      return quantiles[quantiles.length - 1]; //EXCLUSIVE (GT) case: normRank == 1.0;
     }
     return quantiles[index];
   }

@@ -20,8 +20,10 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.common.Util.zeroPad;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -157,9 +159,7 @@ final class KllPreambleUtil {
   static final int EMPTY_BIT_MASK             = 1;
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
   static final int SINGLE_ITEM_BIT_MASK       = 4;
-  static final int DOUBLES_SKETCH_BIT_MASK    = 8;
   static final int UPDATABLE_BIT_MASK         = 16;
-  static final int ITEMS_SKETCH_BIT_MASK      = 32;
 
   /**
    * Returns a human readable string summary of the internal state of the given sketch byte array.
@@ -169,9 +169,9 @@ final class KllPreambleUtil {
    * @param includeData if true, includes detail of retained data.
    * @return the summary string.
    */
-  static String toString(final byte[] byteArr, final boolean includeData) {
+  static String toString(final byte[] byteArr, final SketchType sketchType, final boolean includeData) {
     final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, includeData);
+    return toString(mem, sketchType, includeData);
   }
 
   /**
@@ -182,13 +182,13 @@ final class KllPreambleUtil {
    * @param includeData if true, includes detail of retained data.
    * @return the summary string.
    */
-  static String toString(final Memory mem, final boolean includeData) {
-    final KllMemoryValidate memVal = new KllMemoryValidate(mem);
+  static String toString(final Memory mem, final SketchType sketchType, final boolean includeData) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType);
     final int flags = memVal.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
     final int preInts = memVal.preInts;
-    final boolean doublesSketch = memVal.doublesSketch;
+    final boolean doublesSketch = memVal.sketchType == DOUBLES_SKETCH;
     final boolean updatableMemFormat = memVal.updatableMemFormat;
     final boolean empty = memVal.empty;
     final boolean singleItem = memVal.singleItem;
@@ -343,10 +343,6 @@ final class KllPreambleUtil {
     return (getMemoryFlags(mem) & SINGLE_ITEM_BIT_MASK) != 0;
   }
 
-  static boolean getMemoryDoubleSketchFlag(final Memory mem) {
-    return (getMemoryFlags(mem) & DOUBLES_SKETCH_BIT_MASK) != 0;
-  }
-
   static boolean getMemoryUpdatableFormatFlag(final Memory mem) {
     return (getMemoryFlags(mem) & UPDATABLE_BIT_MASK) != 0;
   }
@@ -400,11 +396,6 @@ final class KllPreambleUtil {
   static void setMemorySingleItemFlag(final WritableMemory wmem,  final boolean singleItem) {
     final int flags = getMemoryFlags(wmem);
     setMemoryFlags(wmem, singleItem ? flags | SINGLE_ITEM_BIT_MASK : flags & ~SINGLE_ITEM_BIT_MASK);
-  }
-
-  static void setMemoryDoubleSketchFlag(final WritableMemory wmem,  final boolean doubleSketch) {
-    final int flags = getMemoryFlags(wmem);
-    setMemoryFlags(wmem, doubleSketch ? flags | DOUBLES_SKETCH_BIT_MASK : flags & ~DOUBLES_SKETCH_BIT_MASK);
   }
 
   static void setMemoryUpdatableFlag(final WritableMemory wmem,  final boolean updatable) {

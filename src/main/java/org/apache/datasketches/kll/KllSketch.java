@@ -88,8 +88,6 @@ public abstract class KllSketch implements QuantilesAPI {
     TGT_IS_READ_ONLY("Given sketch Memory is immutable, cannot write."),
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
-    MUST_NOT_CALL("This is an artifact of inheritance and should never be called."),
-    SINGLE_ITEM_IMPROPER_CALL("Improper method use for single-item sketch"),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
     NOT_SINGLE_ITEM("Sketch is not single item."),
     MUST_NOT_BE_UPDATABLE_FORMAT("Given Memory object must not be in updatableFormat.");
@@ -350,9 +348,7 @@ public abstract class KllSketch implements QuantilesAPI {
       if (!other.isFloatsSketch()) { kllSketchThrow(SRC_MUST_BE_FLOAT); }
       KllFloatsHelper.mergeFloatImpl((KllFloatsSketch)this, other);
     }
-    //else {
-      //ITEMS_SKETCH //TODO
-    //}
+    //TODO items
   }
 
   @Override

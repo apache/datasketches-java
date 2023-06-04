@@ -25,6 +25,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableForm
 import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
@@ -44,17 +45,17 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  *
  * @see org.apache.datasketches.kll.KllSketch
  */
-public abstract class KllFloatsSketch extends KllFloatsProxy implements QuantilesFloatsAPI {
+public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
   private KllFloatsSketchSortedView kllFloatsSV = null;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(wmem, memReqSvr);
+    super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
   }
 
   /**
-   * Factory heapify takes the sketch image in Memory and instantiates an on-heap sketch.
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
    * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a Memory image of a sketch serialized by this sketch.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
    * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
    * @return a heap-based sketch based on the given Memory.
    */
@@ -120,14 +121,14 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
   }
 
   /**
-   * Wrap a sketch around the given read only source Memory containing sketch data
+   * Wrap a sketch around the given read only compact source Memory containing sketch data
    * that originated from this sketch.
    * @param srcMem the read only source Memory
    * @return instance of this sketch
    */
   public static KllFloatsSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     if (memVal.updatableMemFormat) {
       return new KllDirectFloatsSketch((WritableMemory) srcMem, null, memVal);
     } else {
@@ -146,7 +147,7 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     if (memVal.updatableMemFormat) {
       if (!memVal.readOnly) {
         Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
@@ -288,8 +289,33 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
   }
 
   @Override
+  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
+  public FloatsSortedView getSortedView() {
+    refreshSortedView();
+    return kllFloatsSV;
+  }
+  
+  @Override
   public QuantilesFloatsSketchIterator iterator() {
     return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
+  }
+
+  /**
+   * {@inheritDoc}
+   * <p>The parameter <i>k</i> will not change.</p>
+   */
+  @Override
+  public final void reset() {
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final int k = getK();
+    setN(0);
+    setMinK(k);
+    setNumLevels(1);
+    setLevelZeroSorted(false);
+    setLevelsArray(new int[] {k, k});
+    setMinFloatItem(Float.NaN);
+    setMaxFloatItem(Float.NaN);
+    setFloatItemsArray(new float[k]);
   }
 
   @Override
@@ -304,17 +330,31 @@ public abstract class KllFloatsSketch extends KllFloatsProxy implements Quantile
     kllFloatsSV = null;
   }
 
-  @Override
-  @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
-  public FloatsSortedView getSortedView() {
-    refreshSortedView();
-    return kllFloatsSV;
-  }
+  //restricted
 
-  void nullSortedView() { kllFloatsSV = null; }
+  /**
+   * @return full size of internal items array including garbage.
+   */
+  abstract float[] getFloatItemsArray();
+
+  abstract float getFloatSingleItem();
+
+  abstract float getMaxFloatItem();
+
+  abstract float getMinFloatItem();
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
   }
 
+  abstract void setFloatItemsArray(float[] floatItems);
+
+  abstract void setFloatItemsArrayAt(int index, float item);
+
+  abstract void setMaxFloatItem(float item);
+
+  abstract void setMinFloatItem(float item);
+
+  void nullSortedView() { kllFloatsSV = null; }
+  
 }

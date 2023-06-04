@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -323,13 +324,13 @@ public class KllMiscDirectFloatsTest {
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -338,13 +339,13 @@ public class KllMiscDirectFloatsTest {
     sk = getDFSketch(k, 0);
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);
@@ -354,13 +355,13 @@ public class KllMiscDirectFloatsTest {
     sk.update(1);
     upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
     wmem = WritableMemory.writableWrap(upBytes);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
     wmem = WritableMemory.writableWrap(upBytes2);
-    s = KllPreambleUtil.toString(wmem, true);
+    s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
     println(s);
     assertEquals(upBytes, upBytes2);

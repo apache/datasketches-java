@@ -22,8 +22,8 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
 import java.util.Objects;
 
@@ -121,8 +121,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   static KllHeapDoublesSketch heapifyImpl(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem);
-    if (!memVal.doublesSketch) { Error.kllSketchThrow(SRC_MUST_BE_DOUBLE); }
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
     return new KllHeapDoublesSketch(srcMem, memVal);
   }
 
