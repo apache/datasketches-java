@@ -21,6 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.util.Comparator;
 import java.util.Objects;
@@ -32,7 +33,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 @SuppressWarnings("unused")
-class KllItemsSketch<T> extends KllItemsProxy<T> implements QuantilesGenericAPI<T> { //TODO make public when ready
+public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
   private final int k_; // configured size of K.
   private final int m_; // configured size of M.
   private long n_;      // number of items input into this sketch.
@@ -51,7 +52,7 @@ class KllItemsSketch<T> extends KllItemsProxy<T> implements QuantilesGenericAPI<
       final Class<T> clazz,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super();
+    super(ITEMS_SKETCH, null, null);
     Objects.requireNonNull(clazz, "Class<T> must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "Serializer/Deserializer must not be null.");
@@ -129,6 +130,12 @@ class KllItemsSketch<T> extends KllItemsProxy<T> implements QuantilesGenericAPI<
   @Override
   public double getRankUpperBound(final double rank) {
     return min(1.0, rank + KllHelper.getNormalizedRankError(getMinK(), false));
+  }
+
+  @Override
+  public void reset() {
+    // TODO Auto-generated method stub
+
   }
 
   @Override
@@ -278,42 +285,6 @@ class KllItemsSketch<T> extends KllItemsProxy<T> implements QuantilesGenericAPI<
 
   @Override
   void setNumLevels(final int numLevels) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  T[] getItemsArray() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  T getSingleItem() {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  void setItemsArray(final T[] Items) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  void setItemsArrayAt(final int index, final T item) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  void setMaxItem(final T item) {
-    // TODO Auto-generated method stub
-
-  }
-
-  @Override
-  void setMinItem(final T item) {
     // TODO Auto-generated method stub
 
   }
