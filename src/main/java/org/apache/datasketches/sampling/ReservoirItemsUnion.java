@@ -104,7 +104,7 @@ public final class ReservoirItemsUnion<T> {
     final boolean preLongsEqMin = (numPreLongs == Family.RESERVOIR_UNION.getMinPreLongs());
     final boolean preLongsEqMax = (numPreLongs == Family.RESERVOIR_UNION.getMaxPreLongs());
 
-    if (!preLongsEqMin & !preLongsEqMax) {
+    if (!preLongsEqMin && !preLongsEqMax) {
       throw new SketchesArgumentException("Possible corruption: Non-empty union with only "
           + Family.RESERVOIR_UNION.getMinPreLongs() + "preLongs");
     }
