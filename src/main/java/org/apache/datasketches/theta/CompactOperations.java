@@ -123,7 +123,6 @@ final class CompactOperations {
     final int srcPreLongs = extractPreLongs(srcMem);
     final int srcSerVer = extractSerVer(srcMem); //not used
     final int srcFamId = extractFamilyID(srcMem);
-    final Family srcFamily = Family.idToFamily(srcFamId);
     final int srcLgArrLongs = extractLgArrLongs(srcMem);
     final int srcFlags = extractFlags(srcMem);
     final short srcSeedHash = (short) extractSeedHash(srcMem);
