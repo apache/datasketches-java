@@ -21,6 +21,8 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
@@ -73,6 +75,12 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     floatItems_ = new float[k];
   }
 
+  static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
+    return new KllHeapFloatsSketch(srcMem, memVal);
+  }
+
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
@@ -86,14 +94,14 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     minK_ = memValidate.minK;
     levelsArr = memValidate.levelsArr;
     isLevelZeroSorted_ = memValidate.level0Sorted;
-    final boolean updatableMemFormat = memValidate.updatableMemFormat;
+    final boolean serialVersionUpdatable = getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE;
 
-    if (memValidate.empty && !updatableMemFormat) {
+    if (memValidate.empty && !serialVersionUpdatable) {
       minFloatItem_ = Float.NaN;
       maxFloatItem_ = Float.NaN;
       floatItems_ = new float[k_];
     }
-    else if (memValidate.singleItem && !updatableMemFormat) {
+    else if (memValidate.singleItem && !serialVersionUpdatable) {
       final float item = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
       minFloatItem_ = maxFloatItem_ = item;
       floatItems_ = new float[k_];
@@ -101,7 +109,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     }
     else { //Full or updatableMemFormat
       int offsetBytes = DATA_START_ADR;
-      offsetBytes += (updatableMemFormat ? levelsArr.length * Integer.BYTES : (levelsArr.length - 1) * Integer.BYTES);
+      offsetBytes += (serialVersionUpdatable ? levelsArr.length * Integer.BYTES : (levelsArr.length - 1) * Integer.BYTES);
       minFloatItem_ = srcMem.getFloat(offsetBytes);
       offsetBytes += Float.BYTES;
       maxFloatItem_ = srcMem.getFloat(offsetBytes);
@@ -110,19 +118,13 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
       final int retainedItems = capacityItems - levelsArr[0];
       floatItems_ = new float[capacityItems];
       final int shift = levelsArr[0];
-      if (updatableMemFormat) {
+      if (serialVersionUpdatable) {
         offsetBytes += shift * Float.BYTES;
         srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
       } else {
         srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
       }
     }
-  }
-
-  static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
-    return new KllHeapFloatsSketch(srcMem, memVal);
   }
 
   @Override

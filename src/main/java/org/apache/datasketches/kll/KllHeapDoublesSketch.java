@@ -21,6 +21,8 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
@@ -73,6 +75,12 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     doubleItems_ = new double[k];
   }
 
+  static KllHeapDoublesSketch heapifyImpl(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
+    return new KllHeapDoublesSketch(srcMem, memVal);
+  }
+  
   /**
    * Heapify constructor.
    * @param srcMem Memory object that contains data serialized by this sketch.
@@ -86,14 +94,14 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     minK_ = memValidate.minK;
     levelsArr = memValidate.levelsArr;
     isLevelZeroSorted_ = memValidate.level0Sorted;
-    final boolean updatableMemFormat = memValidate.updatableMemFormat;
+    final boolean serialVersionUpdatable = getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE;
 
-    if (memValidate.empty && !updatableMemFormat) {
+    if (memValidate.empty && !serialVersionUpdatable) {
       minDoubleItem_ = Double.NaN;
       maxDoubleItem_ = Double.NaN;
       doubleItems_ = new double[k_];
     }
-    else if (memValidate.singleItem && !updatableMemFormat) {
+    else if (memValidate.singleItem && !serialVersionUpdatable) {
       final double item = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
       minDoubleItem_ = maxDoubleItem_ = item;
       doubleItems_ = new double[k_];
@@ -101,7 +109,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     }
     else { //Full or updatableMemFormat
       int offsetBytes = DATA_START_ADR;
-      offsetBytes += (updatableMemFormat ? levelsArr.length * Integer.BYTES : (levelsArr.length - 1) * Integer.BYTES);
+      offsetBytes += (serialVersionUpdatable ? levelsArr.length * Integer.BYTES : (levelsArr.length - 1) * Integer.BYTES);
       minDoubleItem_ = srcMem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
       maxDoubleItem_ = srcMem.getDouble(offsetBytes);
@@ -110,19 +118,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       final int retainedItems = capacityItems - levelsArr[0];
       doubleItems_ = new double[capacityItems];
       final int shift = levelsArr[0];
-      if (updatableMemFormat) {
+      if (serialVersionUpdatable) {
         offsetBytes += shift * Double.BYTES;
         srcMem.getDoubleArray(offsetBytes, doubleItems_, shift, retainedItems);
       } else {
         srcMem.getDoubleArray(offsetBytes, doubleItems_, shift, retainedItems);
       }
     }
-  }
-
-  static KllHeapDoublesSketch heapifyImpl(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
-    return new KllHeapDoublesSketch(srcMem, memVal);
   }
 
   @Override

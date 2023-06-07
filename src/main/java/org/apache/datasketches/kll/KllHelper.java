@@ -45,7 +45,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SER_VER_BYTE_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
@@ -57,7 +56,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySingleItemFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryUpdatableFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
@@ -617,7 +615,7 @@ final class KllHelper {
     return byteArr;
   }
 
-  static byte[] fastEmptyCompactByteArray(final KllSketch sketch) {
+  private static byte[] fastEmptyCompactByteArray(final KllSketch sketch) {
     final byte[] byteArr = new byte[8];
     byteArr[0] = PREAMBLE_INTS_EMPTY_SINGLE; //2
     byteArr[1] = SERIAL_VERSION_EMPTY_FULL;  //1
@@ -628,7 +626,7 @@ final class KllHelper {
     return byteArr;
   }
 
-  static byte[] fastSingleItemCompactByteArray(final KllSketch sketch) {
+  private static byte[] fastSingleItemCompactByteArray(final KllSketch sketch) {
     final SketchType sketchType = sketch.sketchType;
     final byte[] byteArr;
     switch (sketchType) {
@@ -644,8 +642,8 @@ final class KllHelper {
         ByteArrayUtil.putDoubleLE(byteArr, DATA_START_ADR_SINGLE_ITEM, dblSk.getDoubleSingleItem());
         break;
       }
-//      case ITEMS_SKETCH: {
-//        byteArr = null; //TODO
+//      case ITEMS_SKETCH: { //TODO
+//        byteArr = null; 
 //        break;
 //      }
       default: return null; //can't happen
@@ -668,7 +666,7 @@ final class KllHelper {
     final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
     final StringBuilder sb = new StringBuilder();
-    final String directStr = sketch.updatableMemFormat ? "Direct" : "";
+    final String directStr = sketch.serialVersionUpdatable ? "Direct" : "";
     final String skType = sketchType == DOUBLES_SKETCH ? directStr + "Doubles" :
       sketchType == FLOATS_SKETCH ? directStr + "Floats" : directStr + "Items";
     sb.append(Util.LS).append("### Kll").append(skType).append("Sketch Summary:").append(Util.LS);
@@ -684,7 +682,7 @@ final class KllHelper {
     sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(Util.LS);
     sb.append("   Capacity Items         : ").append(levelsArr[numLevels]).append(Util.LS);
     sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(Util.LS);
-    if (sketch.updatableMemFormat) {
+    if (sketch.serialVersionUpdatable) {
       sb.append("   Updatable Storage Bytes: ").append(sketch.getCurrentUpdatableSerializedSizeBytes()).append(Util.LS);
     } else {
       sb.append("   Compact Storage Bytes  : ").append(sketch.getCurrentCompactSerializedSizeBytes()).append(Util.LS);
@@ -735,14 +733,18 @@ final class KllHelper {
    * This method exists for testing purposes only.  The resulting byteArray
    * structure is an internal format and not supported for general transport
    * or compatibility between systems and may be subject to change in the future.
+   * 
+   * <p>The given sketch already has memory in updatable format. This updates 
+   * the flag bits as to the actual state of <i>n</i>.</p>
+   * 
    * @param sketch the current sketch to be serialized.
    * @return a byte array in an updatable form.
    */
   private static byte[] toUpdatableByteArrayFromUpdatableMemory(final KllSketch sketch) {
     final int curBytes = sketch.getCurrentUpdatableSerializedSizeBytes();
     final long n = sketch.getN();
-    final byte flags = (byte) (UPDATABLE_BIT_MASK
-        | ((n == 0) ? EMPTY_BIT_MASK : 0)
+    final byte flags = (byte) 
+        ( ((n == 0) ? EMPTY_BIT_MASK : 0)
         | ((n == 1) ? SINGLE_ITEM_BIT_MASK : 0));
     final byte[] byteArr = new byte[curBytes];
     sketch.wmem.getByteArray(0, byteArr, 0, curBytes);
@@ -758,7 +760,7 @@ final class KllHelper {
    * @return a byte array in an updatable form.
    */
   static byte[] toUpdatableByteArrayImpl(final KllSketch sketch) {
-    if (sketch.hasMemory() && sketch.updatableMemFormat) {
+    if (sketch.hasMemory() && sketch.serialVersionUpdatable) {
       return toUpdatableByteArrayFromUpdatableMemory(sketch);
     }
     final byte[] byteArr = new byte[sketch.getCurrentUpdatableSerializedSizeBytes()];
@@ -895,7 +897,7 @@ final class KllHelper {
 //    }
 
     //MEMORY SPACE MANAGEMENT
-    if (sketch.updatableMemFormat) {
+    if (sketch.serialVersionUpdatable) {
       sketch.wmem = memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewTotalItemsCapacity);
     }
     //update our sketch with new expanded spaces
@@ -965,24 +967,23 @@ final class KllHelper {
     return result;
   }
 
-  private static void loadFirst8Bytes(final KllSketch sk, final WritableMemory wmem,
-      final boolean updatableFormat) {
+  private static void loadFirst8Bytes(final KllSketch sk, final WritableMemory wmem, 
+      final boolean serialVersionUpdatable) {
     final boolean empty = sk.getN() == 0;
     final boolean lvlZeroSorted = sk.isLevelZeroSorted();
     final boolean singleItem = sk.getN() == 1;
-    final int preInts = updatableFormat
+    final int preInts = serialVersionUpdatable
         ? PREAMBLE_INTS_FULL
         : (empty || singleItem) ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FULL;
     //load the preamble
     setMemoryPreInts(wmem, preInts);
-    final int server = updatableFormat ? SERIAL_VERSION_UPDATABLE
+    final int server = serialVersionUpdatable ? SERIAL_VERSION_UPDATABLE
         : (singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL);
     setMemorySerVer(wmem, server);
     setMemoryFamilyID(wmem, Family.KLL.getID());
     setMemoryEmptyFlag(wmem, empty);
     setMemoryLevelZeroSortedFlag(wmem, lvlZeroSorted);
     setMemorySingleItemFlag(wmem, singleItem);
-    setMemoryUpdatableFlag(wmem, updatableFormat);
     setMemoryK(wmem, sk.getK());
     setMemoryM(wmem, sk.getM());
   }

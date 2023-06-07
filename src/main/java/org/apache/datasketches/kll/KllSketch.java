@@ -22,6 +22,7 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_DOUBLE;
 import static org.apache.datasketches.kll.KllSketch.Error.SRC_MUST_BE_FLOAT;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
@@ -89,8 +90,7 @@ public abstract class KllSketch implements QuantilesAPI {
     SRC_MUST_BE_DOUBLE("Given sketch must be of type Double."),
     SRC_MUST_BE_FLOAT("Given sketch must be of type Float."),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is not single item."),
-    MUST_NOT_BE_UPDATABLE_FORMAT("Given Memory object must not be in updatableFormat.");
+    NOT_SINGLE_ITEM("Sketch is not single item.");
 
     private String msg;
 
@@ -128,7 +128,7 @@ public abstract class KllSketch implements QuantilesAPI {
   static final int MIN_M = 2; //The minimum M
   static final Random random = new Random();
   final SketchType sketchType;
-  final boolean updatableMemFormat;
+  final boolean serialVersionUpdatable;
   final MemoryRequestServer memReqSvr;
   final boolean readOnly;
   int[] levelsArr;
@@ -147,8 +147,8 @@ public abstract class KllSketch implements QuantilesAPI {
    this.sketchType = sketchType;
    this.wmem = wmem;
    if (wmem != null) {
-     this.updatableMemFormat = KllPreambleUtil.getMemoryUpdatableFormatFlag(wmem);
-     this.readOnly = wmem.isReadOnly() || !updatableMemFormat;
+     this.serialVersionUpdatable = KllPreambleUtil.getMemorySerVer(wmem) == SERIAL_VERSION_UPDATABLE;
+     this.readOnly = wmem.isReadOnly() || !serialVersionUpdatable;
      if (readOnly) {
        this.memReqSvr = null;
      } else {
@@ -156,7 +156,7 @@ public abstract class KllSketch implements QuantilesAPI {
        this.memReqSvr = memReqSvr;
      }
    } else { //wmem is null, heap case
-     this.updatableMemFormat = false;
+     this.serialVersionUpdatable = false;
      this.memReqSvr = null;
      this.readOnly = false;
    }
@@ -270,7 +270,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @return the number of bytes this sketch would require if serialized.
    */
   public int getSerializedSizeBytes() {
-    return (updatableMemFormat)
+    return (serialVersionUpdatable)
         ? getCurrentUpdatableSerializedSizeBytes()
         : getCurrentCompactSerializedSizeBytes();
   }
@@ -309,7 +309,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @return true if the backing WritableMemory is in updatable format.
    */
   public final boolean isMemoryUpdatableFormat() {
-    return hasMemory() && updatableMemFormat;
+    return hasMemory() && serialVersionUpdatable;
   }
 
   @Override
@@ -391,7 +391,7 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract void incNumLevels();
 
   final boolean isCompactSingleItem() {
-    return hasMemory() && !updatableMemFormat && (getN() == 1);
+    return hasMemory() && !serialVersionUpdatable && (getN() == 1);
   }
 
   boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }

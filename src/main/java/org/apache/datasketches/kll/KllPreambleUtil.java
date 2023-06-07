@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
@@ -37,14 +38,28 @@ import org.apache.datasketches.memory.WritableMemory;
  * This allows the possibility of the introduction of different serialization
  * schemes with minimal impact on the rest of the library.</p>
  *
- * <p>
- * LAYOUT: The low significance bytes of this <i>long</i> based data structure are on the right.
+ * <h3>Visual Layout</h3>
+ * The low significance bytes of this <i>long</i> based data structure are on the right.
  * The multi-byte primitives are stored in native byte order.
- * The single byte fields are treated as unsigned.</p>
+ * The numeric <i>byte</i> and <i>short</i> fields are treated as unsigned.
+ * The numeric <i>int</i> and <i>long</i> fields are treated as signed.
  *
- * <p>An empty sketch requires only 8 bytes, which is only preamble.
- * A serialized, non-empty KllDoublesSketch requires at least 16 bytes of preamble.
- * A serialized, non-empty KllFloatsSketch requires at least 12 bytes of preamble.</p>
+ * <h3>Preamble Sizes</h3>
+ * The preamble has 2 formats or sizes.
+ * <ul><li>A serialized empty sketch requires 8 bytes, all preamble. It is not updatable.</li>
+ * <li>A serialized, single-item sketch requires 8 bytes of preamble, followed by the one item. It is not updatable.</li>
+ * <li>A serialized, <i>n &gt; 1</i> sketch requires at least 20 bytes of preamble (5 ints).
+ * This is followed by the Levels int array, followed by the min and max values,
+ * followed by the item data arrays. It can be in compact, not updatable format or in regular, updatable format.</li>
+ * </ul>
+ *
+ * <h3>Compact Formats</h3>
+ * <ul><li>The empty and single-item formats are by definition compact and non-updatable.</li>
+ * <li>The compact "full" format differs from the fully updatable (writable) format in two ways:
+ * <ul><li>The last entry of the Levels int array is omitted because it can be derived.</li>
+ *   <li>All empty space of the data arrays is removed in the serialization.
+ *   The empty space can be reconstructed.</li></ul>
+ * </ul>
  *
  * <pre>{@code
  * Serialized float sketch layout, more than one item:
@@ -92,33 +107,26 @@ import org.apache.datasketches.memory.WritableMemory;
  *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
  *      ||                                                               |      8       |
  *  1   ||------------------------------Single Item-------------------------------------|
- *
- * The structure of the data block depends on Layout:
- *
- *   For FLOAT_SINGLE_COMPACT or DOUBLE_SINGLE_COMPACT:
- *     The single data item is at offset DATA_START_ADR_SINGLE_ITEM = 8
- *
- *   For FLOAT_FULL_COMPACT:
- *     The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of numLevels integers;
- *     Followed by Float Min_Item, then Float Max_Item
- *     Followed by an array of Floats of length retainedItems()
- *
- *   For DOUBLE_FULL_COMPACT
- *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 20 with a length of numLevels integers;
- *     Followed by Double Min_Item, then Double Max_Item
- *     Followed by an array of Doubles of length retainedItems()
- *
- *   For FLOAT_UPDATABLE
- *     The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of (numLevels + 1) integers;
- *     Followed by Float Min_Item, then Float Max_Item
- *     Followed by an array of Floats of length KllHelper.computeTotalItemCapacity(...).
- *
- *   For DOUBLE_UPDATABLE
- *     The int[] levels array starts at offset DATA_START_ADR_DOUBLE = 20 with a length of (numLevels + 1) integers;
- *     Followed by Double Min_Item, then Double Max_Item
- *     Followed by an array of Doubles of length KllHelper.computeTotalItemCapacity(...).
- *
  * }</pre>
+ * The placement and structure of the data block depends on Layout:
+ * <ul><li>For SerVer = SERIAL_VERSION_EMPTY_FULL (1) and <i>n</i> = 0:<br>
+ * The sketch is empty. The preamble is 8 bytes. There is no data.</li>
+ *   
+ * <li>For SerVer = SERIAL_VERSION_SINGLE (2), <i>n</i> is assumed to be 1:<br>
+ * The single data item is at offset DATA_START_ADR_SINGLE_ITEM = 8.</li>
+ *
+ * <li>For SerVer = SERIAL_VERSION_EMPTY_FULL (1) and <i>n</i> &gt; 1:<br>
+ * The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of numLevels integers,
+ *   <ul><li>Followed by Min_Item, then Max_Item,</li>
+ *   <li>Followed by an array of items of length retainedItems().<br> 
+ *   The total byte length is dependent on item type.</li></ul>
+ *
+ * <li>For SerVer = SERIAL_VERSION_UPDATABLE (3)<br>
+ * The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of (numLevels + 1) integers;
+ *   <ul><li>Followed by Min_Item, then Max_Item,</li>
+ *   <li>Followed by an array of items of length KllHelper.computeTotalItemCapacity(...).<br>
+ *   The total byte length is dependent on item type.</li></ul>
+ * </ul>
  *
  *  @author Lee Rhodes
  */
@@ -144,13 +152,13 @@ final class KllPreambleUtil {
   static final int MIN_K_SHORT_ADR            = 16; // to 17
   static final int NUM_LEVELS_BYTE_ADR        = 18;
 
-  //                                                19 is reserved for future use
+  //                                            19 is reserved for future use
   static final int DATA_START_ADR             = 20; // Full Sketch, not single item
 
   // Other static members
-  static final byte SERIAL_VERSION_EMPTY_FULL  = 1; // Empty or full preamble, NOT single item format
+  static final byte SERIAL_VERSION_EMPTY_FULL  = 1; // Empty or full preamble, NOT single item format, NOT updatable
   static final byte SERIAL_VERSION_SINGLE      = 2; // only single-item format
-  static final byte SERIAL_VERSION_UPDATABLE   = 3; //
+  static final byte SERIAL_VERSION_UPDATABLE   = 3; // PreInts=5, Full preamble + LevelsArr + min, max + empty space
   static final byte PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
   static final byte PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item
   static final byte KLL_FAMILY                 = 15;
@@ -159,7 +167,6 @@ final class KllPreambleUtil {
   static final int EMPTY_BIT_MASK             = 1;
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
   static final int SINGLE_ITEM_BIT_MASK       = 4;
-  static final int UPDATABLE_BIT_MASK         = 16;
 
   /**
    * Returns a human readable string summary of the internal state of the given sketch byte array.
@@ -188,26 +195,27 @@ final class KllPreambleUtil {
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
     final int preInts = memVal.preInts;
-    final boolean doublesSketch = memVal.sketchType == DOUBLES_SKETCH;
-    final boolean updatableMemFormat = memVal.updatableMemFormat;
+    final boolean serialVersionUpdatable = getMemorySerVer(mem) == SERIAL_VERSION_UPDATABLE;
     final boolean empty = memVal.empty;
     final boolean singleItem = memVal.singleItem;
     final int sketchBytes = memVal.sketchBytes;
-    final int typeBytes = memVal.typeBytes;
+    final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES;
+    final int familyID = getMemoryFamilyID(mem);
+    final String famName = idToFamily(familyID).toString();
 
     final StringBuilder sb = new StringBuilder();
     sb.append(Util.LS).append("### KLL SKETCH MEMORY SUMMARY:").append(LS);
     sb.append("Byte   0   : Preamble Ints       : ").append(preInts).append(LS);
     sb.append("Byte   1   : SerVer              : ").append(memVal.serVer).append(LS);
     sb.append("Byte   2   : FamilyID            : ").append(memVal.familyID).append(LS);
-    sb.append("             FamilyName          : ").append(memVal.famName).append(LS);
+    sb.append("             FamilyName          : ").append(famName).append(LS);
     sb.append("Byte   3   : Flags Field         : ").append(flagsStr).append(LS);
     sb.append("         Bit Flag Name").append(LS);
     sb.append("           0 EMPTY COMPACT       : ").append(empty).append(LS);
     sb.append("           1 LEVEL_ZERO_SORTED   : ").append(memVal.level0Sorted).append(LS);
     sb.append("           2 SINGLE_ITEM COMPACT : ").append(singleItem).append(LS);
-    sb.append("           3 DOUBLES_SKETCH      : ").append(doublesSketch).append(LS);
-    sb.append("           4 UPDATABLE           : ").append(updatableMemFormat).append(LS);
+    sb.append("           3 DOUBLES_SKETCH      : ").append(sketchType == DOUBLES_SKETCH).append(LS);
+    sb.append("           4 UPDATABLE           : ").append(serialVersionUpdatable).append(LS);
     sb.append("Bytes  4-5 : K                   : ").append(memVal.k).append(LS);
     sb.append("Byte   6   : Min Level Cap, M    : ").append(memVal.m).append(LS);
     sb.append("Byte   7   : (Reserved)          : ").append(LS);
@@ -215,7 +223,7 @@ final class KllPreambleUtil {
     final long n = memVal.n;
     final int minK = memVal.minK;
     final int numLevels = memVal.numLevels;
-    if (updatableMemFormat || (!empty && !singleItem)) {
+    if (serialVersionUpdatable || (!empty && !singleItem)) {
         sb.append("Bytes  8-15: N                   : ").append(n).append(LS);
         sb.append("Bytes 16-17: MinK                : ").append(minK).append(LS);
         sb.append("Byte  18   : NumLevels           : ").append(numLevels).append(LS);
@@ -235,7 +243,7 @@ final class KllPreambleUtil {
       sb.append("### START KLL DATA:").append(LS);
       int offsetBytes = 0;
 
-      if (updatableMemFormat) {
+      if (serialVersionUpdatable) {
         sb.append("LEVELS ARR:").append(LS);
         offsetBytes = DATA_START_ADR;
         for (int i = 0; i < numLevels + 1; i++) {
@@ -243,7 +251,7 @@ final class KllPreambleUtil {
           offsetBytes += Integer.BYTES;
         }
         sb.append("MIN/MAX:").append(LS);
-        if (doublesSketch) {
+        if (sketchType == DOUBLES_SKETCH) {
           sb.append(mem.getDouble(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(mem.getDouble(offsetBytes)).append(LS);
@@ -256,7 +264,7 @@ final class KllPreambleUtil {
         }
         sb.append("ITEMS DATA").append(LS);
         final int itemsSpace = (sketchBytes - offsetBytes) / typeBytes;
-        if (doublesSketch) {
+        if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
@@ -277,7 +285,7 @@ final class KllPreambleUtil {
         }
         sb.append("(top level of Levels arr is absent)").append(LS);
         sb.append("MIN/MAX:").append(LS);
-        if (doublesSketch) {
+        if (sketchType == DOUBLES_SKETCH) {
           sb.append(mem.getDouble(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(mem.getDouble(offsetBytes)).append(LS);
@@ -290,7 +298,7 @@ final class KllPreambleUtil {
         }
         sb.append("ITEMS DATA").append(LS);
         final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
-        if (doublesSketch) {
+        if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
@@ -305,7 +313,7 @@ final class KllPreambleUtil {
       } else { //single item
         if (singleItem) {
           sb.append("SINGLE ITEM DATA").append(LS);
-          sb.append(doublesSketch
+          sb.append(sketchType == DOUBLES_SKETCH
               ? mem.getDouble(DATA_START_ADR_SINGLE_ITEM)
               : mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
         }
@@ -341,10 +349,6 @@ final class KllPreambleUtil {
 
   static boolean getMemorySingleItemFlag(final Memory mem) {
     return (getMemoryFlags(mem) & SINGLE_ITEM_BIT_MASK) != 0;
-  }
-
-  static boolean getMemoryUpdatableFormatFlag(final Memory mem) {
-    return (getMemoryFlags(mem) & UPDATABLE_BIT_MASK) != 0;
   }
 
   static int getMemoryK(final Memory mem) {
@@ -396,11 +400,6 @@ final class KllPreambleUtil {
   static void setMemorySingleItemFlag(final WritableMemory wmem,  final boolean singleItem) {
     final int flags = getMemoryFlags(wmem);
     setMemoryFlags(wmem, singleItem ? flags | SINGLE_ITEM_BIT_MASK : flags & ~SINGLE_ITEM_BIT_MASK);
-  }
-
-  static void setMemoryUpdatableFlag(final WritableMemory wmem,  final boolean updatable) {
-    final int flags = getMemoryFlags(wmem);
-    setMemoryFlags(wmem, updatable ? flags | UPDATABLE_BIT_MASK : flags & ~UPDATABLE_BIT_MASK);
   }
 
   static void setMemoryK(final WritableMemory wmem, final int memK) {
