@@ -21,8 +21,8 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryUpdatableFormatFlag;
-import static org.apache.datasketches.kll.KllSketch.Error.MUST_NOT_BE_UPDATABLE_FORMAT;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
@@ -61,10 +61,23 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    */
   public static KllDoublesSketch heapify(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    if (getMemoryUpdatableFormatFlag(srcMem)) { Error.kllSketchThrow(MUST_NOT_BE_UPDATABLE_FORMAT); }
     return KllHeapDoublesSketch.heapifyImpl(srcMem);
   }
 
+  /**
+   * Create a new direct instance of this sketch with the default <em>k</em>.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new direct instance of this sketch
+   */
+  public static KllDoublesSketch newDirectInstance(
+      final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    return newDirectInstance(DEFAULT_K, dstMem, memReqSvr);
+  }
+  
   /**
    * Create a new direct instance of this sketch with a given <em>k</em>.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
@@ -82,39 +95,22 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   /**
-   * Create a new direct instance of this sketch with the default <em>k</em>.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param dstMem the given destination WritableMemory object for use by the sketch
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return a new direct instance of this sketch
-   */
-  public static KllDoublesSketch newDirectInstance(
-      final WritableMemory dstMem,
-      final MemoryRequestServer memReqSvr) {
-    Objects.requireNonNull(dstMem, "Parameter 'dstMem' must not be null");
-    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
-    return KllDirectDoublesSketch.newDirectInstance(DEFAULT_K, DEFAULT_M, dstMem, memReqSvr);
-  }
-
-  /**
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-   * This will have a rank error of about 1.65%.
-   * @return new KllDoublesSketch on the heap.
+   * @return new KllDoublesSketch on the Java heap.
    */
-  public static KllDoublesSketch  newHeapInstance() {
-    return new KllHeapDoublesSketch(DEFAULT_K, DEFAULT_M);
+  public static KllDoublesSketch newHeapInstance() {
+    return newHeapInstance(DEFAULT_K);
   }
 
   /**
    * Create a new heap instance of this sketch with a given parameter <em>k</em>.
-   * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
+   * <em>k</em> can be between 8, inclusive, and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * @return new KllDoublesSketch on the heap.
+   * @return new KllDoublesSketch on the Java heap.
    */
   public static KllDoublesSketch newHeapInstance(final int k) {
     return new KllHeapDoublesSketch(k, DEFAULT_M);
@@ -129,7 +125,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   public static KllDoublesSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
-    if (memVal.updatableMemFormat) {
+    if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE) {
       return new KllDirectDoublesSketch((WritableMemory) srcMem, null, memVal);
     } else {
       return new KllDirectCompactDoublesSketch(srcMem, memVal);
@@ -148,10 +144,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
-    if (memVal.updatableMemFormat) {
-      if (!memVal.readOnly) {
-        Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
-      }
+    if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE && !srcMem.isReadOnly()) {
+      Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
       return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
     } else {
       return new KllDirectCompactDoublesSketch(srcMem, memVal);
