@@ -28,8 +28,12 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
+import java.io.File;
+
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
@@ -583,6 +587,16 @@ public class KllFloatsSketchTest {
       printf("%10.2f%10.2f\n", cdf[i], pmf[i]);
       assertEquals(cdf[i], cdfE[i], toll);
       assertEquals(pmf[i], pmfE[i], toll);
+    }
+  }
+
+  @Test
+  public void compatibilityWithCppEstimationMode() throws Exception {
+    final File file = Util.getResourceFile("kll_float_estimation_cpp.sk");
+    try (final MapHandle mh = Memory.map(file)) {
+      final KllFloatsSketch sketch = KllFloatsSketch.heapify(mh.get());
+      assertEquals(sketch.getMinItem(), 0);
+      assertEquals(sketch.getMaxItem(), 999);
     }
   }
 
