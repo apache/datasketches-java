@@ -22,7 +22,6 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
@@ -30,7 +29,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFlags;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryM;
@@ -59,13 +57,12 @@ import org.apache.datasketches.memory.WritableMemory;
 class KllDirectFloatsSketch extends KllFloatsSketch {
 
   /**
-   * The constructor with Memory that can be off-heap.
+   * The constructor with WritableMemory that can be off-heap.
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object
    */
-  KllDirectFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr,
-      final KllMemoryValidate memVal) {
+  KllDirectFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr, final KllMemoryValidate memVal) {
     super(wmem, memReqSvr);
     levelsArr = memVal.levelsArr;
   }
@@ -83,7 +80,6 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     setMemoryPreInts(dstMem, PREAMBLE_INTS_FULL);
     setMemorySerVer(dstMem, SERIAL_VERSION_UPDATABLE);
     setMemoryFamilyID(dstMem, Family.KLL.getID());
-    setMemoryFlags(dstMem, UPDATABLE_BIT_MASK);
     setMemoryK(dstMem, k);
     setMemoryM(dstMem, m);
     setMemoryN(dstMem, 0);

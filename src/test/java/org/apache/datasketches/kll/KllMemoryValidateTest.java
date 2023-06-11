@@ -23,8 +23,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.UPDATABLE_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFlags;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
@@ -72,8 +72,7 @@ public class KllMemoryValidateTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     byte[] byteArr = sk.toByteArray();
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
-    setMemoryFlags(wmem, UPDATABLE_BIT_MASK);
-    setMemorySerVer(wmem, SERIAL_VERSION_EMPTY_FULL);
+    setMemorySerVer(wmem, SERIAL_VERSION_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);
   }
 

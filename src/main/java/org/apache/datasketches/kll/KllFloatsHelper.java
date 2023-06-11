@@ -114,7 +114,7 @@ final class KllFloatsHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mySketch.updatableMemFormat) {
+      if (mySketch.serialVersionUpdatable) {
         mySketch.wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
       }
     }

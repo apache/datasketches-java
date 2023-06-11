@@ -49,14 +49,13 @@ final class KllDoublesHelper {
     final int myMinK = mySketch.getMinK();
 
     //update this sketch with level0 items from the other sketch
-
     if (otherDblSk.isCompactSingleItem()) {
       updateDouble(mySketch, otherDblSk.getDoubleSingleItem());
       otherDoubleItemsArr = new double[0];
     } else {
       otherDoubleItemsArr = otherDblSk.getDoubleItemsArray();
       for (int i = otherLevelsArr[0]; i < otherLevelsArr[1]; i++) {
-        KllDoublesHelper.updateDouble(mySketch, otherDoubleItemsArr[i]);
+        updateDouble(mySketch, otherDoubleItemsArr[i]);
       }
     }
     // after the level 0 update, we capture the state of levels and items arrays
@@ -68,7 +67,7 @@ final class KllDoublesHelper {
     int[] myNewLevelsArr = myCurLevelsArr;
     double[] myNewDoubleItemsArr = myCurDoubleItemsArr;
 
-    if (otherNumLevels > 1 && !otherDblSk.isCompactSingleItem()) { //now merge other levels if they exist
+    if (otherNumLevels > 1 && !otherDblSk.isCompactSingleItem()) { //now merge higher levels if they exist
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final double[] workbuf = new double[tmpSpaceNeeded];
@@ -115,7 +114,7 @@ final class KllDoublesHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mySketch.updatableMemFormat) {
+      if (mySketch.serialVersionUpdatable) {
         mySketch.wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
       }
     }
@@ -358,7 +357,7 @@ final class KllDoublesHelper {
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
-    final int selfPopZero = KllHelper.currentLevelSize(0, myCurNumLevels,myCurLevelsArr);
+    final int selfPopZero = KllHelper.currentLevelSize(0, myCurNumLevels, myCurLevelsArr);
     System.arraycopy(myCurDoubleItemsArr, myCurLevelsArr[0], workbuf, worklevels[0], selfPopZero);
     worklevels[1] = worklevels[0] + selfPopZero;
 
