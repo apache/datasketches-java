@@ -224,7 +224,7 @@ public abstract class Sketch {
    * <p>A new <i>CompactSketch</i> object is created:</p>
    * <ul><li>if <i>dstMem != null</i></li>
    * <li>if <i>dstMem == null</i> and <i>this.hasMemory() == true</i></li>
-   * <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item</li> and <i>this.isOrdered() == false</i>
+   * <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item and <i>this.isOrdered() == false</i>
    * and <i>dstOrdered == true</i>.</li>
    *</ul>
    * 
