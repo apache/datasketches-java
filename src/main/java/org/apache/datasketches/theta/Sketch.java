@@ -39,7 +39,7 @@ import org.apache.datasketches.thetacommon.BinomialBoundsN;
 import org.apache.datasketches.thetacommon.ThetaUtil;
 
 /**
- * The top-level class for all sketches. This class is never constructed directly.
+ * The top-level class for all theta sketches. This class is never constructed directly.
  * Use the UpdateSketch.builder() methods to create UpdateSketches.
  *
  * @author Lee Rhodes
@@ -193,43 +193,50 @@ public abstract class Sketch {
   //Sketch interface
 
   /**
-   * Converts this sketch to a ordered CompactSketch on the Java heap.
+   * Converts this sketch to a ordered CompactSketch.
    *
-   * <p>If this sketch is already in the proper form, this method returns <i>this</i>,
-   * otherwise, this method returns a new CompactSketch of the proper form.
+   * <p>If <i>this.isCompact() == true</i> this method returns <i>this</i>,
+   * otherwise, this method is equivalent to 
+   * {@link #compact(boolean, WritableMemory) compact(true, null)}.
    *
    * <p>A CompactSketch is always immutable.</p>
    *
-   * @return this sketch as an ordered CompactSketch on the Java heap.
+   * @return this sketch as an ordered CompactSketch.
    */
   public CompactSketch compact() {
-    return compact(true, null);
+    return (this.isCompact()) ? (CompactSketch)this : compact(true, null);
   }
 
   /**
-   * Convert this sketch to a new CompactSketch of the chosen order and direct or on the heap.
+   * Convert this sketch to a <i>CompactSketch</i>.
    *
-   * <p>If this sketch is already in the proper form, this operation returns <i>this</i>,
-   * otherwise, this method returns a new CompactSketch of the proper form.
-   *
-   * <p>If this sketch is a type of UpdateSketch, the compacting process converts the hash table
-   * of the UpdateSketch to a simple list of the valid hash values.
+   * <p>If this sketch is a type of <i>UpdateSketch</i>, the compacting process converts the hash table
+   * of the <i>UpdateSketch</i> to a simple list of the valid hash values.
    * Any hash values of zero or equal-to or greater than theta will be discarded.
-   * The number of valid values remaining in the CompactSketch depends on a number of factors,
+   * The number of valid values remaining in the <i>CompactSketch</i> depends on a number of factors,
    * but may be larger or smaller than <i>Nominal Entries</i> (or <i>k</i>).
    * It will never exceed 2<i>k</i>.
    * If it is critical to always limit the size to no more than <i>k</i>,
-   * then <i>rebuild()</i> should be called on the UpdateSketch prior to calling this method.</p>
+   * then <i>rebuild()</i> should be called on the <i>UpdateSketch</i> prior to calling this method.</p>
    *
-   * <p>A CompactSketch is always immutable.</p>
+   * <p>A <i>CompactSketch</i> is always immutable.</p>
+   * 
+   * <p>A new <i>CompactSketch</i> object is created:</p>
+   * <ul><li>if <i>dstMem != null</i></li>
+   * <li>if <i>dstMem == null</i> and <i>this.hasMemory() == true</i></li>
+   * <li>if <i>dstMem == null</i> and <i>this</i> has more than 1 item</li> and <i>this.isOrdered() == false</i>
+   * and <i>dstOrdered == true</i>.</li>
+   *</ul>
+   * 
+   * <p>Otherwise, this operation returns <i>this</i>.</p>
    *
-   * @param dstOrdered
+   * @param dstOrdered assumed true if this sketch is empty or has only one value
    * <a href="{@docRoot}/resources/dictionary.html#dstOrdered">See Destination Ordered</a>
    *
    * @param dstMem
    * <a href="{@docRoot}/resources/dictionary.html#dstMem">See Destination Memory</a>.
    *
-   * @return this sketch as a CompactSketch in the chosen form
+   * @return this sketch as a <i>CompactSketch</i>.
    */
   public abstract CompactSketch compact(final boolean dstOrdered, final WritableMemory dstMem);
 

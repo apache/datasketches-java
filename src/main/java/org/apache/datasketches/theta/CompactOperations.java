@@ -110,7 +110,7 @@ final class CompactOperations {
    * This assumes hashSeed is OK; serVer = 3.
    * @param srcMem the given input source Memory image
    * @param dstOrdered the desired ordering of the resulting CompactSketch
-   * @param dstMem Used for the target CompactSketch if it is Direct.
+   * @param dstMem Used for the target CompactSketch if it is Memory-based.
    * @return a CompactSketch of the correct form.
    */
   @SuppressWarnings("unused")
