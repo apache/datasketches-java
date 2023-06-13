@@ -71,7 +71,7 @@ import org.apache.datasketches.memory.WritableMemory;
 /**
  * This class provides some useful sketch analysis tools that are used internally.
  *
- * @author lrhodes
+ * @author Lee Rhodes
  */
 @SuppressWarnings("deprecation")
 final class KllHelper {
@@ -280,7 +280,7 @@ final class KllHelper {
     return subtotal;
   }
 
-  static int currentLevelSize(final int level, final int numLevels, final int[] levels) {
+  static int currentLevelSizeItems(final int level, final int numLevels, final int[] levels) {
     if (level >= numLevels) { return 0; }
     return levels[level + 1] - levels[level];
   }
@@ -549,7 +549,7 @@ final class KllHelper {
     for ( ; level < numLevels; level++) {
       sb.append("   ").append(level).append(", ").append(levelsArr[level]).append(": ")
       .append(KllHelper.levelCapacity(k, numLevels, level, m))
-      .append(", ").append(KllHelper.currentLevelSize(level, numLevels, levelsArr)).append(Util.LS);
+      .append(", ").append(KllHelper.currentLevelSizeItems(level, numLevels, levelsArr)).append(Util.LS);
     }
     sb.append("   ").append(level).append(", ").append(levelsArr[level]).append(": (Exclusive)")
     .append(Util.LS);

@@ -181,7 +181,6 @@ public class KllHelperTest {
   public void testGetAllLevelStats2() {
     long n = 533;
     int k = 200;
-    int m = 8;
     KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, DOUBLES_SKETCH, true);
     assertEquals(gStats.numLevels, 2);

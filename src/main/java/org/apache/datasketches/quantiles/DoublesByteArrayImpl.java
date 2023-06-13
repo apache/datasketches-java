@@ -50,8 +50,7 @@ final class DoublesByteArrayImpl {
 
   private DoublesByteArrayImpl() {}
 
-  static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered,
-                            final boolean compact) {
+  static byte[] toByteArray(final DoublesSketch sketch, final boolean ordered, final boolean compact) {
     final boolean empty = sketch.isEmpty();
 
     //create the flags byte
