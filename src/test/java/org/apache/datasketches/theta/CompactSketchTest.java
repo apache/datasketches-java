@@ -221,7 +221,7 @@ public class CompactSketchTest {
 
   @Test
   public void checkCompactCachePart() {
-    //phoney values except for curCount = 0.
+    //phony values except for curCount = 0.
     long[] result = Intersection.compactCachePart(null, 4, 0, 0L, false);
     assertEquals(result.length, 0);
   }
