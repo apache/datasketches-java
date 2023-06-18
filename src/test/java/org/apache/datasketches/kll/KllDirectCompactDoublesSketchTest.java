@@ -20,6 +20,8 @@
 package org.apache.datasketches.kll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -32,31 +34,51 @@ public class KllDirectCompactDoublesSketchTest {
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
-  public void checkRODirectUpdatable() {
+  public void checkDirectUpdatable_ROandWritable() {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
     byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
-    Memory srcMem = Memory.wrap(byteArr);
+    Memory srcMem = Memory.wrap(byteArr); //-> read only
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
+    assertTrue(sk2 instanceof KllDirectDoublesSketch);
+    assertTrue(sk2.isMemoryUpdatableFormat());
+    println(sk2.toString(true, false));
+    assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getMinItem(), 1.0);
     assertEquals(sk2.getMaxItem(), 21.0);
+    WritableMemory srcWmem = WritableMemory.writableWrap(byteArr);
+    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap(srcWmem, memReqSvr);
+    assertTrue(sk3 instanceof KllDirectDoublesSketch);
+    println(sk3.toString(true, false));
+    assertFalse(sk3.isReadOnly());
+    sk3.update(22.0);
+    assertEquals(sk3.getMinItem(), 1.0);
+    assertEquals(sk3.getMaxItem(), 22.0);
+    
   }
 
   @Test
-  public void checkRODirectCompact() {
+  public void checkDirectCompact() {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    Memory srcMem = Memory.wrap(sk.toByteArray());
+    Memory srcMem = Memory.wrap(sk.toByteArray()); //compact fmt
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
-    println(sk2.toString(true, true));
+    assertTrue(sk2 instanceof KllDirectCompactDoublesSketch);
+    println(sk2.toString(true, false));
+    assertFalse(sk2.isMemoryUpdatableFormat());
+    assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getMinItem(), 1.0);
     assertEquals(sk2.getMaxItem(), 21.0);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
     KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null);
-    assertEquals(sk3.getMinItem(), 1.0F);
-    assertEquals(sk3.getMaxItem(), 21.0F);
+    assertTrue(sk3 instanceof KllDirectCompactDoublesSketch);
+    assertFalse(sk2.isMemoryUpdatableFormat());
+    println(sk3.toString(true, false));
+    assertTrue(sk3.isReadOnly());
+    assertEquals(sk3.getMinItem(), 1.0);
+    assertEquals(sk3.getMaxItem(), 21.0);
   }
 
   @Test
@@ -65,6 +87,9 @@ public class KllDirectCompactDoublesSketchTest {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     sk.update(1);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertTrue(sk2 instanceof KllDirectCompactDoublesSketch);
+    println(sk2.toString(true, false));
+    assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getDoubleSingleItem(), 1.0);
     sk.update(2);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
@@ -151,12 +176,14 @@ public class KllDirectCompactDoublesSketchTest {
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
+  
+  private final static boolean enablePrinting = false;
 
   /**
-   * @param o value to print
+   * @param o the Object to println
    */
-  static void println(final Object o) {
-    //System.out.println(o.toString()); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
-
+  
 }

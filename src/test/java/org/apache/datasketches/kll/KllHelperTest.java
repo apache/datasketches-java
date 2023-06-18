@@ -174,7 +174,11 @@ public class KllHelperTest {
     int m = 8;
     KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, m, n, DOUBLES_SKETCH, true);
+    assertEquals(gStats.maxN, 1_257_766_904);
+    assertEquals(gStats.numLevels, 23);
+    assertEquals(gStats.maxItems, 697);
     assertEquals(gStats.compactBytes, 5704);
+    assertEquals(gStats.updatableBytes, 5708);
   }
 
   @Test
@@ -183,8 +187,11 @@ public class KllHelperTest {
     int k = 200;
     KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, DOUBLES_SKETCH, true);
+    assertEquals(gStats.maxN, 533);
     assertEquals(gStats.numLevels, 2);
     assertEquals(gStats.maxItems, 333);
+    assertEquals(gStats.compactBytes, 2708);
+    assertEquals(gStats.updatableBytes, 2712);
   }
 
   /**

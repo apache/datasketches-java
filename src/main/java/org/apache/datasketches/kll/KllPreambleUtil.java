@@ -31,7 +31,7 @@ import org.apache.datasketches.memory.WritableMemory;
 //@formatter:off
 
 /**
- * This class defines the serialized data structure and provides access methods for the key fields.
+ * This class defines the serialized data structure and provides access methods for the preamble fields.
  *
  * <p>The intent of the design of this class was to isolate the detailed knowledge of the bit and
  * byte layout of the serialized form of the sketches derived from the base sketch classes into one place.
@@ -39,94 +39,66 @@ import org.apache.datasketches.memory.WritableMemory;
  * schemes with minimal impact on the rest of the library.</p>
  *
  * <h3>Visual Layout</h3>
- * The low significance bytes of this <i>long</i> based data structure are on the right.
+ * The low significance bytes of this <i>long</i> based visual data structure below are on the right.
  * The multi-byte primitives are stored in native byte order.
  * The numeric <i>byte</i> and <i>short</i> fields are treated as unsigned.
  * The numeric <i>int</i> and <i>long</i> fields are treated as signed.
  *
- * <h3>Preamble Sizes</h3>
- * The preamble has 2 formats or sizes.
- * <ul><li>A serialized empty sketch requires 8 bytes, all preamble. It is not updatable.</li>
- * <li>A serialized, single-item sketch requires 8 bytes of preamble, followed by the one item. It is not updatable.</li>
- * <li>A serialized, <i>n &gt; 1</i> sketch requires at least 20 bytes of preamble (5 ints).
- * This is followed by the Levels int array, followed by the min and max values,
- * followed by the item data arrays. It can be in compact, not updatable format or in regular, updatable format.</li>
+ * <h3>Preamble Formats</h3>
+ * The preamble has 4 formats:
+ * <ul>
+ * <li>A serialized Empty Compact Format requires 8 bytes of preamble. It is not updatable. 
+ * It is identified by SerVer = SERIAL_VERSION_EMPTY_FULL and PreambleInts = 2.</li>
+ * 
+ * <li>A serialized, Single-Item Compact Format requires 8 bytes of preamble, followed by the one item. 
+ * The size of this format is 8 + itemSize. It is not updatable.
+ * It is identified by SerVer = SERIAL_VERSION_SINGLE and PreambleInts = 2.</li>
+ * 
+ * <li>A serialized, <i>n &gt; 1</i> Compact Format requires 20 bytes of preamble (5 ints).
+ * This is followed by the <i>levels int[numLevels]</i> array, followed by the min and max values,
+ * followed by a packed items data array (no empty or garbage slots). It is not updatable.
+ * The length of this array is <i>sketch.getNumRetained()</i>.
+ * It is identified by SerVer = SERIAL_VERSION_EMPTY_FULL and PreambleInts = 5.</li>
+ * 
+ * <li>A serialized, <i>n &gt; 1</i> Updatable Format requires 20 bytes of preamble (5 ints).
+ * This is followed by the Levels int[NumLevels + 1] array, followed by the min and max values,
+ * followed by an items data array that may include empty or garbage slots. It is updatable.
+ * The length of this array is <i>sketch.getLevelsArray()[numLevels]</i>.
+ * It is identified by SerVer = SERIAL_VERSION_UPDATABLE and PreambleInts = 5.</li>
  * </ul>
  *
- * <h3>Compact Formats</h3>
- * <ul><li>The empty and single-item formats are by definition compact and non-updatable.</li>
- * <li>The compact "full" format differs from the fully updatable (writable) format in two ways:
- * <ul><li>The last entry of the Levels int array is omitted because it can be derived.</li>
- *   <li>All empty space of the data arrays is removed in the serialization.
- *   The empty space can be reconstructed.</li></ul>
- * </ul>
- *
+ * <h3>Visual Layout</h3>
  * <pre>{@code
- * Serialized float sketch layout, more than one item:
- *  Adr:
- *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
- *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
- *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
- *  1   ||---------------------------------N_LONG---------------------------------------|
- *      ||         |       |        |   20   |   19   |    18   |   17   |      16      |
- *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|------Min K------------|
- *      ||         |       |        |        |        |         |        |              |
- *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
- *      ||         |       |        |        |        |         |        |              |
- *  ?   ||<------Float Items Arr Start------]|[<---------Min/Max Arr End----------------|
- *      ||         |       |        |        |        |         |        |              |
- *  ?   ||         |       |        |        |[<-------Float Items Arr End--------------|
+ * Serialized sketch layout, Empty (8 bytes) and Single Item (8 + itemSize):
+ * Int Adr:   Byte Adr ->
+ *  0       ||    3   |    2   |    1   |       0       |
+ *          ||  Flags | FamID  | SerVer | PreambleInts  |
  *
- * Serialized float sketch layout, Empty (8 bytes) and Single Item (12 bytes):
- *  Adr:
- *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
- *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
- *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
- *  1   ||                                   |-------------Single Item------------------|
+ *  1       ||    7   |    6   |    5   |       4       |
+ *          || unused |    M   |-----------K------------|
  *
+ *  2       ||                          |       8       |
+ *                                       <---Single Item|
+ * 
+ * Serialized sketch layout, more than one item:
+ * Int Adr:   Byte Adr ->
+ *  0       ||    3   |    2   |    1   |      0       |
+ *          ||  Flags |  FamID | SerVer | PreambleInts |
  *
+ *  1       ||    7   |    6   |    5   |      4       |
+ *          || unused |    M   |-----------K-----------|
  *
- * Serialized double sketch layout, more than one item:
- *  Adr:
- *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
- *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
- *      ||   15    |   14  |   13   |   12   |   11   |   10    |    9   |      8       |
- *  1   ||---------------------------------N_LONG---------------------------------------|
- *      ||   23    |   22  |   21   |   20   |   19   |    18   |   17   |      16      |
- *  2   ||<-------Levels Arr Start----------]| unused |NumLevels|------Min K------------|
- *      ||         |       |        |        |        |         |        |              |
- *  ?   ||<-------Min/Max Arr Start---------]|[<----------Levels Arr End----------------|
- *      ||         |       |        |        |        |         |        |              |
- *  ?   ||<-----Double Items Arr Start------]|[<---------Min/Max Arr End----------------|
- *      ||         |       |        |        |        |         |        |              |
- *  ?   ||         |       |        |        |[<------Double Items-Arr End--------------|
+ *  2,3     ||   15   |   14   |   13   |     12       |   11   |   10    |   9   |   8   |
+ *          ||---------------------------------N_LONG-------------------------------------|
  *
- * Serialized double sketch layout, Empty (8 bytes) and Single Item (16 bytes):
- *  Adr:
- *      ||    7    |   6   |    5   |    4   |    3   |    2    |    1   |      0       |
- *  0   || unused  |   M   |--------K--------|  Flags |  FamID  | SerVer | PreambleInts |
- *      ||                                                               |      8       |
- *  1   ||------------------------------Single Item-------------------------------------|
+ *  4       ||   19   |    18  |   17   |     16       |
+ *          || unused |NumLvls |------Min K------------|
+ *
+ *  5       ||                          |     20       |
+ *                       { Levels Array  }
+ *                       { Min/Max Array }
+ *                       {  Items Array  }
  * }</pre>
- * The placement and structure of the data block depends on Layout:
- * <ul><li>For SerVer = SERIAL_VERSION_EMPTY_FULL (1) and <i>n</i> = 0:<br>
- * The sketch is empty. The preamble is 8 bytes. There is no data.</li>
- *   
- * <li>For SerVer = SERIAL_VERSION_SINGLE (2), <i>n</i> is assumed to be 1:<br>
- * The single data item is at offset DATA_START_ADR_SINGLE_ITEM = 8.</li>
- *
- * <li>For SerVer = SERIAL_VERSION_EMPTY_FULL (1) and <i>n</i> &gt; 1:<br>
- * The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of numLevels integers,
- *   <ul><li>Followed by Min_Item, then Max_Item,</li>
- *   <li>Followed by an array of items of length retainedItems().<br> 
- *   The total byte length is dependent on item type.</li></ul>
- *
- * <li>For SerVer = SERIAL_VERSION_UPDATABLE (3)<br>
- * The int[] levels array starts at offset DATA_START_ADR_FLOAT = 20 with a length of (numLevels + 1) integers;
- *   <ul><li>Followed by Min_Item, then Max_Item,</li>
- *   <li>Followed by an array of items of length KllHelper.computeTotalItemCapacity(...).<br>
- *   The total byte length is dependent on item type.</li></ul>
- * </ul>
  *
  *  @author Lee Rhodes
  */
@@ -166,7 +138,6 @@ final class KllPreambleUtil {
   // Flag bit masks
   static final int EMPTY_BIT_MASK             = 1;
   static final int LEVEL_ZERO_SORTED_BIT_MASK = 2;
-  static final int SINGLE_ITEM_BIT_MASK       = 4;
 
   /**
    * Returns a human readable string summary of the internal state of the given sketch byte array.
@@ -197,7 +168,7 @@ final class KllPreambleUtil {
     final int preInts = memVal.preInts;
     final boolean serialVersionUpdatable = getMemorySerVer(mem) == SERIAL_VERSION_UPDATABLE;
     final boolean empty = memVal.empty;
-    final boolean singleItem = memVal.singleItem;
+    final boolean singleItem = memVal.singleItemFormat;
     final int sketchBytes = memVal.sketchBytes;
     final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES;
     final int familyID = getMemoryFamilyID(mem);
@@ -347,10 +318,6 @@ final class KllPreambleUtil {
     return (getMemoryFlags(mem) & LEVEL_ZERO_SORTED_BIT_MASK) != 0;
   }
 
-  static boolean getMemorySingleItemFlag(final Memory mem) {
-    return (getMemoryFlags(mem) & SINGLE_ITEM_BIT_MASK) != 0;
-  }
-
   static int getMemoryK(final Memory mem) {
     return mem.getShort(K_SHORT_ADR) & 0XFFFF;
   }
@@ -395,11 +362,6 @@ final class KllPreambleUtil {
   static void setMemoryLevelZeroSortedFlag(final WritableMemory wmem,  final boolean levelZeroSorted) {
     final int flags = getMemoryFlags(wmem);
     setMemoryFlags(wmem, levelZeroSorted ? flags | LEVEL_ZERO_SORTED_BIT_MASK : flags & ~LEVEL_ZERO_SORTED_BIT_MASK);
-  }
-
-  static void setMemorySingleItemFlag(final WritableMemory wmem,  final boolean singleItem) {
-    final int flags = getMemoryFlags(wmem);
-    setMemoryFlags(wmem, singleItem ? flags | SINGLE_ITEM_BIT_MASK : flags & ~SINGLE_ITEM_BIT_MASK);
   }
 
   static void setMemoryK(final WritableMemory wmem, final int memK) {

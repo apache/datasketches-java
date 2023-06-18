@@ -101,7 +101,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
       maxFloatItem_ = Float.NaN;
       floatItems_ = new float[k_];
     }
-    else if (memValidate.singleItem && !serialVersionUpdatable) {
+    else if (memValidate.singleItemFormat && !serialVersionUpdatable) {
       final float item = srcMem.getFloat(DATA_START_ADR_SINGLE_ITEM);
       minFloatItem_ = maxFloatItem_ = item;
       floatItems_ = new float[k_];

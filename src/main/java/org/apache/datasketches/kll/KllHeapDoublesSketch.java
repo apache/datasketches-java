@@ -101,7 +101,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
       maxDoubleItem_ = Double.NaN;
       doubleItems_ = new double[k_];
     }
-    else if (memValidate.singleItem && !serialVersionUpdatable) {
+    else if (memValidate.singleItemFormat && !serialVersionUpdatable) {
       final double item = srcMem.getDouble(DATA_START_ADR_SINGLE_ITEM);
       minDoubleItem_ = maxDoubleItem_ = item;
       doubleItems_ = new double[k_];
@@ -132,7 +132,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   public long getN() { return n_; }
-
+  
   @Override
   double[] getDoubleItemsArray() { return doubleItems_; }
 

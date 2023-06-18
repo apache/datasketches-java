@@ -29,7 +29,6 @@ import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("deprecation")
 public class KllMiscDirectDoublesTest {
   static final String LS = System.getProperty("line.separator");
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
@@ -393,10 +392,10 @@ public class KllMiscDirectDoublesTest {
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     //println(sk.toString(true, true));
     byte[] byteArr1 = KllHelper.toUpdatableByteArrayImpl(sk);
-    int size1 = sk.getCurrentUpdatableSerializedSizeBytes();
+    int size1 = sk.currentSerializedSizeBytes(true);
     assertEquals(size1, byteArr1.length);
     byte[] byteArr2 = sk.toByteArray();
-    int size2 = sk.getCurrentCompactSerializedSizeBytes();
+    int size2 = sk.currentSerializedSizeBytes(false);
     assertEquals(size2, byteArr2.length);
   }
 

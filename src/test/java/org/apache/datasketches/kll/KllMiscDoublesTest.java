@@ -168,11 +168,11 @@ public class KllMiscDoublesTest {
     }
   }
 
-
   private static void show(final KllDoublesSketch sk, int limit) {
     int i = (int) sk.getN();
     for ( ; i < limit; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
+    
   }
 
   @Test

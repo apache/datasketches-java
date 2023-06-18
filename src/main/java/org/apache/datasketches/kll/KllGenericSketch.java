@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.GENERIC_SKETCH;
 
 import java.util.Comparator;
 import java.util.Objects;
@@ -33,7 +33,7 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 @SuppressWarnings("unused")
-public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
+public class KllGenericSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
   private final int k_; // configured size of K.
   private final int m_; // configured size of M.
   private long n_;      // number of items input into this sketch.
@@ -46,13 +46,13 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
   private final Comparator<? super T> comparator_;
   private final ArrayOfItemsSerDe<T> serDe_;
 
-  KllItemsSketch(
+  KllGenericSketch(
       final int k,
       final int m,
       final Class<T> clazz,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super(ITEMS_SKETCH, null, null);
+    super(GENERIC_SKETCH, null, null);
     Objects.requireNonNull(clazz, "Class<T> must not be null.");
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "Serializer/Deserializer must not be null.");
@@ -83,11 +83,11 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
    * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
    * @return new KllItemsSketch on the heap.
    */
-  public static <T> KllItemsSketch<T> newHeapInstance(
+  public static <T> KllGenericSketch<T> newHeapInstance(
       final Class<T> clazz,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(DEFAULT_K, DEFAULT_M, clazz, comparator, serDe);
+      final KllGenericSketch<T> itmSk = new KllGenericSketch<T>(DEFAULT_K, DEFAULT_M, clazz, comparator, serDe);
     return itmSk;
   }
 
@@ -103,12 +103,12 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
    * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
    * @return new KllItemsSketch on the heap.
    */
-  public static <T> KllItemsSketch<T> newHeapInstance(
+  public static <T> KllGenericSketch<T> newHeapInstance(
       final int k,
       final Class<T> clazz,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(k, DEFAULT_M, clazz, comparator, serDe);
+      final KllGenericSketch<T> itmSk = new KllGenericSketch<T>(k, DEFAULT_M, clazz, comparator, serDe);
     return itmSk;
   }
 
@@ -218,6 +218,11 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
   }
 
   @Override
+  public final void merge(final KllSketch other) {
+ // TODO Auto-generated method stub
+  }
+  
+  @Override
   public void update(final T item) {
     // TODO Auto-generated method stub
 
@@ -287,6 +292,24 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
   void setNumLevels(final int numLevels) {
     // TODO Auto-generated method stub
 
+  }
+
+  @Override
+  public int getSerializedSizeBytes() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  int getSingleItemBytes() {
+    // TODO Auto-generated method stub
+    return 0;
+  }
+
+  @Override
+  int getDataBlockBytes(final int numItemsAndMinMax) {
+    // TODO Auto-generated method stub
+    return 0;
   }
 
 }

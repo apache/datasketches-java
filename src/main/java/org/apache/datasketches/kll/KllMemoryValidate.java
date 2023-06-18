@@ -21,7 +21,7 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_PREINTS;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SER_VER;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SINGLEBIT;
+import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTYBIT_AND_SINGLEFORMAT;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.INVALID_PREINTS;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SINGLEBIT_AND_PREINTS;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SINGLEBIT_AND_SER_VER;
@@ -45,8 +45,8 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySingleItemFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -71,13 +71,15 @@ final class KllMemoryValidate {
   final int m;
   //last byte is unused
   
+  //From SerVer
+  final boolean serialVersionEmptyFull;
+  final boolean singleItemFormat;
+  private boolean serialVersionUpdatable;
+  
   //Flag bits:
   final boolean empty;
   final boolean level0Sorted;
-  final boolean singleItem;
-  //From SerVer
-  private boolean serialVersionUpdatable;
-  
+
   // depending on the layout, the next 8-16 bytes of the preamble, may be derived by assumption.
   // For example, if the layout is compact & empty, n = 0, if compact and single, n = 1. 
   long n;        //8 bytes (if present)
@@ -86,9 +88,9 @@ final class KllMemoryValidate {
   //unused byte
   int[] levelsArr; //starts at byte 20, adjusted to include top index here
   
-  // derived, other
-  int sketchBytes;
-  private int typeBytes;
+  // derived. Not available for generic
+  int sketchBytes = 0;
+  private int typeBytes = 0;
   
   KllMemoryValidate(final Memory srcMem, final SketchType sketchType) {
     preInts = getMemoryPreInts(srcMem);
@@ -98,23 +100,28 @@ final class KllMemoryValidate {
     flags = getMemoryFlags(srcMem);
     k = getMemoryK(srcMem);
     m = getMemoryM(srcMem);
+    
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
-    
+    //flags
     empty = getMemoryEmptyFlag(srcMem);
     level0Sorted  = getMemoryLevelZeroSortedFlag(srcMem);
-    singleItem = getMemorySingleItemFlag(srcMem);
-    
+    //from serVer
+    serialVersionEmptyFull = serVer == SERIAL_VERSION_EMPTY_FULL;
+    singleItemFormat = serVer == SERIAL_VERSION_SINGLE;
     serialVersionUpdatable = serVer == SERIAL_VERSION_UPDATABLE;
-    typeBytes = (sketchType == DOUBLES_SKETCH) ? Double.BYTES : Float.BYTES;
+    
+    if (sketchType == DOUBLES_SKETCH) { typeBytes = Double.BYTES; }
+    else if (sketchType == FLOATS_SKETCH) { typeBytes = Float.BYTES; }
+    //else { typeBytes = 0; }  //TODO
 
     if (serialVersionUpdatable) { updatableMemFormatValidate((WritableMemory) srcMem); }
     else { compactMemoryValidate(srcMem); }
   }
 
   private void compactMemoryValidate(final Memory srcMem) { //FOR HEAPIFY.  NOT UPDATABLE
-    if (empty && singleItem) { memoryValidateThrow(EMPTYBIT_AND_SINGLEBIT, flags); }
-    final int sw = (empty ? 1 : 0) | (singleItem ? 4 : 0);
+    if (empty && singleItemFormat) { memoryValidateThrow(EMPTYBIT_AND_SINGLEFORMAT, flags); }
+    final int sw = (empty ? 1 : 0) | (singleItemFormat ? 4 : 0);
 
     switch (sw) {
       case 0: { //FULL_COMPACT
@@ -180,7 +187,7 @@ final class KllMemoryValidate {
     SINGLEBIT_AND_SER_VER("Single Item Bit: 1 -> SerVer: " + SERIAL_VERSION_SINGLE + ", NOT: "),
     SINGLEBIT_AND_PREINTS("Single Item Bit: 1 -> PreInts: " + PREAMBLE_INTS_EMPTY_SINGLE + ", NOT: "),
     INVALID_PREINTS("PreInts Must Be: " + PREAMBLE_INTS_FULL + ", NOT: "),
-    EMPTYBIT_AND_SINGLEBIT("Empty flag bit and SingleItem flag bit cannot both be set. Flags: ");
+    EMPTYBIT_AND_SINGLEFORMAT("Empty flag bit and SingleItem Format cannot both be true. Flags: ");
 
     private String msg;
 

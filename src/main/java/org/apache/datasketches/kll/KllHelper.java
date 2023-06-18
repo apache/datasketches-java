@@ -28,7 +28,6 @@ import static java.lang.Math.min;
 import static java.lang.Math.pow;
 import static java.lang.Math.round;
 import static org.apache.datasketches.common.Util.floorPowerOf2;
-import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
@@ -44,7 +43,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_F
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SER_VER_BYTE_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.SINGLE_ITEM_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryEmptyFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
@@ -55,9 +53,9 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
-import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySingleItemFlag;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.GENERIC_SKETCH;
 
 import java.util.Arrays;
 
@@ -73,7 +71,6 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes
  */
-@SuppressWarnings("deprecation")
 final class KllHelper {
 
   static class GrowthStats {
@@ -136,120 +133,7 @@ final class KllHelper {
   }
 
   /**
-   * The following code is only valid in the special case of exactly reaching capacity while updating.
-   * It cannot be used while merging, while reducing k, or anything else.
-   * @param sketch the current sketch
-   */
-  static void compressWhileUpdatingSketch(final KllSketch sketch) {
-    final SketchType sketchType = sketch.sketchType;
-    final int level =
-        findLevelToCompact(sketch.getK(), sketch.getM(), sketch.getNumLevels(), sketch.getLevelsArray());
-    if (level == sketch.getNumLevels() - 1) {
-      //The level to compact is the top level, thus we need to add a level.
-      //Be aware that this operation grows the items array,
-      //shifts the items data and the level boundaries of the data,
-      //and grows the levels array and increments numLevels_.
-      KllHelper.addEmptyTopLevelToCompletelyFullSketch(sketch);
-    }
-    //after this point, the levelsArray will not be expanded, only modified.
-    final int[] myLevelsArr = sketch.getLevelsArray();
-    final int rawBeg = myLevelsArr[level];
-    final int rawEnd = myLevelsArr[level + 1];
-    // +2 is OK because we already added a new top level if necessary
-    final int popAbove = myLevelsArr[level + 2] - rawEnd;
-    final int rawPop = rawEnd - rawBeg;
-    final boolean oddPop = isOdd(rawPop);
-    final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
-    final int adjPop = oddPop ? rawPop - 1 : rawPop;
-    final int halfAdjPop = adjPop / 2;
-
-    if (sketchType == DOUBLES_SKETCH) {
-      final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-      final double[] myDoubleItemsArr = dblSk.getDoubleItemsArray();
-      if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
-        Arrays.sort(myDoubleItemsArr, adjBeg, adjBeg + adjPop);
-      }
-      if (popAbove == 0) {
-        KllDoublesHelper.randomlyHalveUpDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
-      } else {
-        KllDoublesHelper.randomlyHalveDownDoubles(myDoubleItemsArr, adjBeg, adjPop, KllSketch.random);
-        KllDoublesHelper.mergeSortedDoubleArrays(
-            myDoubleItemsArr, adjBeg, halfAdjPop,
-            myDoubleItemsArr, rawEnd, popAbove,
-            myDoubleItemsArr, adjBeg + halfAdjPop);
-      }
-
-      int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
-      dblSk.setLevelsArrayAt(level + 1, newIndex);
-
-      if (oddPop) {
-        dblSk.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
-        myDoubleItemsArr[myLevelsArr[level]] = myDoubleItemsArr[rawBeg];  // namely this leftover guy
-      } else {
-        dblSk.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
-      }
-
-      // verify that we freed up halfAdjPop array slots just below the current level
-      assert myLevelsArr[level] == rawBeg + halfAdjPop;
-
-   // finally, we need to shift up the data in the levels below
-      // so that the freed-up space can be used by level zero
-      if (level > 0) {
-        final int amount = rawBeg - myLevelsArr[0];
-        System.arraycopy(myDoubleItemsArr, myLevelsArr[0], myDoubleItemsArr, myLevelsArr[0] + halfAdjPop, amount);
-      }
-      for (int lvl = 0; lvl < level; lvl++) {
-        newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
-        dblSk.setLevelsArrayAt(lvl, newIndex);
-      }
-      dblSk.setDoubleItemsArray(myDoubleItemsArr);
-    }
-    else if (sketchType == FLOATS_SKETCH) {
-      final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-      final float[] myFloatItemsArr = fltSk.getFloatItemsArray();
-      if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
-        Arrays.sort(myFloatItemsArr, adjBeg, adjBeg + adjPop);
-      }
-      if (popAbove == 0) {
-        KllFloatsHelper.randomlyHalveUpFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
-      } else {
-        KllFloatsHelper.randomlyHalveDownFloats(myFloatItemsArr, adjBeg, adjPop, KllSketch.random);
-        KllFloatsHelper.mergeSortedFloatArrays(
-            myFloatItemsArr, adjBeg, halfAdjPop,
-            myFloatItemsArr, rawEnd, popAbove,
-            myFloatItemsArr, adjBeg + halfAdjPop);
-      }
-
-      int newIndex = myLevelsArr[level + 1] - halfAdjPop;  // adjust boundaries of the level above
-      fltSk.setLevelsArrayAt(level + 1, newIndex);
-
-      if (oddPop) {
-        fltSk.setLevelsArrayAt(level, myLevelsArr[level + 1] - 1); // the current level now contains one item
-        myFloatItemsArr[myLevelsArr[level]] = myFloatItemsArr[rawBeg];  // namely this leftover guy
-      } else {
-        fltSk.setLevelsArrayAt(level, myLevelsArr[level + 1]); // the current level is now empty
-      }
-
-      // verify that we freed up halfAdjPop array slots just below the current level
-      assert myLevelsArr[level] == rawBeg + halfAdjPop;
-
-      // finally, we need to shift up the data in the levels below
-      // so that the freed-up space can be used by level zero
-      if (level > 0) {
-        final int amount = rawBeg - myLevelsArr[0];
-        System.arraycopy(myFloatItemsArr, myLevelsArr[0], myFloatItemsArr, myLevelsArr[0] + halfAdjPop, amount);
-      }
-      for (int lvl = 0; lvl < level; lvl++) {
-        newIndex = myLevelsArr[lvl] + halfAdjPop; //adjust boundary
-        fltSk.setLevelsArrayAt(lvl, newIndex);
-      }
-      fltSk.setFloatItemsArray(myFloatItemsArr);
-    }
-    //TODO add items
-  }
-
-  /**
-   * Returns the maximum number of items that this sketch can handle
+   * Returns the approximate maximum number of items that this sketch can handle
    * @param k The sizing / accuracy parameter of the sketch in items.
    * Note: this method actually works for k items up to k = 2^29 and 61 levels,
    * however only k items up to (2^16 - 1) are currently used by the sketch.
@@ -321,12 +205,13 @@ final class KllHelper {
   }
 
   /**
+   * This method is for direct Double and Float sketches only.
    * Given k, m, n, and the sketch type, this computes (and optionally prints) the growth scheme for a sketch as it
    * grows large enough to accommodate a stream length of n items.
    * @param k the given user configured sketch parameter
    * @param m the given user configured sketch parameter
    * @param n the desired stream length
-   * @param sketchType the given sketch type (DOUBLES_SKETCH or FLOATS_SKETCH)
+   * @param sketchType the given sketch type: either DOUBLES_SKETCH or FLOATS_SKETCH.
    * @param printGrowthScheme if true the entire growth scheme of the sketch will be printed.
    * @return GrowthStats with the final numItems of the growth scheme
    */
@@ -567,11 +452,12 @@ final class KllHelper {
     return total;
   }
 
+  //This method is for direct Double and Float sketches only
   static byte[] toCompactByteArrayImpl(final KllSketch sketch) {
     if (sketch.isEmpty()) { return fastEmptyCompactByteArray(sketch); }
     if (sketch.isSingleItem()) { return fastSingleItemCompactByteArray(sketch); }
     //n > 1
-    final byte[] byteArr = new byte[sketch.getCurrentCompactSerializedSizeBytes()];
+    final byte[] byteArr = new byte[sketch.currentSerializedSizeBytes(false)];
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     loadFirst8Bytes(sketch, wmem, false);
 
@@ -590,37 +476,30 @@ final class KllHelper {
     offset += len * Integer.BYTES;
 
     //LOAD MIN, MAX Items FOLLOWED BY ITEMS ARRAY
-    switch (sketch.sketchType) {
-      case DOUBLES_SKETCH : {
-        final KllDoublesSketch dblSk = (KllDoublesSketch)sketch;
-        wmem.putDouble(offset,dblSk.getMinDoubleItem());
-        offset += Double.BYTES;
-        wmem.putDouble(offset, dblSk.getMaxDoubleItem());
-        offset += Double.BYTES;
-        wmem.putDoubleArray(offset, dblSk.getDoubleItemsArray(), myLevelsArr[0], sketch.getNumRetained());
-        break;
-      }
-      case FLOATS_SKETCH  : {
-        final KllFloatsSketch fltSk = (KllFloatsSketch)sketch;
-        wmem.putFloat(offset, fltSk.getMinFloatItem());
-        offset += Float.BYTES;
-        wmem.putFloat(offset, fltSk.getMaxFloatItem());
-        offset += Float.BYTES;
-        wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
-        break;
-      }
-      //case ITEMS_SKETCH : break; //TODO
-      default: throw new IllegalStateException("Unknown Sketch Type");
+    if (sketch.sketchType == DOUBLES_SKETCH) {
+      final KllDoublesSketch dblSk = (KllDoublesSketch)sketch;
+      wmem.putDouble(offset,dblSk.getMinDoubleItem());
+      offset += Double.BYTES;
+      wmem.putDouble(offset, dblSk.getMaxDoubleItem());
+      offset += Double.BYTES;
+      wmem.putDoubleArray(offset, dblSk.getDoubleItemsArray(), myLevelsArr[0], sketch.getNumRetained());
+    } else { // if (sketch.sketchType == FLOATS_SKETCH) {
+      final KllFloatsSketch fltSk = (KllFloatsSketch)sketch;
+      wmem.putFloat(offset, fltSk.getMinFloatItem());
+      offset += Float.BYTES;
+      wmem.putFloat(offset, fltSk.getMaxFloatItem());
+      offset += Float.BYTES;
+      wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
     }
     return byteArr;
   }
 
   private static byte[] fastEmptyCompactByteArray(final KllSketch sketch) {
     final byte[] byteArr = new byte[8];
-    byteArr[0] = PREAMBLE_INTS_EMPTY_SINGLE; //2
-    byteArr[1] = SERIAL_VERSION_EMPTY_FULL;  //1
-    byteArr[2] = KLL_FAMILY;                 //15
-    byteArr[3] = (byte) (EMPTY_BIT_MASK);
+    byteArr[PREAMBLE_INTS_BYTE_ADR] = PREAMBLE_INTS_EMPTY_SINGLE; //2
+    byteArr[SER_VER_BYTE_ADR] = SERIAL_VERSION_EMPTY_FULL;  //1
+    byteArr[FAMILY_BYTE_ADR] = KLL_FAMILY;                 //15
+    byteArr[FLAGS_BYTE_ADR] = (byte) (EMPTY_BIT_MASK);
     ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)sketch.getK());
     byteArr[6] = (byte)sketch.getM();
     return byteArr;
@@ -651,7 +530,6 @@ final class KllHelper {
     byteArr[PREAMBLE_INTS_BYTE_ADR] = PREAMBLE_INTS_EMPTY_SINGLE; //2
     byteArr[SER_VER_BYTE_ADR] = SERIAL_VERSION_SINGLE;            //2
     byteArr[FAMILY_BYTE_ADR] = KLL_FAMILY;                        //15
-    byteArr[FLAGS_BYTE_ADR] = (byte) SINGLE_ITEM_BIT_MASK;        //4
     ByteArrayUtil.putShortLE(byteArr, K_SHORT_ADR, (short)sketch.getK());
     byteArr[M_BYTE_ADR] = (byte)sketch.getM();
     return byteArr;
@@ -659,33 +537,43 @@ final class KllHelper {
 
   static String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withData) {
     final SketchType sketchType = sketch.sketchType;
+    final boolean hasMemory = sketch.hasMemory();
+    if (hasMemory) { new KllMemoryValidate(sketch.getWritableMemory(), sketchType); }
     final int k = sketch.getK();
     final int m = sketch.getM();
+    final long n = sketch.getN();
     final int numLevels = sketch.getNumLevels();
     final int[] levelsArr = sketch.getLevelsArray();
     final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
+    final boolean compact = sketch.isCompactMemoryFormat();
     final StringBuilder sb = new StringBuilder();
-    final String directStr = sketch.serialVersionUpdatable ? "Direct" : "";
-    final String skType = sketchType == DOUBLES_SKETCH ? directStr + "Doubles" :
-      sketchType == FLOATS_SKETCH ? directStr + "Floats" : directStr + "Items";
-    sb.append(Util.LS).append("### Kll").append(skType).append("Sketch Summary:").append(Util.LS);
+    final String directStr = hasMemory ? "Direct" : "";
+    
+    final String compactStr = compact ? "Compact" : "";
+    final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "Memory") + ")") : "false";
+    final String skTypeStr = sketchType == DOUBLES_SKETCH 
+        ? "Doubles" : sketchType == FLOATS_SKETCH ? "Floats" : "Generic";
+    final String className = "Kll" + directStr + compactStr + skTypeStr + "Sketch";
+
+    sb.append(Util.LS).append("### ").append(className).append(" Summary:").append(Util.LS);
     sb.append("   K                      : ").append(k).append(Util.LS);
     sb.append("   Dynamic min K          : ").append(sketch.getMinK()).append(Util.LS);
     sb.append("   M                      : ").append(m).append(Util.LS);
-    sb.append("   N                      : ").append(sketch.getN()).append(Util.LS);
+    sb.append("   N                      : ").append(n).append(Util.LS);
     sb.append("   Epsilon                : ").append(epsPct).append(Util.LS);
-    sb.append("   Epsison PMF            : ").append(epsPMFPct).append(Util.LS);
+    sb.append("   Epsilon PMF            : ").append(epsPMFPct).append(Util.LS);
     sb.append("   Empty                  : ").append(sketch.isEmpty()).append(Util.LS);
     sb.append("   Estimation Mode        : ").append(sketch.isEstimationMode()).append(Util.LS);
     sb.append("   Levels                 : ").append(numLevels).append(Util.LS);
     sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(Util.LS);
     sb.append("   Capacity Items         : ").append(levelsArr[numLevels]).append(Util.LS);
     sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(Util.LS);
-    if (sketch.serialVersionUpdatable) {
-      sb.append("   Updatable Storage Bytes: ").append(sketch.getCurrentUpdatableSerializedSizeBytes()).append(Util.LS);
+    sb.append("   ReadOnly               : ").append(readOnlyStr).append(Util.LS);
+    if (sketch.serialVersionUpdatable && !(sketchType == GENERIC_SKETCH)) {
+      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(Util.LS);
     } else {
-      sb.append("   Compact Storage Bytes  : ").append(sketch.getCurrentCompactSerializedSizeBytes()).append(Util.LS);
+      sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(Util.LS);
     }
 
     if (sketchType == DOUBLES_SKETCH) {
@@ -741,11 +629,9 @@ final class KllHelper {
    * @return a byte array in an updatable form.
    */
   private static byte[] toUpdatableByteArrayFromUpdatableMemory(final KllSketch sketch) {
-    final int curBytes = sketch.getCurrentUpdatableSerializedSizeBytes();
+    final int curBytes = sketch.currentSerializedSizeBytes(true);
     final long n = sketch.getN();
-    final byte flags = (byte) 
-        ( ((n == 0) ? EMPTY_BIT_MASK : 0)
-        | ((n == 1) ? SINGLE_ITEM_BIT_MASK : 0));
+    final byte flags = (byte) ((n == 0) ? EMPTY_BIT_MASK : 0);
     final byte[] byteArr = new byte[curBytes];
     sketch.wmem.getByteArray(0, byteArr, 0, curBytes);
     byteArr[FLAGS_BYTE_ADR] = flags;
@@ -763,7 +649,7 @@ final class KllHelper {
     if (sketch.hasMemory() && sketch.serialVersionUpdatable) {
       return toUpdatableByteArrayFromUpdatableMemory(sketch);
     }
-    final byte[] byteArr = new byte[sketch.getCurrentUpdatableSerializedSizeBytes()];
+    final byte[] byteArr = new byte[sketch.currentSerializedSizeBytes(true)];
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     loadFirst8Bytes(sketch, wmem, true);
     //remainder of preamble after first 8 bytes
@@ -790,7 +676,8 @@ final class KllHelper {
       offset += Double.BYTES;
       final double[] doubleItemsArr = dblSk.getDoubleItemsArray();
       wmem.putDoubleArray(offset, doubleItemsArr, 0, doubleItemsArr.length);
-    } else if (sketchType == FLOATS_SKETCH) {
+    } 
+    else if (sketchType == FLOATS_SKETCH) {
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
       wmem.putFloat(offset, fltSk.getMinFloatItem());
       offset += Float.BYTES;
@@ -819,7 +706,7 @@ final class KllHelper {
    * at the bottom.  Only numLevels, the levels array and the items array are affected.
    * @param sketch the current sketch
    */
-  private static void addEmptyTopLevelToCompletelyFullSketch(final KllSketch sketch) {
+  static void addEmptyTopLevelToCompletelyFullSketch(final KllSketch sketch) {
     final SketchType sketchType = sketch.sketchType;
     final int[] myCurLevelsArr = sketch.getLevelsArray();
     final int myCurNumLevels = sketch.getNumLevels();
@@ -923,7 +810,7 @@ final class KllHelper {
    * @param numLevels one-based number of current levels
    * @return level to compact
    */
-  private static int findLevelToCompact(final int k, final int m, final int numLevels, final int[] levels) {
+  static int findLevelToCompact(final int k, final int m, final int numLevels, final int[] levels) {
     int level = 0;
     while (true) {
       assert level < numLevels;
@@ -977,13 +864,13 @@ final class KllHelper {
         : (empty || singleItem) ? PREAMBLE_INTS_EMPTY_SINGLE : PREAMBLE_INTS_FULL;
     //load the preamble
     setMemoryPreInts(wmem, preInts);
-    final int server = serialVersionUpdatable ? SERIAL_VERSION_UPDATABLE
+    final int server = serialVersionUpdatable 
+        ? SERIAL_VERSION_UPDATABLE
         : (singleItem ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL);
     setMemorySerVer(wmem, server);
     setMemoryFamilyID(wmem, Family.KLL.getID());
     setMemoryEmptyFlag(wmem, empty);
     setMemoryLevelZeroSortedFlag(wmem, lvlZeroSorted);
-    setMemorySingleItemFlag(wmem, singleItem);
     setMemoryK(wmem, sk.getK());
     setMemoryM(wmem, sk.getM());
   }

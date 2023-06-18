@@ -281,7 +281,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
     return ranks;
   }
-
+  
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public DoublesSortedView getSortedView() {
@@ -294,6 +294,15 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return new KllDoublesSketchIterator(getDoubleItemsArray(), getLevelsArray(), getNumLevels());
   }
 
+  @Override
+  public final void merge(final KllSketch other) {
+    final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (othDblSk.isEmpty()) { return; }
+    KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
+    kllDoublesSV = null;
+  }
+  
   /**
    * {@inheritDoc}
    * <p>The parameter <i>k</i> will not change.</p>
@@ -326,6 +335,11 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   //restricted
 
+  @Override
+  int getDataBlockBytes(final int numItemsAndMinMax) {
+    return numItemsAndMinMax * Double.BYTES;
+  }
+  
   /**
    * @return full size of internal items array including garbage.
    */
@@ -336,6 +350,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract double getMaxDoubleItem();
 
   abstract double getMinDoubleItem();
+  
+  final int getSingleItemBytes() {
+    return Double.BYTES;
+  }
 
   private final void refreshSortedView() {
     kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
@@ -348,7 +366,5 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract void setMaxDoubleItem(double item);
 
   abstract void setMinDoubleItem(double item);
-
-  void nullSortedView() { kllDoublesSV = null; }
 
 }

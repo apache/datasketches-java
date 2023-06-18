@@ -281,7 +281,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     }
     return ranks;
   }
-
+  
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public FloatsSortedView getSortedView() {
@@ -294,6 +294,15 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
   }
 
+  @Override
+  public final void merge(final KllSketch other) {
+    final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (othFltSk.isEmpty()) { return; }
+    KllFloatsHelper.mergeFloatImpl(this, othFltSk);
+    kllFloatsSV = null;
+  }
+  
   /**
    * {@inheritDoc}
    * <p>The parameter <i>k</i> will not change.</p>
@@ -326,6 +335,11 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   //restricted
 
+  @Override
+  int getDataBlockBytes(final int numItemsAndMinMax) {
+    return numItemsAndMinMax * Float.BYTES;
+  }
+  
   /**
    * @return full size of internal items array including garbage.
    */
@@ -336,6 +350,10 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract float getMaxFloatItem();
 
   abstract float getMinFloatItem();
+  
+  final int getSingleItemBytes() {
+    return Float.BYTES;
+  }
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
@@ -348,7 +366,5 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract void setMaxFloatItem(float item);
 
   abstract void setMinFloatItem(float item);
-
-  void nullSortedView() { kllFloatsSV = null; }
 
 }
