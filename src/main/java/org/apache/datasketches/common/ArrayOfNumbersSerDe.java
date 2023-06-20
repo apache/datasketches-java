@@ -47,25 +47,8 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public byte[] serializeToByteArray(final Number[] items) {
-    int length = 0;
-    for (final Number item: items) {
-      if (item instanceof Long) {
-        length += Byte.BYTES + Long.BYTES;
-      } else if (item instanceof Integer) {
-        length += Byte.BYTES + Integer.BYTES;
-      } else if (item instanceof Short) {
-        length += Byte.BYTES + Short.BYTES;
-      } else if (item instanceof Byte) {
-        length += Byte.BYTES << 1;
-      } else if (item instanceof Double) {
-        length += Byte.BYTES + Double.BYTES;
-      } else if (item instanceof Float) {
-        length += Byte.BYTES + Float.BYTES;
-      } else {
-        throw new SketchesArgumentException(
-            "Item must be one of: Long, Integer, Short, Byte, Double, Float");
-      }
-    }
+    final int length = sizeOf(items);
+
     final byte[] bytes = new byte[length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offsetBytes = 0;
@@ -100,10 +83,10 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   }
 
   @Override
-  public Number[] deserializeFromMemory(final Memory mem, final int length) {
-    final Number[] array = new Number[length];
+  public Number[] deserializeFromMemory(final Memory mem, final int numItems) {
+    final Number[] array = new Number[numItems];
     long offsetBytes = 0;
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < numItems; i++) {
       Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
       final byte numType = mem.getByte(offsetBytes);
       offsetBytes += Byte.BYTES;
@@ -144,7 +127,76 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
               + i + ": " + numType);
       }
     }
-
     return array;
   }
+
+  @Override
+  public int sizeOf(final Number item) {
+    if ( item instanceof Long)         { return Byte.BYTES + Long.BYTES; }
+    else if ( item instanceof Integer) { return Byte.BYTES + Integer.BYTES; }
+    else if ( item instanceof Short)   { return Byte.BYTES + Short.BYTES; }
+    else if ( item instanceof Byte)    { return Byte.BYTES + Byte.BYTES; }
+    else if ( item instanceof Double)  { return Byte.BYTES + Double.BYTES; }
+    else if ( item instanceof Float)   { return Byte.BYTES + Float.BYTES; }
+    else { throw new SketchesArgumentException(
+        "Item must be one of: Long, Integer, Short, Byte, Double, Float"); }
+  }
+
+  @Override
+  public int sizeOf(final Number[] items) {
+    int bytes = 0;
+    for (final Number item: items) {
+      if (item instanceof Long)         { bytes += Byte.BYTES + Long.BYTES; }
+      else if (item instanceof Integer) { bytes += Byte.BYTES + Integer.BYTES; }
+      else if (item instanceof Short)   { bytes += Byte.BYTES + Short.BYTES; }
+      else if (item instanceof Byte)    { bytes += Byte.BYTES + Byte.BYTES; }
+      else if (item instanceof Double)  { bytes += Byte.BYTES + Double.BYTES; }
+      else if (item instanceof Float)   { bytes += Byte.BYTES + Float.BYTES; }
+      else { throw new SketchesArgumentException(
+          "Item must be one of: Long, Integer, Short, Byte, Double, Float"); }
+    }
+    return bytes;
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+    int offsetBytes = 0;
+    for (int i = 0; i < numItems; i++) {
+      Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
+      final byte numType = mem.getByte(offsetBytes);
+      offsetBytes += Byte.BYTES;
+
+      switch (numType) {
+        case LONG_INDICATOR:
+          Util.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
+          offsetBytes += Long.BYTES;
+          break;
+        case INTEGER_INDICATOR:
+          Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
+          offsetBytes += Integer.BYTES;
+          break;
+        case SHORT_INDICATOR:
+          Util.checkBounds(offsetBytes, Short.BYTES, mem.getCapacity());
+          offsetBytes += Short.BYTES;
+          break;
+        case BYTE_INDICATOR:
+          Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
+          offsetBytes += Byte.BYTES;
+          break;
+        case DOUBLE_INDICATOR:
+          Util.checkBounds(offsetBytes, Double.BYTES, mem.getCapacity());
+          offsetBytes += Double.BYTES;
+          break;
+        case FLOAT_INDICATOR:
+          Util.checkBounds(offsetBytes, Float.BYTES, mem.getCapacity());
+          offsetBytes += Float.BYTES;
+          break;
+        default:
+          throw new SketchesArgumentException("Unrecognized entry type reading Number array entry "
+              + i + ": " + numType);
+      }
+    }
+    return offsetBytes;
+  }
+
 }

@@ -53,4 +53,14 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
     return array;
   }
 
+  @Override
+  public int sizeOf(final Long item) { return Long.BYTES; }
+
+  @Override
+  public int sizeOf(final Long[] items) { return items.length * Long.BYTES; }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+    return numItems * Long.BYTES;
+  }
 }

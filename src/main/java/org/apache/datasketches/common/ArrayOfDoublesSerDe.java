@@ -53,4 +53,14 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
     return array;
   }
 
+  @Override
+  public int sizeOf(final Double item) { return Double.BYTES; }
+
+  @Override
+  public int sizeOf(final Double[] items) { return items.length * Double.BYTES; }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+    return numItems * Double.BYTES;
+  }
 }

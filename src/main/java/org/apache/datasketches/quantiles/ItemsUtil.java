@@ -96,8 +96,7 @@ final class ItemsUtil {
     assert (n / (2L * sketch.getK())) == sketch.getBitPattern();  // internal consistency check
   }
 
-  static <T> String toString(final boolean sketchSummary, final boolean dataDetail,
-      final ItemsSketch<T> sketch) {
+  static <T> String toString(final boolean sketchSummary, final boolean dataDetail, final ItemsSketch<T> sketch) {
     final StringBuilder sb = new StringBuilder();
     final String thisSimpleName = sketch.getClass().getSimpleName();
     final int bbCount = sketch.getBaseBufferCount();

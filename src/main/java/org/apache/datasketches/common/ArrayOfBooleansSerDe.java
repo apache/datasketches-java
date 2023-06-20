@@ -78,7 +78,22 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
       }
       array[i] = ((srcVal >>> (i & 0x7)) & 0x1) == 1;
     }
-
     return array;
   }
+
+  @Override
+  public int sizeOf(final Boolean item) {
+    return computeBytesNeeded(1);
+  }
+
+  @Override
+  public int sizeOf(final Boolean[] items) {
+    return computeBytesNeeded(items.length);
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+    return computeBytesNeeded(numItems);
+  }
+
 }

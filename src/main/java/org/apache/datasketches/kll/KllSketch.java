@@ -24,9 +24,11 @@ import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
+import static org.apache.datasketches.kll.KllSketch.Error.UNSUPPORTED_TYPE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.util.Random;
 
@@ -81,12 +83,25 @@ public abstract class KllSketch implements QuantilesAPI {
   /**
    * Used to define the variable type of the current instance of this class.
    */
-  public enum SketchType { FLOATS_SKETCH, DOUBLES_SKETCH, GENERIC_SKETCH }
+  public enum SketchType {
+    DOUBLES_SKETCH(Double.BYTES),
+    FLOATS_SKETCH(Float.BYTES),
+    ITEMS_SKETCH(0);
+
+    private int typeBytes_;
+
+    private SketchType(final int typeBytes) {
+      typeBytes_ = typeBytes;
+    }
+
+    public int getBytes() { return typeBytes_; }
+  }
 
   enum Error {
     TGT_IS_READ_ONLY("Target sketch is Read Only, cannot write."),
     MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item.");
+    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item."),
+    UNSUPPORTED_TYPE("Unsupported Sketch Type.");
 
     private String msg;
 
@@ -181,10 +196,7 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatableMemFormat) {
-    if (sketchType != DOUBLES_SKETCH && sketchType != FLOATS_SKETCH) {
-      throw new UnsupportedOperationException(
-          "Only sketch types DOUBLES_SKETCH and FLOATS_SKETCH are supported for this operation.");
-    }
+    if (sketchType == ITEMS_SKETCH) { kllSketchThrow(UNSUPPORTED_TYPE); }
     final KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
     return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
@@ -224,7 +236,7 @@ public abstract class KllSketch implements QuantilesAPI {
   public int getCurrentUpdatableSerializedSizeBytes() {
     return currentSerializedSizeBytes(true);
   }
-  
+
   @Override
   public abstract int getK();
 
@@ -256,7 +268,7 @@ public abstract class KllSketch implements QuantilesAPI {
   public int getSerializedSizeBytes() {
     return currentSerializedSizeBytes(serialVersionUpdatable);
   }
-  
+
   /**
    * This returns the WritableMemory for Direct type sketches,
    * otherwise returns null.
@@ -274,7 +286,7 @@ public abstract class KllSketch implements QuantilesAPI {
   public boolean isCompactMemoryFormat() {
     return hasMemory() && !serialVersionUpdatable;
   }
-  
+
   @Override
   public boolean isDirect() {
     return (wmem != null) ? wmem.isDirect() : false;
@@ -338,7 +350,12 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   //restricted
-  
+  /**
+   * Compute current serialized size in bytes independent of the current
+   * state of Serialization Version.
+   * @param serVerUpdatable reflects the hypothetical state of SerVer.
+   * @return current serialized size in bytes assuming a SerVer state.
+   */
   final int currentSerializedSizeBytes(final boolean serVerUpdatable) {
     final int numLevels = getNumLevels();
     final int numItems;
@@ -349,14 +366,14 @@ public abstract class KllSketch implements QuantilesAPI {
     } else { //compact
       numItems = getNumRetained();
       if (numItems == 0) { return N_LONG_ADR; }
-      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + getSingleItemBytes(); }
+      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + getTheSingleItemBytes(); }
       levelsArrBytes = numLevels * Integer.BYTES;
     }
     return DATA_START_ADR + levelsArrBytes + getDataBlockBytes(numItems + 2);
   }
-  
+
   abstract int getDataBlockBytes(int numItemsAndMinMax);
-  
+
   final int[] getLevelsArray() {
     return levelsArr;
   }
@@ -381,8 +398,8 @@ public abstract class KllSketch implements QuantilesAPI {
     return levelsArr.length - 1;
   }
 
-  abstract int getSingleItemBytes();
-  
+  abstract int getTheSingleItemBytes();
+
   abstract void incN();
 
   abstract void incNumLevels();
@@ -394,6 +411,8 @@ public abstract class KllSketch implements QuantilesAPI {
   boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }
 
   boolean isFloatsSketch() { return sketchType == FLOATS_SKETCH; }
+
+  boolean isItemsSketch() { return sketchType == ITEMS_SKETCH; }
 
   abstract boolean isLevelZeroSorted();
 

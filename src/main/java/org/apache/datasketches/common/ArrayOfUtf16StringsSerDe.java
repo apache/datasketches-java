@@ -68,4 +68,24 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
     return array;
   }
 
+  @Override
+  public int sizeOf(final String item) {
+    return item.length() * Character.BYTES + Integer.BYTES;
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+    long offsetBytes = 0;
+    final long memCap = mem.getCapacity();
+    for (int i = 0; i < numItems; i++) {
+      Util.checkBounds(offsetBytes, Integer.BYTES, memCap);
+      final int strLength = mem.getInt(offsetBytes);
+      offsetBytes += Integer.BYTES;
+      final int charBytes = strLength * Character.BYTES;
+      Util.checkBounds(offsetBytes, charBytes, memCap);
+      offsetBytes += charBytes;
+    }
+    return (int)offsetBytes;
+  }
+
 }

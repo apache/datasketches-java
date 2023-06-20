@@ -351,7 +351,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   abstract float getMinFloatItem();
   
-  final int getSingleItemBytes() {
+  final int getTheSingleItemBytes() {
     return Float.BYTES;
   }
 

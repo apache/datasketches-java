@@ -351,7 +351,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract double getMinDoubleItem();
   
-  final int getSingleItemBytes() {
+  final int getTheSingleItemBytes() {
     return Double.BYTES;
   }
 

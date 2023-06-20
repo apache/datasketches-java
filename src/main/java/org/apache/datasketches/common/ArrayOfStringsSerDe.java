@@ -31,6 +31,8 @@ import org.apache.datasketches.memory.WritableMemory;
  * this method is 2 times more compact, but it takes more time to encode and decode
  * by a factor of 1.5 to 2.
  *
+ * <p>The serialization
+ *
  * @author Alexander Saydakov
  */
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
@@ -70,6 +72,25 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
       array[i] = new String(bytes, StandardCharsets.UTF_8);
     }
     return array;
+  }
+
+  @Override
+  public int sizeOf(final String item) {
+    return item.getBytes(StandardCharsets.UTF_8).length + Integer.BYTES;
+  }
+
+  @Override
+  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+    long offsetBytes = 0;
+    final long memCap = mem.getCapacity();
+    for (int i = 0; i < numItems; i++) {
+      Util.checkBounds(offsetBytes, Integer.BYTES, memCap);
+      final int strLength = mem.getInt(offsetBytes);
+      offsetBytes += Integer.BYTES;
+      Util.checkBounds(offsetBytes, strLength, memCap);
+      offsetBytes += strLength;
+    }
+    return (int)offsetBytes;
   }
 
 }

@@ -49,4 +49,34 @@ public abstract class ArrayOfItemsSerDe<T> {
    */
   public abstract T[] deserializeFromMemory(Memory mem, int numItems);
 
+  /**
+   * Returns the serialized size in bytes of a specific item.
+   * @param item a specific item
+   * @return the serialized size in bytes of a specific item.
+   */
+  public abstract int sizeOf(T item);
+
+  /**
+   * Returns the serialized size in bytes of the array of items.
+   * @param items an array of items.
+   * @return the serialized size in bytes of the array of items.
+   */
+  public int sizeOf(final T[] items) {
+    int bytes = 0;
+    for (int i = 0; i < items.length; i++) {
+      bytes += sizeOf(items[i]);
+    }
+    return bytes;
+  }
+
+  /**
+   * Returns the serialized size in bytes of the number of items.
+   * The capacity of the given Memory can be much larger that the required size of the items.
+   * @param mem the given Memory.
+   * @param offset the starting offset in the given Memory.
+   * @param numItems the number of serialized items contained in the Memory
+   * @return the serialized size in bytes of the number of items.
+   */
+  public abstract int sizeOf(Memory mem, long offset, int numItems);
+
 }
