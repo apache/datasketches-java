@@ -38,6 +38,12 @@ import org.apache.datasketches.memory.WritableMemory;
 public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
+  public byte[] serializeToByteArray(final String item) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
   public byte[] serializeToByteArray(final String[] items) {
     int length = 0;
     final byte[][] itemsBytes = new byte[items.length][];
@@ -58,6 +64,12 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
+  public String deserializeOneFromMemory(final Memory mem, final long offset) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
   public String[] deserializeFromMemory(final Memory mem, final int numItems) {
     final String[] array = new String[numItems];
     long offsetBytes = 0;
@@ -72,6 +84,12 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
       array[i] = new String(bytes, StandardCharsets.UTF_8);
     }
     return array;
+  }
+
+  @Override
+  public String[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
   @Override

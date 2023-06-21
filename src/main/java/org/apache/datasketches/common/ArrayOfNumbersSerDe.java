@@ -19,8 +19,13 @@
 
 package org.apache.datasketches.common;
 
+import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
+import static org.apache.datasketches.common.ByteArrayUtil.putShortLE;
+
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of the object version of primitive types of
@@ -46,52 +51,137 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   private static final byte FLOAT_INDICATOR   = 6;
 
   @Override
-  public byte[] serializeToByteArray(final Number[] items) {
-    final int length = sizeOf(items);
-
-    final byte[] bytes = new byte[length];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    long offsetBytes = 0;
-    for (final Number item: items) {
-      if (item instanceof Long) {
-        mem.putByte(offsetBytes, LONG_INDICATOR);
-        mem.putLong(offsetBytes + 1, item.longValue());
-        offsetBytes += Byte.BYTES + Long.BYTES;
-      } else if (item instanceof Integer) {
-        mem.putByte(offsetBytes, INTEGER_INDICATOR);
-        mem.putInt(offsetBytes + 1, item.intValue());
-        offsetBytes += Byte.BYTES + Integer.BYTES;
-      } else if (item instanceof Short) {
-        mem.putByte(offsetBytes, SHORT_INDICATOR);
-        mem.putShort(offsetBytes + 1, item.shortValue());
-        offsetBytes += Byte.BYTES + Short.BYTES;
-      } else if (item instanceof Byte) {
-        mem.putByte(offsetBytes, BYTE_INDICATOR);
-        mem.putByte(offsetBytes + 1, item.byteValue());
-        offsetBytes += Byte.BYTES << 1;
-      } else if (item instanceof Double) {
-        mem.putByte(offsetBytes, DOUBLE_INDICATOR);
-        mem.putDouble(offsetBytes + 1, item.doubleValue());
-        offsetBytes += Byte.BYTES + Double.BYTES;
-      } else { // (item instanceof Float) 0- already checked possibilities above
-        mem.putByte(offsetBytes, FLOAT_INDICATOR);
-        mem.putFloat(offsetBytes + 1, item.floatValue());
-        offsetBytes += Byte.BYTES + Float.BYTES;
-      }
+  public byte[] serializeToByteArray(final Number item) {
+    final byte[] byteArr;
+    if (item instanceof Long) {
+      byteArr = new byte[Long.BYTES + 1];
+      byteArr[0] = LONG_INDICATOR;
+      putLongLE(byteArr, 1, (Long)item);
+    } else if (item instanceof Integer) {
+      byteArr = new byte[Integer.BYTES + 1];
+      byteArr[0] = INTEGER_INDICATOR;
+      putIntLE(byteArr, 1, (Integer)item);
+    } else if (item instanceof Short) {
+      byteArr = new byte[Short.BYTES + 1];
+      byteArr[0] = SHORT_INDICATOR;
+      putShortLE(byteArr, 1, (Short)item);
+    } else if (item instanceof Byte) {
+      byteArr = new byte[Byte.BYTES + 1];
+      byteArr[0] = BYTE_INDICATOR;
+      byteArr[1] = (byte)item;
+    } else if (item instanceof Double) {
+      byteArr = new byte[Double.BYTES + 1];
+      byteArr[0] = DOUBLE_INDICATOR;
+      putDoubleLE(byteArr, 1, (Double)item);
+    } else if (item instanceof Float) {
+      byteArr = new byte[Float.BYTES + 1];
+      byteArr[0] = FLOAT_INDICATOR;
+      putFloatLE(byteArr, 1, (Float)item);
+    } else {
+      throw new SketchesArgumentException(
+          "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+          + "item: " + item.toString());
     }
-    return bytes;
+    return byteArr;
   }
 
   @Override
+  public byte[] serializeToByteArray(final Number[] items) {
+    final int bytes = sizeOf(items);
+
+    final byte[] byteArr = new byte[bytes];
+    int offsetBytes = 0;
+    for (final Number item: items) {
+      if (item instanceof Long) {
+        byteArr[offsetBytes++] = LONG_INDICATOR;
+        putLongLE(byteArr, offsetBytes, item.longValue());
+        offsetBytes += Long.BYTES;
+      } else if (item instanceof Integer) {
+        byteArr[offsetBytes++] = INTEGER_INDICATOR;
+        putIntLE(byteArr, offsetBytes, item.intValue());
+        offsetBytes += Integer.BYTES;
+      } else if (item instanceof Short) {
+        byteArr[offsetBytes++] = SHORT_INDICATOR;
+        putShortLE(byteArr, offsetBytes, item.shortValue());
+        offsetBytes += Short.BYTES;
+      } else if (item instanceof Byte) {
+        byteArr[offsetBytes++] = BYTE_INDICATOR;
+        byteArr[offsetBytes] = item.byteValue();
+        offsetBytes += Byte.BYTES;
+      } else if (item instanceof Double) {
+        byteArr[offsetBytes++] = DOUBLE_INDICATOR;
+        putDoubleLE(byteArr, offsetBytes, item.doubleValue());
+        offsetBytes += Double.BYTES;
+      } else if (item instanceof Float) {
+        byteArr[offsetBytes++] = FLOAT_INDICATOR;
+        putFloatLE(byteArr, offsetBytes, item.floatValue());
+        offsetBytes += Float.BYTES;
+      } else {
+        throw new SketchesArgumentException(
+            "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+            + "item: " + item.toString());
+      }
+    }
+    return byteArr;
+  }
+
+  @Override
+  public Number deserializeOneFromMemory(final Memory mem, final long offset) {
+    final Number number;
+    long offsetBytes = offset;
+    Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
+    final byte itemId = mem.getByte(offsetBytes);
+    offsetBytes += Byte.BYTES;
+
+    switch (itemId) {
+    case LONG_INDICATOR:
+      Util.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
+      number = mem.getLong(offsetBytes);
+      break;
+    case INTEGER_INDICATOR:
+      Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
+      number = mem.getInt(offsetBytes);
+      break;
+    case SHORT_INDICATOR:
+      Util.checkBounds(offsetBytes, Short.BYTES, mem.getCapacity());
+      number = mem.getShort(offsetBytes);
+      break;
+    case BYTE_INDICATOR:
+      Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
+      number = mem.getByte(offsetBytes);
+      break;
+    case DOUBLE_INDICATOR:
+      Util.checkBounds(offsetBytes, Double.BYTES, mem.getCapacity());
+      number = mem.getDouble(offsetBytes);
+      break;
+    case FLOAT_INDICATOR:
+      Util.checkBounds(offsetBytes, Float.BYTES, mem.getCapacity());
+      number = mem.getFloat(offsetBytes);
+      break;
+    default:
+      throw new SketchesArgumentException(
+          "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+          + "itemId: " + itemId);
+  }
+    return number;
+  }
+
+  @Override
+  @Deprecated
   public Number[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public Number[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
     final Number[] array = new Number[numItems];
-    long offsetBytes = 0;
+    long offsetBytes = offset;
     for (int i = 0; i < numItems; i++) {
       Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
-      final byte numType = mem.getByte(offsetBytes);
+      final byte typeId = mem.getByte(offsetBytes);
       offsetBytes += Byte.BYTES;
 
-      switch (numType) {
+      switch (typeId) {
         case LONG_INDICATOR:
           Util.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
           array[i] = mem.getLong(offsetBytes);
@@ -123,8 +213,9 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
           offsetBytes += Float.BYTES;
           break;
         default:
-          throw new SketchesArgumentException("Unrecognized entry type reading Number array entry "
-              + i + ": " + numType);
+          throw new SketchesArgumentException(
+              "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+              + "index: " + i + ", typeId: " + typeId);
       }
     }
     return array;
@@ -139,7 +230,8 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
     else if ( item instanceof Double)  { return Byte.BYTES + Double.BYTES; }
     else if ( item instanceof Float)   { return Byte.BYTES + Float.BYTES; }
     else { throw new SketchesArgumentException(
-        "Item must be one of: Long, Integer, Short, Byte, Double, Float"); }
+        "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+        + "item: " + item.toString()); }
   }
 
   @Override
@@ -153,20 +245,21 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
       else if (item instanceof Double)  { bytes += Byte.BYTES + Double.BYTES; }
       else if (item instanceof Float)   { bytes += Byte.BYTES + Float.BYTES; }
       else { throw new SketchesArgumentException(
-          "Item must be one of: Long, Integer, Short, Byte, Double, Float"); }
+          "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+          + "item: " + item.toString()); }
     }
     return bytes;
   }
 
   @Override
   public int sizeOf(final Memory mem, final long offset, final int numItems) {
-    int offsetBytes = 0;
+    long offsetBytes = offset;
     for (int i = 0; i < numItems; i++) {
       Util.checkBounds(offsetBytes, Byte.BYTES, mem.getCapacity());
-      final byte numType = mem.getByte(offsetBytes);
+      final byte typeId = mem.getByte(offsetBytes);
       offsetBytes += Byte.BYTES;
 
-      switch (numType) {
+      switch (typeId) {
         case LONG_INDICATOR:
           Util.checkBounds(offsetBytes, Long.BYTES, mem.getCapacity());
           offsetBytes += Long.BYTES;
@@ -192,11 +285,12 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
           offsetBytes += Float.BYTES;
           break;
         default:
-          throw new SketchesArgumentException("Unrecognized entry type reading Number array entry "
-              + i + ": " + numType);
+          throw new SketchesArgumentException(
+              "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
+              + "index: " + i + ", typeId: " + typeId);
       }
     }
-    return offsetBytes;
+    return (int)offsetBytes;
   }
 
 }

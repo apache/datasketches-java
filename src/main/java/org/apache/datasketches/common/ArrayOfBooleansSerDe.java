@@ -40,6 +40,13 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
+  public byte[] serializeToByteArray(final Boolean item) {
+    final byte[] bytes = new byte[1];
+    bytes[0] = (item) ? (byte)1 : 0;
+    return bytes;
+  }
+
+  @Override
   public byte[] serializeToByteArray(final Boolean[] items) {
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
@@ -50,31 +57,40 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
       if (items[i]) {
         val |= 0x1 << (i & 0x7);
       }
-
       if ((i & 0x7) == 0x7) {
         mem.putByte(i >>> 3, val);
         val = 0;
       }
     }
-
     // write out any remaining values (if val=0, still good to be explicit)
     if ((items.length & 0x7) > 0) {
       mem.putByte(bytesNeeded - 1, val);
     }
-
     return bytes;
   }
 
   @Override
-  public Boolean[] deserializeFromMemory(final Memory mem, final int length) {
-    final int numBytes = computeBytesNeeded(length);
-    Util.checkBounds(0, numBytes, mem.getCapacity());
-    final Boolean[] array = new Boolean[length];
+  public Boolean deserializeOneFromMemory(final Memory mem, final long offset) {
+    Util.checkBounds(offset, 1, mem.getCapacity());
+    return mem.getByte(offset) > 0;
+  }
+
+  @Override
+  @Deprecated
+  public Boolean[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public Boolean[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+    final int numBytes = computeBytesNeeded(numItems);
+    Util.checkBounds(offset, numBytes, mem.getCapacity());
+    final Boolean[] array = new Boolean[numItems];
 
     byte srcVal = 0;
-    for (int i = 0, b = 0; i < length; ++i) {
+    for (int i = 0, b = 0; i < numItems; ++i) {
       if ((i & 0x7) == 0x0) { // should trigger on first iteration
-        srcVal = mem.getByte(b++);
+        srcVal = mem.getByte(offset + b++);
       }
       array[i] = ((srcVal >>> (i & 0x7)) & 0x1) == 1;
     }

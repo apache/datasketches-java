@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.common;
 
+import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -28,6 +30,13 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Alexander Saydakov
  */
 public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
+
+  @Override
+  public byte[] serializeToByteArray(final Long item) {
+    final byte[] byteArr = new byte[Long.BYTES];
+    putLongLE(byteArr, 0, item.longValue());
+    return byteArr;
+  }
 
   @Override
   public byte[] serializeToByteArray(final Long[] items) {
@@ -42,11 +51,22 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   }
 
   @Override
-  public Long[] deserializeFromMemory(final Memory mem, final int length) {
-    Util.checkBounds(0, (long)length * Long.BYTES, mem.getCapacity());
-    final Long[] array = new Long[length];
-    long offsetBytes = 0;
-    for (int i = 0; i < length; i++) {
+  public Long deserializeOneFromMemory(final Memory mem, final long offset) {
+    return mem.getLong(offset);
+  }
+
+  @Override
+  @Deprecated
+  public Long[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public Long[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+    Util.checkBounds(offset, Long.BYTES * numItems, mem.getCapacity());
+    final Long[] array = new Long[numItems];
+    long offsetBytes = offset;
+    for (int i = 0; i < numItems; i++) {
       array[i] = mem.getLong(offsetBytes);
       offsetBytes += Long.BYTES;
     }
@@ -63,4 +83,5 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   public int sizeOf(final Memory mem, final long offset, final int numItems) {
     return numItems * Long.BYTES;
   }
+
 }

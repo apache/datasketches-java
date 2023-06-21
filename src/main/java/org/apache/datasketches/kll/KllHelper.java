@@ -456,7 +456,8 @@ final class KllHelper {
     return total;
   }
 
-  static byte[] toCompactByteArrayImpl(final KllSketch sketch) {
+  @SuppressWarnings("unchecked")
+  static <T> byte[] toCompactByteArrayImpl(final KllSketch sketch) {
     if (sketch.isEmpty()) { return fastEmptyCompactByteArray(sketch); }
     if (sketch.isSingleItem()) { return fastSingleItemCompactByteArray(sketch); }
     //n > 1
@@ -493,7 +494,13 @@ final class KllHelper {
       wmem.putFloat(offset, fltSk.getMaxFloatItem());
       offset += Float.BYTES;
       wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
-    } else { kllSketchThrow(UNSUPPORTED_TYPE); }
+    } else if (sketch.sketchType == ITEMS_SKETCH) {
+
+      final KllItemsSketch<T> itmSk = (KllItemsSketch<T>)sketch;
+      //final byte[] minByteArr = itmSk.serDe_.serializeToByteArray(new T[] {itmSk.getMinItem()});
+
+      //kllSketchThrow(UNSUPPORTED_TYPE);
+    }
     return byteArr;
   }
 

@@ -30,9 +30,16 @@ import org.apache.datasketches.memory.Memory;
 public abstract class ArrayOfItemsSerDe<T> {
 
   /**
-   * Serialize an array of items to byte array.
+   * Serialize an item to a byte array.
+   *
+   * @param item the item to be serialized
+   * @return serialized representation of the given item
+   */
+  public abstract byte[] serializeToByteArray(T item);
+
+  /**
+   * Serialize an array of items to a byte array.
    * The size of the array doesn't need to be serialized.
-   * This method is called by the sketch serialization process.
    *
    * @param items array of items to be serialized
    * @return serialized representation of the given array of items
@@ -40,14 +47,35 @@ public abstract class ArrayOfItemsSerDe<T> {
   public abstract byte[] serializeToByteArray(T[] items);
 
   /**
+   * Deserialize one item from a given Memory object.
+   *
+   * @param mem Memory containing a serialized items
+   * @param offset the starting offset in the given Memory.
+   * @return deserialized item
+   */
+  public abstract T deserializeOneFromMemory(Memory mem, long offset);
+
+  /**
    * Deserialize an array of items from a given Memory object.
-   * This method is called by the sketch deserialization process.
    *
    * @param mem Memory containing a serialized array of items
    * @param numItems number of items in the serialized array
    * @return deserialized array of items
+   * @deprecated use
+   * {@link #deserializeFromMemory(Memory, long, int) deserializeFromMemory(mem, offset, numItems)}
    */
+  @Deprecated
   public abstract T[] deserializeFromMemory(Memory mem, int numItems);
+
+  /**
+   * Deserialize an array of items from a given Memory object.
+   *
+   * @param mem Memory containing a serialized array of items
+   * @param offset the starting offset in the given Memory.
+   * @param numItems number of items in the serialized array.
+   * @return deserialized array of items
+   */
+  public abstract T[] deserializeFromMemory(Memory mem, long offset, int numItems);
 
   /**
    * Returns the serialized size in bytes of a specific item.

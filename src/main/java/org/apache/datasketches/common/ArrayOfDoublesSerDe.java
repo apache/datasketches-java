@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.common;
 
+import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -28,6 +30,13 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Alexander Saydakov
  */
 public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
+
+  @Override
+  public byte[] serializeToByteArray(final Double item) {
+    final byte[] byteArr = new byte[Double.BYTES];
+    putDoubleLE(byteArr, 0, item.doubleValue());
+    return byteArr;
+  }
 
   @Override
   public byte[] serializeToByteArray(final Double[] items) {
@@ -42,11 +51,22 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public Double[] deserializeFromMemory(final Memory mem, final int length) {
-    Util.checkBounds(0, Double.BYTES, mem.getCapacity());
-    final Double[] array = new Double[length];
-    long offsetBytes = 0;
-    for (int i = 0; i < length; i++) {
+  public Double deserializeOneFromMemory(final Memory mem, final long offset) {
+    return mem.getDouble(offset);
+  }
+
+  @Override
+  @Deprecated
+  public Double[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public Double[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+    Util.checkBounds(offset, Double.BYTES * numItems, mem.getCapacity());
+    final Double[] array = new Double[numItems];
+    long offsetBytes = offset;
+    for (int i = 0; i < numItems; i++) {
       array[i] = mem.getDouble(offsetBytes);
       offsetBytes += Double.BYTES;
     }
@@ -63,4 +83,5 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   public int sizeOf(final Memory mem, final long offset, final int numItems) {
     return numItems * Double.BYTES;
   }
+
 }

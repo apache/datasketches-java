@@ -88,4 +88,22 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
     return (int)offsetBytes;
   }
 
+  @Override
+  public byte[] serializeToByteArray(String item) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String deserializeOneFromMemory(Memory mem, long offset) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public String[] deserializeFromMemory(Memory mem, long offset, int numItems) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }

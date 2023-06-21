@@ -44,7 +44,7 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
   private Object[] items_;
   private final Class<T> clazz_;
   private final Comparator<? super T> comparator_;
-  private final ArrayOfItemsSerDe<T> serDe_;
+  final ArrayOfItemsSerDe<T> serDe_;
 
   KllItemsSketch(
       final int k,
