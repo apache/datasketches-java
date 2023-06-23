@@ -42,10 +42,10 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   public byte[] serializeToByteArray(final Double[] items) {
     final byte[] bytes = new byte[Double.BYTES * items.length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    long offsetBytes = 0;
+    long offset = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putDouble(offsetBytes, items[i]);
-      offsetBytes += Double.BYTES;
+      mem.putDouble(offset, items[i]);
+      offset += Double.BYTES;
     }
     return bytes;
   }
@@ -62,13 +62,14 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public Double[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+  public Double[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    long offset = offsetBytes;
     Util.checkBounds(offset, Double.BYTES * numItems, mem.getCapacity());
     final Double[] array = new Double[numItems];
-    long offsetBytes = offset;
+
     for (int i = 0; i < numItems; i++) {
-      array[i] = mem.getDouble(offsetBytes);
-      offsetBytes += Double.BYTES;
+      array[i] = mem.getDouble(offset);
+      offset += Double.BYTES;
     }
     return array;
   }
@@ -80,7 +81,7 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   public int sizeOf(final Double[] items) { return items.length * Double.BYTES; }
 
   @Override
-  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
     return numItems * Double.BYTES;
   }
 

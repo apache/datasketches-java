@@ -259,7 +259,7 @@ public final class ReservoirItemsSketch<T> {
 
     final int itemsToRead = (int) Math.min(k, itemsSeen);
     final T[] data = serDe.deserializeFromMemory(
-        srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes), itemsToRead);
+        srcMem.region(preLongBytes, srcMem.getCapacity() - preLongBytes), 0, itemsToRead);
     final ArrayList<T> dataList = new ArrayList<>(Arrays.asList(data));
 
     final ReservoirItemsSketch<T> ris = new ReservoirItemsSketch<>(dataList, itemsSeen, rf, k);

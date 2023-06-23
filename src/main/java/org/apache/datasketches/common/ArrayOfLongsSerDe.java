@@ -42,10 +42,10 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   public byte[] serializeToByteArray(final Long[] items) {
     final byte[] bytes = new byte[Long.BYTES * items.length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    long offsetBytes = 0;
+    long offset = 0;
     for (int i = 0; i < items.length; i++) {
-      mem.putLong(offsetBytes, items[i]);
-      offsetBytes += Long.BYTES;
+      mem.putLong(offset, items[i]);
+      offset += Long.BYTES;
     }
     return bytes;
   }
@@ -62,13 +62,13 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   }
 
   @Override
-  public Long[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+  public Long[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    long offset = offsetBytes;
     Util.checkBounds(offset, Long.BYTES * numItems, mem.getCapacity());
     final Long[] array = new Long[numItems];
-    long offsetBytes = offset;
     for (int i = 0; i < numItems; i++) {
-      array[i] = mem.getLong(offsetBytes);
-      offsetBytes += Long.BYTES;
+      array[i] = mem.getLong(offset);
+      offset += Long.BYTES;
     }
     return array;
   }
@@ -80,7 +80,7 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   public int sizeOf(final Long[] items) { return items.length * Long.BYTES; }
 
   @Override
-  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
     return numItems * Long.BYTES;
   }
 

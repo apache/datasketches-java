@@ -82,15 +82,15 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
-  public Boolean[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
+  public Boolean[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
     final int numBytes = computeBytesNeeded(numItems);
-    Util.checkBounds(offset, numBytes, mem.getCapacity());
+    Util.checkBounds(offsetBytes, numBytes, mem.getCapacity());
     final Boolean[] array = new Boolean[numItems];
 
     byte srcVal = 0;
     for (int i = 0, b = 0; i < numItems; ++i) {
       if ((i & 0x7) == 0x0) { // should trigger on first iteration
-        srcVal = mem.getByte(offset + b++);
+        srcVal = mem.getByte(offsetBytes + b++);
       }
       array[i] = ((srcVal >>> (i & 0x7)) & 0x1) == 1;
     }
@@ -108,7 +108,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offset, final int numItems) {
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
     return computeBytesNeeded(numItems);
   }
 

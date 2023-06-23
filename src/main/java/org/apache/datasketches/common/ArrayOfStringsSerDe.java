@@ -19,10 +19,12 @@
 
 package org.apache.datasketches.common;
 
+import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
+import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
+
 import java.nio.charset.StandardCharsets;
 
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * Methods of serializing and deserializing arrays of String.
@@ -39,57 +41,69 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public byte[] serializeToByteArray(final String item) {
-    // TODO Auto-generated method stub
-    return null;
+    final byte[] utf8ByteArr = item.getBytes(StandardCharsets.UTF_8);
+    final int numBytes = utf8ByteArr.length;
+    final byte[] out = new byte[numBytes + Integer.BYTES];
+    copyBytes(utf8ByteArr, 0, out, 4, numBytes);
+    putIntLE(out, 0, numBytes);
+    return out;
   }
 
   @Override
   public byte[] serializeToByteArray(final String[] items) {
-    int length = 0;
-    final byte[][] itemsBytes = new byte[items.length][];
-    for (int i = 0; i < items.length; i++) {
-      itemsBytes[i] = items[i].getBytes(StandardCharsets.UTF_8);
-      length += itemsBytes[i].length + Integer.BYTES;
-    }
-    final byte[] bytes = new byte[length];
-    final WritableMemory mem = WritableMemory.writableWrap(bytes);
-    long offsetBytes = 0;
-    for (int i = 0; i < items.length; i++) {
-      mem.putInt(offsetBytes, itemsBytes[i].length);
-      offsetBytes += Integer.BYTES;
-      mem.putByteArray(offsetBytes, itemsBytes[i], 0, itemsBytes[i].length);
-      offsetBytes += itemsBytes[i].length;
-    }
-    return bytes;
-  }
-
-  @Override
-  public String deserializeOneFromMemory(final Memory mem, final long offset) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
-  @Override
-  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
-    final String[] array = new String[numItems];
-    long offsetBytes = 0;
+    int totalBytes = 0;
+    final int numItems = items.length;
+    final byte[][] serialized2DArray = new byte[numItems][];
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offsetBytes, Integer.BYTES, mem.getCapacity());
-      final int strLength = mem.getInt(offsetBytes);
-      offsetBytes += Integer.BYTES;
-      final byte[] bytes = new byte[strLength];
-      Util.checkBounds(offsetBytes, strLength, mem.getCapacity());
-      mem.getByteArray(offsetBytes, bytes, 0, strLength);
-      offsetBytes += strLength;
-      array[i] = new String(bytes, StandardCharsets.UTF_8);
+      serialized2DArray[i] = items[i].getBytes(StandardCharsets.UTF_8);
+      totalBytes += serialized2DArray[i].length + Integer.BYTES;
+    }
+    final byte[] bytesOut = new byte[totalBytes];
+    int offset = 0;
+    for (int i = 0; i < numItems; i++) {
+      final int utf8len = serialized2DArray[i].length;
+      putIntLE(bytesOut, offset, utf8len);
+      offset += Integer.BYTES;
+      copyBytes(serialized2DArray[i], 0, bytesOut, offset, utf8len);
+      offset += utf8len;
+    }
+    return bytesOut;
+  }
+
+  @Override
+  public String deserializeOneFromMemory(final Memory mem, final long offsetBytes) {
+    long offset = offsetBytes;
+    Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
+    final int itemLenBytes = mem.getInt(offset);
+    offset += Integer.BYTES;
+    final byte[] utf8Bytes = new byte[itemLenBytes];
+    Util.checkBounds(offset, itemLenBytes, mem.getCapacity());
+    mem.getByteArray(offset, utf8Bytes, 0, itemLenBytes);
+    final String out = new String(utf8Bytes, StandardCharsets.UTF_8);
+    return out;
+  }
+
+  @Override
+  @Deprecated
+  public String[] deserializeFromMemory(final Memory mem, final int numItems) {
+    return deserializeFromMemory(mem, 0, numItems);
+  }
+
+  @Override
+  public String[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    final String[] array = new String[numItems];
+    long offset = offsetBytes;
+    for (int i = 0; i < numItems; i++) {
+      Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
+      final int strLength = mem.getInt(offset);
+      offset += Integer.BYTES;
+      final byte[] utf8Bytes = new byte[strLength];
+      Util.checkBounds(offset, strLength, mem.getCapacity());
+      mem.getByteArray(offset, utf8Bytes, 0, strLength);
+      offset += strLength;
+      array[i] = new String(utf8Bytes, StandardCharsets.UTF_8);
     }
     return array;
-  }
-
-  @Override
-  public String[] deserializeFromMemory(final Memory mem, final long offset, final int numItems) {
-    // TODO Auto-generated method stub
-    return null;
   }
 
   @Override
@@ -98,17 +112,17 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public int sizeOf(final Memory mem, final long offset, final int numItems) {
-    long offsetBytes = 0;
+  public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    long offset = offsetBytes;
     final long memCap = mem.getCapacity();
     for (int i = 0; i < numItems; i++) {
-      Util.checkBounds(offsetBytes, Integer.BYTES, memCap);
-      final int strLength = mem.getInt(offsetBytes);
-      offsetBytes += Integer.BYTES;
-      Util.checkBounds(offsetBytes, strLength, memCap);
-      offsetBytes += strLength;
+      Util.checkBounds(offset, Integer.BYTES, memCap);
+      final int itemLenBytes = mem.getInt(offset);
+      offset += Integer.BYTES;
+      Util.checkBounds(offset, itemLenBytes, memCap);
+      offset += itemLenBytes;
     }
-    return (int)offsetBytes;
+    return (int)(offset - offsetBytes);
   }
 
 }

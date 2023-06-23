@@ -30,7 +30,7 @@ import org.apache.datasketches.memory.Memory;
 public abstract class ArrayOfItemsSerDe<T> {
 
   /**
-   * Serialize an item to a byte array.
+   * Serialize a single unserialized item to a byte array.
    *
    * @param item the item to be serialized
    * @return serialized representation of the given item
@@ -38,29 +38,28 @@ public abstract class ArrayOfItemsSerDe<T> {
   public abstract byte[] serializeToByteArray(T item);
 
   /**
-   * Serialize an array of items to a byte array.
-   * The size of the array doesn't need to be serialized.
+   * Serialize an array of unserialized items to a byte array of contiguous serialized items.
    *
    * @param items array of items to be serialized
-   * @return serialized representation of the given array of items
+   * @return contiguous, serialized representation of the given array of unserialized items
    */
   public abstract byte[] serializeToByteArray(T[] items);
 
   /**
-   * Deserialize one item from a given Memory object.
+   * Deserialize a single serialized item from a given Memory object.
    *
-   * @param mem Memory containing a serialized items
-   * @param offset the starting offset in the given Memory.
+   * @param mem Memory containing the serialized item
+   * @param offsetBytes the starting offset in the given Memory.
    * @return deserialized item
    */
-  public abstract T deserializeOneFromMemory(Memory mem, long offset);
+  public abstract T deserializeOneFromMemory(Memory mem, long offsetBytes);
 
   /**
-   * Deserialize an array of items from a given Memory object.
+   * Deserialize a contiguous sequence of serialized items from a given Memory.
    *
-   * @param mem Memory containing a serialized array of items
-   * @param numItems number of items in the serialized array
-   * @return deserialized array of items
+   * @param mem Memory containing a contiguous sequence of serialized items
+   * @param numItems number of items in the contiguous serialized sequence.
+   * @return array of deserialized items
    * @deprecated use
    * {@link #deserializeFromMemory(Memory, long, int) deserializeFromMemory(mem, offset, numItems)}
    */
@@ -68,19 +67,19 @@ public abstract class ArrayOfItemsSerDe<T> {
   public abstract T[] deserializeFromMemory(Memory mem, int numItems);
 
   /**
-   * Deserialize an array of items from a given Memory object.
+   * Deserialize a contiguous sequence of serialized items from a given Memory.
    *
-   * @param mem Memory containing a serialized array of items
-   * @param offset the starting offset in the given Memory.
-   * @param numItems number of items in the serialized array.
-   * @return deserialized array of items
+   * @param mem Memory containing a contiguous sequence of serialized items
+   * @param offsetBytes the starting offset in the given Memory.
+   * @param numItems number of items in the contiguous serialized sequence.
+   * @return array of deserialized items
    */
-  public abstract T[] deserializeFromMemory(Memory mem, long offset, int numItems);
+  public abstract T[] deserializeFromMemory(Memory mem, long offsetBytes, int numItems);
 
   /**
-   * Returns the serialized size in bytes of a specific item.
+   * Returns the serialized size in bytes of a single unserialized item.
    * @param item a specific item
-   * @return the serialized size in bytes of a specific item.
+   * @return the serialized size in bytes of a single unserialized item.
    */
   public abstract int sizeOf(T item);
 
@@ -90,21 +89,21 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @return the serialized size in bytes of the array of items.
    */
   public int sizeOf(final T[] items) {
-    int bytes = 0;
+    int totalBytes = 0;
     for (int i = 0; i < items.length; i++) {
-      bytes += sizeOf(items[i]);
+      totalBytes += sizeOf(items[i]);
     }
-    return bytes;
+    return totalBytes;
   }
 
   /**
-   * Returns the serialized size in bytes of the number of items.
+   * Returns the serialized size in bytes of the number of contiguous serialized items in Memory.
    * The capacity of the given Memory can be much larger that the required size of the items.
    * @param mem the given Memory.
-   * @param offset the starting offset in the given Memory.
+   * @param offsetBytes the starting offset in the given Memory.
    * @param numItems the number of serialized items contained in the Memory
    * @return the serialized size in bytes of the number of items.
    */
-  public abstract int sizeOf(Memory mem, long offset, int numItems);
+  public abstract int sizeOf(Memory mem, long offsetBytes, int numItems);
 
 }

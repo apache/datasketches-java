@@ -242,7 +242,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
     final int srcMemItemsOffsetBytes = preambleLongs * Long.BYTES;
     final Memory mReg = srcMem.region(srcMemItemsOffsetBytes,
         srcMem.getCapacity() - srcMemItemsOffsetBytes);
-    final T[] itemsArray = serDe.deserializeFromMemory(mReg, numMemItems);
+    final T[] itemsArray = serDe.deserializeFromMemory(mReg, 0, numMemItems);
     sk.itemsArrayToCombinedBuffer(itemsArray);
     return sk;
   }

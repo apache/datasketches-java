@@ -285,7 +285,7 @@ public class ItemsSketch<T> {
     //Get itemArray
     final int itemsOffset = preBytes + (Long.BYTES * activeItems);
     final T[] itemArray = serDe.deserializeFromMemory(
-        srcMem.region(itemsOffset, srcMem.getCapacity() - itemsOffset), activeItems);
+        srcMem.region(itemsOffset, srcMem.getCapacity() - itemsOffset), 0, activeItems);
     //update the sketch
     for (int i = 0; i < activeItems; i++) {
       fis.update(itemArray[i], countArray[i]);

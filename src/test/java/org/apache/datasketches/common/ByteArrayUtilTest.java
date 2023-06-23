@@ -49,6 +49,14 @@ import org.testng.annotations.Test;
 public class ByteArrayUtilTest {
 
   @Test
+  public void checkCopyBytes() {
+    final byte[] src = { 1, 2, 3, 4 };
+    final byte[] tgt = new byte[8];
+    ByteArrayUtil.copyBytes(src, 1, tgt, 4, 3);
+    System.out.println("");
+  }
+
+  @Test
   public void checkGetPutShortLE() {
     final byte[] arr = { 79, -93, 124, 117 };
     final short out1 = getShortLE(arr, 0);
