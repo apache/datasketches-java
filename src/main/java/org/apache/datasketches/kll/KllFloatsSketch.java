@@ -77,7 +77,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       final MemoryRequestServer memReqSvr) {
     return newDirectInstance(DEFAULT_K, dstMem, memReqSvr);
   }
-  
+
   /**
    * Create a new direct instance of this sketch with a given <em>k</em>.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
@@ -281,7 +281,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     }
     return ranks;
   }
-  
+
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public FloatsSortedView getSortedView() {
@@ -302,7 +302,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     KllFloatsHelper.mergeFloatImpl(this, othFltSk);
     kllFloatsSV = null;
   }
-  
+
   /**
    * {@inheritDoc}
    * <p>The parameter <i>k</i> will not change.</p>
@@ -323,7 +323,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this);
+    return KllHelper.toCompactByteArrayImpl(this, null);
   }
 
   @Override
@@ -339,7 +339,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   int getDataBlockBytes(final int numItemsAndMinMax) {
     return numItemsAndMinMax * Float.BYTES;
   }
-  
+
   /**
    * @return full size of internal items array including garbage.
    */
@@ -350,7 +350,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract float getMaxFloatItem();
 
   abstract float getMinFloatItem();
-  
+
+  @Override
   final int getTheSingleItemBytes() {
     return Float.BYTES;
   }

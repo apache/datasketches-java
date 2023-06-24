@@ -17,17 +17,17 @@
  * under the License.
  */
 
-package org.apache.datasketches.quantiles;
+package org.apache.datasketches.kll;
 
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 
 /**
- * Iterator over ItemsSketchSortedView.
+ * Iterator over KllItemsSketchSortedView.
  * @param <T> type of quantile (item)
  */
-public class ItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
+public class KllItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
 
-  ItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
+  KllItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
     super(quantiles, cumWeights);
   }
 

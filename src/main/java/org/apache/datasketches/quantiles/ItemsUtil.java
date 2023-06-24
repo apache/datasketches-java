@@ -22,7 +22,6 @@ package org.apache.datasketches.quantiles;
 import static org.apache.datasketches.common.Util.LS;
 
 import java.util.Arrays;
-import java.util.Comparator;
 
 import org.apache.datasketches.common.SketchesArgumentException;
 
@@ -47,25 +46,6 @@ final class ItemsUtil {
     if ((serVer == ITEMS_SER_VER) || (serVer == PRIOR_ITEMS_SER_VER)) { return; }
     throw new SketchesArgumentException(
         "Possible corruption: Invalid Serialization Version: " + serVer);
-  }
-
-  /**
-   * Checks the sequential validity of the given array of generic items.
-   * They must be unique, monotonically increasing and not null.
-   * @param <T> the data type
-   * @param items given array of generic items
-   * @param comparator the comparator for generic item data type T
-   */
-  static final <T> void validateItems(final T[] items, final Comparator<? super T> comparator) {
-    final int lenM1 = items.length - 1;
-    for (int j = 0; j < lenM1; j++) {
-      if ((items[j] != null) && (items[j + 1] != null)
-          && (comparator.compare(items[j], items[j + 1]) < 0)) {
-        continue;
-      }
-      throw new SketchesArgumentException(
-          "Items must be unique, monotonically increasing and not null.");
-    }
   }
 
   /**

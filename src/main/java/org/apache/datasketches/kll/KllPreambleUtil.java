@@ -47,19 +47,19 @@ import org.apache.datasketches.memory.WritableMemory;
  * <h3>Preamble Formats</h3>
  * The preamble has 4 formats:
  * <ul>
- * <li>A serialized Empty Compact Format requires 8 bytes of preamble. It is not updatable. 
+ * <li>A serialized Empty Compact Format requires 8 bytes of preamble. It is not updatable.
  * It is identified by SerVer = SERIAL_VERSION_EMPTY_FULL and PreambleInts = 2.</li>
- * 
- * <li>A serialized, Single-Item Compact Format requires 8 bytes of preamble, followed by the one item. 
+ *
+ * <li>A serialized, Single-Item Compact Format requires 8 bytes of preamble, followed by the one item.
  * The size of this format is 8 + itemSize. It is not updatable.
  * It is identified by SerVer = SERIAL_VERSION_SINGLE and PreambleInts = 2.</li>
- * 
+ *
  * <li>A serialized, <i>n &gt; 1</i> Compact Format requires 20 bytes of preamble (5 ints).
  * This is followed by the <i>levels int[numLevels]</i> array, followed by the min and max values,
  * followed by a packed items data array (no empty or garbage slots). It is not updatable.
  * The length of this array is <i>sketch.getNumRetained()</i>.
  * It is identified by SerVer = SERIAL_VERSION_EMPTY_FULL and PreambleInts = 5.</li>
- * 
+ *
  * <li>A serialized, <i>n &gt; 1</i> Updatable Format requires 20 bytes of preamble (5 ints).
  * This is followed by the Levels int[NumLevels + 1] array, followed by the min and max values,
  * followed by an items data array that may include empty or garbage slots. It is updatable.
@@ -79,7 +79,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  *  2       ||                          |       8       |
  *                                       <---Single Item|
- * 
+ *
  * Serialized sketch layout, more than one item:
  * Int Adr:   Byte Adr ->
  *  0       ||    3   |    2   |    1   |      0       |
@@ -95,9 +95,10 @@ import org.apache.datasketches.memory.WritableMemory;
  *          || unused |NumLvls |------Min K------------|
  *
  *  5       ||                          |     20       |
- *                       { Levels Array  }
- *                       { Min/Max Array }
- *                       {  Items Array  }
+ *                       { Levels Array }
+ *                       {   Min Item   }
+ *                       {   Max Item   }
+ *                       { Items Array  }
  * }</pre>
  *
  *  @author Lee Rhodes

@@ -77,7 +77,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       final MemoryRequestServer memReqSvr) {
     return newDirectInstance(DEFAULT_K, dstMem, memReqSvr);
   }
-  
+
   /**
    * Create a new direct instance of this sketch with a given <em>k</em>.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
@@ -281,7 +281,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     }
     return ranks;
   }
-  
+
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public DoublesSortedView getSortedView() {
@@ -302,7 +302,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
     kllDoublesSV = null;
   }
-  
+
   /**
    * {@inheritDoc}
    * <p>The parameter <i>k</i> will not change.</p>
@@ -323,7 +323,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this);
+    return KllHelper.toCompactByteArrayImpl(this, null);
   }
 
   @Override
@@ -339,7 +339,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   int getDataBlockBytes(final int numItemsAndMinMax) {
     return numItemsAndMinMax * Double.BYTES;
   }
-  
+
   /**
    * @return full size of internal items array including garbage.
    */
@@ -350,7 +350,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract double getMaxDoubleItem();
 
   abstract double getMinDoubleItem();
-  
+
+  @Override
   final int getTheSingleItemBytes() {
     return Double.BYTES;
   }

@@ -61,6 +61,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.util.Arrays;
 
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -457,7 +458,7 @@ final class KllHelper {
   }
 
   @SuppressWarnings("unchecked")
-  static <T> byte[] toCompactByteArrayImpl(final KllSketch sketch) {
+  static <T> byte[] toCompactByteArrayImpl(final KllSketch sketch, final ArrayOfItemsSerDe<T> serDe) {
     if (sketch.isEmpty()) { return fastEmptyCompactByteArray(sketch); }
     if (sketch.isSingleItem()) { return fastSingleItemCompactByteArray(sketch); }
     //n > 1
@@ -495,11 +496,12 @@ final class KllHelper {
       offset += Float.BYTES;
       wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
     } else if (sketch.sketchType == ITEMS_SKETCH) {
-
       final KllItemsSketch<T> itmSk = (KllItemsSketch<T>)sketch;
-      //final byte[] minByteArr = itmSk.serDe_.serializeToByteArray(new T[] {itmSk.getMinItem()});
+      final byte[] minByteArr = itmSk.serDe_.serializeToByteArray(new T[] {itmSk.getMinItem()});
 
-      //kllSketchThrow(UNSUPPORTED_TYPE);
+
+    } else {
+      kllSketchThrow(UNSUPPORTED_TYPE);
     }
     return byteArr;
   }

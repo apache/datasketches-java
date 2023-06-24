@@ -41,7 +41,6 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Alexander Saydakov
  */
 public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
-
   private final T[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
@@ -52,6 +51,8 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param quantiles sorted array of quantiles
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
+   * @param comparator comparator for type T
+   * @param T the given type
    */
   ItemsSketchSortedView(final T[] quantiles, final long[] cumWeights, final long totalN,
       final Comparator<T> comparator) {
@@ -91,6 +92,36 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     }
   }
 
+  @Override //implemented here because it needs the comparator
+  public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    GenericSortedView.validateItems(splitPoints, comparator);
+    final int len = splitPoints.length + 1;
+    final double[] buckets = new double[len];
+    for (int i = 0; i < len - 1; i++) {
+      buckets[i] = getRank(splitPoints[i], searchCrit);
+    }
+    buckets[len - 1] = 1.0;
+    return buckets;
+  }
+
+  @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights.clone();
+  }
+
+  @Override //implemented here because it needs the comparator
+  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    GenericSortedView.validateItems(splitPoints, comparator);
+    final double[] buckets = getCDF(splitPoints, searchCrit);
+    final int len = buckets.length;
+    for (int i = len; i-- > 1; ) {
+      buckets[i] -= buckets[i - 1];
+    }
+    return buckets;
+  }
+
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
@@ -106,6 +137,11 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
   }
 
   @Override
+  public T[] getQuantiles() {
+    return quantiles.clone();
+  }
+
+  @Override
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     final int len = quantiles.length;
@@ -115,41 +151,6 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
-  }
-
-  @Override //implemented here because it needs the comparator
-  public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    ItemsUtil.validateItems(splitPoints, comparator);
-    final int len = splitPoints.length + 1;
-    final double[] buckets = new double[len];
-    for (int i = 0; i < len - 1; i++) {
-      buckets[i] = getRank(splitPoints[i], searchCrit);
-    }
-    buckets[len - 1] = 1.0;
-    return buckets;
-  }
-
-  @Override //implemented here because it needs the comparator
-  public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    ItemsUtil.validateItems(splitPoints, comparator);
-    final double[] buckets = getCDF(splitPoints, searchCrit);
-    final int len = buckets.length;
-    for (int i = len; i-- > 1; ) {
-      buckets[i] -= buckets[i - 1];
-    }
-    return buckets;
-  }
-
-  @Override
-  public long[] getCumulativeWeights() {
-    return cumWeights.clone();
-  }
-
-  @Override
-  public T[] getQuantiles() {
-    return quantiles.clone();
   }
 
   @Override

@@ -33,84 +33,85 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 @SuppressWarnings("unused")
-public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
-  private final int k_; // configured size of K.
-  private final int m_; // configured size of M.
-  private long n_;      // number of items input into this sketch.
-  private int minK_;    // dynamic minK for error estimation after merging with different k.
-  private boolean isLevelZeroSorted_;
-  private T maxItem_;
-  private T minItem_;
-  private Object[] items_;
-  private final Class<T> clazz_;
-  private final Comparator<? super T> comparator_;
-  final ArrayOfItemsSerDe<T> serDe_;
+public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
+  private KllItemsSketchSortedView kllItemsSV = null;
+  final Class<T> clazz;
+  final Comparator<? super T> comparator_;
 
-  KllItemsSketch(
-      final int k,
-      final int m,
-      final Class<T> clazz,
-      final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-    super(ITEMS_SKETCH, null, null);
-    Objects.requireNonNull(clazz, "Class<T> must not be null.");
-    Objects.requireNonNull(comparator, "Comparator must not be null.");
-    Objects.requireNonNull(serDe, "Serializer/Deserializer must not be null.");
-    KllHelper.checkM(m);
-    KllHelper.checkK(k, m);
-    k_ = k;
-    m_ = DEFAULT_M;
-    n_ = 0;
-    minK_ = k;
-    isLevelZeroSorted_ = false;
-    maxItem_ = null;
-    minItem_ = null;
-    items_ = new Object[k];
-    levelsArr = new int[] {k, k};
-    clazz_ = clazz;
-    comparator_ = comparator;
-    serDe_ = serDe;
-  }
-
-  /**
-   * Create a new heap instance of this sketch with the default <em>k = 200</em>.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-   * This will have a rank error of about 1.65%.
-   * @param <T> The sketch data type
-   * @param clazz the given class of T
-   * @param comparator to compare items
-   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
-   * @return new KllItemsSketch on the heap.
-   */
-  public static <T> KllItemsSketch<T> newHeapInstance(
-      final Class<T> clazz,
-      final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(DEFAULT_K, DEFAULT_M, clazz, comparator, serDe);
-    return itmSk;
-  }
-  /**
-   * Create a new heap instance of this sketch with a given parameter <em>k</em>.
-   * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-   * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * @param <T> The sketch data type
-   * @param clazz the given class of T
-   * @param comparator to compare items
-   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
-   * @return new KllItemsSketch on the heap.
-   */
-
-  public static <T> KllItemsSketch<T> newHeapInstance(
-      final int k,
-      final Class<T> clazz,
-      final Comparator<? super T> comparator,
-      final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(k, DEFAULT_M, clazz, comparator, serDe);
-    return itmSk;
-  }
+  //  private final int k_; // configured size of K.
+//  private final int m_; // configured size of M.
+//  private long n_;      // number of items input into this sketch.
+//  private int minK_;    // dynamic minK for error estimation after merging with different k.
+//  private boolean isLevelZeroSorted_;
+//  private T maxItem_;
+//  private T minItem_;
+//  private Object[] items_;
+//  private final Class<T> clazz_;
+//  private final Comparator<? super T> comparator_;
+//  ArrayOfItemsSerDe<T> serDe_;
+//
+//  KllItemsSketch(
+//      final int k,
+//      final int m,
+//      final Class<T> clazz,
+//      final Comparator<? super T> comparator) {
+//    super(ITEMS_SKETCH, null, null);
+//    Objects.requireNonNull(clazz, "Class<T> must not be null.");
+//    Objects.requireNonNull(comparator, "Comparator must not be null.");
+//    KllHelper.checkM(m);
+//    KllHelper.checkK(k, m);
+//    k_ = k;
+//    m_ = DEFAULT_M;
+//    n_ = 0;
+//    minK_ = k;
+//    isLevelZeroSorted_ = false;
+//    maxItem_ = null;
+//    minItem_ = null;
+//    items_ = new Object[k];
+//    levelsArr = new int[] {k, k};
+//    clazz_ = clazz;
+//    comparator_ = comparator;
+//  }
+//
+//  /**
+//   * Create a new heap instance of this sketch with the default <em>k = 200</em>.
+//   * The default <em>k</em> = 200 results in a normalized rank error of about
+//   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+//   * This will have a rank error of about 1.65%.
+//   * @param <T> The sketch data type
+//   * @param clazz the given class of T
+//   * @param comparator to compare items
+//   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
+//   * @return new KllItemsSketch on the heap.
+//   */
+//  public static <T> KllItemsSketch<T> newHeapInstance(
+//      final Class<T> clazz,
+//      final Comparator<? super T> comparator,
+//      final ArrayOfItemsSerDe<T> serDe) {
+//      final KllItemsSketch<T> itmSk = new KllHeapItemsSketch<T>(DEFAULT_K, DEFAULT_M, clazz, comparator);
+//    return itmSk;
+//  }
+//  /**
+//   * Create a new heap instance of this sketch with a given parameter <em>k</em>.
+//   * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
+//   * The default <em>k</em> = 200 results in a normalized rank error of about
+//   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+//   * @param k parameter that controls size of the sketch and accuracy of estimates.
+//   * @param <T> The sketch data type
+//   * @param clazz the given class of T
+//   * @param comparator to compare items
+//   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
+//   * @return new KllItemsSketch on the heap.
+//   */
+//
+//  public static <T> KllItemsSketch<T> newHeapInstance(
+//      final int k,
+//      final Class<T> clazz,
+//      final Comparator<? super T> comparator,
+//      final ArrayOfItemsSerDe<T> serDe) {
+//      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(k, DEFAULT_M, clazz, comparator, serDe);
+//    return itmSk;
+//  }
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -239,6 +240,12 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
     // TODO Auto-generated method stub
   }
 
+  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
+    Objects.requireNonNull(serDe, "Serializer/Deserializer must not be null.");
+    serDe_ = serDe;
+    return KllHelper.toCompactByteArrayImpl(this, serDe);
+  }
+
   @Override
   public void update(final T item) {
     // TODO Auto-generated method stub
@@ -246,8 +253,15 @@ public class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<
 
   //restricted
 
+  /**
+   * @return full size of internal items array including garbage.
+   */
+  abstract T[] getItemsItemsArray();
+
   @Override
   int getDataBlockBytes(final int numItemsAndMinMax) {
+    final int minItemBytes = serDe_.sizeOf(minItem_)
+
     return 0;
   }
 
