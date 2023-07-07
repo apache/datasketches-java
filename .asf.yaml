@@ -1,4 +1,5 @@
 github:
+  description: A software library of stochastic streaming algorithms, a.k.a. sketches.
   homepage: https://datasketches.apache.org
   ghp_branch: gh-pages
   ghp_path: /docs
@@ -11,3 +12,35 @@ github:
     required_pull_request_reviews:
       dismiss_stale_reviews: true
       required_approving_review_count: 1
+
+  dependabot_alerts:  true
+  dependabot_updates: false
+
+  # Attempt to make the auto-generated github emails more easily readable in email clients.
+  custom_subjects:
+    new_pr: "[PR] {title} ({repository})"
+    close_pr: "Re: [PR] {title} ({repository})"
+    comment_pr: "Re: [PR] {title} ({repository})"
+    diffcomment: "Re: [PR] {title} ({repository})"
+    merge_pr: "Re: [PR] {title} ({repository})"
+    new_issue: "[I] {title} ({repository})"
+    comment_issue: "Re: [I] {title} ({repository})"
+    close_issue: "Re: [I] {title} ({repository})"
+    catchall: "[GH] {title} ({repository})"
+    new_discussion: "[D] {title} ({repository})"
+    edit_discussion: "Re: [D] {title} ({repository})"
+    close_discussion: "Re: [D] {title} ({repository})"
+    close_discussion_with_comment: "Re: [D] {title} ({repository})"
+    reopen_discussion: "Re: [D] {title} ({repository})"
+    new_comment_discussion: "Re: [D] {title} ({repository})"
+    edit_comment_discussion: "Re: [D] {title} ({repository})"
+    delete_comment_discussion: "Re: [D] {title} ({repository})"
+
+  notifications:
+    commits:              commits@dataskethces.apache.org
+    issues:               dev@dataskethces.apache.org
+    discussions:          dev@dataskethces.apache.org
+    pullrequests_status:  dev@dataskethces.apache.org
+    pullrequests_comment: dev@dataskethces.apache.org
+    # Send dependabot PRs to commits@ instead
+    pullrequests_bot_dependabot: commits@dataskethces.apache.org
