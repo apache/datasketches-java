@@ -2,6 +2,7 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 jobs:
   publish:
@@ -12,6 +13,6 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           javadoc-branch: gh-pages
-          target-folder: docs/current
+          target-folder: docs/${{ github.ref_name }}
           project: maven
           java-version: 11
