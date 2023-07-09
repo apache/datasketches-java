@@ -21,6 +21,16 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
+import static org.apache.datasketches.common.Family.KLL;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
+import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
@@ -29,11 +39,14 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
+import java.nio.ByteOrder;
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
+import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -47,6 +60,7 @@ import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
  */
 public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloatsAPI {
   private KllFloatsSketchSortedView kllFloatsSV = null;
+  final static int ITEM_BYTES = Float.BYTES;
 
   KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
     super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
@@ -124,7 +138,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
    */
   public static KllFloatsSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
     if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE) {
       return new KllDirectFloatsSketch((WritableMemory) srcMem, null, memVal);
     } else {
@@ -143,7 +157,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
     if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE && !srcMem.isReadOnly()) {
         Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
       return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
@@ -168,18 +182,6 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return kllFloatsSV.getCDF(splitPoints, searchCrit);
-  }
-
-  @Override
-  public float getMaxItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getMaxFloatItem();
-  }
-
-  @Override
-  public float getMinItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getMinFloatItem();
   }
 
   @Override
@@ -296,8 +298,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public final void merge(final KllSketch other) {
-    final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (othFltSk.isEmpty()) { return; }
     KllFloatsHelper.mergeFloatImpl(this, othFltSk);
     kllFloatsSV = null;
@@ -316,15 +318,15 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     setNumLevels(1);
     setLevelZeroSorted(false);
     setLevelsArray(new int[] {k, k});
-    setMinFloatItem(Float.NaN);
-    setMaxFloatItem(Float.NaN);
+    setMinItem(Float.NaN);
+    setMaxItem(Float.NaN);
     setFloatItemsArray(new float[k]);
   }
 
-  @Override
-  public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this, null);
-  }
+//  @Override
+//  public byte[] toByteArray() {
+//    return KllHelper.toCompactByteArrayImpl(this);
+//  }
 
   @Override
   public void update(final float item) {
@@ -335,24 +337,40 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   //restricted
 
-  @Override
-  int getDataBlockBytes(final int numItemsAndMinMax) {
-    return numItemsAndMinMax * Float.BYTES;
-  }
-
   /**
-   * @return full size of internal items array including garbage.
+   * @return full size of internal items array including empty space at bottom.
    */
   abstract float[] getFloatItemsArray();
 
+  /**
+   * @return items array of retained items.
+   */
+  abstract float[] getFloatRetainedItemsArray();
+
   abstract float getFloatSingleItem();
 
-  abstract float getMaxFloatItem();
-
-  abstract float getMinFloatItem();
+  @Override
+  abstract byte[] getMinMaxByteArr();
 
   @Override
-  final int getTheSingleItemBytes() {
+  int getMinMaxSizeBytes() {
+    return Float.BYTES * 2;
+  }
+
+  @Override
+  int getRetainedDataSizeBytes() {
+    return getNumRetained() * Float.BYTES;
+  }
+
+  @Override
+  final byte[] getSingleItemByteArr() {
+    final byte[] bytes = new byte[4];
+    putFloatLE(bytes, 0, getFloatSingleItem());
+    return bytes;
+  }
+
+  @Override
+  int getSingleItemSizeBytes() {
     return Float.BYTES;
   }
 
@@ -364,8 +382,70 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   abstract void setFloatItemsArrayAt(int index, float item);
 
-  abstract void setMaxFloatItem(float item);
+  abstract void setMaxItem(float item);
 
-  abstract void setMinFloatItem(float item);
+  abstract void setMinItem(float item);
 
+  @Override
+  public byte[] toByteArray() {
+    return toByteArray(false);
+  }
+
+  @SuppressWarnings("unused") //debug
+  byte[] toByteArray(final boolean updatable) {
+    //ints 0,1
+    final byte preInts = (getN() <= 1 && !updatable) ? PREAMBLE_INTS_EMPTY_SINGLE  : PREAMBLE_INTS_FULL;
+    final byte serVer = updatable
+        ? SERIAL_VERSION_UPDATABLE
+        : isSingleItem() ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL;
+    final byte famId = (byte)(KLL.getID());
+    final byte flags = (byte) (isEmpty()
+        ? EMPTY_BIT_MASK
+        : isLevelZeroSorted() ? LEVEL_ZERO_SORTED_BIT_MASK : 0);
+    final short k = (short) getK();
+    final byte m = (byte) getM();
+    //ints 2,3
+    final long n = getN();
+    //ints 4
+    final short minK = (short) getMinK();
+    final byte numLevels = (byte) getNumLevels();
+    //end of full preamble
+    final int[] myLevelsArr = updatable ? getLevelsArray() : Arrays.copyOf(levelsArr, levelsArr.length - 1);
+    final float minItem = isEmpty() ? Float.NaN : getMinItem();
+    final float maxItem = isEmpty() ? Float.NaN : getMaxItem();
+    final float[] itemsArr = updatable ? getFloatItemsArray() : getFloatRetainedItemsArray();//324
+    final Memory mem = Memory.wrap(this.getFloatItemsArray()); //debug
+    //compute total bytes out
+    final int totalBytes;
+    if (!updatable && isEmpty()) { totalBytes = DATA_START_ADR_SINGLE_ITEM; }
+    else if (!updatable && isSingleItem()) { totalBytes = DATA_START_ADR_SINGLE_ITEM + getSingleItemSizeBytes(); }
+    else { totalBytes =
+        DATA_START_ADR + myLevelsArr.length * Integer.BYTES + 2 * Float.BYTES + itemsArr.length * Float.BYTES; }
+    final byte[] bytesOut = new byte[totalBytes];
+    final WritableBuffer wbuf = WritableMemory.writableWrap(bytesOut).asWritableBuffer(ByteOrder.LITTLE_ENDIAN);
+    //load first 8 bytes
+    wbuf.putByte(preInts);
+    wbuf.putByte(serVer);
+    wbuf.putByte(famId);
+    wbuf.putByte(flags);
+    wbuf.putShort(k);
+    wbuf.putByte(m);
+    wbuf.incrementPosition(1);
+    if (!updatable && isEmpty()) {
+      return bytesOut;
+    }
+    if (!updatable && isSingleItem()) {
+      wbuf.putFloat(wbuf.getPosition(), getFloatSingleItem());
+      return bytesOut;
+    }
+    wbuf.putLong(n);
+    wbuf.putShort(minK);
+    wbuf.putByte(numLevels);
+    wbuf.incrementPosition(1);
+    wbuf.putIntArray(myLevelsArr, 0, myLevelsArr.length);
+    wbuf.putFloat(minItem);
+    wbuf.putFloat(maxItem);
+    wbuf.putFloatArray(itemsArr, 0, itemsArr.length);
+    return bytesOut;
+  }
 }

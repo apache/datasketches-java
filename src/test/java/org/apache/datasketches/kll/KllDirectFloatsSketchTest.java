@@ -50,8 +50,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
     try { sketch.getRank(0.5f); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getQuantiles(new double[] {0.0, 1.0}); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getPMF(new float[0]); fail(); } catch (IllegalArgumentException e) {}
@@ -319,8 +319,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sketch2.currentSerializedSizeBytes(false), sketch1.currentSerializedSizeBytes(false));
   }
 
@@ -335,8 +335,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sketch2.currentSerializedSizeBytes(true), sketch1.currentSerializedSizeBytes(true));
   }
 
@@ -346,6 +346,7 @@ public class KllDirectFloatsSketchTest {
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
     final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    final int sk1len = sketch1.currentSerializedSizeBytes(false);
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
@@ -374,13 +375,17 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeFullViaCompactHeapify() {
+  public void serializeDeserializeFullViaCompactHeapify() { //TODO
     final KllFloatsSketch sketch1 = getDFSketch(200, 0);
     final int n = 1000;
     for (int i = 0; i < n; i++) { sketch1.update(i); }
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 =  KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
+
+    final byte[] byteArr2 = sketch1.toByteArray(); //debug
+    final byte[] byteArr1 = KllHelper.toCompactByteArrayImpl(sketch1); //debug
+    assertEquals(byteArr1, byteArr2); //debug
+
+    final KllFloatsSketch sketch2 =  KllFloatsSketch.heapify(Memory.wrap(byteArr2));
+    assertEquals(byteArr2.length, sketch1.currentSerializedSizeBytes(false));
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
@@ -491,8 +496,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatItem(), 21.0);
-    assertEquals(sk.getMinFloatItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 21.0);
+    assertEquals(sk.getMinItem(), 1.0);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -511,8 +516,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    try { sk.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sk.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -532,8 +537,8 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), 1.0);
-    assertEquals(sk.getMinFloatItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 1.0);
+    assertEquals(sk.getMinItem(), 1.0);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -638,8 +643,8 @@ public class KllDirectFloatsSketchTest {
     try { sk2.setFloatItemsArray(fltArr);      fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setFloatItemsArrayAt(idx, fltV); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setLevelZeroSorted(bool);        fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMaxFloatItem(fltV);           fail(); } catch (SketchesArgumentException e) { }
-    try { sk2.setMinFloatItem(fltV);           fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMaxItem(fltV);                fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setMinItem(fltV);                fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(idx);                    fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(idx);                       fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setNumLevels(idx);               fail(); } catch (SketchesArgumentException e) { }
@@ -665,8 +670,10 @@ public class KllDirectFloatsSketchTest {
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
-    WritableMemory wmem = WritableMemory.writableWrap(byteArr);
+    byte[] byteArr2 = KllHelper.toUpdatableByteArrayImpl(sk); //debug 836
+    byte[] byteArr1 = sk.toByteArray(true); //debug
+    assertEquals(byteArr1, byteArr2); //debug
+    WritableMemory wmem = WritableMemory.writableWrap(byteArr2);
     KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }

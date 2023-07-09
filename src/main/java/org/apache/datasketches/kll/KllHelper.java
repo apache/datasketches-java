@@ -61,12 +61,12 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.util.Arrays;
 
-import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchType;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -348,14 +348,14 @@ final class KllHelper {
    * @param newItemsArrLen the element length of the new Items array.
    * @return the new expanded memory with preamble.
    */
-  static WritableMemory memorySpaceMgmt(
+  static WritableMemory memorySpaceMgmt( //TODO Consider enabling this for Items sketch
       final KllSketch sketch,
       final int newLevelsArrLen,
       final int newItemsArrLen) {
     final KllSketch.SketchType sketchType = sketch.sketchType;
     if (sketchType == ITEMS_SKETCH) { kllSketchThrow(UNSUPPORTED_TYPE); }
     final WritableMemory oldWmem = sketch.wmem;
-    final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES;
+    final int typeBytes = sketchType.getBytes();
     final int requiredSketchBytes =  DATA_START_ADR
       + newLevelsArrLen * Integer.BYTES
       + 2 * typeBytes
@@ -457,8 +457,8 @@ final class KllHelper {
     return total;
   }
 
-  @SuppressWarnings("unchecked")
-  static <T> byte[] toCompactByteArrayImpl(final KllSketch sketch, final ArrayOfItemsSerDe<T> serDe) {
+  @SuppressWarnings("unused") //debug
+  static byte[] toCompactByteArrayImpl(final KllSketch sketch) {
     if (sketch.isEmpty()) { return fastEmptyCompactByteArray(sketch); }
     if (sketch.isSingleItem()) { return fastSingleItemCompactByteArray(sketch); }
     //n > 1
@@ -481,25 +481,33 @@ final class KllHelper {
     offset += len * Integer.BYTES;
 
     //LOAD MIN, MAX Items FOLLOWED BY ITEMS ARRAY
+    final byte[] minMaxArr;
+    final byte[] retainedDataArr;
     if (sketch.sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch)sketch;
+      //TODO Simplify w/ new methods
       wmem.putDouble(offset,dblSk.getMinDoubleItem());
       offset += Double.BYTES;
       wmem.putDouble(offset, dblSk.getMaxDoubleItem());
       offset += Double.BYTES;
       wmem.putDoubleArray(offset, dblSk.getDoubleItemsArray(), myLevelsArr[0], sketch.getNumRetained());
     } else if (sketch.sketchType == FLOATS_SKETCH) {
+    //TODO Simplify w/ new methods
       final KllFloatsSketch fltSk = (KllFloatsSketch)sketch;
-      wmem.putFloat(offset, fltSk.getMinFloatItem());
+      wmem.putFloat(offset, fltSk.getMinItem());
       offset += Float.BYTES;
-      wmem.putFloat(offset, fltSk.getMaxFloatItem());
+      wmem.putFloat(offset, fltSk.getMaxItem());
       offset += Float.BYTES;
+      final float[] fullFIA = fltSk.getFloatItemsArray(); //debug
+      final Memory mem = Memory.wrap(fullFIA); //debug
+      final int numRet = sketch.getNumRetained(); //debug 421 elements
       wmem.putFloatArray(offset, fltSk.getFloatItemsArray(), myLevelsArr[0], sketch.getNumRetained());
     } else if (sketch.sketchType == ITEMS_SKETCH) {
-      final KllItemsSketch<T> itmSk = (KllItemsSketch<T>)sketch;
-      final byte[] minByteArr = itmSk.serDe_.serializeToByteArray(new T[] {itmSk.getMinItem()});
-
-
+      minMaxArr = sketch.getMinMaxByteArr();
+      wmem.putByteArray(offset, minMaxArr, 0, minMaxArr.length);
+      offset += minMaxArr.length;
+      retainedDataArr = sketch.getRetainedDataByteArr();
+      wmem.putByteArray(offset, retainedDataArr, 0, retainedDataArr.length);
     } else {
       kllSketchThrow(UNSUPPORTED_TYPE);
     }
@@ -523,19 +531,20 @@ final class KllHelper {
     switch (sketchType) {
       case FLOATS_SKETCH: {
         final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-        byteArr = new byte[8 + Float.BYTES]; //12 bytes total
+        byteArr = new byte[DATA_START_ADR_SINGLE_ITEM + Float.BYTES]; //12 bytes total
         ByteArrayUtil.putFloatLE(byteArr, DATA_START_ADR_SINGLE_ITEM, fltSk.getFloatSingleItem());
         break;
       }
       case DOUBLES_SKETCH: {
         final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-        byteArr = new byte[8 + Double.BYTES]; //16 bytes total
+        byteArr = new byte[DATA_START_ADR_SINGLE_ITEM + Double.BYTES]; //16 bytes total
         ByteArrayUtil.putDoubleLE(byteArr, DATA_START_ADR_SINGLE_ITEM, dblSk.getDoubleSingleItem());
         break;
       }
-      case ITEMS_SKETCH: { //TODO
-        //final KllItemsSketch<T> genSk = (KllItemsSketch<T>) sketch;
-        byteArr = null;
+      case ITEMS_SKETCH: {
+        final byte[] itemBytes = sketch.getSingleItemByteArr();
+        byteArr = new byte[DATA_START_ADR_SINGLE_ITEM + itemBytes.length];
+        ByteArrayUtil.copyBytes(itemBytes, 0, byteArr, DATA_START_ADR_SINGLE_ITEM, itemBytes.length);
         break;
       }
       default: return null; //can't happen
@@ -551,7 +560,7 @@ final class KllHelper {
   static String toStringImpl(final KllSketch sketch, final boolean withLevels, final boolean withData) {
     final SketchType sketchType = sketch.sketchType;
     final boolean hasMemory = sketch.hasMemory();
-    if (hasMemory) { new KllMemoryValidate(sketch.getWritableMemory(), sketchType); }
+    if (hasMemory) { new KllMemoryValidate(sketch.getWritableMemory(), sketchType, sketch.serDe); }
     final int k = sketch.getK();
     final int m = sketch.getM();
     final long n = sketch.getN();
@@ -560,9 +569,9 @@ final class KllHelper {
     final String epsPct = String.format("%.3f%%", sketch.getNormalizedRankError(false) * 100);
     final String epsPMFPct = String.format("%.3f%%", sketch.getNormalizedRankError(true) * 100);
     final boolean compact = sketch.isCompactMemoryFormat();
+
     final StringBuilder sb = new StringBuilder();
     final String directStr = hasMemory ? "Direct" : "";
-
     final String compactStr = compact ? "Compact" : "";
     final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "Memory") + ")") : "false";
     final String skTypeStr = sketchType == DOUBLES_SKETCH
@@ -583,22 +592,24 @@ final class KllHelper {
     sb.append("   Capacity Items         : ").append(levelsArr[numLevels]).append(Util.LS);
     sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(Util.LS);
     sb.append("   ReadOnly               : ").append(readOnlyStr).append(Util.LS);
-    if (sketchType != ITEMS_SKETCH) {
-      if (sketch.serialVersionUpdatable) {
-        sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(Util.LS);
-      } else {
-        sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(Util.LS);
-      }
+    if (sketch.serialVersionUpdatable) {
+      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(Util.LS);
+    } else {
+      sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(Util.LS);
     }
 
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-      sb.append("   Min Item               : ").append(dblSk.getMinDoubleItem()).append(Util.LS);
-      sb.append("   Max Item               : ").append(dblSk.getMaxDoubleItem()).append(Util.LS);
+      sb.append("   Min Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMinDoubleItem())
+          .append(Util.LS);
+      sb.append("   Max Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMaxDoubleItem())
+          .append(Util.LS);
     } else if (sketchType == FLOATS_SKETCH) {
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-      sb.append("   Min Item               : ").append(fltSk.getMinFloatItem()).append(Util.LS);
-      sb.append("   Max Item               : ").append(fltSk.getMaxFloatItem()).append(Util.LS);
+      sb.append("   Min Item               : ").append(fltSk.isEmpty() ? Float.NaN : fltSk.getMinItem())
+          .append(Util.LS);
+      sb.append("   Max Item               : ").append(fltSk.isEmpty() ? Float.NaN : fltSk.getMaxItem())
+          .append(Util.LS);
     }
 //    else {
 //      KllItemsSketch<T> genSk = (KllItemsSketch) sketch;
@@ -694,9 +705,9 @@ final class KllHelper {
     }
     else if (sketchType == FLOATS_SKETCH) {
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-      wmem.putFloat(offset, fltSk.getMinFloatItem());
+      wmem.putFloat(offset, fltSk.isEmpty() ? Float.NaN : fltSk.getMinItem());
       offset += Float.BYTES;
-      wmem.putFloat(offset,fltSk.getMaxFloatItem());
+      wmem.putFloat(offset,fltSk.isEmpty() ? Float.NaN : fltSk.getMaxItem());
       offset += Float.BYTES;
       final float[] floatItemsArr = fltSk.getFloatItemsArray();
       wmem.putFloatArray(offset, floatItemsArr, 0, floatItemsArr.length);
@@ -750,8 +761,8 @@ final class KllHelper {
       assert myCurDoubleItemsArr.length == myCurTotalItemsCapacity;
     } else if (sketchType == FLOATS_SKETCH) {
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-      minFloat = fltSk.getMinFloatItem();
-      maxFloat = fltSk.getMaxFloatItem();
+      minFloat = fltSk.getMinItem();
+      maxFloat = fltSk.getMaxItem();
       myCurFloatItemsArr = fltSk.getFloatItemsArray();
       assert myCurFloatItemsArr.length == myCurTotalItemsCapacity;
     }
@@ -812,8 +823,8 @@ final class KllHelper {
       dblSk.setDoubleItemsArray(myNewDoubleItemsArr);
     } else { //Float sketch
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
-      fltSk.setMinFloatItem(minFloat);
-      fltSk.setMaxFloatItem(maxFloat);
+      fltSk.setMinItem(minFloat);
+      fltSk.setMaxItem(maxFloat);
       fltSk.setFloatItemsArray(myNewFloatItemsArr);
     }
     //ITEMS_SKETCH TODO

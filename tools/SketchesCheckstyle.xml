@@ -91,7 +91,7 @@ under the License.
 
     <!-- Block Checks -->
     <module name="EmptyBlock">
-      <property name="severity" value="warning"/>
+      <property name="severity" value="ignore"/>
       <property name="option" value="TEXT"/>
       <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
       <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>

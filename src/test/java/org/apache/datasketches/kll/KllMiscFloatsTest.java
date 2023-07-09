@@ -131,7 +131,7 @@ public class KllMiscFloatsTest {
   @Test
   public void checkMisc() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(8);
-    try { sk.getMaxItem(); fail(); } catch (IllegalArgumentException e) {} //empty
+    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) {} //empty
     println(sk.toString(true, true));
     for (int i = 0; i < 20; i++) { sk.update(i); }
     println(sk.toString(true, true));
@@ -223,8 +223,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatItem(), 21.0F);
-    assertEquals(sk.getMinFloatItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 21.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -239,8 +239,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), Float.NaN);
-    assertEquals(sk.getMinFloatItem(), Float.NaN);
+    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -256,8 +256,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), 1.0F);
-    assertEquals(sk.getMinFloatItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -286,8 +286,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatItem(), 21.0F);
-    assertEquals(sk.getMinFloatItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 21.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -306,8 +306,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), Float.NaN);
-    assertEquals(sk.getMinFloatItem(), Float.NaN);
+    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -327,8 +327,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), 1.0F);
-    assertEquals(sk.getMinFloatItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -357,8 +357,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
     assertEquals(sk.getLevelsArray().length, 3);
-    assertEquals(sk.getMaxFloatItem(), 21.0F);
-    assertEquals(sk.getMinFloatItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 21.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -377,8 +377,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), Float.NaN);
-    assertEquals(sk.getMinFloatItem(), Float.NaN);
+    try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
 
@@ -398,8 +398,8 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
     assertEquals(sk.getLevelsArray().length, 2);
-    assertEquals(sk.getMaxFloatItem(), 1.0F);
-    assertEquals(sk.getMinFloatItem(), 1.0F);
+    assertEquals(sk.getMaxItem(), 1.0F);
+    assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
     assertFalse(sk.isLevelZeroSorted());
   }
@@ -535,6 +535,8 @@ public class KllMiscFloatsTest {
     KllFloatsSketch sk2 = KllDirectFloatsSketch.newDirectInstance(k, m, wmem2, memReqSvr);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
+      println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
+      println("");
     }
     for (int i = 1; i <= n2; i++) {
       sk2.update(i + 100);

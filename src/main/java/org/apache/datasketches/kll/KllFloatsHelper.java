@@ -61,7 +61,7 @@ final class KllFloatsHelper {
     final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
     final int halfAdjPop = adjPop / 2;
-    
+
     //the following is specific to Floats
     final float[] myFloatItemsArr = fltSk.getFloatItemsArray();
     if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
@@ -102,19 +102,23 @@ final class KllFloatsHelper {
     }
     fltSk.setFloatItemsArray(myFloatItemsArr);
   }
-  
-  //Must not be empty
+
   static void mergeFloatImpl(final KllFloatsSketch mySketch, final KllFloatsSketch otherFltSk) {
+    if (otherFltSk.isEmpty()) { return; }
+
+    //capture my key mutable fields before doing any merging
+    final boolean myEmpty = mySketch.isEmpty();
+    final float myMin = myEmpty ? Float.NaN : mySketch.getMinItem();
+    final float myMax = myEmpty ? Float.NaN : mySketch.getMaxItem();
+    final int myMinK = mySketch.getMinK();
     final long finalN = mySketch.getN() + otherFltSk.getN();
+
+    //buffers that are referenced multiple times
     final int otherNumLevels = otherFltSk.getNumLevels();
     final int[] otherLevelsArr = otherFltSk.getLevelsArray();
     final float[] otherFloatItemsArr;
-    //capture my min & max, minK
-    final float myMin = mySketch.isEmpty() ? Float.NaN : mySketch.getMinFloatItem();
-    final float myMax = mySketch.isEmpty() ? Float.NaN : mySketch.getMaxFloatItem();
-    final int myMinK = mySketch.getMinK();
 
-    //update this sketch with level0 items from the other sketch
+    //MERGE: update this sketch with level0 items from the other sketch
     if (otherFltSk.isCompactSingleItem()) {
       updateFloat(mySketch, otherFltSk.getFloatSingleItem());
       otherFloatItemsArr = new float[0];
@@ -124,16 +128,18 @@ final class KllFloatsHelper {
        updateFloat(mySketch, otherFloatItemsArr[i]);
       }
     }
-    // after the level 0 update, we capture the state of levels and items arrays
+    //After the level 0 update, we capture the intermediate state of levels and items arrays...
     final int myCurNumLevels = mySketch.getNumLevels();
     final int[] myCurLevelsArr = mySketch.getLevelsArray();
     final float[] myCurFloatItemsArr = mySketch.getFloatItemsArray();
 
+    // then rename them and initialize in case there are no higher levels
     int myNewNumLevels = myCurNumLevels;
     int[] myNewLevelsArr = myCurLevelsArr;
     float[] myNewFloatItemsArr = myCurFloatItemsArr;
 
-    if (otherNumLevels > 1  && !otherFltSk.isCompactSingleItem()) { //now merge higher levels if they exist
+    //merge higher levels if they exist
+    if (otherNumLevels > 1  && !otherFltSk.isCompactSingleItem()) {
       final int tmpSpaceNeeded = mySketch.getNumRetained()
           + KllHelper.getNumRetainedAboveLevelZero(otherNumLevels, otherLevelsArr);
       final float[] workbuf = new float[tmpSpaceNeeded];
@@ -153,18 +159,19 @@ final class KllFloatsHelper {
       final int targetItemCount = result[1]; //was finalCapacity. Max size given k, m, numLevels
       final int curItemCount = result[2]; //was finalPop
 
-      // now we need to finalize the results for the "self" sketch
+      // now we need to finalize the results for mySketch
 
       //THE NEW NUM LEVELS
-      myNewNumLevels = result[0]; //was finalNumLevels
+      myNewNumLevels = result[0];
       assert myNewNumLevels <= ub; // ub may be much bigger
 
-      // THE NEW ITEMS ARRAY (was newbuf)
+      // THE NEW ITEMS ARRAY
       myNewFloatItemsArr = (targetItemCount == myCurFloatItemsArr.length)
           ? myCurFloatItemsArr
           : new float[targetItemCount];
       final int freeSpaceAtBottom = targetItemCount - curItemCount;
-      //shift the new items array
+
+      //shift the new items array create space at bottom
       System.arraycopy(workbuf, outlevels[0], myNewFloatItemsArr, freeSpaceAtBottom, curItemCount);
       final int theShift = freeSpaceAtBottom - outlevels[0];
 
@@ -197,10 +204,15 @@ final class KllFloatsHelper {
     mySketch.setFloatItemsArray(myNewFloatItemsArr);
 
     //Update min, max items
-    final float otherMin = otherFltSk.getMinFloatItem();
-    final float otherMax = otherFltSk.getMaxFloatItem();
-    mySketch.setMinFloatItem(resolveFloatMinItem(myMin, otherMin));
-    mySketch.setMaxFloatItem(resolveFloatMaxItem(myMax, otherMax));
+    final float otherMin = otherFltSk.getMinItem();
+    final float otherMax = otherFltSk.getMaxItem();
+    if (myEmpty) {
+      mySketch.setMinItem(otherMin);
+      mySketch.setMaxItem(otherMax);
+    } else {
+      mySketch.setMinItem(min(myMin, otherMin));
+      mySketch.setMaxItem(max(myMax, otherMax));
+    }
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.getLevelsArray()) == mySketch.getN();
   }
 
@@ -280,11 +292,14 @@ final class KllFloatsHelper {
 
   //Called from KllFloatsSketch, this.mergeFloatImpl(...)
   static void updateFloat(final KllFloatsSketch fltSk, final float item) {
-    if (Float.isNaN(item)) { return; }
-    final float prevMin = fltSk.getMinFloatItem();
-    final float prevMax = fltSk.getMaxFloatItem();
-    fltSk.setMinFloatItem(resolveFloatMinItem(prevMin, item));
-    fltSk.setMaxFloatItem(resolveFloatMaxItem(prevMax, item));
+    if (Float.isNaN(item)) { return; } //ignore
+    if (fltSk.isEmpty()) {
+      fltSk.setMinItem(item);
+      fltSk.setMaxItem(item);
+    } else {
+      fltSk.setMinItem(min(fltSk.getMinItem(), item));
+      fltSk.setMaxItem(max(fltSk.getMaxItem(), item));
+    }
     if (fltSk.getLevelsArray()[0] == 0) { compressWhileUpdatingSketch(fltSk); }
     final int myLevelsArrAtZero = fltSk.getLevelsArray()[0]; //LevelsArr could be expanded
     fltSk.incN();
@@ -443,19 +458,19 @@ final class KllFloatsHelper {
     }
   }
 
-  private static float resolveFloatMaxItem(final float myMax, final float otherMax) {
-    if (Float.isNaN(myMax) && Float.isNaN(otherMax)) { return Float.NaN; }
-    if (Float.isNaN(myMax)) { return otherMax; }
-    if (Float.isNaN(otherMax)) { return myMax; }
-    return max(myMax, otherMax);
-  }
-
-  private static float resolveFloatMinItem(final float myMin, final float otherMin) {
-    if (Float.isNaN(myMin) && Float.isNaN(otherMin)) { return Float.NaN; }
-    if (Float.isNaN(myMin)) { return otherMin; }
-    if (Float.isNaN(otherMin)) { return myMin; }
-    return min(myMin, otherMin);
-  }
+//  private static float resolveFloatMaxItem(final float myMax, final float otherMax) {
+//    if (Float.isNaN(myMax) && Float.isNaN(otherMax)) { return Float.NaN; }
+//    if (Float.isNaN(myMax)) { return otherMax; }
+//    if (Float.isNaN(otherMax)) { return myMax; }
+//    return max(myMax, otherMax);
+//  }
+//
+//  private static float resolveFloatMinItem(final float myMin, final float otherMin) {
+//    if (Float.isNaN(myMin) && Float.isNaN(otherMin)) { return Float.NaN; }
+//    if (Float.isNaN(myMin)) { return otherMin; }
+//    if (Float.isNaN(otherMin)) { return myMin; }
+//    return min(myMin, otherMin);
+//  }
 
   /*
    * Validation Method.

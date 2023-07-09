@@ -32,6 +32,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
 import java.util.Random;
 
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -77,6 +78,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * @author Lee Rhodes
  * @author Kevin Lang
  * @author Alexander Saydakov
+ * @param T The generic type used with the KllItemsSketch
  */
 public abstract class KllSketch implements QuantilesAPI {
 
@@ -88,34 +90,13 @@ public abstract class KllSketch implements QuantilesAPI {
     FLOATS_SKETCH(Float.BYTES),
     ITEMS_SKETCH(0);
 
-    private int typeBytes_;
+    private int typeBytes;
 
     private SketchType(final int typeBytes) {
-      typeBytes_ = typeBytes;
+      this.typeBytes = typeBytes;
     }
 
-    public int getBytes() { return typeBytes_; }
-  }
-
-  enum Error {
-    TGT_IS_READ_ONLY("Target sketch is Read Only, cannot write."),
-    MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item."),
-    UNSUPPORTED_TYPE("Unsupported Sketch Type.");
-
-    private String msg;
-
-    private Error(final String msg) {
-      this.msg = msg;
-    }
-
-    final static void kllSketchThrow(final Error errType) {
-      throw new SketchesArgumentException(errType.getMessage());
-    }
-
-    private String getMessage() {
-      return msg;
-    }
+    public int getBytes() { return typeBytes; }
   }
 
   /**
@@ -138,24 +119,29 @@ public abstract class KllSketch implements QuantilesAPI {
   static final int MAX_M = 8; //The maximum M
   static final int MIN_M = 2; //The minimum M
   static final Random random = new Random();
+
   final SketchType sketchType;
   final boolean serialVersionUpdatable;
-  final MemoryRequestServer memReqSvr;
-  final boolean readOnly;
-  int[] levelsArr;
-  WritableMemory wmem;
+  final MemoryRequestServer memReqSvr; //TODO ?
+  final boolean readOnly; //TODO ?
+  int[] levelsArr; //Always writable form
+  WritableMemory wmem; //TODO ?
+  ArrayOfItemsSerDe<?> serDe = null; //TODO ?
 
   /**
    * Constructor for on-heap and off-heap.
    * If both wmem and memReqSvr are null, this is a heap constructor.
    * If wmem != null and wmem is not readOnly, then memReqSvr must not be null.
    * If wmem was derived from an original Memory instance via a cast, it will be readOnly.
-   * @param sketchType either DOUBLE_SKETCH or FLOAT_SKETCH
+   * @param sketchType either DOUBLES_SKETCH, FLOATS_SKETCH or ITEMS_SKETCH
    * @param wmem  the current WritableMemory or null
    * @param memReqSvr the given MemoryRequestServer or null
+   *
    */
   KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
    this.sketchType = sketchType;
+
+   //this.serDe = serDe;
    this.wmem = wmem;
    if (wmem != null) {
      this.serialVersionUpdatable = KllPreambleUtil.getMemorySerVer(wmem) == SERIAL_VERSION_UPDATABLE;
@@ -167,10 +153,30 @@ public abstract class KllSketch implements QuantilesAPI {
        this.memReqSvr = memReqSvr;
      }
    } else { //wmem is null, heap case
-     this.serialVersionUpdatable = false;
+     this.serialVersionUpdatable = false; //TODO Should be true?
      this.memReqSvr = null;
      this.readOnly = false;
    }
+  }
+
+  /**
+   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
+   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
+   */
+  @Deprecated //ready to delete
+  public int getCurrentCompactSerializedSizeBytes() {
+    return currentSerializedSizeBytes(false);
+  }
+
+  /**
+   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
+   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
+   */
+  @Deprecated //ready to delete
+  public int getCurrentUpdatableSerializedSizeBytes() {
+    return currentSerializedSizeBytes(true);
   }
 
   /**
@@ -216,32 +222,6 @@ public abstract class KllSketch implements QuantilesAPI {
   public static double getNormalizedRankError(final int k, final boolean pmf) {
     return KllHelper.getNormalizedRankError(k, pmf);
   }
-
-  /**
-   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
-   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
-   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
-   */
-  @Deprecated //ready to delete
-  public int getCurrentCompactSerializedSizeBytes() {
-    return currentSerializedSizeBytes(false);
-  }
-
-  /**
-   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
-   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
-   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
-   */
-  @Deprecated //ready to delete
-  public int getCurrentUpdatableSerializedSizeBytes() {
-    return currentSerializedSizeBytes(true);
-  }
-
-  @Override
-  public abstract int getK();
-
-  @Override
-  public abstract long getN();
 
   /**
    * Gets the approximate rank error of this sketch normalized as a fraction between zero and one.
@@ -350,29 +330,52 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   //restricted
+
   /**
-   * Compute current serialized size in bytes independent of the current
-   * state of Serialization Version.
+   * Compute serialized size in bytes independent of the current
+   * state of Serialization Version. For KllItemsSketch the result is
+   * always in non-updatable, compact form.
    * @param serVerUpdatable reflects the hypothetical state of SerVer.
-   * @return current serialized size in bytes assuming a SerVer state.
+   * @return serialized size in bytes assuming a SerVer state.
    */
   final int currentSerializedSizeBytes(final boolean serVerUpdatable) {
     final int numLevels = getNumLevels();
     final int numItems;
     final int levelsArrBytes;
-    if (serVerUpdatable) {
-      numItems = KllHelper.computeTotalItemCapacity(getK(), getM(), numLevels);
-      levelsArrBytes = (numLevels + 1) * Integer.BYTES;
-    } else { //compact
+    if (!serVerUpdatable || sketchType == ITEMS_SKETCH) {
       numItems = getNumRetained();
       if (numItems == 0) { return N_LONG_ADR; }
-      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + getTheSingleItemBytes(); }
+      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + getSingleItemSizeBytes(); }
       levelsArrBytes = numLevels * Integer.BYTES;
+      return DATA_START_ADR + levelsArrBytes + getMinMaxSizeBytes() + getRetainedDataSizeBytes();
+    } else { //Double and Float sketches only
+      numItems = KllHelper.computeTotalItemCapacity(getK(), getM(), numLevels);
+      levelsArrBytes = (numLevels + 1) * Integer.BYTES;
+      return DATA_START_ADR + levelsArrBytes + getMinMaxSizeBytes() + numItems * sketchType.typeBytes;
     }
-    return DATA_START_ADR + levelsArrBytes + getDataBlockBytes(numItems + 2);
   }
 
-  abstract int getDataBlockBytes(int numItemsAndMinMax);
+  enum Error {
+    TGT_IS_READ_ONLY("Target sketch is Read Only, cannot write."),
+    MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
+    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item."),
+    UNSUPPORTED_TYPE("Unsupported operation for this Sketch Type."),
+    EMPTY("Sketch must not be empty for this operation.");
+
+    private String msg;
+
+    private Error(final String msg) {
+      this.msg = msg;
+    }
+
+    final static void kllSketchThrow(final Error errType) {
+      throw new SketchesArgumentException(errType.getMessage());
+    }
+
+    private String getMessage() {
+      return msg;
+    }
+  }
 
   final int[] getLevelsArray() {
     return levelsArr;
@@ -394,11 +397,33 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   abstract int getMinK();
 
+  abstract byte[] getMinMaxByteArr();
+
+  abstract int getMinMaxSizeBytes();
+
   final int getNumLevels() {
     return levelsArr.length - 1;
   }
 
-  abstract int getTheSingleItemBytes();
+  /**
+   * Gets the serialized bytes of the data block as a byte array.
+   * This only includes the valid retained items.
+   * It does not include the preamble, the levels array, minimum or maximum items, or garbage data.
+   * @return the serialized bytes of the retained data.
+   */
+  abstract byte[] getRetainedDataByteArr();
+
+  /**
+   * Gets the size of the data block in bytes.
+   * This only includes the valid retained items.
+   * It does not include the preamble, the levels array, minimum or maximum items, or garbage data.
+   * @return the size of the retained data in bytes.
+   */
+  abstract int getRetainedDataSizeBytes();
+
+  abstract byte[] getSingleItemByteArr();
+
+  abstract int getSingleItemSizeBytes();
 
   abstract void incN();
 

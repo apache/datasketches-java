@@ -34,84 +34,82 @@ import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 @SuppressWarnings("unused")
 public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
-  private KllItemsSketchSortedView kllItemsSV = null;
-  final Class<T> clazz;
-  final Comparator<? super T> comparator_;
+  private KllItemsSketchSortedView<T> kllItemsSV = null;
+  final Comparator<? super T> comparator;
+  private T maxItem;
+  private T minItem;
+  private final int k; // configured size of K.
+  private final int m; // configured size of M.
+  private long n;      // number of items input into this sketch.
+  private int minK;    // dynamic minK for error estimation after merging with different k.
+  private boolean isLevelZeroSorted;
 
-  //  private final int k_; // configured size of K.
-//  private final int m_; // configured size of M.
-//  private long n_;      // number of items input into this sketch.
-//  private int minK_;    // dynamic minK for error estimation after merging with different k.
-//  private boolean isLevelZeroSorted_;
-//  private T maxItem_;
-//  private T minItem_;
-//  private Object[] items_;
-//  private final Class<T> clazz_;
-//  private final Comparator<? super T> comparator_;
-//  ArrayOfItemsSerDe<T> serDe_;
-//
-//  KllItemsSketch(
-//      final int k,
-//      final int m,
-//      final Class<T> clazz,
-//      final Comparator<? super T> comparator) {
-//    super(ITEMS_SKETCH, null, null);
-//    Objects.requireNonNull(clazz, "Class<T> must not be null.");
-//    Objects.requireNonNull(comparator, "Comparator must not be null.");
-//    KllHelper.checkM(m);
-//    KllHelper.checkK(k, m);
-//    k_ = k;
-//    m_ = DEFAULT_M;
-//    n_ = 0;
-//    minK_ = k;
-//    isLevelZeroSorted_ = false;
-//    maxItem_ = null;
-//    minItem_ = null;
-//    items_ = new Object[k];
-//    levelsArr = new int[] {k, k};
-//    clazz_ = clazz;
-//    comparator_ = comparator;
-//  }
-//
-//  /**
-//   * Create a new heap instance of this sketch with the default <em>k = 200</em>.
-//   * The default <em>k</em> = 200 results in a normalized rank error of about
-//   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-//   * This will have a rank error of about 1.65%.
-//   * @param <T> The sketch data type
-//   * @param clazz the given class of T
-//   * @param comparator to compare items
-//   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
-//   * @return new KllItemsSketch on the heap.
-//   */
-//  public static <T> KllItemsSketch<T> newHeapInstance(
-//      final Class<T> clazz,
-//      final Comparator<? super T> comparator,
-//      final ArrayOfItemsSerDe<T> serDe) {
-//      final KllItemsSketch<T> itmSk = new KllHeapItemsSketch<T>(DEFAULT_K, DEFAULT_M, clazz, comparator);
-//    return itmSk;
-//  }
-//  /**
-//   * Create a new heap instance of this sketch with a given parameter <em>k</em>.
-//   * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
-//   * The default <em>k</em> = 200 results in a normalized rank error of about
-//   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-//   * @param k parameter that controls size of the sketch and accuracy of estimates.
-//   * @param <T> The sketch data type
-//   * @param clazz the given class of T
-//   * @param comparator to compare items
-//   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
-//   * @return new KllItemsSketch on the heap.
-//   */
-//
-//  public static <T> KllItemsSketch<T> newHeapInstance(
-//      final int k,
-//      final Class<T> clazz,
-//      final Comparator<? super T> comparator,
-//      final ArrayOfItemsSerDe<T> serDe) {
-//      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(k, DEFAULT_M, clazz, comparator, serDe);
-//    return itmSk;
-//  }
+  private Object[] itemsArr;
+
+
+  KllItemsSketch(
+      final int k,
+      final int m,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+    super(ITEMS_SKETCH, null, null);
+    Objects.requireNonNull(comparator, "Comparator must not be null.");
+    Objects.requireNonNull(serDe, "SerDe must not be null.");
+    KllHelper.checkM(m);
+    KllHelper.checkK(k, m);
+    this.k = k;
+    this.m = DEFAULT_M;
+    this.n = 0;
+    this.minK = k;
+    this.isLevelZeroSorted = false;
+    this.maxItem = null;
+    this.minItem = null;
+    this.itemsArr = new Object[k];
+    super.levelsArr = new int[] {k, k};
+    this.comparator = comparator;
+    super.serDe = serDe;
+  }
+
+  /**
+   * Create a new heap instance of this sketch with the default <em>k = 200</em>.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * This will have a rank error of about 1.65%.
+   * @param <T> The sketch data type
+   * @param clazz the given class of T
+   * @param comparator to compare items
+   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
+   * @return new KllItemsSketch on the heap.
+   */
+  public static <T> KllItemsSketch<T> newHeapInstance(
+      final Class<T> clazz,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+      final KllItemsSketch<T> itmSk =
+          new KllHeapItemsSketch<T>(DEFAULT_K, DEFAULT_M, comparator, serDe);
+    return itmSk;
+  }
+  /**
+   * Create a new heap instance of this sketch with a given parameter <em>k</em>.
+   * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * @param <T> The sketch data type
+   * @param clazz the given class of T
+   * @param comparator to compare items
+   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
+   * @return new KllItemsSketch on the heap.
+   */
+
+  public static <T> KllItemsSketch<T> newHeapInstance(
+      final int k,
+      final Class<T> clazz,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(k, DEFAULT_M, clazz, comparator);
+    return itmSk;
+  }
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -121,26 +119,22 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public int getK() {
-    // TODO Auto-generated method stub
-    return 0;
+    return k;
   }
 
   @Override
   public T getMaxItem() {
-    // TODO Auto-generated method stub
-    return null;
+    return maxItem;
   }
 
   @Override
   public T getMinItem() {
-    // TODO Auto-generated method stub
-    return null;
+    return minItem;
   }
 
   @Override
   public long getN() {
-    // TODO Auto-generated method stub
-    return 0;
+    return n;
   }
 
   @Override
@@ -240,10 +234,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     // TODO Auto-generated method stub
   }
 
-  public byte[] toByteArray(final ArrayOfItemsSerDe<T> serDe) {
-    Objects.requireNonNull(serDe, "Serializer/Deserializer must not be null.");
-    serDe_ = serDe;
-    return KllHelper.toCompactByteArrayImpl(this, serDe);
+  public byte[] toByteArray() {
+    return KllHelper.toCompactByteArrayImpl(this);
   }
 
   @Override
@@ -253,39 +245,39 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   //restricted
 
-  /**
-   * @return full size of internal items array including garbage.
-   */
-  abstract T[] getItemsItemsArray();
+  @Override
+  abstract byte[] getRetainedDataByteArr();
 
   @Override
-  int getDataBlockBytes(final int numItemsAndMinMax) {
-    final int minItemBytes = serDe_.sizeOf(minItem_)
+  abstract int getRetainedDataSizeBytes();
 
-    return 0;
-  }
+  @Override
+  abstract byte[] getMinMaxByteArr();
+
+  @Override
+  abstract int getMinMaxSizeBytes();
+
+  @Override
+  abstract byte[] getSingleItemByteArr();
+
+  @Override
+  abstract int getSingleItemSizeBytes();
 
   @Override
   int getM() {
-    // TODO Auto-generated method stub
-    return 0;
+    return m;
   }
 
   @Override
   int getMinK() {
-    // TODO Auto-generated method stub
-    return 0;
+    return minK;
   }
 
-  @Override
-  int getTheSingleItemBytes() {
-    // TODO Auto-generated method stub
-    return 0;
-  }
+  abstract T getSingleItem();
 
   @Override
   void incN() {
-    // TODO Auto-generated method stub
+    n++;
   }
 
   @Override
@@ -295,23 +287,22 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   boolean isLevelZeroSorted() {
-    // TODO Auto-generated method stub
-    return false;
+    return false; //or isLevelZeroSorted_
   }
 
   @Override
   void setLevelZeroSorted(final boolean sorted) {
-    // TODO Auto-generated method stub
+    isLevelZeroSorted = sorted;
   }
 
   @Override
   void setMinK(final int minK) {
-    // TODO Auto-generated method stub
+    this.minK = minK;
   }
 
   @Override
   void setN(final long n) {
-    // TODO Auto-generated method stub
+    this.n = n;
   }
 
   @Override

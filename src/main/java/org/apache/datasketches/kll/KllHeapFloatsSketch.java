@@ -19,17 +19,21 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
+import static org.apache.datasketches.kll.KllSketch.Error.EMPTY;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
 
 /**
  * This class implements an on-heap floats KllSketch.
@@ -77,7 +81,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
     return new KllHeapFloatsSketch(srcMem, memVal);
   }
 
@@ -122,7 +126,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
         offsetBytes += shift * Float.BYTES;
         srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
       } else {
-        srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems);
+        srcMem.getFloatArray(offsetBytes, floatItems_, shift, retainedItems); //TODO IS THIS CORRECT?
       }
     }
   }
@@ -131,7 +135,21 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   public int getK() { return k_; }
 
   @Override
+  public float getMaxItem() {
+    if (isEmpty()) { kllSketchThrow(EMPTY); }
+    return maxFloatItem_;
+  }
+
+  @Override
+  public float getMinItem() {
+    if (isEmpty()) { kllSketchThrow(EMPTY); }
+    return minFloatItem_;
+  }
+
+  @Override
   public long getN() { return n_; }
+
+  //restricted
 
   @Override
   float[] getFloatItemsArray() { return floatItems_; }
@@ -146,13 +164,32 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   int getM() { return m_; }
 
   @Override
-  float getMaxFloatItem() { return maxFloatItem_; }
-
-  @Override
-  float getMinFloatItem() { return minFloatItem_; }
-
-  @Override
   int getMinK() { return minK_; }
+
+  @Override
+  byte[] getMinMaxByteArr() {
+    final byte[] bytesOut = new byte[2 * Float.BYTES];
+    putFloatLE(bytesOut, 0, minFloatItem_);
+    putFloatLE(bytesOut, Float.BYTES, maxFloatItem_);
+    return bytesOut;
+  }
+
+  @Override
+  byte[] getRetainedDataByteArr() {
+    if (isEmpty()) { return new byte[0]; }
+    final byte[] bytesOut;
+    if (isSingleItem()) {
+      bytesOut = new byte[Float.BYTES];
+      putFloatLE(bytesOut, 0, getFloatSingleItem());
+      return bytesOut;
+    }
+    final int retained = getNumRetained();
+    final int bytes = retained * Float.BYTES;
+    bytesOut = new byte[bytes];
+    final WritableMemory wmem = WritableMemory.writableWrap(bytesOut);
+    wmem.putFloatArray(0, floatItems_, levelsArr[0], retained);
+    return bytesOut;
+  }
 
   @Override
   void incN() { n_++; }
@@ -173,10 +210,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setLevelZeroSorted(final boolean sorted) { this.isLevelZeroSorted_ = sorted; }
 
   @Override
-  void setMaxFloatItem(final float item) { maxFloatItem_ = item; }
+  void setMaxItem(final float item) { maxFloatItem_ = item; }
 
   @Override
-  void setMinFloatItem(final float item) { minFloatItem_ = item; }
+  void setMinItem(final float item) { minFloatItem_ = item; }
 
   @Override
   void setMinK(final int minK) { minK_ = minK; }
@@ -186,5 +223,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setNumLevels(final int numLevels) {  } //not used here
+
+  @Override
+  float[] getFloatRetainedItemsArray() {
+    return Arrays.copyOf(floatItems_, floatItems_.length - levelsArr[0]);
+  }
 
 }

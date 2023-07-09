@@ -23,6 +23,7 @@ import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.zeroPad;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
@@ -103,7 +104,7 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  *  @author Lee Rhodes
  */
-final class KllPreambleUtil {
+final class KllPreambleUtil<T> {
 
   private KllPreambleUtil() {}
 
@@ -118,7 +119,7 @@ final class KllPreambleUtil {
   static final int M_BYTE_ADR                 = 6;
   //                                            7 is reserved for future use
   // SINGLE ITEM ONLY
-  static final int DATA_START_ADR_SINGLE_ITEM = 8;
+  static final int DATA_START_ADR_SINGLE_ITEM = 8; //also ok for empty
 
   // MULTI-ITEM
   static final int N_LONG_ADR                 = 8;  // to 15
@@ -130,10 +131,10 @@ final class KllPreambleUtil {
 
   // Other static members
   static final byte SERIAL_VERSION_EMPTY_FULL  = 1; // Empty or full preamble, NOT single item format, NOT updatable
-  static final byte SERIAL_VERSION_SINGLE      = 2; // only single-item format
+  static final byte SERIAL_VERSION_SINGLE      = 2; // only single-item format, NOT updatable
   static final byte SERIAL_VERSION_UPDATABLE   = 3; // PreInts=5, Full preamble + LevelsArr + min, max + empty space
   static final byte PREAMBLE_INTS_EMPTY_SINGLE = 2; // for empty or single item
-  static final byte PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item
+  static final byte PREAMBLE_INTS_FULL         = 5; // Full preamble, not empty nor single item.
   static final byte KLL_FAMILY                 = 15;
 
   // Flag bit masks
@@ -150,7 +151,35 @@ final class KllPreambleUtil {
    */
   static String toString(final byte[] byteArr, final SketchType sketchType, final boolean includeData) {
     final Memory mem = Memory.wrap(byteArr);
-    return toString(mem, sketchType, includeData);
+    return toString(mem, sketchType, includeData, null);
+  }
+
+  /**
+   * Returns a human readable string summary of the internal state of the given sketch byte array.
+   * Used primarily in testing.
+   *
+   * @param byteArr the given sketch byte array.
+   * @param includeData if true, includes detail of retained data.
+   * @param serDe the serialization/deserialization class, required for KllItemsSketch.
+   * @return the summary string.
+   */
+  static String toString(final byte[] byteArr, final SketchType sketchType, final boolean includeData,
+      final ArrayOfItemsSerDe<?> serDe) {
+    final Memory mem = Memory.wrap(byteArr);
+    return toString(mem, sketchType, includeData, serDe);
+  }
+
+  /**
+   * Returns a human readable string summary of the internal state of the given Memory.
+   * Used primarily in testing.
+   *
+   * @param mem the given Memory
+   * @param includeData if true, includes detail of retained data.
+   * @param serDe the serialization/deserialization class, required for KllItemsSketch.
+   * @return the summary string.
+   */
+  static String toString(final Memory mem, final SketchType sketchType, final boolean includeData) {
+    return toString(mem, sketchType, includeData, null);
   }
 
   /**
@@ -161,8 +190,9 @@ final class KllPreambleUtil {
    * @param includeData if true, includes detail of retained data.
    * @return the summary string.
    */
-  static String toString(final Memory mem, final SketchType sketchType, final boolean includeData) {
-    final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType);
+  static String toString(final Memory mem, final SketchType sketchType, final boolean includeData,
+      final ArrayOfItemsSerDe<?> serDe) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType, serDe);
     final int flags = memVal.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);

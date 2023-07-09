@@ -55,8 +55,8 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
     try { sketch.getRank(0); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getQuantiles(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getPMF(new float[] {0}); fail(); } catch (IllegalArgumentException e) {}
@@ -408,8 +408,8 @@ public class KllFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sketch2.currentSerializedSizeBytes(false), sketch1.currentSerializedSizeBytes(false));
   }
 
@@ -424,8 +424,8 @@ public class KllFloatsSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Float.isNaN(sketch2.getMinItem()));
-    assertFalse(Float.isNaN(sketch2.getMaxItem()));
+    assertEquals(sketch2.getMinItem(), 1.0F);
+    assertEquals(sketch2.getMaxItem(), 1.0F);
     assertEquals(sketch2.currentSerializedSizeBytes(false), 8 + Float.BYTES);
   }
 
