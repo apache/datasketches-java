@@ -1,0 +1,18 @@
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy JavaDoc
+        uses: MathieuSoysal/Javadoc-publisher.yml@v2.4.0
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          javadoc-branch: gh-pages
+          target-folder: docs/${{ github.ref_name }}
+          project: maven
+          java-version: 11
