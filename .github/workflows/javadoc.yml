@@ -1,3 +1,5 @@
+name: JavaDoc
+
 on:
   push:
     branches:
@@ -5,14 +7,16 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish:
+  javadoc:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Generate JavaDoc
+        run: mvn javadoc:javadoc
       - name: Deploy JavaDoc
-        uses: MathieuSoysal/Javadoc-publisher.yml@v2.4.0
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          javadoc-branch: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+          folder: target/site/apidocs
           target-folder: docs/${{ github.ref_name }}
-          project: maven
-          java-version: 11
