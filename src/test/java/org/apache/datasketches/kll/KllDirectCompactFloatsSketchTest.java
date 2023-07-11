@@ -110,7 +110,9 @@ public class KllDirectCompactFloatsSketchTest {
     sk.printFloatArr(sk.getFloatRetainedItemsArray());
     byte[] bArr = sk.toByteArray(); //compressed
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(bArr));
+    println("Retained Items: " + sk2.getNumRetained());
     sk2.printFloatArr(sk2.getFloatItemsArray());
+    println("levelsArr.length: " + sk2.levelsArr.length);
     sk2.printFloatArr(sk2.getFloatRetainedItemsArray());
   }
 
@@ -170,7 +172,7 @@ public class KllDirectCompactFloatsSketchTest {
    * @param o value to print
    */
   static void println(final Object o) {
-    //System.out.println(o.toString()); //disable here
+    System.out.println(o.toString()); //disable here
   }
 
 }

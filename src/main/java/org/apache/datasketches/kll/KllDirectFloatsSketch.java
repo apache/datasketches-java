@@ -160,7 +160,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     if (isSingleItem()) { return new float[] { getFloatSingleItem() }; }
     final int numRetained = getNumRetained();
     final float[] out = new float[numRetained];
-    final int offset = DATA_START_ADR + levelsArrBytes() + 2 * ITEM_BYTES + levelsArr[0] * ITEM_BYTES;
+    final int offset = DATA_START_ADR + levelsArrBytes() + 2 * ITEM_BYTES;
     wmem.getFloatArray(offset, out, 0, numRetained);
     return out;
   }

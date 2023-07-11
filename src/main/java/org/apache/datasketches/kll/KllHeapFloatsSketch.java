@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+import static java.util.Arrays.copyOfRange;
 import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
@@ -230,7 +231,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   @Override
   float[] getFloatRetainedItemsArray() {
-    return Arrays.copyOf(floatItems_, floatItems_.length - levelsArr[0]);
+    return Arrays.copyOfRange(floatItems_, levelsArr[0], levelsArr[levelsArr.length - 1]);
   }
 
 }

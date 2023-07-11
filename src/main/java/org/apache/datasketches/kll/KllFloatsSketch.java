@@ -413,8 +413,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     final int[] myLevelsArr = updatable ? getLevelsArray() : Arrays.copyOf(levelsArr, levelsArr.length - 1);
     final float minItem = isEmpty() ? Float.NaN : getMinItem();
     final float maxItem = isEmpty() ? Float.NaN : getMaxItem();
-    printFloatArr(getFloatItemsArray());
-    printFloatArr(getFloatRetainedItemsArray());
+    //printFloatArr(getFloatItemsArray());
+    //printFloatArr(getFloatRetainedItemsArray());
     final float[] itemsArr = updatable ? getFloatItemsArray() : getFloatRetainedItemsArray();
     final Memory mem = Memory.wrap(this.getFloatItemsArray()); //debug
     //compute total bytes out
