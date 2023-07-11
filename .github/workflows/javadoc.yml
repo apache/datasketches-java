@@ -15,7 +15,7 @@ jobs:
       - name: Generate JavaDoc
         run: mvn javadoc:javadoc
       - name: Deploy JavaDoc
-        uses: JamesIves/github-pages-deploy-action@v4
+        uses: JamesIves/github-pages-deploy-action@5dc1d5a192aeb5ab5b7d5a77b7d36aea4a7f5c92
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: target/site/apidocs
