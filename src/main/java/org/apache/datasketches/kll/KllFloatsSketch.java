@@ -413,7 +413,9 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     final int[] myLevelsArr = updatable ? getLevelsArray() : Arrays.copyOf(levelsArr, levelsArr.length - 1);
     final float minItem = isEmpty() ? Float.NaN : getMinItem();
     final float maxItem = isEmpty() ? Float.NaN : getMaxItem();
-    final float[] itemsArr = updatable ? getFloatItemsArray() : getFloatRetainedItemsArray();//324
+    printFloatArr(getFloatItemsArray());
+    printFloatArr(getFloatRetainedItemsArray());
+    final float[] itemsArr = updatable ? getFloatItemsArray() : getFloatRetainedItemsArray();
     final Memory mem = Memory.wrap(this.getFloatItemsArray()); //debug
     //compute total bytes out
     final int totalBytes;
@@ -448,4 +450,35 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     wbuf.putFloatArray(itemsArr, 0, itemsArr.length);
     return bytesOut;
   }
+
+  void printIntArr(final int[] intArr) {
+    println("Int Array");
+    for (int i = 0; i < intArr.length; i++) { System.out.println(i + ", " + intArr[i]); }
+    println("");
+
+  }
+
+  void printFloatArr(final float[] fltArr) {
+    println("Float Array");
+    for (int i = 0; i < fltArr.length; i++) { System.out.println(i + ", " + fltArr[i]); }
+    println("");
+  }
+
+  private final static boolean enablePrinting = true;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
+  }
+
+  /**
+   * @param o the Object to println
+   */
+  static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
+  }
+
 }

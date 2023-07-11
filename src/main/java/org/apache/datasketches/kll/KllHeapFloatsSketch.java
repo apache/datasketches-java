@@ -195,7 +195,9 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void incN() { n_++; }
 
   @Override
-  void incNumLevels() { } //not used here
+  void incNumLevels() {
+    //the heap sketch computes num levels from the array itself, so this is not used on-heap
+  }
 
   @Override
   boolean isLevelZeroSorted() { return isLevelZeroSorted_; }
@@ -222,7 +224,9 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   void setN(final long n) { n_ = n; }
 
   @Override
-  void setNumLevels(final int numLevels) {  } //not used here
+  void setNumLevels(final int numLevels) {
+  //the heap sketch computes num levels from the array itself, so this is not used on-heap
+  }
 
   @Override
   float[] getFloatRetainedItemsArray() {

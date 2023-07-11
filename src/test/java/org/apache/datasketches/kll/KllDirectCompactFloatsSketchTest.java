@@ -101,12 +101,26 @@ public class KllDirectCompactFloatsSketchTest {
   }
 
   @Test
+  public void checkDirectCompactGetFloatItemsArray2() {
+    int k = 20;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= 20; i++) { sk.update(i); }
+    sk.update(21);
+    sk.printFloatArr(sk.getFloatItemsArray());
+    sk.printFloatArr(sk.getFloatRetainedItemsArray());
+    byte[] bArr = sk.toByteArray(); //compressed
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(bArr));
+    sk2.printFloatArr(sk2.getFloatItemsArray());
+    sk2.printFloatArr(sk2.getFloatRetainedItemsArray());
+  }
+
+  @Test
   public void checkMinAndMax() {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-    try { sk2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sk2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     sk.update(1);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getMaxItem(),1.0F);

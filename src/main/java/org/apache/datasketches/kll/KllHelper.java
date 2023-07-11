@@ -581,7 +581,7 @@ final class KllHelper {
     sb.append(Util.LS).append("### ").append(className).append(" Summary:").append(Util.LS);
     sb.append("   K                      : ").append(k).append(Util.LS);
     sb.append("   Dynamic min K          : ").append(sketch.getMinK()).append(Util.LS);
-    sb.append("   M                      : ").append(m).append(Util.LS);
+    sb.append("   M                     : ").append(m).append(Util.LS);
     sb.append("   N                      : ").append(n).append(Util.LS);
     sb.append("   Epsilon                : ").append(epsPct).append(Util.LS);
     sb.append("   Epsilon PMF            : ").append(epsPMFPct).append(Util.LS);
@@ -591,12 +591,10 @@ final class KllHelper {
     sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(Util.LS);
     sb.append("   Capacity Items         : ").append(levelsArr[numLevels]).append(Util.LS);
     sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(Util.LS);
+    sb.append("   Garbage Items          : ").append(sketch.levelsArr[0]).append(Util.LS);
     sb.append("   ReadOnly               : ").append(readOnlyStr).append(Util.LS);
-    if (sketch.serialVersionUpdatable) {
-      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(Util.LS);
-    } else {
-      sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(Util.LS);
-    }
+    sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true)).append(Util.LS);
+    sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false)).append(Util.LS);
 
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
@@ -759,7 +757,8 @@ final class KllHelper {
       myCurDoubleItemsArr = dblSk.getDoubleItemsArray();
       //assert we are following a certain growth scheme
       assert myCurDoubleItemsArr.length == myCurTotalItemsCapacity;
-    } else if (sketchType == FLOATS_SKETCH) {
+    }
+    else if (sketchType == FLOATS_SKETCH) {
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
       minFloat = fltSk.getMinItem();
       maxFloat = fltSk.getMaxItem();
@@ -784,7 +783,7 @@ final class KllHelper {
       myNewLevelsArr = Arrays.copyOf(myCurLevelsArr, myCurNumLevels + 2);
       assert myNewLevelsArr.length == myCurLevelsArr.length + 1;
       myNewNumLevels = myCurNumLevels + 1;
-      sketch.incNumLevels(); //increment the class member
+      sketch.incNumLevels(); //increment for off-heap
     } else {
       myNewLevelsArr = myCurLevelsArr;
       myNewNumLevels = myCurNumLevels;
@@ -814,7 +813,7 @@ final class KllHelper {
       sketch.wmem = memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewTotalItemsCapacity);
     }
     //update our sketch with new expanded spaces
-    sketch.setNumLevels(myNewNumLevels);
+    sketch.setNumLevels(myNewNumLevels); //for direct only
     sketch.setLevelsArray(myNewLevelsArr);
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;

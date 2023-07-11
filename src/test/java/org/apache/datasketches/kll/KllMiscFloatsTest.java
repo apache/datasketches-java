@@ -160,21 +160,38 @@ public class KllMiscFloatsTest {
   }
 
   @Test
-  public void viewCompactions() {
-    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
-    show(sk, 20);
-    show(sk, 21); //compaction 1
-    show(sk, 43);
-    show(sk, 44); //compaction 2
-    show(sk, 54);
-    show(sk, 55); //compaction 3
-    show(sk, 73);
-    show(sk, 74); //compaction 4
-    show(sk, 88);
-    show(sk, 89); //compaction 5
-    show(sk, 96);
-    show(sk, 97); //compaction 6
-    show(sk, 108);
+  public void viewHeapCompactions() {
+    int k = 20;
+    int u = 108;
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
+    for (int i = 1; i <= u; i++) {
+      sk.update(i);
+      if (sk.levelsArr[0] == 0) {
+        println(sk.toString(true, true));
+        sk.update(++i);
+        println(sk.toString(true, true));
+        assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
+      }
+    }
+  }
+
+  @Test
+  public void viewDirectCompactions() {
+    int k = 20;
+    int u = 21;
+    int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, u, FLOATS_SKETCH, true);
+    WritableMemory wmem = WritableMemory.allocate(sizeBytes);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, wmem, memReqSvr);
+    for (int i = 1; i <= u; i++) {
+      sk.update(i);
+      if (sk.levelsArr[0] == 0) {
+        println(sk.toString(true, true));
+        sk.update(++i);
+        println(sk.toString(true, true));
+        //float[] fltArr = sk.getFloatItemsArray();
+        assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
+      }
+    }
   }
 
   @Test

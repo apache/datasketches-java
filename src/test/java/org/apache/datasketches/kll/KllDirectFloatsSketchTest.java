@@ -346,7 +346,7 @@ public class KllDirectFloatsSketchTest {
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray();
     final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    final int sk1len = sketch1.currentSerializedSizeBytes(false);
+    //final int sk1len = sketch1.currentSerializedSizeBytes(false);
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);

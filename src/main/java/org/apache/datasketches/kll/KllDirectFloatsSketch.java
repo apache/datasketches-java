@@ -149,7 +149,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     final int capacityItems = KllHelper.computeTotalItemCapacity(k, getM(), getNumLevels());
     final float[] floatItemsArr = new float[capacityItems];
     final int offset = DATA_START_ADR + levelsArrBytes() + 2 * ITEM_BYTES;
-    final int shift = levelsArr[0];
+    final int shift = serialVersionUpdatable ? 0 : levelsArr[0];
     wmem.getFloatArray(offset, floatItemsArr, shift, capacityItems - shift);
     return floatItemsArr;
   }
