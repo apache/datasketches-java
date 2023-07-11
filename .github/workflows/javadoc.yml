@@ -20,3 +20,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: target/site/apidocs
           target-folder: docs/${{ github.ref_name }}
+          branch: gh-pages
