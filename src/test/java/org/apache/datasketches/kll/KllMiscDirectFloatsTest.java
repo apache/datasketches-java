@@ -67,7 +67,7 @@ public class KllMiscDirectFloatsTest {
     //sk.toByteArray();
     final float[] items = sk.getFloatItemsArray();
     assertEquals(items.length, 16);
-    final int[] levels = sk.getLevelsArray();
+    final int[] levels = sk.getLevelsArray(sk.sketchStructure);
     assertEquals(levels.length, 3);
     assertEquals(sk.getNumLevels(), 2);
   }
@@ -127,7 +127,7 @@ public class KllMiscDirectFloatsTest {
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLevelsArray().length, 3);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 3);
     assertEquals(sk.getMaxItem(), 21.0F);
     assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
@@ -143,7 +143,7 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLevelsArray().length, 2);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
     try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
@@ -160,7 +160,7 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLevelsArray().length, 2);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
     assertEquals(sk.getMaxItem(), 1.0F);
     assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
@@ -190,7 +190,7 @@ public class KllMiscDirectFloatsTest {
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLevelsArray().length, 3);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 3);
     assertEquals(sk.getMaxItem(), 21.0F);
     assertEquals(sk.getMinItem(), 1.0f);
     assertEquals(sk.getNumLevels(), 2);
@@ -210,7 +210,7 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLevelsArray().length, 2);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
     try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
@@ -231,7 +231,7 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLevelsArray().length, 2);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
     assertEquals(sk.getMaxItem(), 1.0F);
     assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
@@ -250,7 +250,7 @@ public class KllMiscDirectFloatsTest {
     sk2 = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
     //println(sk2.toString(true, true));
-    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
+    compBytes = KllHelper.toByteArray(sk2,true);
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
     sk = KllHeapFloatsSketch.heapifyImpl(wmem);
@@ -261,7 +261,7 @@ public class KllMiscDirectFloatsTest {
     assertTrue(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 33);
-    assertEquals(sk.getLevelsArray().length, 3);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 3);
     assertEquals(sk.getMaxItem(), 21.0F);
     assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 2);
@@ -270,7 +270,7 @@ public class KllMiscDirectFloatsTest {
    // println("#### CASE: FLOAT EMPTY HEAPIFIED FROM UPDATABLE");
     sk2 = getDFSketch(k, 0);
     //println(sk.toString(true, true));
-    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
+    compBytes = KllHelper.toByteArray(sk2, true);
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
     sk = KllHeapFloatsSketch.heapifyImpl(wmem);
@@ -281,7 +281,7 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLevelsArray().length, 2);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
     try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
     try { sk.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
     assertEquals(sk.getNumLevels(), 1);
@@ -291,7 +291,7 @@ public class KllMiscDirectFloatsTest {
     sk2 = getDFSketch(k, 0);
     sk2.update(1);
     //println(sk.toString(true, true));
-    compBytes = KllHelper.toUpdatableByteArrayImpl(sk2);
+    compBytes = KllHelper.toByteArray(sk2,true);
     wmem = WritableMemory.writableWrap(compBytes);
     //println(KllPreambleUtil.toString(wmem));
     sk = KllHeapFloatsSketch.heapifyImpl(wmem);
@@ -302,7 +302,7 @@ public class KllMiscDirectFloatsTest {
     assertFalse(sk.isEstimationMode());
     assertEquals(sk.getMinK(), k);
     assertEquals(sk.getFloatItemsArray().length, 20);
-    assertEquals(sk.getLevelsArray().length, 2);
+    assertEquals(sk.getLevelsArray(sk.sketchStructure).length, 2);
     assertEquals(sk.getMaxItem(), 1.0F);
     assertEquals(sk.getMinItem(), 1.0F);
     assertEquals(sk.getNumLevels(), 1);
@@ -322,13 +322,13 @@ public class KllMiscDirectFloatsTest {
     println("#### CASE: FLOAT FULL UPDATABLE");
     sk = getDFSketch(k, 0);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
+    upBytes = KllHelper.toByteArray(sk, true);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
-    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
+    upBytes2 = KllHelper.toByteArray(sk2, true);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -337,13 +337,13 @@ public class KllMiscDirectFloatsTest {
 
     println("#### CASE: FLOAT EMPTY UPDATABLE");
     sk = getDFSketch(k, 0);
-    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
+    upBytes = KllHelper.toByteArray(sk, true);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
-    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
+    upBytes2 = KllHelper.toByteArray(sk2, true);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -353,13 +353,13 @@ public class KllMiscDirectFloatsTest {
     println("#### CASE: FLOAT SINGLE UPDATABL");
     sk = getDFSketch(k, 0);
     sk.update(1);
-    upBytes = KllHelper.toUpdatableByteArrayImpl(sk);
+    upBytes = KllHelper.toByteArray(sk, true);
     wmem = WritableMemory.writableWrap(upBytes);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 1: sketch to byte[]/memory & analyze memory");
     println(s);
     sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
-    upBytes2 = KllHelper.toUpdatableByteArrayImpl(sk2);
+    upBytes2 = KllHelper.toByteArray(sk2, true);
     wmem = WritableMemory.writableWrap(upBytes2);
     s = KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true);
     println("step 2: memory to heap sketch, to byte[]/memory & analyze memory. Should match above");
@@ -393,7 +393,7 @@ public class KllMiscDirectFloatsTest {
     KllFloatsSketch sk = getDFSketch(20, 0);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
     //println(sk.toString(true, true));
-    byte[] byteArr1 = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr1 = KllHelper.toByteArray(sk, true);
     int size1 = sk.currentSerializedSizeBytes(true);
     assertEquals(size1, byteArr1.length);
     byte[] byteArr2 = sk.toByteArray();
@@ -417,7 +417,7 @@ public class KllMiscDirectFloatsTest {
     int k = 20;
     int m = 4;
     WritableMemory dstMem = WritableMemory.allocate(1000);
-    KllFloatsSketch sk = KllDirectFloatsSketch.newDirectInstance(k, m, dstMem, memReqSvr);
+    KllFloatsSketch sk = KllDirectFloatsSketch.newDirectUpdatableInstance(k, m, dstMem, memReqSvr);
     for (int i = 1; i <= 200; i++) {sk.update(i); }
     assertEquals(sk.getMinItem(), 1.0);
     assertEquals(sk.getMaxItem(), 200.0);
@@ -426,7 +426,7 @@ public class KllMiscDirectFloatsTest {
   private static KllFloatsSketch getDFSketch(final int k, final int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;

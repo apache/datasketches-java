@@ -70,12 +70,6 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
   }
 
   @Override
-  public Boolean deserializeOneFromMemory(final Memory mem, final long offset) {
-    Util.checkBounds(offset, 1, mem.getCapacity());
-    return mem.getByte(offset) > 0;
-  }
-
-  @Override
   @Deprecated
   public Boolean[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
@@ -112,4 +106,8 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
     return computeBytesNeeded(numItems);
   }
 
+  @Override
+  public String toString(final Boolean item) {
+    return item ? "true" : "false";
+  }
 }

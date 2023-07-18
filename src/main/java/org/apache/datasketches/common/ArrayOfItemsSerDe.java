@@ -46,15 +46,6 @@ public abstract class ArrayOfItemsSerDe<T> {
   public abstract byte[] serializeToByteArray(T[] items);
 
   /**
-   * Deserialize a single serialized item from a given Memory object.
-   *
-   * @param mem Memory containing the serialized item
-   * @param offsetBytes the starting offset in the given Memory.
-   * @return deserialized item
-   */
-  public abstract T deserializeOneFromMemory(Memory mem, long offsetBytes);
-
-  /**
    * Deserialize a contiguous sequence of serialized items from a given Memory.
    *
    * @param mem Memory containing a contiguous sequence of serialized items
@@ -105,5 +96,12 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @return the serialized size in bytes of the number of items.
    */
   public abstract int sizeOf(Memory mem, long offsetBytes, int numItems);
+
+  /**
+   * Returns a human readable string of an item.
+   * @param item a specific item
+   * @return a human readable string of an item.
+   */
+  public abstract String toString(T item);
 
 }

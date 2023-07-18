@@ -24,8 +24,11 @@ import org.apache.datasketches.memory.WritableMemory;
 
 class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
 
-  KllDirectCompactFloatsSketch(final Memory srcMem, final KllMemoryValidate memVal) {
-    super((WritableMemory) srcMem, null, memVal);
+  KllDirectCompactFloatsSketch(
+      final SketchStructure sketchStructure,
+      final Memory srcMem,
+      final KllMemoryValidate memVal) {
+    super(sketchStructure, (WritableMemory) srcMem, null, memVal);
   }
 
 }

@@ -25,6 +25,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATAB
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
@@ -297,7 +298,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public final void merge(final KllSketch other) {
     final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly || sketchStructure != UPDATABLE) { kllSketchThrow(TGT_IS_READ_ONLY); }
     if (othDblSk.isEmpty()) { return; }
     KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
     kllDoublesSV = null;

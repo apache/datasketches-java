@@ -22,14 +22,23 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.N_LONG_ADR;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
+import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
+import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.UNSUPPORTED_TYPE;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
+import java.util.Arrays;
 import java.util.Random;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
@@ -40,24 +49,25 @@ import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /*
- * Sampled stream data (floats or doubles) is stored as an array or as part of a Memory object.
- * This array is partitioned into sections called levels and the indices into the array of quantiles
- * are tracked by a small integer array called levels or levels array.
- * The data for level i lies in positions levelsArray[i] through levelsArray[i + 1] - 1 inclusive.
- * Hence, the levelsArray must contain (numLevels + 1) indices.
- * The valid portion of the quantiles array is completely packed and sorted, except for level 0,
- * which is filled from the top down. Any quantiles below the index levelsArray[0] is garbage and will be
+ * Sampled stream data (floats, doubles, or items) is stored as a heap array called itemsArr or as part of a
+ * WritableMemory/Memory object.
+ * This array is partitioned into sections called levels and the indices into the array of items
+ * are tracked by a small integer array called levelsArr.
+ * The data for level i lies in positions levelsArr[i] through levelsArr[i + 1] - 1 inclusive.
+ * Hence, the levelsArr must contain (numLevels + 1) elements.
+ * The valid portion of the itemsArr is completely packed and sorted, except for level 0,
+ * which is filled from the top down. Any items below the index levelsArr[0] is garbage and will be
  * overwritten by subsequent updates.
  *
  * Invariants:
- * 1) After a compaction, or an update, or a merge, every level is sorted except for level zero.
- * 2) After a compaction, (sum of capacities) - (sum of quantiles) >= 1,
+ * 1) After a compaction, update, or a merge, every level is sorted except for level zero.
+ * 2) After a compaction, (sum of level capacities) - (number of valid items) >= 1,
  *  so there is room for least 1 more quantile in level zero.
- * 3) There are no gaps except at the bottom, so if levels_[0] = 0,
- *  the sketch is exactly filled to capacity and must be compacted or the quantiles array and levels array
+ * 3) There are no gaps except at the bottom, so if levelsArr[0] = 0,
+ *  the sketch is exactly filled to capacity and must be compacted or the itemsArr and levelsArr
  *  must be expanded to include more levels.
- * 4) Sum of weights of all retained quantiles == N.
- * 5) Current total quantile capacity = itemsArray.length = levelsArray[numLevels].
+ * 4) Sum of weights of all retained, valid items = N.
+ * 5) Current total item capacity = itemsArr.length = levelsArr[numLevels].
  */
 
 /**
@@ -72,6 +82,7 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  *
  * <p>The default <i>k</i> of 200 yields a "single-sided" epsilon of about 1.33% and a
  * "double-sided" (PMF) epsilon of about 1.65%, with a confidence of 99%.</p>
+ *
  * @see <a href="https://datasketches.apache.org/docs/KLL/KLLSketch.html">KLL Sketch</a>
  * @see QuantilesAPI
  *
@@ -81,23 +92,6 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * @param T The generic type used with the KllItemsSketch
  */
 public abstract class KllSketch implements QuantilesAPI {
-
-  /**
-   * Used to define the variable type of the current instance of this class.
-   */
-  public enum SketchType {
-    DOUBLES_SKETCH(Double.BYTES),
-    FLOATS_SKETCH(Float.BYTES),
-    ITEMS_SKETCH(0);
-
-    private int typeBytes;
-
-    private SketchType(final int typeBytes) {
-      this.typeBytes = typeBytes;
-    }
-
-    public int getBytes() { return typeBytes; }
-  }
 
   /**
    * The default K
@@ -121,12 +115,12 @@ public abstract class KllSketch implements QuantilesAPI {
   static final Random random = new Random();
 
   final SketchType sketchType;
-  final boolean serialVersionUpdatable;
-  final MemoryRequestServer memReqSvr; //TODO ?
-  final boolean readOnly; //TODO ?
+  final SketchStructure sketchStructure;
+  final boolean readOnly;
   int[] levelsArr; //Always writable form
-  WritableMemory wmem; //TODO ?
+  WritableMemory wmem;
   ArrayOfItemsSerDe<?> serDe = null; //TODO ?
+  final MemoryRequestServer memReqSvr; //TODO ?
 
   /**
    * Constructor for on-heap and off-heap.
@@ -138,14 +132,16 @@ public abstract class KllSketch implements QuantilesAPI {
    * @param memReqSvr the given MemoryRequestServer or null
    *
    */
-  KllSketch(final SketchType sketchType, final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
+  KllSketch(
+      final SketchType sketchType,
+      final SketchStructure sketchStructure,
+      final WritableMemory wmem,
+      final MemoryRequestServer memReqSvr) {
    this.sketchType = sketchType;
-
-   //this.serDe = serDe;
+   this.sketchStructure = sketchStructure;
    this.wmem = wmem;
    if (wmem != null) {
-     this.serialVersionUpdatable = KllPreambleUtil.getMemorySerVer(wmem) == SERIAL_VERSION_UPDATABLE;
-     this.readOnly = wmem.isReadOnly() || !serialVersionUpdatable;
+     this.readOnly = wmem.isReadOnly() || sketchStructure != UPDATABLE;
      if (readOnly) {
        this.memReqSvr = null;
      } else {
@@ -153,30 +149,9 @@ public abstract class KllSketch implements QuantilesAPI {
        this.memReqSvr = memReqSvr;
      }
    } else { //wmem is null, heap case
-     this.serialVersionUpdatable = false; //TODO Should be true?
      this.memReqSvr = null;
      this.readOnly = false;
    }
-  }
-
-  /**
-   * Returns the current number of bytes this sketch would require to store in the compact Memory Format.
-   * @return the current number of bytes this sketch would require to store in the compact Memory Format.
-   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
-   */
-  @Deprecated //ready to delete
-  public int getCurrentCompactSerializedSizeBytes() {
-    return currentSerializedSizeBytes(false);
-  }
-
-  /**
-   * Returns the current number of bytes this sketch would require to store in the updatable Memory Format.
-   * @return the current number of bytes this sketch would require to store in the updatable Memory Format.
-   * @deprecated version 4.0.0 use {@link #getSerializedSizeBytes}.
-   */
-  @Deprecated //ready to delete
-  public int getCurrentUpdatableSerializedSizeBytes() {
-    return currentSerializedSizeBytes(true);
   }
 
   /**
@@ -242,11 +217,12 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   /**
-   * Returns the current number of bytes this Sketch would require if serialized.
+   * Returns the current number of bytes this Sketch would require if serialized in compact form.
    * @return the number of bytes this sketch would require if serialized.
    */
   public int getSerializedSizeBytes() {
-    return currentSerializedSizeBytes(serialVersionUpdatable);
+    //current policy is that public method cannot return Updatable structure:
+    return currentSerializedSizeBytes(false);
   }
 
   /**
@@ -264,7 +240,7 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   public boolean isCompactMemoryFormat() {
-    return hasMemory() && !serialVersionUpdatable;
+    return hasMemory() && sketchStructure != UPDATABLE;
   }
 
   @Override
@@ -287,7 +263,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @return true if the backing WritableMemory is in updatable format.
    */
   public final boolean isMemoryUpdatableFormat() {
-    return hasMemory() && serialVersionUpdatable;
+    return hasMemory() && sketchStructure == UPDATABLE;
   }
 
   @Override
@@ -332,53 +308,52 @@ public abstract class KllSketch implements QuantilesAPI {
   //restricted
 
   /**
-   * Compute serialized size in bytes independent of the current
-   * state of Serialization Version. For KllItemsSketch the result is
-   * always in non-updatable, compact form.
-   * @param serVerUpdatable reflects the hypothetical state of SerVer.
-   * @return serialized size in bytes assuming a SerVer state.
+   * Compute serialized size in bytes independent of the current sketch.
+   * For KllItemsSketch the result is always in non-updatable, compact form.
+   * @param updatable true if the desired result is for updatable structure.
+   * @return serialized size in bytes given a SketchStructure.
    */
-  final int currentSerializedSizeBytes(final boolean serVerUpdatable) {
-    final int numLevels = getNumLevels();
-    final int numItems;
-    final int levelsArrBytes;
-    if (!serVerUpdatable || sketchType == ITEMS_SKETCH) {
-      numItems = getNumRetained();
-      if (numItems == 0) { return N_LONG_ADR; }
-      if (numItems == 1) { return DATA_START_ADR_SINGLE_ITEM + getSingleItemSizeBytes(); }
-      levelsArrBytes = numLevels * Integer.BYTES;
-      return DATA_START_ADR + levelsArrBytes + getMinMaxSizeBytes() + getRetainedDataSizeBytes();
-    } else { //Double and Float sketches only
-      numItems = KllHelper.computeTotalItemCapacity(getK(), getM(), numLevels);
-      levelsArrBytes = (numLevels + 1) * Integer.BYTES;
-      return DATA_START_ADR + levelsArrBytes + getMinMaxSizeBytes() + numItems * sketchType.typeBytes;
+  final int currentSerializedSizeBytes(final boolean updatable) {
+    final boolean myUpdatable = sketchType == ITEMS_SKETCH ? false : updatable;
+    final long srcN = this.getN();
+    SketchStructure tgtStructure;
+    if (myUpdatable) { tgtStructure = UPDATABLE; }
+    else if (srcN == 0) { tgtStructure = COMPACT_EMPTY; }
+    else if (srcN == 1) { tgtStructure = COMPACT_SINGLE; }
+    else { tgtStructure = COMPACT_FULL; }
+    final int totalBytes;
+    if (tgtStructure == COMPACT_EMPTY) {
+      totalBytes = N_LONG_ADR;
     }
+    else if (tgtStructure == COMPACT_SINGLE) {
+      totalBytes = DATA_START_ADR_SINGLE_ITEM
+          + getSingleItemSizeBytes();
+    }
+    else if (tgtStructure == COMPACT_FULL) {
+      totalBytes = DATA_START_ADR
+          + getLevelsArrBytes(tgtStructure)
+          + getMinMaxSizeBytes()
+          + getRetainedDataSizeBytes();
+    }
+    else { //structure = UPDATABLE
+      totalBytes = DATA_START_ADR
+          + getLevelsArrBytes(tgtStructure)
+          + getMinMaxSizeBytes()
+          + getTotalItemDataBytes();
+    }
+    return totalBytes;
   }
 
-  enum Error {
-    TGT_IS_READ_ONLY("Target sketch is Read Only, cannot write."),
-    MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item."),
-    UNSUPPORTED_TYPE("Unsupported operation for this Sketch Type."),
-    EMPTY("Sketch must not be empty for this operation.");
-
-    private String msg;
-
-    private Error(final String msg) {
-      this.msg = msg;
-    }
-
-    final static void kllSketchThrow(final Error errType) {
-      throw new SketchesArgumentException(errType.getMessage());
-    }
-
-    private String getMessage() {
-      return msg;
-    }
+  int[] getLevelsArray(final SketchStructure structure) {
+    if (structure == UPDATABLE) { return levelsArr; }
+    else if (structure == COMPACT_FULL) { return Arrays.copyOf(levelsArr, levelsArr.length - 1); }
+    else { return new int[0]; }
   }
 
-  final int[] getLevelsArray() {
-    return levelsArr;
+  final int getLevelsArrBytes(final SketchStructure structure) {
+    if (structure == UPDATABLE) { return levelsArr.length * Integer.BYTES; }
+    else if (structure == COMPACT_FULL) { return (levelsArr.length - 1) * Integer.BYTES; }
+    else { return 0; }
   }
 
   /**
@@ -425,12 +400,16 @@ public abstract class KllSketch implements QuantilesAPI {
 
   abstract int getSingleItemSizeBytes();
 
+  abstract byte[] getTotalItemDataByteArr();
+
+  abstract int getTotalItemDataBytes();
+
   abstract void incN();
 
   abstract void incNumLevels();
 
   final boolean isCompactSingleItem() {
-    return hasMemory() && !serialVersionUpdatable && (getN() == 1);
+    return hasMemory() && sketchStructure == COMPACT_SINGLE && (getN() == 1);
   }
 
   boolean isDoublesSketch() { return sketchType == DOUBLES_SKETCH; }
@@ -470,5 +449,77 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract void setN(long n);
 
   abstract void setNumLevels(int numLevels);
+
+  /**
+   * Used to define the variable type of the current instance of this class.
+   */
+  public enum SketchType {
+    DOUBLES_SKETCH(Double.BYTES),
+    FLOATS_SKETCH(Float.BYTES),
+    ITEMS_SKETCH(0);
+
+    private int typeBytes;
+
+    private SketchType(final int typeBytes) {
+      this.typeBytes = typeBytes;
+    }
+
+    public int getBytes() { return typeBytes; }
+  }
+
+  /**
+   * Used primarily to define the structure of the serialized sketch. Also used by the Heap Sketch.
+   */
+  public enum SketchStructure {
+    COMPACT_EMPTY(PREAMBLE_INTS_EMPTY_SINGLE, SERIAL_VERSION_EMPTY_FULL),
+    COMPACT_SINGLE(PREAMBLE_INTS_EMPTY_SINGLE, SERIAL_VERSION_SINGLE),
+    COMPACT_FULL(PREAMBLE_INTS_FULL, SERIAL_VERSION_EMPTY_FULL),
+    UPDATABLE(PREAMBLE_INTS_FULL, SERIAL_VERSION_UPDATABLE); //also used by the heap sketch.
+
+    private int preInts;
+    private int serVer;
+
+    private SketchStructure(final int preInts, final int serVer) {
+      this.preInts = preInts;
+      this.serVer = serVer;
+    }
+
+    public int getPreInts() { return preInts; }
+
+    public int getSerVer() { return serVer; }
+
+    public static SketchStructure getSketchStructure(final int preInts, final int serVer) {
+      final SketchStructure[] ssArr = SketchStructure.values();
+      for (int i = 0; i < ssArr.length; i++) {
+        if (ssArr[i].preInts == preInts && ssArr[i].serVer == serVer) {
+          return ssArr[i];
+        }
+      }
+      throw new SketchesArgumentException("Error combination of PreInts and SerVer: "
+          + "PreInts: " + preInts + ", SerVer: " + serVer);
+    }
+  }
+
+  enum Error {
+    TGT_IS_READ_ONLY("Target sketch is Read Only, cannot write."),
+    MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
+    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item."),
+    UNSUPPORTED_TYPE("Unsupported operation for this Sketch Type."),
+    EMPTY("Sketch must not be empty for this operation.");
+
+    private String msg;
+
+    private Error(final String msg) {
+      this.msg = msg;
+    }
+
+    final static void kllSketchThrow(final Error errType) {
+      throw new SketchesArgumentException(errType.getMessage());
+    }
+
+    private String getMessage() {
+      return msg;
+    }
+  }
 
 }

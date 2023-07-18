@@ -93,10 +93,10 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     n_ = memValidate.n;
     minK_ = memValidate.minK;
     levelsArr = memValidate.levelsArr;
-    isLevelZeroSorted_ = memValidate.level0Sorted;
+    isLevelZeroSorted_ = memValidate.level0SortedFlag;
     final boolean serialVersionUpdatable = getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE;
 
-    if (memValidate.empty && !serialVersionUpdatable) {
+    if (memValidate.emptyFlag && !serialVersionUpdatable) {
       minDoubleItem_ = Double.NaN;
       maxDoubleItem_ = Double.NaN;
       doubleItems_ = new double[k_];

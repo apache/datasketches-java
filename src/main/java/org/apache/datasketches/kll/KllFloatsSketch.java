@@ -22,31 +22,19 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
-import static org.apache.datasketches.common.Family.KLL;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_EMPTY_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
-import java.nio.ByteOrder;
-import java.util.Arrays;
 import java.util.Objects;
 
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
-import org.apache.datasketches.memory.WritableBuffer;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
@@ -62,51 +50,14 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   private KllFloatsSketchSortedView kllFloatsSV = null;
   final static int ITEM_BYTES = Float.BYTES;
 
-  KllFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(SketchType.FLOATS_SKETCH, wmem, memReqSvr);
-  }
-
-  /**
-   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based sketch based on the given Memory.
-   */
-  public static KllFloatsSketch heapify(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    return KllHeapFloatsSketch.heapifyImpl(srcMem);
-  }
-
-  /**
-   * Create a new direct instance of this sketch with the default <em>k</em>.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
-   * @param dstMem the given destination WritableMemory object for use by the sketch
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return a new direct instance of this sketch
-   */
-  public static KllFloatsSketch newDirectInstance(
-      final WritableMemory dstMem,
+  KllFloatsSketch(
+      final SketchStructure sketchStructure,
+      final WritableMemory wmem,
       final MemoryRequestServer memReqSvr) {
-    return newDirectInstance(DEFAULT_K, dstMem, memReqSvr);
+    super(SketchType.FLOATS_SKETCH, sketchStructure, wmem, memReqSvr);
   }
 
-  /**
-   * Create a new direct instance of this sketch with a given <em>k</em>.
-   * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * @param dstMem the given destination WritableMemory object for use by the sketch
-   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
-   * @return a new direct instance of this sketch
-   */
-  public static KllFloatsSketch newDirectInstance(
-      final int k,
-      final WritableMemory dstMem,
-      final MemoryRequestServer memReqSvr) {
-    Objects.requireNonNull(dstMem, "Parameter 'dstMem' must not be null");
-    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
-    return KllDirectFloatsSketch.newDirectInstance(k, DEFAULT_M, dstMem, memReqSvr);
-  }
+  //Factories for new heap instances.
 
   /**
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
@@ -130,6 +81,54 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     return new KllHeapFloatsSketch(k, DEFAULT_M);
   }
 
+  //Factories for new direct instances.
+
+  /**
+   * Create a new direct updatable instance of this sketch with the default <em>k</em>.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new direct instance of this sketch
+   */
+  public static KllFloatsSketch newDirectInstance(
+      final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    return newDirectInstance(DEFAULT_K, dstMem, memReqSvr);
+  }
+
+  /**
+   * Create a new direct updatable instance of this sketch with a given <em>k</em>.
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * @param dstMem the given destination WritableMemory object for use by the sketch
+   * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
+   * @return a new direct instance of this sketch
+   */
+  public static KllFloatsSketch newDirectInstance(
+      final int k,
+      final WritableMemory dstMem,
+      final MemoryRequestServer memReqSvr) {
+    Objects.requireNonNull(dstMem, "Parameter 'dstMem' must not be null");
+    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
+    return KllDirectFloatsSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstMem, memReqSvr);
+  }
+
+  //Factory to create an heap instance from a Memory image
+
+  /**
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based sketch based on the given Memory.
+   */
+  public static KllFloatsSketch heapify(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    return KllHeapFloatsSketch.heapifyImpl(srcMem);
+  }
+
+  //Factory to wrap a Read-Only Memory
+
   /**
    * Wrap a sketch around the given read only compact source Memory containing sketch data
    * that originated from this sketch.
@@ -139,12 +138,15 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   public static KllFloatsSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
-    if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE) {
-      return new KllDirectFloatsSketch((WritableMemory) srcMem, null, memVal);
+    if (memVal.sketchStructure == UPDATABLE) {
+      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer(); //dummy
+      return new KllDirectFloatsSketch(memVal.sketchStructure, (WritableMemory)srcMem, memReqSvr, memVal);
     } else {
-      return new KllDirectCompactFloatsSketch(srcMem, memVal);
+      return new KllDirectCompactFloatsSketch(memVal.sketchStructure, srcMem, memVal);
     }
   }
+
+  //Factory to wrap a WritableMemory image
 
   /**
    * Wrap a sketch around the given source Writable Memory containing sketch data
@@ -157,14 +159,16 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
-    if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE && !srcMem.isReadOnly()) {
-        Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
-      return new KllDirectFloatsSketch(srcMem, memReqSvr, memVal);
+    if (memVal.sketchStructure == UPDATABLE) {
+      return new KllDirectFloatsSketch(UPDATABLE, srcMem, memReqSvr, memVal);
     } else {
-      return new KllDirectCompactFloatsSketch(srcMem, memVal);
+      return new KllDirectCompactFloatsSketch(memVal.sketchStructure, srcMem, memVal);
     }
   }
+
+  //END of Constructors
 
   /**
    * Returns upper bound on the serialized size of a KllFloatsSketch given the following parameters.
@@ -293,12 +297,12 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public QuantilesFloatsSketchIterator iterator() {
-    return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(), getNumLevels());
+    return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
   @Override
   public final void merge(final KllSketch other) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly || sketchStructure != UPDATABLE) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final KllFloatsSketch othFltSk = (KllFloatsSketch)other;
     if (othFltSk.isEmpty()) { return; }
     KllFloatsHelper.mergeFloatImpl(this, othFltSk);
@@ -358,13 +362,16 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   }
 
   @Override
+  abstract byte[] getRetainedDataByteArr();
+
+  @Override
   int getRetainedDataSizeBytes() {
     return getNumRetained() * Float.BYTES;
   }
 
   @Override
   final byte[] getSingleItemByteArr() {
-    final byte[] bytes = new byte[4];
+    final byte[] bytes = new byte[ITEM_BYTES];
     putFloatLE(bytes, 0, getFloatSingleItem());
     return bytes;
   }
@@ -373,6 +380,12 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   int getSingleItemSizeBytes() {
     return Float.BYTES;
   }
+
+  @Override
+  abstract byte[] getTotalItemDataByteArr();
+
+  @Override
+  abstract int getTotalItemDataBytes();
 
   private final void refreshSortedView() {
     kllFloatsSV = (kllFloatsSV == null) ? new KllFloatsSketchSortedView(this) : kllFloatsSV;
@@ -388,83 +401,23 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public byte[] toByteArray() {
-    return toByteArray(false);
-  }
-
-  @SuppressWarnings("unused") //debug
-  byte[] toByteArray(final boolean updatable) {
-    //ints 0,1
-    final byte preInts = (getN() <= 1 && !updatable) ? PREAMBLE_INTS_EMPTY_SINGLE  : PREAMBLE_INTS_FULL;
-    final byte serVer = updatable
-        ? SERIAL_VERSION_UPDATABLE
-        : isSingleItem() ? SERIAL_VERSION_SINGLE : SERIAL_VERSION_EMPTY_FULL;
-    final byte famId = (byte)(KLL.getID());
-    final byte flags = (byte) (isEmpty()
-        ? EMPTY_BIT_MASK
-        : isLevelZeroSorted() ? LEVEL_ZERO_SORTED_BIT_MASK : 0);
-    final short k = (short) getK();
-    final byte m = (byte) getM();
-    //ints 2,3
-    final long n = getN();
-    //ints 4
-    final short minK = (short) getMinK();
-    final byte numLevels = (byte) getNumLevels();
-    //end of full preamble
-    final int[] myLevelsArr = updatable ? getLevelsArray() : Arrays.copyOf(levelsArr, levelsArr.length - 1);
-    final float minItem = isEmpty() ? Float.NaN : getMinItem();
-    final float maxItem = isEmpty() ? Float.NaN : getMaxItem();
-    //printFloatArr(getFloatItemsArray());
-    //printFloatArr(getFloatRetainedItemsArray());
-    final float[] itemsArr = updatable ? getFloatItemsArray() : getFloatRetainedItemsArray();
-    final Memory mem = Memory.wrap(this.getFloatItemsArray()); //debug
-    //compute total bytes out
-    final int totalBytes;
-    if (!updatable && isEmpty()) { totalBytes = DATA_START_ADR_SINGLE_ITEM; }
-    else if (!updatable && isSingleItem()) { totalBytes = DATA_START_ADR_SINGLE_ITEM + getSingleItemSizeBytes(); }
-    else { totalBytes =
-        DATA_START_ADR + myLevelsArr.length * Integer.BYTES + 2 * Float.BYTES + itemsArr.length * Float.BYTES; }
-    final byte[] bytesOut = new byte[totalBytes];
-    final WritableBuffer wbuf = WritableMemory.writableWrap(bytesOut).asWritableBuffer(ByteOrder.LITTLE_ENDIAN);
-    //load first 8 bytes
-    wbuf.putByte(preInts);
-    wbuf.putByte(serVer);
-    wbuf.putByte(famId);
-    wbuf.putByte(flags);
-    wbuf.putShort(k);
-    wbuf.putByte(m);
-    wbuf.incrementPosition(1);
-    if (!updatable && isEmpty()) {
-      return bytesOut;
-    }
-    if (!updatable && isSingleItem()) {
-      wbuf.putFloat(wbuf.getPosition(), getFloatSingleItem());
-      return bytesOut;
-    }
-    wbuf.putLong(n);
-    wbuf.putShort(minK);
-    wbuf.putByte(numLevels);
-    wbuf.incrementPosition(1);
-    wbuf.putIntArray(myLevelsArr, 0, myLevelsArr.length);
-    wbuf.putFloat(minItem);
-    wbuf.putFloat(maxItem);
-    wbuf.putFloatArray(itemsArr, 0, itemsArr.length);
-    return bytesOut;
+    return KllHelper.toByteArray(this, false);
   }
 
   void printIntArr(final int[] intArr) {
     println("Int Array");
-    for (int i = 0; i < intArr.length; i++) { System.out.println(i + ", " + intArr[i]); }
+    for (int i = 0; i < intArr.length; i++) { println(i + ", " + intArr[i]); }
     println("");
 
   }
 
   void printFloatArr(final float[] fltArr) {
     println("Float Array");
-    for (int i = 0; i < fltArr.length; i++) { System.out.println(i + ", " + fltArr[i]); }
+    for (int i = 0; i < fltArr.length; i++) { println(i + ", " + fltArr[i]); }
     println("");
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format

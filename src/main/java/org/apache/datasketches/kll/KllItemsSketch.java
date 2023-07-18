@@ -52,7 +52,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
       final int m,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super(ITEMS_SKETCH, null, null);
+    super(ITEMS_SKETCH, SketchStructure.UPDATABLE, null, null);
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "SerDe must not be null.");
     KllHelper.checkM(m);

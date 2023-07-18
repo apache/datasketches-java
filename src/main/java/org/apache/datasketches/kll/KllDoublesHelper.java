@@ -61,7 +61,7 @@ final class KllDoublesHelper {
     final int adjBeg = oddPop ? rawBeg + 1 : rawBeg;
     final int adjPop = oddPop ? rawPop - 1 : rawPop;
     final int halfAdjPop = adjPop / 2;
-    
+
     //the following is specific to Doubles
     final double[] myDoubleItemsArr = dblSk.getDoubleItemsArray();
     if (level == 0) { // level zero might not be sorted, so we must sort it if we wish to compact it
@@ -102,8 +102,8 @@ final class KllDoublesHelper {
     }
     dblSk.setDoubleItemsArray(myDoubleItemsArr);
   }
-  
-  //Must not be empty
+
+  //Must not be empty, must be writable and sketchStructure = UPDATABLE
   static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllDoublesSketch otherDblSk) {
     final long finalN = mySketch.getN() + otherDblSk.getN();
     final int otherNumLevels = otherDblSk.getNumLevels();
@@ -180,7 +180,7 @@ final class KllDoublesHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mySketch.serialVersionUpdatable) {
+      if (mySketch.wmem != null) {
         mySketch.wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
       }
     }

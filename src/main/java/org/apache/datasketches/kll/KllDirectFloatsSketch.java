@@ -20,20 +20,14 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
-import static org.apache.datasketches.common.ByteArrayUtil.putFloatLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryK;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryLevelZeroSortedFlag;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryM;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryNumLevels;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryPreInts;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryFamilyID;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryK;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryLevelZeroSortedFlag;
@@ -47,6 +41,11 @@ import static org.apache.datasketches.kll.KllSketch.Error.EMPTY;
 import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
+import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.ByteArrayUtil;
@@ -65,28 +64,35 @@ import org.apache.datasketches.memory.WritableMemory;
 class KllDirectFloatsSketch extends KllFloatsSketch {
 
   /**
-   * The constructor with WritableMemory that can be off-heap.
+   * The constructor with WritableMemory that points to off-heap.
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object
    */
-  KllDirectFloatsSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr, final KllMemoryValidate memVal) {
-    super(wmem, memReqSvr);
-    levelsArr = memVal.levelsArr; //converted to writable form if required.
+  KllDirectFloatsSketch( //called by below and KllFloatsSketch wrap and WritableWrap
+      final SketchStructure sketchStructure,
+      final WritableMemory wmem,
+      final MemoryRequestServer memReqSvr,
+      final KllMemoryValidate memVal) {
+    super(sketchStructure, wmem, memReqSvr);
+    levelsArr = memVal.levelsArr; //always converted to writable form.
   }
 
   /**
-   * Create a new instance of this sketch.
+   * Create a new updatable, direct instance of this sketch.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width in items.
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new instance of this sketch
    */
-  static KllDirectFloatsSketch newDirectInstance(final int k, final int m, final WritableMemory dstMem,
+  static KllDirectFloatsSketch newDirectUpdatableInstance( //called by KllSketch.newDirectInstance & test
+      final int k,
+      final int m,
+      final WritableMemory dstMem,
       final MemoryRequestServer memReqSvr) {
-    setMemoryPreInts(dstMem, PREAMBLE_INTS_FULL);
-    setMemorySerVer(dstMem, SERIAL_VERSION_UPDATABLE);
+    setMemoryPreInts(dstMem, UPDATABLE.getPreInts());
+    setMemorySerVer(dstMem, UPDATABLE.getSerVer());
     setMemoryFamilyID(dstMem, Family.KLL.getID());
     setMemoryK(dstMem, k);
     setMemoryM(dstMem, m);
@@ -94,17 +100,18 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     setMemoryMinK(dstMem, k);
     setMemoryNumLevels(dstMem, 1);
     int offset = DATA_START_ADR;
+    //new Levels array
     dstMem.putIntArray(offset, new int[] {k, k}, 0, 2);
     offset += 2 * Integer.BYTES;
+    //new min/max array
     dstMem.putFloatArray(offset, new float[] {Float.NaN, Float.NaN}, 0, 2);
     offset += 2 * ITEM_BYTES;
+    //new empty items array
     dstMem.putFloatArray(offset, new float[k], 0, k);
-    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, FLOATS_SKETCH, null);
-    return new KllDirectFloatsSketch(dstMem, memReqSvr, memVal);
-  }
 
-  private int levelsArrBytes() {
-    return Integer.BYTES * (serialVersionUpdatable ? getLevelsArray().length : getLevelsArray().length - 1);
+    final KllMemoryValidate memVal = new KllMemoryValidate(dstMem, FLOATS_SKETCH, null);
+    final WritableMemory wMem = dstMem;
+    return new KllDirectFloatsSketch(UPDATABLE, wMem, memReqSvr, memVal);
   }
 
   @Override
@@ -114,66 +121,84 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   public float getMaxItem() {
-    if (isEmpty()) { kllSketchThrow(EMPTY); }
-    if (isSingleItem()) { return getFloatSingleItem(); }
-    final int offset =  DATA_START_ADR + levelsArrBytes() + ITEM_BYTES;
+    int levelsArrBytes = 0;
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { kllSketchThrow(EMPTY); }
+    else if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
+    else if (sketchStructure == COMPACT_FULL) {
+      levelsArrBytes = getLevelsArrBytes(COMPACT_FULL);
+    } else { //UPDATABLE
+      levelsArrBytes = getLevelsArrBytes(UPDATABLE);
+    }
+    final int offset =  DATA_START_ADR + levelsArrBytes + ITEM_BYTES;
     return wmem.getFloat(offset);
   }
 
   @Override
   public float getMinItem() {
-    if (isEmpty()) { kllSketchThrow(EMPTY); }
-    if (isSingleItem()) { return getFloatSingleItem(); }
-    final int offset =  DATA_START_ADR + levelsArrBytes();
+    int levelsArrBytes = 0;
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { kllSketchThrow(EMPTY); }
+    else if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
+    else if (sketchStructure == COMPACT_FULL) {
+      levelsArrBytes = getLevelsArrBytes(COMPACT_FULL);
+    } else { //UPDATABLE
+      levelsArrBytes = getLevelsArrBytes(UPDATABLE);
+    }
+    final int offset =  DATA_START_ADR + levelsArrBytes;
     return wmem.getFloat(offset);
   }
 
   @Override
   public long getN() {
-    if (getMemoryPreInts(wmem) == PREAMBLE_INTS_FULL) { return getMemoryN(wmem); }
-    else if (getMemorySerVer(wmem) == SERIAL_VERSION_SINGLE) { return 1; }
-    else { return 0; }
+    if (sketchStructure == COMPACT_EMPTY) { return 0; }
+    else if (sketchStructure == COMPACT_SINGLE) { return 1; }
+    else { return getMemoryN(wmem); }
   }
 
   //restricted
 
-  @Override //returns updatable, expanded array including empty space at bottom
+  @Override //returns updatable, expanded array including empty/garbage space at bottom
   float[] getFloatItemsArray() {
     final int k = getK();
-    if (isEmpty()) { return new float[k]; }
-    if (isSingleItem()) {
+    if (sketchStructure == COMPACT_EMPTY) { return new float[k]; }
+    if (sketchStructure == COMPACT_SINGLE) {
       final float[] itemsArr = new float[k];
       itemsArr[k - 1] = getFloatSingleItem();
       return itemsArr;
     }
     final int capacityItems = KllHelper.computeTotalItemCapacity(k, getM(), getNumLevels());
     final float[] floatItemsArr = new float[capacityItems];
-    final int offset = DATA_START_ADR + levelsArrBytes() + 2 * ITEM_BYTES;
-    final int shift = serialVersionUpdatable ? 0 : levelsArr[0];
-    wmem.getFloatArray(offset, floatItemsArr, shift, capacityItems - shift);
+    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
+    final int shift = (sketchStructure == COMPACT_FULL) ? levelsArr[0] : 0;
+    final int numItems = (sketchStructure == COMPACT_FULL) ? getNumRetained() : capacityItems;
+    wmem.getFloatArray(offset, floatItemsArr, shift, numItems);
     return floatItemsArr;
   }
 
-  @Override //returns items array of retained items.
+  @Override //returns compact items array of retained items, no empty/garbage.
   float[] getFloatRetainedItemsArray() {
-    if (isEmpty()) { return new float[0]; }
-    if (isSingleItem()) { return new float[] { getFloatSingleItem() }; }
+    if (sketchStructure == COMPACT_EMPTY) { return new float[0]; }
+    if (sketchStructure == COMPACT_SINGLE) { return new float[] { getFloatSingleItem() }; }
     final int numRetained = getNumRetained();
-    final float[] out = new float[numRetained];
-    final int offset = DATA_START_ADR + levelsArrBytes() + 2 * ITEM_BYTES;
-    wmem.getFloatArray(offset, out, 0, numRetained);
-    return out;
+    final float[] floatItemsArr = new float[numRetained];
+    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES
+        + (sketchStructure == COMPACT_FULL ? 0 : levelsArr[0] * ITEM_BYTES);
+    wmem.getFloatArray(offset, floatItemsArr, 0, numRetained);
+    return floatItemsArr;
   }
 
   @Override
   float getFloatSingleItem() {
     if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); }
-    if (getMemoryPreInts(wmem) == PREAMBLE_INTS_FULL) {
-      final int k = getK();
-      final int offset = DATA_START_ADR + levelsArrBytes() + (2 + k - 1) * ITEM_BYTES; //2 for min/max
-      return wmem.getFloat(offset);
+    if (sketchStructure == COMPACT_SINGLE) {
+      return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
     }
-    return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
+    final int offset;
+    if (sketchStructure == COMPACT_FULL) {
+      offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
+    } else { //sketchStructure == UPDATABLE
+      offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + (2 + getK() - 1) * ITEM_BYTES;
+    }
+    return wmem.getFloat(offset);
   }
 
   @Override
@@ -183,45 +208,60 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   int getMinK() {
-    if (getMemoryPreInts(wmem) == PREAMBLE_INTS_FULL) {
-      return getMemoryMinK(wmem);
-    } else { return getK(); }
+    if (sketchStructure == COMPACT_FULL || sketchStructure == UPDATABLE) { return getMemoryMinK(wmem); }
+    else { return getK(); }
   }
 
   @Override
   byte[] getMinMaxByteArr() {
     final byte[] bytesOut = new byte[2 * ITEM_BYTES];
-    if (getMemoryPreInts(wmem) == PREAMBLE_INTS_FULL) {
-      int offset = DATA_START_ADR + getLevelsArray().length * Integer.BYTES;
-      wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
-      offset += ITEM_BYTES;
-      wmem.getByteArray(offset, bytesOut, ITEM_BYTES, ITEM_BYTES);
-    } else if (getMemorySerVer(wmem) == SERIAL_VERSION_SINGLE) {
-      final int offset = DATA_START_ADR_SINGLE_ITEM;
-      wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
-      copyBytes(bytesOut, 0, bytesOut, ITEM_BYTES, ITEM_BYTES);
-    } else { //empty
+    if (sketchStructure == COMPACT_EMPTY) {
       ByteArrayUtil.putFloatLE(bytesOut, 0, Float.NaN);
       ByteArrayUtil.putFloatLE(bytesOut, ITEM_BYTES, Float.NaN);
+      return bytesOut;
     }
+    final int offset;
+    if (sketchStructure == COMPACT_SINGLE) {
+      offset = DATA_START_ADR_SINGLE_ITEM;
+      wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
+      copyBytes(bytesOut, 0, bytesOut, ITEM_BYTES, ITEM_BYTES);
+      return bytesOut;
+    }
+    //sketchStructure == UPDATABLE OR COMPACT_FULL
+    offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure);
+    wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
+    wmem.getByteArray(offset + ITEM_BYTES, bytesOut, ITEM_BYTES, ITEM_BYTES);
     return bytesOut;
   }
 
   @Override
   byte[] getRetainedDataByteArr() {
-    if (isEmpty()) { return new byte[0]; }
-    final byte[] bytesOut;
-    if (isSingleItem()) {
-      bytesOut = new byte[ITEM_BYTES];
-      putFloatLE(bytesOut, 0, getFloatSingleItem());
-      return bytesOut;
+    if (sketchStructure == COMPACT_EMPTY) { return new byte[0]; }
+    final float[] fltArr = getFloatRetainedItemsArray();
+    final byte[] fltByteArr = new byte[fltArr.length * ITEM_BYTES];
+    final WritableMemory wmem2 = WritableMemory.writableWrap(fltByteArr);
+    wmem2.putFloatArray(0, fltArr, 0, fltArr.length);
+    return fltByteArr;
+  }
+
+  @Override
+  byte[] getTotalItemDataByteArr() {
+    final float[] fltArr = getFloatItemsArray();
+    final byte[] fltByteArr = new byte[fltArr.length * ITEM_BYTES];
+    final WritableMemory wmem2 = WritableMemory.writableWrap(fltByteArr);
+    wmem2.putFloatArray(0, fltArr, 0, fltArr.length);
+    return fltByteArr;
+  }
+
+  @Override
+  int getTotalItemDataBytes() {
+    final int capacityItems = levelsArr[getNumLevels()];
+    if (sketchType == FLOATS_SKETCH || sketchType == DOUBLES_SKETCH) {
+      return capacityItems * ITEM_BYTES;
     }
-    final int retained = getNumRetained();
-    final int bytes = retained * ITEM_BYTES;
-    bytesOut = new byte[bytes];
-    final WritableMemory wmem = WritableMemory.writableWrap(bytesOut);
-    wmem.putFloatArray(0, getFloatItemsArray(), levelsArr[0], retained);
-    return bytesOut;
+    else {
+      return 0; //ITEMS_SKETCH //TODO
+    }
   }
 
   @Override
@@ -246,7 +286,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   void setFloatItemsArray(final float[] floatItems) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    final int offset = DATA_START_ADR + levelsArrBytes() + 2 * ITEM_BYTES;
+    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
     wmem.putFloatArray(offset, floatItems, 0, floatItems.length);
   }
 
@@ -254,7 +294,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   void setFloatItemsArrayAt(final int index, final float item) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     final int offset =
-        DATA_START_ADR + levelsArrBytes() + (index + 2) * ITEM_BYTES;
+        DATA_START_ADR + getLevelsArrBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putFloat(offset, item);
   }
 
@@ -267,14 +307,14 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   void setMaxItem(final float item) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    final int offset = DATA_START_ADR + levelsArrBytes() + ITEM_BYTES;
+    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + ITEM_BYTES;
     wmem.putFloat(offset, item);
   }
 
   @Override
   void setMinItem(final float item) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
-    final int offset = DATA_START_ADR + levelsArrBytes();
+    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure);
     wmem.putFloat(offset, item);
   }
 

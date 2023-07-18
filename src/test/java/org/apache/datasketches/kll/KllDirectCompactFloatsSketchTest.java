@@ -35,12 +35,14 @@ public class KllDirectCompactFloatsSketchTest {
   public void checkRODirectUpdatable() {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    for (int i = 1; i <= k; i++) { sk.update(i); }
+    sk.update(k + 1);
+    byte[] byteArr = KllHelper.toByteArray(sk, false);
     Memory srcMem = Memory.wrap(byteArr);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
     assertEquals(sk2.getMinItem(), 1.0F);
     assertEquals(sk2.getMaxItem(), 21.0F);
+    //println(KllPreambleUtil.toString(srcMem, SketchType.FLOATS_SKETCH, true));
   }
 
   @Test
@@ -54,7 +56,7 @@ public class KllDirectCompactFloatsSketchTest {
     assertEquals(sk2.getMinItem(), 1.0F);
     assertEquals(sk2.getMaxItem(), 21.0F);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
-    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, null);
+    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, memReqSvr);
     assertEquals(sk3.getMinItem(), 1.0F);
     assertEquals(sk3.getMaxItem(), 21.0F);
   }
@@ -108,7 +110,7 @@ public class KllDirectCompactFloatsSketchTest {
     sk.update(21);
     sk.printFloatArr(sk.getFloatItemsArray());
     sk.printFloatArr(sk.getFloatRetainedItemsArray());
-    byte[] bArr = sk.toByteArray(); //compressed
+    byte[] bArr = sk.toByteArray();
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(bArr));
     println("Retained Items: " + sk2.getNumRetained());
     sk2.printFloatArr(sk2.getFloatItemsArray());
@@ -121,6 +123,7 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
+
     try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     sk.update(1);
@@ -163,16 +166,13 @@ public class KllDirectCompactFloatsSketchTest {
     assertEquals(skDU20.getN(), 21);
   }
 
-  @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
-  }
+  private final static boolean enablePrinting = false;
 
   /**
-   * @param o value to print
+   * @param o the Object to println
    */
-  static void println(final Object o) {
-    System.out.println(o.toString()); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

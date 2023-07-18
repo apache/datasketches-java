@@ -51,11 +51,6 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   }
 
   @Override
-  public Long deserializeOneFromMemory(final Memory mem, final long offset) {
-    return mem.getLong(offset);
-  }
-
-  @Override
   @Deprecated
   public Long[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
@@ -82,6 +77,11 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
   @Override
   public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
     return numItems * Long.BYTES;
+  }
+
+  @Override
+  public String toString(final Long item) {
+    return item.toString();
   }
 
 }

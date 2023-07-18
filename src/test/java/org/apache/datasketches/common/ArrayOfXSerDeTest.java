@@ -30,10 +30,11 @@ public class ArrayOfXSerDeTest {
     bytes = serDe.sizeOf(item);
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
+    assertEquals(serDe.toString(item), item.toString());
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Boolean deItem = serDe.deserializeOneFromMemory(wmem, offset);
+    Boolean deItem = serDe.deserializeFromMemory(wmem, offset, 1)[0];
     assertEquals(deItem, item);
     assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
   }
@@ -62,10 +63,11 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
+    assertEquals(serDe.toString(item), item.toString());
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Double deItem = serDe.deserializeOneFromMemory(wmem, offset);
+    Double deItem = serDe.deserializeFromMemory(wmem, offset, 1)[0];
     assertEquals(deItem, item);
     assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
   }
@@ -94,10 +96,11 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(item);
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
+    assertEquals(serDe.toString(item), item.toString());
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Long deItem = serDe.deserializeOneFromMemory(wmem, offset);
+    Long deItem = serDe.deserializeFromMemory(wmem, offset, 1)[0];
     assertEquals(deItem, item);
     assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
   }
@@ -117,7 +120,7 @@ public class ArrayOfXSerDeTest {
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    Number deSer1 = serDe.deserializeOneFromMemory(wmem, offset);
+    Number deSer1 = serDe.deserializeFromMemory(wmem, offset, 1)[0];
     assertEquals(deSer1,item);
     assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
 
@@ -137,6 +140,7 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(new Number[] {item});
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
+    assertEquals(serDe.toString(item), item.toString());
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
@@ -160,7 +164,7 @@ public class ArrayOfXSerDeTest {
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String deSer1 = serDe.deserializeOneFromMemory(wmem, offset);
+    String deSer1 = serDe.deserializeFromMemory(wmem, offset, 1)[0];
     assertEquals(deSer1,item);
     assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
 
@@ -180,6 +184,7 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(new String[] {item});
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
+    assertEquals(serDe.toString(item), item.toString());
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
@@ -203,7 +208,7 @@ public class ArrayOfXSerDeTest {
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
-    String deSer1 = serDe.deserializeOneFromMemory(wmem, offset);
+    String deSer1 = serDe.deserializeFromMemory(wmem, offset, 1)[0];
     assertEquals(deSer1,item);
     assertEquals(serDe.sizeOf(wmem, offset, 1), bytes);
 
@@ -223,6 +228,7 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(new String[] {item});
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
+    assertEquals(serDe.toString(item), item.toString());
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);

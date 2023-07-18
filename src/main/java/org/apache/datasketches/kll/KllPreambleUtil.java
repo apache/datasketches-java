@@ -21,10 +21,15 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.common.Family.idToFamily;
 import static org.apache.datasketches.common.Util.zeroPad;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.kll.KllSketch.SketchStructure;
 import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -100,6 +105,16 @@ import org.apache.datasketches.memory.WritableMemory;
  *                       {   Min Item   }
  *                       {   Max Item   }
  *                       { Items Array  }
+ *
+ * Serialization Combinations for SerVer and PreambleInts
+ * | Sketch Structure | SerVer         | PreInts          |
+ * |------------------|----------------|------------------|
+ * | Compact Empty    | Empty/Full (1) | Empty/Single (2) | ReadOnly, 8 byte Preamble, nothing else
+ * | Compact Single   | Single (2)     | Empty/Single (2) | ReadOnly, 8 byte Preamble + Single Item
+ * | Compact Full     | Empty/Full (1) | Full (5)         | ReadOnly, 20 Byte Preamble, Short LevelsArr, Retained Items
+ * | Updatable        | Updatable (3)  | Full (5)         | Updatable, 20 Byte Preamble, Full LevelsArr, All Items
+ * | ERROR            | Single (2)     | Full (5)         |
+ * | ERROR            | Updatable (3)  | Empty/Single (2) |
  * }</pre>
  *
  *  @author Lee Rhodes
@@ -193,13 +208,13 @@ final class KllPreambleUtil<T> {
   static String toString(final Memory mem, final SketchType sketchType, final boolean includeData,
       final ArrayOfItemsSerDe<?> serDe) {
     final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType, serDe);
+    final SketchStructure myStructure = memVal.sketchStructure;
     final int flags = memVal.flags & 0XFF;
     final String flagsStr = (flags) + ", 0x" + (Integer.toHexString(flags)) + ", "
         + zeroPad(Integer.toBinaryString(flags), 8);
-    final int preInts = memVal.preInts;
-    final boolean serialVersionUpdatable = getMemorySerVer(mem) == SERIAL_VERSION_UPDATABLE;
-    final boolean empty = memVal.empty;
-    final boolean singleItem = memVal.singleItemFormat;
+    final int preInts = memVal.preInts; //??
+    //final boolean updatable = mySketchStructure == UPDATABLE;
+    final boolean emptyFlag = memVal.emptyFlag;
     final int sketchBytes = memVal.sketchBytes;
     final int typeBytes = sketchType == DOUBLES_SKETCH ? Double.BYTES : Float.BYTES;
     final int familyID = getMemoryFamilyID(mem);
@@ -207,37 +222,36 @@ final class KllPreambleUtil<T> {
 
     final StringBuilder sb = new StringBuilder();
     sb.append(Util.LS).append("### KLL SKETCH MEMORY SUMMARY:").append(LS);
-    sb.append("Byte   0   : Preamble Ints       : ").append(preInts).append(LS);
-    sb.append("Byte   1   : SerVer              : ").append(memVal.serVer).append(LS);
-    sb.append("Byte   2   : FamilyID            : ").append(memVal.familyID).append(LS);
-    sb.append("             FamilyName          : ").append(famName).append(LS);
-    sb.append("Byte   3   : Flags Field         : ").append(flagsStr).append(LS);
-    sb.append("         Bit Flag Name").append(LS);
-    sb.append("           0 EMPTY COMPACT       : ").append(empty).append(LS);
-    sb.append("           1 LEVEL_ZERO_SORTED   : ").append(memVal.level0Sorted).append(LS);
-    sb.append("           2 SINGLE_ITEM COMPACT : ").append(singleItem).append(LS);
-    sb.append("           3 DOUBLES_SKETCH      : ").append(sketchType == DOUBLES_SKETCH).append(LS);
-    sb.append("           4 UPDATABLE           : ").append(serialVersionUpdatable).append(LS);
-    sb.append("Bytes  4-5 : K                   : ").append(memVal.k).append(LS);
-    sb.append("Byte   6   : Min Level Cap, M    : ").append(memVal.m).append(LS);
-    sb.append("Byte   7   : (Reserved)          : ").append(LS);
+    sb.append("Sketch Type                          : ").append(sketchType.toString()).append(LS);
+    sb.append("SketchStructure                      : ").append(myStructure.toString()).append(LS);
+    sb.append("Byte   0       : Preamble Ints       : ").append(preInts).append(LS);
+    sb.append("Byte   1       : SerVer              : ").append(memVal.serVer).append(LS);
+    sb.append("Byte   2       : FamilyID            : ").append(memVal.familyID).append(LS);
+    sb.append("               : FamilyName          : ").append(famName).append(LS);
+    sb.append("Byte   3       : Flags Field         : ").append(flagsStr).append(LS);
+    sb.append("            Bit: Flag Name           : ").append(LS);
+    sb.append("              0: EMPTY               : ").append(emptyFlag).append(LS);
+    sb.append("              1: LEVEL_ZERO_SORTED   : ").append(memVal.level0SortedFlag).append(LS);
+    sb.append("Bytes  4-5     : K                   : ").append(memVal.k).append(LS);
+    sb.append("Byte   6       : Min Level Cap, M    : ").append(memVal.m).append(LS);
+    sb.append("Byte   7       : (Reserved)          : ").append(LS);
 
     final long n = memVal.n;
     final int minK = memVal.minK;
     final int numLevels = memVal.numLevels;
-    if (serialVersionUpdatable || (!empty && !singleItem)) {
-        sb.append("Bytes  8-15: N                   : ").append(n).append(LS);
-        sb.append("Bytes 16-17: MinK                : ").append(minK).append(LS);
-        sb.append("Byte  18   : NumLevels           : ").append(numLevels).append(LS);
+    if (myStructure == COMPACT_FULL || myStructure == UPDATABLE) {
+      sb.append("Bytes  8-15    : N                   : ").append(n).append(LS);
+      sb.append("Bytes 16-17    : MinK                : ").append(minK).append(LS);
+      sb.append("Byte  18       : NumLevels           : ").append(numLevels).append(LS);
     }
-    else {
-        sb.append("Assumed    : N                   : ").append(n).append(LS);
-        sb.append("Assumed    : MinK                : ").append(minK).append(LS);
-        sb.append("Assumed    : NumLevels           : ").append(numLevels).append(LS);
+    else { //COMPACT_EMPTY OR COMPACT_SINGLE
+      sb.append("Assumed        : N                   : ").append(n).append(LS);
+      sb.append("Assumed        : MinK                : ").append(minK).append(LS);
+      sb.append("Assumed        : NumLevels           : ").append(numLevels).append(LS);
     }
-    sb.append("PreambleBytes                    : ").append(preInts * 4).append(LS);
-    sb.append("Sketch Bytes                     : ").append(sketchBytes).append(LS);
-    sb.append("Memory Capacity Bytes            : ").append(mem.getCapacity()).append(LS);
+    sb.append("PreambleBytes                        : ").append(preInts * Integer.BYTES).append(LS);
+    sb.append("Sketch Bytes                         : ").append(sketchBytes).append(LS);
+    sb.append("Memory Capacity Bytes                : ").append(mem.getCapacity()).append(LS);
     sb.append("### END KLL Sketch Memory Summary").append(LS);
 
     if (includeData) {
@@ -245,25 +259,30 @@ final class KllPreambleUtil<T> {
       sb.append("### START KLL DATA:").append(LS);
       int offsetBytes = 0;
 
-      if (serialVersionUpdatable) {
+      if (myStructure == UPDATABLE) {
+
         sb.append("LEVELS ARR:").append(LS);
         offsetBytes = DATA_START_ADR;
         for (int i = 0; i < numLevels + 1; i++) {
           sb.append(i + ", " + mem.getInt(offsetBytes)).append(LS);
           offsetBytes += Integer.BYTES;
         }
+
         sb.append("MIN/MAX:").append(LS);
         if (sketchType == DOUBLES_SKETCH) {
           sb.append(mem.getDouble(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(mem.getDouble(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-        } else { //floats
+        } else if (sketchType == FLOATS_SKETCH) {
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
+        } else { //ITEMS_SKETCH
+          sb.append("NOT YET IMPLEMENTED").append(LS);
         }
+
         sb.append("ITEMS DATA").append(LS);
         final int itemsSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (sketchType == DOUBLES_SKETCH) {
@@ -271,33 +290,40 @@ final class KllPreambleUtil<T> {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
-        } else { //floats
+        } else if (sketchType == FLOATS_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
             sb.append(mem.getFloat(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
+        } else { //ITEMS_SKETCH
+          sb.append("NOT YET IMPLEMENTED").append(LS);
         }
 
-      } else if (!empty && !singleItem) { //compact full
+      } else if (myStructure == COMPACT_FULL) {
+
         sb.append("LEVELS ARR:").append(LS);
         offsetBytes = DATA_START_ADR;
         for (int i = 0; i < numLevels; i++) {
           sb.append(i + ", " + mem.getInt(offsetBytes)).append(LS);
           offsetBytes += Integer.BYTES;
         }
-        sb.append("(top level of Levels arr is absent)").append(LS);
+        sb.append("(Top level of Levels arr is absent)").append(LS);
+
         sb.append("MIN/MAX:").append(LS);
         if (sketchType == DOUBLES_SKETCH) {
           sb.append(mem.getDouble(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(mem.getDouble(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
-        } else { //floats
+        } else if (sketchType == FLOATS_SKETCH) {
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
+        } else {  //ITEMS_SKETCH
+          sb.append("NOT YET IMPLEMENTED").append(LS);
         }
+
         sb.append("ITEMS DATA").append(LS);
         final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (sketchType == DOUBLES_SKETCH) {
@@ -305,20 +331,27 @@ final class KllPreambleUtil<T> {
             sb.append(i + ", " + mem.getDouble(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
-        } else { //floats
+        } else if (sketchType == FLOATS_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
             sb.append(i + ", " + mem.getFloat(offsetBytes)).append(LS);
             offsetBytes += typeBytes;
           }
+        } else { //ITEMS_SKETCH
+          sb.append("NOT YET IMPLEMENTED").append(LS);
         }
 
-      } else { //single item
-        if (singleItem) {
+      } else if (myStructure == COMPACT_SINGLE) {
+
           sb.append("SINGLE ITEM DATA").append(LS);
-          sb.append(sketchType == DOUBLES_SKETCH
-              ? mem.getDouble(DATA_START_ADR_SINGLE_ITEM)
-              : mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
-        }
+          if (sketchType == DOUBLES_SKETCH) {
+            sb.append(mem.getDouble(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+          } else if (sketchType == FLOATS_SKETCH) {
+            sb.append(mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
+          } else { //ITEMS_SKETCH
+            sb.append("NOT YET IMPLEMENTED").append(LS);
+          }
+      } else { //COMPACT_EMPTY
+        sb.append("EMPTY, NO DATA").append(LS);
       }
       sb.append("### END KLL DATA:").append(LS);
     }
@@ -331,6 +364,13 @@ final class KllPreambleUtil<T> {
 
   static int getMemorySerVer(final Memory mem) {
     return mem.getByte(SER_VER_BYTE_ADR) & 0XFF;
+  }
+
+  static SketchStructure getMemorySketchStructure(final Memory mem) {
+    final int preInts = getMemoryPreInts(mem);
+    final int serVer = getMemorySerVer(mem);
+    final SketchStructure structure = KllSketch.SketchStructure.getSketchStructure(preInts, serVer);
+    return structure;
   }
 
   static int getMemoryFamilyID(final Memory mem) {

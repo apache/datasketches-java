@@ -58,7 +58,7 @@ public final class KllFloatsSketchSortedView implements FloatsSortedView {
   public KllFloatsSketchSortedView(final KllFloatsSketch sk) {
     this.totalN = sk.getN();
     final float[] srcQuantiles = sk.getFloatItemsArray();
-    final int[] srcLevels = sk.getLevelsArray();
+    final int[] srcLevels = sk.levelsArr;
     final int srcNumLevels = sk.getNumLevels();
 
     if (!sk.isLevelZeroSorted()) {

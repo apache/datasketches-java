@@ -51,11 +51,6 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public Double deserializeOneFromMemory(final Memory mem, final long offset) {
-    return mem.getDouble(offset);
-  }
-
-  @Override
   @Deprecated
   public Double[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
@@ -83,6 +78,11 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   @Override
   public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
     return numItems * Double.BYTES;
+  }
+
+  @Override
+  public String toString(final Double item) {
+    return item.toString();
   }
 
 }

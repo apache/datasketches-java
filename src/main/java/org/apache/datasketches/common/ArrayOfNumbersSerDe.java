@@ -106,47 +106,6 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
   }
 
   @Override
-  public Number deserializeOneFromMemory(final Memory mem, final long offsetBytes) {
-    final Number number;
-    long offset = offsetBytes;
-    Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
-    final byte itemId = mem.getByte(offset);
-    offset += Byte.BYTES;
-
-    switch (itemId) {
-    case LONG_INDICATOR:
-      Util.checkBounds(offset, Long.BYTES, mem.getCapacity());
-      number = mem.getLong(offset);
-      break;
-    case INTEGER_INDICATOR:
-      Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
-      number = mem.getInt(offset);
-      break;
-    case SHORT_INDICATOR:
-      Util.checkBounds(offset, Short.BYTES, mem.getCapacity());
-      number = mem.getShort(offset);
-      break;
-    case BYTE_INDICATOR:
-      Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
-      number = mem.getByte(offset);
-      break;
-    case DOUBLE_INDICATOR:
-      Util.checkBounds(offset, Double.BYTES, mem.getCapacity());
-      number = mem.getDouble(offset);
-      break;
-    case FLOAT_INDICATOR:
-      Util.checkBounds(offset, Float.BYTES, mem.getCapacity());
-      number = mem.getFloat(offset);
-      break;
-    default:
-      throw new SketchesArgumentException(
-          "Item must be one of: Long, Integer, Short, Byte, Double, Float. "
-          + "itemId: " + itemId);
-  }
-    return number;
-  }
-
-  @Override
   @Deprecated
   public Number[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
@@ -263,6 +222,11 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
       }
     }
     return (int)(offset - offsetBytes);
+  }
+
+  @Override
+  public String toString(final Number item) {
+    return item.toString();
   }
 
 }

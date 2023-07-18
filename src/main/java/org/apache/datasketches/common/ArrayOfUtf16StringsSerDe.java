@@ -69,19 +69,6 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
   }
 
   @Override
-  public String deserializeOneFromMemory(final Memory mem, final long offsetBytes) {
-    long offset = offsetBytes;
-    Util.checkBounds(offset, Integer.BYTES, mem.getCapacity());
-    final int itemLenBytes = mem.getInt(offset);
-    offset += Integer.BYTES;
-    final byte[] utf16Bytes = new byte[itemLenBytes];
-    Util.checkBounds(offset, itemLenBytes, mem.getCapacity());
-    mem.getByteArray(offset, utf16Bytes, 0, itemLenBytes);
-    final String out = new String(utf16Bytes, StandardCharsets.UTF_16);
-    return out;
-  }
-
-  @Override
   @Deprecated
   public String[] deserializeFromMemory(final Memory mem, final int numItems) {
     return deserializeFromMemory(mem, 0, numItems);
@@ -121,6 +108,11 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
       offset += itemLenBytes;
     }
     return (int)(offset - offsetBytes);
+  }
+
+  @Override
+  public String toString(final String item) {
+    return item.toString();
   }
 
 }
