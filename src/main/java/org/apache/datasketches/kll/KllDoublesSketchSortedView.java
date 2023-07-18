@@ -58,7 +58,7 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   public KllDoublesSketchSortedView(final KllDoublesSketch sk) {
     this.totalN = sk.getN();
     final double[] srcQuantiles = sk.getDoubleItemsArray();
-    final int[] srcLevels = sk.getLevelsArray();
+    final int[] srcLevels = sk.levelsArr;
     final int srcNumLevels = sk.getNumLevels();
 
     if (!sk.isLevelZeroSorted()) {

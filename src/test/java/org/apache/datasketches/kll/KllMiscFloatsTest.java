@@ -41,14 +41,6 @@ public class KllMiscFloatsTest {
   static final String LS = System.getProperty("line.separator");
   private final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
-
-  @Test
-  public void checkConvertToCumulative() {
-    long[] array = {1,2,3,2,1};
-    long out = KllHelper.convertToCumulative(array);
-    assertEquals(out, 9);
-  }
-
   @Test
   public void checkSortedViewConstruction() {
     final KllFloatsSketch kll = KllFloatsSketch.newHeapInstance(20);
@@ -170,25 +162,6 @@ public class KllMiscFloatsTest {
         println(sk.toString(true, true));
         sk.update(++i);
         println(sk.toString(true, true));
-        assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
-      }
-    }
-  }
-
-  @Test
-  public void viewDirectCompactions() {
-    int k = 20;
-    int u = 21;
-    int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, u, FLOATS_SKETCH, true);
-    WritableMemory wmem = WritableMemory.allocate(sizeBytes);
-    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, wmem, memReqSvr);
-    for (int i = 1; i <= u; i++) {
-      sk.update(i);
-      if (sk.levelsArr[0] == 0) {
-        println(sk.toString(true, true));
-        sk.update(++i);
-        println(sk.toString(true, true));
-        //float[] fltArr = sk.getFloatItemsArray();
         assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
       }
     }
@@ -548,17 +521,17 @@ public class KllMiscFloatsTest {
     int n2 = 43;
     WritableMemory wmem = WritableMemory.allocate(3000);
     WritableMemory wmem2 = WritableMemory.allocate(3000);
+
     KllFloatsSketch sk1 = KllDirectFloatsSketch.newDirectUpdatableInstance(k, m, wmem, memReqSvr);
     KllFloatsSketch sk2 = KllDirectFloatsSketch.newDirectUpdatableInstance(k, m, wmem2, memReqSvr);
     for (int i = 1; i <= n1; i++) {
       sk1.update(i);
-      println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
-      println("");
     }
     for (int i = 1; i <= n2; i++) {
       sk2.update(i + 100);
     }
     sk1.merge(sk2);
+
     assertEquals(sk1.getMinItem(), 1.0);
     assertEquals(sk1.getMaxItem(), 143.0);
   }

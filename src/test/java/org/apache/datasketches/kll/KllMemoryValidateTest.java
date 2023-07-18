@@ -118,7 +118,7 @@ public class KllMemoryValidateTest {
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void checkInvalidDoubleUpdatableAndPreInts() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem, DOUBLES_SKETCH);
@@ -138,7 +138,7 @@ public class KllMemoryValidateTest {
   public void checkInvalidFloatUpdatableFullAndPreInts() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     sk.update(1); sk.update(2);
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     setMemoryPreInts(wmem, PREAMBLE_INTS_EMPTY_SINGLE);
     KllMemoryValidate memVal = new KllMemoryValidate(wmem, FLOATS_SKETCH);

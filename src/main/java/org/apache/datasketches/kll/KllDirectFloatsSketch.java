@@ -254,7 +254,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  int getTotalItemDataBytes() {
+  int getTotalItemDataBytes() { //TODO MOVE THIS UP
     final int capacityItems = levelsArr[getNumLevels()];
     if (sketchType == FLOATS_SKETCH || sketchType == DOUBLES_SKETCH) {
       return capacityItems * ITEM_BYTES;

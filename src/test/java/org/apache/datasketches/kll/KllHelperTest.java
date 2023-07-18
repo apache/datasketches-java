@@ -33,6 +33,13 @@ import org.testng.annotations.Test;
 public class KllHelperTest {
 
   @Test
+  public void checkConvertToCumulative() {
+    long[] array = {1,2,3,2,1};
+    long out = KllHelper.convertToCumulative(array);
+    assertEquals(out, 9);
+  }
+
+  @Test
   public void checkCheckM() {
     try {
       checkM(0);
@@ -79,7 +86,7 @@ public class KllHelperTest {
     assertEquals(KllHelper.ubOnNumLevels(0), 1);
   }
 
-  //@Test  //reenable once DoublesSketch is done
+  //@Test  //re-enable once DoublesSketch is done
   public void checkUpdatableSerDe() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(200);
     for (int i = 1; i <= 533; i++) { sk.update(i); }

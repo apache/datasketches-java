@@ -218,7 +218,7 @@ public class KllDoublesValidationTest {
       }
       int numLevels = sketch.getNumLevels();
       int numSamples = sketch.getNumRetained();
-      int[] levels = sketch.getLevelsArray();
+      int[] levels = sketch.levelsArr;
       long hashedSamples = simpleHashOfSubArray(sketch.getDoubleItemsArray(), levels[0], numSamples);
       System.out.print(testI);
       assert correctResultsWithReset[(7 * testI) + 4] == numLevels;

@@ -22,7 +22,6 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTY_FLAG_AND_COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTY_FLAG_AND_COMPACT_FULL;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTY_FLAG_AND_COMPACT_SINGLE;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.N_AND_COMPACT_FULL;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SRC_NOT_KLL;
 import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.memoryValidateThrow;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;

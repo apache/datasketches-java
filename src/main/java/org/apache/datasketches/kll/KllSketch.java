@@ -316,7 +316,7 @@ public abstract class KllSketch implements QuantilesAPI {
   final int currentSerializedSizeBytes(final boolean updatable) {
     final boolean myUpdatable = sketchType == ITEMS_SKETCH ? false : updatable;
     final long srcN = this.getN();
-    SketchStructure tgtStructure;
+    final SketchStructure tgtStructure;
     if (myUpdatable) { tgtStructure = UPDATABLE; }
     else if (srcN == 0) { tgtStructure = COMPACT_EMPTY; }
     else if (srcN == 1) { tgtStructure = COMPACT_SINGLE; }

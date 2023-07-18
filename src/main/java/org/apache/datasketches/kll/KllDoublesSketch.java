@@ -21,8 +21,7 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
+import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
@@ -33,6 +32,7 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeigh
 import java.util.Objects;
 
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -48,22 +48,40 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
  */
 public abstract class KllDoublesSketch extends KllSketch implements QuantilesDoublesAPI {
   private KllDoublesSketchSortedView kllDoublesSV = null;
+  final static int ITEM_BYTES = Double.BYTES;
 
-  KllDoublesSketch(final WritableMemory wmem, final MemoryRequestServer memReqSvr) {
-    super(SketchType.DOUBLES_SKETCH, wmem, memReqSvr);
+  KllDoublesSketch(
+      final SketchStructure sketchStructure,
+      final WritableMemory wmem,
+      final MemoryRequestServer memReqSvr) {
+    super(SketchType.DOUBLES_SKETCH, sketchStructure, wmem, memReqSvr);
+  }
+
+  //Factories for new heap instances.
+
+  /**
+   * Create a new heap instance of this sketch with the default <em>k = 200</em>.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * @return new KllDoublesSketch on the Java heap.
+   */
+  public static KllDoublesSketch newHeapInstance() {
+    return newHeapInstance(DEFAULT_K);
   }
 
   /**
-   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
-   * The resulting sketch will not retain any link to the source Memory.
-   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
-   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
-   * @return a heap-based sketch based on the given Memory.
+   * Create a new heap instance of this sketch with a given parameter <em>k</em>.
+   * <em>k</em> can be between 8, inclusive, and 65535, inclusive.
+   * The default <em>k</em> = 200 results in a normalized rank error of about
+   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
+   * @param k parameter that controls size of the sketch and accuracy of estimates.
+   * @return new KllDoublesSketch on the Java heap.
    */
-  public static KllDoublesSketch heapify(final Memory srcMem) {
-    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    return KllHeapDoublesSketch.heapifyImpl(srcMem);
+  public static KllDoublesSketch newHeapInstance(final int k) {
+    return new KllHeapDoublesSketch(k, DEFAULT_M);
   }
+
+  //Factories for new direct instances.
 
   /**
    * Create a new direct instance of this sketch with the default <em>k</em>.
@@ -95,27 +113,21 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     return KllDirectDoublesSketch.newDirectInstance(k, DEFAULT_M, dstMem, memReqSvr);
   }
 
-  /**
-   * Create a new heap instance of this sketch with the default <em>k = 200</em>.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-   * @return new KllDoublesSketch on the Java heap.
-   */
-  public static KllDoublesSketch newHeapInstance() {
-    return newHeapInstance(DEFAULT_K);
-  }
+  //Factory to create an heap instance from a Memory image
 
   /**
-   * Create a new heap instance of this sketch with a given parameter <em>k</em>.
-   * <em>k</em> can be between 8, inclusive, and 65535, inclusive.
-   * The default <em>k</em> = 200 results in a normalized rank error of about
-   * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-   * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * @return new KllDoublesSketch on the Java heap.
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch.
+   * <a href="{@docRoot}/resources/dictionary.html#mem">See Memory</a>
+   * @return a heap-based sketch based on the given Memory.
    */
-  public static KllDoublesSketch newHeapInstance(final int k) {
-    return new KllHeapDoublesSketch(k, DEFAULT_M);
+  public static KllDoublesSketch heapify(final Memory srcMem) {
+    Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    return KllHeapDoublesSketch.heapifyImpl(srcMem);
   }
+
+  //Factory to wrap a Read-Only Memory
 
   /**
    * Wrap a sketch around the given read only compact source Memory containing sketch data
@@ -125,13 +137,16 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    */
   public static KllDoublesSketch wrap(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
-    if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE) {
-      return new KllDirectDoublesSketch((WritableMemory) srcMem, null, memVal);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH, null);
+    if (memVal.sketchStructure == UPDATABLE) {
+      final MemoryRequestServer memReqSvr = new DefaultMemoryRequestServer(); //dummy
+      return new KllDirectDoublesSketch(memVal.sketchStructure, (WritableMemory)srcMem, memReqSvr, memVal);
     } else {
-      return new KllDirectCompactDoublesSketch(srcMem, memVal);
+      return new KllDirectCompactDoublesSketch(memVal.sketchStructure, srcMem, memVal);
     }
   }
+
+  //Factory to wrap a WritableMemory image
 
   /**
    * Wrap a sketch around the given source Writable Memory containing sketch data
@@ -144,14 +159,16 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       final WritableMemory srcMem,
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
+    Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
     final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, DOUBLES_SKETCH);
-    if (getMemorySerVer(srcMem) == SERIAL_VERSION_UPDATABLE && !srcMem.isReadOnly()) {
-      Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
-      return new KllDirectDoublesSketch(srcMem, memReqSvr, memVal);
+    if (memVal.sketchStructure == UPDATABLE) {
+      return new KllDirectDoublesSketch(UPDATABLE, srcMem, memReqSvr, memVal);
     } else {
-      return new KllDirectCompactDoublesSketch(srcMem, memVal);
+      return new KllDirectCompactDoublesSketch(memVal.sketchStructure, srcMem, memVal);
     }
   }
+
+  //END of Constructors
 
   /**
    * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
@@ -169,18 +186,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     refreshSortedView();
     return kllDoublesSV.getCDF(splitPoints, searchCrit);
-  }
-
-  @Override
-  public double getMaxItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getMaxDoubleItem();
-  }
-
-  @Override
-  public double getMinItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
-    return getMinDoubleItem();
   }
 
   @Override
@@ -292,13 +297,14 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public QuantilesDoublesSketchIterator iterator() {
-    return new KllDoublesSketchIterator(getDoubleItemsArray(), getLevelsArray(), getNumLevels());
+    return new KllDoublesSketchIterator(
+        getDoubleItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
   @Override
   public final void merge(final KllSketch other) {
-    final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
     if (readOnly || sketchStructure != UPDATABLE) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
     if (othDblSk.isEmpty()) { return; }
     KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
     kllDoublesSV = null;
@@ -317,15 +323,15 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     setNumLevels(1);
     setLevelZeroSorted(false);
     setLevelsArray(new int[] {k, k});
-    setMinDoubleItem(Double.NaN);
-    setMaxDoubleItem(Double.NaN);
+    setMinItem(Double.NaN);
+    setMaxItem(Double.NaN);
     setDoubleItemsArray(new double[k]);
   }
 
-  @Override
-  public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this, null);
-  }
+//  @Override
+//  public byte[] toByteArray() {
+//    return KllHelper.toCompactByteArrayImpl(this, null);
+//  }
 
   @Override
   public void update(final double item) {
@@ -336,26 +342,51 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   //restricted
 
-  @Override
-  int getDataBlockBytes(final int numItemsAndMinMax) {
-    return numItemsAndMinMax * Double.BYTES;
-  }
-
   /**
-   * @return full size of internal items array including garbage.
+   * @return full size of internal items array including empty space at bottom.
    */
   abstract double[] getDoubleItemsArray();
 
+  /**
+   * @return items array of retained items.
+   */
+  abstract double[] getDoubleRetainedItemsArray();
+
   abstract double getDoubleSingleItem();
 
-  abstract double getMaxDoubleItem();
-
-  abstract double getMinDoubleItem();
+  @Override
+  abstract byte[] getMinMaxByteArr();
 
   @Override
-  final int getTheSingleItemBytes() {
+  int getMinMaxSizeBytes() {
+    return Double.BYTES * 2;
+  }
+
+  @Override
+  abstract byte[] getRetainedDataByteArr();
+
+  @Override
+  int getRetainedDataSizeBytes() {
+    return getNumRetained() * Double.BYTES;
+  }
+
+  @Override
+  final byte[] getSingleItemByteArr() {
+    final byte[] bytes = new byte[ITEM_BYTES];
+    putDoubleLE(bytes, 0, getDoubleSingleItem());
+    return bytes;
+  }
+
+  @Override
+  int getSingleItemSizeBytes() {
     return Double.BYTES;
   }
+
+  @Override
+  abstract byte[] getTotalItemDataByteArr();
+
+  @Override
+  abstract int getTotalItemDataBytes();
 
   private final void refreshSortedView() {
     kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
@@ -365,8 +396,45 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setDoubleItemsArrayAt(int index, double item);
 
-  abstract void setMaxDoubleItem(double item);
+  abstract void setMaxItem(double item);
 
-  abstract void setMinDoubleItem(double item);
+  abstract void setMinItem(double item);
+
+  @Override
+  public byte[] toByteArray() {
+    return KllHelper.toByteArray(this, false);
+  }
+
+  //TEMPORARY, HERE FOR DEBUGGING
+
+  void printIntArr(final int[] intArr) {
+    println("Int Array");
+    for (int i = 0; i < intArr.length; i++) { println(i + ", " + intArr[i]); }
+    println("");
+
+  }
+
+  void printDoubleArr(final double[] dblArr) {
+    println("Double Array");
+    for (int i = 0; i < dblArr.length; i++) { println(i + ", " + dblArr[i]); }
+    println("");
+  }
+
+  private final static boolean enablePrinting = false;
+
+  /**
+   * @param format the format
+   * @param args the args
+   */
+  static final void printf(final String format, final Object ...args) {
+    if (enablePrinting) { System.out.printf(format, args); }
+  }
+
+  /**
+   * @param o the Object to println
+   */
+  static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
+  }
 
 }

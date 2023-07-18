@@ -93,10 +93,10 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
     final SketchStructure memStructure = memValidate.sketchStructure;
     this.k = memValidate.k;
     this.m = memValidate.m;
-    n = memValidate.n;
-    minK = memValidate.minK;
-    levelsArr = memValidate.levelsArr; //normalized to full
-    isLevelZeroSorted = memValidate.level0SortedFlag;
+    this.n = memValidate.n;
+    this.minK = memValidate.minK;
+    this.levelsArr = memValidate.levelsArr; //normalized to full
+    this.isLevelZeroSorted = memValidate.level0SortedFlag;
 
     if (memStructure == COMPACT_EMPTY) {
       minFloatItem = Float.NaN;

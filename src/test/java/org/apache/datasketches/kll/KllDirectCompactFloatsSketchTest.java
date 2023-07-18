@@ -20,6 +20,8 @@
 package org.apache.datasketches.kll;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
@@ -32,17 +34,27 @@ public class KllDirectCompactFloatsSketchTest {
   private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
 
   @Test
-  public void checkRODirectUpdatable() {
+  public void checkRODirectUpdatable_ROandWritable() {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    for (int i = 1; i <= k; i++) { sk.update(i); }
-    sk.update(k + 1);
-    byte[] byteArr = KllHelper.toByteArray(sk, false);
-    Memory srcMem = Memory.wrap(byteArr);
+    for (int i = 1; i <= k + 1; i++) { sk.update(i); }
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
+    Memory srcMem = Memory.wrap(byteArr); //-> read only
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
+    assertTrue(sk2 instanceof KllDirectFloatsSketch);
+    assertTrue(sk2.isMemoryUpdatableFormat());
+    println(sk2.toString(true, false));
+    assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getMinItem(), 1.0F);
     assertEquals(sk2.getMaxItem(), 21.0F);
-    //println(KllPreambleUtil.toString(srcMem, SketchType.FLOATS_SKETCH, true));
+    WritableMemory srcWmem = WritableMemory.writableWrap(byteArr);
+    KllFloatsSketch sk3 = KllFloatsSketch.writableWrap(srcWmem, memReqSvr);
+    assertTrue(sk3 instanceof KllDirectFloatsSketch);
+    println(sk3.toString(true, false));
+    assertFalse(sk3.isReadOnly());
+    sk3.update(22.0F);
+    assertEquals(sk2.getMinItem(), 1.0F);
+    assertEquals(sk2.getMaxItem(), 22.0F);
   }
 
   @Test
@@ -50,13 +62,20 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    Memory srcMem = Memory.wrap(sk.toByteArray());
+    Memory srcMem = Memory.wrap(sk.toByteArray());  //compact fmt
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
-    println(sk2.toString(true, true));
+    assertTrue(sk2 instanceof KllDirectCompactFloatsSketch);
+    println(sk2.toString(true, false));
+    assertFalse(sk2.isMemoryUpdatableFormat());
+    assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getMinItem(), 1.0F);
     assertEquals(sk2.getMaxItem(), 21.0F);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
     KllFloatsSketch sk3 = KllFloatsSketch.writableWrap((WritableMemory)srcMem2, memReqSvr);
+    assertTrue(sk3 instanceof KllDirectCompactFloatsSketch);
+    assertFalse(sk2.isMemoryUpdatableFormat());
+    println(sk3.toString(true, false));
+    assertTrue(sk3.isReadOnly());
     assertEquals(sk3.getMinItem(), 1.0F);
     assertEquals(sk3.getMaxItem(), 21.0F);
   }
@@ -67,6 +86,9 @@ public class KllDirectCompactFloatsSketchTest {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     sk.update(1);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertTrue(sk2 instanceof KllDirectCompactFloatsSketch);
+    println(sk2.toString(true, false));
+    assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getFloatSingleItem(), 1.0F);
     sk.update(2);
     sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
@@ -97,9 +119,6 @@ public class KllDirectCompactFloatsSketchTest {
     itemsArr = sk2.getFloatItemsArray();
     assertEquals(itemsArr.length, 33);
     assertEquals(itemsArr[22], 21);
-    //for (int i = 0; i < itemsArr.length; i++) {
-    //  println(i + ": " + itemsArr[i]);
-    //}
   }
 
   @Test
@@ -123,7 +142,6 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(Memory.wrap(sk.toByteArray()));
-
     try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     sk.update(1);
@@ -164,6 +182,11 @@ public class KllDirectCompactFloatsSketchTest {
     for (int i = 1; i <= 20; i++) { skDU20.update(i); }
     skDU20.merge(skDC1);
     assertEquals(skDU20.getN(), 21);
+  }
+
+  @Test
+  public void printlnTest() {
+    println("PRINTING: " + this.getClass().getName());
   }
 
   private final static boolean enablePrinting = false;

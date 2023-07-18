@@ -348,7 +348,6 @@ public class KllDirectFloatsSketchTest {
     sketch1.update(1);
     final byte[] bytes = sketch1.toByteArray(); //compact
     final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    //final int sk1len = sketch1.currentSerializedSizeBytes(false);
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
@@ -377,9 +376,8 @@ public class KllDirectFloatsSketchTest {
   }
 
   @Test
-  public void serializeDeserializeFullViaCompactHeapify() { //TODO
+  public void serializeDeserializeFullViaCompactHeapify() {
     final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(200, 1000);
-    //println(sketch1.toString(true, true));
     final byte[] byteArr1 = sketch1.toByteArray(); //compact
     final KllFloatsSketch sketch2 =  KllFloatsSketch.heapify(Memory.wrap(byteArr1));
     assertEquals(byteArr1.length, sketch1.currentSerializedSizeBytes(false));
@@ -663,27 +661,22 @@ public class KllDirectFloatsSketchTest {
     try { sk2.merge(sk1); fail(); } catch (ClassCastException e) { }
   }
 
-  // get Direct Floats Sketch
   private static KllFloatsSketch getUpdatableDirectFloatSketch(final int k, final int n) {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= n; i++) { sk.update(i); }
     byte[] byteArr = KllHelper.toByteArray(sk, true);
-    //byte[] byteArr1 = sk.toByteArray(true, FLOATS_SKETCH); //debug
     WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     KllFloatsSketch dfsk = KllFloatsSketch.writableWrap(wmem, memReqSvr);
     return dfsk;
   }
 
-  @Test
-  public void printlnTest() {
-    println("PRINTING: " + this.getClass().getName());
-  }
+  private final static boolean enablePrinting = false;
 
   /**
-   * @param s value to print
+   * @param o the Object to println
    */
-  static void println(final String s) {
-    //System.out.println(s); //disable here
+  private static final void println(final Object o) {
+    if (enablePrinting) { System.out.println(o.toString()); }
   }
 
 }

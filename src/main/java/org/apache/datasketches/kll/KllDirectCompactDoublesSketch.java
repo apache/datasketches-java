@@ -19,87 +19,16 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
-import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryMinK;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
-import static org.apache.datasketches.kll.KllPreambleUtil.getMemorySerVer;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
-
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
 class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
-  KllDirectCompactDoublesSketch(final Memory srcMem, final KllMemoryValidate memVal) {
-    super((WritableMemory) srcMem, null, memVal);
-  }
-
-  @Override
-  public long getN() {
-    if (getMemoryEmptyFlag(wmem)) { return 0; }
-    if (getMemorySerVer(wmem) == SERIAL_VERSION_SINGLE) { return 1; }
-    return getMemoryN(wmem);
-  }
-
-  @Override
-  int getMinK() {
-    if (getMemoryEmptyFlag(wmem)) { return getK(); }
-    if (getMemorySerVer(wmem) == SERIAL_VERSION_SINGLE) { return getK(); }
-    return getMemoryMinK(wmem);
-  }
-  
-  @Override
-  public byte[] toByteArray() {
-    final int bytes = (int) wmem.getCapacity();
-    final byte[] byteArr = new byte[bytes];
-    wmem.getByteArray(0, byteArr, 0, bytes);
-    return byteArr;
-  }
-
-  @Override //returns expanded array including empty space at bottom
-  double[] getDoubleItemsArray() {
-    final int k = getK();
-    if (isEmpty()) { return new double[k]; }
-    if (isSingleItem()) {
-      final double[] itemsArr = new double[k];
-      itemsArr[k - 1] = wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
-      return itemsArr;
-    }
-    final int capacityItems =  levelsArr[getNumLevels()];
-    final double[] itemsArr = new double[capacityItems];
-    final int levelsBytes = (levelsArr.length - 1) * Integer.BYTES; //compact format!
-    final int offset = DATA_START_ADR + levelsBytes + 2 * Double.BYTES;
-    final int shift = levelsArr[0];
-    wmem.getDoubleArray(offset, itemsArr, shift, capacityItems - shift);
-    return itemsArr;
-  }
-
-  @Override
-  double getDoubleSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); }
-    return wmem.getDouble(DATA_START_ADR_SINGLE_ITEM);
-  }
-
-  @Override
-  double getMaxDoubleItem() {
-    if (isEmpty()) { return Double.NaN; }
-    if (isSingleItem()) { return getDoubleSingleItem(); }
-    final int offset =
-        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES + Double.BYTES;
-    return wmem.getDouble(offset);
-  }
-
-  @Override
-  double getMinDoubleItem() {
-    if (isEmpty()) { return Double.NaN; }
-    if (isSingleItem()) { return getDoubleSingleItem(); }
-    final int offset =
-        DATA_START_ADR + (getLevelsArray().length - 1) * Integer.BYTES;
-    return wmem.getDouble(offset);
+  KllDirectCompactDoublesSketch(
+      final SketchStructure sketchStructure,
+      final Memory srcMem,
+      final KllMemoryValidate memVal) {
+    super(sketchStructure, (WritableMemory) srcMem, null, memVal);
   }
 
 }

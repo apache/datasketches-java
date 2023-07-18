@@ -549,9 +549,9 @@ final class KllHelper {
 
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-      sb.append("   Min Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMinDoubleItem())
+      sb.append("   Min Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMinItem())
           .append(Util.LS);
-      sb.append("   Max Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMaxDoubleItem())
+      sb.append("   Max Item               : ").append(dblSk.isEmpty() ? Double.NaN : dblSk.getMaxItem())
           .append(Util.LS);
     } else if (sketchType == FLOATS_SKETCH) {
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;
@@ -629,8 +629,8 @@ final class KllHelper {
 
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-      minDouble = dblSk.getMinDoubleItem();
-      maxDouble = dblSk.getMaxDoubleItem();
+      minDouble = dblSk.getMinItem();
+      maxDouble = dblSk.getMaxItem();
       myCurDoubleItemsArr = dblSk.getDoubleItemsArray();
       //assert we are following a certain growth scheme
       assert myCurDoubleItemsArr.length == myCurTotalItemsCapacity;
@@ -695,8 +695,8 @@ final class KllHelper {
     sketch.setLevelsArray(myNewLevelsArr);
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
-      dblSk.setMinDoubleItem(minDouble);
-      dblSk.setMaxDoubleItem(maxDouble);
+      dblSk.setMinItem(minDouble);
+      dblSk.setMaxItem(maxDouble);
       dblSk.setDoubleItemsArray(myNewDoubleItemsArr);
     } else { //Float sketch
       final KllFloatsSketch fltSk = (KllFloatsSketch) sketch;

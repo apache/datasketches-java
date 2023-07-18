@@ -54,11 +54,13 @@ public class KllDoublesSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    try { sketch.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getRank(0); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getQuantiles(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
     try { sketch.getPMF(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getCDF(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
@@ -407,8 +409,8 @@ public class KllDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sketch2.currentSerializedSizeBytes(false), sketch1.currentSerializedSizeBytes(false));
   }
 

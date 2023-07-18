@@ -129,6 +129,7 @@ final class KllFloatsHelper {
        updateFloat(mySketch, otherFloatItemsArr[i]);
       }
     }
+
     //After the level 0 update, we capture the intermediate state of levels and items arrays...
     final int myCurNumLevels = mySketch.getNumLevels();
     final int[] myCurLevelsArr = mySketch.levelsArr;
@@ -458,20 +459,6 @@ final class KllFloatsHelper {
       }
     }
   }
-
-//  private static float resolveFloatMaxItem(final float myMax, final float otherMax) {
-//    if (Float.isNaN(myMax) && Float.isNaN(otherMax)) { return Float.NaN; }
-//    if (Float.isNaN(myMax)) { return otherMax; }
-//    if (Float.isNaN(otherMax)) { return myMax; }
-//    return max(myMax, otherMax);
-//  }
-//
-//  private static float resolveFloatMinItem(final float myMin, final float otherMin) {
-//    if (Float.isNaN(myMin) && Float.isNaN(otherMin)) { return Float.NaN; }
-//    if (Float.isNaN(myMin)) { return otherMin; }
-//    if (Float.isNaN(otherMin)) { return myMin; }
-//    return min(myMin, otherMin);
-//  }
 
   /*
    * Validation Method.

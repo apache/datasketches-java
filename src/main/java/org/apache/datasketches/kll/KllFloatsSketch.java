@@ -297,7 +297,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
 
   @Override
   public QuantilesFloatsSketchIterator iterator() {
-    return new KllFloatsSketchIterator(getFloatItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
+    return new KllFloatsSketchIterator(
+        getFloatItemsArray(), getLevelsArray(SketchStructure.UPDATABLE), getNumLevels());
   }
 
   @Override
@@ -404,6 +405,8 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     return KllHelper.toByteArray(this, false);
   }
 
+  //TEMPORARY, HERE FOR DEBUGGING
+
   void printIntArr(final int[] intArr) {
     println("Int Array");
     for (int i = 0; i < intArr.length; i++) { println(i + ", " + intArr[i]); }
@@ -417,7 +420,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     println("");
   }
 
-  private final static boolean enablePrinting = false;
+  private final static boolean enablePrinting = true;
 
   /**
    * @param format the format

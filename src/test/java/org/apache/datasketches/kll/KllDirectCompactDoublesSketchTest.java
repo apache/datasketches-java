@@ -38,7 +38,7 @@ public class KllDirectCompactDoublesSketchTest {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    byte[] byteArr = KllHelper.toUpdatableByteArrayImpl(sk);
+    byte[] byteArr = KllHelper.toByteArray(sk, true);
     Memory srcMem = Memory.wrap(byteArr); //-> read only
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
     assertTrue(sk2 instanceof KllDirectDoublesSketch);
@@ -55,11 +55,10 @@ public class KllDirectCompactDoublesSketchTest {
     sk3.update(22.0);
     assertEquals(sk3.getMinItem(), 1.0);
     assertEquals(sk3.getMaxItem(), 22.0);
-    
   }
 
   @Test
-  public void checkDirectCompact() {
+  public void checkRODirectCompact() {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
@@ -72,7 +71,7 @@ public class KllDirectCompactDoublesSketchTest {
     assertEquals(sk2.getMinItem(), 1.0);
     assertEquals(sk2.getMaxItem(), 21.0);
     Memory srcMem2 = Memory.wrap(sk2.toByteArray());
-    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, null);
+    KllDoublesSketch sk3 = KllDoublesSketch.writableWrap((WritableMemory)srcMem2, memReqSvr);
     assertTrue(sk3 instanceof KllDirectCompactDoublesSketch);
     assertFalse(sk2.isMemoryUpdatableFormat());
     println(sk3.toString(true, false));
@@ -82,7 +81,7 @@ public class KllDirectCompactDoublesSketchTest {
   }
 
   @Test
-  public void checkDirectCompactSingleValue() {
+  public void checkDirectCompactSingleItem() {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     sk.update(1);
@@ -101,7 +100,7 @@ public class KllDirectCompactDoublesSketchTest {
   }
 
   @Test
-  public void checkDirectCompactGetFloatValuesArray() {
+  public void checkDirectCompactGetDoubleItemsArray() {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
 
@@ -120,9 +119,22 @@ public class KllDirectCompactDoublesSketchTest {
     valuesArr = sk2.getDoubleItemsArray();
     assertEquals(valuesArr.length, 33);
     assertEquals(valuesArr[22], 21);
-    //for (int i = 0; i < valuesArr.length; i++) {
-    //  println(i + ": " + valuesArr[i]);
-    //}
+  }
+
+  @Test
+  public void checkDirectCompactGetDoubleItemsArray2() {
+    int k = 20;
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+    for (int i = 1; i <= 20; i++) { sk.update(i); }
+    sk.update(21);
+    sk.printDoubleArr(sk.getDoubleItemsArray());
+    sk.printDoubleArr(sk.getDoubleRetainedItemsArray());
+    byte[] bArr = sk.toByteArray();
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(bArr));
+    println("Retained Items: " + sk2.getNumRetained());
+    sk2.printDoubleArr(sk2.getDoubleItemsArray());
+    println("levelsArr.length: " + sk2.levelsArr.length);
+    sk2.printDoubleArr(sk2.getDoubleRetainedItemsArray());
   }
 
   @Test
@@ -130,8 +142,8 @@ public class KllDirectCompactDoublesSketchTest {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
-    try { sk2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sk2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     sk.update(1);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getMaxItem(),1.0F);
@@ -176,7 +188,7 @@ public class KllDirectCompactDoublesSketchTest {
   public void printlnTest() {
     println("PRINTING: " + this.getClass().getName());
   }
-  
+
   private final static boolean enablePrinting = false;
 
   /**
@@ -185,5 +197,5 @@ public class KllDirectCompactDoublesSketchTest {
   private static final void println(final Object o) {
     if (enablePrinting) { System.out.println(o.toString()); }
   }
-  
+
 }
