@@ -105,7 +105,7 @@ public class KllFloatsSketchSerDeTest {
     }
   }
 
-  @Test
+  @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
     int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
