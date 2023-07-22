@@ -97,9 +97,9 @@ public class KllDoublesSketchSerDeTest {
 
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
-    int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
-      KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
+      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
       for (int i = 0; i < n; i++) sketch.update(i);
       try (final FileOutputStream file = new FileOutputStream("kll_double_n" + n + ".sk")) {
         file.write(sketch.toByteArray());
