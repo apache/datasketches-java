@@ -23,6 +23,7 @@ import static org.apache.datasketches.common.Util.getResourceFile;
 import static org.testng.Assert.assertEquals;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import org.apache.datasketches.memory.MapHandle;
@@ -280,6 +281,21 @@ public class CpcCBinariesTest {
     println("sk2.toString(true);" + LS);
     final CpcSketch sk2 = CpcSketch.heapify(byteArray);
     println(sk2.toString(true));
+  }
+
+  @Test(groups = {"generate"})
+  public void generateBinariesForCompatibilityTesting() throws Exception {
+    final int[] nArr = {0, 100, 200, 2000, 20000};
+    final Flavor[] flavorArr = {Flavor.EMPTY, Flavor.SPARSE, Flavor.HYBRID, Flavor.PINNED, Flavor.SLIDING};
+    int flavorIdx = 0;
+    for (int n: nArr) {
+      final CpcSketch sketch = new CpcSketch(11);
+      for (int i = 0; i < n; i++) sketch.update(i);
+      assertEquals(sketch.getFlavor(), flavorArr[flavorIdx++]);
+      try (final FileOutputStream file = new FileOutputStream("cpc_n" + n + ".sk")) {
+        file.write(sketch.toByteArray());
+      }
+    }
   }
 
   @Test
