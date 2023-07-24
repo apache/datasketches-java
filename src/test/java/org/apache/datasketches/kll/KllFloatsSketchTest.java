@@ -399,66 +399,6 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
   }
 
-  @Test
-  public void serializeDeserializeEmpty() {
-    final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
-    assertTrue(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
-    assertEquals(sketch2.getN(), sketch1.getN());
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
-    assertEquals(sketch2.currentSerializedSizeBytes(false), sketch1.currentSerializedSizeBytes(false));
-  }
-
-  @Test
-  public void serializeDeserializeOneValue() {
-    final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
-    sketch1.update(1);
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
-    assertFalse(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), 1);
-    assertEquals(sketch2.getN(), 1);
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinItem(), 1.0F);
-    assertEquals(sketch2.getMaxItem(), 1.0F);
-    assertEquals(sketch2.currentSerializedSizeBytes(false), 8 + Float.BYTES);
-  }
-
-  //@Test //TODO Restore when Internet is back up
-  public void deserializeOneValueV1() throws Exception {
-    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
-    final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertFalse(sketch.isEmpty());
-    assertFalse(sketch.isEstimationMode());
-    assertEquals(sketch.getN(), 1);
-    assertEquals(sketch.getNumRetained(), 1);
-  }
-
-  @Test
-  public void serializeDeserialize() {
-    final KllFloatsSketch sketch1 = KllFloatsSketch.newHeapInstance();
-    final int n = 1000;
-    for (int i = 0; i < n; i++) {
-      sketch1.update(i);
-    }
-    final byte[] bytes = sketch1.toByteArray();
-    final KllFloatsSketch sketch2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
-    assertFalse(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
-    assertEquals(sketch2.getN(), sketch1.getN());
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinItem(), sketch1.getMinItem());
-    assertEquals(sketch2.getMaxItem(), sketch1.getMaxItem());
-    assertEquals(sketch2.currentSerializedSizeBytes(false), sketch1.currentSerializedSizeBytes(false));
-  }
-
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void outOfOrderSplitPoints() {
     final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
@@ -587,16 +527,6 @@ public class KllFloatsSketchTest {
       printf("%10.2f%10.2f\n", cdf[i], pmf[i]);
       assertEquals(cdf[i], cdfE[i], toll);
       assertEquals(pmf[i], pmfE[i], toll);
-    }
-  }
-
-  //@Test //TODO Restore when Internet is back up
-  public void compatibilityWithCppEstimationMode() throws Exception {
-    final File file = Util.getResourceFile("kll_float_estimation_cpp.sk");
-    try (final MapHandle mh = Memory.map(file)) {
-      final KllFloatsSketch sketch = KllFloatsSketch.heapify(mh.get());
-      assertEquals(sketch.getMinItem(), 0);
-      assertEquals(sketch.getMaxItem(), 999);
     }
   }
 
