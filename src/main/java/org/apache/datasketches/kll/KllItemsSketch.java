@@ -21,8 +21,12 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
+import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 
+import java.lang.reflect.Array;
 import java.util.Comparator;
 import java.util.Objects;
 
@@ -32,42 +36,20 @@ import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
-  private KllItemsSketchSortedView<T> kllItemsSV = null;
+  //private KllItemsSketchSortedView<T> kllItemsSV = null;
   final Comparator<? super T> comparator;
-  private T maxItem;
-  private T minItem;
-  private final int k; // configured size of K.
-  private final int m; // configured size of M.
-  private long n;      // number of items input into this sketch.
-  private int minK;    // dynamic minK for error estimation after merging with different k.
-  private boolean isLevelZeroSorted;
-
-  private Object[] itemsArr;
-
+  final ArrayOfItemsSerDe<T> serDe;
 
   KllItemsSketch(
-      final int k,
-      final int m,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super(ITEMS_SKETCH, SketchStructure.UPDATABLE, null, null);
+    super(ITEMS_SKETCH, SketchStructure.UPDATABLE);
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "SerDe must not be null.");
-    KllHelper.checkM(m);
-    KllHelper.checkK(k, m);
-    this.k = k;
-    this.m = DEFAULT_M;
-    this.n = 0;
-    this.minK = k;
-    this.isLevelZeroSorted = false;
-    this.maxItem = null;
-    this.minItem = null;
-    this.itemsArr = new Object[k];
-    super.levelsArr = new int[] {k, k};
     this.comparator = comparator;
-    super.serDe = serDe;
+    this.serDe = serDe;
   }
 
   /**
@@ -76,13 +58,11 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
    * This will have a rank error of about 1.65%.
    * @param <T> The sketch data type
-   * @param clazz the given class of T
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
    * @return new KllItemsSketch on the heap.
    */
   public static <T> KllItemsSketch<T> newHeapInstance(
-      final Class<T> clazz,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
       final KllItemsSketch<T> itmSk =
@@ -96,45 +76,26 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @param <T> The sketch data type
-   * @param clazz the given class of T
    * @param comparator to compare items
-   * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
+   * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
    * @return new KllItemsSketch on the heap.
    */
 
   public static <T> KllItemsSketch<T> newHeapInstance(
       final int k,
-      final Class<T> clazz,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk = new KllItemsSketch<T>(k, DEFAULT_M, clazz, comparator);
+      final KllItemsSketch<T> itmSk =
+          new KllHeapItemsSketch<T>(k, DEFAULT_M, comparator, serDe);
     return itmSk;
   }
+
+  //END of Constructors
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
     // TODO Auto-generated method stub
     return null;
-  }
-
-  @Override
-  public int getK() {
-    return k;
-  }
-
-  @Override
-  public T getMaxItem() {
-    return maxItem;
-  }
-
-  @Override
-  public T getMinItem() {
-    return minItem;
-  }
-
-  @Override
-  public long getN() {
-    return n;
   }
 
   @Override
@@ -157,13 +118,13 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public T getQuantileLowerBound(final double rank) {
+  public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
     // TODO Auto-generated method stub
     return null;
   }
 
   @Override
-  public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
+  public T getQuantileLowerBound(final double rank) {
     // TODO Auto-generated method stub
     return null;
   }
@@ -190,12 +151,6 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     return max(0.0, rank - KllHelper.getNormalizedRankError(getMinK(), false));
   }
 
-  @Override
-  public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
-    // TODO Auto-generated method stub
-    return null;
-  }
-
   /**
    * {@inheritDoc}
    * The approximate probability that the true rank is within the confidence interval
@@ -207,9 +162,9 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public int getSerializedSizeBytes() {
+  public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
     // TODO Auto-generated method stub
-    return 0;
+    return null;
   }
 
   @Override
@@ -226,7 +181,11 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public final void merge(final KllSketch other) {
- // TODO Auto-generated method stub
+    if (readOnly || sketchStructure != UPDATABLE) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
+    if (othItmSk.isEmpty()) { return; }
+    KllItemsHelper.mergeItemImpl(this, othItmSk, comparator);
+    //kllFloatsSV = null;
   }
 
   @Override
@@ -235,79 +194,75 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   public byte[] toByteArray() {
-    return KllHelper.toCompactByteArrayImpl(this);
+    //return KllHelper.toCompactByteArrayImpl(this);
+    return null;
   }
 
   @Override
   public void update(final T item) {
-    // TODO Auto-generated method stub
+    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    KllItemsHelper.updateItem(this, item, comparator);
+    //kllFloatsSV = null;
   }
 
   //restricted
 
   @Override
-  abstract byte[] getRetainedDataByteArr();
+  abstract byte[] getMinMaxByteArr();//
 
   @Override
-  abstract int getRetainedDataSizeBytes();
+  abstract int getMinMaxSizeBytes();//
 
-  @Override
-  abstract byte[] getMinMaxByteArr();
-
-  @Override
-  abstract int getMinMaxSizeBytes();
-
-  @Override
-  abstract byte[] getSingleItemByteArr();
-
-  @Override
-  abstract int getSingleItemSizeBytes();
-
-  @Override
-  int getM() {
-    return m;
+  private final void refreshSortedView() {
+    //TODO
   }
 
   @Override
-  int getMinK() {
-    return minK;
-  }
-
-  abstract T getSingleItem();
+  abstract byte[] getRetainedItemsByteArr();//
 
   @Override
-  void incN() {
-    n++;
-  }
+  abstract int getRetainedItemsSizeBytes();//
+
+  abstract Object[] getRetainedItemsArray();//
 
   @Override
-  void incNumLevels() {
-    // TODO Auto-generated method stub
-  }
+  ArrayOfItemsSerDe<T> getSerDe() { return serDe; }
+
+  abstract Object getSingleItem();//
 
   @Override
-  boolean isLevelZeroSorted() {
-    return false; //or isLevelZeroSorted_
-  }
+  abstract byte[] getSingleItemByteArr();//
 
   @Override
-  void setLevelZeroSorted(final boolean sorted) {
-    isLevelZeroSorted = sorted;
-  }
+  abstract int getSingleItemSizeBytes();//
+
+  /**
+   * @return full size of internal items array including empty space at bottom.
+   */
+  abstract Object[] getTotalItemsArray();//
 
   @Override
-  void setMinK(final int minK) {
-    this.minK = minK;
-  }
+  abstract byte[] getTotalItemsByteArr();
 
   @Override
-  void setN(final long n) {
-    this.n = n;
+  int getTotalItemsNumBytes() {
+    return levelsArr[getNumLevels()] * Float.BYTES;
   }
 
-  @Override
-  void setNumLevels(final int numLevels) {
-    // TODO Auto-generated method stub
+  abstract void setItemsArray(Object[] ItemsArr);
+
+  abstract void setItemsArrayAt(int index, Object item);
+
+  abstract void setMaxItem(Object item);
+
+  abstract void setMinItem(Object item);
+
+  //This cannot be used on an empty sketch, i.e., getMaxItem must be valid.
+  @SuppressWarnings("unchecked")
+  T[] copyRangeOfObjectArray(final Object[] srcArray, final int srcIndex, final int numItems) {
+    final T[] tgtArr = (T[]) Array.newInstance(getMaxItem().getClass(), numItems);
+    System.arraycopy(srcArray, srcIndex, tgtArr, srcIndex, numItems);
+    return tgtArr;
   }
 
 }

@@ -72,8 +72,8 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
 
 /**
  * This class is the root of the KLL sketch class hierarchy. It includes the public API that is independent
- * of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
- * heap or Direct (off-heap).
+ * of either sketch type (e.g., float, double or generic item) and independent of whether the sketch is targeted
+ * for use on the Java heap or off-heap.
  *
  * <p>KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme
  * and nearly optimal accuracy per retained quantile.</p>
@@ -89,7 +89,6 @@ import org.apache.datasketches.quantilescommon.QuantilesAPI;
  * @author Lee Rhodes
  * @author Kevin Lang
  * @author Alexander Saydakov
- * @param T The generic type used with the KllItemsSketch
  */
 public abstract class KllSketch implements QuantilesAPI {
 
@@ -107,7 +106,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * The default M. The parameter <i>m</i> is the minimum level size in number of quantiles.
    * Currently, the public default is 8, but this can be overridden using Package Private methods to
    * 2, 4, 6 or 8, and the sketch works just fine.  The number 8 was chosen as a compromise between speed and size.
-   * Choosing a smaller <i>m</i> less than 8 will make the sketch slower.
+   * Choosing an <i>m</i> smaller than 8 will make the sketch slower.
    */
   static final int DEFAULT_M = 8;
   static final int MAX_M = 8; //The maximum M
@@ -116,11 +115,8 @@ public abstract class KllSketch implements QuantilesAPI {
 
   final SketchType sketchType;
   final SketchStructure sketchStructure;
-  final boolean readOnly;
+  boolean readOnly;
   int[] levelsArr; //Always writable form
-  WritableMemory wmem;
-  ArrayOfItemsSerDe<?> serDe = null; //TODO ?
-  final MemoryRequestServer memReqSvr; //TODO ?
 
   /**
    * Constructor for on-heap and off-heap.
@@ -129,29 +125,12 @@ public abstract class KllSketch implements QuantilesAPI {
    * If wmem was derived from an original Memory instance via a cast, it will be readOnly.
    * @param sketchType either DOUBLES_SKETCH, FLOATS_SKETCH or ITEMS_SKETCH
    * @param wmem  the current WritableMemory or null
-   * @param memReqSvr the given MemoryRequestServer or null
-   *
    */
   KllSketch(
       final SketchType sketchType,
-      final SketchStructure sketchStructure,
-      final WritableMemory wmem,
-      final MemoryRequestServer memReqSvr) {
+      final SketchStructure sketchStructure) {
    this.sketchType = sketchType;
    this.sketchStructure = sketchStructure;
-   this.wmem = wmem;
-   if (wmem != null) {
-     this.readOnly = wmem.isReadOnly() || sketchStructure != UPDATABLE;
-     if (readOnly) {
-       this.memReqSvr = null;
-     } else {
-       if (memReqSvr == null) { kllSketchThrow(Error.MRS_MUST_NOT_BE_NULL); }
-       this.memReqSvr = memReqSvr;
-     }
-   } else { //wmem is null, heap case
-     this.memReqSvr = null;
-     this.readOnly = false;
-   }
   }
 
   /**
@@ -225,17 +204,9 @@ public abstract class KllSketch implements QuantilesAPI {
     return currentSerializedSizeBytes(false);
   }
 
-  /**
-   * This returns the WritableMemory for Direct type sketches,
-   * otherwise returns null.
-   * @return the WritableMemory for Direct type sketches, otherwise null.
-   */
-  WritableMemory getWritableMemory() {
-    return wmem;
-  }
-
   @Override
   public boolean hasMemory() {
+    final WritableMemory wmem = getWritableMemory();
     return (wmem != null);
   }
 
@@ -245,6 +216,7 @@ public abstract class KllSketch implements QuantilesAPI {
 
   @Override
   public boolean isDirect() {
+    final WritableMemory wmem = getWritableMemory();
     return (wmem != null) ? wmem.isDirect() : false;
   }
 
@@ -280,6 +252,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * of <i>that</i>.
    */
   public final boolean isSameResource(final Memory that) {
+    final WritableMemory wmem = getWritableMemory();
     return (wmem != null) && wmem.isSameResource(that);
   }
 
@@ -302,7 +275,7 @@ public abstract class KllSketch implements QuantilesAPI {
    * @return string representation of sketch summary
    */
   public String toString(final boolean withLevels, final boolean withData) {
-    return KllHelper.toStringImpl(this, withLevels, withData);
+    return KllHelper.toStringImpl(this, withLevels, withData, getSerDe());
   }
 
   //restricted
@@ -333,13 +306,13 @@ public abstract class KllSketch implements QuantilesAPI {
       totalBytes = DATA_START_ADR
           + getLevelsArrBytes(tgtStructure)
           + getMinMaxSizeBytes()
-          + getRetainedDataSizeBytes();
+          + getRetainedItemsSizeBytes();
     }
     else { //structure = UPDATABLE
       totalBytes = DATA_START_ADR
           + getLevelsArrBytes(tgtStructure)
           + getMinMaxSizeBytes()
-          + getTotalItemDataBytes();
+          + getTotalItemsNumBytes();
     }
     return totalBytes;
   }
@@ -366,43 +339,93 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract int getM();
 
   /**
+   * Gets the MemoryRequestServer or null.
+   * @return the MemoryRequestServer or null.
+   */
+  abstract MemoryRequestServer getMemoryRequestServer();
+
+  /**
    * MinK is the K that results from a merge with a sketch configured with a K lower than
    * the K of this sketch. This is then used in computing the estimated upper and lower bounds of error.
    * @return The minimum K as a result of merging sketches with lower k.
    */
   abstract int getMinK();
 
+  /**
+   * Gets the combined minItem and maxItem in a serialized byte array.
+   * @return the combined minItem and maxItem in a serialized byte array.
+   */
   abstract byte[] getMinMaxByteArr();
 
+  /**
+   * Gets the size in bytes of the combined minItem and maxItem serialized byte array.
+   * @return the size in bytes of the combined minItem and maxItem serialized byte array.
+   */
   abstract int getMinMaxSizeBytes();
 
+  /**
+   * Gets the current number of levels
+   * @return the current number of levels
+   */
   final int getNumLevels() {
-    return levelsArr.length - 1;
+    if (sketchStructure == UPDATABLE || sketchStructure == COMPACT_FULL) { return levelsArr.length - 1; }
+    return 1;
   }
 
   /**
-   * Gets the serialized bytes of the data block as a byte array.
-   * This only includes the valid retained items.
+   * Gets the serialized byte array of the valid retained items as a byte array.
    * It does not include the preamble, the levels array, minimum or maximum items, or garbage data.
    * @return the serialized bytes of the retained data.
    */
-  abstract byte[] getRetainedDataByteArr();
+  abstract byte[] getRetainedItemsByteArr();
 
   /**
-   * Gets the size of the data block in bytes.
-   * This only includes the valid retained items.
+   * Gets the size in bytes of the valid retained items.
    * It does not include the preamble, the levels array, minimum or maximum items, or garbage data.
    * @return the size of the retained data in bytes.
    */
-  abstract int getRetainedDataSizeBytes();
+  abstract int getRetainedItemsSizeBytes();
 
+  /**
+   * Gets the serializer / deserializer or null.
+   * @return the serializer / deserializer or null.
+   */
+  abstract ArrayOfItemsSerDe<?> getSerDe();
+
+  /**
+   * Gets the serialized byte array of the Single Item that corresponds to the Single Item Flag being true.
+   * @return the serialized byte array of the Single Item.
+   */
   abstract byte[] getSingleItemByteArr();
 
+  /**
+   * Gets the size in bytes of the serialized Single Item that corresponds to the Single Item Flag being true.
+   * @return the size in bytes of the serialized Single Item.
+   */
   abstract int getSingleItemSizeBytes();
 
-  abstract byte[] getTotalItemDataByteArr();
+  /**
+   * Gets the serialized byte array of the entire internal items structure.
+   * It does not include the preamble, the levels array, or minimum or maximum items.
+   * It may include empty or garbage items.
+   * @return the serialized bytes of the retained data.
+   */
+  abstract byte[] getTotalItemsByteArr();
 
-  abstract int getTotalItemDataBytes();
+  /**
+   * Gets the size in bytes of the entire internal items structure.
+   * It does not include the preamble, the levels array, or minimum or maximum items.
+   * It may include empty or garbage items.
+   * @return the size of the retained data in bytes.
+   */
+  abstract int getTotalItemsNumBytes();
+
+  /**
+   * This returns the WritableMemory for Direct type sketches,
+   * otherwise returns null.
+   * @return the WritableMemory for Direct type sketches, otherwise null.
+   */
+  abstract WritableMemory getWritableMemory();
 
   abstract void incN();
 
@@ -428,6 +451,7 @@ public abstract class KllSketch implements QuantilesAPI {
   final void setLevelsArray(final int[] levelsArr) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     this.levelsArr = levelsArr;
+    final WritableMemory wmem = getWritableMemory();
     if (wmem != null) {
       wmem.putIntArray(DATA_START_ADR, this.levelsArr, 0, levelsArr.length);
     }
@@ -436,6 +460,7 @@ public abstract class KllSketch implements QuantilesAPI {
   final void setLevelsArrayAt(final int index, final int idxVal) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     this.levelsArr[index] = idxVal;
+    final WritableMemory wmem = getWritableMemory();
     if (wmem != null) {
       final int offset = DATA_START_ADR + index * Integer.BYTES;
       wmem.putInt(offset, idxVal);
@@ -449,6 +474,8 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract void setN(long n);
 
   abstract void setNumLevels(int numLevels);
+
+  abstract void setWritablMemory(final WritableMemory wmem);
 
   /**
    * Used to define the variable type of the current instance of this class.

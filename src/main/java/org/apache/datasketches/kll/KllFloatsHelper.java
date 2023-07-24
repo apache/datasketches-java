@@ -28,11 +28,15 @@ import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.apache.datasketches.memory.WritableMemory;
+
+//
 /**
  * Static methods to support KllFloatsSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
+//
 final class KllFloatsHelper {
 
   /**
@@ -40,7 +44,7 @@ final class KllFloatsHelper {
    * It cannot be used while merging, while reducing k, or anything else.
    * @param fltSk the current KllFloatsSketch
    */
-  static void compressWhileUpdatingSketch(final KllFloatsSketch fltSk) {
+  private static void compressWhileUpdatingSketch(final KllFloatsSketch fltSk) {
     final int level =
         findLevelToCompact(fltSk.getK(), fltSk.getM(), fltSk.getNumLevels(), fltSk.levelsArr);
     if (level == fltSk.getNumLevels() - 1) {
@@ -103,8 +107,9 @@ final class KllFloatsHelper {
     fltSk.setFloatItemsArray(myFloatItemsArr);
   }
 
-  //assumes readOnly = false and UPDATABLE
-  static void mergeFloatImpl(final KllFloatsSketch mySketch, final KllFloatsSketch otherFltSk) {
+  //assumes readOnly = false, and UPDATABLE, called from KllFloatsSketch::merge
+  static void mergeFloatImpl(final KllFloatsSketch mySketch,
+      final KllFloatsSketch otherFltSk) {
     if (otherFltSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -189,8 +194,10 @@ final class KllFloatsHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mySketch.wmem != null) {
-        mySketch.wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
+      if (mySketch.getWritableMemory() != null) {
+        final WritableMemory wmem =
+            KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
+        mySketch.setWritablMemory(wmem);
       }
     }
 
@@ -218,8 +225,7 @@ final class KllFloatsHelper {
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
 
-  //Called from KllHelper and this.generalFloatssCompress(...), this.populateFloatWorkArrays(...)
-  static void mergeSortedFloatArrays(
+  private static void mergeSortedFloatArrays(
       final float[] bufA, final int startA, final int lenA,
       final float[] bufB, final int startB, final int lenB,
       final float[] bufC, final int startC) {
@@ -257,9 +263,9 @@ final class KllFloatsHelper {
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify to run.
-  //Called from KllHelper, this.generalFloatsCompress(...)
-  static void randomlyHalveDownFloats(final float[] buf, final int start, final int length, final Random random) {
+  //NOTE For validation Method: Need to modify to run.
+  private static void randomlyHalveDownFloats(final float[] buf, final int start, final int length,
+      final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -278,9 +284,9 @@ final class KllFloatsHelper {
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify to run.
-  //Called from KllHelper, this.generalFloatsCompress(...)
-  static void randomlyHalveUpFloats(final float[] buf, final int start, final int length, final Random random) {
+  //NOTE For validation Method: Need to modify to run.
+  private static void randomlyHalveUpFloats(final float[] buf, final int start, final int length,
+      final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -292,8 +298,9 @@ final class KllFloatsHelper {
     }
   }
 
-  //Called from KllFloatsSketch, this.mergeFloatImpl(...)
-  static void updateFloat(final KllFloatsSketch fltSk, final float item) {
+  //Called from KllFloatsSketch::update and this
+  static void updateFloat(final KllFloatsSketch fltSk,
+      final float item) {
     if (Float.isNaN(item)) { return; } //ignore
     if (fltSk.isEmpty()) {
       fltSk.setMinItem(item);
@@ -345,6 +352,7 @@ final class KllFloatsHelper {
    * @param random instance of java.util.Random
    * @return int array of: {numLevels, targetItemCount, currentItemCount)
    */
+  //
   private static int[] generalFloatsCompress(
       final int k,
       final int m,
@@ -437,6 +445,7 @@ final class KllFloatsHelper {
       final float[] workbuf, final int[] worklevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final float[] myCurFloatItemsArr,
       final int otherNumLevels, final int[] otherLevelsArr, final float[] otherFloatItemsArr) {
+
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
@@ -454,8 +463,10 @@ final class KllFloatsHelper {
       } else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherFloatItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
       } else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedFloatArrays( myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop, otherFloatItemsArr,
-            otherLevelsArr[lvl], otherPop, workbuf, worklevels[lvl]);
+        mergeSortedFloatArrays(
+            myCurFloatItemsArr, myCurLevelsArr[lvl], selfPop,
+            otherFloatItemsArr, otherLevelsArr[lvl], otherPop,
+            workbuf, worklevels[lvl]);
       }
     }
   }

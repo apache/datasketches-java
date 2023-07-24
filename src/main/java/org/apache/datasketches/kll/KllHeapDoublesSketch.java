@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -67,15 +68,16 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
    * experimental as they have not been as well characterized.
    */
   KllHeapDoublesSketch(final int k, final int m) {
-    super(UPDATABLE, null, null);
+    super(UPDATABLE, null);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
+    this.levelsArr = new int[] {k, k};
+    this.readOnly = false;
     this.k = k;
     this.m = m;
     this.n = 0;
     this.minK = k;
     this.isLevelZeroSorted = false;
-    this.levelsArr = new int[] {k, k};
     this.minDoubleItem = Double.NaN;
     this.maxDoubleItem = Double.NaN;
     this.doubleItems = new double[k];
@@ -89,7 +91,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   private KllHeapDoublesSketch(
       final Memory srcMem,
       final KllMemoryValidate memValidate) {
-    super(SketchStructure.UPDATABLE, null, null);
+    super(UPDATABLE, null);
     final SketchStructure memStructure = memValidate.sketchStructure;
     this.k = memValidate.k;
     this.m = memValidate.m;
@@ -174,6 +176,9 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   int getM() { return m; }
 
   @Override
+  MemoryRequestServer getMemoryRequestServer() { return null; }
+
+  @Override
   int getMinK() { return minK; }
 
   @Override
@@ -185,7 +190,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  byte[] getRetainedDataByteArr() {
+  byte[] getRetainedItemsByteArr() {
     if (isEmpty()) { return new byte[0]; }
     final byte[] bytesOut;
     if (isSingleItem()) {
@@ -202,7 +207,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  byte[] getTotalItemDataByteArr() {
+  byte[] getTotalItemsByteArr() {
     final byte[] byteArr = new byte[doubleItems.length * Double.BYTES];
     final WritableMemory wmem = WritableMemory.writableWrap(byteArr);
     wmem.putDoubleArray(0, doubleItems, 0, doubleItems.length);
@@ -210,8 +215,8 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  int getTotalItemDataBytes() {
-    return doubleItems.length * Double.BYTES;
+  WritableMemory getWritableMemory() {
+    return null;
   }
 
   @Override
@@ -255,5 +260,8 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   double[] getDoubleRetainedItemsArray() {
     return Arrays.copyOfRange(doubleItems, levelsArr[0], levelsArr[getNumLevels()]);
   }
+
+  @Override
+  void setWritablMemory(final WritableMemory wmem) { }
 
 }

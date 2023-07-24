@@ -31,6 +31,7 @@ import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeigh
 
 import java.util.Objects;
 
+import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -52,9 +53,8 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   KllDoublesSketch(
       final SketchStructure sketchStructure,
-      final WritableMemory wmem,
-      final MemoryRequestServer memReqSvr) {
-    super(SketchType.DOUBLES_SKETCH, sketchStructure, wmem, memReqSvr);
+      final WritableMemory wmem) {
+    super(SketchType.DOUBLES_SKETCH, sketchStructure);
   }
 
   //Factories for new heap instances.
@@ -169,17 +169,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   //END of Constructors
-
-  /**
-   * Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.
-   * @param k parameter that controls size of the sketch and accuracy of estimates
-   * @param n stream length
-   * @param updatableMemoryFormat true if updatable Memory format, otherwise the standard compact format.
-   * @return upper bound on the serialized size of a KllSketch.
-   */
-  public static int getMaxSerializedSizeBytes(final int k, final long n, final boolean updatableMemoryFormat) {
-    return getMaxSerializedSizeBytes(k, n, SketchType.DOUBLES_SKETCH, updatableMemoryFormat);
-  }
 
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -328,10 +317,10 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     setDoubleItemsArray(new double[k]);
   }
 
-//  @Override
-//  public byte[] toByteArray() {
-//    return KllHelper.toCompactByteArrayImpl(this, null);
-//  }
+  @Override
+  public byte[] toByteArray() {
+    return KllHelper.toByteArray(this, false);
+  }
 
   @Override
   public void update(final double item) {
@@ -363,12 +352,15 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  abstract byte[] getRetainedDataByteArr();
+  abstract byte[] getRetainedItemsByteArr();
 
   @Override
-  int getRetainedDataSizeBytes() {
+  int getRetainedItemsSizeBytes() {
     return getNumRetained() * Double.BYTES;
   }
+
+  @Override
+  ArrayOfItemsSerDe<?> getSerDe() { return null; }
 
   @Override
   final byte[] getSingleItemByteArr() {
@@ -383,13 +375,16 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   @Override
-  abstract byte[] getTotalItemDataByteArr();
+  abstract byte[] getTotalItemsByteArr();
 
   @Override
-  abstract int getTotalItemDataBytes();
+  int getTotalItemsNumBytes() {
+    return levelsArr[getNumLevels()] * Double.BYTES;
+  }
 
   private final void refreshSortedView() {
-    kllDoublesSV = (kllDoublesSV == null) ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
+    kllDoublesSV = (kllDoublesSV == null)
+        ? new KllDoublesSketchSortedView(this) : kllDoublesSV;
   }
 
   abstract void setDoubleItemsArray(double[] doubleItems);
@@ -400,18 +395,12 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setMinItem(double item);
 
-  @Override
-  public byte[] toByteArray() {
-    return KllHelper.toByteArray(this, false);
-  }
-
   //TEMPORARY, HERE FOR DEBUGGING
 
   void printIntArr(final int[] intArr) {
     println("Int Array");
     for (int i = 0; i < intArr.length; i++) { println(i + ", " + intArr[i]); }
     println("");
-
   }
 
   void printDoubleArr(final double[] dblArr) {

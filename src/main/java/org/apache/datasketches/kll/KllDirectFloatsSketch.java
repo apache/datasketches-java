@@ -45,7 +45,6 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.ByteArrayUtil;
@@ -62,6 +61,8 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 class KllDirectFloatsSketch extends KllFloatsSketch {
+  private WritableMemory wmem;
+  private MemoryRequestServer memReqSvr;
 
   /**
    * The constructor with WritableMemory that points to off-heap.
@@ -69,12 +70,15 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object
    */
-  KllDirectFloatsSketch( //called by below and KllFloatsSketch wrap and WritableWrap
+  KllDirectFloatsSketch( //called below and KllFloatsSketch & KllDirectCompactFloatsSketch
       final SketchStructure sketchStructure,
       final WritableMemory wmem,
       final MemoryRequestServer memReqSvr,
       final KllMemoryValidate memVal) {
-    super(sketchStructure, wmem, memReqSvr);
+    super(sketchStructure, wmem);
+    this.wmem = wmem;
+    this.memReqSvr = memReqSvr;
+    readOnly = (wmem != null && wmem.isReadOnly()) || sketchStructure != UPDATABLE;
     levelsArr = memVal.levelsArr; //always converted to writable form.
   }
 
@@ -113,6 +117,8 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
     final WritableMemory wMem = dstMem;
     return new KllDirectFloatsSketch(UPDATABLE, wMem, memReqSvr, memVal);
   }
+
+  //END of Constructors
 
   @Override
   public int getK() {
@@ -207,6 +213,9 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
+  MemoryRequestServer getMemoryRequestServer() { return memReqSvr; }
+
+  @Override
   int getMinK() {
     if (sketchStructure == COMPACT_FULL || sketchStructure == UPDATABLE) { return getMemoryMinK(wmem); }
     else { return getK(); }
@@ -235,7 +244,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  byte[] getRetainedDataByteArr() {
+  byte[] getRetainedItemsByteArr() {
     if (sketchStructure == COMPACT_EMPTY) { return new byte[0]; }
     final float[] fltArr = getFloatRetainedItemsArray();
     final byte[] fltByteArr = new byte[fltArr.length * ITEM_BYTES];
@@ -245,7 +254,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  byte[] getTotalItemDataByteArr() {
+  byte[] getTotalItemsByteArr() {
     final float[] fltArr = getFloatItemsArray();
     final byte[] fltByteArr = new byte[fltArr.length * ITEM_BYTES];
     final WritableMemory wmem2 = WritableMemory.writableWrap(fltByteArr);
@@ -254,14 +263,8 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  int getTotalItemDataBytes() { //TODO MOVE THIS UP
-    final int capacityItems = levelsArr[getNumLevels()];
-    if (sketchType == FLOATS_SKETCH || sketchType == DOUBLES_SKETCH) {
-      return capacityItems * ITEM_BYTES;
-    }
-    else {
-      return 0; //ITEMS_SKETCH //TODO
-    }
+  WritableMemory getWritableMemory() {
+    return wmem;
   }
 
   @Override
@@ -334,6 +337,11 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   void setNumLevels(final int numLevels) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryNumLevels(wmem, numLevels);
+  }
+
+  @Override
+  void setWritablMemory(final WritableMemory wmem) {
+    this.wmem = wmem;
   }
 
 }

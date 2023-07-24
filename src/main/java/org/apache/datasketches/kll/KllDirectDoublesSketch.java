@@ -46,7 +46,6 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
@@ -62,6 +61,8 @@ import org.apache.datasketches.memory.WritableMemory;
  * @author Lee Rhodes, Kevin Lang
  */
 class KllDirectDoublesSketch extends KllDoublesSketch {
+  private WritableMemory wmem;
+  private MemoryRequestServer memReqSvr;
 
   /**
    * The constructor with WritableMemory that can be off-heap.
@@ -74,7 +75,10 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
       final WritableMemory wmem,
       final MemoryRequestServer memReqSvr,
       final KllMemoryValidate memVal) {
-    super(sketchStructure, wmem, memReqSvr);
+    super(sketchStructure, wmem);
+    this.wmem = wmem;
+    this.memReqSvr = memReqSvr;
+    readOnly = (wmem != null && wmem.isReadOnly()) || sketchStructure != UPDATABLE;
     levelsArr = memVal.levelsArr; //always converted to writable form.
   }
 
@@ -113,6 +117,8 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     final WritableMemory wMem = dstMem;
     return new KllDirectDoublesSketch(UPDATABLE, wMem, memReqSvr, memVal);
   }
+
+  //END of Constructors
 
   @Override
   public int getK() {
@@ -207,6 +213,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
+  MemoryRequestServer getMemoryRequestServer() { return memReqSvr; }
+
+  @Override
   int getMinK() {
     if (sketchStructure == COMPACT_FULL || sketchStructure == UPDATABLE) { return getMemoryMinK(wmem); }
     return getK();
@@ -235,7 +244,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  byte[] getRetainedDataByteArr() {
+  byte[] getRetainedItemsByteArr() {
     if (sketchStructure == COMPACT_EMPTY) { return new byte[0]; }
     final double[] dblArr = getDoubleRetainedItemsArray();
     final byte[] dblByteArr = new byte[dblArr.length * ITEM_BYTES];
@@ -245,7 +254,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  byte[] getTotalItemDataByteArr() {
+  byte[] getTotalItemsByteArr() {
     final double[] dblArr = getDoubleItemsArray();
     final byte[] dblByteArr = new byte[dblArr.length * ITEM_BYTES];
     final WritableMemory wmem2 = WritableMemory.writableWrap(dblByteArr);
@@ -254,14 +263,8 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  int getTotalItemDataBytes() { //TODO MOVE THIS UP
-    final int capacityItems = levelsArr[getNumLevels()];
-    if (sketchType == FLOATS_SKETCH || sketchType == DOUBLES_SKETCH) {
-      return capacityItems * ITEM_BYTES;
-    }
-    else {
-      return 0; //ITEMS_SKETCH //TODO
-    }
+  WritableMemory getWritableMemory() {
+    return wmem;
   }
 
   @Override
@@ -334,6 +337,11 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   void setNumLevels(final int numLevels) {
     if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
     setMemoryNumLevels(wmem, numLevels);
+  }
+
+  @Override
+  void setWritablMemory(final WritableMemory wmem) {
+    this.wmem = wmem;
   }
 
 }

@@ -154,7 +154,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param <T> The sketch data type
    * @param clazz the given class of T
    * @param comparator to compare items
-   * @return a GenericQuantileSketch
+   * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,
@@ -169,7 +169,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * Must be greater than 2 and less than 65536 and a power of 2.
    * @param comparator to compare items
    * @param <T> The sketch data type
-   * @return a GenericQuantileSketch
+   * @return an ItemSketch&lt;T&gt;.
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,
@@ -195,7 +195,7 @@ public final class ItemsSketch<T> implements QuantilesGenericAPI<T> {
    * @param comparator to compare items
    * @param serDe an instance of ArrayOfItemsSerDe
    * @param <T> The sketch data type
-   * @return a ItemsSketch on the Java heap.
+   * @return a ItemSketch&lt;T&gt; on the Java heap.
    */
   public static <T> ItemsSketch<T> getInstance(
       final Class<T> clazz,

@@ -28,11 +28,15 @@ import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
 import java.util.Arrays;
 import java.util.Random;
 
+import org.apache.datasketches.memory.WritableMemory;
+
+//
 /**
  * Static methods to support KllDoublesSketch
  * @author Kevin Lang
  * @author Alexander Saydakov
  */
+//
 final class KllDoublesHelper {
 
   /**
@@ -40,7 +44,7 @@ final class KllDoublesHelper {
    * It cannot be used while merging, while reducing k, or anything else.
    * @param dblSk the current KllDoublesSketch
    */
-  static void compressWhileUpdatingSketch(final KllDoublesSketch dblSk) {
+  private static void compressWhileUpdatingSketch(final KllDoublesSketch dblSk) {
     final int level =
         findLevelToCompact(dblSk.getK(), dblSk.getM(), dblSk.getNumLevels(), dblSk.levelsArr);
     if (level == dblSk.getNumLevels() - 1) {
@@ -103,8 +107,9 @@ final class KllDoublesHelper {
     dblSk.setDoubleItemsArray(myDoubleItemsArr);
   }
 
-  //assumes readOnly = false and UPDATABLE
-  static void mergeDoubleImpl(final KllDoublesSketch mySketch, final KllDoublesSketch otherDblSk) {
+  //assumes readOnly = false and UPDATABLE, called from KllDoublesSketch::merge
+  static void mergeDoubleImpl(final KllDoublesSketch mySketch,
+      final KllDoublesSketch otherDblSk) {
     if (otherDblSk.isEmpty()) { return; }
 
     //capture my key mutable fields before doing any merging
@@ -189,8 +194,10 @@ final class KllDoublesHelper {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mySketch.wmem != null) {
-        mySketch.wmem = KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+      if (mySketch.getWritableMemory() != null) {
+        final WritableMemory wmem =
+            KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
+        mySketch.setWritablMemory(wmem);
       }
     }
 
@@ -218,8 +225,7 @@ final class KllDoublesHelper {
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
 
-  //Called from KllHelper and this.generalDoublesCompress(...), this.populateDoubleWorkArrays(...)
-  static void mergeSortedDoubleArrays(
+  private static void mergeSortedDoubleArrays(
       final double[] bufA, final int startA, final int lenA,
       final double[] bufB, final int startB, final int lenB,
       final double[] bufC, final int startC) {
@@ -257,9 +263,9 @@ final class KllDoublesHelper {
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify to run.
-  //Called from KllHelper, this.generalDoublesCompress(...)
-  static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length, final Random random) {
+  //NOTE For validation Method: Need to modify to run.
+  private static void randomlyHalveDownDoubles(final double[] buf, final int start, final int length,
+      final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -278,9 +284,9 @@ final class KllDoublesHelper {
    * @param length items array length
    * @param random instance of Random
    */
-  //NOTE Validation Method: Need to modify to run.
-  //Called from KllHelper, this.generalDoublesCompress(...)
-  static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length, final Random random) {
+  //NOTE For validation Method: Need to modify to run.
+  private static void randomlyHalveUpDoubles(final double[] buf, final int start, final int length,
+      final Random random) {
     assert isEven(length);
     final int half_length = length / 2;
     final int offset = random.nextInt(2);       // disable for validation
@@ -292,9 +298,10 @@ final class KllDoublesHelper {
     }
   }
 
-  //Called from KllDoublesSketch, this.mergeDoubleImpl(...)
-  static void updateDouble(final KllDoublesSketch dblSk, final double item) {
-    if (Double.isNaN(item)) { return; }
+  //Called from KllDoublesSketch::update and this
+  static void updateDouble(final KllDoublesSketch dblSk,
+      final double item) {
+    if (Double.isNaN(item)) { return; } //ignore
     if (dblSk.isEmpty()) {
       dblSk.setMinItem(item);
       dblSk.setMaxItem(item);
@@ -345,6 +352,7 @@ final class KllDoublesHelper {
    * @param random instance of java.util.Random
    * @return int array of: {numLevels, targetItemCount, currentItemCount)
    */
+  //
   private static int[] generalDoublesCompress(
       final int k,
       final int m,
@@ -437,6 +445,7 @@ final class KllDoublesHelper {
       final double[] workbuf, final int[] worklevels, final int provisionalNumLevels,
       final int myCurNumLevels, final int[] myCurLevelsArr, final double[] myCurDoubleItemsArr,
       final int otherNumLevels, final int[] otherLevelsArr, final double[] otherDoubleItemsArr) {
+
     worklevels[0] = 0;
 
     // Note: the level zero data from "other" was already inserted into "self"
@@ -454,8 +463,10 @@ final class KllDoublesHelper {
       } else if (selfPop == 0 && otherPop > 0) {
         System.arraycopy(otherDoubleItemsArr, otherLevelsArr[lvl], workbuf, worklevels[lvl], otherPop);
       } else if (selfPop > 0 && otherPop > 0) {
-        mergeSortedDoubleArrays(myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop, otherDoubleItemsArr,
-            otherLevelsArr[lvl], otherPop, workbuf, worklevels[lvl]);
+        mergeSortedDoubleArrays(
+            myCurDoubleItemsArr, myCurLevelsArr[lvl], selfPop,
+            otherDoubleItemsArr, otherLevelsArr[lvl], otherPop,
+            workbuf, worklevels[lvl]);
       }
     }
   }

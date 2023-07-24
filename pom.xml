@@ -146,6 +146,11 @@ under the License.
       <version>${testng.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+    	<groupId>org.apache.datasketches</groupId>
+    	<artifactId>datasketches-memory-java8</artifactId>
+    	<version>2.2.0</version>
+    </dependency>
   </dependencies>
 
   <build>

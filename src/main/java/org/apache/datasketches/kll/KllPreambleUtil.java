@@ -45,66 +45,74 @@ import org.apache.datasketches.memory.WritableMemory;
  * schemes with minimal impact on the rest of the library.</p>
  *
  * <h3>Visual Layout</h3>
- * The low significance bytes of this <i>long</i> based visual data structure below are on the right.
+ * The low significance bytes of the visual data structure below are on the left.
  * The multi-byte primitives are stored in native byte order.
  * The numeric <i>byte</i> and <i>short</i> fields are treated as unsigned.
  * The numeric <i>int</i> and <i>long</i> fields are treated as signed.
  *
  * <h3>Preamble Formats</h3>
- * The preamble has 4 formats:
+ * The preamble has four formats:
+ *
  * <ul>
- * <li>A serialized Empty Compact Format requires 8 bytes of preamble. It is not updatable.
- * It is identified by SerVer = SERIAL_VERSION_EMPTY_FULL and PreambleInts = 2.</li>
+ * <li>The serialized empty compact structure requires 8 bytes of preamble. It is not updatable.
+ * It is identified by the <i>enum SketchStructure.COMPACT_EMPTY.</i></li>
  *
- * <li>A serialized, Single-Item Compact Format requires 8 bytes of preamble, followed by the one item.
- * The size of this format is 8 + itemSize. It is not updatable.
- * It is identified by SerVer = SERIAL_VERSION_SINGLE and PreambleInts = 2.</li>
+ * <li>The serialized, single-item compact structure requires 8 bytes of preamble, followed by the one item.
+ * The size of this structure is 8 + itemSize bytes. It is not updatable.
+ * It is identified by the <i>enum SketchStructure.COMPACT_SINGLE.</i></li>
  *
- * <li>A serialized, <i>n &gt; 1</i> Compact Format requires 20 bytes of preamble (5 ints).
- * This is followed by the <i>levels int[numLevels]</i> array, followed by the min and max values,
- * followed by a packed items data array (no empty or garbage slots). It is not updatable.
- * The length of this array is <i>sketch.getNumRetained()</i>.
- * It is identified by SerVer = SERIAL_VERSION_EMPTY_FULL and PreambleInts = 5.</li>
+ * <li>A serialized, <i>n &gt; 1</i> compact structure requires 20 bytes of preamble (5 ints) followed by
+ * four variable-sized fields. The details of these fields can be found in the code and are illustrated
+ * in the table below.
+ * The 5 int preamble is followed by the <i>levelsArr int[numLevels]</i> as bytes,
+ * followed by the min and max values as bytes,
+ * followed by a packed items data array as bytes. There are no empty or garbage slots in this structure.
+ * It is not updatable.
+ * It is identified by the <i>enum SketchStructure.COMPACT_FULL</i>.</li>
  *
- * <li>A serialized, <i>n &gt; 1</i> Updatable Format requires 20 bytes of preamble (5 ints).
- * This is followed by the Levels int[NumLevels + 1] array, followed by the min and max values,
+ * <li>A serialized, <i>n &gt; 1</i> non-compact, updatable structure requires 20 bytes of preamble (5 ints).
+ * This is followed by the LevelsArr int[NumLevels + 1], followed by the min and max values, and then
  * followed by an items data array that may include empty or garbage slots. It is updatable.
- * The length of this array is <i>sketch.getLevelsArray()[numLevels]</i>.
- * It is identified by SerVer = SERIAL_VERSION_UPDATABLE and PreambleInts = 5.</li>
+ * The details of these fields can be found in the code..
+ * It is identified by the <i>enum SketchStructure.UPDATABLE</i>. This structure may not be implemented by
+ * some sketches.</li>
  * </ul>
  *
  * <h3>Visual Layout</h3>
+ * The fields in braces are those that can be variable in size.
+ *
  * <pre>{@code
- * Serialized sketch layout, Empty (8 bytes) and Single Item (8 + itemSize):
+ * Serialized COMPACT_EMPTY sketch structure, Empty (8 bytes)
+ * and COMPACT_SINGLE sketch structure, (single item) (8 + itemSize):
  * Int Adr:   Byte Adr ->
- *  0       ||    3   |    2   |    1   |       0       |
- *          ||  Flags | FamID  | SerVer | PreambleInts  |
+ *    0     ||       0      |   1    |   2   |   3    |
+ *          | PreambleInts  | SerVer | FamID | Flags  |
  *
- *  1       ||    7   |    6   |    5   |       4       |
- *          || unused |    M   |-----------K------------|
+ *    1     ||       4      |   5    |   6   |   7    |
+ *          ||-----------K-----------|   M   | unused |
  *
- *  2       ||                          |       8       |
- *                                       <---Single Item|
+ *    2     ||       8      |
+ *          ||{Single Item} ->
  *
- * Serialized sketch layout, more than one item:
+ * Serialized COMPACT_FULL sketch structure, more than one item:
  * Int Adr:   Byte Adr ->
- *  0       ||    3   |    2   |    1   |      0       |
- *          ||  Flags |  FamID | SerVer | PreambleInts |
+ *    0     ||       0      |   1    |   2   |   3    |
+ *          || PreambleInts | SerVer | FamID | Flags  |
  *
- *  1       ||    7   |    6   |    5   |      4       |
- *          || unused |    M   |-----------K-----------|
+ *    1     ||       4      |   5    |   6   |   7    |
+ *          ||-----------K-----------|   M   | unused |
  *
- *  2,3     ||   15   |   14   |   13   |     12       |   11   |   10    |   9   |   8   |
- *          ||---------------------------------N_LONG-------------------------------------|
+ *   2,3    || 8  | 9  | 10 | 11 | 12 | 13 | 14 | 15  |
+ *          ||-----------------N_LONG-----------------|
  *
- *  4       ||   19   |    18  |   17   |     16       |
- *          || unused |NumLvls |------Min K------------|
+ *    4     ||      16      |   17   |  18   |  19    |
+ *          ||------Min K------------|NumLvls| unused |
  *
- *  5       ||                          |     20       |
- *                       { Levels Array }
- *                       {   Min Item   }
- *                       {   Max Item   }
- *                       { Items Array  }
+ *    5     ||     20       |
+ *            { Levels Array }
+ *            {   Min Item   }
+ *            {   Max Item   }
+ *            { Items Array  }
  *
  * Serialization Combinations for SerVer and PreambleInts
  * | Sketch Structure | SerVer         | PreInts          |
