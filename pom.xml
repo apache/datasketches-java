@@ -129,6 +129,8 @@ under the License.
     <!-- other -->
     <lifecycle-mapping.version>1.0.0</lifecycle-mapping.version>
     <git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
+
+    <testng.excludedgroups>generate</testng.excludedgroups>
   </properties>
 
   <dependencies>
@@ -308,6 +310,7 @@ under the License.
             <useManifestOnlyJar>false</useManifestOnlyJar>
             <redirectTestOutputToFile>true</redirectTestOutputToFile>
             <reportsDirectory>${project.build.directory}/test-output/${maven.build.timestamp}</reportsDirectory>
+            <excludedGroups>${testng.excludedgroups}</excludedGroups>
           </configuration>
         </plugin>
 
