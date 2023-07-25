@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
@@ -29,12 +28,8 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.File;
-
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.FloatsSortedView;
@@ -96,6 +91,7 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getMinItem(), 1f);
     assertEquals(sketch.getMaxItem(), 1f);
     assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 1f);
+    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 1.0f);
   }
 
   @Test
@@ -107,7 +103,8 @@ public class KllFloatsSketchTest {
     assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
-      assertEquals(sketch.getRank(i, INCLUSIVE), (i) / 10.0);
+      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
+      assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
     final float[] qArr = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     double[] rOut = sketch.getRanks(qArr); //inclusive
@@ -147,7 +144,7 @@ public class KllFloatsSketchTest {
     {
       // exclusive
       final float[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1});
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, EXCLUSIVE);
       for (int i = 0; i < 10; i++) {
         assertEquals(sketch.getQuantile(i / 10.0, EXCLUSIVE), quantiles[i + 1]);
       }
@@ -385,8 +382,7 @@ public class KllFloatsSketchTest {
       sketch.update(i);
     }
     assertEquals(sketch.getK(), KllSketch.DEFAULT_M);
-    float q = sketch.getQuantile(.5);
-    assertEquals(q, 500, 500 * PMF_EPS_FOR_K_8);
+    assertEquals(sketch.getQuantile(.5), 500, 500 * PMF_EPS_FOR_K_8);
   }
 
   @Test
@@ -472,26 +468,25 @@ public class KllFloatsSketchTest {
     sk.update(3);
     sk.update(1);
     sk.update(2);
-    {
-      final FloatsSortedView view = sk.getSortedView();
-      final FloatsSortedViewIterator itr = view.iterator();
-      assertEquals(itr.next(), true);
-      assertEquals(itr.getQuantile(), 1);
-      assertEquals(itr.getWeight(), 1);
-      assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
-      assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
-      assertEquals(itr.next(), true);
-      assertEquals(itr.getQuantile(), 2);
-      assertEquals(itr.getWeight(), 1);
-      assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
-      assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
-      assertEquals(itr.next(), true);
-      assertEquals(itr.getQuantile(), 3);
-      assertEquals(itr.getWeight(), 1);
-      assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 2);
-      assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
-      assertEquals(itr.next(), false);
-    }
+
+    final FloatsSortedView view = sk.getSortedView();
+    final FloatsSortedViewIterator itr = view.iterator();
+    assertEquals(itr.next(), true);
+    assertEquals(itr.getQuantile(), 1);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.next(), true);
+    assertEquals(itr.getQuantile(), 2);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.next(), true);
+    assertEquals(itr.getQuantile(), 3);
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 2);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
+    assertEquals(itr.next(), false);
   }
 
   @Test //also visual

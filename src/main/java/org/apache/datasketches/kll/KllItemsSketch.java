@@ -25,6 +25,7 @@ import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
 import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.lang.reflect.Array;
 import java.util.Comparator;
@@ -94,8 +95,9 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    // TODO Auto-generated method stub
-    return null;
+    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    refreshSortedView();
+    return kllFloatsSV.getCDF(splitPoints, searchCrit);
   }
 
   @Override

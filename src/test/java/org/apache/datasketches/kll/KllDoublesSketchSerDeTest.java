@@ -19,6 +19,7 @@
 
 package org.apache.datasketches.kll;
 
+//import static org.apache.datasketches.common.Util.getResourceBytes;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -64,6 +65,16 @@ public class KllDoublesSketchSerDeTest {
     assertEquals(sketch2.getMaxItem(), 1.0);
     assertEquals(sketch2.getSerializedSizeBytes(), 8 + Double.BYTES);
   }
+
+//  @Test
+//  public void deserializeOneValueV1() throws Exception {
+//    final byte[] bytes = getResourceBytes("kll_sketch_double_one_item_v1.sk"); //not avail for doubles yet
+//    final KllDoublesSketch sketch = KllDoublesSketch.heapify(Memory.wrap(bytes));
+//    assertFalse(sketch.isEmpty());
+//    assertFalse(sketch.isEstimationMode());
+//    assertEquals(sketch.getN(), 1);
+//    assertEquals(sketch.getNumRetained(), 1);
+//  }
 
   @Test
   public void serializeDeserialize() {

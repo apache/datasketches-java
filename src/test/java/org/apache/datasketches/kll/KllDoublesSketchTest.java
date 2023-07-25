@@ -1,5 +1,4 @@
 /*
-
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -29,20 +28,14 @@ import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.File;
-import java.io.FileOutputStream;
-
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
-import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.DoublesSortedViewIterator;
 import org.testng.annotations.Test;
 
-//added extra line to match KllFloatsSketchTest
 public class KllDoublesSketchTest {
   private static final double PMF_EPS_FOR_K_8 = 0.35; // PMF rank error (epsilon) for k=8
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
@@ -149,13 +142,15 @@ public class KllDoublesSketchTest {
 
     // getQuantile() and getQuantiles() equivalence
     {
+      //exclusive
       final double[] quantiles =
           sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, EXCLUSIVE);
       for (int i = 0; i < 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, EXCLUSIVE), quantiles[i]);
+        assertEquals(sketch.getQuantile(i / 10.0, EXCLUSIVE), quantiles[i + 1]);
       }
     }
     {
+      // inclusive
       final double[] quantiles =
           sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
@@ -189,7 +184,6 @@ public class KllDoublesSketchTest {
     assertEquals(sketch.getMinItem(), 0f); // min value is exact
     assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
 
-
     // check at every 0.1 percentage point
     final double[] fractions = new double[1001];
     final double[] reverseFractions = new double[1001]; // check that ordering doesn't matter
@@ -218,7 +212,6 @@ public class KllDoublesSketchTest {
       sketch.update(i);
       values[i] = i;
     }
-
     { // inclusive = false (default)
       final double[] ranks = sketch.getCDF(values);
       final double[] pmf = sketch.getPMF(values);
