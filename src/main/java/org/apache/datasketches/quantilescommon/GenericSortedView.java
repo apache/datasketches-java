@@ -33,31 +33,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 public interface GenericSortedView<T> extends SortedView {
 
   /**
-   * Gets the approximate quantile of the given normalized rank and the given search criterion.
-   *
-   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
-   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
-   * the quantile directly corresponding to the given rank.
-   * If EXCLUSIVE, he given rank includes all quantiles &lt;
-   * the quantile directly corresponding to the given rank.
-   * @return the approximate quantile given the normalized rank.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   */
-  T getQuantile(double rank, QuantileSearchCriteria searchCrit);
-
-  /**
-   * Gets the normalized rank corresponding to the given a quantile.
-   *
-   * @param quantile the given quantile
-   * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
-   * @return the normalized rank corresponding to the given quantile.
-   * @throws IllegalArgumentException if sketch is empty.
-   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
-   */
-  double getRank(T quantile, QuantileSearchCriteria searchCrit);
-
-  /**
    * Returns an approximation to the Cumulative Distribution Function (CDF) of the input stream
    * as a monotonically increasing array of double ranks (or cumulative probabilities) on the interval [0.0, 1.0],
    * given a set of splitPoints.
@@ -137,10 +112,35 @@ public interface GenericSortedView<T> extends SortedView {
   double[] getPMF(T[] splitPoints,  QuantileSearchCriteria searchCrit);
 
   /**
+   * Gets the approximate quantile of the given normalized rank and the given search criterion.
+   *
+   * @param rank the given normalized rank, a double in the range [0.0, 1.0].
+   * @param searchCrit If INCLUSIVE, the given rank includes all quantiles &le;
+   * the quantile directly corresponding to the given rank.
+   * If EXCLUSIVE, he given rank includes all quantiles &lt;
+   * the quantile directly corresponding to the given rank.
+   * @return the approximate quantile given the normalized rank.
+   * @throws IllegalArgumentException if sketch is empty.
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   */
+  T getQuantile(double rank, QuantileSearchCriteria searchCrit);
+
+  /**
    * Returns the array of quantiles.
    * @return the array of quantiles.
    */
   T[] getQuantiles();
+
+  /**
+   * Gets the normalized rank corresponding to the given a quantile.
+   *
+   * @param quantile the given quantile
+   * @param searchCrit if INCLUSIVE the given quantile is included into the rank.
+   * @return the normalized rank corresponding to the given quantile.
+   * @throws IllegalArgumentException if sketch is empty.
+   * @see org.apache.datasketches.quantilescommon.QuantileSearchCriteria
+   */
+  double getRank(T quantile, QuantileSearchCriteria searchCrit);
 
   @Override
   GenericSortedViewIterator<T> iterator();

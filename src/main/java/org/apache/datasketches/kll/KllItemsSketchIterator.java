@@ -19,13 +19,13 @@
 
 package org.apache.datasketches.kll;
 
-import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
 /**
- * Iterator over KllFloatsSketch. The order is not defined.
+ * Iterator over KllItemsSketch. The order is not defined.
  */
-public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
-  private final float[] quantiles;
+public class KllItemsSketchIterator<T> implements QuantilesGenericSketchIterator<T> {
+  private final Object[] quantiles;
   private final int[] levelsArr;
   private final int numLevels;
   private int level;
@@ -33,16 +33,17 @@ public class KllFloatsSketchIterator implements QuantilesFloatsSketchIterator {
   private long weight;
   private boolean isInitialized_;
 
-  KllFloatsSketchIterator(final float[] quantiles, final int[] levelsArr, final int numLevels) {
+  KllItemsSketchIterator(final Object[] quantiles, final int[] levelsArr, final int numLevels) {
     this.quantiles = quantiles;
     this.levelsArr = levelsArr;
     this.numLevels = numLevels;
     this.isInitialized_ = false;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public float getQuantile() {
-    return quantiles[index];
+  public T getQuantile() {
+    return (T)quantiles[index];
   }
 
   @Override

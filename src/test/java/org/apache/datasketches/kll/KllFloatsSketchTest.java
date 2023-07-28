@@ -96,13 +96,12 @@ public class KllFloatsSketchTest {
 
   @Test
   public void tenValues() {
-    final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
+    final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance(20);
     for (int i = 1; i <= 10; i++) { sketch.update(i); }
     assertFalse(sketch.isEmpty());
     assertEquals(sketch.getN(), 10);
     assertEquals(sketch.getNumRetained(), 10);
     for (int i = 1; i <= 10; i++) {
-      assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, EXCLUSIVE), (i - 1) / 10.0);
       assertEquals(sketch.getRank(i, INCLUSIVE), i / 10.0);
     }
@@ -115,42 +114,25 @@ public class KllFloatsSketchTest {
     for (int i = 0; i < qArr.length; i++) {
       assertEquals(rOut[i], i / 10.0);
     }
-    // inclusive = false (default)
-    assertEquals(sketch.getQuantile(0, EXCLUSIVE), 1);
-    assertEquals(sketch.getQuantile(0.1, EXCLUSIVE), 2);
-    assertEquals(sketch.getQuantile(0.2, EXCLUSIVE), 3);
-    assertEquals(sketch.getQuantile(0.3, EXCLUSIVE), 4);
-    assertEquals(sketch.getQuantile(0.4, EXCLUSIVE), 5);
-    assertEquals(sketch.getQuantile(0.5, EXCLUSIVE), 6);
-    assertEquals(sketch.getQuantile(0.6, EXCLUSIVE), 7);
-    assertEquals(sketch.getQuantile(0.7, EXCLUSIVE), 8);
-    assertEquals(sketch.getQuantile(0.8, EXCLUSIVE), 9);
-    assertEquals(sketch.getQuantile(0.9, EXCLUSIVE), 10);
-    assertEquals(sketch.getQuantile(1, EXCLUSIVE), 10);
-    // inclusive = true
-    assertEquals(sketch.getQuantile(0, INCLUSIVE), 1);
-    assertEquals(sketch.getQuantile(0.1, INCLUSIVE), 1);
-    assertEquals(sketch.getQuantile(0.2, INCLUSIVE), 2);
-    assertEquals(sketch.getQuantile(0.3, INCLUSIVE), 3);
-    assertEquals(sketch.getQuantile(0.4, INCLUSIVE), 4);
-    assertEquals(sketch.getQuantile(0.5, INCLUSIVE), 5);
-    assertEquals(sketch.getQuantile(0.6, INCLUSIVE), 6);
-    assertEquals(sketch.getQuantile(0.7, INCLUSIVE), 7);
-    assertEquals(sketch.getQuantile(0.8, INCLUSIVE), 8);
-    assertEquals(sketch.getQuantile(0.9, INCLUSIVE), 9);
-    assertEquals(sketch.getQuantile(1, INCLUSIVE), 10);
 
-    // getQuantile() and getQuantiles() equivalence
+    for (int i = 0; i >= 10; i++) {
+      double rank = i/10.0;
+      float q = rank == 1.0 ? i : i + 1;
+      assertEquals(sketch.getQuantile(rank, EXCLUSIVE), q);
+      q = (float)(rank == 0 ? i + 1.0 : i);
+      assertEquals(sketch.getQuantile(rank, INCLUSIVE), q);
+    }
+
     {
-      // exclusive
+      // getQuantile() and getQuantiles() equivalence EXCLUSIVE
       final float[] quantiles =
-          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9}, EXCLUSIVE);
-      for (int i = 0; i < 10; i++) {
-        assertEquals(sketch.getQuantile(i / 10.0, EXCLUSIVE), quantiles[i + 1]);
+          sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0}, EXCLUSIVE);
+      for (int i = 0; i <= 10; i++) {
+        assertEquals(sketch.getQuantile(i / 10.0, EXCLUSIVE), quantiles[i]);
       }
     }
     {
-      // inclusive
+      // getQuantile() and getQuantiles() equivalence INCLUSIVE
       final float[] quantiles =
           sketch.getQuantiles(new double[] {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1}, INCLUSIVE);
       for (int i = 0; i <= 10; i++) {
@@ -523,6 +505,101 @@ public class KllFloatsSketchTest {
       assertEquals(cdf[i], cdfE[i], toll);
       assertEquals(pmf[i], pmfE[i], toll);
     }
+  }
+
+  @Test
+  public void checkWrapCase1Floats() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    Memory mem = Memory.wrap(sk.toByteArray());
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
+    assertTrue(mem.isReadOnly());
+    assertTrue(sk2.isReadOnly());
+    assertFalse(sk2.isDirect());
+  }
+
+  @Test
+  public void checkWritableWrapCase6And2Floats() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    WritableMemory wmem = WritableMemory.writableWrap(KllHelper.toByteArray(sk, true));
+    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    assertFalse(wmem.isReadOnly());
+    assertFalse(sk2.isReadOnly());
+    assertFalse(sk2.isDirect());
+  }
+
+  @Test
+  public void checkKllSketchCase5Floats() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
+    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    assertFalse(wmem.isReadOnly());
+    assertTrue(sk2.isReadOnly());
+    assertFalse(sk2.isDirect());
+  }
+
+  @Test
+  public void checkKllSketchCase3Floats() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    Memory mem = Memory.wrap(KllHelper.toByteArray(sk, true));
+    WritableMemory wmem = (WritableMemory) mem;
+    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    assertTrue(wmem.isReadOnly());
+    assertTrue(sk2.isReadOnly());
+    assertFalse(sk2.isDirect());
+  }
+
+  @Test
+  public void checkKllSketchCase7Floats() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    for (int i = 1; i <= 21; i++) { sk.update(i); }
+    Memory mem = Memory.wrap(KllHelper.toByteArray(sk, true));
+    WritableMemory wmem = (WritableMemory) mem;
+    KllFloatsSketch sk2 = KllFloatsSketch.writableWrap(wmem, memReqSvr);
+    assertTrue(wmem.isReadOnly());
+    assertTrue(sk2.isReadOnly());
+    assertFalse(sk2.isDirect());
+  }
+
+  @Test
+  public void checkReadOnlyExceptions() {
+    int[] intArr = new int[0];
+    int intV = 2;
+    int idx = 1;
+    KllFloatsSketch sk1 = KllFloatsSketch.newHeapInstance(20);
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllFloatsSketch sk2 = KllFloatsSketch.wrap(mem);
+    try { sk2.setLevelsArray(intArr);              fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setLevelsArrayAt(idx,intV);          fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkIsSameResource() {
+    int cap = 128;
+    WritableMemory wmem = WritableMemory.allocate(cap);
+    WritableMemory reg1 = wmem.writableRegion(0, 64);
+    WritableMemory reg2 = wmem.writableRegion(64, 64);
+    assertFalse(reg1 == reg2);
+    assertFalse(reg1.isSameResource(reg2));
+
+    WritableMemory reg3 = wmem.writableRegion(0, 64);
+    assertFalse(reg1 == reg3);
+    assertTrue(reg1.isSameResource(reg3));
+
+    byte[] byteArr1 = KllFloatsSketch.newHeapInstance(20).toByteArray();
+    reg1.putByteArray(0, byteArr1, 0, byteArr1.length);
+    KllFloatsSketch sk1 = KllFloatsSketch.wrap(reg1);
+
+    byte[] byteArr2 = KllFloatsSketch.newHeapInstance(20).toByteArray();
+    reg2.putByteArray(0, byteArr2, 0, byteArr2.length);
+    assertFalse(sk1.isSameResource(reg2));
+
+    byte[] byteArr3 = KllFloatsSketch.newHeapInstance(20).toByteArray();
+    reg3.putByteArray(0, byteArr3, 0, byteArr3.length);
+    assertTrue(sk1.isSameResource(reg3));
   }
 
   private final static boolean enablePrinting = false;

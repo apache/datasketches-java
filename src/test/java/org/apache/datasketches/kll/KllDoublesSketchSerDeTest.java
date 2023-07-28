@@ -28,6 +28,7 @@ import static org.testng.Assert.fail;
 import java.io.File;
 import java.io.FileOutputStream;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
@@ -45,8 +46,8 @@ public class KllDoublesSketchSerDeTest {
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
     assertEquals(sketch2.getN(), sketch1.getN());
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
   }
 

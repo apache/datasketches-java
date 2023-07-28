@@ -73,6 +73,11 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights.clone();
+  }
+
+  @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
@@ -88,6 +93,11 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
   }
 
   @Override
+  public double[] getQuantiles() {
+    return quantiles.clone();
+  }
+
+  @Override
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     final int len = quantiles.length;
@@ -97,16 +107,6 @@ public final class KllDoublesSketchSortedView implements DoublesSortedView {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
-  }
-
-  @Override
-  public long[] getCumulativeWeights() {
-    return cumWeights.clone();
-  }
-
-  @Override
-  public double[] getQuantiles() {
-    return quantiles.clone();
   }
 
   @Override

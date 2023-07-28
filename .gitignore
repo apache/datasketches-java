@@ -63,3 +63,6 @@ doc/
 _site/
 _*
 _*/
+
+# Sketch binary test files
+*.sk

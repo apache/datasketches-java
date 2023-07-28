@@ -43,7 +43,7 @@ public final class Util {
    */
   public static final long[] doubleToLongArray(final double value) {
     final double d = (value == 0.0) ? 0.0 : value; // canonicalize -0.0, 0.0
-    final long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN forms
+    final long[] array = { Double.doubleToLongBits(d) }; // canonicalize all NaN & +/- infinity forms
     return array;
   }
 

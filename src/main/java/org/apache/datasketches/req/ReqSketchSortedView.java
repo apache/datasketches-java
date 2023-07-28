@@ -61,6 +61,11 @@ public class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
+  public long[] getCumulativeWeights() {
+    return cumWeights.clone();
+  }
+
+  @Override
   public float getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
@@ -76,6 +81,11 @@ public class ReqSketchSortedView implements FloatsSortedView {
   }
 
   @Override
+  public float[] getQuantiles() {
+    return quantiles.clone();
+  }
+
+  @Override
   public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     final int len = quantiles.length;
@@ -85,16 +95,6 @@ public class ReqSketchSortedView implements FloatsSortedView {
       return 0; //EXCLUSIVE (LT) case: quantile <= minQuantile; INCLUSIVE (LE) case: quantile < minQuantile
     }
     return (double)cumWeights[index] / totalN;
-  }
-
-  @Override
-  public long[] getCumulativeWeights() {
-    return cumWeights.clone();
-  }
-
-  @Override
-  public float[] getQuantiles() {
-    return quantiles.clone();
   }
 
   @Override

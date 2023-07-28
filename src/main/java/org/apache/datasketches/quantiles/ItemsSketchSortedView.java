@@ -30,6 +30,7 @@ import org.apache.datasketches.common.SketchesStateException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
@@ -127,7 +128,8 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
     if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
-    final long naturalRank = (int)(rank * totalN);
+    final long naturalRank = (searchCrit == INCLUSIVE)
+        ? (long)Math.ceil(rank * totalN) : (long)Math.floor(rank * totalN);
     final InequalitySearch crit = (searchCrit == INCLUSIVE) ? InequalitySearch.GE : InequalitySearch.GT;
     final int index = InequalitySearch.find(cumWeights, 0, len - 1, naturalRank, crit);
     if (index == -1) {
@@ -227,6 +229,17 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
       subtotal = array[i] = newSubtotal;
     }
     return subtotal;
+  }
+
+  /**
+   * Iterator over ItemsSketchSortedView.
+   * @param <T> type of quantile (item)
+   */
+  public static class ItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
+
+    ItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
+      super(quantiles, cumWeights);
+    }
   }
 
 }
