@@ -61,7 +61,7 @@ public class KllMiscDirectFloatsTest {
   @Test
   public void checkMisc() {
     final KllFloatsSketch sk = getDirectFloatsSketch(8, 0);
-    try { sk.getPartitionBoundaries(10); fail(); } catch (IllegalArgumentException e) {}
+    try { sk.getPartitionBoundaries(10); fail(); } catch (SketchesArgumentException e) {}
     for (int i = 0; i < 20; i++) { sk.update(i); }
     final float[] items = sk.getFloatItemsArray();
     assertEquals(items.length, 16);

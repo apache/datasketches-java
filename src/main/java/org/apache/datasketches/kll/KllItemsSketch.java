@@ -21,11 +21,8 @@ package org.apache.datasketches.kll;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.lang.reflect.Array;
@@ -33,14 +30,13 @@ import java.util.Comparator;
 import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
-import org.apache.datasketches.kll.KllSketch.SketchStructure;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
-import org.apache.datasketches.quantilescommon.QuantilesGenericAPI.GenericPartitionBoundaries;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
-@SuppressWarnings({"unused", "unchecked"})
+@SuppressWarnings("unchecked")
 public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
   private KllItemsSketchSortedView<T> kllItemsSV = null;
   final Comparator<? super T> comparator;
@@ -98,7 +94,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV.getCDF(splitPoints, searchCrit);
   }
@@ -106,7 +102,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   public GenericPartitionBoundaries<T> getPartitionBoundaries(final int numEquallyWeighted,
       final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
     final Object[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
@@ -120,28 +116,28 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV.getQuantile(rank, searchCrit);
   }
 
   @Override
   public T[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     final int len = ranks.length;
-    final Object[] quantiles = new Object[len];
+    final T[] quantiles = (T[]) Array.newInstance(getMinItem().getClass(), len);
     for (int i = 0; i < len; i++) {
       quantiles[i] = kllItemsSV.getQuantile(ranks[i], searchCrit);
     }
-    return (T[]) quantiles;
+    return quantiles;
   }
 
   @Override
@@ -156,7 +152,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV.getRank(quantile, searchCrit);
   }
@@ -183,7 +179,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public double[] getRanks(final T[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     final int len = quantiles.length;
     final double[] ranks = new double[len];
@@ -207,7 +203,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public final void merge(final KllSketch other) {
-    if (readOnly || sketchStructure != UPDATABLE) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final KllItemsSketch<T> othItmSk = (KllItemsSketch<T>)other;
     if (othItmSk.isEmpty()) { return; }
     KllItemsHelper.mergeItemImpl(this, othItmSk, comparator);
@@ -216,7 +212,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public void reset() {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int k = getK();
     setN(0);
     setMinK(k);
@@ -235,7 +231,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public void update(final T item) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllItemsHelper.updateItem(this, item, comparator);
     kllItemsSV = null;
   }

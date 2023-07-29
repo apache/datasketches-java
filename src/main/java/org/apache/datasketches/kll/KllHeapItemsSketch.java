@@ -20,12 +20,11 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -70,11 +69,13 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   public T getMaxItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return (T)maxItem;
   }
 
   @Override
   public T getMinItem() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return (T)minItem;
   }
 
@@ -130,7 +131,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   T getSingleItem() {
-    if (n != 1L) { kllSketchThrow(NOT_SINGLE_ITEM); return null; }
+    if (n != 1L) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     final T item = (T) itemsArr[k - 1];
     return item;
   }

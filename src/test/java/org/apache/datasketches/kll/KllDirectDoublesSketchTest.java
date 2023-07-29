@@ -49,12 +49,12 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    try { sketch.getRank(0); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getRank(0); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getQuantile(0.5); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
-    try { sketch.getPMF(new double[] {0}); fail(); } catch (IllegalArgumentException e) {}
+    try { sketch.getQuantile(0.5); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getPMF(new double[] {0}); fail(); } catch (SketchesArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }

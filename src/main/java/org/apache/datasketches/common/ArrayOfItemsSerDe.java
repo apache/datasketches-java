@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.common;
 
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -80,6 +82,7 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @return the serialized size in bytes of the array of items.
    */
   public int sizeOf(final T[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
     int totalBytes = 0;
     for (int i = 0; i < items.length; i++) {
       totalBytes += sizeOf(items[i]);

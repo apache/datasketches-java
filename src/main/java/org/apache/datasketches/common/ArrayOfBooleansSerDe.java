@@ -19,6 +19,8 @@
 
 package org.apache.datasketches.common;
 
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -41,6 +43,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
 
   @Override
   public byte[] serializeToByteArray(final Boolean item) {
+    Objects.requireNonNull(item, "Item must not be null");
     final byte[] bytes = new byte[1];
     bytes[0] = (item) ? (byte)1 : 0;
     return bytes;
@@ -48,6 +51,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
 
   @Override
   public byte[] serializeToByteArray(final Boolean[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
     final int bytesNeeded = computeBytesNeeded(items.length);
     final byte[] bytes = new byte[bytesNeeded];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
@@ -77,6 +81,8 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
 
   @Override
   public Boolean[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new Boolean[0]; }
     final int numBytes = computeBytesNeeded(numItems);
     Util.checkBounds(offsetBytes, numBytes, mem.getCapacity());
     final Boolean[] array = new Boolean[numItems];
@@ -93,21 +99,25 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
 
   @Override
   public int sizeOf(final Boolean item) {
+    Objects.requireNonNull(item, "Item must not be null");
     return computeBytesNeeded(1);
   }
 
-  @Override
+  @Override //needs to override default due to the bit packing, which must be computed.
   public int sizeOf(final Boolean[] items) {
+    Objects.requireNonNull(items, "Item must not be null");
     return computeBytesNeeded(items.length);
   }
 
   @Override
   public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
     return computeBytesNeeded(numItems);
   }
 
   @Override
   public String toString(final Boolean item) {
+    if (item == null) { return "null"; }
     return item ? "true" : "false";
   }
 }

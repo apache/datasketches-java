@@ -26,6 +26,8 @@ import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
 import static org.apache.datasketches.common.ByteArrayUtil.putLongLE;
 import static org.apache.datasketches.common.ByteArrayUtil.putShortLE;
 
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 
 /**
@@ -53,6 +55,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public byte[] serializeToByteArray(final Number item) {
+    Objects.requireNonNull(item, "Item must not be null");
     final byte[] byteArr;
     if (item instanceof Long) {
       byteArr = new byte[Long.BYTES + 1];
@@ -88,6 +91,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public byte[] serializeToByteArray(final Number[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
     final int numItems = items.length;
     int totalBytes = 0;
     final byte[][] serialized2DArray = new byte[numItems][];
@@ -113,6 +117,8 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public Number[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new Number[0]; }
     final Number[] array = new Number[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
@@ -162,6 +168,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public int sizeOf(final Number item) {
+    Objects.requireNonNull(item, "Item must not be null");
     if ( item instanceof Long)         { return Byte.BYTES + Long.BYTES; }
     else if ( item instanceof Integer) { return Byte.BYTES + Integer.BYTES; }
     else if ( item instanceof Short)   { return Byte.BYTES + Short.BYTES; }
@@ -175,6 +182,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public int sizeOf(final Number[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
     int totalBytes = 0;
     for (final Number item : items) {
       totalBytes += sizeOf(item);
@@ -184,6 +192,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
       Util.checkBounds(offset, Byte.BYTES, mem.getCapacity());
@@ -226,6 +235,7 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
 
   @Override
   public String toString(final Number item) {
+    if (item == null) { return "null"; }
     return item.toString();
   }
 

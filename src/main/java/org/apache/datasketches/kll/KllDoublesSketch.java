@@ -22,16 +22,14 @@ package org.apache.datasketches.kll;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
-import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 import static org.apache.datasketches.quantilescommon.QuantilesUtil.equallyWeightedRanks;
 
 import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
@@ -172,7 +170,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public double[] getCDF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllDoublesSV.getCDF(splitPoints, searchCrit);
   }
@@ -180,7 +178,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   public DoublesPartitionBoundaries getPartitionBoundaries(final int numEquallyWeighted,
       final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final double[] ranks = equallyWeightedRanks(numEquallyWeighted);
     final double[] boundaries = getQuantiles(ranks, searchCrit);
     boundaries[0] = getMinItem();
@@ -194,21 +192,21 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public double[] getPMF(final double[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllDoublesSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public double getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllDoublesSV.getQuantile(rank, searchCrit);
   }
 
   @Override
   public double[] getQuantiles(final double[] ranks, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     final int len = ranks.length;
     final double[] quantiles = new double[len];
@@ -240,7 +238,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public double getRank(final double quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllDoublesSV.getRank(quantile, searchCrit);
   }
@@ -267,7 +265,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public double[] getRanks(final double[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     final int len = quantiles.length;
     final double[] ranks = new double[len];
@@ -292,7 +290,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public final void merge(final KllSketch other) {
-    if (readOnly || sketchStructure != UPDATABLE) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly || sketchStructure != UPDATABLE) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final KllDoublesSketch othDblSk = (KllDoublesSketch)other;
     if (othDblSk.isEmpty()) { return; }
     KllDoublesHelper.mergeDoubleImpl(this, othDblSk);
@@ -305,7 +303,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
    */
   @Override
   public final void reset() {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int k = getK();
     setN(0);
     setMinK(k);
@@ -324,7 +322,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   @Override
   public void update(final double item) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     KllDoublesHelper.updateDouble(this, item);
     kllDoublesSV = null;
   }

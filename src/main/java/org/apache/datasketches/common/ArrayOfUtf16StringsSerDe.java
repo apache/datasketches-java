@@ -23,6 +23,7 @@ import static org.apache.datasketches.common.ByteArrayUtil.copyBytes;
 import static org.apache.datasketches.common.ByteArrayUtil.putIntLE;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import org.apache.datasketches.memory.Memory;
 
@@ -39,6 +40,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public byte[] serializeToByteArray(final String item) {
+    Objects.requireNonNull(item, "Item must not be null");
     final byte[] utf16ByteArr = item.getBytes(StandardCharsets.UTF_16); //includes BOM
     final int numBytes = utf16ByteArr.length;
     final byte[] out = new byte[numBytes + Integer.BYTES];
@@ -49,6 +51,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public byte[] serializeToByteArray(final String[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
     int totalBytes = 0;
     final int numItems = items.length;
     final byte[][] serialized2DArray = new byte[numItems][];
@@ -76,6 +79,8 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public String[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new String[0]; }
     final String[] array = new String[numItems];
     long offset = offsetBytes;
     for (int i = 0; i < numItems; i++) {
@@ -93,11 +98,13 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public int sizeOf(final String item) {
+    Objects.requireNonNull(item, "Item must not be null");
     return item.getBytes(StandardCharsets.UTF_16).length + Integer.BYTES;
   }
 
   @Override
   public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
     long offset = offsetBytes;
     final long memCap = mem.getCapacity();
     for (int i = 0; i < numItems; i++) {
@@ -112,6 +119,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
 
   @Override
   public String toString(final String item) {
+    if (item == null) { return "null"; }
     return item.toString();
   }
 

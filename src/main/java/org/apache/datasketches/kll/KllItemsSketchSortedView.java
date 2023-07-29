@@ -21,11 +21,12 @@ package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllItemsHelper.lt;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
 import java.util.Arrays;
 import java.util.Comparator;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch;
 import org.apache.datasketches.quantilescommon.GenericInequalitySearch.Inequality;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
@@ -86,7 +87,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override //implemented here because it needs the comparator
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     GenericSortedView.validateItems(splitPoints, comp);
     final int len = splitPoints.length + 1;
     final double[] buckets = new double[len];
@@ -104,7 +105,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override //implemented here because it needs the comparator
   public double[] getPMF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     GenericSortedView.validateItems(splitPoints, comp);
     final double[] buckets = getCDF(splitPoints, searchCrit);
     final int len = buckets.length;
@@ -116,7 +117,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T getQuantile(final double rank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     QuantilesUtil.checkNormalizedRankBounds(rank);
     final int len = cumWeights.length;
     final long naturalRank = (searchCrit == INCLUSIVE)
@@ -136,7 +137,7 @@ public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public double getRank(final T quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     final int len = quantiles.length;
     final Inequality crit = (searchCrit == INCLUSIVE) ? Inequality.LE : Inequality.LT;
     final int index = GenericInequalitySearch.find((T[])quantiles,  0, len - 1, quantile, crit, comp);

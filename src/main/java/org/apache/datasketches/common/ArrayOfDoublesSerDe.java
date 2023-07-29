@@ -21,6 +21,8 @@ package org.apache.datasketches.common;
 
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 
+import java.util.Objects;
+
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -33,6 +35,7 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
   @Override
   public byte[] serializeToByteArray(final Double item) {
+    Objects.requireNonNull(item, "Item must not be null");
     final byte[] byteArr = new byte[Double.BYTES];
     putDoubleLE(byteArr, 0, item.doubleValue());
     return byteArr;
@@ -40,6 +43,8 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
   @Override
   public byte[] serializeToByteArray(final Double[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
+    if (items.length == 0) { return new byte[0]; }
     final byte[] bytes = new byte[Double.BYTES * items.length];
     final WritableMemory mem = WritableMemory.writableWrap(bytes);
     long offset = 0;
@@ -58,6 +63,8 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
 
   @Override
   public Double[] deserializeFromMemory(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
+    if (numItems <= 0) { return new Double[0]; }
     long offset = offsetBytes;
     Util.checkBounds(offset, Double.BYTES * numItems, mem.getCapacity());
     final Double[] array = new Double[numItems];
@@ -70,18 +77,26 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
   }
 
   @Override
-  public int sizeOf(final Double item) { return Double.BYTES; }
+  public int sizeOf(final Double item) {
+    Objects.requireNonNull(item, "Item must not be null");
+    return Double.BYTES;
+  }
 
-  @Override
-  public int sizeOf(final Double[] items) { return items.length * Double.BYTES; }
+  @Override //override because this is simpler
+  public int sizeOf(final Double[] items) {
+    Objects.requireNonNull(items, "Items must not be null");
+    return items.length * Double.BYTES;
+  }
 
   @Override
   public int sizeOf(final Memory mem, final long offsetBytes, final int numItems) {
+    Objects.requireNonNull(mem, "Memory must not be null");
     return numItems * Double.BYTES;
   }
 
   @Override
   public String toString(final Double item) {
+    if (item == null) { return "null"; }
     return item.toString();
   }
 

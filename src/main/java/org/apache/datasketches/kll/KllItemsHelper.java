@@ -483,6 +483,10 @@ final class KllItemsHelper<T> {
     return c.compare((T)item1, (T)item2) < 0;
   }
 
+  static <T> boolean le(final Object item1, final Object item2, final Comparator<? super T> c) {
+    return c.compare((T)item1, (T)item2) <= 0;
+  }
+
   /*
    * Validation Method.
    * The following must be enabled for use with the KllItemsValidationTest,

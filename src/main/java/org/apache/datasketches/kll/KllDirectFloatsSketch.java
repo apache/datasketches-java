@@ -37,10 +37,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryN;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryNumLevels;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemoryPreInts;
 import static org.apache.datasketches.kll.KllPreambleUtil.setMemorySerVer;
-import static org.apache.datasketches.kll.KllSketch.Error.EMPTY;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -49,6 +45,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -128,7 +125,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   public float getMaxItem() {
     int levelsArrBytes = 0;
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { kllSketchThrow(EMPTY); }
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     else if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
     else if (sketchStructure == COMPACT_FULL) {
       levelsArrBytes = getLevelsArrBytes(COMPACT_FULL);
@@ -142,7 +139,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   public float getMinItem() {
     int levelsArrBytes = 0;
-    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { kllSketchThrow(EMPTY); }
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     else if (sketchStructure == COMPACT_SINGLE) { return getFloatSingleItem(); }
     else if (sketchStructure == COMPACT_FULL) {
       levelsArrBytes = getLevelsArrBytes(COMPACT_FULL);
@@ -194,7 +191,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   float getFloatSingleItem() {
-    if (!isSingleItem()) { kllSketchThrow(NOT_SINGLE_ITEM); }
+    if (!isSingleItem()) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     if (sketchStructure == COMPACT_SINGLE) {
       return wmem.getFloat(DATA_START_ADR_SINGLE_ITEM);
     }
@@ -269,14 +266,14 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void incN() {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     long n = getMemoryN(wmem);
     setMemoryN(wmem, ++n);
   }
 
   @Override
   void incNumLevels() {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     int numLevels = getMemoryNumLevels(wmem);
     setMemoryNumLevels(wmem, ++numLevels);
   }
@@ -288,14 +285,14 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setFloatItemsArray(final float[] floatItems) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
     wmem.putFloatArray(offset, floatItems, 0, floatItems.length);
   }
 
   @Override
   void setFloatItemsArrayAt(final int index, final float item) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset =
         DATA_START_ADR + getLevelsArrBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putFloat(offset, item);
@@ -303,39 +300,39 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
 
   @Override
   void setLevelZeroSorted(final boolean sorted) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     setMemoryLevelZeroSortedFlag(wmem, sorted);
   }
 
   @Override
   void setMaxItem(final float item) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + ITEM_BYTES;
     wmem.putFloat(offset, item);
   }
 
   @Override
   void setMinItem(final float item) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure);
     wmem.putFloat(offset, item);
   }
 
   @Override
   void setMinK(final int minK) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     setMemoryMinK(wmem, minK);
   }
 
   @Override
   void setN(final long n) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     setMemoryN(wmem, n);
   }
 
   @Override
   void setNumLevels(final int numLevels) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     setMemoryNumLevels(wmem, numLevels);
   }
 

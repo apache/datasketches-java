@@ -27,9 +27,6 @@ import static org.apache.datasketches.kll.KllPreambleUtil.PREAMBLE_INTS_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_EMPTY_FULL;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_SINGLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.SERIAL_VERSION_UPDATABLE;
-import static org.apache.datasketches.kll.KllSketch.Error.TGT_IS_READ_ONLY;
-import static org.apache.datasketches.kll.KllSketch.Error.UNSUPPORTED_TYPE;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -156,7 +153,7 @@ public abstract class KllSketch implements QuantilesAPI {
    */
   public static int getMaxSerializedSizeBytes(final int k, final long n,
       final SketchType sketchType, final boolean updatableMemFormat) {
-    if (sketchType == ITEMS_SKETCH) { kllSketchThrow(UNSUPPORTED_TYPE); }
+    if (sketchType == ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
     final KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, DEFAULT_M, n, sketchType, false);
     return updatableMemFormat ? gStats.updatableBytes : gStats.compactBytes;
@@ -449,7 +446,7 @@ public abstract class KllSketch implements QuantilesAPI {
   boolean isSingleItem() { return getN() == 1; }
 
   final void setLevelsArray(final int[] levelsArr) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     this.levelsArr = levelsArr;
     final WritableMemory wmem = getWritableMemory();
     if (wmem != null) {
@@ -458,7 +455,7 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   final void setLevelsArrayAt(final int index, final int idxVal) {
-    if (readOnly) { kllSketchThrow(TGT_IS_READ_ONLY); }
+    if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     this.levelsArr[index] = idxVal;
     final WritableMemory wmem = getWritableMemory();
     if (wmem != null) {
@@ -524,28 +521,6 @@ public abstract class KllSketch implements QuantilesAPI {
       }
       throw new SketchesArgumentException("Error combination of PreInts and SerVer: "
           + "PreInts: " + preInts + ", SerVer: " + serVer);
-    }
-  }
-
-  enum Error {
-    TGT_IS_READ_ONLY("Target sketch is Read Only, cannot write."),
-    MRS_MUST_NOT_BE_NULL("MemoryRequestServer cannot be null."),
-    NOT_SINGLE_ITEM("Sketch is empty or does not have just one item."),
-    UNSUPPORTED_TYPE("Unsupported operation for this Sketch Type."),
-    EMPTY("Sketch must not be empty for this operation.");
-
-    private String msg;
-
-    private Error(final String msg) {
-      this.msg = msg;
-    }
-
-    final static void kllSketchThrow(final Error errType) {
-      throw new SketchesArgumentException(errType.getMessage());
-    }
-
-    private String getMessage() {
-      return msg;
     }
   }
 

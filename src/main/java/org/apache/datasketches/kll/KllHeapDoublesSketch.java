@@ -22,9 +22,6 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.common.ByteArrayUtil.putDoubleLE;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.EMPTY;
-import static org.apache.datasketches.kll.KllSketch.Error.NOT_SINGLE_ITEM;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -34,6 +31,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import java.util.Arrays;
 import java.util.Objects;
 
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
@@ -148,13 +146,13 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   public double getMaxItem() {
-    if (isEmpty()) { kllSketchThrow(EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return maxDoubleItem;
   }
 
   @Override
   public double getMinItem() {
-    if (isEmpty()) { kllSketchThrow(EMPTY); }
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     return minDoubleItem;
   }
 
@@ -168,7 +166,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
 
   @Override
   double getDoubleSingleItem() {
-    if (n != 1L) { kllSketchThrow(NOT_SINGLE_ITEM); return Double.NaN; }
+    if (n != 1L) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     return doubleItems[k - 1];
   }
 

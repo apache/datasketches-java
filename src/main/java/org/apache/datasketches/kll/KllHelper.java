@@ -32,8 +32,6 @@ import static org.apache.datasketches.common.Util.floorPowerOf2;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.EMPTY_BIT_MASK;
 import static org.apache.datasketches.kll.KllPreambleUtil.LEVEL_ZERO_SORTED_BIT_MASK;
-import static org.apache.datasketches.kll.KllSketch.Error.UNSUPPORTED_TYPE;
-import static org.apache.datasketches.kll.KllSketch.Error.kllSketchThrow;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
@@ -41,6 +39,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+import static org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_MSG;
 
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -209,7 +208,7 @@ final class KllHelper {
       final long n,
       final SketchType sketchType,
       final boolean printGrowthScheme) {
-    if (sketchType == ITEMS_SKETCH) { kllSketchThrow(UNSUPPORTED_TYPE); }
+    if (sketchType == ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
     LevelStats lvlStats;
     final GrowthStats gStats = new GrowthStats();
     gStats.numLevels = 0;
@@ -337,7 +336,7 @@ final class KllHelper {
       final int newLevelsArrLen,
       final int newItemsArrLen) {
     final KllSketch.SketchType sketchType = sketch.sketchType;
-    if (sketchType == ITEMS_SKETCH) { kllSketchThrow(UNSUPPORTED_TYPE); }
+    if (sketchType == ITEMS_SKETCH) { throw new SketchesArgumentException(UNSUPPORTED_MSG); }
     final WritableMemory wmem = sketch.getWritableMemory();
     if (wmem == null) { return null; }
     final WritableMemory oldWmem = wmem;
@@ -598,9 +597,9 @@ final class KllHelper {
     }
     else { //sketchType == ITEMS_SKETCH
       final KllItemsSketch<T> itmSk = (KllItemsSketch<T>) sketch;
-      sb.append("   Min Item               : ").append(itmSk.isEmpty() ? null : serDe.toString(itmSk.getMinItem()))
+      sb.append("   Min Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMinItem()))
           .append(Util.LS);
-      sb.append("   Max Item               : ").append(itmSk.isEmpty() ? null : serDe.toString(itmSk.getMinItem()))
+      sb.append("   Max Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMinItem()))
           .append(Util.LS);
     }
     sb.append("### End sketch summary").append(Util.LS);

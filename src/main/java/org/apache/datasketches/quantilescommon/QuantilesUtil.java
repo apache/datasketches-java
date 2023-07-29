@@ -36,8 +36,6 @@ public final class QuantilesUtil {
 
   private QuantilesUtil() {}
 
-  public static final String THROWS_EMPTY = "The sketch must not be empty at this point.";
-
   /**
    * Checks that the given normalized rank: <i>0 &le; nRank &le; 1.0</i>.
    * @param nRank the given normalized rank.

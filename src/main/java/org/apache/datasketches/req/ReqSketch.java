@@ -20,7 +20,6 @@
 package org.apache.datasketches.req;
 
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
-import static org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,7 +208,7 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getCDF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return reqSV.getCDF(splitPoints, searchCrit);
   }
@@ -221,13 +220,13 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public float getMaxItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     return maxItem;
   }
 
   @Override
   public float getMinItem() {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     return minItem;
   }
 
@@ -238,14 +237,14 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getPMF(final float[] splitPoints, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return reqSV.getPMF(splitPoints, searchCrit);
   }
 
   @Override
   public float getQuantile(final double normRank, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     if (normRank < 0 || normRank > 1.0) {
       throw new SketchesArgumentException(
         "Normalized rank must be in the range [0.0, 1.0]: " + normRank);
@@ -256,7 +255,7 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public float[] getQuantiles(final double[] normRanks, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     final int len = normRanks.length;
     final float[] qArr = new float[len];
@@ -298,7 +297,7 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public double getRank(final float quantile, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     return reqSV.getRank(quantile, searchCrit);
   }
@@ -320,7 +319,7 @@ public final class ReqSketch extends BaseReqSketch {
 
   @Override
   public double[] getRanks(final float[] quantiles, final QuantileSearchCriteria searchCrit) {
-    if (isEmpty()) { throw new IllegalArgumentException(THROWS_EMPTY); }
+    if (isEmpty()) { throw new IllegalArgumentException(QuantilesAPI.EMPTY_MSG); }
     refreshSortedView();
     final int numQuantiles = quantiles.length;
     final double[] retArr = new double[numQuantiles];
