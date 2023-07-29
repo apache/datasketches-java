@@ -271,6 +271,7 @@ under the License.
               <exclude>**/.*</exclude>
               <exclude>**/test/resources/**/*.txt</exclude>
               <exclude>**/git.properties</exclude>
+              <exclude>**/*.sk</exclude>
               <exclude>LICENSE</exclude>
               <exclude>NOTICE</exclude>
             </excludes>
