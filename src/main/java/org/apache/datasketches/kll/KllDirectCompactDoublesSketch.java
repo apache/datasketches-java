@@ -22,7 +22,7 @@ package org.apache.datasketches.kll;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
-class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
+final class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
 
   KllDirectCompactDoublesSketch(
       final SketchStructure sketchStructure,

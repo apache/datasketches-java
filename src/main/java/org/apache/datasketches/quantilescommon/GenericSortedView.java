@@ -153,8 +153,12 @@ public interface GenericSortedView<T> extends SortedView {
    * @param comparator the comparator for generic item data type T
    */
   static <T> void validateItems(final T[] items, final Comparator<? super T> comparator) {
-    final int lenM1 = items.length - 1;
-    for (int j = 0; j < lenM1; j++) {
+    final int len = items.length;
+    if (len == 1 && items[0] == null) {
+      throw new SketchesArgumentException(
+          "Items must be unique, monotonically increasing and not null.");
+    }
+    for (int j = 0; j < len - 1; j++) {
       if ((items[j] != null) && (items[j + 1] != null)
           && (comparator.compare(items[j], items[j + 1]) < 0)) {
         continue;

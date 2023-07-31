@@ -19,8 +19,11 @@
 
 package org.apache.datasketches.kll;
 
+import static java.lang.Math.ceil;
+import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static org.apache.datasketches.common.Util.characterPad;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
@@ -483,9 +486,22 @@ final class KllItemsHelper<T> {
     return c.compare((T)item1, (T)item2) < 0;
   }
 
+  //used in test
   static <T> boolean le(final Object item1, final Object item2, final Comparator<? super T> c) {
     return c.compare((T)item1, (T)item2) <= 0;
   }
+
+  static int numDigits(int n) {
+    if (n % 10 == 0) { n++; }
+    return (int) ceil(log(n) / log(10));
+  }
+
+  static String intToFixedLengthString(final int number, final int length) {
+    final String num = Integer.valueOf(number).toString();
+    return characterPad(num, length, ' ', false);
+  }
+
+
 
   /*
    * Validation Method.

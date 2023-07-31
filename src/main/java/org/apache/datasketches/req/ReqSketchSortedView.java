@@ -34,7 +34,7 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Alexander Saydakov
  * @author Lee Rhodes
  */
-public class ReqSketchSortedView implements FloatsSortedView {
+public final class ReqSketchSortedView implements FloatsSortedView {
   private float[] quantiles;
   private long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;

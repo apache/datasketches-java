@@ -42,7 +42,7 @@ import org.apache.datasketches.quantilescommon.QuantilesUtil;
  * @author Lee Rhodes
  */
 @SuppressWarnings("unchecked")
-public class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
+public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final Object[] quantiles;
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;

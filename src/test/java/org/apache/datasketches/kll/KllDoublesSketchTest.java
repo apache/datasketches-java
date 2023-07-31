@@ -511,8 +511,10 @@ public class KllDoublesSketchTest {
   public void checkWrapCase1Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
+
     Memory mem = Memory.wrap(sk.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(mem);
+
     assertTrue(mem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
@@ -522,8 +524,10 @@ public class KllDoublesSketchTest {
   public void checkWritableWrapCase6And2Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
+
     WritableMemory wmem = WritableMemory.writableWrap(KllHelper.toByteArray(sk, true));
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+
     assertFalse(wmem.isReadOnly());
     assertFalse(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
@@ -533,8 +537,10 @@ public class KllDoublesSketchTest {
   public void checkKllSketchCase5Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
+
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+
     assertFalse(wmem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
@@ -544,9 +550,11 @@ public class KllDoublesSketchTest {
   public void checkKllSketchCase3Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
+
     Memory mem = Memory.wrap(KllHelper.toByteArray(sk, true));
     WritableMemory wmem = (WritableMemory) mem;
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+
     assertTrue(wmem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
@@ -556,9 +564,11 @@ public class KllDoublesSketchTest {
   public void checkKllSketchCase7Doubles() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
     for (int i = 1; i <= 21; i++) { sk.update(i); }
+
     Memory mem = Memory.wrap(KllHelper.toByteArray(sk, true));
     WritableMemory wmem = (WritableMemory) mem;
     KllDoublesSketch sk2 = KllDoublesSketch.writableWrap(wmem, memReqSvr);
+
     assertTrue(wmem.isReadOnly());
     assertTrue(sk2.isReadOnly());
     assertFalse(sk2.isDirect());
