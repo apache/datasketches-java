@@ -19,6 +19,9 @@
 
 package org.apache.datasketches.theta;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+
 import java.io.FileOutputStream;
 
 import org.testng.annotations.Test;
@@ -34,6 +37,17 @@ public class ThetaSketchSerDeTest {
       try (final FileOutputStream file = new FileOutputStream("theta_n" + n + ".sk")) {
         file.write(sketch.compact().toByteArray());
       }
+    }
+  }
+
+  @Test(groups = {"generate"})
+  public void generateBinariesForCompatibilityTestingNonEmptyNoEntries() throws Exception {
+    final UpdateSketch sketch = UpdateSketch.builder().setP(0.01f).build();
+    sketch.update(1);
+    assertFalse(sketch.isEmpty());
+    assertEquals(sketch.getRetainedEntries(), 0);
+    try (final FileOutputStream file = new FileOutputStream("theta_non_empty_no_entries.sk")) {
+      file.write(sketch.compact().toByteArray());
     }
   }
 
