@@ -97,7 +97,7 @@ public class KllDoublesSketchSerDeTest {
     }
   }
 
-  //@Test
+  @Test
   public void deserializeOneValueVersion1() throws Exception {
     final byte[] bytes = getResourceBytes("kll_sketch_double_one_item_v1.sk");
     final KllDoublesSketch sketch = KllDoublesSketch.heapify(Memory.wrap(bytes));
@@ -105,8 +105,8 @@ public class KllDoublesSketchSerDeTest {
     assertFalse(sketch.isEstimationMode());
     assertEquals(sketch.getN(), 1);
     assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getMinItem(), 0.0);
-    assertEquals(sketch.getMaxItem(), 0.0);
+    assertEquals(sketch.getMinItem(), 1.0);
+    assertEquals(sketch.getMaxItem(), 1.0);
   }
 
   @Test(groups = {"generate"})

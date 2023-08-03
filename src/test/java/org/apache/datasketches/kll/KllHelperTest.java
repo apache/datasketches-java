@@ -34,7 +34,6 @@ import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
-@SuppressWarnings("unused")
 public class KllHelperTest {
   public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
