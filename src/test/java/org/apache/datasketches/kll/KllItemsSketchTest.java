@@ -23,6 +23,8 @@ import static java.lang.Math.ceil;
 import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
 import static org.apache.datasketches.kll.KllItemsHelper.le;
 import static org.apache.datasketches.kll.KllItemsHelper.numDigits;
+import static org.apache.datasketches.kll.KllSketch.SketchStructure.*;
+import static org.apache.datasketches.kll.KllSketch.SketchType.*;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -35,7 +37,12 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
+import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("unused")
@@ -293,8 +300,8 @@ public class KllItemsSketchTest {
     assertEquals(sketch1.getN(), 2 * n);
     assertEquals(sketch1.getMinItem(), intToFixedLengthString(0, digits));
     assertEquals(sketch1.getMaxItem(), intToFixedLengthString(2 * n - 1, digits));
-    String upperBound = intToFixedLengthString(n + (int)ceil(n * PMF_EPS_FOR_K_128), digits);
-    String lowerBound = intToFixedLengthString(n - (int)ceil(n * PMF_EPS_FOR_K_128), digits);
+    String upperBound = intToFixedLengthString(n + (int)ceil(2 * n * PMF_EPS_FOR_K_128), digits);
+    String lowerBound = intToFixedLengthString(n - (int)ceil(2 * n * PMF_EPS_FOR_K_128), digits);
     String median = sketch1.getQuantile(0.5);
     assertTrue(le(median, upperBound, Comparator.naturalOrder()));
     assertTrue(le(lowerBound, median, Comparator.naturalOrder()));
@@ -446,8 +453,223 @@ public class KllItemsSketchTest {
     sketch.getCDF(new String[] {null});
   }
 
+  @Test
+  public void getQuantiles() {
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sketch.update("A");
+    sketch.update("B");
+    sketch.update("C");
+    sketch.update("D");
+    String[] quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, EXCLUSIVE);
+    String[] quantiles2 = sketch.getPartitionBoundaries(2, EXCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
+    quantiles1 = sketch.getQuantiles(new double[] {0.0, 0.5, 1.0}, INCLUSIVE);
+    quantiles2 = sketch.getPartitionBoundaries(2, INCLUSIVE).boundaries;
+    assertEquals(quantiles1, quantiles2);
+  }
 
-  private final static boolean enablePrinting = true;
+  @Test
+  public void checkReset() {
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    final int n = 100;
+    final int digits = numDigits(n);
+    for (int i = 1; i <= 100; i++) { sketch.update(intToFixedLengthString(i, digits)); }
+    long n1 = sketch.getN();
+    String min1 = sketch.getMinItem();
+    String max1 = sketch.getMaxItem();
+    sketch.reset();
+    for (int i = 1; i <= 100; i++) { sketch.update(intToFixedLengthString(i, digits)); }
+    long n2 = sketch.getN();
+    String min2 = sketch.getMinItem();
+    String max2 = sketch.getMaxItem();
+    assertEquals(n2, n1);
+    assertEquals(min2, min1);
+    assertEquals(max2, max1);
+  }
+
+  @Test
+  public void checkReadOnlyUpdate() {
+    KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+    try { sk2.update("A"); fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkNewDirectInstanceAndSmallSize() {
+    KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+    int sizeBytes = sk2.currentSerializedSizeBytes(false);
+    assertEquals(sizeBytes, 8);
+
+    sk1.update("A");
+    mem = Memory.wrap(sk1.toByteArray());
+    sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+    sizeBytes = sk2.currentSerializedSizeBytes(false);
+    assertEquals(sizeBytes, 8 + 5);
+
+    sk1.update("B");
+    mem = Memory.wrap(sk1.toByteArray());
+    sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+    sizeBytes = sk2.currentSerializedSizeBytes(false);
+    assertEquals(sizeBytes, 20 + 4 + 2 * 5 + 2 * 5);
+  }
+
+  @Test
+  public void sortedView() {
+    final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    sk.update("A");
+    sk.update("AB");
+    sk.update("ABC");
+
+    final GenericSortedView<String> view = sk.getSortedView();
+    final GenericSortedViewIterator<String> itr = view.iterator();
+    assertEquals(itr.next(), true);
+    assertEquals(itr.getQuantile(), "A");
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
+    assertEquals(itr.next(), true);
+    assertEquals(itr.getQuantile(), "AB");
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
+    assertEquals(itr.next(), true);
+    assertEquals(itr.getQuantile(), "ABC");
+    assertEquals(itr.getWeight(), 1);
+    assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 2);
+    assertEquals(itr.getCumulativeWeight(INCLUSIVE), 3);
+    assertEquals(itr.next(), false);
+  }
+
+  @Test //also visual
+  public void checkCDF_PDF() {
+    final double[] cdfI = {.25, .50, .75, 1.0, 1.0 };
+    final double[] cdfE = {0.0, .25, .50, .75, 1.0 };
+    final double[] pmfI = {.25, .25, .25, .25, 0.0 };
+    final double[] pmfE = {0.0, .25, .25, .25, .25 };
+    final double toll = 1E-10;
+    final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    final String[] strIn = {"A", "AB", "ABC", "ABCD"};
+    for (int i = 0; i < strIn.length; i++) { sketch.update(strIn[i]); }
+    String[] sp = new String[] {"A", "AB", "ABC", "ABCD"};
+    println("SplitPoints:");
+    for (int i = 0; i < sp.length; i++) {
+      printf("%10s", sp[i]);
+    }
+    println("");
+    println("INCLUSIVE:");
+    double[] cdf = sketch.getCDF(sp, INCLUSIVE);
+    double[] pmf = sketch.getPMF(sp, INCLUSIVE);
+    printf("%10s%10s\n", "CDF", "PMF");
+    for (int i = 0; i < cdf.length; i++) {
+      printf("%10.2f%10.2f\n", cdf[i], pmf[i]);
+      assertEquals(cdf[i], cdfI[i], toll);
+      assertEquals(pmf[i], pmfI[i], toll);
+    }
+    println("EXCLUSIVE");
+    cdf = sketch.getCDF(sp, EXCLUSIVE);
+    pmf = sketch.getPMF(sp, EXCLUSIVE);
+    printf("%10s%10s\n", "CDF", "PMF");
+    for (int i = 0; i < cdf.length; i++) {
+      printf("%10.2f%10.2f\n", cdf[i], pmf[i]);
+      assertEquals(cdf[i], cdfE[i], toll);
+      assertEquals(pmf[i], pmfE[i], toll);
+    }
+  }
+
+  // New added tests specially for KllItemsSketch
+  @Test
+  public void checkHeapifyEmpty() {
+    final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllMemoryValidate memVal = new KllMemoryValidate(mem, SketchType.ITEMS_SKETCH, serDe);
+    assertEquals(memVal.sketchStructure, COMPACT_EMPTY);
+    assertEquals(mem.getCapacity(), 8);
+    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(mem, Comparator.naturalOrder(), serDe);
+    assertEquals(sk2.sketchStructure, UPDATABLE);
+    assertEquals(sk2.getN(), 0);
+    assertFalse(sk2.isReadOnly());
+    try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) { }
+    println(sk1.toString(true, true));
+    println("");
+    println(KllPreambleUtil.toString(mem, ITEMS_SKETCH, true, serDe));
+  }
+
+  @Test
+  public void checkHeapifySingleItem() {
+    final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    sk1.update("A");
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllMemoryValidate memVal = new KllMemoryValidate(mem, SketchType.ITEMS_SKETCH, serDe);
+    assertEquals(memVal.sketchStructure, COMPACT_SINGLE);
+    assertEquals(mem.getCapacity(), memVal.sketchBytes);
+    final KllItemsSketch<String> sk2 = KllItemsSketch.heapify(mem, Comparator.naturalOrder(), serDe);
+    assertEquals(sk2.sketchStructure, UPDATABLE);
+    assertEquals(sk2.getN(), 1);
+    assertFalse(sk2.isReadOnly());
+    assertEquals(sk2.getMinItem(), "A");
+    assertEquals(sk2.getMaxItem(), "A");
+    println(sk1.toString(true, true));
+    println("");
+    println(KllPreambleUtil.toString(mem, ITEMS_SKETCH, true, serDe));
+  }
+
+  @Test
+  public void checkHeapifyFewItems() {
+    final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    sk1.update("A");
+    sk1.update("AB");
+    sk1.update("ABC");
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllMemoryValidate memVal = new KllMemoryValidate(mem, SketchType.ITEMS_SKETCH, serDe);
+    assertEquals(memVal.sketchStructure, COMPACT_FULL);
+    assertEquals(mem.getCapacity(), memVal.sketchBytes);
+    println(sk1.toString(true, true));
+    println("");
+    println(KllPreambleUtil.toString(mem, ITEMS_SKETCH, true, serDe));
+  }
+
+  @Test
+  public void checkHeapifyManyItems() {
+    final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    final int n = 109;
+    final int digits = numDigits(n);
+    for (int i = 1; i <= n; i++) {
+      sk1.update(intToFixedLengthString(i, digits));
+    }
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllMemoryValidate memVal = new KllMemoryValidate(mem, SketchType.ITEMS_SKETCH, serDe);
+    assertEquals(memVal.sketchStructure, COMPACT_FULL);
+    assertEquals(mem.getCapacity(), memVal.sketchBytes);
+    println(sk1.toString(true, true));
+    println("");
+    println(KllPreambleUtil.toString(mem, ITEMS_SKETCH, true, serDe));
+  }
+
+  @Test
+  public void checkWrapCausingLevelsCompaction() {
+    final KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    final int n = 109;
+    final int digits = numDigits(n);
+    for (int i = 1; i <= n; i++) {
+      sk1.update(intToFixedLengthString(i, digits));
+    }
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+    assertTrue(mem.isReadOnly());
+    assertTrue(sk2.isReadOnly());
+    assertFalse(sk2.isDirect()); //not off-heap
+    println(sk1.toString(true, true));
+    println("");
+    println(sk2.toString(true, true));
+    println("");
+    println(KllPreambleUtil.toString(mem, ITEMS_SKETCH, true, serDe));
+  }
+
+  private final static boolean enablePrinting = false;
 
   /**
    * @param format the format

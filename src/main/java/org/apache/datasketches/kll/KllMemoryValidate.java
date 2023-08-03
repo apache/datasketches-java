@@ -19,11 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTY_FLAG_AND_COMPACT_EMPTY;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTY_FLAG_AND_COMPACT_FULL;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.EMPTY_FLAG_AND_COMPACT_SINGLE;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.SRC_NOT_KLL;
-import static org.apache.datasketches.kll.KllMemoryValidate.MemoryInputError.memoryValidateThrow;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR_SINGLE_ITEM;
 import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryEmptyFlag;
@@ -55,8 +50,8 @@ import org.apache.datasketches.memory.Memory;
  *
  */
 final class KllMemoryValidate {
-  private final Memory srcMem;
-  private final ArrayOfItemsSerDe<?> serDe;
+  final Memory srcMem;
+  final ArrayOfItemsSerDe<?> serDe;
   final SketchType sketchType;
   final SketchStructure sketchStructure;
 
@@ -90,6 +85,8 @@ final class KllMemoryValidate {
   }
 
   KllMemoryValidate(final Memory srcMem, final SketchType sketchType, final ArrayOfItemsSerDe<?> serDe) {
+    final long memCapBytes = srcMem.getCapacity();
+    if (memCapBytes < 8) { throw new SketchesArgumentException(MEMORY_TOO_SMALL + memCapBytes); }
     this.srcMem = srcMem;
     this.sketchType = sketchType;
     this.serDe = serDe;
@@ -97,7 +94,7 @@ final class KllMemoryValidate {
     serVer = getMemorySerVer(srcMem);
     sketchStructure = SketchStructure.getSketchStructure(preInts, serVer);
     familyID = getMemoryFamilyID(srcMem);
-    if (familyID != Family.KLL.getID()) { memoryValidateThrow(SRC_NOT_KLL, familyID); }
+    if (familyID != Family.KLL.getID()) { throw new SketchesArgumentException(SRC_NOT_KLL + familyID); }
     flags = getMemoryFlags(srcMem);
     k = getMemoryK(srcMem);
     m = getMemoryM(srcMem);
@@ -116,7 +113,7 @@ final class KllMemoryValidate {
 
     switch (sketchStructure) {
       case COMPACT_FULL: {
-        if (emptyFlag) { memoryValidateThrow(EMPTY_FLAG_AND_COMPACT_FULL); }
+        if (emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_FULL); }
         n = getMemoryN(srcMem);
         //if (n <= 1) { memoryValidateThrow(N_AND_COMPACT_FULL); }
         minK = getMemoryMinK(srcMem);
@@ -130,7 +127,7 @@ final class KllMemoryValidate {
         break;
       }
       case COMPACT_EMPTY: {
-        if (!emptyFlag) { memoryValidateThrow(EMPTY_FLAG_AND_COMPACT_EMPTY); }
+        if (!emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_EMPTY); }
         n = 0;           //assumed
         minK = k;        //assumed
         numLevels = 1;   //assumed
@@ -139,7 +136,7 @@ final class KllMemoryValidate {
         break;
       }
       case COMPACT_SINGLE: {
-        if (emptyFlag) { memoryValidateThrow(EMPTY_FLAG_AND_COMPACT_SINGLE); }
+        if (emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_SINGLE); }
         n = 1;           //assumed
         minK = k;        //assumed
         numLevels = 1;   //assumed
@@ -186,30 +183,11 @@ final class KllMemoryValidate {
     return offsetBytes;
   }
 
-  enum MemoryInputError {
-    EMPTY_FLAG_AND_COMPACT_EMPTY("A compact empty sketch should have empty flag set."),
-    EMPTY_FLAG_AND_COMPACT_FULL("A compact full sketch should not have empty flag set."),
-    EMPTY_FLAG_AND_COMPACT_SINGLE("A single item sketch should not have empty flag set."),
-    N_AND_COMPACT_FULL("A compact full sketch should have n > 1"),
-    SRC_NOT_KLL("FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ");
-
-    private String msg;
-
-    private MemoryInputError(final String msg) {
-      this.msg = msg;
-    }
-
-    private String getMessage() {
-      return msg;
-    }
-
-    final static void memoryValidateThrow(final MemoryInputError errType) {
-      throw new SketchesArgumentException(errType.getMessage());
-    }
-
-    final static void memoryValidateThrow(final MemoryInputError errType, final int errVal) {
-      throw new SketchesArgumentException(errType.getMessage() + errVal);
-    }
-  }
+  static final String EMPTY_FLAG_AND_COMPACT_EMPTY = "A compact empty sketch should have empty flag set. ";
+  static final String EMPTY_FLAG_AND_COMPACT_FULL = "A compact full sketch should not have empty flag set. ";
+  static final String EMPTY_FLAG_AND_COMPACT_SINGLE = "A single item sketch should not have empty flag set. ";
+  static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
+  static final String SRC_NOT_KLL = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ";
+  static final String MEMORY_TOO_SMALL = "A sketch memory image must be at least 8 bytes. ";
 
 }

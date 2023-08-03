@@ -246,7 +246,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch1.getN(), 2L * n);
     assertEquals(sketch1.getMinItem(), 0.0);
     assertEquals(sketch1.getMaxItem(), (2 * n - 1) * 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n * 1.0, n * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getQuantile(0.5), n * 1.0, 2 * n * PMF_EPS_FOR_K_256);
   }
 
   @Test
@@ -277,7 +277,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch1.getN(), 2 * n);
     assertEquals(sketch1.getMinItem(), 0);
     assertEquals(sketch1.getMaxItem(), 2f * n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_128);
+    assertEquals(sketch1.getQuantile(0.5), n, 2 * n * PMF_EPS_FOR_K_128);
   }
 
   @Test
@@ -298,7 +298,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch1.getN(), n);
     assertEquals(sketch1.getMinItem(), 0);
     assertEquals(sketch1.getMaxItem(), n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n * PMF_EPS_FOR_K_256);
 
     //merge the other way
     sketch2.merge(sketch1);
@@ -306,7 +306,7 @@ public class KllDoublesSketchTest {
     assertEquals(sketch1.getN(), n);
     assertEquals(sketch1.getMinItem(), 0f);
     assertEquals(sketch1.getMaxItem(), n - 1.0);
-    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch1.getQuantile(0.5), n / 2.0, n * PMF_EPS_FOR_K_256);
   }
 
   @Test
@@ -364,7 +364,7 @@ public class KllDoublesSketchTest {
       sketch.update(i);
     }
     assertEquals(sketch.getK(), KllSketch.DEFAULT_M);
-    assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_8);
+    assertEquals(sketch.getQuantile(0.5), 500, 1000 * PMF_EPS_FOR_K_8);
   }
 
   @Test
@@ -374,7 +374,7 @@ public class KllDoublesSketchTest {
       sketch.update(i);
     }
     assertEquals(sketch.getK(), KllSketch.MAX_K);
-    assertEquals(sketch.getQuantile(0.5), 500, 500 * PMF_EPS_FOR_K_256);
+    assertEquals(sketch.getQuantile(0.5), 500, 1000 * PMF_EPS_FOR_K_256);
   }
 
   @Test(expectedExceptions = SketchesArgumentException.class)

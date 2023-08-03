@@ -478,17 +478,21 @@ public abstract class KllSketch implements QuantilesAPI {
    * Used to define the variable type of the current instance of this class.
    */
   public enum SketchType {
-    DOUBLES_SKETCH(Double.BYTES),
-    FLOATS_SKETCH(Float.BYTES),
-    ITEMS_SKETCH(0);
+    DOUBLES_SKETCH(Double.BYTES, "DoublesSketch"),
+    FLOATS_SKETCH(Float.BYTES, "FloatsSketch"),
+    ITEMS_SKETCH(0, "ItemsSketch");
 
     private int typeBytes;
+    private String name;
 
-    private SketchType(final int typeBytes) {
+    private SketchType(final int typeBytes, final String name) {
       this.typeBytes = typeBytes;
+      this.name = name;
     }
 
     public int getBytes() { return typeBytes; }
+
+    public String getName() { return name; }
   }
 
   /**

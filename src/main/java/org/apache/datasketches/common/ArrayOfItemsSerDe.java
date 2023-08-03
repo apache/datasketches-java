@@ -96,7 +96,7 @@ public abstract class ArrayOfItemsSerDe<T> {
    * @param mem the given Memory.
    * @param offsetBytes the starting offset in the given Memory.
    * @param numItems the number of serialized items contained in the Memory
-   * @return the serialized size in bytes of the number of items.
+   * @return the serialized size in bytes of the given number of items.
    */
   public abstract int sizeOf(Memory mem, long offsetBytes, int numItems);
 

@@ -50,7 +50,7 @@ import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
- * This class implements an off-heap, updatable doubles KllSketch using WritableMemory.
+ * This class implements an off-heap, updatable KllDoublesSketch using WritableMemory.
  *
  * <p>Please refer to the documentation in the package-info:<br>
  * {@link org.apache.datasketches.kll}</p>
@@ -62,7 +62,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   private MemoryRequestServer memReqSvr;
 
   /**
-   * The constructor with WritableMemory that can be off-heap.
+   * Constructs from Memory or WritableMemory already initialized with a sketch image and validated..
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object

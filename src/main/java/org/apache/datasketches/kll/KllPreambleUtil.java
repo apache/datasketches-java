@@ -34,8 +34,6 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
 
-//@formatter:off
-
 /**
  * This class defines the serialized data structure and provides access methods for the preamble fields.
  *
@@ -210,11 +208,13 @@ final class KllPreambleUtil<T> {
    * Used primarily in testing.
    *
    * @param mem the given Memory
+   * @param sketchType the sketch type: FLOATS_SKETCH, DOUBLES_SKETCH, or ITEMS_SKETCH.
    * @param includeData if true, includes detail of retained data.
+   * @param serDe must be supplied for KllItemsSketch, otherwise can be null.
    * @return the summary string.
    */
-  static String toString(final Memory mem, final SketchType sketchType, final boolean includeData,
-      final ArrayOfItemsSerDe<?> serDe) {
+  static <T> String toString(final Memory mem, final SketchType sketchType, final boolean includeData,
+      final ArrayOfItemsSerDe<T> serDe) {
     final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType, serDe);
     final SketchStructure myStructure = memVal.sketchStructure;
     final int flags = memVal.flags & 0XFF;
@@ -247,6 +247,9 @@ final class KllPreambleUtil<T> {
     final long n = memVal.n;
     final int minK = memVal.minK;
     final int numLevels = memVal.numLevels;
+    final int[] levelsArr = memVal.levelsArr; //the full levels array
+    final int retainedItems = levelsArr[numLevels] - levelsArr[0];
+
     if (myStructure == COMPACT_FULL || myStructure == UPDATABLE) {
       sb.append("Bytes  8-15    : N                   : ").append(n).append(LS);
       sb.append("Bytes 16-17    : MinK                : ").append(minK).append(LS);
@@ -288,10 +291,10 @@ final class KllPreambleUtil<T> {
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else { //ITEMS_SKETCH
-          sb.append("NOT YET IMPLEMENTED").append(LS);
+          sb.append("<<<Updatable Structure is not suppported by ItemsSketch>>>").append(LS);
         }
 
-        sb.append("ITEMS DATA").append(LS);
+        sb.append("ALL DATA (including empty & garbage data)").append(LS);
         final int itemsSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemsSpace; i++) {
@@ -304,18 +307,20 @@ final class KllPreambleUtil<T> {
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
-          sb.append("NOT YET IMPLEMENTED").append(LS);
+          sb.append("<<<Updatable Structure is not suppported by ItemsSketch>>>").append(LS);
         }
 
       } else if (myStructure == COMPACT_FULL) {
 
         sb.append("LEVELS ARR:").append(LS);
         offsetBytes = DATA_START_ADR;
-        for (int i = 0; i < numLevels; i++) {
-          sb.append(i + ", " + mem.getInt(offsetBytes)).append(LS);
+        int j;
+        for (j = 0; j < numLevels; j++) {
+          sb.append(j + ", " + mem.getInt(offsetBytes)).append(LS);
           offsetBytes += Integer.BYTES;
         }
-        sb.append("(Top level of Levels arr is absent)").append(LS);
+        sb.append(j + ", " + levelsArr[numLevels]);
+        sb.append(" (Top level of Levels Array is absent in Memory)").append(LS);
 
         sb.append("MIN/MAX:").append(LS);
         if (sketchType == DOUBLES_SKETCH) {
@@ -329,10 +334,13 @@ final class KllPreambleUtil<T> {
           sb.append(mem.getFloat(offsetBytes)).append(LS);
           offsetBytes += typeBytes;
         } else {  //ITEMS_SKETCH
-          sb.append("NOT YET IMPLEMENTED").append(LS);
+          sb.append(serDe.deserializeFromMemory(mem, offsetBytes, 1)[0]).append(LS);
+          offsetBytes += serDe.sizeOf(mem, offsetBytes, 1);
+          sb.append(serDe.deserializeFromMemory(mem, offsetBytes, 1)[0]).append(LS);
+          offsetBytes += serDe.sizeOf(mem, offsetBytes, 1);
         }
 
-        sb.append("ITEMS DATA").append(LS);
+        sb.append("RETAINED DATA").append(LS);
         final int itemSpace = (sketchBytes - offsetBytes) / typeBytes;
         if (sketchType == DOUBLES_SKETCH) {
           for (int i = 0; i < itemSpace; i++) {
@@ -345,19 +353,24 @@ final class KllPreambleUtil<T> {
             offsetBytes += typeBytes;
           }
         } else { //ITEMS_SKETCH
-          sb.append("NOT YET IMPLEMENTED").append(LS);
+          final T[] itemsArr = serDe.deserializeFromMemory(mem, offsetBytes, retainedItems);
+          for (int i = 0; i < itemsArr.length; i++) {
+            sb.append(i + ", " + serDe.toString(itemsArr[i])).append(LS);
+          }
+          offsetBytes += serDe.sizeOf(mem, offsetBytes, retainedItems);
         }
 
       } else if (myStructure == COMPACT_SINGLE) {
 
-          sb.append("SINGLE ITEM DATA").append(LS);
+          sb.append("SINGLE ITEM DATUM: "); //no LS
           if (sketchType == DOUBLES_SKETCH) {
             sb.append(mem.getDouble(DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else if (sketchType == FLOATS_SKETCH) {
             sb.append(mem.getFloat(DATA_START_ADR_SINGLE_ITEM)).append(LS);
           } else { //ITEMS_SKETCH
-            sb.append("NOT YET IMPLEMENTED").append(LS);
+            sb.append(serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0]).append(LS);
           }
+
       } else { //COMPACT_EMPTY
         sb.append("EMPTY, NO DATA").append(LS);
       }

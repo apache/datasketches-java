@@ -363,7 +363,7 @@ final class KllHelper {
     final StringBuilder sb =  new StringBuilder();
     sb.append("### KLL items data {index, item}:").append(Util.LS);
     if (levelsArr[0] > 0) {
-      sb.append(" Garbage:" + Util.LS);
+      sb.append(" Empty/Garbage:" + Util.LS);
       for (int i = 0; i < levelsArr[0]; i++) {
         sb.append("   ").append(i + ", ").append(serDe.toString((T)itemsArr[i])).append(Util.LS);
       }
@@ -393,7 +393,7 @@ final class KllHelper {
     final StringBuilder sb =  new StringBuilder();
     sb.append("### KLL items data {index, item}:").append(Util.LS);
     if (levelsArr[0] > 0) {
-      sb.append(" Garbage:" + Util.LS);
+      sb.append(" Empty/Garbage:" + Util.LS);
       for (int i = 0; i < levelsArr[0]; i++) {
         sb.append("   ").append(i + ", ").append(doubleItemsArr[i]).append(Util.LS);
       }
@@ -422,7 +422,7 @@ final class KllHelper {
     final StringBuilder sb =  new StringBuilder();
     sb.append("### KLL items data {index, item}:").append(Util.LS);
     if (levelsArr[0] > 0) {
-      sb.append(" Garbage:" + Util.LS);
+      sb.append(" Empty/Garbage:" + Util.LS);
       for (int i = 0; i < levelsArr[0]; i++) {
         sb.append("   ").append(i + ", ").append(floatsItemsArr[i]).append(Util.LS);
       }
@@ -557,7 +557,7 @@ final class KllHelper {
     final String directStr = hasMemory ? "Direct" : "";
     final String compactStr = compact ? "Compact" : "";
     final String readOnlyStr = sketch.isReadOnly() ? "true" + ("(" + (compact ? "Format" : "Memory") + ")") : "false";
-    final String skTypeStr = sketchType.toString();
+    final String skTypeStr = sketchType.getName();
     final String className = "Kll" + directStr + compactStr + skTypeStr;
 
     sb.append(Util.LS).append("### ").append(className).append(" Summary:").append(Util.LS);
@@ -573,11 +573,12 @@ final class KllHelper {
     sb.append("   Level 0 Sorted         : ").append(sketch.isLevelZeroSorted()).append(Util.LS);
     sb.append("   Capacity Items         : ").append(fullLevelsArr[numLevels]).append(Util.LS);
     sb.append("   Retained Items         : ").append(sketch.getNumRetained()).append(Util.LS);
-    sb.append("   Garbage Items          : ").append(sketch.levelsArr[0]).append(Util.LS);
+    sb.append("   Empty/Garbage Items    : ").append(sketch.levelsArr[0]).append(Util.LS);
     sb.append("   ReadOnly               : ").append(readOnlyStr).append(Util.LS);
-    sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true))
+    if (sketchType != ITEMS_SKETCH) {
+      sb.append("   Updatable Storage Bytes: ").append(sketch.currentSerializedSizeBytes(true))
         .append(Util.LS);
-
+    }
     sb.append("   Compact Storage Bytes  : ").append(sketch.currentSerializedSizeBytes(false))
         .append(Util.LS);
 
@@ -599,7 +600,7 @@ final class KllHelper {
       final KllItemsSketch<T> itmSk = (KllItemsSketch<T>) sketch;
       sb.append("   Min Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMinItem()))
           .append(Util.LS);
-      sb.append("   Max Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMinItem()))
+      sb.append("   Max Item               : ").append(itmSk.isEmpty() ? "null" : serDe.toString(itmSk.getMaxItem()))
           .append(Util.LS);
     }
     sb.append("### End sketch summary").append(Util.LS);
@@ -740,8 +741,8 @@ final class KllHelper {
     }
 
     //update our sketch with new expanded spaces
-    sketch.setNumLevels(myNewNumLevels); //for direct only
-    sketch.setLevelsArray(myNewLevelsArr);
+    sketch.setNumLevels(myNewNumLevels);   //for off-heap only
+    sketch.setLevelsArray(myNewLevelsArr); //the KllSketch copy
     if (sketchType == DOUBLES_SKETCH) {
       final KllDoublesSketch dblSk = (KllDoublesSketch) sketch;
       dblSk.setMinItem(minDouble);

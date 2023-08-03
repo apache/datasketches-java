@@ -31,11 +31,18 @@ import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.quantilescommon.GenericSortedView;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 
+/**
+ * This variation of the KllSketch implements generic data types. The user must provide
+ * a suitable implementation of the <i>java.lang.Comparator</i> as well as an implementation of
+ * the serializer / deserializer, <i>org.apache.datasketches.common.ArrayOfItemsSerDe</i>.
+ * @param <T> The sketch data type.
+ * @see org.apache.datasketches.kll.KllSketch
+ */
 @SuppressWarnings("unchecked")
 public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGenericAPI<T> {
   private KllItemsSketchSortedView<T> kllItemsSV = null;
@@ -43,24 +50,26 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   final ArrayOfItemsSerDe<T> serDe;
 
   KllItemsSketch(
+      final SketchStructure skStructure,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-    super(ITEMS_SKETCH, SketchStructure.UPDATABLE);
+    super(ITEMS_SKETCH, skStructure);
     Objects.requireNonNull(comparator, "Comparator must not be null.");
     Objects.requireNonNull(serDe, "SerDe must not be null.");
     this.comparator = comparator;
     this.serDe = serDe;
   }
 
+  //Factories for new heap instances.
+
   /**
    * Create a new heap instance of this sketch with the default <em>k = 200</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
-   * This will have a rank error of about 1.65%.
-   * @param <T> The sketch data type
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for an array of items, <i>T[]</i>.
-   * @return new KllItemsSketch on the heap.
+   * @param <T> The sketch data type.
+   * @return new KllItemsSketch on the Java heap.
    */
   public static <T> KllItemsSketch<T> newHeapInstance(
       final Comparator<? super T> comparator,
@@ -69,25 +78,64 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
           new KllHeapItemsSketch<T>(DEFAULT_K, DEFAULT_M, comparator, serDe);
     return itmSk;
   }
+
   /**
    * Create a new heap instance of this sketch with a given parameter <em>k</em>.
    * <em>k</em> can be between DEFAULT_M and 65535, inclusive.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger K will have smaller error but the sketch will be larger (and slower).
    * @param k parameter that controls size of the sketch and accuracy of estimates.
-   * @param <T> The sketch data type
    * @param comparator to compare items
    * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
+   * @param <T> The sketch data type
    * @return new KllItemsSketch on the heap.
    */
-
   public static <T> KllItemsSketch<T> newHeapInstance(
       final int k,
       final Comparator<? super T> comparator,
       final ArrayOfItemsSerDe<T> serDe) {
-      final KllItemsSketch<T> itmSk =
-          new KllHeapItemsSketch<T>(k, DEFAULT_M, comparator, serDe);
-    return itmSk;
+    return new KllHeapItemsSketch<T>(k, DEFAULT_M, comparator, serDe);
+  }
+
+  // Factory to create an heap instance from a Memory image
+
+  /**
+   * Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
+   * The resulting sketch will not retain any link to the source Memory.
+   * @param srcMem a compact Memory image of a sketch serialized by this sketch and of the same type of T.
+   * @param comparator to compare items
+   * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
+   * @param <T> The sketch data type
+   * @return a heap-based sketch based on the given Memory.
+   */
+  public static <T> KllItemsSketch<T> heapify(
+      final Memory srcMem,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+    return new KllHeapItemsSketch<T>(srcMem, comparator, serDe);
+  }
+
+  //Factory to wrap a Read-Only Memory
+
+  /**
+   * Constructs a thin wrapper on the heap around a Memory (or WritableMemory) already initialized with a
+   * validated sketch image of a type T consistent with the given comparator and serDe.
+   * A reference to the Memory is kept in the sketch and must remain in scope consistent
+   * with the temporal scope of this sketch. The amount of data kept on the heap is very small.
+   * All of the item data originally collected by the given Memory sketch object remains in the
+   * Memory object
+   * @param srcMem the Memory object that this sketch will wrap.
+   * @param comparator to compare items
+   * @param serDe Serializer / deserializer for items of type <i>T</i> and <i>T[]</i>.
+   * @param <T> The sketch data type
+   * @return a heap-base sketch that is a thin wrapper around the given srcMem.
+   */
+  public static <T> KllItemsSketch<T> wrap(
+      final Memory srcMem,
+      final Comparator<? super T> comparator,
+      final ArrayOfItemsSerDe<T> serDe) {
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, SketchType.ITEMS_SKETCH, serDe);
+    return new KllDirectCompactItemsSketch<T>(memVal, comparator, serDe);
   }
 
   //END of Constructors
@@ -190,7 +238,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   @Override
-  public GenericSortedView<T> getSortedView() {
+  public KllItemsSketchSortedView<T> getSortedView() {
     refreshSortedView();
     return kllItemsSV;
   }
@@ -225,8 +273,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   }
 
   public byte[] toByteArray() {
-    //return KllHelper.toCompactByteArrayImpl(this);
-    return null;
+    return KllHelper.toByteArray(this, false);
   }
 
   @Override
@@ -239,38 +286,38 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //restricted
 
   @Override
-  abstract byte[] getMinMaxByteArr();//
+  abstract byte[] getMinMaxByteArr();
 
   @Override
-  abstract int getMinMaxSizeBytes();//
+  abstract int getMinMaxSizeBytes();
 
   private final void refreshSortedView() {
     kllItemsSV = (kllItemsSV == null) ? new KllItemsSketchSortedView<T>(this) : kllItemsSV;
   }
 
   @Override
-  abstract byte[] getRetainedItemsByteArr();//
+  abstract byte[] getRetainedItemsByteArr();
 
   @Override
-  abstract int getRetainedItemsSizeBytes();//
+  abstract int getRetainedItemsSizeBytes();
 
-  abstract Object[] getRetainedItemsArray();//
+  //abstract Object[] getRetainedItemsArray();
 
   @Override
   ArrayOfItemsSerDe<T> getSerDe() { return serDe; }
 
-  abstract Object getSingleItem();//
+  abstract Object getSingleItem();
 
   @Override
-  abstract byte[] getSingleItemByteArr();//
+  abstract byte[] getSingleItemByteArr();
 
   @Override
-  abstract int getSingleItemSizeBytes();//
+  abstract int getSingleItemSizeBytes();
 
   /**
    * @return full size of internal items array including empty space at bottom.
    */
-  abstract Object[] getTotalItemsArray();//
+  abstract Object[] getTotalItemsArray();
 
   @Override
   abstract byte[] getTotalItemsByteArr();
@@ -291,7 +338,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //This cannot be used on an empty sketch, i.e., getMaxItem must be valid.
   T[] copyRangeOfObjectArray(final Object[] srcArray, final int srcIndex, final int numItems) {
     final T[] tgtArr = (T[]) Array.newInstance(getMaxItem().getClass(), numItems);
-    System.arraycopy(srcArray, srcIndex, tgtArr, srcIndex, numItems);
+    System.arraycopy(srcArray, srcIndex, tgtArr, 0, numItems);
     return tgtArr;
   }
 
