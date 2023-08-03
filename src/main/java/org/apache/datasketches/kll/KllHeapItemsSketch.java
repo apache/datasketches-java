@@ -91,7 +91,7 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
     this.n = memVal.n;
     this.minK = memVal.minK;
     this.isLevelZeroSorted = memVal.level0SortedFlag;
-    this.itemsArr = new Object[levelsArr[memVal.numLevels]];
+    this.itemsArr = new Object[levelsArr[memVal.numLevels]]; //updatable size
     final SketchStructure memStruct = memVal.sketchStructure;
     if (memStruct == COMPACT_EMPTY) {
       this.minItem = null;
@@ -104,13 +104,14 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
       this.maxItem = item;
       itemsArr[k - 1] = item;
     } else if (memStruct == COMPACT_FULL) {
-      int offset = DATA_START_ADR;
+      int offset = DATA_START_ADR + memVal.numLevels * Integer.BYTES;
       this.minItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
       offset += serDe.sizeOf((T) minItem);
       this.maxItem = serDe.deserializeFromMemory(srcMem, offset, 1)[0];
       offset += serDe.sizeOf((T) maxItem);
       final int numRetained = levelsArr[memVal.numLevels] - levelsArr[0];
-      this.itemsArr = serDe.deserializeFromMemory(srcMem, offset, numRetained);
+      final Object[] retItems = serDe.deserializeFromMemory(srcMem, offset, numRetained);
+      System.arraycopy(retItems, 0, itemsArr, levelsArr[0], numRetained);
     } else { //memStruct == UPDATABLE
       throw new SketchesArgumentException(UNSUPPORTED_MSG + "UPDATABLE");
     }

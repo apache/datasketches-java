@@ -62,19 +62,9 @@ public class KllFloatsSketchSerDeTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertFalse(Float.isNaN(sketch2.getMinItem()));
-    assertFalse(Float.isNaN(sketch2.getMaxItem()));
+    assertEquals(sketch2.getMinItem(), 1.0F);
+    assertEquals(sketch2.getMaxItem(), 1.0F);
     assertEquals(sketch2.getSerializedSizeBytes(), 8 + Float.BYTES);
-  }
-
-  @Test
-  public void deserializeOneValueV1() throws Exception {
-    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
-    final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
-    assertFalse(sketch.isEmpty());
-    assertFalse(sketch.isEstimationMode());
-    assertEquals(sketch.getN(), 1);
-    assertEquals(sketch.getNumRetained(), 1);
   }
 
   @Test
@@ -103,7 +93,20 @@ public class KllFloatsSketchSerDeTest {
       final KllFloatsSketch sketch = KllFloatsSketch.heapify(mh.get());
       assertEquals(sketch.getMinItem(), 0);
       assertEquals(sketch.getMaxItem(), 999);
+      assertEquals(sketch.getN(), 1000);
     }
+  }
+
+  @Test
+  public void deserializeOneValueVersion1() throws Exception {
+    final byte[] bytes = getResourceBytes("kll_sketch_float_one_item_v1.sk");
+    final KllFloatsSketch sketch = KllFloatsSketch.heapify(Memory.wrap(bytes));
+    assertFalse(sketch.isEmpty());
+    assertFalse(sketch.isEstimationMode());
+    assertEquals(sketch.getN(), 1);
+    assertEquals(sketch.getNumRetained(), 1);
+    assertEquals(sketch.getMinItem(), 1.0F);
+    assertEquals(sketch.getMaxItem(), 1.0F);
   }
 
   @Test(groups = {"generate"})

@@ -20,17 +20,24 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.checkM;
+import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
+import static org.apache.datasketches.kll.KllItemsHelper.numDigits;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
-import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.fail;
 
+import java.util.Comparator;
+
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 @SuppressWarnings("unused")
 public class KllHelperTest {
+  public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
+
 
   @Test
   public void checkConvertToCumulative() {
@@ -86,8 +93,8 @@ public class KllHelperTest {
     assertEquals(KllHelper.ubOnNumLevels(0), 1);
   }
 
-  //@Test  //re-enable once DoublesSketch is done
-  public void checkUpdatableSerDe() {
+  @Test
+  public void checkUpdatableSerDeDouble() {
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(200);
     for (int i = 1; i <= 533; i++) { sk.update(i); }
     int retained = sk.getNumRetained();
@@ -116,6 +123,84 @@ public class KllHelperTest {
 
     mem = Memory.wrap(compByteArr2);
     sk2 = KllDoublesSketch.heapify(mem);
+    byte[] upByteArr2 = KllHelper.toByteArray(sk2, true);
+    int upBytes2 = upByteArr2.length;
+    println("upBytes2: " + upBytes2);
+    assertEquals(upBytes1, upBytes2);
+    assertEquals(sk2.getNumRetained(), retained);
+  }
+
+  @Test
+  public void checkUpdatableSerDeFloat() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(200);
+    for (int i = 1; i <= 533; i++) { sk.update(i); }
+    int retained = sk.getNumRetained();
+    int numLevels = ((KllSketch)sk).getNumLevels();
+    println("NumLevels: " + numLevels);
+    println("NumRetained: " + retained);
+
+    byte[] compByteArr1 = sk.toByteArray();
+    int compBytes1 = compByteArr1.length;
+    println("compBytes1: " + compBytes1);
+
+    byte[] upByteArr1 = KllHelper.toByteArray(sk, true);
+    int upBytes1 = upByteArr1.length;
+    println("upBytes1: " + upBytes1);
+
+    Memory mem;
+    KllFloatsSketch sk2;
+
+    mem = Memory.wrap(compByteArr1);
+    sk2 = KllFloatsSketch.heapify(mem);
+    byte[] compByteArr2 = sk2.toByteArray();
+    int compBytes2 = compByteArr2.length;
+    println("compBytes2: " + compBytes2);
+    assertEquals(compBytes1, compBytes2);
+    assertEquals(sk2.getNumRetained(), retained);
+
+    mem = Memory.wrap(compByteArr2);
+    sk2 = KllFloatsSketch.heapify(mem);
+    byte[] upByteArr2 = KllHelper.toByteArray(sk2, true);
+    int upBytes2 = upByteArr2.length;
+    println("upBytes2: " + upBytes2);
+    assertEquals(upBytes1, upBytes2);
+    assertEquals(sk2.getNumRetained(), retained);
+  }
+
+  @Test
+  public void checkUpdatableSerDeItem() {
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(200, Comparator.naturalOrder(), serDe);
+    final int n = 533;
+    final int digits = numDigits(n);
+    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+
+    int retained = sk.getNumRetained();
+    int numLevels = ((KllSketch)sk).getNumLevels();
+    println("NumLevels: " + numLevels);
+    println("NumRetained: " + retained);
+
+    byte[] compByteArr1 = sk.toByteArray();
+    int compBytes1 = compByteArr1.length;
+    println("compBytes1: " + compBytes1);
+
+    byte[] upByteArr1 = KllHelper.toByteArray(sk, true);
+    int upBytes1 = upByteArr1.length;
+    println("upBytes1: " + upBytes1);
+    assertEquals(upBytes1, compBytes1); //only true for Items Sketch
+
+    Memory mem;
+    KllItemsSketch<String> sk2;
+
+    mem = Memory.wrap(compByteArr1);
+    sk2 = KllItemsSketch.heapify(mem, Comparator.naturalOrder(), serDe);
+    byte[] compByteArr2 = sk2.toByteArray();
+    int compBytes2 = compByteArr2.length;
+    println("compBytes2: " + compBytes2);
+    assertEquals(compBytes1, compBytes2);
+    assertEquals(sk2.getNumRetained(), retained);
+
+    mem = Memory.wrap(compByteArr2);
+    sk2 = KllItemsSketch.heapify(mem, Comparator.naturalOrder(), serDe);
     byte[] upByteArr2 = KllHelper.toByteArray(sk2, true);
     int upBytes2 = upByteArr2.length;
     println("upBytes2: " + upBytes2);
@@ -153,6 +238,13 @@ public class KllHelperTest {
   }
 
   @Test
+  public void getMaxUpdatableItemsSerializedSizeBytes() {
+    try {
+      KllSketch.getMaxSerializedSizeBytes(KllSketch.DEFAULT_K, 1L << 30, ITEMS_SKETCH, true);
+    } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
   public void getStatsAtNumLevels() {
     int k = 200;
     int m = 8;
@@ -166,19 +258,19 @@ public class KllHelperTest {
   @Test
   public void getStatsAtNumLevels2() {
     int k = 20;
-    int m = 8;
+    int m = KllSketch.DEFAULT_M;
     int numLevels = 2;
     KllHelper.LevelStats lvlStats =
-        KllHelper.getFinalSketchStatsAtNumLevels(k, KllSketch.DEFAULT_M, numLevels, true);
+        KllHelper.getFinalSketchStatsAtNumLevels(k, m, numLevels, true);
     assertEquals(lvlStats.numLevels, 2);
     assertEquals(lvlStats.numItems, 33);
   }
 
   @Test
-  public void testGetAllLevelStats() {
+  public void testGetAllLevelStatsDoubles() {
     long n = 1L << 30;
     int k = 200;
-    int m = 8;
+    int m = KllSketch.DEFAULT_M;
     KllHelper.GrowthStats gStats =
         KllHelper.getGrowthSchemeForGivenN(k, m, n, DOUBLES_SKETCH, true);
     assertEquals(gStats.maxN, 1_257_766_904);
@@ -189,16 +281,55 @@ public class KllHelperTest {
   }
 
   @Test
-  public void testGetAllLevelStats2() {
+  public void testGetAllLevelStatsFloats() {
+    long n = 1L << 30;
+    int k = 200;
+    int m = KllSketch.DEFAULT_M;
+    KllHelper.GrowthStats gStats =
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, FLOATS_SKETCH, true);
+    assertEquals(gStats.maxN, 1_257_766_904);
+    assertEquals(gStats.numLevels, 23);
+    assertEquals(gStats.maxItems, 697);
+    assertEquals(gStats.compactBytes, 2908);
+    assertEquals(gStats.updatableBytes, 2912);
+  }
+
+  @Test
+  public void testGetAllLevelStatsDoubles2() {
     long n = 533;
     int k = 200;
+    int m = KllSketch.DEFAULT_M;
     KllHelper.GrowthStats gStats =
-        KllHelper.getGrowthSchemeForGivenN(k, KllSketch.DEFAULT_M, n, DOUBLES_SKETCH, true);
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, DOUBLES_SKETCH, true);
     assertEquals(gStats.maxN, 533);
     assertEquals(gStats.numLevels, 2);
     assertEquals(gStats.maxItems, 333);
     assertEquals(gStats.compactBytes, 2708);
     assertEquals(gStats.updatableBytes, 2712);
+  }
+
+  @Test
+  public void testGetAllLevelStatsFloats2() {
+    long n = 533;
+    int k = 200;
+    int m = KllSketch.DEFAULT_M;
+    KllHelper.GrowthStats gStats =
+        KllHelper.getGrowthSchemeForGivenN(k, m, n, FLOATS_SKETCH, true);
+    assertEquals(gStats.maxN, 533);
+    assertEquals(gStats.numLevels, 2);
+    assertEquals(gStats.maxItems, 333);
+    assertEquals(gStats.compactBytes, 1368);
+    assertEquals(gStats.updatableBytes, 1372);
+  }
+
+  @Test
+  public void testGetAllLevelStatsItems() {
+    long n = 533;
+    int k = 200;
+    int m = KllSketch.DEFAULT_M;
+    try {
+      KllHelper.getGrowthSchemeForGivenN(k, m, n, ITEMS_SKETCH, true);
+    } catch (SketchesArgumentException e) { }
   }
 
   /**

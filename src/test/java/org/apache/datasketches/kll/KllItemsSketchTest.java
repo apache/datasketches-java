@@ -473,7 +473,7 @@ public class KllItemsSketchTest {
     final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     final int n = 100;
     final int digits = numDigits(n);
-    for (int i = 1; i <= 100; i++) { sketch.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sketch.update(intToFixedLengthString(i, digits)); }
     long n1 = sketch.getN();
     String min1 = sketch.getMinItem();
     String max1 = sketch.getMaxItem();
@@ -577,6 +577,59 @@ public class KllItemsSketchTest {
       assertEquals(cdf[i], cdfE[i], toll);
       assertEquals(pmf[i], pmfE[i], toll);
     }
+  }
+
+  @Test
+  public void checkWrapCase1Floats() {
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    final int n = 21;
+    final int digits = numDigits(n);
+    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+
+    Memory mem = Memory.wrap(sk.toByteArray());
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+
+    assertTrue(mem.isReadOnly());
+    assertTrue(sk2.isReadOnly());
+    assertFalse(sk2.isDirect());
+  }
+
+  @Test
+  public void checkReadOnlyExceptions() {
+    int[] intArr = new int[0];
+    int intV = 2;
+    int idx = 1;
+    KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    Memory mem = Memory.wrap(sk1.toByteArray());
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(mem, Comparator.naturalOrder(), serDe);
+    try { sk2.setLevelsArray(intArr);              fail(); } catch (SketchesArgumentException e) { }
+    try { sk2.setLevelsArrayAt(idx,intV);          fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkIsSameResource() {
+    int cap = 128;
+    WritableMemory wmem = WritableMemory.allocate(cap);
+    WritableMemory reg1 = wmem.writableRegion(0, 64);
+    WritableMemory reg2 = wmem.writableRegion(64, 64);
+    assertFalse(reg1 == reg2);
+    assertFalse(reg1.isSameResource(reg2));
+
+    WritableMemory reg3 = wmem.writableRegion(0, 64);
+    assertFalse(reg1 == reg3);
+    assertTrue(reg1.isSameResource(reg3));
+
+    byte[] byteArr1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe).toByteArray();
+    reg1.putByteArray(0, byteArr1, 0, byteArr1.length);
+    KllItemsSketch<String> sk1 = KllItemsSketch.wrap(reg1, Comparator.naturalOrder(), serDe);
+
+    byte[] byteArr2 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe).toByteArray();
+    reg2.putByteArray(0, byteArr2, 0, byteArr2.length);
+    assertFalse(sk1.isSameResource(reg2));
+
+    byte[] byteArr3 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe).toByteArray();
+    reg3.putByteArray(0, byteArr3, 0, byteArr3.length);
+    assertTrue(sk1.isSameResource(reg3));
   }
 
   // New added tests specially for KllItemsSketch
