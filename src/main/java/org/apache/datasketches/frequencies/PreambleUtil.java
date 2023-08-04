@@ -239,12 +239,6 @@ final class PreambleUtil {
     return ((flags & mask) << shift) | (~(mask << shift) & pre0);
   }
 
-  static long insertSerDeId(final short serDeId, final long pre0) { //Byte 6,7
-    final int shift = SER_DE_ID_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return ((serDeId & mask) << shift) | (~(mask << shift) & pre0);
-  }
-
   static long insertActiveItems(final int activeItems, final long pre1) { //Bytes 8 to 11
     final long mask = 0XFFFFFFFFL;
     return (activeItems & mask) | (~mask & pre1);
