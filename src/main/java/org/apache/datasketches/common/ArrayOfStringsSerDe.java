@@ -129,4 +129,6 @@ public class ArrayOfStringsSerDe extends ArrayOfItemsSerDe<String> {
     return item.toString();
   }
 
+  @Override
+  public Class<String> getClassOfT() { return String.class; }
 }

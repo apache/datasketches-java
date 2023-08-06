@@ -1,3 +1,22 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
+
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllPreambleUtil.DATA_START_ADR;
@@ -10,6 +29,7 @@ import static org.apache.datasketches.kll.KllPreambleUtil.getMemoryN;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPTY;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 
+import java.lang.reflect.Array;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
@@ -26,7 +46,8 @@ import org.apache.datasketches.memory.WritableMemory;
  *
  * @author Lee Rhodes, Kevin Lang
  */
-public class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
+@SuppressWarnings("unchecked")
+final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   private Memory mem;
 
   /**
@@ -52,7 +73,9 @@ public class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   public T getMaxItem() {
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return null; }
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
+      throw new SketchesArgumentException(EMPTY_MSG);
+    }
     if (sketchStructure == COMPACT_SINGLE) {
       return serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0];
     }
@@ -63,7 +86,9 @@ public class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   public T getMinItem() {
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return null; }
+    if (sketchStructure == COMPACT_EMPTY || isEmpty()) {
+      throw new SketchesArgumentException(EMPTY_MSG);
+    }
     if (sketchStructure == COMPACT_SINGLE) {
       return serDe.deserializeFromMemory(mem, DATA_START_ADR_SINGLE_ITEM, 1)[0];
     }
@@ -132,6 +157,19 @@ public class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  T[] getRetainedItemsArray() {
+    final int numRet = getNumRetained();
+    final T[] outArr = (T[]) Array.newInstance(serDe.getClassOfT(), numRet);
+    if (sketchStructure == COMPACT_EMPTY) { return outArr; }
+    if (sketchStructure == COMPACT_SINGLE) {
+      outArr[0] = getSingleItem();
+      return outArr;
+    }
+    final int offset = getCompactDataOffset(); //both single & full
+    return serDe.deserializeFromMemory(mem, offset, numRet);
+  }
+
+  @Override
   byte[] getRetainedItemsByteArr() {
     if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return new byte[0]; }
     final int offset = getCompactDataOffset(); //both single & full
@@ -149,10 +187,10 @@ public class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  Object getSingleItem() {
+  T getSingleItem() {
     if (getN() != 1) { throw new SketchesArgumentException(NOT_SINGLE_ITEM_MSG); }
     final int offset = getCompactDataOffset(); //both single & full
-    return serDe.deserializeFromMemory(mem, offset, 1)[0];
+    return (T) (serDe.deserializeFromMemory(mem, offset, 1)[0]);
   }
 
   @Override
@@ -174,21 +212,31 @@ public class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  Object[] getTotalItemsArray() {
-    if (getN() == 0) { return new Object[0]; }
-    if (getN() == 1) { return new Object[] { getSingleItem() }; }
+  T[] getTotalItemsArray() {
+    final int k = getK();
+    if (getN() == 0) { return (T[]) Array.newInstance(serDe.getClassOfT(), k); }
+    if (getN() == 1) {
+      final T[] itemsArr = (T[]) Array.newInstance(serDe.getClassOfT(), k);
+      itemsArr[k - 1] = getSingleItem();
+      return itemsArr;
+    }
     final int offset = getCompactDataOffset();
     final int numRetItems = getNumRetained();
     final int numCapItems = levelsArr[getNumLevels()];
-    final Object[] retItems = serDe.deserializeFromMemory(mem, offset, numRetItems);
-    final Object[] capItems = new Object[numCapItems];
+    final T[] retItems = serDe.deserializeFromMemory(mem, offset, numRetItems);
+    final T[] capItems = (T[]) Array.newInstance(serDe.getClassOfT(), numCapItems);
     System.arraycopy(retItems, 0, capItems, levelsArr[0], numRetItems);
     return capItems;
   }
 
-  @Override
+  @Override //this short-cut is required because of our dependence on the SerDe for nulls.
   byte[] getTotalItemsByteArr() {
-    throw new SketchesArgumentException(UNSUPPORTED_MSG);
+    return serDe.serializeToByteArray(getTotalItemsArray());
+  }
+
+  @Override //this short-cut is required because of our dependence on the SerDe for nulls.
+  int getTotalItemsNumBytes() {
+    return getTotalItemsByteArr().length;
   }
 
   @Override

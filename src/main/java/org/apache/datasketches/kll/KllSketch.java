@@ -402,7 +402,7 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract int getSingleItemSizeBytes();
 
   /**
-   * Gets the serialized byte array of the entire internal items structure.
+   * Gets the serialized byte array of the entire internal items hypothetical structure.
    * It does not include the preamble, the levels array, or minimum or maximum items.
    * It may include empty or garbage items.
    * @return the serialized bytes of the retained data.
@@ -410,7 +410,7 @@ public abstract class KllSketch implements QuantilesAPI {
   abstract byte[] getTotalItemsByteArr();
 
   /**
-   * Gets the size in bytes of the entire internal items structure.
+   * Gets the size in bytes of the entire internal items hypothetical structure.
    * It does not include the preamble, the levels array, or minimum or maximum items.
    * It may include empty or garbage items.
    * @return the size of the retained data in bytes.

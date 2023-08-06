@@ -235,7 +235,7 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * Iterator over ItemsSketchSortedView.
    * @param <T> type of quantile (item)
    */
-  public static class ItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
+  public static final class ItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
 
     ItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
       super(quantiles, cumWeights);

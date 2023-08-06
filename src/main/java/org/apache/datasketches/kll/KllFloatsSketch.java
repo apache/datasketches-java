@@ -31,6 +31,7 @@ import java.util.Objects;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.common.SuppressFBWarnings;
+import org.apache.datasketches.kll.KllDirectFloatsSketch.KllDirectCompactFloatsSketch;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -392,36 +393,5 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   abstract void setMaxItem(float item);
 
   abstract void setMinItem(float item);
-
-  //TEMPORARY, HERE FOR DEBUGGING
-
-  void printIntArr(final int[] intArr) {
-    println("Int Array");
-    for (int i = 0; i < intArr.length; i++) { println(i + ", " + intArr[i]); }
-    println("");
-  }
-
-  void printFloatArr(final float[] fltArr) {
-    println("Float Array");
-    for (int i = 0; i < fltArr.length; i++) { println(i + ", " + fltArr[i]); }
-    println("");
-  }
-
-  private final static boolean enablePrinting = false;
-
-  /**
-   * @param format the format
-   * @param args the args
-   */
-  static final void printf(final String format, final Object ...args) {
-    if (enablePrinting) { System.out.printf(format, args); }
-  }
-
-  /**
-   * @param o the Object to println
-   */
-  static final void println(final Object o) {
-    if (enablePrinting) { System.out.println(o.toString()); }
-  }
 
 }

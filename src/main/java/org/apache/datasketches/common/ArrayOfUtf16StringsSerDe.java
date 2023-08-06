@@ -123,4 +123,6 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
     return item.toString();
   }
 
+  @Override
+  public Class<String> getClassOfT() { return String.class; }
 }

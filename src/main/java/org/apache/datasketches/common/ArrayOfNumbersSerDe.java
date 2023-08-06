@@ -239,4 +239,6 @@ public class ArrayOfNumbersSerDe extends ArrayOfItemsSerDe<Number> {
     return item.toString();
   }
 
+  @Override
+  public Class<Number> getClassOfT() { return Number.class; }
 }

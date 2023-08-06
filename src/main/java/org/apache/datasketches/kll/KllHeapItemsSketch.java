@@ -26,6 +26,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_EMPT
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_FULL;
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SINGLE;
 
+import java.lang.reflect.Array;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
@@ -41,8 +42,8 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   private long n;      // number of items input into this sketch.
   private int minK;    // dynamic minK for error estimation after merging with different k.
   private boolean isLevelZeroSorted;
-  private Object minItem;
-  private Object maxItem;
+  private T minItem;
+  private T maxItem;
   private Object[] itemsArr;
 
   /**
@@ -175,11 +176,17 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
+  T[] getRetainedItemsArray() {
+    final int numRet = getNumRetained();
+    final T[] outArr = (T[]) Array.newInstance(serDe.getClassOfT(), numRet);
+    System.arraycopy(itemsArr, levelsArr[0], outArr, 0 , numRet);
+    return outArr;
+  }
+
+  @Override
   byte[] getRetainedItemsByteArr() {
-    final int srcIndex = levelsArr[0];
-    final int numItems = levelsArr[getNumLevels()] - levelsArr[0];
-    final T[] ret = copyRangeOfObjectArray(itemsArr, srcIndex, numItems);
-    return serDe.serializeToByteArray(ret);
+    final T[] retArr = getRetainedItemsArray();
+    return serDe.serializeToByteArray(retArr);
   }
 
   @Override
@@ -206,7 +213,10 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   T[] getTotalItemsArray() {
-    return (T[])itemsArr;
+    if (n == 0) { return (T[]) Array.newInstance(serDe.getClassOfT(), k); }
+    final T[] outArr = (T[]) Array.newInstance(serDe.getClassOfT(), itemsArr.length);
+    System.arraycopy(itemsArr, 0, outArr, 0, itemsArr.length);
+    return outArr;
   }
 
   @Override
@@ -276,12 +286,12 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   void setMaxItem(final Object item) {
-    this.maxItem = item;
+    this.maxItem = (T) item;
   }
 
   @Override
   void setMinItem(final Object item) {
-    this.minItem = item;
+    this.minItem = (T) item;
   }
 
 }

@@ -107,4 +107,9 @@ public abstract class ArrayOfItemsSerDe<T> {
    */
   public abstract String toString(T item);
 
+  /**
+   * Returns the concrete class of type T
+   * @return the concrete class of type T
+   */
+  public abstract Class<?> getClassOfT();
 }

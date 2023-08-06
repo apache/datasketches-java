@@ -46,6 +46,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -339,6 +340,16 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   @Override
   void setWritablMemory(final WritableMemory wmem) {
     this.wmem = wmem;
+  }
+
+  final static class KllDirectCompactDoublesSketch extends KllDirectDoublesSketch {
+
+    KllDirectCompactDoublesSketch(
+        final SketchStructure sketchStructure,
+        final Memory srcMem,
+        final KllMemoryValidate memVal) {
+      super(sketchStructure, (WritableMemory) srcMem, null, memVal);
+    }
   }
 
 }

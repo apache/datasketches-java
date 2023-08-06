@@ -23,6 +23,7 @@ import static org.apache.datasketches.kll.KllItemsHelper.lt;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -33,6 +34,7 @@ import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.InequalitySearch;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
+import org.apache.datasketches.quantilescommon.QuantilesAPI;
 import org.apache.datasketches.quantilescommon.QuantilesUtil;
 
 /**
@@ -47,6 +49,7 @@ public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
   private final long[] cumWeights; //comes in as individual weights, converted to cumulative natural weights
   private final long totalN;
   private final Comparator<? super T> comp;
+  private final T minItem;
 
   /**
    * Construct from elements for testing.
@@ -55,12 +58,13 @@ public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param totalN the total number of items presented to the sketch.
    * @param T the given type
    */
-  KllItemsSketchSortedView(final T[] quantiles, final long[] cumWeights, final long totalN,
+  KllItemsSketchSortedView(final T[] quantiles, final long[] cumWeights, final long totalN, final T minItem,
       final Comparator<? super T> comparator) {
     this.quantiles = quantiles;
     this.cumWeights  = cumWeights;
     this.totalN = totalN;
     this.comp = comparator;
+    this.minItem = minItem;
   }
 
   /**
@@ -69,11 +73,13 @@ public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
    */
   public KllItemsSketchSortedView(final KllItemsSketch<T> sk) {
     this.totalN = sk.getN();
+    this.minItem = sk.getMinItem();
     final Object[] srcQuantiles = sk.getTotalItemsArray();
     final int[] srcLevels = sk.levelsArr;
     final int srcNumLevels = sk.getNumLevels();
     this.comp = sk.comparator;
 
+    if (totalN == 0) { throw new SketchesArgumentException(QuantilesAPI.EMPTY_MSG); }
     if (!sk.isLevelZeroSorted()) {
       Arrays.sort((T[])srcQuantiles, srcLevels[0], srcLevels[1], sk.comparator);
       if (!sk.hasMemory()) { sk.setLevelZeroSorted(true); }
@@ -84,6 +90,8 @@ public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
     cumWeights = new long[numQuantiles];
     populateFromSketch(srcQuantiles, srcLevels, srcNumLevels, numQuantiles);
   }
+
+  //end of constructors
 
   @Override //implemented here because it needs the comparator
   public double[] getCDF(final T[] splitPoints, final QuantileSearchCriteria searchCrit) {
@@ -132,7 +140,9 @@ public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
 
   @Override
   public T[] getQuantiles() {
-    return (T[])quantiles.clone();
+    final T[] quants = (T[]) Array.newInstance(minItem.getClass(), quantiles.length);
+    System.arraycopy(quantiles, 0, quants, 0, quantiles.length);
+    return quants;
   }
 
   @Override
@@ -262,7 +272,7 @@ public final class KllItemsSketchSortedView<T> implements GenericSortedView<T> {
    * Iterator over KllItemsSketchSortedView.
    * @param <T> type of quantile (item)
    */
-  public static class KllItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
+  public static final class KllItemsSketchSortedViewIterator<T> extends GenericSortedViewIterator<T> {
 
     KllItemsSketchSortedViewIterator(final T[] quantiles, final long[] cumWeights) {
       super(quantiles, cumWeights);

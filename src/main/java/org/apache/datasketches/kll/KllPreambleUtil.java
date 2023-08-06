@@ -26,6 +26,9 @@ import static org.apache.datasketches.kll.KllSketch.SketchStructure.COMPACT_SING
 import static org.apache.datasketches.kll.KllSketch.SketchStructure.UPDATABLE;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
+import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
+
+import java.util.Objects;
 
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.Util;
@@ -215,6 +218,9 @@ final class KllPreambleUtil<T> {
    */
   static <T> String toString(final Memory mem, final SketchType sketchType, final boolean includeData,
       final ArrayOfItemsSerDe<T> serDe) {
+    if (sketchType == ITEMS_SKETCH) {
+      Objects.requireNonNull(serDe, "SerDe parameter must not be null for ITEMS_SKETCH.");
+    }
     final KllMemoryValidate memVal = new KllMemoryValidate(mem, sketchType, serDe);
     final SketchStructure myStructure = memVal.sketchStructure;
     final int flags = memVal.flags & 0XFF;

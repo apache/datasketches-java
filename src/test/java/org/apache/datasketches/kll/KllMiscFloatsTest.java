@@ -26,6 +26,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllDirectFloatsSketch.KllDirectCompactFloatsSketch;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
@@ -120,7 +121,7 @@ public class KllMiscFloatsTest {
     KllFloatsSketch.heapify(wmem);
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkMisc() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(8);
     try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) {} //empty
@@ -135,28 +136,61 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getNumLevels(), 2);
   }
 
-  //@Test //enable static println(..) for visual checking
+  @Test //set static enablePrinting = true for visual checking
   public void visualCheckToString() {
-    final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance(20);
-    for (int i = 0; i < 10; i++) { sketch.update(i + 1); }
-    final String s1 = sketch.toString(true, true);
-    println(s1);
+    final KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    int n = 21;
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    println(sk.toString(true, true));
+    assertEquals(sk.getNumLevels(), 2);
+    assertEquals(sk.getMinItem(), 1);
+    assertEquals(sk.getMaxItem(), 21);
+    assertEquals(sk.getNumRetained(), 11);
 
-    final KllFloatsSketch sketch2 = KllFloatsSketch.newHeapInstance(20);
-    for (int i = 0; i < 400; i++) { sketch2.update(i + 1); }
-    println("\n" + sketch2.toString(true, true));
+    final KllFloatsSketch sk2 = KllFloatsSketch.newHeapInstance(20);
+    n = 400;
+    for (int i = 101; i <= n + 100; i++) { sk2.update(i); }
+    println("\n" + sk2.toString(true, true));
+    assertEquals(sk2.getNumLevels(), 5);
+    assertEquals(sk2.getMinItem(), 101);
+    assertEquals(sk2.getMaxItem(), 500);
+    assertEquals(sk2.getNumRetained(), 52);
 
-    sketch2.merge(sketch);
-    final String s2 = sketch2.toString(true, true);
-    println(LS + s2);
+    sk2.merge(sk);
+    println(LS + sk2.toString(true, true));
+    assertEquals(sk2.getNumLevels(), 5);
+    assertEquals(sk2.getMinItem(), 1);
+    assertEquals(sk2.getMaxItem(), 500);
+    assertEquals(sk2.getNumRetained(), 56);
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void viewHeapCompactions() {
     int k = 20;
-    int u = 108;
+    int n = 108;
+    int compaction = 0;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
-    for (int i = 1; i <= u; i++) {
+    for (int i = 1; i <= n; i++) {
+      sk.update(i);
+      if (sk.levelsArr[0] == 0) {
+        println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
+        println(sk.toString(true, true));
+        sk.update(++i);
+        println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
+        println(sk.toString(true, true));
+        assertEquals(sk.getFloatItemsArray()[sk.levelsArr[0]], i);
+      }
+    }
+  }
+
+  @Test //set static enablePrinting = true for visual checking
+  public void viewDirectCompactions() {
+    int k = 20;
+    int n = 108;
+    int sizeBytes = KllSketch.getMaxSerializedSizeBytes(k, n, FLOATS_SKETCH, true);
+    WritableMemory wmem = WritableMemory.allocate(sizeBytes);
+    KllFloatsSketch sk = KllFloatsSketch.newDirectInstance(k, wmem, memReqSvr);
+    for (int i = 1; i <= n; i++) {
       sk.update(i);
       if (sk.levelsArr[0] == 0) {
         println(sk.toString(true, true));
@@ -167,24 +201,21 @@ public class KllMiscFloatsTest {
     }
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void viewCompactionAndSortedView() {
+    int n = 43;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
-    show(sk, 20);
+    for (int i = 1; i <= n; i++) { sk.update(i); }
+    println(sk.toString(true, true));
     FloatsSortedView sv = sk.getSortedView();
     FloatsSortedViewIterator itr = sv.iterator();
+    println("### SORTED VIEW");
     printf("%12s%12s\n", "Value", "CumWeight");
     while (itr.next()) {
       float v = itr.getQuantile();
       long wt = itr.getWeight();
       printf("%12.1f%12d\n", v, wt);
     }
-  }
-
-  private static void show(final KllFloatsSketch sk, int limit) {
-    int i = (int) sk.getN();
-    for ( ; i < limit; i++) { sk.update(i + 1); }
-    println(sk.toString(true, true));
   }
 
   @Test
@@ -196,7 +227,7 @@ public class KllMiscFloatsTest {
     assertEquals(sk.getLevelsArray(sk.sketchStructure)[2], 33);
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkSketchInitializeFloatHeap() {
     int k = 20; //don't change this
     KllFloatsSketch sk;
@@ -204,7 +235,7 @@ public class KllMiscFloatsTest {
     println("#### CASE: FLOAT FULL HEAP");
     sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    //println(sk.toString(true, true));
+    println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);
@@ -220,7 +251,7 @@ public class KllMiscFloatsTest {
 
     println("#### CASE: FLOAT HEAP EMPTY");
     sk = KllFloatsSketch.newHeapInstance(k);
-    //println(sk.toString(true, true));
+    println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
     assertEquals(sk.getNumRetained(), 0);
@@ -237,7 +268,7 @@ public class KllMiscFloatsTest {
     println("#### CASE: FLOAT HEAP SINGLE");
     sk = KllFloatsSketch.newHeapInstance(k);
     sk.update(1);
-    //println(sk.toString(true, true));
+    println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
     assertEquals(sk.getNumRetained(), 1);
@@ -252,7 +283,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkSketchInitializeFloatHeapifyCompactMem() {
     int k = 20; //don't change this
     KllFloatsSketch sk;
@@ -323,7 +354,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkSketchInitializeFloatHeapifyUpdatableMem() {
     int k = 20; //don't change this
     KllFloatsSketch sk;
@@ -394,7 +425,7 @@ public class KllMiscFloatsTest {
     assertFalse(sk.isLevelZeroSorted());
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkMemoryToStringFloatCompact() {
     int k = 20; //don't change this
     KllFloatsSketch sk;
@@ -452,7 +483,7 @@ public class KllMiscFloatsTest {
     assertEquals(compBytes, compBytes2);
   }
 
-  @Test
+  @Test //set static enablePrinting = true for visual checking
   public void checkMemoryToStringFloatUpdatable() {
     int k = 20; //don't change this
     KllFloatsSketch sk;
@@ -531,7 +562,6 @@ public class KllMiscFloatsTest {
       sk2.update(i + 100);
     }
     sk1.merge(sk2);
-
     assertEquals(sk1.getMinItem(), 1.0);
     assertEquals(sk1.getMaxItem(), 143.0);
   }

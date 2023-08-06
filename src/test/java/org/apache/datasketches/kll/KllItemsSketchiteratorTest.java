@@ -19,63 +19,69 @@
 
 package org.apache.datasketches.kll;
 
+import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
-import org.apache.datasketches.quantilescommon.FloatsSortedViewIterator;
-import org.apache.datasketches.quantilescommon.QuantilesFloatsSketchIterator;
+import java.util.Comparator;
+
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
+import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class KllFloatsSketchIteratorTest {
+public class KllItemsSketchiteratorTest {
+  static final String LS = System.getProperty("line.separator");
+  public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void emptySketch() {
-    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    QuantilesFloatsSketchIterator it = sketch.iterator();
+    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    QuantilesGenericSketchIterator<String> it = sketch.iterator();
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    sketch.update(1);
-    QuantilesFloatsSketchIterator it = sketch.iterator();
+    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sketch.update("1");
+    QuantilesGenericSketchIterator<String> it = sketch.iterator();
     Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getQuantile(), 1f);
+    Assert.assertEquals(it.getQuantile(), "1");
     Assert.assertEquals(it.getWeight(), 1);
     Assert.assertFalse(it.next());
   }
 
   @Test
   public void twoItemSketchForIterator() {
-    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    sketch.update(1);
-    sketch.update(2);
-    QuantilesFloatsSketchIterator itr = sketch.iterator();
+    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sketch.update("1");
+    sketch.update("2");
+    QuantilesGenericSketchIterator<String> itr = sketch.iterator();
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 2f);
+    assertEquals(itr.getQuantile(), "2");
     assertEquals(itr.getWeight(), 1);
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 1f);
+    assertEquals(itr.getQuantile(), "1");
     assertEquals(itr.getWeight(), 1);
   }
 
   @Test
   public void twoItemSketchForSortedViewIterator() {
-    KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-    sketch.update(1);
-    sketch.update(2);
-    FloatsSortedViewIterator itr = sketch.getSortedView().iterator();
+    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sketch.update("1");
+    sketch.update("2");
+    GenericSortedViewIterator<String> itr = sketch.getSortedView().iterator();
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 1f);
+    assertEquals(itr.getQuantile(), "1");
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 0);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 1);
@@ -84,7 +90,7 @@ public class KllFloatsSketchIteratorTest {
 
     assertTrue(itr.next());
 
-    assertEquals(itr.getQuantile(), 2f);
+    assertEquals(itr.getQuantile(), "2");
     assertEquals(itr.getWeight(), 1);
     assertEquals(itr.getCumulativeWeight(EXCLUSIVE), 1);
     assertEquals(itr.getCumulativeWeight(INCLUSIVE), 2);
@@ -94,12 +100,13 @@ public class KllFloatsSketchIteratorTest {
 
   @Test
   public void bigSketches() {
-    for (int n = 1000; n < 100000; n += 2000) {
-      KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
+    final int digits = 6;
+    for (int n = 1000; n < 100_000; n += 2000) {
+      KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 0; i < n; i++) {
-        sketch.update(i);
+        sketch.update(intToFixedLengthString(i, digits));
       }
-      QuantilesFloatsSketchIterator it = sketch.iterator();
+      QuantilesGenericSketchIterator<String> it = sketch.iterator();
       int count = 0;
       int weight = 0;
       while (it.next()) {

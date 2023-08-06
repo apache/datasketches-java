@@ -25,6 +25,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.kll.KllDirectDoublesSketch.KllDirectCompactDoublesSketch;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -42,11 +43,12 @@ public class KllDirectCompactDoublesSketchTest {
     Memory srcMem = Memory.wrap(byteArr); //-> read only
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(srcMem);
     assertTrue(sk2 instanceof KllDirectDoublesSketch);
+
     assertTrue(sk2.isMemoryUpdatableFormat());
-    println(sk2.toString(true, false));
     assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getMinItem(), 1.0);
     assertEquals(sk2.getMaxItem(), 21.0);
+
     WritableMemory srcWmem = WritableMemory.writableWrap(byteArr);
     KllDoublesSketch sk3 = KllDoublesSketch.writableWrap(srcWmem, memReqSvr);
     assertTrue(sk3 instanceof KllDirectDoublesSketch);
@@ -84,12 +86,14 @@ public class KllDirectCompactDoublesSketchTest {
   public void checkDirectCompactSingleItem() {
     int k = 20;
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
+
     sk.update(1);
     KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertTrue(sk2 instanceof KllDirectCompactDoublesSketch);
     println(sk2.toString(true, false));
     assertTrue(sk2.isReadOnly());
     assertEquals(sk2.getDoubleSingleItem(), 1.0);
+
     sk.update(2);
     sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
     assertEquals(sk2.getN(), 2);
@@ -122,19 +126,38 @@ public class KllDirectCompactDoublesSketchTest {
   }
 
   @Test
-  public void checkDirectCompactGetDoubleItemsArray2() {
+  public void checkHeapAndDirectCompactGetRetainedItemsArray() {
     int k = 20;
+
     KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(k);
-    for (int i = 1; i <= 20; i++) { sk.update(i); }
-    sk.update(21);
-    sk.printDoubleArr(sk.getDoubleItemsArray());
-    sk.printDoubleArr(sk.getDoubleRetainedItemsArray());
-    byte[] bArr = sk.toByteArray();
-    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(bArr));
-    println("Retained Items: " + sk2.getNumRetained());
-    sk2.printDoubleArr(sk2.getDoubleItemsArray());
-    println("levelsArr.length: " + sk2.levelsArr.length);
-    sk2.printDoubleArr(sk2.getDoubleRetainedItemsArray());
+    double[] retArr = sk.getDoubleRetainedItemsArray();
+    assertEquals(retArr.length, 0);
+
+    KllDoublesSketch sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    retArr = sk2.getDoubleRetainedItemsArray();
+    assertEquals(retArr.length, sk.getNumRetained());
+    assertEquals(retArr.length, 0);
+
+    sk.update(1.0);
+    retArr = sk.getDoubleRetainedItemsArray();
+    assertEquals(retArr.length, sk.getNumRetained());
+    assertEquals(retArr.length, 1);
+    assertEquals(retArr[0], 1.0);
+
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    retArr = sk2.getDoubleRetainedItemsArray();
+    assertEquals(retArr.length, sk.getNumRetained());
+    assertEquals(retArr.length, 1);
+    assertEquals(retArr[0], 1.0);
+
+    for (int i = 2; i <= 21; i++) { sk.update(i); }
+    retArr = sk.getDoubleRetainedItemsArray();
+    assertEquals(retArr.length, sk.getNumRetained());
+    assertEquals(retArr.length, 11);
+
+    sk2 = KllDoublesSketch.wrap(Memory.wrap(sk.toByteArray()));
+    assertEquals(retArr.length, sk2.getNumRetained());
+    assertEquals(retArr.length, 11);
   }
 
   @Test

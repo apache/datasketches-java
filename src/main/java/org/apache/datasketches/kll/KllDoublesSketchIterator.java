@@ -24,7 +24,7 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 /**
  * Iterator over KllDoublesSketch. The order is not defined.
  */
-public class KllDoublesSketchIterator implements QuantilesDoublesSketchIterator {
+public final class KllDoublesSketchIterator implements QuantilesDoublesSketchIterator {
   private final double[] quantiles;
   private final int[] levelsArr;
   private final int numLevels;

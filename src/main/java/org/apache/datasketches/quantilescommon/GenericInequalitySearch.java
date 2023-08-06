@@ -45,7 +45,7 @@ import org.apache.datasketches.common.SketchesArgumentException;
  * Sketching Quantiles and Ranks Tutorial</a>
  * @author Lee Rhodes
  */
-public class GenericInequalitySearch {
+public final class GenericInequalitySearch {
 
   /**
    * The enumerator of inequalities

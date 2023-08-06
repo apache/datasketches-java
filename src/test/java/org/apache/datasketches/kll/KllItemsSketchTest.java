@@ -51,7 +51,6 @@ public class KllItemsSketchTest {
   private static final double PMF_EPS_FOR_K_128 = 0.025; // PMF rank error (epsilon) for k=128
   private static final double PMF_EPS_FOR_K_256 = 0.013; // PMF rank error (epsilon) for k=256
   private static final double NUMERIC_NOISE_TOLERANCE = 1E-6;
-  private static final DefaultMemoryRequestServer memReqSvr = new DefaultMemoryRequestServer();
   public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test

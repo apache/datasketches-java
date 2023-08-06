@@ -99,4 +99,6 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
     return item.toString();
   }
 
+  @Override
+  public Class<Long> getClassOfT() { return Long.class; }
 }

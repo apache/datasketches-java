@@ -120,4 +120,7 @@ public class ArrayOfBooleansSerDe extends ArrayOfItemsSerDe<Boolean> {
     if (item == null) { return "null"; }
     return item ? "true" : "false";
   }
+
+  @Override
+  public Class<Boolean> getClassOfT() { return Boolean.class; }
 }

@@ -295,6 +295,8 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     kllItemsSV = (kllItemsSV == null) ? new KllItemsSketchSortedView<T>(this) : kllItemsSV;
   }
 
+  abstract T[] getRetainedItemsArray();
+
   @Override
   abstract byte[] getRetainedItemsByteArr();
 
@@ -306,7 +308,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   @Override
   ArrayOfItemsSerDe<T> getSerDe() { return serDe; }
 
-  abstract Object getSingleItem();
+  abstract T getSingleItem();
 
   @Override
   abstract byte[] getSingleItemByteArr();
@@ -315,9 +317,10 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   abstract int getSingleItemSizeBytes();
 
   /**
-   * @return full size of internal items array including empty space at bottom.
+   * @return a full array of items as if the sketch was in COMPACT_FULL or UPDATABLE format.
+   * This will include zeros and possibly some garbage items.
    */
-  abstract Object[] getTotalItemsArray();
+  abstract T[] getTotalItemsArray();
 
   @Override
   abstract byte[] getTotalItemsByteArr();

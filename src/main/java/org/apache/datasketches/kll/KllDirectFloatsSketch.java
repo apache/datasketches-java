@@ -46,6 +46,7 @@ import static org.apache.datasketches.kll.KllSketch.SketchType.FLOATS_SKETCH;
 import org.apache.datasketches.common.ByteArrayUtil;
 import org.apache.datasketches.common.Family;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
@@ -339,6 +340,16 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   @Override
   void setWritablMemory(final WritableMemory wmem) {
     this.wmem = wmem;
+  }
+
+  final static class KllDirectCompactFloatsSketch extends KllDirectFloatsSketch {
+
+    KllDirectCompactFloatsSketch(
+        final SketchStructure sketchStructure,
+        final Memory srcMem,
+        final KllMemoryValidate memVal) {
+      super(sketchStructure, (WritableMemory) srcMem, null, memVal);
+    }
   }
 
 }

@@ -100,4 +100,6 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
     return item.toString();
   }
 
+  @Override
+  public Class<Double> getClassOfT() { return Double.class; }
 }

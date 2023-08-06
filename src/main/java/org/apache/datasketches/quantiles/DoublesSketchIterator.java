@@ -27,7 +27,7 @@ import org.apache.datasketches.quantilescommon.QuantilesDoublesSketchIterator;
 /**
  * Iterator over DoublesSketch. The order is not defined.
  */
-public class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
+public final class DoublesSketchIterator implements QuantilesDoublesSketchIterator {
   private DoublesSketchAccessor sketchAccessor;
   private long bitPattern;
   private int level;
