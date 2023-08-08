@@ -28,9 +28,9 @@ public class DoublesSketchSerDeTest {
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
-      UpdateDoublesSketch sketch = DoublesSketch.builder().build();
-      for (int i = 0; i < n; i++) sketch.update(i);
+    for (final int n: nArr) {
+      final UpdateDoublesSketch sketch = DoublesSketch.builder().build();
+      for (int i = 1; i <= n; i++) sketch.update(i);
       try (final FileOutputStream file = new FileOutputStream("quantiles_double_n" + n + ".sk")) {
         file.write(sketch.toByteArray(true));
       }
