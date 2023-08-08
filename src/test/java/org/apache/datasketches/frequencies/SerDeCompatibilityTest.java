@@ -103,8 +103,8 @@ public class SerDeCompatibilityTest {
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTestingStringsSketch() throws Exception {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
-    for (int n: nArr) {
-      ItemsSketch<String> sketch = new ItemsSketch<>(64);
+    for (final int n: nArr) {
+      final ItemsSketch<String> sketch = new ItemsSketch<>(64);
       for (int i = 1; i <= n; i++) sketch.update(Integer.toString(i));
       assertTrue(n == 0 ? sketch.isEmpty() : !sketch.isEmpty());
       if (n > 10) {
@@ -115,6 +115,33 @@ public class SerDeCompatibilityTest {
       try (final FileOutputStream file = new FileOutputStream("frequent_string_n" + n + ".sk")) {
         file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
       }
+    }
+  }
+
+  @Test(groups = {"generate"})
+  public void generateBinariesForCompatibilityTestingStringsSketchAscii() throws Exception {
+    final ItemsSketch<String> sketch = new ItemsSketch<>(64);
+    sketch.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 1);
+    sketch.update("bbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 2);
+    sketch.update("ccccccccccccccccccccccccccccc", 3);
+    sketch.update("ddddddddddddddddddddddddddddd", 4);
+    try (final FileOutputStream file = new FileOutputStream("frequent_string_ascii.sk")) {
+      file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
+    }
+  }
+
+  @Test(groups = {"generate"})
+  public void generateBinariesForCompatibilityTestingStringsSketchUtf8() throws Exception {
+    final ItemsSketch<String> sketch = new ItemsSketch<>(64);
+    sketch.update("абвгд", 1);
+    sketch.update("еёжзи", 2);
+    sketch.update("йклмн", 3);
+    sketch.update("опрст", 4);
+    sketch.update("уфхцч", 5);
+    sketch.update("шщъыь", 6);
+    sketch.update("эюя", 7);
+    try (final FileOutputStream file = new FileOutputStream("frequent_string_utf8.sk")) {
+      file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
     }
   }
 
