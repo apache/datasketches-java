@@ -338,11 +338,4 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   abstract void setMinItem(Object item);
 
-  //This cannot be used on an empty sketch, i.e., getMaxItem must be valid.
-  T[] copyRangeOfObjectArray(final Object[] srcArray, final int srcIndex, final int numItems) {
-    final T[] tgtArr = (T[]) Array.newInstance(getMaxItem().getClass(), numItems);
-    System.arraycopy(srcArray, srcIndex, tgtArr, 0, numItems);
-    return tgtArr;
-  }
-
 }

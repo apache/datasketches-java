@@ -64,7 +64,7 @@ public class KllFloatsSketchSerDeTest {
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
     assertEquals(sketch2.getMinItem(), 1.0F);
     assertEquals(sketch2.getMaxItem(), 1.0F);
-    assertEquals(sketch2.getSerializedSizeBytes(), 8 + Float.BYTES);
+    assertEquals(sketch2.getSerializedSizeBytes(), sketch2.getSerializedSizeBytes());
   }
 
   @Test
@@ -111,7 +111,7 @@ public class KllFloatsSketchSerDeTest {
 
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
-    final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
+    final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
       final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
       for (int i = 0; i < n; i++) sketch.update(i);

@@ -136,6 +136,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
       final byte[] byteArr = new byte[2 * bytesSingle];
       mem.getByteArray(DATA_START_ADR_SINGLE_ITEM, byteArr, 0, bytesSingle);
       mem.getByteArray(DATA_START_ADR_SINGLE_ITEM, byteArr, bytesSingle, bytesSingle);
+      return byteArr;
     }
     //sketchStructure == COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
@@ -159,11 +160,8 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   T[] getRetainedItemsArray() {
     final int numRet = getNumRetained();
-    final T[] outArr = (T[]) Array.newInstance(serDe.getClassOfT(), numRet);
-    if (sketchStructure == COMPACT_EMPTY) { return outArr; }
-    if (sketchStructure == COMPACT_SINGLE) {
-      outArr[0] = getSingleItem();
-      return outArr;
+    if (sketchStructure == COMPACT_EMPTY || getN() == 0) {
+      return (T[]) Array.newInstance(serDe.getClassOfT(), numRet);
     }
     final int offset = getCompactDataOffset(); //both single & full
     return serDe.deserializeFromMemory(mem, offset, numRet);

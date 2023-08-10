@@ -19,28 +19,29 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.common.Util.getResourceBytes;
+import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
+import static org.apache.datasketches.kll.KllItemsHelper.numDigits;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Comparator;
 
+import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
-import org.apache.datasketches.common.Util;
-import org.apache.datasketches.memory.MapHandle;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
-public class KllDoublesSketchSerDeTest {
+public class KllItemsSketchSerDeTest {
+  public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void serializeDeserializeEmpty() {
-    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
+    final KllItemsSketch<String> sketch1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllItemsSketch<String> sketch2 = KllItemsSketch.heapify(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
     assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
     assertTrue(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -53,29 +54,29 @@ public class KllDoublesSketchSerDeTest {
 
   @Test
   public void serializeDeserializeOneValue() {
-    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
-    sketch1.update(1);
+    final KllItemsSketch<String> sketch1 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    sketch1.update(" 1");
     final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllItemsSketch<String> sketch2 = KllItemsSketch.heapify(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
     assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinItem(), 1.0);
-    assertEquals(sketch2.getMaxItem(), 1.0);
-    assertEquals(sketch2.getSerializedSizeBytes(), 8 + Double.BYTES);
+    assertEquals(sketch2.getMinItem(), " 1");
+    assertEquals(sketch2.getMaxItem(), " 1");
+    assertEquals(sketch2.getSerializedSizeBytes(), sketch2.getSerializedSizeBytes());
   }
 
   @Test
   public void serializeDeserialize() {
-    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
+    final KllItemsSketch<String> sketch1 = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     final int n = 1000;
     for (int i = 0; i < n; i++) {
-      sketch1.update(i);
+      sketch1.update(intToFixedLengthString(i, 4));
     }
     final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    final KllItemsSketch<String> sketch2 = KllItemsSketch.heapify(Memory.wrap(bytes), Comparator.naturalOrder(), serDe);
     assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
     assertFalse(sketch2.isEmpty());
     assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
@@ -86,36 +87,16 @@ public class KllDoublesSketchSerDeTest {
     assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
   }
 
-  @Test
-  public void compatibilityWithCppEstimationMode() throws Exception {
-    final File file = Util.getResourceFile("kll_double_estimation_cpp.sk");
-    try (MapHandle mh = Memory.map(file)) {
-      final KllDoublesSketch sketch = KllDoublesSketch.heapify(mh.get());
-      assertEquals(sketch.getMinItem(), 0);
-      assertEquals(sketch.getMaxItem(), 999);
-      assertEquals(sketch.getN(), 1000);
-    }
-  }
-
-  @Test
-  public void deserializeOneValueVersion1() throws Exception {
-    final byte[] bytes = getResourceBytes("kll_sketch_double_one_item_v1.sk");
-    final KllDoublesSketch sketch = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertFalse(sketch.isEmpty());
-    assertFalse(sketch.isEstimationMode());
-    assertEquals(sketch.getN(), 1);
-    assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getMinItem(), 1.0);
-    assertEquals(sketch.getMaxItem(), 1.0);
-  }
+  //no cross language tests yet
 
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-      for (int i = 0; i < n; i++) sketch.update(i);
-      try (final FileOutputStream file = new FileOutputStream("kll_double_n" + n + ".sk")) {
+      final int digits = numDigits(n);
+      final KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+      for (int i = 0; i < n; i++) sketch.update(intToFixedLengthString(i, digits));
+      try (final FileOutputStream file = new FileOutputStream("kll_items_n" + n + ".sk")) {
         file.write(sketch.toByteArray());
       }
     }

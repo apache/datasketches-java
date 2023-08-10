@@ -42,7 +42,7 @@ public class KllSketchTest {
     try { getSketchStructure(2,3); fail(); } catch (SketchesArgumentException e) { }
   }
 
-  private final static boolean enablePrinting = true;
+  private final static boolean enablePrinting = false;
 
   /**
    * @param o the Object to println

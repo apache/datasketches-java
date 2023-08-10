@@ -126,13 +126,13 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   public T getMaxItem() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    return (T)maxItem;
+    return maxItem;
   }
 
   @Override
   public T getMinItem() {
     if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
-    return (T)minItem;
+    return minItem;
   }
 
   @Override
