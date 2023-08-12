@@ -52,7 +52,7 @@ import org.apache.datasketches.memory.Memory;
  *  * Long || Start Byte Adr:
  * Adr:
  *      ||    7     |    6   |    5   |    4   |    3   |    2   |    1   |     0          |
- *  0   ||-------SerDeId-----|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
+ *  0   ||------ unused -----|-Flags--|-LgCur--| LgMax  | FamID  | SerVer | PreambleLongs  |
  *      ||    15    |   14   |   13   |   12   |   11   |   10   |    9   |     8          |
  *  1   ||------------(unused)-----------------|--------ActiveItems------------------------|
  *      ||    23    |   22   |   21   |   20   |   19   |   18   |   17   |    16          |
@@ -83,7 +83,9 @@ final class PreambleUtil {
   static final int OFFSET_LONG               = 24; // to 31 : pre3
 
   // flag bit masks
-  static final int EMPTY_FLAG_MASK      = 4;
+  // due to a mistake different bits were used in C++ and Java to indicate empty sketch
+  // therefore both are set and checked for compatibility with historical binary format
+  static final int EMPTY_FLAG_MASK = 5;
 
   // Specific values for this implementation
   static final int SER_VER = 1;
@@ -105,7 +107,6 @@ final class PreambleUtil {
     final int lgMaxMapSize = extractLgMaxMapSize(pre0); //byte 3
     final int lgCurMapSize = extractLgCurMapSize(pre0); //byte 4
     final int flags = extractFlags(pre0);         //byte 5
-    final int type = extractSerDeId(pre0);        //byte 6
 
     final String flagsStr = zeroPad(Integer.toBinaryString(flags), 8) + ", " + (flags);
     final boolean empty = (flags & EMPTY_FLAG_MASK) > 0;
@@ -138,8 +139,7 @@ final class PreambleUtil {
       .append("Byte  3: MaxMapSize           : ").append(maxMapSize).append(LS)
       .append("Byte  4: CurMapSize           : ").append(curMapSize).append(LS)
       .append("Byte  5: Flags Field          : ").append(flagsStr).append(LS)
-      .append("  EMPTY                       : ").append(empty).append(LS)
-      .append("Byte  6: Freq Sketch Type     : ").append(type).append(LS);
+      .append("  EMPTY                       : ").append(empty).append(LS);
 
     if (preLongs == 1) {
       sb.append(" --ABSENT, ASSUMED:").append(LS);
@@ -191,12 +191,6 @@ final class PreambleUtil {
     final int shift = FLAGS_BYTE << 3;
     final long mask = 0XFFL;
     return (int) ((pre0 >>> shift) & mask);
-  }
-
-  static short extractSerDeId(final long pre0) { //Byte 6,7
-    final int shift = SER_DE_ID_SHORT << 3;
-    final long mask = 0XFFFFL;
-    return (short) ((pre0 >>> shift) & mask);
   }
 
   static int extractActiveItems(final long pre1) { //Bytes 8 to 11
