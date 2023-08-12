@@ -73,7 +73,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
       final WritableMemory wmem,
       final MemoryRequestServer memReqSvr,
       final KllMemoryValidate memVal) {
-    super(sketchStructure, wmem);
+    super(sketchStructure);
     this.wmem = wmem;
     this.memReqSvr = memReqSvr;
     readOnly = (wmem != null && wmem.isReadOnly()) || sketchStructure != UPDATABLE;

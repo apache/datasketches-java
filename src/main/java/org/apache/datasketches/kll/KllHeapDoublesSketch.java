@@ -66,7 +66,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
    * experimental as they have not been as well characterized.
    */
   KllHeapDoublesSketch(final int k, final int m) {
-    super(UPDATABLE, null);
+    super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     this.levelsArr = new int[] {k, k};
@@ -89,7 +89,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   private KllHeapDoublesSketch(
       final Memory srcMem,
       final KllMemoryValidate memValidate) {
-    super(UPDATABLE, null);
+    super(UPDATABLE);
     final SketchStructure memStructure = memValidate.sketchStructure;
     this.k = memValidate.k;
     this.m = memValidate.m;

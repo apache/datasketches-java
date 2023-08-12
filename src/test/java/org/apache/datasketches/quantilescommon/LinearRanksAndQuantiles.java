@@ -166,8 +166,7 @@ public class LinearRanksAndQuantiles {
       final long[] cumWeights,
       final T[] quantiles,
       final double givenNormR,
-      final QuantileSearchCriteria inclusive,
-      final Comparator<? super T> comp) {
+      final QuantileSearchCriteria inclusive) {
     final int len = cumWeights.length;
     final long N = cumWeights[len - 1];
     T result = null;

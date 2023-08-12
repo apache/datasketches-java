@@ -66,7 +66,7 @@ public class ArrayOfLongsSerDe extends ArrayOfItemsSerDe<Long> {
     Objects.requireNonNull(mem, "Memory must not be null");
     if (numItems <= 0) { return new Long[0]; }
     long offset = offsetBytes;
-    Util.checkBounds(offset, Long.BYTES * numItems, mem.getCapacity());
+    Util.checkBounds(offset, Long.BYTES * (long)numItems, mem.getCapacity());
     final Long[] array = new Long[numItems];
     for (int i = 0; i < numItems; i++) {
       array[i] = mem.getLong(offset);

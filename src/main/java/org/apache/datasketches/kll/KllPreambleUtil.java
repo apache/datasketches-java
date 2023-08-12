@@ -199,7 +199,6 @@ final class KllPreambleUtil<T> {
    *
    * @param mem the given Memory
    * @param includeData if true, includes detail of retained data.
-   * @param serDe the serialization/deserialization class, required for KllItemsSketch.
    * @return the summary string.
    */
   static String toString(final Memory mem, final SketchType sketchType, final boolean includeData) {

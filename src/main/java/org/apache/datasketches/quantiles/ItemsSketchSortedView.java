@@ -53,7 +53,6 @@ public final class ItemsSketchSortedView<T> implements GenericSortedView<T> {
    * @param cumWeights sorted, monotonically increasing cumulative weights.
    * @param totalN the total number of items presented to the sketch.
    * @param comparator comparator for type T
-   * @param T the given type
    */
   ItemsSketchSortedView(final T[] quantiles, final long[] cumWeights, final long totalN,
       final Comparator<T> comparator) {

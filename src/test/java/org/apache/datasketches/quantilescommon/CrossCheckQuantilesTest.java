@@ -32,6 +32,7 @@ import static org.testng.Assert.assertEquals;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.kll.KllDoublesSketch;
 import org.apache.datasketches.kll.KllDoublesSketchSortedView;
 import org.apache.datasketches.kll.KllFloatsSketch;
@@ -191,7 +192,9 @@ public class CrossCheckQuantilesTest {
     }
 
     println("");
-    int maxItemValue = Integer.parseInt(getMaxItemValue(set));
+    int maxItemValue;
+    try { maxItemValue = Integer.parseInt(getMaxItemValue(set)); }
+    catch (NumberFormatException e) { throw new SketchesArgumentException(e.toString()); }
     for (int v = 5; v <= maxItemValue + 5; v += 5) {
       String s = intToFixedLengthString(v, 2);
       trueRank = getTrueItemRank(svCumWeights[set], svIValues[set], s, crit, comparator);
@@ -255,7 +258,7 @@ public class CrossCheckQuantilesTest {
     String testIQ;
     for (int i = 0; i <= twoN; i++) {
       double normRank = i / dTwoN;
-      trueIQ = getTrueItemQuantile(svCumWeights[set], svIValues[set], normRank, crit, comparator);
+      trueIQ = getTrueItemQuantile(svCumWeights[set], svIValues[set], normRank, crit);
 
       testIQ = kllItemsSV.getQuantile(normRank, crit);
       assertEquals(testIQ, trueIQ);

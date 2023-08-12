@@ -277,16 +277,14 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getMaxItem(), 1_000_000);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    final KllDoublesSketch sketch1 = getUpdatableDirectDoublesSketch(KllSketch.DEFAULT_M - 1, 0);
+    getUpdatableDirectDoublesSketch(KllSketch.DEFAULT_M - 1, 0);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    final KllDoublesSketch sketch1 = getUpdatableDirectDoublesSketch(KllSketch.MAX_K + 1, 0);
+    getUpdatableDirectDoublesSketch(KllSketch.MAX_K + 1, 0);
   }
 
   @Test

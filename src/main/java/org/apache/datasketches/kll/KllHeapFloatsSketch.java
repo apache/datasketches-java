@@ -66,7 +66,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
    * experimental as they have not been as well characterized.
    */
   KllHeapFloatsSketch(final int k, final int m) {
-    super(UPDATABLE, null);
+    super(UPDATABLE);
     KllHelper.checkM(m);
     KllHelper.checkK(k, m);
     this.levelsArr = new int[] {k, k};
@@ -89,7 +89,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   private KllHeapFloatsSketch(
       final Memory srcMem,
       final KllMemoryValidate memValidate) {
-    super(UPDATABLE, null);
+    super(UPDATABLE);
     final SketchStructure memStructure = memValidate.sketchStructure;
     this.k = memValidate.k;
     this.m = memValidate.m;

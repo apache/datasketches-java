@@ -315,7 +315,7 @@ public abstract class KllSketch implements QuantilesAPI {
   }
 
   int[] getLevelsArray(final SketchStructure structure) {
-    if (structure == UPDATABLE) { return levelsArr; }
+    if (structure == UPDATABLE) { return levelsArr.clone(); }
     else if (structure == COMPACT_FULL) { return Arrays.copyOf(levelsArr, levelsArr.length - 1); }
     else { return new int[0]; }
   }

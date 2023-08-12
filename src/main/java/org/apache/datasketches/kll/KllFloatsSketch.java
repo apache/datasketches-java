@@ -51,8 +51,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   final static int ITEM_BYTES = Float.BYTES;
 
   KllFloatsSketch(
-      final SketchStructure sketchStructure,
-      final WritableMemory wmem) {
+      final SketchStructure sketchStructure) {
     super(SketchType.FLOATS_SKETCH, sketchStructure);
   }
 

@@ -166,7 +166,7 @@ public class KllItemsSketchTest {
       final double trueRank = (double) i / n;
       String s = Util.intToFixedLengthString(i, digits);
       double r = sketch.getRank(s);
-      assertEquals(sketch.getRank(s), trueRank, PMF_EPS_FOR_K_256, "for value " + s);
+      assertEquals(r, trueRank, PMF_EPS_FOR_K_256, "for value " + s);
     }
 
     // test getPMF

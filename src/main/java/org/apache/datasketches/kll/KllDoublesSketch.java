@@ -51,8 +51,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   final static int ITEM_BYTES = Double.BYTES;
 
   KllDoublesSketch(
-      final SketchStructure sketchStructure,
-      final WritableMemory wmem) {
+      final SketchStructure sketchStructure) {
     super(SketchType.DOUBLES_SKETCH, sketchStructure);
   }
 

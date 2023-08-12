@@ -203,7 +203,7 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(new String[] {item});
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
-    assertEquals(serDe.toString(item), item.toString());
+    assertEquals(serDe.toString(item), item);
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);
@@ -247,7 +247,7 @@ public class ArrayOfXSerDeTest {
     byteArr = serDe.serializeToByteArray(new String[] {item});
     assertEquals(byteArr.length, bytes);
     assertEquals(serDe.sizeOf(item), bytes);
-    assertEquals(serDe.toString(item), item.toString());
+    assertEquals(serDe.toString(item), item);
 
     wmem = WritableMemory.allocate(offset + byteArr.length);
     wmem.putByteArray(offset, byteArr, 0, byteArr.length);

@@ -66,7 +66,7 @@ public class ArrayOfDoublesSerDe extends ArrayOfItemsSerDe<Double> {
     Objects.requireNonNull(mem, "Memory must not be null");
     if (numItems <= 0) { return new Double[0]; }
     long offset = offsetBytes;
-    Util.checkBounds(offset, Double.BYTES * numItems, mem.getCapacity());
+    Util.checkBounds(offset, Double.BYTES * (long)numItems, mem.getCapacity());
     final Double[] array = new Double[numItems];
 
     for (int i = 0; i < numItems; i++) {

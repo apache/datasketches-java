@@ -277,16 +277,14 @@ public class KllDirectFloatsSketchTest {
     assertEquals(sketch2.getMaxItem(), 1_000_000F);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooSmall() {
-    final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(KllSketch.DEFAULT_M - 1, 0);
+    getUpdatableDirectFloatSketch(KllSketch.DEFAULT_M - 1, 0);
   }
 
-  @SuppressWarnings("unused")
   @Test(expectedExceptions = SketchesArgumentException.class)
   public void kTooLarge() {
-    final KllFloatsSketch sketch1 = getUpdatableDirectFloatSketch(KllSketch.MAX_K + 1, 0);
+    getUpdatableDirectFloatSketch(KllSketch.MAX_K + 1, 0);
   }
 
   @Test

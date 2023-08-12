@@ -120,7 +120,7 @@ public class ArrayOfUtf16StringsSerDe extends ArrayOfItemsSerDe<String> {
   @Override
   public String toString(final String item) {
     if (item == null) { return "null"; }
-    return item.toString();
+    return item;
   }
 
   @Override
