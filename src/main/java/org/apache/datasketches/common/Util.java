@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.Objects;
 
 /**
@@ -39,6 +40,7 @@ import java.util.Objects;
  *
  * @author Lee Rhodes
  */
+@SuppressWarnings("unchecked")
 public final class Util {
 
   /**
@@ -800,6 +802,81 @@ public final class Util {
     } catch (final IOException e) {
       throw new SketchesArgumentException("Cannot read resource: " + shortFileName + LS + e);
     }
+  }
+
+  /**
+   * Computes the number of decimal digits of the number n
+   * @param n the given number
+   * @return the number of decimal digits of the number n
+   */
+  public static int numDigits(int n) {
+    if (n % 10 == 0) { n++; }
+    return (int) ceil(log(n) / log(10));
+  }
+
+  /**
+   * Converts the given number to a string prepended with spaces, if necessary, to
+   * match the given length.
+   *
+   * <p>For example, assume a sequence of integers from 1 to 1000. The largest value has
+   * four decimal digits. Convert the entire sequence of strings to the form "   1" to "1000".
+   * When these strings are sorted they will be in numerical sequence: "   1", "   2", ... "1000".</p>
+   *
+   * @param number the given number
+   * @param length the desired string length.
+   * @return the given number to a string prepended with spaces
+   */
+  public static String intToFixedLengthString(final int number, final int length) {
+    final String num = Integer.valueOf(number).toString();
+    return characterPad(num, length, ' ', false);
+  }
+
+  /**
+   * Finds the minimum of two generic items
+   * @param <T> the type
+   * @param item1 item one
+   * @param item2 item two
+   * @param c the given comparator
+   * @return the minimum value
+   */
+  public static <T> Object minT(final Object item1, final Object item2, final Comparator<? super T> c) {
+    return  c.compare((T)item1, (T)item2) <= 0 ? item1 : item2;
+  }
+
+  /**
+   * Finds the maximum of two generic items
+   * @param <T> the type
+   * @param item1 item one
+   * @param item2 item two
+   * @param c the given comparator
+   * @return the maximum value
+   */
+  public static <T> Object maxT(final Object item1, final Object item2, final Comparator<? super T> c) {
+    return  c.compare((T)item1, (T)item2) >= 0 ? item1 : item2;
+  }
+
+  /**
+   * Is item1 Less-Than item2
+   * @param <T> the type
+   * @param item1 item one
+   * @param item2 item two
+   * @param c the given comparator
+   * @return true if item1 Less-Than item2
+   */
+  public static <T> boolean lt(final Object item1, final Object item2, final Comparator<? super T> c) {
+    return c.compare((T)item1, (T)item2) < 0;
+  }
+
+  /**
+   * Is item1 Less-Than-Or-Equal-To item2
+   * @param <T> the type
+   * @param item1 item one
+   * @param item2 item two
+   * @param c the given comparator
+   * @return true if item1 Less-Than-Or-Equal-To item2
+   */
+  public static <T> boolean le(final Object item1, final Object item2, final Comparator<? super T> c) {
+    return c.compare((T)item1, (T)item2) <= 0;
   }
 
 }

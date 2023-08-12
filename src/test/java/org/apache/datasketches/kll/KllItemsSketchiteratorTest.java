@@ -19,7 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
@@ -28,6 +27,7 @@ import static org.testng.Assert.assertTrue;
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.Assert;
@@ -104,7 +104,7 @@ public class KllItemsSketchiteratorTest {
     for (int n = 1000; n < 100_000; n += 2000) {
       KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 0; i < n; i++) {
-        sketch.update(intToFixedLengthString(i, digits));
+        sketch.update(Util.intToFixedLengthString(i, digits));
       }
       QuantilesGenericSketchIterator<String> it = sketch.iterator();
       int count = 0;

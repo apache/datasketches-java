@@ -20,8 +20,6 @@
 package org.apache.datasketches.kll;
 
 import static org.apache.datasketches.kll.KllHelper.checkM;
-import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
-import static org.apache.datasketches.kll.KllItemsHelper.numDigits;
 import static org.apache.datasketches.kll.KllSketch.SketchType.DOUBLES_SKETCH;
 import static org.apache.datasketches.kll.KllSketch.SketchType.*;
 import static org.testng.Assert.assertEquals;
@@ -31,6 +29,7 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
@@ -170,8 +169,8 @@ public class KllHelperTest {
   public void checkUpdatableSerDeItem() {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(200, Comparator.naturalOrder(), serDe);
     final int n = 533;
-    final int digits = numDigits(n);
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    final int digits = Util.numDigits(n);
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
 
     int retained = sk.getNumRetained();
     int numLevels = ((KllSketch)sk).getNumLevels();

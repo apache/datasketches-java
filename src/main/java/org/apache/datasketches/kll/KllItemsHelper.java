@@ -19,11 +19,8 @@
 
 package org.apache.datasketches.kll;
 
-import static java.lang.Math.ceil;
-import static java.lang.Math.log;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
-import static org.apache.datasketches.common.Util.characterPad;
 import static org.apache.datasketches.common.Util.isEven;
 import static org.apache.datasketches.common.Util.isOdd;
 import static org.apache.datasketches.kll.KllHelper.findLevelToCompact;
@@ -32,7 +29,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Random;
 
-import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.common.Util;
 
 /**
  * Static methods to support KllItemsSketch
@@ -197,11 +194,7 @@ final class KllItemsHelper<T> {
       }
 
       //MEMORY SPACE MANAGEMENT
-      if (mySketch.getWritableMemory() != null) {
-        final WritableMemory wmem =
-            KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewItemsArr.length);
-        mySketch.setWritablMemory(wmem);
-      }
+      //not used
     }
 
     //Update Preamble:
@@ -222,8 +215,8 @@ final class KllItemsHelper<T> {
       mySketch.setMinItem(otherMin);
       mySketch.setMaxItem(otherMax);
     } else {
-      mySketch.setMinItem(minT(myMin, otherMin, comp));
-      mySketch.setMaxItem(maxT(myMax, otherMax, comp));
+      mySketch.setMinItem(Util.minT(myMin, otherMin, comp));
+      mySketch.setMaxItem(Util.maxT(myMax, otherMax, comp));
     }
     assert KllHelper.sumTheSampleWeights(mySketch.getNumLevels(), mySketch.levelsArr) == mySketch.getN();
   }
@@ -247,7 +240,7 @@ final class KllItemsHelper<T> {
       } else if (b == limB) {
         bufC[c] = bufA[a];
         a++;
-      } else if ( lt(bufA[a], bufB[b], comp)) {
+      } else if ( Util.lt(bufA[a], bufB[b], comp)) {
         bufC[c] = bufA[a];
         a++;
       } else {
@@ -309,8 +302,8 @@ final class KllItemsHelper<T> {
       itmSk.setMinItem(item);
       itmSk.setMaxItem(item);
     } else {
-      itmSk.setMinItem(minT(itmSk.getMinItem(), item, comp));
-      itmSk.setMaxItem(maxT(itmSk.getMaxItem(), item, comp));
+      itmSk.setMinItem(Util.minT(itmSk.getMinItem(), item, comp));
+      itmSk.setMaxItem(Util.maxT(itmSk.getMaxItem(), item, comp));
     }
     if (itmSk.levelsArr[0] == 0) { compressWhileUpdatingSketch(itmSk); }
     final int myLevelsArrAtZero = itmSk.levelsArr[0]; //LevelsArr could be expanded
@@ -473,35 +466,6 @@ final class KllItemsHelper<T> {
       }
     }
   }
-
-  static <T> Object minT(final Object item1, final Object item2, final Comparator<? super T> c) {
-    return  c.compare((T)item1, (T)item2) <= 0 ? item1 : item2;
-  }
-
-  static <T> Object maxT(final Object item1, final Object item2, final Comparator<? super T> c) {
-    return  c.compare((T)item1, (T)item2) >= 0 ? item1 : item2;
-  }
-
-  static <T> boolean lt(final Object item1, final Object item2, final Comparator<? super T> c) {
-    return c.compare((T)item1, (T)item2) < 0;
-  }
-
-  //used in test
-  static <T> boolean le(final Object item1, final Object item2, final Comparator<? super T> c) {
-    return c.compare((T)item1, (T)item2) <= 0;
-  }
-
-  static int numDigits(int n) {
-    if (n % 10 == 0) { n++; }
-    return (int) ceil(log(n) / log(10));
-  }
-
-  static String intToFixedLengthString(final int number, final int length) {
-    final String num = Integer.valueOf(number).toString();
-    return characterPad(num, length, ' ', false);
-  }
-
-
 
   /*
    * Validation Method.

@@ -32,6 +32,8 @@ import java.util.Objects;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
+import org.apache.datasketches.memory.MemoryRequestServer;
+import org.apache.datasketches.memory.WritableMemory;
 import org.apache.datasketches.quantilescommon.QuantileSearchCriteria;
 import org.apache.datasketches.quantilescommon.QuantilesGenericAPI;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
@@ -286,6 +288,12 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   //restricted
 
   @Override
+  MemoryRequestServer getMemoryRequestServer() {
+    //this is not used and must return a null
+    return null;
+  }
+
+  @Override
   abstract byte[] getMinMaxByteArr();
 
   @Override
@@ -323,11 +331,18 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   abstract T[] getTotalItemsArray();
 
   @Override
-  abstract byte[] getTotalItemsByteArr();
+  byte[] getTotalItemsByteArr() {
+    throw new SketchesArgumentException(UNSUPPORTED_MSG);
+  }
 
   @Override
   int getTotalItemsNumBytes() {
-    return serDe.sizeOf((T[]) getTotalItemsArray());
+    throw new SketchesArgumentException(UNSUPPORTED_MSG);
+  }
+
+  @Override
+  void incNumLevels() {
+    //this is not used and must be a no-op.
   }
 
   abstract void setItemsArray(Object[] ItemsArr);
@@ -337,5 +352,15 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
   abstract void setMaxItem(Object item);
 
   abstract void setMinItem(Object item);
+
+  @Override
+  void setNumLevels(final int numLevels) {
+    // this is not used and must be a no-op.
+  }
+
+  @Override
+  void setWritableMemory(final WritableMemory wmem) {
+    throw new SketchesArgumentException(UNSUPPORTED_MSG + "Sketch not writable.");
+  }
 
 }

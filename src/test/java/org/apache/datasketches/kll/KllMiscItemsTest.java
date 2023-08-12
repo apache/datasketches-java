@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
-import static org.apache.datasketches.kll.KllItemsHelper.numDigits;
 import static org.apache.datasketches.kll.KllSketch.SketchType.ITEMS_SKETCH;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -31,6 +29,7 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.kll.KllItemsSketchSortedView.KllItemsSketchSortedViewIterator;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
@@ -44,9 +43,9 @@ public class KllMiscItemsTest {
   public void checkSortedViewConstruction() {
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     final int n = 20;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     for (int i = 1; i <= n; i++) {
-      sk.update(intToFixedLengthString(i, digits));
+      sk.update(Util.intToFixedLengthString(i, digits));
     }
     KllItemsSketchSortedView<String> sv = sk.getSortedView();
     long[] cumWeights = sv.getCumulativeWeights();
@@ -55,7 +54,7 @@ public class KllMiscItemsTest {
     assertEquals(values.length, 20);
     for (int i = 0; i < 20; i++) {
       assertEquals(cumWeights[i], i + 1);
-      assertEquals(values[i], intToFixedLengthString(i + 1, digits));
+      assertEquals(values[i], Util.intToFixedLengthString(i + 1, digits));
     }
   }
 
@@ -63,9 +62,9 @@ public class KllMiscItemsTest {
   public void checkBounds() {
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
     final int n = 1000;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     for (int i = 1; i <= n; i++) {
-      sk.update(intToFixedLengthString(i, digits));
+      sk.update(Util.intToFixedLengthString(i, digits));
     }
     final double eps = sk.getNormalizedRankError(false);
     final String est = sk.getQuantile(0.5);
@@ -131,9 +130,9 @@ public class KllMiscItemsTest {
     try { sk.getMaxItem(); fail(); } catch (SketchesArgumentException e) {} //empty
     println(sk.toString(true, true));
     final int n = 21;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     for (int i = 1; i <= n; i++) {
-      sk.update(intToFixedLengthString(i, digits));
+      sk.update(Util.intToFixedLengthString(i, digits));
     }
     println(sk.toString(true, true));
     sk.toByteArray();
@@ -149,7 +148,7 @@ public class KllMiscItemsTest {
     final KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     int n = 21;
     int digits = 3;
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     println(sk.toString(true, true));
     assertEquals(sk.getNumLevels(), 2);
     assertEquals(sk.getMinItem(),"  1");
@@ -159,7 +158,7 @@ public class KllMiscItemsTest {
     final KllItemsSketch<String> sk2 = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     n = 400;
     digits = 3;
-    for (int i = 101; i <= n + 100; i++) { sk2.update(intToFixedLengthString(i, digits)); }
+    for (int i = 101; i <= n + 100; i++) { sk2.update(Util.intToFixedLengthString(i, digits)); }
     println(LS + sk2.toString(true, true));
     assertEquals(sk2.getNumLevels(), 5);
     assertEquals(sk2.getMinItem(), "101");
@@ -178,18 +177,18 @@ public class KllMiscItemsTest {
   public void viewHeapCompactions() {
     int k = 20;
     int n = 108;
-    int digits = numDigits(n);
+    int digits = Util.numDigits(n);
     int compaction = 0;
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
     for (int i = 1; i <= n; i++) {
-      sk.update(intToFixedLengthString(i, digits));
+      sk.update(Util.intToFixedLengthString(i, digits));
       if (sk.levelsArr[0] == 0) {
         println(LS + "#<<< BEFORE COMPACTION # " + (++compaction) + " >>>");
         println(sk.toString(true, true));
-        sk.update(intToFixedLengthString(++i, digits));
+        sk.update(Util.intToFixedLengthString(++i, digits));
         println(LS + "#<<< AFTER COMPACTION  # " + (compaction) + " >>>");
         println(sk.toString(true, true));
-        assertEquals(sk.getTotalItemsArray()[sk.levelsArr[0]], intToFixedLengthString(i, digits));
+        assertEquals(sk.getTotalItemsArray()[sk.levelsArr[0]], Util.intToFixedLengthString(i, digits));
       }
     }
   }
@@ -197,9 +196,9 @@ public class KllMiscItemsTest {
   @Test //set static enablePrinting = true for visual checking
   public void viewCompactionAndSortedView() {
     final int n = 43;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     println(sk.toString(true, true));
     KllItemsSketchSortedView<String> sv = sk.getSortedView();
     KllItemsSketchSortedViewIterator<String> itr = sv.iterator();
@@ -216,8 +215,8 @@ public class KllMiscItemsTest {
   public void checkGrowLevels() {
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
     final int n = 21;
-    final int digits = numDigits(n);
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    final int digits = Util.numDigits(n);
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     assertEquals(sk.getNumLevels(), 2);
     assertEquals(sk.getTotalItemsArray().length, 33);
     assertEquals(sk.getLevelsArray(sk.sketchStructure)[2], 33);
@@ -227,12 +226,12 @@ public class KllMiscItemsTest {
   public void checkSketchInitializeItemsHeap() {
     int k = 20; //don't change this
     int n = 21;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     KllItemsSketch<String> sk;
 
     println("#### CASE: FLOAT FULL HEAP");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), n);
@@ -285,7 +284,7 @@ public class KllMiscItemsTest {
   public void checkSketchInitializeItemsHeapifyCompactMem() {
     int k = 20; //don't change this
     int n = 21;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     KllItemsSketch<String> sk;
     KllItemsSketch<String> sk2;
     byte[] compBytes;
@@ -293,7 +292,7 @@ public class KllMiscItemsTest {
 
     println("#### CASE: FLOAT FULL HEAPIFIED FROM COMPACT");
     sk2 = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= n; i++) { sk2.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk2.update(Util.intToFixedLengthString(i, digits)); }
     println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     mem = Memory.wrap(compBytes);
@@ -360,7 +359,7 @@ public class KllMiscItemsTest {
   public void checkMemoryToStringItemsCompact() {
     int k = 20; //don't change this
     int n = 21;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     KllItemsSketch<String> sk;
     KllItemsSketch<String> sk2;
     byte[] compBytes;
@@ -370,7 +369,7 @@ public class KllMiscItemsTest {
 
     println("#### CASE: FLOAT FULL COMPACT");
     sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     compBytes = sk.toByteArray();
     mem = Memory.wrap(compBytes);
     s = KllPreambleUtil.toString(mem, ITEMS_SKETCH, true, serDe);

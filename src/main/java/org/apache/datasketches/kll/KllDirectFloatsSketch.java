@@ -338,7 +338,7 @@ class KllDirectFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setWritablMemory(final WritableMemory wmem) {
+  void setWritableMemory(final WritableMemory wmem) {
     this.wmem = wmem;
   }
 

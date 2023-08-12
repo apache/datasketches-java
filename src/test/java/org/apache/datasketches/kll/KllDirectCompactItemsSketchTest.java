@@ -19,8 +19,6 @@
 
 package org.apache.datasketches.kll;
 
-import static org.apache.datasketches.kll.KllItemsHelper.intToFixedLengthString;
-import static org.apache.datasketches.kll.KllItemsHelper.numDigits;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
@@ -31,6 +29,7 @@ import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
+import org.apache.datasketches.common.Util;
 import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
@@ -42,9 +41,9 @@ public class KllDirectCompactItemsSketchTest {
   public void checkRODirectCompact() {
     int k = 20;
     final int n = 21;
-    final int digits = numDigits(n);
+    final int digits = Util.numDigits(n);
     KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= n; i++) { sk.update(intToFixedLengthString(i, digits)); }
+    for (int i = 1; i <= n; i++) { sk.update(Util.intToFixedLengthString(i, digits)); }
     byte[] byteArr = KllHelper.toByteArray(sk, true); //request for updatable is denied -> COMPACT, RO
     Memory srcMem = Memory.wrap(byteArr);  //compact RO fmt
     KllItemsSketch<String> sk2 = KllItemsSketch.wrap(srcMem, Comparator.naturalOrder(), serDe);
@@ -146,7 +145,7 @@ public class KllDirectCompactItemsSketchTest {
     assertEquals(retArr.length, 1);
     assertEquals(retArr[0], " 1");
 
-    for (int i = 2; i <= 21; i++) { sk.update(intToFixedLengthString(i, 2)); }
+    for (int i = 2; i <= 21; i++) { sk.update(Util.intToFixedLengthString(i, 2)); }
     retArr = sk.getRetainedItemsArray();
     assertEquals(retArr.length, sk.getNumRetained());
     assertEquals(retArr.length, 11);
@@ -167,7 +166,7 @@ public class KllDirectCompactItemsSketchTest {
     sk2 = KllItemsSketch.wrap(Memory.wrap(sk.toByteArray()), Comparator.naturalOrder(), serDe);
     assertEquals(sk2.getMaxItem()," 1");
     assertEquals(sk2.getMinItem()," 1");
-    for (int i = 2; i <= 21; i++) { sk.update(intToFixedLengthString(i, 2)); }
+    for (int i = 2; i <= 21; i++) { sk.update(Util.intToFixedLengthString(i, 2)); }
     sk2 = KllItemsSketch.wrap(Memory.wrap(sk.toByteArray()), Comparator.naturalOrder(), serDe);
     assertEquals(sk2.getMaxItem(),"21");
     assertEquals(sk2.getMinItem()," 1");
@@ -176,7 +175,7 @@ public class KllDirectCompactItemsSketchTest {
   @Test
   public void checkQuantile() {
     KllItemsSketch<String> sk1 = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    for (int i = 1; i <= 1000; i++) { sk1.update(intToFixedLengthString(i, 4)); }
+    for (int i = 1; i <= 1000; i++) { sk1.update(Util.intToFixedLengthString(i, 4)); }
     KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(sk1.toByteArray()), Comparator.naturalOrder(), serDe);
     String med2 = sk2.getQuantile(0.5);
     String med1 = sk1.getQuantile(0.5);
@@ -194,7 +193,7 @@ public class KllDirectCompactItemsSketchTest {
     KllItemsSketch<String> skDC1 = //Direct Compact with 1 (single)
         KllItemsSketch.wrap(Memory.wrap(skH1.toByteArray()), Comparator.naturalOrder(), serDe);
     KllItemsSketch<String> skH20 =  KllItemsSketch.newHeapInstance(k, Comparator.naturalOrder(), serDe); //Heap with 20
-    for (int i = 1; i <= 20; i++) { skH20.update(intToFixedLengthString(i, 2)); }
+    for (int i = 1; i <= 20; i++) { skH20.update(Util.intToFixedLengthString(i, 2)); }
     skH20.merge(skDC1);
     assertEquals(skH20.getN(), 21);
   }

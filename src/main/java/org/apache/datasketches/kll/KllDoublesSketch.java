@@ -394,20 +394,6 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
 
   abstract void setMinItem(double item);
 
-  //TEMPORARY, HERE FOR DEBUGGING
-
-  void printIntArr(final int[] intArr) {
-    println("Int Array");
-    for (int i = 0; i < intArr.length; i++) { println(i + ", " + intArr[i]); }
-    println("");
-  }
-
-  void printDoubleArr(final double[] dblArr) {
-    println("Double Array");
-    for (int i = 0; i < dblArr.length; i++) { println(i + ", " + dblArr[i]); }
-    println("");
-  }
-
   private final static boolean enablePrinting = false;
 
   /**

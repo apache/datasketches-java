@@ -35,7 +35,6 @@ import java.util.Comparator;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 /**
@@ -118,27 +117,13 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() {
-    return null; // not used. Must return null.
-  }
-
-  @Override
   int getMinK() {
     if (sketchStructure == COMPACT_EMPTY || sketchStructure == COMPACT_SINGLE) { return getMemoryK(mem); }
     return getMemoryMinK(mem);
   }
 
   @Override
-  byte[] getMinMaxByteArr() {
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return new byte[0]; }
-    if (sketchStructure == COMPACT_SINGLE) {
-      final int bytesSingle = serDe.sizeOf(mem, DATA_START_ADR_SINGLE_ITEM, 1);
-      final byte[] byteArr = new byte[2 * bytesSingle];
-      mem.getByteArray(DATA_START_ADR_SINGLE_ITEM, byteArr, 0, bytesSingle);
-      mem.getByteArray(DATA_START_ADR_SINGLE_ITEM, byteArr, bytesSingle, bytesSingle);
-      return byteArr;
-    }
-    //sketchStructure == COMPACT_FULL
+  byte[] getMinMaxByteArr() { //this is only used by COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
     final int bytesMinMax = serDe.sizeOf(mem, offset, 2);
     final byte[] byteArr = new byte[bytesMinMax];
@@ -147,12 +132,7 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  int getMinMaxSizeBytes() {
-    if (sketchStructure == COMPACT_EMPTY || getN() == 0) { return 0; }
-    if (sketchStructure == COMPACT_SINGLE) {
-      return serDe.sizeOf(mem, DATA_START_ADR_SINGLE_ITEM, 1) * 2;
-    }
-    //sketchStructure == COMPACT_FULL
+  int getMinMaxSizeBytes() { //this is only used by COMPACT_FULL
     final int offset = DATA_START_ADR + getNumLevels() * Integer.BYTES;
     return serDe.sizeOf(mem, offset, 2);
   }
@@ -227,16 +207,6 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
     return capItems;
   }
 
-  @Override //this short-cut is required because of our dependence on the SerDe for nulls.
-  byte[] getTotalItemsByteArr() {
-    return serDe.serializeToByteArray(getTotalItemsArray());
-  }
-
-  @Override //this short-cut is required because of our dependence on the SerDe for nulls.
-  int getTotalItemsNumBytes() {
-    return getTotalItemsByteArr().length;
-  }
-
   @Override
   WritableMemory getWritableMemory() {
     return (WritableMemory)mem;
@@ -244,11 +214,6 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   void incN() {
-    throw new SketchesArgumentException(UNSUPPORTED_MSG);
-  }
-
-  @Override
-  void incNumLevels() {
     throw new SketchesArgumentException(UNSUPPORTED_MSG);
   }
 
@@ -289,16 +254,6 @@ final class KllDirectCompactItemsSketch<T> extends KllItemsSketch<T> {
 
   @Override
   void setN(final long n) {
-    throw new SketchesArgumentException(UNSUPPORTED_MSG);
-  }
-
-  @Override
-  void setNumLevels(final int numLevels) {
-    throw new SketchesArgumentException(UNSUPPORTED_MSG);
-  }
-
-  @Override
-  void setWritablMemory(final WritableMemory wmem) {
     throw new SketchesArgumentException(UNSUPPORTED_MSG);
   }
 

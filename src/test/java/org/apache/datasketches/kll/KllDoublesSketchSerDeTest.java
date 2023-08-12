@@ -38,52 +38,93 @@ public class KllDoublesSketchSerDeTest {
 
   @Test
   public void serializeDeserializeEmpty() {
-    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
-    final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
-    assertTrue(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
-    assertEquals(sketch2.getN(), sketch1.getN());
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    try { sketch2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
-    assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+    final KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance();
+    //from heap -> byte[] -> heap
+    final byte[] bytes = sk1.toByteArray();
+    final KllDoublesSketch sk2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sk1.getSerializedSizeBytes());
+    assertTrue(sk2.isEmpty());
+    assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk2.getN(), sk1.getN());
+    assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    try { sk2.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk2.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap
+    final KllDoublesSketch sk3 = KllDoublesSketch.wrap(Memory.wrap(bytes));
+    assertTrue(sk3.isEmpty());
+    assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk3.getN(), sk1.getN());
+    assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    try { sk3.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
+    try { sk3.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
+    assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
+    final byte[] bytes2 = sk3.toByteArray();
+    assertEquals(bytes, bytes2);
   }
 
   @Test
   public void serializeDeserializeOneValue() {
-    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
-    sketch1.update(1);
-    final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
-    assertFalse(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), 1);
-    assertEquals(sketch2.getN(), 1);
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinItem(), 1.0);
-    assertEquals(sketch2.getMaxItem(), 1.0);
-    assertEquals(sketch2.getSerializedSizeBytes(), 8 + Double.BYTES);
+    final KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance();
+    sk1.update(1);
+    //from heap -> byte[] -> heap
+    final byte[] bytes = sk1.toByteArray();
+    final KllDoublesSketch sk2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sk1.getSerializedSizeBytes());
+    assertFalse(sk2.isEmpty());
+    assertEquals(sk2.getNumRetained(), 1);
+    assertEquals(sk2.getN(), 1);
+    assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk2.getMinItem(), 1.0);
+    assertEquals(sk2.getMaxItem(), 1.0);
+    assertEquals(sk2.getSerializedSizeBytes(), 8 + Double.BYTES);
+    //from heap -> byte[] -> off heap
+    final KllDoublesSketch sk3 = KllDoublesSketch.wrap(Memory.wrap(bytes));
+    assertFalse(sk3.isEmpty());
+    assertEquals(sk3.getNumRetained(), 1);
+    assertEquals(sk3.getN(), 1);
+    assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk3.getMinItem(), 1.0);
+    assertEquals(sk3.getMaxItem(), 1.0);
+    assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
+    final byte[] bytes2 = sk3.toByteArray();
+    assertEquals(bytes, bytes2);
   }
 
   @Test
-  public void serializeDeserialize() {
-    final KllDoublesSketch sketch1 = KllDoublesSketch.newHeapInstance();
+  public void serializeDeserializeMultipleValues() {
+    final KllDoublesSketch sk1 = KllDoublesSketch.newHeapInstance();
     final int n = 1000;
     for (int i = 0; i < n; i++) {
-      sketch1.update(i);
+      sk1.update(i);
     }
-    final byte[] bytes = sketch1.toByteArray();
-    final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertEquals(bytes.length, sketch1.getSerializedSizeBytes());
-    assertFalse(sketch2.isEmpty());
-    assertEquals(sketch2.getNumRetained(), sketch1.getNumRetained());
-    assertEquals(sketch2.getN(), sketch1.getN());
-    assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertEquals(sketch2.getMinItem(), sketch1.getMinItem());
-    assertEquals(sketch2.getMaxItem(), sketch1.getMaxItem());
-    assertEquals(sketch2.getSerializedSizeBytes(), sketch1.getSerializedSizeBytes());
+    assertEquals(sk1.getMinItem(), 0.0);
+    assertEquals(sk1.getMaxItem(), 999.0);
+    //from heap -> byte[] -> heap
+    final byte[] bytes = sk1.toByteArray();
+    final KllDoublesSketch sk2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    assertEquals(bytes.length, sk1.getSerializedSizeBytes());
+    assertFalse(sk2.isEmpty());
+    assertEquals(sk2.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk2.getN(), sk1.getN());
+    assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk2.getMinItem(), sk1.getMinItem());
+    assertEquals(sk2.getMaxItem(), sk1.getMaxItem());
+    assertEquals(sk2.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap
+    final KllDoublesSketch sk3 = KllDoublesSketch.wrap(Memory.wrap(bytes));
+    assertFalse(sk3.isEmpty());
+    assertEquals(sk3.getNumRetained(), sk1.getNumRetained());
+    assertEquals(sk3.getN(), sk1.getN());
+    assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
+    assertEquals(sk3.getMinItem(), sk1.getMinItem());
+    assertEquals(sk3.getMaxItem(), sk1.getMaxItem());
+    assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
+    //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
+    final byte[] bytes2 = sk3.toByteArray();
+    assertEquals(bytes, bytes2);
   }
 
   @Test

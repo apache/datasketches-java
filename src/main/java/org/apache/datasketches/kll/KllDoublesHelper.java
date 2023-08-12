@@ -197,7 +197,7 @@ final class KllDoublesHelper {
       if (mySketch.getWritableMemory() != null) {
         final WritableMemory wmem =
             KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewDoubleItemsArr.length);
-        mySketch.setWritablMemory(wmem);
+        mySketch.setWritableMemory(wmem);
       }
     }
 

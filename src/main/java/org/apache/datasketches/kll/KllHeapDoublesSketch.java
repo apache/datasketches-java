@@ -260,6 +260,6 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
   }
 
   @Override
-  void setWritablMemory(final WritableMemory wmem) { }
+  void setWritableMemory(final WritableMemory wmem) { }
 
 }

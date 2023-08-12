@@ -197,7 +197,7 @@ final class KllFloatsHelper {
       if (mySketch.getWritableMemory() != null) {
         final WritableMemory wmem =
             KllHelper.memorySpaceMgmt(mySketch, myNewLevelsArr.length, myNewFloatItemsArr.length);
-        mySketch.setWritablMemory(wmem);
+        mySketch.setWritableMemory(wmem);
       }
     }
 

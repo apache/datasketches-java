@@ -737,7 +737,7 @@ final class KllHelper {
     //MEMORY SPACE MANAGEMENT
     if (sketch.getWritableMemory() != null) {
       final WritableMemory wmem = memorySpaceMgmt(sketch, myNewLevelsArr.length, myNewTotalItemsCapacity);
-      sketch.setWritablMemory(wmem);
+      sketch.setWritableMemory(wmem);
     }
 
     //update our sketch with new expanded spaces

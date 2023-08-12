@@ -260,6 +260,6 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
   }
 
   @Override
-  void setWritablMemory(final WritableMemory wmem) { } //inheritance dummy
+  void setWritableMemory(final WritableMemory wmem) { } //inheritance dummy
 
 }

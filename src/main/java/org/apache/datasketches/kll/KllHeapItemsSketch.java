@@ -32,7 +32,6 @@ import java.util.Comparator;
 import org.apache.datasketches.common.ArrayOfItemsSerDe;
 import org.apache.datasketches.common.SketchesArgumentException;
 import org.apache.datasketches.memory.Memory;
-import org.apache.datasketches.memory.MemoryRequestServer;
 import org.apache.datasketches.memory.WritableMemory;
 
 @SuppressWarnings("unchecked")
@@ -148,12 +147,6 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  MemoryRequestServer getMemoryRequestServer() {
-    //this is not used on-heap and must return a null;
-    return null;
-  }
-
-  @Override
   int getMinK() {
     return minK;
   }
@@ -220,16 +213,6 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   }
 
   @Override
-  byte[] getTotalItemsByteArr() {
-    return serDe.serializeToByteArray(getTotalItemsArray());
-  }
-
-  @Override
-  int getTotalItemsNumBytes() {
-    return serDe.sizeOf(getTotalItemsArray());
-  }
-
-  @Override
   WritableMemory getWritableMemory() {
     return null;
   }
@@ -237,11 +220,6 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   void incN() {
     n++;
-  }
-
-  @Override
-  void incNumLevels() {
-    //this is not used on-heap and must be a no-op.
   }
 
   @Override
@@ -262,16 +240,6 @@ final class KllHeapItemsSketch<T> extends KllItemsSketch<T> {
   @Override
   void setN(final long n) {
     this.n = n;
-  }
-
-  @Override
-  void setNumLevels(final int numLevels) {
-    // this is not used on-heap and must be a no-op.
-  }
-
-  @Override
-  void setWritablMemory(final WritableMemory wmem) {
-    throw new SketchesArgumentException(UNSUPPORTED_MSG + "Sketch not writable.");
   }
 
   @Override

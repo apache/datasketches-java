@@ -472,7 +472,7 @@ public abstract class KllSketch implements QuantilesAPI {
 
   abstract void setNumLevels(int numLevels);
 
-  abstract void setWritablMemory(final WritableMemory wmem);
+  abstract void setWritableMemory(final WritableMemory wmem);
 
   /**
    * Used to define the variable type of the current instance of this class.
