@@ -110,7 +110,7 @@ public class KllFloatsSketchSerDeTest {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
     for (int n: nArr) {
       final KllFloatsSketch sketch = KllFloatsSketch.newHeapInstance();
-      for (int i = 0; i < n; i++) sketch.update(i);
+      for (int i = 1; i <= n; i++) sketch.update(i);
       try (final FileOutputStream file = new FileOutputStream("kll_float_n" + n + ".sk")) {
         file.write(sketch.toByteArray());
       }

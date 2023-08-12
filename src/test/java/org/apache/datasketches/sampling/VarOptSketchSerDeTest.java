@@ -17,37 +17,23 @@
  * under the License.
  */
 
-package org.apache.datasketches.quantiles;
-
-import static org.testng.Assert.assertEquals;
+package org.apache.datasketches.sampling;
 
 import java.io.FileOutputStream;
-import java.util.Comparator;
 
-import org.apache.datasketches.common.ArrayOfStringsSerDe;
+import org.apache.datasketches.common.ArrayOfLongsSerDe;
 import org.testng.annotations.Test;
 
-public class ItemsSketchSerDeTest {
+public class VarOptSketchSerDeTest {
 
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
     final int[] nArr = {0, 1, 10, 100, 1000, 10000, 100000, 1000000};
-    for (final int n: nArr) {
-      final ItemsSketch<String> sketch = ItemsSketch.getInstance(String.class, new Comparator<String>() {
-        @Override
-        public int compare(final String s1, final String s2) {
-          final Integer i1 = Integer.parseInt(s1);
-          final Integer i2 = Integer.parseInt(s2);
-          return i1.compareTo(i2);
-        }
-      });
-      for (int i = 1; i <= n; i++) sketch.update(Integer.toString(i));
-      if (n > 0) {
-        assertEquals(sketch.getMinItem(), "1");
-        assertEquals(sketch.getMaxItem(), Integer.toString(n));
-      }
-      try (final FileOutputStream file = new FileOutputStream("quantiles_string_n" + n + ".sk")) {
-        file.write(sketch.toByteArray(new ArrayOfStringsSerDe()));
+    for (int n: nArr) {
+      final VarOptItemsSketch<Long> sketch = VarOptItemsSketch.newInstance(32);
+      for (int i = 1; i <= n; i++) sketch.update(Long.valueOf(i), 1.0);
+      try (final FileOutputStream file = new FileOutputStream("varopt_long_n" + n + ".sk")) {
+        file.write(sketch.toByteArray(new ArrayOfLongsSerDe()));
       }
     }
   }
