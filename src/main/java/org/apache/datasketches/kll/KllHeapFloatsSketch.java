@@ -137,7 +137,7 @@ final class KllHeapFloatsSketch extends KllFloatsSketch {
 
   static KllHeapFloatsSketch heapifyImpl(final Memory srcMem) {
     Objects.requireNonNull(srcMem, "Parameter 'srcMem' must not be null");
-    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH, null);
+    final KllMemoryValidate memVal = new KllMemoryValidate(srcMem, FLOATS_SKETCH);
     return new KllHeapFloatsSketch(srcMem, memVal);
   }
 

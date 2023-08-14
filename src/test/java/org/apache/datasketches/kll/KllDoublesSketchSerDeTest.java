@@ -78,7 +78,7 @@ public class KllDoublesSketchSerDeTest {
     assertEquals(sk2.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
     assertEquals(sk2.getMinItem(), 1.0);
     assertEquals(sk2.getMaxItem(), 1.0);
-    assertEquals(sk2.getSerializedSizeBytes(), 8 + Double.BYTES);
+    assertEquals(sk2.getSerializedSizeBytes(), Long.BYTES + Double.BYTES);
     //from heap -> byte[] -> off heap
     final KllDoublesSketch sk3 = KllDoublesSketch.wrap(Memory.wrap(bytes));
     assertFalse(sk3.isEmpty());
@@ -131,33 +131,33 @@ public class KllDoublesSketchSerDeTest {
   public void compatibilityWithCppEstimationMode() throws Exception {
     final File file = Util.getResourceFile("kll_double_estimation_cpp.sk");
     try (MapHandle mh = Memory.map(file)) {
-      final KllDoublesSketch sketch = KllDoublesSketch.heapify(mh.get());
-      assertEquals(sketch.getMinItem(), 0);
-      assertEquals(sketch.getMaxItem(), 999);
-      assertEquals(sketch.getN(), 1000);
+      final KllDoublesSketch sk = KllDoublesSketch.heapify(mh.get());
+      assertEquals(sk.getMinItem(), 0);
+      assertEquals(sk.getMaxItem(), 999);
+      assertEquals(sk.getN(), 1000);
     }
   }
 
   @Test
   public void deserializeOneValueVersion1() throws Exception {
     final byte[] bytes = getResourceBytes("kll_sketch_double_one_item_v1.sk");
-    final KllDoublesSketch sketch = KllDoublesSketch.heapify(Memory.wrap(bytes));
-    assertFalse(sketch.isEmpty());
-    assertFalse(sketch.isEstimationMode());
-    assertEquals(sketch.getN(), 1);
-    assertEquals(sketch.getNumRetained(), 1);
-    assertEquals(sketch.getMinItem(), 1.0);
-    assertEquals(sketch.getMaxItem(), 1.0);
+    final KllDoublesSketch sk = KllDoublesSketch.heapify(Memory.wrap(bytes));
+    assertFalse(sk.isEmpty());
+    assertFalse(sk.isEstimationMode());
+    assertEquals(sk.getN(), 1);
+    assertEquals(sk.getNumRetained(), 1);
+    assertEquals(sk.getMinItem(), 1.0);
+    assertEquals(sk.getMaxItem(), 1.0);
   }
 
   @Test(groups = {"generate"})
   public void generateBinariesForCompatibilityTesting() throws Exception {
     final int[] nArr = {0, 1, 10, 100, 1_000, 10_000, 100_000, 1_000_000};
     for (int n: nArr) {
-      final KllDoublesSketch sketch = KllDoublesSketch.newHeapInstance();
-      for (int i = 1; i <= n; i++) sketch.update(i);
+      final KllDoublesSketch sk = KllDoublesSketch.newHeapInstance();
+      for (int i = 1; i <= n; i++) sk.update(i);
       try (final FileOutputStream file = new FileOutputStream("kll_double_n" + n + ".sk")) {
-        file.write(sketch.toByteArray());
+        file.write(sk.toByteArray());
       }
     }
   }

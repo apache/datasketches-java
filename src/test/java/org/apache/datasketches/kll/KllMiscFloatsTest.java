@@ -83,7 +83,7 @@ public class KllMiscFloatsTest {
   public void checkHeapifyExceptions1() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(6, (byte)3); //corrupt with odd M
+    wmem.putByte(6, (byte) 3); //corrupt with odd M
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -91,7 +91,7 @@ public class KllMiscFloatsTest {
   public void checkHeapifyExceptions2() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(0, (byte)1); //corrupt preamble ints, should be 2
+    wmem.putByte(0, (byte) 1); //corrupt preamble ints, should be 2
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -101,7 +101,7 @@ public class KllMiscFloatsTest {
     sk.update(1.0f);
     sk.update(2.0f);
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(0, (byte)1); //corrupt preamble ints, should be 5
+    wmem.putByte(0, (byte) 1); //corrupt preamble ints, should be 5
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -109,7 +109,7 @@ public class KllMiscFloatsTest {
   public void checkHeapifyExceptions4() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(1, (byte)0); //corrupt SerVer, should be 1 or 2
+    wmem.putByte(1, (byte) 0); //corrupt SerVer, should be 1 or 2
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -117,7 +117,7 @@ public class KllMiscFloatsTest {
   public void checkHeapifyExceptions5() {
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance();
     WritableMemory wmem = WritableMemory.writableWrap(sk.toByteArray());
-    wmem.putByte(2, (byte)0); //corrupt FamilyID, should be 15
+    wmem.putByte(2, (byte) 0); //corrupt FamilyID, should be 15
     KllFloatsSketch.heapify(wmem);
   }
 
@@ -294,7 +294,7 @@ public class KllMiscFloatsTest {
     println("#### CASE: FLOAT FULL HEAPIFIED FROM COMPACT");
     sk2 = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk2.update(i); }
-    println(sk2.toString(true, true));
+    //println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
     println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
@@ -317,7 +317,7 @@ public class KllMiscFloatsTest {
     //println(sk.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
+    //println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
     sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -338,7 +338,7 @@ public class KllMiscFloatsTest {
     //println(sk2.toString(true, true));
     compBytes = sk2.toByteArray();
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
+    //println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
     sk = KllFloatsSketch.heapify(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -388,7 +388,7 @@ public class KllMiscFloatsTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
+    //println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
     sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 0);
@@ -409,7 +409,7 @@ public class KllMiscFloatsTest {
     //println(sk.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2, true);
     wmem = WritableMemory.writableWrap(compBytes);
-    println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
+    //println(KllPreambleUtil.toString(wmem, FLOATS_SKETCH, true));
     sk = KllHeapFloatsSketch.heapifyImpl(wmem);
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), 1);
@@ -598,7 +598,7 @@ public class KllMiscFloatsTest {
    * @param format the format
    * @param args the args
    */
-  private static final void printf(final String format, final Object ...args) {
+  private static final void printf(final String format, final Object ... args) {
     if (enablePrinting) { System.out.printf(format, args); }
   }
 

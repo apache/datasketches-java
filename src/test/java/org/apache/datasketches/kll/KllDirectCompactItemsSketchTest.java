@@ -34,7 +34,6 @@ import org.apache.datasketches.memory.Memory;
 import org.testng.annotations.Test;
 
 public class KllDirectCompactItemsSketchTest {
-  static final String LS = System.getProperty("line.separator");
   public ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test

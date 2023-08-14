@@ -82,7 +82,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   //Factories for new direct instances.
 
   /**
-   * Create a new direct instance of this sketch with the default <em>k</em>.
+   * Create a new direct updatable instance of this sketch with the default <em>k</em>.
    * The default <em>k</em> = 200 results in a normalized rank error of about
    * 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).
    * @param dstMem the given destination WritableMemory object for use by the sketch
@@ -96,7 +96,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   }
 
   /**
-   * Create a new direct instance of this sketch with a given <em>k</em>.
+   * Create a new direct updatable instance of this sketch with a given <em>k</em>.
    * @param k parameter that controls size of the sketch and accuracy of estimates.
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
@@ -108,7 +108,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
       final MemoryRequestServer memReqSvr) {
     Objects.requireNonNull(dstMem, "Parameter 'dstMem' must not be null");
     Objects.requireNonNull(memReqSvr, "Parameter 'memReqSvr' must not be null");
-    return KllDirectDoublesSketch.newDirectInstance(k, DEFAULT_M, dstMem, memReqSvr);
+    return KllDirectDoublesSketch.newDirectUpdatableInstance(k, DEFAULT_M, dstMem, memReqSvr);
   }
 
   //Factory to create an heap instance from a Memory image
@@ -392,22 +392,5 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   abstract void setMaxItem(double item);
 
   abstract void setMinItem(double item);
-
-  private final static boolean enablePrinting = false;
-
-  /**
-   * @param format the format
-   * @param args the args
-   */
-  static final void printf(final String format, final Object ...args) {
-    if (enablePrinting) { System.out.printf(format, args); }
-  }
-
-  /**
-   * @param o the Object to println
-   */
-  static final void println(final Object o) {
-    if (enablePrinting) { System.out.println(o.toString()); }
-  }
 
 }

@@ -49,12 +49,13 @@ public class KllDirectDoublesSketchTest {
     assertTrue(sketch.isEmpty());
     assertEquals(sketch.getN(), 0);
     assertEquals(sketch.getNumRetained(), 0);
-    try { sketch.getRank(0); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getRank(0.5); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getMinItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getMaxItem(); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getQuantile(0.5); fail(); } catch (SketchesArgumentException e) {}
-    try { sketch.getQuantiles(new double[] {0}); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getQuantiles(new double[] {0.0, 1.0}); fail(); } catch (SketchesArgumentException e) {}
     try { sketch.getPMF(new double[] {0}); fail(); } catch (SketchesArgumentException e) {}
+    try { sketch.getCDF(new double[0]); fail(); } catch (SketchesArgumentException e) {}
     assertNotNull(sketch.toString(true, true));
     assertNotNull(sketch.toString());
   }
@@ -108,22 +109,21 @@ public class KllDirectDoublesSketchTest {
     assertEquals(pmf.length, 2);
     assertEquals(pmf[0], 0.5, PMF_EPS_FOR_K_256);
     assertEquals(pmf[1], 0.5, PMF_EPS_FOR_K_256);
-
-    assertEquals(sketch.getMinItem(), 0f); // min value is exact
-    assertEquals(sketch.getMaxItem(), n - 1f); // max value is exact
+    assertEquals(sketch.getMinItem(), 0.0); // min value is exact
+    assertEquals(sketch.getMaxItem(), n - 1.0); // max value is exact
 
     // check at every 0.1 percentage point
-    final double[] fractions = new double[1001];
+    final double[] ranks = new double[1001];
     final double[] reverseFractions = new double[1001]; // check that ordering doesn't matter
     for (int i = 0; i <= 1000; i++) {
-      fractions[i] = (double) i / 1000;
-      reverseFractions[1000 - i] = fractions[i];
+      ranks[i] = (double) i / 1000;
+      reverseFractions[1000 - i] = ranks[i];
     }
-    final double[] quantiles = sketch.getQuantiles(fractions);
+    final double[] quantiles = sketch.getQuantiles(ranks);
     final double[] reverseQuantiles = sketch.getQuantiles(reverseFractions);
-    double previousQuantile = 0;
+    double previousQuantile = 0.0;
     for (int i = 0; i <= 1000; i++) {
-      final double quantile = sketch.getQuantile(fractions[i]);
+      final double quantile = sketch.getQuantile(ranks[i]);
       assertEquals(quantile, quantiles[i]);
       assertEquals(quantile, reverseQuantiles[1000 - i]);
       assertTrue(previousQuantile <= quantile);
@@ -205,7 +205,7 @@ public class KllDirectDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), 2 * n);
-    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMinItem(), 0.0);
     assertEquals(sketch1.getMaxItem(), 2.0 * n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n, n * PMF_EPS_FOR_K_128);
   }
@@ -214,7 +214,7 @@ public class KllDirectDoublesSketchTest {
   public void mergeEmptyLowerK() {
     final KllDoublesSketch sketch1 = getUpdatableDirectDoublesSketch(256, 0);
     final KllDoublesSketch sketch2 = getUpdatableDirectDoublesSketch(128, 0);
-    final int n = 10000;
+    final int n = 10_000;
     for (int i = 0; i < n; i++) {
       sketch1.update(i);
     }
@@ -226,7 +226,7 @@ public class KllDirectDoublesSketchTest {
 
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMinItem(), 0.0);
     assertEquals(sketch1.getMaxItem(), n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
 
@@ -234,7 +234,7 @@ public class KllDirectDoublesSketchTest {
     sketch2.merge(sketch1);
     assertFalse(sketch1.isEmpty());
     assertEquals(sketch1.getN(), n);
-    assertEquals(sketch1.getMinItem(), 0);
+    assertEquals(sketch1.getMinItem(), 0.0);
     assertEquals(sketch1.getMaxItem(), n - 1.0);
     assertEquals(sketch1.getQuantile(0.5), n / 2.0, n / 2 * PMF_EPS_FOR_K_256);
   }
@@ -310,7 +310,7 @@ public class KllDirectDoublesSketchTest {
   @Test
   public void serializeDeserializeEmptyViaCompactHeapify() {
     final KllDoublesSketch sketch1 = getUpdatableDirectDoublesSketch(200, 0);
-    final byte[] bytes = sketch1.toByteArray();
+    final byte[] bytes = sketch1.toByteArray(); //compact
     final KllDoublesSketch sketch2 = KllDoublesSketch.heapify(Memory.wrap(bytes));
     assertEquals(bytes.length, sketch1.currentSerializedSizeBytes(false));
     assertTrue(sketch2.isEmpty());
@@ -368,9 +368,10 @@ public class KllDirectDoublesSketchTest {
     assertEquals(sketch2.getNumRetained(), 1);
     assertEquals(sketch2.getN(), 1);
     assertEquals(sketch2.getNormalizedRankError(false), sketch1.getNormalizedRankError(false));
-    assertTrue(Double.isFinite(sketch2.getMinItem()));
-    assertTrue(Double.isFinite(sketch2.getMaxItem()));
+    assertEquals(sketch2.getMinItem(), 1.0);
+    assertEquals(sketch2.getMaxItem(), 1.0);
     assertEquals(sketch2.currentSerializedSizeBytes(false), 8 + Double.BYTES);
+    assertEquals(sketch2.currentSerializedSizeBytes(true), bytes.length);
   }
 
   @Test
@@ -623,7 +624,7 @@ public class KllDirectDoublesSketchTest {
   }
 
   @Test
-  public void chickReadOnlyExceptions() {
+  public void checkReadOnlyExceptions() {
     int k = 20;
     double[] dblArr = new double[0];
     double dblV = 1.0f;

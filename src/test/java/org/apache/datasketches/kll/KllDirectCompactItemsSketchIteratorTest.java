@@ -22,44 +22,55 @@ package org.apache.datasketches.kll;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.EXCLUSIVE;
 import static org.apache.datasketches.quantilescommon.QuantileSearchCriteria.INCLUSIVE;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 import java.util.Comparator;
 
 import org.apache.datasketches.common.ArrayOfStringsSerDe;
 import org.apache.datasketches.common.Util;
+import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.apache.datasketches.quantilescommon.QuantilesGenericSketchIterator;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-public class KllItemsSketchiteratorTest {
+public class KllDirectCompactItemsSketchIteratorTest {
   private ArrayOfStringsSerDe serDe = new ArrayOfStringsSerDe();
 
   @Test
   public void emptySketch() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    QuantilesGenericSketchIterator<String> it = sketch.iterator();
-    Assert.assertFalse(it.next());
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    byte[] byteArr = sk.toByteArray();
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
+    assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
+    QuantilesGenericSketchIterator<String> itr = sk2.iterator();
+    assertFalse(itr.next());
   }
 
   @Test
   public void oneItemSketch() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    sketch.update("1");
-    QuantilesGenericSketchIterator<String> it = sketch.iterator();
-    Assert.assertTrue(it.next());
-    Assert.assertEquals(it.getQuantile(), "1");
-    Assert.assertEquals(it.getWeight(), 1);
-    Assert.assertFalse(it.next());
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sk.update("1");
+    byte[] byteArr = sk.toByteArray();
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
+    assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
+    QuantilesGenericSketchIterator<String> itr = sk2.iterator();
+    assertTrue(itr.next());
+    assertEquals(itr.getQuantile(), "1");
+    assertEquals(itr.getWeight(), 1);
+    assertFalse(itr.next());
   }
 
   @Test
   public void twoItemSketchForIterator() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    sketch.update("1");
-    sketch.update("2");
-    QuantilesGenericSketchIterator<String> itr = sketch.iterator();
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sk.update("1");
+    sk.update("2");
+    byte[] byteArr = sk.toByteArray();
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
+    assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
+    QuantilesGenericSketchIterator<String> itr = sk2.iterator();
     assertTrue(itr.next());
 
     assertEquals(itr.getQuantile(), "2");
@@ -73,10 +84,13 @@ public class KllItemsSketchiteratorTest {
 
   @Test
   public void twoItemSketchForSortedViewIterator() {
-    KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
-    sketch.update("1");
-    sketch.update("2");
-    GenericSortedViewIterator<String> itr = sketch.getSortedView().iterator();
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+    sk.update("1");
+    sk.update("2");
+    byte[] byteArr = sk.toByteArray();
+    KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
+    assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
+    GenericSortedViewIterator<String> itr = sk2.getSortedView().iterator();
 
     assertTrue(itr.next());
 
@@ -101,20 +115,22 @@ public class KllItemsSketchiteratorTest {
   public void bigSketches() {
     final int digits = 6;
     for (int n = 1000; n < 100_000; n += 2000) {
-      KllItemsSketch<String> sketch = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
+      KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(Comparator.naturalOrder(), serDe);
       for (int i = 0; i < n; i++) {
-        sketch.update(Util.intToFixedLengthString(i, digits));
+        sk.update(Util.intToFixedLengthString(i, digits));
       }
-      QuantilesGenericSketchIterator<String> it = sketch.iterator();
+      byte[] byteArr = sk.toByteArray();
+      KllItemsSketch<String> sk2 = KllItemsSketch.wrap(Memory.wrap(byteArr), Comparator.naturalOrder(), serDe);
+      assertTrue(sk2 instanceof KllDirectCompactItemsSketch);
+      QuantilesGenericSketchIterator<String> itr = sk2.iterator();
       int count = 0;
       int weight = 0;
-      while (it.next()) {
+      while (itr.next()) {
         count++;
-        weight += (int)it.getWeight();
+        weight += (int)itr.getWeight();
       }
-      Assert.assertEquals(count, sketch.getNumRetained());
+      Assert.assertEquals(count, sk.getNumRetained());
       Assert.assertEquals(weight, n);
     }
   }
-
 }

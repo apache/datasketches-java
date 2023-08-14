@@ -60,7 +60,8 @@ public class KllMiscDirectFloatsTest {
 
   @Test
   public void checkMisc() {
-    final KllFloatsSketch sk = getDirectFloatsSketch(8, 0);
+    final int k = 8;
+    final KllFloatsSketch sk = getDirectFloatsSketch(k, 0);
     try { sk.getPartitionBoundaries(10); fail(); } catch (SketchesArgumentException e) {}
     for (int i = 0; i < 20; i++) { sk.update(i); }
     final float[] items = sk.getFloatItemsArray();
@@ -72,11 +73,12 @@ public class KllMiscDirectFloatsTest {
 
   //@Test //enable static println(..) for visual checking
   public void visualCheckToString() {
-    final KllFloatsSketch sk = getDirectFloatsSketch(20, 0);
+    final int k = 20;
+    final KllFloatsSketch sk = getDirectFloatsSketch(k, 0);
     for (int i = 0; i < 10; i++) { sk.update(i + 1); }
     println(sk.toString(true, true));
 
-    final KllFloatsSketch sk2 = getDirectFloatsSketch(20, 0);
+    final KllFloatsSketch sk2 = getDirectFloatsSketch(k, 0);
     for (int i = 0; i < 400; i++) { sk2.update(i + 1); }
     println("\n" + sk2.toString(true, true));
 
@@ -263,8 +265,8 @@ public class KllMiscDirectFloatsTest {
     //println(sk2.toString(true, true));
     compBytes = KllHelper.toByteArray(sk2,true);
     wmem = WritableMemory.writableWrap(compBytes);
-    //println(KllPreambleUtil.toString(wmem));
     sk = KllHeapFloatsSketch.heapifyImpl(wmem);
+    //println(sk.toString(true, true));
     assertEquals(sk.getK(), k);
     assertEquals(sk.getN(), k + 1);
     assertEquals(sk.getNumRetained(), 11);

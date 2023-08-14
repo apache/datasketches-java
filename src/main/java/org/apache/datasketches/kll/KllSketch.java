@@ -301,13 +301,13 @@ public abstract class KllSketch implements QuantilesAPI {
     }
     else if (tgtStructure == COMPACT_FULL) {
       totalBytes = DATA_START_ADR
-          + getLevelsArrBytes(tgtStructure)
+          + getLevelsArrSizeBytes(tgtStructure)
           + getMinMaxSizeBytes()
           + getRetainedItemsSizeBytes();
     }
     else { //structure = UPDATABLE
       totalBytes = DATA_START_ADR
-          + getLevelsArrBytes(tgtStructure)
+          + getLevelsArrSizeBytes(tgtStructure)
           + getMinMaxSizeBytes()
           + getTotalItemsNumBytes();
     }
@@ -320,7 +320,7 @@ public abstract class KllSketch implements QuantilesAPI {
     else { return new int[0]; }
   }
 
-  final int getLevelsArrBytes(final SketchStructure structure) {
+  final int getLevelsArrSizeBytes(final SketchStructure structure) {
     if (structure == UPDATABLE) { return levelsArr.length * Integer.BYTES; }
     else if (structure == COMPACT_FULL) { return (levelsArr.length - 1) * Integer.BYTES; }
     else { return 0; }

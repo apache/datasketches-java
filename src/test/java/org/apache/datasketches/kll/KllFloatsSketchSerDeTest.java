@@ -85,8 +85,8 @@ public class KllFloatsSketchSerDeTest {
     assertEquals(sk3.getNumRetained(), 1);
     assertEquals(sk3.getN(), 1);
     assertEquals(sk3.getNormalizedRankError(false), sk1.getNormalizedRankError(false));
-    assertEquals(sk3.getMinItem(), 1f);
-    assertEquals(sk3.getMaxItem(), 1f);
+    assertEquals(sk3.getMinItem(), 1.0f);
+    assertEquals(sk3.getMaxItem(), 1.0f);
     assertEquals(sk3.getSerializedSizeBytes(), sk1.getSerializedSizeBytes());
     //from heap -> byte[] -> off heap -> byte[] -> compare byte[]
     final byte[] bytes2 = sk3.toByteArray();
@@ -100,8 +100,8 @@ public class KllFloatsSketchSerDeTest {
     for (int i = 0; i < n; i++) {
       sk1.update(i);
     }
-    assertEquals(sk1.getMinItem(), 0f);
-    assertEquals(sk1.getMaxItem(), 999f);
+    assertEquals(sk1.getMinItem(), 0.0f);
+    assertEquals(sk1.getMaxItem(), 999.0f);
     //from heap -> byte[] -> heap
     final byte[] bytes = sk1.toByteArray();
     final KllFloatsSketch sk2 = KllFloatsSketch.heapify(Memory.wrap(bytes));
@@ -130,7 +130,7 @@ public class KllFloatsSketchSerDeTest {
   @Test
   public void compatibilityWithCppEstimationMode() throws Exception {
     final File file = Util.getResourceFile("kll_float_estimation_cpp.sk");
-    try (final MapHandle mh = Memory.map(file)) {
+    try (MapHandle mh = Memory.map(file)) {
       final KllFloatsSketch sk = KllFloatsSketch.heapify(mh.get());
       assertEquals(sk.getMinItem(), 0);
       assertEquals(sk.getMaxItem(), 999);

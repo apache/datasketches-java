@@ -95,7 +95,7 @@ final class KllHeapDoublesSketch extends KllDoublesSketch {
     this.m = memValidate.m;
     this.n = memValidate.n;
     this.minK = memValidate.minK;
-    this.levelsArr = memValidate.levelsArr;
+    this.levelsArr = memValidate.levelsArr; //normalized to full
     this.isLevelZeroSorted = memValidate.level0SortedFlag;
 
     if (memStructure == COMPACT_EMPTY) {

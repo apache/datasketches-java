@@ -64,7 +64,7 @@ public class KllDirectCompactFloatsSketchTest {
     int k = 20;
     KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(k);
     for (int i = 1; i <= k + 1; i++) { sk.update(i); }
-    Memory srcMem = Memory.wrap(sk.toByteArray());  //compact RO fmt
+    Memory srcMem = Memory.wrap(sk.toByteArray()); //compact RO fmt
     KllFloatsSketch sk2 = KllFloatsSketch.wrap(srcMem);
     assertTrue(sk2 instanceof KllDirectCompactFloatsSketch);
     //println(sk2.toString(true, false));
@@ -100,7 +100,7 @@ public class KllDirectCompactFloatsSketchTest {
     try {
       sk2.getFloatSingleItem();
       fail();
-    } catch (SketchesArgumentException e) {  }
+    } catch (SketchesArgumentException e) { }
   }
 
   @Test

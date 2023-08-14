@@ -63,7 +63,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   private MemoryRequestServer memReqSvr;
 
   /**
-   * Constructs from Memory or WritableMemory already initialized with a sketch image and validated..
+   * Constructs from Memory or WritableMemory already initialized with a sketch image and validated.
    * @param wmem the current WritableMemory
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @param memVal the MemoryValadate object
@@ -81,14 +81,14 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   }
 
   /**
-   * Create a new instance of this sketch.
+   * Create a new updatable, direct instance of this sketch.
    * @param k parameter that controls size of the sketch and accuracy of estimates
    * @param m parameter that controls the minimum level width in items.
    * @param dstMem the given destination WritableMemory object for use by the sketch
    * @param memReqSvr the given MemoryRequestServer to request a larger WritableMemory
    * @return a new instance of this sketch
    */
-  static KllDirectDoublesSketch newDirectInstance(
+  static KllDirectDoublesSketch newDirectUpdatableInstance(
       final int k,
       final int m,
       final WritableMemory dstMem,
@@ -129,9 +129,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     else if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
     else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrBytes(COMPACT_FULL);
+      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
     } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrBytes(UPDATABLE);
+      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
     }
     final int offset =  DATA_START_ADR + levelsArrBytes + ITEM_BYTES;
     return wmem.getDouble(offset);
@@ -143,9 +143,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     if (sketchStructure == COMPACT_EMPTY || isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     else if (sketchStructure == COMPACT_SINGLE) { return getDoubleSingleItem(); }
     else if (sketchStructure == COMPACT_FULL) {
-      levelsArrBytes = getLevelsArrBytes(COMPACT_FULL);
+      levelsArrBytes = getLevelsArrSizeBytes(COMPACT_FULL);
     } else { //UPDATABLE
-      levelsArrBytes = getLevelsArrBytes(UPDATABLE);
+      levelsArrBytes = getLevelsArrSizeBytes(UPDATABLE);
     }
     final int offset =  DATA_START_ADR + levelsArrBytes;
     return wmem.getDouble(offset);
@@ -171,7 +171,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     }
     final int capacityItems = KllHelper.computeTotalItemCapacity(k, getM(), getNumLevels());
     final double[] doubleItemsArr = new double[capacityItems];
-    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
     final int shift = (sketchStructure == COMPACT_FULL) ? levelsArr[0] : 0;
     final int numItems = (sketchStructure == COMPACT_FULL) ? getNumRetained() : capacityItems;
     wmem.getDoubleArray(offset, doubleItemsArr, shift, numItems);
@@ -184,7 +184,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     if (sketchStructure == COMPACT_SINGLE) { return new double[] { getDoubleSingleItem() }; }
     final int numRetained = getNumRetained();
     final double[] doubleItemsArr = new double[numRetained];
-    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES
         + (sketchStructure == COMPACT_FULL ? 0 : levelsArr[0] * ITEM_BYTES);
     wmem.getDoubleArray(offset, doubleItemsArr, 0, numRetained);
     return doubleItemsArr;
@@ -198,9 +198,9 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
     }
     final int offset;
     if (sketchStructure == COMPACT_FULL) {
-      offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
+      offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
     } else { //sketchStructure == UPDATABLE
-      offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + (2 + getK() - 1) * ITEM_BYTES;
+      offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (2 + getK() - 1) * ITEM_BYTES;
     }
     return wmem.getDouble(offset);
   }
@@ -235,7 +235,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
       return bytesOut;
     }
     //sketchStructure == UPDATABLE OR COMPACT_FULL
-    offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure);
+    offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
     wmem.getByteArray(offset, bytesOut, 0, ITEM_BYTES);
     wmem.getByteArray(offset + ITEM_BYTES, bytesOut, ITEM_BYTES, ITEM_BYTES);
     return bytesOut;
@@ -287,7 +287,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   @Override
   void setDoubleItemsArray(final double[] doubleItems) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + 2 * ITEM_BYTES;
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + 2 * ITEM_BYTES;
     wmem.putDoubleArray(offset, doubleItems, 0, doubleItems.length);
   }
 
@@ -295,7 +295,7 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   void setDoubleItemsArrayAt(final int index, final double item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
     final int offset =
-        DATA_START_ADR + getLevelsArrBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
+        DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + (index + 2) * ITEM_BYTES;
     wmem.putDouble(offset, item);
   }
 
@@ -308,14 +308,14 @@ class KllDirectDoublesSketch extends KllDoublesSketch {
   @Override
   void setMaxItem(final double item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure) + ITEM_BYTES;
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure) + ITEM_BYTES;
     wmem.putDouble(offset, item);
   }
 
   @Override
   void setMinItem(final double item) {
     if (readOnly) { throw new SketchesArgumentException(TGT_IS_READ_ONLY_MSG); }
-    final int offset = DATA_START_ADR + getLevelsArrBytes(sketchStructure);
+    final int offset = DATA_START_ADR + getLevelsArrSizeBytes(sketchStructure);
     wmem.putDouble(offset, item);
   }
 

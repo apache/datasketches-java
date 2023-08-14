@@ -31,13 +31,13 @@ public final class KllFloatsSketchIterator implements QuantilesFloatsSketchItera
   private int level;
   private int index;
   private long weight;
-  private boolean isInitialized_;
+  private boolean isInitialized;
 
   KllFloatsSketchIterator(final float[] quantiles, final int[] levelsArr, final int numLevels) {
     this.quantiles = quantiles;
     this.levelsArr = levelsArr;
     this.numLevels = numLevels;
-    this.isInitialized_ = false;
+    this.isInitialized = false;
   }
 
   @Override
@@ -52,11 +52,11 @@ public final class KllFloatsSketchIterator implements QuantilesFloatsSketchItera
 
   @Override
   public boolean next() {
-    if (!isInitialized_) {
+    if (!isInitialized) {
       level = 0;
       index = levelsArr[level];
       weight = 1;
-      isInitialized_ = true;
+      isInitialized = true;
     } else {
       index++;
     }
