@@ -115,7 +115,7 @@ final class KllMemoryValidate {
       case COMPACT_FULL: {
         if (emptyFlag) { throw new SketchesArgumentException(EMPTY_FLAG_AND_COMPACT_FULL); }
         n = getMemoryN(srcMem);
-        //if (n <= 1) { memoryValidateThrow(N_AND_COMPACT_FULL); }
+        //if (n <= 1) { memoryValidateThrow(N_AND_COMPACT_FULL); } //very old sketches prior to serVer=2 will violate.
         minK = getMemoryMinK(srcMem);
         numLevels = getMemoryNumLevels(srcMem);
         // Get Levels Arr and add the last element
@@ -186,7 +186,7 @@ final class KllMemoryValidate {
   static final String EMPTY_FLAG_AND_COMPACT_EMPTY = "A compact empty sketch should have empty flag set. ";
   static final String EMPTY_FLAG_AND_COMPACT_FULL = "A compact full sketch should not have empty flag set. ";
   static final String EMPTY_FLAG_AND_COMPACT_SINGLE = "A single item sketch should not have empty flag set. ";
-  static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
+  //static final String N_AND_COMPACT_FULL = "A compact full sketch should have n > 1. ";
   static final String SRC_NOT_KLL = "FamilyID Field must be: " + Family.KLL.getID() + ", NOT: ";
   static final String MEMORY_TOO_SMALL = "A sketch memory image must be at least 8 bytes. ";
 
