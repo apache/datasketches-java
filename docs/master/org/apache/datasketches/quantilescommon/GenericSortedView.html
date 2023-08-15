@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var data = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":1};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -133,7 +133,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><code><a href="../quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></code></dd>
+<dd><code><a href="../quantiles/ItemsSketchSortedView.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView</a></code>, <code><a href="../kll/KllItemsSketchSortedView.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView</a></code></dd>
 </dl>
 <hr>
 <pre>public interface <span class="typeNameLabel">GenericSortedView&lt;T&gt;</span>
@@ -159,7 +159,7 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -209,10 +209,18 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;</code></td>
+<td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns an iterator for this Sorted View.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#validateItems(T%5B%5D,java.util.Comparator)">validateItems</a></span>&#8203;(T[]&nbsp;items,
+             <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator)</code></th>
+<td class="colLast">
+<div class="block">Checks the sequential validity of the given array of generic items.</div>
 </td>
 </tr>
 </table>
@@ -239,55 +247,6 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getQuantile</h4>
-<pre class="methodSignature"><a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&nbsp;getQuantile&#8203;(double&nbsp;rank,
-              <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>rank</code> - the given normalized rank, a double in the range [0.0, 1.0].</dd>
-<dd><code>searchCrit</code> - If INCLUSIVE, the given rank includes all quantiles &le;
- the quantile directly corresponding to the given rank.
- If EXCLUSIVE, he given rank includes all quantiles &lt;
- the quantile directly corresponding to the given rank.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the approximate quantile given the normalized rank.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
-</dl>
-</li>
-</ul>
-<a id="getRank(java.lang.Object,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
-<!--   -->
-</a><a id="getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getRank</h4>
-<pre class="methodSignature">double&nbsp;getRank&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&nbsp;quantile,
-               <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>quantile</code> - the given quantile</dd>
-<dd><code>searchCrit</code> - if INCLUSIVE the given quantile is included into the rank.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the normalized rank corresponding to the given quantile.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
-</dl>
-</li>
-</ul>
 <a id="getCDF(java.lang.Object[],org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a><a id="getCDF(T[],org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
@@ -389,6 +348,31 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </dl>
 </li>
 </ul>
+<a id="getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getQuantile</h4>
+<pre class="methodSignature"><a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&nbsp;getQuantile&#8203;(double&nbsp;rank,
+              <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>rank</code> - the given normalized rank, a double in the range [0.0, 1.0].</dd>
+<dd><code>searchCrit</code> - If INCLUSIVE, the given rank includes all quantiles &le;
+ the quantile directly corresponding to the given rank.
+ If EXCLUSIVE, he given rank includes all quantiles &lt;
+ the quantile directly corresponding to the given rank.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the approximate quantile given the normalized rank.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
+</dl>
+</li>
+</ul>
 <a id="getQuantiles()">
 <!--   -->
 </a>
@@ -403,13 +387,37 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </dl>
 </li>
 </ul>
+<a id="getRank(java.lang.Object,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a><a id="getRank(T,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getRank</h4>
+<pre class="methodSignature">double&nbsp;getRank&#8203;(<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&nbsp;quantile,
+               <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>quantile</code> - the given quantile</dd>
+<dd><code>searchCrit</code> - if INCLUSIVE the given quantile is included into the rank.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the normalized rank corresponding to the given quantile.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
+</dl>
+</li>
+</ul>
 <a id="iterator()">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>iterator</h4>
-<pre class="methodSignature"><a href="GenericSortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;&nbsp;iterator()</pre>
+<pre class="methodSignature"><a href="GenericSortedViewIterator.html" title="class in org.apache.datasketches.quantilescommon">GenericSortedViewIterator</a>&lt;<a href="GenericSortedView.html" title="type parameter in GenericSortedView">T</a>&gt;&nbsp;iterator()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedView.html#iterator()">SortedView</a></code></span></div>
 <div class="block">Returns an iterator for this Sorted View.</div>
 <dl>
@@ -417,6 +425,27 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <dd><code><a href="SortedView.html#iterator()">iterator</a></code>&nbsp;in interface&nbsp;<code><a href="SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an iterator for this Sorted View.</dd>
+</dl>
+</li>
+</ul>
+<a id="validateItems(java.lang.Object[],java.util.Comparator)">
+<!--   -->
+</a><a id="validateItems(T[],java.util.Comparator)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>validateItems</h4>
+<pre class="methodSignature">static&nbsp;&lt;T&gt;&nbsp;void&nbsp;validateItems&#8203;(T[]&nbsp;items,
+                              <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator)</pre>
+<div class="block">Checks the sequential validity of the given array of generic items.
+ They must be unique, monotonically increasing and not null.</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the data type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>items</code> - given array of generic items</dd>
+<dd><code>comparator</code> - the comparator for generic item data type T</dd>
 </dl>
 </li>
 </ul>

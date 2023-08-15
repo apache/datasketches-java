@@ -206,6 +206,13 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a id="fields.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesAPI">
+<!--   -->
+</a>
+<h3>Fields inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></h3>
+<code><a href="../quantilescommon/QuantilesAPI.html#EMPTY_MSG">EMPTY_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#MEM_REQ_SVR_NULL_MSG">MEM_REQ_SVR_NULL_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#NOT_SINGLE_ITEM_MSG">NOT_SINGLE_ITEM_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#TGT_IS_READ_ONLY_MSG">TGT_IS_READ_ONLY_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#UNSUPPORTED_MSG">UNSUPPORTED_MSG</a></code></li>
+</ul>
 </li>
 </ul>
 </section>
@@ -642,7 +649,7 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 <dd><code>clazz</code> - the given class of T</dd>
 <dd><code>comparator</code> - to compare items</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a GenericQuantileSketch</dd>
+<dd>an ItemSketch&lt;T&gt;.</dd>
 </dl>
 </li>
 </ul>
@@ -665,7 +672,7 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
  Must be greater than 2 and less than 65536 and a power of 2.</dd>
 <dd><code>comparator</code> - to compare items</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a GenericQuantileSketch</dd>
+<dd>an ItemSketch&lt;T&gt;.</dd>
 </dl>
 </li>
 </ul>
@@ -690,7 +697,7 @@ implements <a href="../quantilescommon/QuantilesGenericAPI.html" title="interfac
 <dd><code>comparator</code> - to compare items</dd>
 <dd><code>serDe</code> - an instance of ArrayOfItemsSerDe</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>a ItemsSketch on the Java heap.</dd>
+<dd>a ItemSketch&lt;T&gt; on the Java heap.</dd>
 </dl>
 </li>
 </ul>

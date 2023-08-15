@@ -235,53 +235,6 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getQuantile</h4>
-<pre class="methodSignature">double&nbsp;getQuantile&#8203;(double&nbsp;rank,
-                   <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>rank</code> - the given normalized rank, a double in the range [0.0, 1.0].</dd>
-<dd><code>searchCrit</code> - If INCLUSIVE, the given rank includes all quantiles &le;
- the quantile directly corresponding to the given rank.
- If EXCLUSIVE, he given rank includes all quantiles &lt;
- the quantile directly corresponding to the given rank.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the approximate quantile given the normalized rank.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
-</dl>
-</li>
-</ul>
-<a id="getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getRank</h4>
-<pre class="methodSignature">double&nbsp;getRank&#8203;(double&nbsp;quantile,
-               <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
-<div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>quantile</code> - the given quantile</dd>
-<dd><code>searchCrit</code> - if INCLUSIVE the given quantile is included into the rank.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the normalized rank corresponding to the given quantile.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
-</dl>
-</li>
-</ul>
 <a id="getCDF(double[],org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
@@ -377,6 +330,31 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 </dl>
 </li>
 </ul>
+<a id="getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getQuantile</h4>
+<pre class="methodSignature">double&nbsp;getQuantile&#8203;(double&nbsp;rank,
+                   <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>rank</code> - the given normalized rank, a double in the range [0.0, 1.0].</dd>
+<dd><code>searchCrit</code> - If INCLUSIVE, the given rank includes all quantiles &le;
+ the quantile directly corresponding to the given rank.
+ If EXCLUSIVE, he given rank includes all quantiles &lt;
+ the quantile directly corresponding to the given rank.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the approximate quantile given the normalized rank.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
+</dl>
+</li>
+</ul>
 <a id="getQuantiles()">
 <!--   -->
 </a>
@@ -388,6 +366,28 @@ extends <a href="SortedView.html" title="interface in org.apache.datasketches.qu
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the array of quantiles.</dd>
+</dl>
+</li>
+</ul>
+<a id="getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getRank</h4>
+<pre class="methodSignature">double&nbsp;getRank&#8203;(double&nbsp;quantile,
+               <a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>quantile</code> - the given quantile</dd>
+<dd><code>searchCrit</code> - if INCLUSIVE the given quantile is included into the rank.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the normalized rank corresponding to the given quantile.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/IllegalArgumentException.html?is-external=true" title="class or interface in java.lang" class="externalLink">IllegalArgumentException</a></code> - if sketch is empty.</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
 </dl>
 </li>
 </ul>

@@ -222,7 +222,7 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <ul class="blockList">
 <li class="blockList">
 <table class="constantsSummary">
-<caption><span>org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html" title="class in org.apache.datasketches.quantilescommon">QuantilesUtil</a></span><span class="tabEnd">&nbsp;</span></caption>
+<caption><span>org.apache.datasketches.quantilescommon.<a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Constant Field</th>
@@ -230,11 +230,39 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </tr>
 <tbody>
 <tr class="altColor">
-<td class="colFirst"><a id="org.apache.datasketches.quantilescommon.QuantilesUtil.THROWS_EMPTY">
+<td class="colFirst"><a id="org.apache.datasketches.quantilescommon.QuantilesAPI.EMPTY_MSG">
 <!--   -->
 </a><code>public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
-<th class="colSecond" scope="row"><code><a href="org/apache/datasketches/quantilescommon/QuantilesUtil.html#THROWS_EMPTY">THROWS_EMPTY</a></code></th>
-<td class="colLast"><code>"The sketch must not be empty at this point."</code></td>
+<th class="colSecond" scope="row"><code><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#EMPTY_MSG">EMPTY_MSG</a></code></th>
+<td class="colLast"><code>"The sketch must not be empty for this operation. "</code></td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a id="org.apache.datasketches.quantilescommon.QuantilesAPI.MEM_REQ_SVR_NULL_MSG">
+<!--   -->
+</a><code>public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#MEM_REQ_SVR_NULL_MSG">MEM_REQ_SVR_NULL_MSG</a></code></th>
+<td class="colLast"><code>"MemoryRequestServer must not be null. "</code></td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a id="org.apache.datasketches.quantilescommon.QuantilesAPI.NOT_SINGLE_ITEM_MSG">
+<!--   -->
+</a><code>public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#NOT_SINGLE_ITEM_MSG">NOT_SINGLE_ITEM_MSG</a></code></th>
+<td class="colLast"><code>"Sketch does not have just one item. "</code></td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a id="org.apache.datasketches.quantilescommon.QuantilesAPI.TGT_IS_READ_ONLY_MSG">
+<!--   -->
+</a><code>public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#TGT_IS_READ_ONLY_MSG">TGT_IS_READ_ONLY_MSG</a></code></th>
+<td class="colLast"><code>"Target sketch is Read Only, cannot write. "</code></td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a id="org.apache.datasketches.quantilescommon.QuantilesAPI.UNSUPPORTED_MSG">
+<!--   -->
+</a><code>public&nbsp;static&nbsp;final&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><a href="org/apache/datasketches/quantilescommon/QuantilesAPI.html#UNSUPPORTED_MSG">UNSUPPORTED_MSG</a></code></th>
+<td class="colLast"><code>"Unsupported operation for this Sketch Type. "</code></td>
 </tr>
 </tbody>
 </table>

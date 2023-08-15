@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -91,13 +91,13 @@ loadScripts(document, 'script');</script>
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -117,9 +117,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <main role="main">
 <div class="header">
 <div class="subTitle"><span class="packageLabelInType">Package</span>&nbsp;<a href="package-summary.html">org.apache.datasketches.quantilescommon</a></div>
-<h2 title="Interface GenericSortedViewIterator" class="title">Interface GenericSortedViewIterator&lt;T&gt;</h2>
+<h2 title="Class GenericSortedViewIterator" class="title">Class GenericSortedViewIterator&lt;T&gt;</h2>
 </div>
 <div class="contentContainer">
+<ul class="inheritance">
+<li><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">java.lang.Object</a></li>
+<li>
+<ul class="inheritance">
+<li>org.apache.datasketches.quantilescommon.GenericSortedViewIterator&lt;T&gt;</li>
+</ul>
+</li>
+</ul>
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
@@ -128,16 +136,17 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <dd><code>T</code> - The generic quantile type</dd>
 </dl>
 <dl>
-<dt>All Superinterfaces:</dt>
+<dt>All Implemented Interfaces:</dt>
 <dd><code><a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></code></dd>
 </dl>
 <dl>
-<dt>All Known Implementing Classes:</dt>
-<dd><code><a href="../quantiles/ItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedViewIterator</a></code></dd>
+<dt>Direct Known Subclasses:</dt>
+<dd><code><a href="../quantiles/ItemsSketchSortedView.ItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.quantiles">ItemsSketchSortedView.ItemsSketchSortedViewIterator</a></code>, <code><a href="../kll/KllItemsSketchSortedView.KllItemsSketchSortedViewIterator.html" title="class in org.apache.datasketches.kll">KllItemsSketchSortedView.KllItemsSketchSortedViewIterator</a></code></dd>
 </dl>
 <hr>
-<pre>public interface <span class="typeNameLabel">GenericSortedViewIterator&lt;T&gt;</span>
-extends <a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></pre>
+<pre>public class <span class="typeNameLabel">GenericSortedViewIterator&lt;T&gt;</span>
+extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>
+implements <a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></pre>
 <div class="block">The quantiles SortedView Iterator for generic types.</div>
 <dl>
 <dt><span class="simpleTagLabel">Author:</span></dt>
@@ -151,6 +160,28 @@ extends <a href="SortedViewIterator.html" title="interface in org.apache.dataske
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="constructor.summary">
+<!--   -->
+</a>
+<h3>Constructor Summary</h3>
+<table class="memberSummary">
+<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Constructor</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tr class="altColor">
+<th class="colConstructorName" scope="row"><code><span class="memberNameLink"><a href="#%3Cinit%3E(T%5B%5D,long%5B%5D)">GenericSortedViewIterator</a></span>&#8203;(<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>[]&nbsp;quantiles,
+                         long[]&nbsp;cumWeights)</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
+</section>
 <!-- ========== METHOD SUMMARY =========== -->
 <section>
 <ul class="blockList">
@@ -159,26 +190,60 @@ extends <a href="SortedViewIterator.html" title="interface in org.apache.dataske
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">
+<div class="block">Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getN()">getN</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Gets the total count of all items presented to the sketch.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>double</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></span>&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
+<td class="colLast">
+<div class="block">Gets the normalized rank at the current index (or previous index)
+ based on the chosen search criterion.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile()">getQuantile</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>long</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getWeight()">getWeight</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Gets the quantile at the current index.</div>
+<div class="block">Gets the natural weight at the current index.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#next()">next</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Advances the index and checks if it is valid.</div>
 </td>
 </tr>
 </table>
 <ul class="blockList">
-<li class="blockList"><a id="methods.inherited.from.class.org.apache.datasketches.quantilescommon.SortedViewIterator">
+<li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
 <!--   -->
 </a>
-<h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></h3>
-<code><a href="SortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a>, <a href="SortedViewIterator.html#getN()">getN</a>, <a href="SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a>, <a href="SortedViewIterator.html#getWeight()">getWeight</a>, <a href="SortedViewIterator.html#next()">next</a></code></li>
+<h3>Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></h3>
+<code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#clone()" title="class or interface in java.lang" class="externalLink">clone</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#equals(java.lang.Object)" title="class or interface in java.lang" class="externalLink">equals</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#finalize()" title="class or interface in java.lang" class="externalLink">finalize</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#getClass()" title="class or interface in java.lang" class="externalLink">getClass</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#hashCode()" title="class or interface in java.lang" class="externalLink">hashCode</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notify()" title="class or interface in java.lang" class="externalLink">notify</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#notifyAll()" title="class or interface in java.lang" class="externalLink">notifyAll</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#toString()" title="class or interface in java.lang" class="externalLink">toString</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait()" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long)" title="class or interface in java.lang" class="externalLink">wait</a>, <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true#wait(long,int)" title="class or interface in java.lang" class="externalLink">wait</a></code></li>
 </ul>
 </li>
 </ul>
@@ -189,6 +254,28 @@ extends <a href="SortedViewIterator.html" title="interface in org.apache.dataske
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<section>
+<ul class="blockList">
+<li class="blockList"><a id="constructor.detail">
+<!--   -->
+</a>
+<h3>Constructor Detail</h3>
+<a id="&lt;init&gt;(java.lang.Object[],long[])">
+<!--   -->
+</a><a id="&lt;init&gt;(T[],long[])">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>GenericSortedViewIterator</h4>
+<pre>public&nbsp;GenericSortedViewIterator&#8203;(<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>[]&nbsp;quantiles,
+                                 long[]&nbsp;cumWeights)</pre>
+</li>
+</ul>
+</li>
+</ul>
+</section>
 <!-- ============ METHOD DETAIL ========== -->
 <section>
 <ul class="blockList">
@@ -196,20 +283,116 @@ extends <a href="SortedViewIterator.html" title="interface in org.apache.dataske
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="getQuantile()">
+<a id="getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
-<h4>getQuantile</h4>
-<pre class="methodSignature"><a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>&nbsp;getQuantile()</pre>
-<div class="block">Gets the quantile at the current index.
+<h4>getCumulativeWeight</h4>
+<pre class="methodSignature">public&nbsp;long&nbsp;getCumulativeWeight&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">SortedViewIterator</a></code></span></div>
+<div class="block">Gets the cumulative weight at the current index (or previous index) based on the chosen search criterion.
+ This is also referred to as the "Natural Rank".
 
  <p>Don't call this before calling next() for the first time
  or after getting false from next().</p></div>
 <dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SortedViewIterator.html#getCumulativeWeight(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getCumulativeWeight</a></code>&nbsp;in interface&nbsp;<code><a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>searchCrit</code> - if INCLUSIVE, includes the weight at the current index in the cumulative sum.
+ Otherwise, it will return the cumulative weight of the previous index.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the quantile at the current index.</dd>
+<dd>cumulative weight at the current index on the chosen search criterion.</dd>
+</dl>
+</li>
+</ul>
+<a id="getQuantile()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getQuantile</h4>
+<pre class="methodSignature">public&nbsp;<a href="GenericSortedViewIterator.html" title="type parameter in GenericSortedViewIterator">T</a>&nbsp;getQuantile()</pre>
+</li>
+</ul>
+<a id="getN()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getN</h4>
+<pre class="methodSignature">public&nbsp;long&nbsp;getN()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedViewIterator.html#getN()">SortedViewIterator</a></code></span></div>
+<div class="block">Gets the total count of all items presented to the sketch.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SortedViewIterator.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the total count of all items presented to the sketch.</dd>
+</dl>
+</li>
+</ul>
+<a id="getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNormalizedRank</h4>
+<pre class="methodSignature">public&nbsp;double&nbsp;getNormalizedRank&#8203;(<a href="QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">SortedViewIterator</a></code></span></div>
+<div class="block">Gets the normalized rank at the current index (or previous index)
+ based on the chosen search criterion.
+
+ <p>Don't call this before calling next() for the first time
+ or after getting false from next().</p></div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SortedViewIterator.html#getNormalizedRank(org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getNormalizedRank</a></code>&nbsp;in interface&nbsp;<code><a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>searchCrit</code> - if INCLUSIVE, includes the normalized rank at the current index.
+ Otherwise, returns the normalized rank of the previous index.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the normalized rank at the current index (or previous index)
+ based on the chosen search criterion.</dd>
+</dl>
+</li>
+</ul>
+<a id="getWeight()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getWeight</h4>
+<pre class="methodSignature">public&nbsp;long&nbsp;getWeight()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedViewIterator.html#getWeight()">SortedViewIterator</a></code></span></div>
+<div class="block">Gets the natural weight at the current index.
+
+ <p>Don't call this before calling next() for the first time
+ or after getting false from next().</p></div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SortedViewIterator.html#getWeight()">getWeight</a></code>&nbsp;in interface&nbsp;<code><a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the natural weight at the current index.</dd>
+</dl>
+</li>
+</ul>
+<a id="next()">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>next</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;next()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="SortedViewIterator.html#next()">SortedViewIterator</a></code></span></div>
+<div class="block">Advances the index and checks if it is valid.
+ The state of this iterator is undefined before the first call of this method.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="SortedViewIterator.html#next()">next</a></code>&nbsp;in interface&nbsp;<code><a href="SortedViewIterator.html" title="interface in org.apache.datasketches.quantilescommon">SortedViewIterator</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>true if the next index is valid.</dd>
 </dl>
 </li>
 </ul>
@@ -267,13 +450,13 @@ extends <a href="SortedViewIterator.html" title="interface in org.apache.dataske
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>

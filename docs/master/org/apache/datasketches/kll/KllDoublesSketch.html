@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":9,"i16":10,"i17":9,"i18":9,"i19":9,"i20":9,"i21":10,"i22":10,"i23":10,"i24":9,"i25":9};
+var data = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":9,"i13":10,"i14":10,"i15":9,"i16":9,"i17":9,"i18":9,"i19":10,"i20":10,"i21":10,"i22":9,"i23":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -167,7 +167,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <!--   -->
 </a>
 <h3>Nested classes/interfaces inherited from class&nbsp;org.apache.datasketches.kll.<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></h3>
-<code><a href="KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></code></li>
+<code><a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a>, <a href="KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="nested.classes.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesDoublesAPI">
@@ -192,6 +192,13 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 </a>
 <h3>Fields inherited from class&nbsp;org.apache.datasketches.kll.<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></h3>
 <code><a href="KllSketch.html#DEFAULT_K">DEFAULT_K</a>, <a href="KllSketch.html#MAX_K">MAX_K</a></code></li>
+</ul>
+<ul class="blockList">
+<li class="blockList"><a id="fields.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesAPI">
+<!--   -->
+</a>
+<h3>Fields inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></h3>
+<code><a href="../quantilescommon/QuantilesAPI.html#EMPTY_MSG">EMPTY_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#MEM_REQ_SVR_NULL_MSG">MEM_REQ_SVR_NULL_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#NOT_SINGLE_ITEM_MSG">NOT_SINGLE_ITEM_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#TGT_IS_READ_ONLY_MSG">TGT_IS_READ_ONLY_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#UNSUPPORTED_MSG">UNSUPPORTED_MSG</a></code></li>
 </ul>
 </li>
 </ul>
@@ -221,29 +228,6 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxItem()">getMaxItem</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the maximum item of the stream.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>static int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxSerializedSizeBytes(int,long,boolean)">getMaxSerializedSizeBytes</a></span>&#8203;(int&nbsp;k,
-                         long&nbsp;n,
-                         boolean&nbsp;updatableMemoryFormat)</code></th>
-<td class="colLast">
-<div class="block">Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>double</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMinItem()">getMinItem</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Returns the minimum item of the stream.</div>
-</td>
-</tr>
-<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../quantilescommon/QuantilesDoublesAPI.DoublesPartitionBoundaries.html" title="class in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI.DoublesPartitionBoundaries</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPartitionBoundaries(int,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPartitionBoundaries</a></span>&#8203;(int&nbsp;numEquallyWeighted,
                       <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -252,7 +236,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  sufficient information for the user to create the given number of equally weighted partitions.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getPMF(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getPMF</a></span>&#8203;(double[]&nbsp;splitPoints,
       <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -262,7 +246,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  given a set of splitPoints.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantile</a></span>&#8203;(double&nbsp;rank,
            <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -270,7 +254,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <div class="block">Gets the approximate quantile of the given normalized rank and the given search criterion.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileLowerBound(double)">getQuantileLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -278,7 +262,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantiles(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getQuantiles</a></span>&#8203;(double[]&nbsp;ranks,
             <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -286,7 +270,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <div class="block">Gets an array of quantiles from the given array of normalized ranks.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getQuantileUpperBound(double)">getQuantileUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -294,7 +278,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRank</a></span>&#8203;(double&nbsp;quantile,
        <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -302,7 +286,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <div class="block">Gets the normalized rank corresponding to the given a quantile.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankLowerBound(double)">getRankLowerBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -310,7 +294,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>double[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRanks(double%5B%5D,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">getRanks</a></span>&#8203;(double[]&nbsp;quantiles,
         <a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon">QuantileSearchCriteria</a>&nbsp;searchCrit)</code></th>
@@ -319,7 +303,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  search criterion.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getRankUpperBound(double)">getRankUpperBound</a></span>&#8203;(double&nbsp;rank)</code></th>
 <td class="colLast">
@@ -327,80 +311,87 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  given rank exists.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSortedView()">getSortedView</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the sorted view of this sketch</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#heapify(org.apache.datasketches.memory.Memory)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
 <div class="block">Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="../quantilescommon/QuantilesDoublesSketchIterator.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesSketchIterator</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#iterator()">iterator</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the iterator for this sketch, which is not sorted.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#merge(org.apache.datasketches.kll.KllSketch)">merge</a></span>&#8203;(<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a>&nbsp;other)</code></th>
+<td class="colLast">
+<div class="block">Merges another sketch into this one.</div>
+</td>
+</tr>
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newDirectInstance(int,org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">newDirectInstance</a></span>&#8203;(int&nbsp;k,
                  org.apache.datasketches.memory.WritableMemory&nbsp;dstMem,
                  org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</code></th>
 <td class="colLast">
-<div class="block">Create a new direct instance of this sketch with a given <em>k</em>.</div>
+<div class="block">Create a new direct updatable instance of this sketch with a given <em>k</em>.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newDirectInstance(org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">newDirectInstance</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;dstMem,
                  org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</code></th>
 <td class="colLast">
-<div class="block">Create a new direct instance of this sketch with the default <em>k</em>.</div>
+<div class="block">Create a new direct updatable instance of this sketch with the default <em>k</em>.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newHeapInstance()">newHeapInstance</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Create a new heap instance of this sketch with the default <em>k = 200</em>.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#newHeapInstance(int)">newHeapInstance</a></span>&#8203;(int&nbsp;k)</code></th>
 <td class="colLast">
 <div class="block">Create a new heap instance of this sketch with a given parameter <em>k</em>.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#reset()">reset</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Resets this sketch to the empty state.</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toByteArray()">toByteArray</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this sketch.</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#update(double)">update</a></span>&#8203;(double&nbsp;item)</code></th>
 <td class="colLast">
 <div class="block">Updates this sketch with the given item.</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#wrap(org.apache.datasketches.memory.Memory)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</code></th>
 <td class="colLast">
@@ -408,7 +399,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
  that originated from this sketch.</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>static <a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#writableWrap(org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">writableWrap</a></span>&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;srcMem,
             org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</code></th>
@@ -423,7 +414,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;org.apache.datasketches.kll.<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></h3>
-<code><a href="KllSketch.html#getCurrentCompactSerializedSizeBytes()">getCurrentCompactSerializedSizeBytes</a>, <a href="KllSketch.html#getCurrentUpdatableSerializedSizeBytes()">getCurrentUpdatableSerializedSizeBytes</a>, <a href="KllSketch.html#getK()">getK</a>, <a href="KllSketch.html#getKFromEpsilon(double,boolean)">getKFromEpsilon</a>, <a href="KllSketch.html#getMaxSerializedSizeBytes(int,long,org.apache.datasketches.kll.KllSketch.SketchType,boolean)">getMaxSerializedSizeBytes</a>, <a href="KllSketch.html#getN()">getN</a>, <a href="KllSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError</a>, <a href="KllSketch.html#getNormalizedRankError(int,boolean)">getNormalizedRankError</a>, <a href="KllSketch.html#getNumRetained()">getNumRetained</a>, <a href="KllSketch.html#getSerializedSizeBytes()">getSerializedSizeBytes</a>, <a href="KllSketch.html#hasMemory()">hasMemory</a>, <a href="KllSketch.html#isDirect()">isDirect</a>, <a href="KllSketch.html#isEmpty()">isEmpty</a>, <a href="KllSketch.html#isEstimationMode()">isEstimationMode</a>, <a href="KllSketch.html#isMemoryUpdatableFormat()">isMemoryUpdatableFormat</a>, <a href="KllSketch.html#isReadOnly()">isReadOnly</a>, <a href="KllSketch.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource</a>, <a href="KllSketch.html#merge(org.apache.datasketches.kll.KllSketch)">merge</a>, <a href="KllSketch.html#toString()">toString</a>, <a href="KllSketch.html#toString(boolean,boolean)">toString</a></code></li>
+<code><a href="KllSketch.html#getKFromEpsilon(double,boolean)">getKFromEpsilon</a>, <a href="KllSketch.html#getMaxSerializedSizeBytes(int,long,org.apache.datasketches.kll.KllSketch.SketchType,boolean)">getMaxSerializedSizeBytes</a>, <a href="KllSketch.html#getNormalizedRankError(boolean)">getNormalizedRankError</a>, <a href="KllSketch.html#getNormalizedRankError(int,boolean)">getNormalizedRankError</a>, <a href="KllSketch.html#getNumRetained()">getNumRetained</a>, <a href="KllSketch.html#getSerializedSizeBytes()">getSerializedSizeBytes</a>, <a href="KllSketch.html#hasMemory()">hasMemory</a>, <a href="KllSketch.html#isCompactMemoryFormat()">isCompactMemoryFormat</a>, <a href="KllSketch.html#isDirect()">isDirect</a>, <a href="KllSketch.html#isEmpty()">isEmpty</a>, <a href="KllSketch.html#isEstimationMode()">isEstimationMode</a>, <a href="KllSketch.html#isMemoryUpdatableFormat()">isMemoryUpdatableFormat</a>, <a href="KllSketch.html#isReadOnly()">isReadOnly</a>, <a href="KllSketch.html#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource</a>, <a href="KllSketch.html#toString()">toString</a>, <a href="KllSketch.html#toString(boolean,boolean)">toString</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a id="methods.inherited.from.class.java.lang.Object">
@@ -444,7 +435,7 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></h3>
-<code><a href="../quantilescommon/QuantilesDoublesAPI.html#getCDF(double%5B%5D)">getCDF</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getPartitionBoundaries(int)">getPartitionBoundaries</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getPMF(double%5B%5D)">getPMF</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getQuantile(double)">getQuantile</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getQuantiles(double%5B%5D)">getQuantiles</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getRank(double)">getRank</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getRanks(double%5B%5D)">getRanks</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getSerializedSizeBytes()">getSerializedSizeBytes</a></code></li>
+<code><a href="../quantilescommon/QuantilesDoublesAPI.html#getCDF(double%5B%5D)">getCDF</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getMaxItem()">getMaxItem</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getMinItem()">getMinItem</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getPartitionBoundaries(int)">getPartitionBoundaries</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getPMF(double%5B%5D)">getPMF</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getQuantile(double)">getQuantile</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getQuantiles(double%5B%5D)">getQuantiles</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getRank(double)">getRank</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getRanks(double%5B%5D)">getRanks</a>, <a href="../quantilescommon/QuantilesDoublesAPI.html#getSerializedSizeBytes()">getSerializedSizeBytes</a></code></li>
 </ul>
 </li>
 </ul>
@@ -462,64 +453,6 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a id="heapify(org.apache.datasketches.memory.Memory)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>heapify</h4>
-<pre class="methodSignature">public static&nbsp;<a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a>&nbsp;heapify&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</pre>
-<div class="block">Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
- The resulting sketch will not retain any link to the source Memory.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>srcMem</code> - a compact Memory image of a sketch serialized by this sketch.
- <a href="../../../../resources/dictionary.html#mem">See Memory</a></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a heap-based sketch based on the given Memory.</dd>
-</dl>
-</li>
-</ul>
-<a id="newDirectInstance(org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>newDirectInstance</h4>
-<pre class="methodSignature">public static&nbsp;<a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a>&nbsp;newDirectInstance&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;dstMem,
-                                                 org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</pre>
-<div class="block">Create a new direct instance of this sketch with the default <em>k</em>.
- The default <em>k</em> = 200 results in a normalized rank error of about
- 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>dstMem</code> - the given destination WritableMemory object for use by the sketch</dd>
-<dd><code>memReqSvr</code> - the given MemoryRequestServer to request a larger WritableMemory</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a new direct instance of this sketch</dd>
-</dl>
-</li>
-</ul>
-<a id="newDirectInstance(int,org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>newDirectInstance</h4>
-<pre class="methodSignature">public static&nbsp;<a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a>&nbsp;newDirectInstance&#8203;(int&nbsp;k,
-                                                 org.apache.datasketches.memory.WritableMemory&nbsp;dstMem,
-                                                 org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</pre>
-<div class="block">Create a new direct instance of this sketch with a given <em>k</em>.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>k</code> - parameter that controls size of the sketch and accuracy of estimates.</dd>
-<dd><code>dstMem</code> - the given destination WritableMemory object for use by the sketch</dd>
-<dd><code>memReqSvr</code> - the given MemoryRequestServer to request a larger WritableMemory</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a new direct instance of this sketch</dd>
-</dl>
-</li>
-</ul>
 <a id="newHeapInstance()">
 <!--   -->
 </a>
@@ -552,6 +485,64 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <dd><code>k</code> - parameter that controls size of the sketch and accuracy of estimates.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>new KllDoublesSketch on the Java heap.</dd>
+</dl>
+</li>
+</ul>
+<a id="newDirectInstance(org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>newDirectInstance</h4>
+<pre class="methodSignature">public static&nbsp;<a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a>&nbsp;newDirectInstance&#8203;(org.apache.datasketches.memory.WritableMemory&nbsp;dstMem,
+                                                 org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</pre>
+<div class="block">Create a new direct updatable instance of this sketch with the default <em>k</em>.
+ The default <em>k</em> = 200 results in a normalized rank error of about
+ 1.65%. Larger <em>k</em> will have smaller error but the sketch will be larger (and slower).</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>dstMem</code> - the given destination WritableMemory object for use by the sketch</dd>
+<dd><code>memReqSvr</code> - the given MemoryRequestServer to request a larger WritableMemory</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a new direct instance of this sketch</dd>
+</dl>
+</li>
+</ul>
+<a id="newDirectInstance(int,org.apache.datasketches.memory.WritableMemory,org.apache.datasketches.memory.MemoryRequestServer)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>newDirectInstance</h4>
+<pre class="methodSignature">public static&nbsp;<a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a>&nbsp;newDirectInstance&#8203;(int&nbsp;k,
+                                                 org.apache.datasketches.memory.WritableMemory&nbsp;dstMem,
+                                                 org.apache.datasketches.memory.MemoryRequestServer&nbsp;memReqSvr)</pre>
+<div class="block">Create a new direct updatable instance of this sketch with a given <em>k</em>.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>k</code> - parameter that controls size of the sketch and accuracy of estimates.</dd>
+<dd><code>dstMem</code> - the given destination WritableMemory object for use by the sketch</dd>
+<dd><code>memReqSvr</code> - the given MemoryRequestServer to request a larger WritableMemory</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a new direct instance of this sketch</dd>
+</dl>
+</li>
+</ul>
+<a id="heapify(org.apache.datasketches.memory.Memory)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>heapify</h4>
+<pre class="methodSignature">public static&nbsp;<a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a>&nbsp;heapify&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem)</pre>
+<div class="block">Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.
+ The resulting sketch will not retain any link to the source Memory.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>srcMem</code> - a compact Memory image of a sketch serialized by this sketch.
+ <a href="../../../../resources/dictionary.html#mem">See Memory</a></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a heap-based sketch based on the given Memory.</dd>
 </dl>
 </li>
 </ul>
@@ -588,26 +579,6 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <dd><code>memReqSvr</code> - the given MemoryRequestServer to request a larger WritableMemory</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>instance of this sketch</dd>
-</dl>
-</li>
-</ul>
-<a id="getMaxSerializedSizeBytes(int,long,boolean)">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getMaxSerializedSizeBytes</h4>
-<pre class="methodSignature">public static&nbsp;int&nbsp;getMaxSerializedSizeBytes&#8203;(int&nbsp;k,
-                                            long&nbsp;n,
-                                            boolean&nbsp;updatableMemoryFormat)</pre>
-<div class="block">Returns upper bound on the serialized size of a KllDoublesSketch given the following parameters.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>k</code> - parameter that controls size of the sketch and accuracy of estimates</dd>
-<dd><code>n</code> - stream length</dd>
-<dd><code>updatableMemoryFormat</code> - true if updatable Memory format, otherwise the standard compact format.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>upper bound on the serialized size of a KllSketch.</dd>
 </dl>
 </li>
 </ul>
@@ -653,42 +624,6 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <dd><code>searchCrit</code> - the desired search criteria.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a discrete CDF array of m+1 double ranks (or cumulative probabilities) on the interval [0.0, 1.0].</dd>
-</dl>
-</li>
-</ul>
-<a id="getMaxItem()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getMaxItem</h4>
-<pre class="methodSignature">public&nbsp;double&nbsp;getMaxItem()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html#getMaxItem()">QuantilesDoublesAPI</a></code></span></div>
-<div class="block">Returns the maximum item of the stream. This is provided for convenience, but may be different from the largest
- item retained by the sketch algorithm.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/QuantilesDoublesAPI.html#getMaxItem()">getMaxItem</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the maximum item of the stream</dd>
-</dl>
-</li>
-</ul>
-<a id="getMinItem()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getMinItem</h4>
-<pre class="methodSignature">public&nbsp;double&nbsp;getMinItem()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html#getMinItem()">QuantilesDoublesAPI</a></code></span></div>
-<div class="block">Returns the minimum item of the stream. This is provided for convenience, but is distinct from the smallest
- item retained by the sketch algorithm.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/QuantilesDoublesAPI.html#getMinItem()">getMinItem</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the minimum item of the stream</dd>
 </dl>
 </li>
 </ul>
@@ -1003,6 +938,24 @@ implements <a href="../quantilescommon/QuantilesDoublesAPI.html" title="interfac
 <dd><code><a href="../quantilescommon/QuantilesDoublesAPI.html#iterator()">iterator</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesDoublesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesDoublesAPI</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the iterator for this sketch</dd>
+</dl>
+</li>
+</ul>
+<a id="merge(org.apache.datasketches.kll.KllSketch)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>merge</h4>
+<pre class="methodSignature">public final&nbsp;void&nbsp;merge&#8203;(<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a>&nbsp;other)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="KllSketch.html#merge(org.apache.datasketches.kll.KllSketch)">KllSketch</a></code></span></div>
+<div class="block">Merges another sketch into this one.
+ Attempting to merge a sketch of the wrong type will throw an exception.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="KllSketch.html#merge(org.apache.datasketches.kll.KllSketch)">merge</a></code>&nbsp;in class&nbsp;<code><a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>other</code> - sketch to merge into this one</dd>
 </dl>
 </li>
 </ul>

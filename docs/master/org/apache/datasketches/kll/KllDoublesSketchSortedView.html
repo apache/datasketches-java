@@ -286,6 +286,23 @@ implements <a href="../quantilescommon/DoublesSortedView.html" title="interface 
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a id="getCumulativeWeights()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getCumulativeWeights</h4>
+<pre class="methodSignature">public&nbsp;long[]&nbsp;getCumulativeWeights()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/SortedView.html#getCumulativeWeights()">SortedView</a></code></span></div>
+<div class="block">Returns the array of cumulative weights</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../quantilescommon/SortedView.html#getCumulativeWeights()">getCumulativeWeights</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the array of cumulative weights</dd>
+</dl>
+</li>
+</ul>
 <a id="getQuantile(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
@@ -312,6 +329,23 @@ implements <a href="../quantilescommon/DoublesSortedView.html" title="interface 
 </dl>
 </li>
 </ul>
+<a id="getQuantiles()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getQuantiles</h4>
+<pre class="methodSignature">public&nbsp;double[]&nbsp;getQuantiles()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/DoublesSortedView.html#getQuantiles()">DoublesSortedView</a></code></span></div>
+<div class="block">Returns the array of quantiles.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../quantilescommon/DoublesSortedView.html#getQuantiles()">getQuantiles</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the array of quantiles.</dd>
+</dl>
+</li>
+</ul>
 <a id="getRank(double,org.apache.datasketches.quantilescommon.QuantileSearchCriteria)">
 <!--   -->
 </a>
@@ -332,40 +366,6 @@ implements <a href="../quantilescommon/DoublesSortedView.html" title="interface 
 <dd>the normalized rank corresponding to the given quantile.</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../quantilescommon/QuantileSearchCriteria.html" title="enum in org.apache.datasketches.quantilescommon"><code>QuantileSearchCriteria</code></a></dd>
-</dl>
-</li>
-</ul>
-<a id="getCumulativeWeights()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getCumulativeWeights</h4>
-<pre class="methodSignature">public&nbsp;long[]&nbsp;getCumulativeWeights()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/SortedView.html#getCumulativeWeights()">SortedView</a></code></span></div>
-<div class="block">Returns the array of cumulative weights</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/SortedView.html#getCumulativeWeights()">getCumulativeWeights</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/SortedView.html" title="interface in org.apache.datasketches.quantilescommon">SortedView</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the array of cumulative weights</dd>
-</dl>
-</li>
-</ul>
-<a id="getQuantiles()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getQuantiles</h4>
-<pre class="methodSignature">public&nbsp;double[]&nbsp;getQuantiles()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/DoublesSortedView.html#getQuantiles()">DoublesSortedView</a></code></span></div>
-<div class="block">Returns the array of quantiles.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/DoublesSortedView.html#getQuantiles()">getQuantiles</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/DoublesSortedView.html" title="interface in org.apache.datasketches.quantilescommon">DoublesSortedView</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the array of quantiles.</dd>
 </dl>
 </li>
 </ul>

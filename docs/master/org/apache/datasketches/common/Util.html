@@ -27,7 +27,7 @@
     catch(err) {
     }
 //-->
-var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9,"i33":9,"i34":9,"i35":9,"i36":9,"i37":9,"i38":9,"i39":9,"i40":9,"i41":9};
+var data = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9,"i24":9,"i25":9,"i26":9,"i27":9,"i28":9,"i29":9,"i30":9,"i31":9,"i32":9,"i33":9,"i34":9,"i35":9,"i36":9,"i37":9,"i38":9,"i39":9,"i40":9,"i41":9,"i42":9,"i43":9,"i44":9,"i45":9,"i46":9,"i47":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -400,27 +400,36 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 </td>
 </tr>
 <tr id="i23" class="rowColor">
+<td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#intToFixedLengthString(int,int)">intToFixedLengthString</a></span>&#8203;(int&nbsp;number,
+                      int&nbsp;length)</code></th>
+<td class="colLast">
+<div class="block">Converts the given number to a string prepended with spaces, if necessary, to
+ match the given length.</div>
+</td>
+</tr>
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#invPow2(int)">invPow2</a></span>&#8203;(int&nbsp;e)</code></th>
 <td class="colLast">
 <div class="block">Computes the inverse integer power of 2: 1/(2^e) = 2^(-e).</div>
 </td>
 </tr>
-<tr id="i24" class="altColor">
+<tr id="i25" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEven(long)">isEven</a></span>&#8203;(long&nbsp;n)</code></th>
 <td class="colLast">
 <div class="block">Returns true if given n is even.</div>
 </td>
 </tr>
-<tr id="i25" class="rowColor">
+<tr id="i26" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isIntPowerOf2(int)">isIntPowerOf2</a></span>&#8203;(int&nbsp;powerOf2)</code></th>
 <td class="colLast">
 <div class="block">Returns true if given int argument is exactly a positive power of 2 and greater than zero.</div>
 </td>
 </tr>
-<tr id="i26" class="altColor">
+<tr id="i27" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isLessThanUnsigned(long,long)">isLessThanUnsigned</a></span>&#8203;(long&nbsp;n1,
                   long&nbsp;n2)</code></th>
@@ -428,35 +437,44 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Unsigned compare with longs.</div>
 </td>
 </tr>
-<tr id="i27" class="rowColor">
+<tr id="i28" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isLongPowerOf2(long)">isLongPowerOf2</a></span>&#8203;(long&nbsp;powerOf2)</code></th>
 <td class="colLast">
 <div class="block">Returns true if given long argument is exactly a positive power of 2 and greater than zero.</div>
 </td>
 </tr>
-<tr id="i28" class="altColor">
+<tr id="i29" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isMultipleOf8AndGT0(long)">isMultipleOf8AndGT0</a></span>&#8203;(long&nbsp;v)</code></th>
 <td class="colLast">
 <div class="block">Returns true if v is a multiple of 8 and greater than zero</div>
 </td>
 </tr>
-<tr id="i29" class="rowColor">
+<tr id="i30" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isOdd(long)">isOdd</a></span>&#8203;(long&nbsp;n)</code></th>
 <td class="colLast">
 <div class="block">Returns true if given n is odd.</div>
 </td>
 </tr>
-<tr id="i30" class="altColor">
+<tr id="i31" class="rowColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#le(java.lang.Object,java.lang.Object,java.util.Comparator)">le</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+  <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+  <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</code></th>
+<td class="colLast">
+<div class="block">Is item1 Less-Than-Or-Equal-To item2</div>
+</td>
+</tr>
+<tr id="i32" class="altColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#log2(double)">log2</a></span>&#8203;(double&nbsp;value)</code></th>
 <td class="colLast">
 <div class="block">The log base 2 of the value</div>
 </td>
 </tr>
-<tr id="i31" class="rowColor">
+<tr id="i33" class="rowColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#logBaseOfX(double,double)">logBaseOfX</a></span>&#8203;(double&nbsp;logBase,
           double&nbsp;x)</code></th>
@@ -464,7 +482,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns the logarithm_logBase of x.</div>
 </td>
 </tr>
-<tr id="i32" class="altColor">
+<tr id="i34" class="altColor">
 <td class="colFirst"><code>static byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#longToBytes(long,byte%5B%5D)">longToBytes</a></span>&#8203;(long&nbsp;v,
            byte[]&nbsp;arr)</code></th>
@@ -472,28 +490,55 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <div class="block">Returns a Little-Endian byte array extracted from the given long.</div>
 </td>
 </tr>
-<tr id="i33" class="rowColor">
+<tr id="i35" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#longToHexBytes(long)">longToHexBytes</a></span>&#8203;(long&nbsp;v)</code></th>
 <td class="colLast">
 <div class="block">Returns a string of spaced hex bytes in Big-Endian order.</div>
 </td>
 </tr>
-<tr id="i34" class="altColor">
+<tr id="i36" class="altColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#lt(java.lang.Object,java.lang.Object,java.util.Comparator)">lt</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+  <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+  <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</code></th>
+<td class="colLast">
+<div class="block">Is item1 Less-Than item2</div>
+</td>
+</tr>
+<tr id="i37" class="rowColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#maxT(java.lang.Object,java.lang.Object,java.util.Comparator)">maxT</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+    <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+    <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</code></th>
+<td class="colLast">
+<div class="block">Finds the maximum of two generic items</div>
+</td>
+</tr>
+<tr id="i38" class="altColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#milliSecToString(long)">milliSecToString</a></span>&#8203;(long&nbsp;mS)</code></th>
 <td class="colLast">
 <div class="block">Returns the given time in milliseconds formatted as Hours:Min:Sec.mSec</div>
 </td>
 </tr>
-<tr id="i35" class="rowColor">
+<tr id="i39" class="rowColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#minT(java.lang.Object,java.lang.Object,java.util.Comparator)">minT</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+    <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+    <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</code></th>
+<td class="colLast">
+<div class="block">Finds the minimum of two generic items</div>
+</td>
+</tr>
+<tr id="i40" class="altColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#nanoSecToString(long)">nanoSecToString</a></span>&#8203;(long&nbsp;nS)</code></th>
 <td class="colLast">
 <div class="block">Returns the given time in nanoseconds formatted as Sec.mSec_uSec_nSec</div>
 </td>
 </tr>
-<tr id="i36" class="altColor">
+<tr id="i41" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#numberOfLeadingOnes(long)">numberOfLeadingOnes</a></span>&#8203;(long&nbsp;v)</code></th>
 <td class="colLast">
@@ -502,7 +547,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  to minus one.</div>
 </td>
 </tr>
-<tr id="i37" class="rowColor">
+<tr id="i42" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#numberOfTrailingOnes(long)">numberOfTrailingOnes</a></span>&#8203;(long&nbsp;v)</code></th>
 <td class="colLast">
@@ -511,7 +556,14 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  to minus one.</div>
 </td>
 </tr>
-<tr id="i38" class="altColor">
+<tr id="i43" class="rowColor">
+<td class="colFirst"><code>static int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#numDigits(int)">numDigits</a></span>&#8203;(int&nbsp;n)</code></th>
+<td class="colLast">
+<div class="block">Computes the number of decimal digits of the number n</div>
+</td>
+</tr>
+<tr id="i44" class="altColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#powerSeriesNextDouble(int,double,boolean,double)">powerSeriesNextDouble</a></span>&#8203;(int&nbsp;ppb,
                      double&nbsp;curPoint,
@@ -522,7 +574,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  <i>point = logBase<sup>( i / ppb )</sup></i> given the current point in the series.</div>
 </td>
 </tr>
-<tr id="i39" class="rowColor">
+<tr id="i45" class="rowColor">
 <td class="colFirst"><code>static long</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#pwr2SeriesNext(int,long)">pwr2SeriesNext</a></span>&#8203;(int&nbsp;ppo,
               long&nbsp;curPoint)</code></th>
@@ -531,7 +583,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.</div>
 </td>
 </tr>
-<tr id="i40" class="altColor">
+<tr id="i46" class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#pwr2SeriesPrev(int,int)">pwr2SeriesPrev</a></span>&#8203;(int&nbsp;ppo,
               int&nbsp;curPoint)</code></th>
@@ -540,7 +592,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
  <i>point = 2<sup>( i / ppo )</sup></i> given the current point in the series.</div>
 </td>
 </tr>
-<tr id="i41" class="rowColor">
+<tr id="i47" class="rowColor">
 <td class="colFirst"><code>static <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#zeroPad(java.lang.String,int)">zeroPad</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;s,
        int&nbsp;fieldLength)</code></th>
@@ -1487,7 +1539,7 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <a id="getResourceBytes(java.lang.String)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getResourceBytes</h4>
 <pre class="methodSignature">public static&nbsp;byte[]&nbsp;getResourceBytes&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;shortFileName)</pre>
@@ -1499,6 +1551,133 @@ extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a byte array of the contents of the file defined by the given resource file's
  shortFileName.</dd>
+</dl>
+</li>
+</ul>
+<a id="numDigits(int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>numDigits</h4>
+<pre class="methodSignature">public static&nbsp;int&nbsp;numDigits&#8203;(int&nbsp;n)</pre>
+<div class="block">Computes the number of decimal digits of the number n</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>n</code> - the given number</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the number of decimal digits of the number n</dd>
+</dl>
+</li>
+</ul>
+<a id="intToFixedLengthString(int,int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>intToFixedLengthString</h4>
+<pre class="methodSignature">public static&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;intToFixedLengthString&#8203;(int&nbsp;number,
+                                            int&nbsp;length)</pre>
+<div class="block">Converts the given number to a string prepended with spaces, if necessary, to
+ match the given length.
+
+ <p>For example, assume a sequence of integers from 1 to 1000. The largest value has
+ four decimal digits. Convert the entire sequence of strings to the form "   1" to "1000".
+ When these strings are sorted they will be in numerical sequence: "   1", "   2", ... "1000".</p></div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>number</code> - the given number</dd>
+<dd><code>length</code> - the desired string length.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the given number to a string prepended with spaces</dd>
+</dl>
+</li>
+</ul>
+<a id="minT(java.lang.Object,java.lang.Object,java.util.Comparator)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>minT</h4>
+<pre class="methodSignature">public static&nbsp;&lt;T&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;minT&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+                              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+                              <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</pre>
+<div class="block">Finds the minimum of two generic items</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item1</code> - item one</dd>
+<dd><code>item2</code> - item two</dd>
+<dd><code>c</code> - the given comparator</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the minimum value</dd>
+</dl>
+</li>
+</ul>
+<a id="maxT(java.lang.Object,java.lang.Object,java.util.Comparator)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>maxT</h4>
+<pre class="methodSignature">public static&nbsp;&lt;T&gt;&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;maxT&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+                              <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+                              <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</pre>
+<div class="block">Finds the maximum of two generic items</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item1</code> - item one</dd>
+<dd><code>item2</code> - item two</dd>
+<dd><code>c</code> - the given comparator</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the maximum value</dd>
+</dl>
+</li>
+</ul>
+<a id="lt(java.lang.Object,java.lang.Object,java.util.Comparator)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>lt</h4>
+<pre class="methodSignature">public static&nbsp;&lt;T&gt;&nbsp;boolean&nbsp;lt&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+                             <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+                             <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</pre>
+<div class="block">Is item1 Less-Than item2</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item1</code> - item one</dd>
+<dd><code>item2</code> - item two</dd>
+<dd><code>c</code> - the given comparator</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>true if item1 Less-Than item2</dd>
+</dl>
+</li>
+</ul>
+<a id="le(java.lang.Object,java.lang.Object,java.util.Comparator)">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>le</h4>
+<pre class="methodSignature">public static&nbsp;&lt;T&gt;&nbsp;boolean&nbsp;le&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item1,
+                             <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>&nbsp;item2,
+                             <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;c)</pre>
+<div class="block">Is item1 Less-Than-Or-Equal-To item2</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - the type</dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item1</code> - item one</dd>
+<dd><code>item2</code> - item two</dd>
+<dd><code>c</code> - the given comparator</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>true if item1 Less-Than-Or-Equal-To item2</dd>
 </dl>
 </li>
 </ul>

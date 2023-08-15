@@ -120,13 +120,20 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </td>
 </tr>
 <tr class="altColor">
+<th class="colFirst" scope="row"><a href="#org.apache.datasketches.kll">org.apache.datasketches.kll</a></th>
+<td class="colLast">
+<div class="block">This package is for the implementations of the sketch algorithm developed by Zohar Karnin, Kevin Lang,
+ and Edo Liberty that is commonly referred to as the "KLL" sketch after the authors' last names.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.quantiles">org.apache.datasketches.quantiles</a></th>
 <td class="colLast">
 <div class="block">The quantiles package contains stochastic streaming algorithms that enable single-pass
  analysis of the distribution of a stream of quantiles.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <th class="colFirst" scope="row"><a href="#org.apache.datasketches.sampling">org.apache.datasketches.sampling</a></th>
 <td class="colLast">
 <div class="block">This package is dedicated to streaming algorithms that enable fixed size, uniform sampling of
@@ -225,6 +232,59 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 <th class="colSecond" scope="row"><span class="typeNameLabel">ItemsSketch.</span><code><span class="memberNameLink"><a href="../../frequencies/ItemsSketch.html#toByteArray(org.apache.datasketches.common.ArrayOfItemsSerDe)">toByteArray</a></span>&#8203;(<a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="../../frequencies/ItemsSketch.html" title="type parameter in ItemsSketch">T</a>&gt;&nbsp;serDe)</code></th>
 <td class="colLast">
 <div class="block">Returns a byte array representation of this sketch</div>
+</td>
+</tr>
+</tbody>
+</table>
+</section>
+</li>
+<li class="blockList">
+<section><a id="org.apache.datasketches.kll">
+<!--   -->
+</a>
+<h3>Uses of <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a> in <a href="../../kll/package-summary.html">org.apache.datasketches.kll</a></h3>
+<table class="useSummary">
+<caption><span>Methods in <a href="../../kll/package-summary.html">org.apache.datasketches.kll</a> with parameters of type <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a></span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colSecond" scope="col">Method</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;T&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#heapify(org.apache.datasketches.memory.Memory,java.util.Comparator,org.apache.datasketches.common.ArrayOfItemsSerDe)">heapify</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
+       <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator,
+       <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Factory heapify takes a compact sketch image in Memory and instantiates an on-heap sketch.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;T&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#newHeapInstance(int,java.util.Comparator,org.apache.datasketches.common.ArrayOfItemsSerDe)">newHeapInstance</a></span>&#8203;(int&nbsp;k,
+               <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator,
+               <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Create a new heap instance of this sketch with a given parameter <em>k</em>.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;T&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#newHeapInstance(java.util.Comparator,org.apache.datasketches.common.ArrayOfItemsSerDe)">newHeapInstance</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator,
+               <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Create a new heap instance of this sketch with the default <em>k = 200</em>.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;<a href="../../kll/KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a>&lt;T&gt;</code></td>
+<th class="colSecond" scope="row"><span class="typeNameLabel">KllItemsSketch.</span><code><span class="memberNameLink"><a href="../../kll/KllItemsSketch.html#wrap(org.apache.datasketches.memory.Memory,java.util.Comparator,org.apache.datasketches.common.ArrayOfItemsSerDe)">wrap</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;srcMem,
+    <a href="https://docs.oracle.com/javase/8/docs/api/java/util/Comparator.html?is-external=true" title="class or interface in java.util" class="externalLink">Comparator</a>&lt;? super T&gt;&nbsp;comparator,
+    <a href="../ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;T&gt;&nbsp;serDe)</code></th>
+<td class="colLast">
+<div class="block">Constructs a thin wrapper on the heap around a Memory (or WritableMemory) already initialized with a
+ validated sketch image of a type T consistent with the given comparator and serDe.</div>
 </td>
 </tr>
 </tbody>

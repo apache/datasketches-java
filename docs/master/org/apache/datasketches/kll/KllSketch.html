@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":42,"i1":42,"i2":6,"i3":9,"i4":9,"i5":6,"i6":10,"i7":9,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":10,"i19":10};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
+var data = {"i0":9,"i1":9,"i2":10,"i3":9,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":6,"i15":10,"i16":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -137,15 +137,15 @@ $('.navPadding').css('padding-top', $('.fixedNav').css("height"));
 </dl>
 <dl>
 <dt>Direct Known Subclasses:</dt>
-<dd><code><a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code>, <code><a href="KllFloatsSketch.html" title="class in org.apache.datasketches.kll">KllFloatsSketch</a></code></dd>
+<dd><code><a href="KllDoublesSketch.html" title="class in org.apache.datasketches.kll">KllDoublesSketch</a></code>, <code><a href="KllFloatsSketch.html" title="class in org.apache.datasketches.kll">KllFloatsSketch</a></code>, <code><a href="KllItemsSketch.html" title="class in org.apache.datasketches.kll">KllItemsSketch</a></code></dd>
 </dl>
 <hr>
 <pre>public abstract class <span class="typeNameLabel">KllSketch</span>
 extends <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Object.html?is-external=true" title="class or interface in java.lang" class="externalLink">Object</a>
 implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></pre>
 <div class="block">This class is the root of the KLL sketch class hierarchy. It includes the public API that is independent
- of either sketch type (float or double) and independent of whether the sketch is targeted for use on the
- heap or Direct (off-heap).
+ of either sketch type (e.g., float, double or generic item) and independent of whether the sketch is targeted
+ for use on the Java heap or off-heap.
 
  <p>KLL is an implementation of a very compact quantiles sketch with lazy compaction scheme
  and nearly optimal accuracy per retained quantile.</p>
@@ -182,6 +182,13 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="KllSketch.SketchStructure.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchStructure</a></span></code></th>
+<td class="colLast">
+<div class="block">Used primarily to define the structure of the serialized sketch.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="KllSketch.SketchType.html" title="enum in org.apache.datasketches.kll">KllSketch.SketchType</a></span></code></th>
 <td class="colLast">
@@ -221,6 +228,13 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 </td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a id="fields.inherited.from.class.org.apache.datasketches.quantilescommon.QuantilesAPI">
+<!--   -->
+</a>
+<h3>Fields inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></h3>
+<code><a href="../quantilescommon/QuantilesAPI.html#EMPTY_MSG">EMPTY_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#MEM_REQ_SVR_NULL_MSG">MEM_REQ_SVR_NULL_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#NOT_SINGLE_ITEM_MSG">NOT_SINGLE_ITEM_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#TGT_IS_READ_ONLY_MSG">TGT_IS_READ_ONLY_MSG</a>, <a href="../quantilescommon/QuantilesAPI.html#UNSUPPORTED_MSG">UNSUPPORTED_MSG</a></code></li>
+</ul>
 </li>
 </ul>
 </section>
@@ -232,39 +246,13 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCurrentCompactSerializedSizeBytes()">getCurrentCompactSerializedSizeBytes</a></span>()</code></th>
-<td class="colLast">
-<div class="block"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">version 4.0.0 use <a href="#getSerializedSizeBytes()"><code>getSerializedSizeBytes()</code></a>.</div>
-</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getCurrentUpdatableSerializedSizeBytes()">getCurrentUpdatableSerializedSizeBytes</a></span>()</code></th>
-<td class="colLast">
-<div class="block"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">version 4.0.0 use <a href="#getSerializedSizeBytes()"><code>getSerializedSizeBytes()</code></a>.</div>
-</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>abstract int</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getK()">getK</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the user configured parameter k, which controls the accuracy of the sketch
- and its memory space usage.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getKFromEpsilon(double,boolean)">getKFromEpsilon</a></span>&#8203;(double&nbsp;epsilon,
                boolean&nbsp;pmf)</code></th>
@@ -272,7 +260,7 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <div class="block">Gets the approximate <em>k</em> to use given epsilon, the normalized rank error.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getMaxSerializedSizeBytes(int,long,org.apache.datasketches.kll.KllSketch.SketchType,boolean)">getMaxSerializedSizeBytes</a></span>&#8203;(int&nbsp;k,
                          long&nbsp;n,
@@ -282,21 +270,14 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <div class="block">Returns upper bound on the serialized size of a KllSketch given the following parameters.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code>abstract long</code></td>
-<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getN()">getN</a></span>()</code></th>
-<td class="colLast">
-<div class="block">Gets the length of the input stream.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRankError(boolean)">getNormalizedRankError</a></span>&#8203;(boolean&nbsp;pmf)</code></th>
 <td class="colLast">
 <div class="block">Gets the approximate rank error of this sketch normalized as a fraction between zero and one.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static double</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNormalizedRankError(int,boolean)">getNormalizedRankError</a></span>&#8203;(int&nbsp;k,
                       boolean&nbsp;pmf)</code></th>
@@ -304,63 +285,68 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <div class="block">Gets the normalized rank error given k and pmf.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getNumRetained()">getNumRetained</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Gets the number of quantiles retained by the sketch.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getSerializedSizeBytes()">getSerializedSizeBytes</a></span>()</code></th>
 <td class="colLast">
-<div class="block">Returns the current number of bytes this Sketch would require if serialized.</div>
+<div class="block">Returns the current number of bytes this Sketch would require if serialized in compact form.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#hasMemory()">hasMemory</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is backed by Memory or WritableMemory.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isCompactMemoryFormat()">isCompactMemoryFormat</a></span>()</code></th>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isDirect()">isDirect</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch's data structure is off-heap (a.k.a., Direct or Native memory).</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEmpty()">isEmpty</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is empty.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isEstimationMode()">isEstimationMode</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is in estimation mode.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isMemoryUpdatableFormat()">isMemoryUpdatableFormat</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if the backing WritableMemory is in updatable format.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isReadOnly()">isReadOnly</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns true if this sketch is read only.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#isSameResource(org.apache.datasketches.memory.Memory)">isSameResource</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;that)</code></th>
 <td class="colLast">
@@ -368,21 +354,21 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
  of <i>that</i>.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
-<td class="colFirst"><code>void</code></td>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>abstract void</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#merge(org.apache.datasketches.kll.KllSketch)">merge</a></span>&#8203;(<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a>&nbsp;other)</code></th>
 <td class="colLast">
 <div class="block">Merges another sketch into this one.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString()">toString</a></span>()</code></th>
 <td class="colLast">
 <div class="block">Returns a summary of the key parameters of the sketch.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(boolean,boolean)">toString</a></span>&#8203;(boolean&nbsp;withLevels,
         boolean&nbsp;withData)</code></th>
@@ -403,7 +389,7 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;org.apache.datasketches.quantilescommon.<a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></h3>
-<code><a href="../quantilescommon/QuantilesAPI.html#getRankLowerBound(double)">getRankLowerBound</a>, <a href="../quantilescommon/QuantilesAPI.html#getRankUpperBound(double)">getRankUpperBound</a>, <a href="../quantilescommon/QuantilesAPI.html#reset()">reset</a></code></li>
+<code><a href="../quantilescommon/QuantilesAPI.html#getK()">getK</a>, <a href="../quantilescommon/QuantilesAPI.html#getN()">getN</a>, <a href="../quantilescommon/QuantilesAPI.html#getRankLowerBound(double)">getRankLowerBound</a>, <a href="../quantilescommon/QuantilesAPI.html#getRankUpperBound(double)">getRankUpperBound</a>, <a href="../quantilescommon/QuantilesAPI.html#reset()">reset</a></code></li>
 </ul>
 </li>
 </ul>
@@ -495,7 +481,7 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>k</code> - parameter that controls size of the sketch and accuracy of estimates</dd>
 <dd><code>n</code> - stream length</dd>
-<dd><code>sketchType</code> - either DOUBLES_SKETCH or FLOATS_SKETCH</dd>
+<dd><code>sketchType</code> - Only DOUBLES_SKETCH and FLOATS_SKETCH is supported for this operation.</dd>
 <dd><code>updatableMemFormat</code> - true if updatable Memory format, otherwise the standard compact format.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>upper bound on the serialized size of a KllSketch.</dd>
@@ -522,78 +508,6 @@ implements <a href="../quantilescommon/QuantilesAPI.html" title="interface in or
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>if pmf is true, the normalized rank error for the getPMF() function.
  Otherwise, it is the "single-sided" normalized rank error for all the other queries.</dd>
-</dl>
-</li>
-</ul>
-<a id="getCurrentCompactSerializedSizeBytes()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getCurrentCompactSerializedSizeBytes</h4>
-<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
-public final&nbsp;int&nbsp;getCurrentCompactSerializedSizeBytes()</pre>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">version 4.0.0 use <a href="#getSerializedSizeBytes()"><code>getSerializedSizeBytes()</code></a>.</div>
-</div>
-<div class="block">Returns the current number of bytes this sketch would require to store in the compact Memory Format.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the current number of bytes this sketch would require to store in the compact Memory Format.</dd>
-</dl>
-</li>
-</ul>
-<a id="getCurrentUpdatableSerializedSizeBytes()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getCurrentUpdatableSerializedSizeBytes</h4>
-<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
-public final&nbsp;int&nbsp;getCurrentUpdatableSerializedSizeBytes()</pre>
-<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span>
-<div class="deprecationComment">version 4.0.0 use <a href="#getSerializedSizeBytes()"><code>getSerializedSizeBytes()</code></a>.</div>
-</div>
-<div class="block">Returns the current number of bytes this sketch would require to store in the updatable Memory Format.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the current number of bytes this sketch would require to store in the updatable Memory Format.</dd>
-</dl>
-</li>
-</ul>
-<a id="getK()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getK</h4>
-<pre class="methodSignature">public abstract&nbsp;int&nbsp;getK()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html#getK()">QuantilesAPI</a></code></span></div>
-<div class="block">Gets the user configured parameter k, which controls the accuracy of the sketch
- and its memory space usage.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/QuantilesAPI.html#getK()">getK</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the user configured parameter k, which controls the accuracy of the sketch
- and its memory space usage.</dd>
-</dl>
-</li>
-</ul>
-<a id="getN()">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getN</h4>
-<pre class="methodSignature">public abstract&nbsp;long&nbsp;getN()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html#getN()">QuantilesAPI</a></code></span></div>
-<div class="block">Gets the length of the input stream.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../quantilescommon/QuantilesAPI.html#getN()">getN</a></code>&nbsp;in interface&nbsp;<code><a href="../quantilescommon/QuantilesAPI.html" title="interface in org.apache.datasketches.quantilescommon">QuantilesAPI</a></code></dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the length of the input stream.</dd>
 </dl>
 </li>
 </ul>
@@ -641,7 +555,7 @@ public final&nbsp;int&nbsp;getCurrentUpdatableSerializedSizeBytes()</pre>
 <li class="blockList">
 <h4>getSerializedSizeBytes</h4>
 <pre class="methodSignature">public&nbsp;int&nbsp;getSerializedSizeBytes()</pre>
-<div class="block">Returns the current number of bytes this Sketch would require if serialized.</div>
+<div class="block">Returns the current number of bytes this Sketch would require if serialized in compact form.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>the number of bytes this sketch would require if serialized.</dd>
@@ -663,6 +577,15 @@ public final&nbsp;int&nbsp;getCurrentUpdatableSerializedSizeBytes()</pre>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>true if this sketch's data structure is backed by Memory or WritableMemory.</dd>
 </dl>
+</li>
+</ul>
+<a id="isCompactMemoryFormat()">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isCompactMemoryFormat</h4>
+<pre class="methodSignature">public&nbsp;boolean&nbsp;isCompactMemoryFormat()</pre>
 </li>
 </ul>
 <a id="isDirect()">
@@ -772,10 +695,9 @@ public final&nbsp;int&nbsp;getCurrentUpdatableSerializedSizeBytes()</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>merge</h4>
-<pre class="methodSignature">public final&nbsp;void&nbsp;merge&#8203;(<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a>&nbsp;other)</pre>
+<pre class="methodSignature">public abstract&nbsp;void&nbsp;merge&#8203;(<a href="KllSketch.html" title="class in org.apache.datasketches.kll">KllSketch</a>&nbsp;other)</pre>
 <div class="block">Merges another sketch into this one.
- Attempting to merge a KllDoublesSketch with a KllFloatsSketch will
- throw an exception.</div>
+ Attempting to merge a sketch of the wrong type will throw an exception.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>other</code> - sketch to merge into this one</dd>

@@ -27,8 +27,8 @@
     catch(err) {
     }
 //-->
-var data = {"i0":10,"i1":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var data = {"i0":42,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"],32:["t6","Deprecated Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -187,7 +187,7 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t6" class="tableTab"><span><a href="javascript:show(32);">Deprecated Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colSecond" scope="col">Method</th>
@@ -196,16 +196,69 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
-                     int&nbsp;length)</code></th>
+                     int&nbsp;numItems)</code></th>
 <td class="colLast">
-<div class="block">Deserialize an array of items from a given Memory object.</div>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">deserializeFromMemory</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+                     long&nbsp;offsetBytes,
+                     int&nbsp;numItems)</code></th>
+<td class="colLast">
+<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#getClassOfT()">getClassOfT</a></span>()</code></th>
+<td class="colLast">
+<div class="block">Returns the concrete class of type T</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>byte[]</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#serializeToByteArray(java.lang.Number)">serializeToByteArray</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&nbsp;item)</code></th>
+<td class="colLast">
+<div class="block">Serialize a single unserialized item to a byte array.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#serializeToByteArray(java.lang.Number%5B%5D)">serializeToByteArray</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;items)</code></th>
 <td class="colLast">
-<div class="block">Serialize an array of items to byte array.</div>
+<div class="block">Serialize an array of unserialized items to a byte array of contiguous serialized items.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#sizeOf(java.lang.Number)">sizeOf</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&nbsp;item)</code></th>
+<td class="colLast">
+<div class="block">Returns the serialized size in bytes of a single unserialized item.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#sizeOf(java.lang.Number%5B%5D)">sizeOf</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;items)</code></th>
+<td class="colLast">
+<div class="block">Returns the serialized size in bytes of the array of items.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>int</code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#sizeOf(org.apache.datasketches.memory.Memory,long,int)">sizeOf</a></span>&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+      long&nbsp;offsetBytes,
+      int&nbsp;numItems)</code></th>
+<td class="colLast">
+<div class="block">Returns the serialized size in bytes of the number of contiguous serialized items in Memory.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a></code></td>
+<th class="colSecond" scope="row"><code><span class="memberNameLink"><a href="#toString(java.lang.Number)">toString</a></span>&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&nbsp;item)</code></th>
+<td class="colLast">
+<div class="block">Returns a human readable string of an item.</div>
 </td>
 </tr>
 </table>
@@ -251,6 +304,25 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a id="serializeToByteArray(java.lang.Number)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>serializeToByteArray</h4>
+<pre class="methodSignature">public&nbsp;byte[]&nbsp;serializeToByteArray&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&nbsp;item)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#serializeToByteArray(T)">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Serialize a single unserialized item to a byte array.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#serializeToByteArray(T)">serializeToByteArray</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item</code> - the item to be serialized</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>serialized representation of the given item</dd>
+</dl>
+</li>
+</ul>
 <a id="serializeToByteArray(java.lang.Number[])">
 <!--   -->
 </a>
@@ -259,38 +331,158 @@ extends <a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches
 <h4>serializeToByteArray</h4>
 <pre class="methodSignature">public&nbsp;byte[]&nbsp;serializeToByteArray&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;items)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#serializeToByteArray(T%5B%5D)">ArrayOfItemsSerDe</a></code></span></div>
-<div class="block">Serialize an array of items to byte array.
- The size of the array doesn't need to be serialized.
- This method is called by the sketch serialization process.</div>
+<div class="block">Serialize an array of unserialized items to a byte array of contiguous serialized items.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="ArrayOfItemsSerDe.html#serializeToByteArray(T%5B%5D)">serializeToByteArray</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>items</code> - array of items to be serialized</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>serialized representation of the given array of items</dd>
+<dd>contiguous, serialized representation of the given array of unserialized items</dd>
 </dl>
 </li>
 </ul>
 <a id="deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>deserializeFromMemory</h4>
-<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
-                                      int&nbsp;length)</pre>
+<pre class="methodSignature"><a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Deprecated.html?is-external=true" title="class or interface in java.lang" class="externalLink">@Deprecated</a>
+public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+                                      int&nbsp;numItems)</pre>
+<div class="deprecationBlock"><span class="deprecatedLabel">Deprecated.</span></div>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">ArrayOfItemsSerDe</a></code></span></div>
-<div class="block">Deserialize an array of items from a given Memory object.
- This method is called by the sketch deserialization process.</div>
+<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,int)">deserializeFromMemory</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>mem</code> - Memory containing a serialized array of items</dd>
-<dd><code>length</code> - number of items in the serialized array</dd>
+<dd><code>mem</code> - Memory containing a contiguous sequence of serialized items</dd>
+<dd><code>numItems</code> - number of items in the contiguous serialized sequence.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>deserialized array of items</dd>
+<dd>array of deserialized items</dd>
+</dl>
+</li>
+</ul>
+<a id="deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>deserializeFromMemory</h4>
+<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;deserializeFromMemory&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+                                      long&nbsp;offsetBytes,
+                                      int&nbsp;numItems)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Deserialize a contiguous sequence of serialized items from a given Memory.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#deserializeFromMemory(org.apache.datasketches.memory.Memory,long,int)">deserializeFromMemory</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>mem</code> - Memory containing a contiguous sequence of serialized items</dd>
+<dd><code>offsetBytes</code> - the starting offset in the given Memory.</dd>
+<dd><code>numItems</code> - number of items in the contiguous serialized sequence.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>array of deserialized items</dd>
+</dl>
+</li>
+</ul>
+<a id="sizeOf(java.lang.Number)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>sizeOf</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;sizeOf&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&nbsp;item)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#sizeOf(T)">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Returns the serialized size in bytes of a single unserialized item.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#sizeOf(T)">sizeOf</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item</code> - a specific item</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the serialized size in bytes of a single unserialized item.</dd>
+</dl>
+</li>
+</ul>
+<a id="sizeOf(java.lang.Number[])">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>sizeOf</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;sizeOf&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>[]&nbsp;items)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#sizeOf(T%5B%5D)">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Returns the serialized size in bytes of the array of items.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#sizeOf(T%5B%5D)">sizeOf</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>items</code> - an array of items.</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the serialized size in bytes of the array of items.</dd>
+</dl>
+</li>
+</ul>
+<a id="sizeOf(org.apache.datasketches.memory.Memory,long,int)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>sizeOf</h4>
+<pre class="methodSignature">public&nbsp;int&nbsp;sizeOf&#8203;(org.apache.datasketches.memory.Memory&nbsp;mem,
+                  long&nbsp;offsetBytes,
+                  int&nbsp;numItems)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#sizeOf(org.apache.datasketches.memory.Memory,long,int)">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Returns the serialized size in bytes of the number of contiguous serialized items in Memory.
+ The capacity of the given Memory can be much larger that the required size of the items.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#sizeOf(org.apache.datasketches.memory.Memory,long,int)">sizeOf</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>mem</code> - the given Memory.</dd>
+<dd><code>offsetBytes</code> - the starting offset in the given Memory.</dd>
+<dd><code>numItems</code> - the number of serialized items contained in the Memory</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the serialized size in bytes of the given number of items.</dd>
+</dl>
+</li>
+</ul>
+<a id="toString(java.lang.Number)">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toString</h4>
+<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/String.html?is-external=true" title="class or interface in java.lang" class="externalLink">String</a>&nbsp;toString&#8203;(<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&nbsp;item)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#toString(T)">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Returns a human readable string of an item.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#toString(T)">toString</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>item</code> - a specific item</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a human readable string of an item.</dd>
+</dl>
+</li>
+</ul>
+<a id="getClassOfT()">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getClassOfT</h4>
+<pre class="methodSignature">public&nbsp;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Class.html?is-external=true" title="class or interface in java.lang" class="externalLink">Class</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;&nbsp;getClassOfT()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="ArrayOfItemsSerDe.html#getClassOfT()">ArrayOfItemsSerDe</a></code></span></div>
+<div class="block">Returns the concrete class of type T</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="ArrayOfItemsSerDe.html#getClassOfT()">getClassOfT</a></code>&nbsp;in class&nbsp;<code><a href="ArrayOfItemsSerDe.html" title="class in org.apache.datasketches.common">ArrayOfItemsSerDe</a>&lt;<a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Number.html?is-external=true" title="class or interface in java.lang" class="externalLink">Number</a>&gt;</code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the concrete class of type T</dd>
 </dl>
 </li>
 </ul>
