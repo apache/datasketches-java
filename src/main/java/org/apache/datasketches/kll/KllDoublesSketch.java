@@ -278,6 +278,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public DoublesSortedView getSortedView() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllDoublesSV;
   }
@@ -313,6 +314,7 @@ public abstract class KllDoublesSketch extends KllSketch implements QuantilesDou
     setMinItem(Double.NaN);
     setMaxItem(Double.NaN);
     setDoubleItemsArray(new double[k]);
+    kllDoublesSV = null;
   }
 
   @Override

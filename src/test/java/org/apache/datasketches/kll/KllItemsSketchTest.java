@@ -39,6 +39,7 @@ import org.apache.datasketches.kll.KllSketch.SketchType;
 import org.apache.datasketches.memory.DefaultMemoryRequestServer;
 import org.apache.datasketches.memory.Memory;
 import org.apache.datasketches.memory.WritableMemory;
+import org.apache.datasketches.quantilescommon.DoublesSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedView;
 import org.apache.datasketches.quantilescommon.GenericSortedViewIterator;
 import org.testng.annotations.Test;
@@ -735,6 +736,17 @@ public class KllItemsSketchTest {
     try { sk2.setMinItem(null); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setMinK(0); fail(); } catch (SketchesArgumentException e) { }
     try { sk2.setN(0); fail(); } catch (SketchesArgumentException e) { }
+  }
+
+  @Test
+  public void checkSortedViewAfterReset() {
+    KllItemsSketch<String> sk = KllItemsSketch.newHeapInstance(20, Comparator.naturalOrder(), serDe);
+    sk.update("1");
+    GenericSortedView<String> sv = sk.getSortedView();
+    String ssv = sv.getQuantile(1.0, INCLUSIVE);
+    assertEquals(ssv, "1");
+    sk.reset();
+    try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
   }
 
 

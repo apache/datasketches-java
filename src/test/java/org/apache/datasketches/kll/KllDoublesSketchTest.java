@@ -612,6 +612,17 @@ public class KllDoublesSketchTest {
     assertTrue(sk1.isSameResource(reg3));
   }
 
+  @Test
+  public void checkSortedViewAfterReset() {
+    KllDoublesSketch sk = KllDoublesSketch.newHeapInstance(20);
+    sk.update(1.0);
+    DoublesSortedView sv = sk.getSortedView();
+    double dsv = sv.getQuantile(1.0, INCLUSIVE);
+    assertEquals(dsv, 1.0);
+    sk.reset();
+    try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
+  }
+
   private final static boolean enablePrinting = false;
 
   /**

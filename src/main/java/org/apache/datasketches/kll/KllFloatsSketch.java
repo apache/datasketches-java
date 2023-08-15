@@ -278,6 +278,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
   @Override
   @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "OK in this case.")
   public FloatsSortedView getSortedView() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllFloatsSV;
   }
@@ -313,6 +314,7 @@ public abstract class KllFloatsSketch extends KllSketch implements QuantilesFloa
     setMinItem(Float.NaN);
     setMaxItem(Float.NaN);
     setFloatItemsArray(new float[k]);
+    kllFloatsSV = null;
   }
 
   @Override

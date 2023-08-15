@@ -612,6 +612,17 @@ public class KllFloatsSketchTest {
     assertTrue(sk1.isSameResource(reg3));
   }
 
+  @Test
+  public void checkSortedViewAfterReset() {
+    KllFloatsSketch sk = KllFloatsSketch.newHeapInstance(20);
+    sk.update(1.0f);
+    FloatsSortedView sv = sk.getSortedView();
+    float fsv = sv.getQuantile(1.0, INCLUSIVE);
+    assertEquals(fsv, 1.0f);
+    sk.reset();
+    try { sk.getSortedView(); fail(); } catch (SketchesArgumentException e) { }
+  }
+
   private final static boolean enablePrinting = false;
 
   /**

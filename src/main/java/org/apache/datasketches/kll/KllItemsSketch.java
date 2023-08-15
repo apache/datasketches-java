@@ -241,6 +241,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
 
   @Override
   public KllItemsSketchSortedView<T> getSortedView() {
+    if (isEmpty()) { throw new SketchesArgumentException(EMPTY_MSG); }
     refreshSortedView();
     return kllItemsSV;
   }
@@ -272,6 +273,7 @@ public abstract class KllItemsSketch<T> extends KllSketch implements QuantilesGe
     setMinItem(null);
     setMaxItem(null);
     setItemsArray(new Object[k]);
+    kllItemsSV = null;
   }
 
   public byte[] toByteArray() {
